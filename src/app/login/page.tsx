@@ -1,0 +1,71 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { Rocket, Github } from 'lucide-react';
+import { getSession } from '@/lib/auth';
+
+export default async function LoginPage() {
+    // Redirect if already logged in
+    const session = await getSession();
+    if (session) {
+        redirect('/dashboard');
+    }
+
+    return (
+        <div className="min-h-screen grid-bg flex items-center justify-center p-4">
+            <div className="w-full max-w-md">
+                {/* Logo */}
+                <div className="flex items-center justify-center gap-2 mb-8">
+                    <Rocket className="w-10 h-10 text-[var(--primary)]" />
+                    <span className="text-3xl font-bold gradient-text">Deployify</span>
+                </div>
+
+                {/* Login Card */}
+                <div className="card-glass p-8">
+                    <h1 className="text-2xl font-bold text-center mb-2">Welcome back</h1>
+                    <p className="text-[var(--muted-foreground)] text-center mb-8">
+                        Sign in to manage your deployments
+                    </p>
+
+                    {/* GitHub Login Button */}
+                    <Link
+                        href="/api/auth/github"
+                        prefetch={false}
+                        className="btn btn-secondary w-full py-4 text-base"
+                    >
+                        <Github className="w-5 h-5" />
+                        Continue with GitHub
+                    </Link>
+
+                    <div className="relative my-8">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-[var(--border)]"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-[var(--glass-bg)] text-[var(--muted)]">
+                                Secure OAuth 2.0
+                            </span>
+                        </div>
+                    </div>
+
+                    <p className="text-center text-sm text-[var(--muted-foreground)]">
+                        By signing in, you agree to our{' '}
+                        <Link href="/terms" className="text-[var(--primary)] hover:underline">
+                            Terms of Service
+                        </Link>{' '}
+                        and{' '}
+                        <Link href="/privacy" className="text-[var(--primary)] hover:underline">
+                            Privacy Policy
+                        </Link>
+                    </p>
+                </div>
+
+                {/* Back to home */}
+                <p className="text-center mt-6 text-sm text-[var(--muted-foreground)]">
+                    <Link href="/" className="text-[var(--primary)] hover:underline">
+                        ← Back to home
+                    </Link>
+                </p>
+            </div>
+        </div>
+    );
+}
