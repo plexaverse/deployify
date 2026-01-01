@@ -233,7 +233,7 @@ fi`,
             connectedRepository: {
                 // Format: projects/{project}/locations/{location}/connections/{connection}/repositories/{repo}
                 repository: `projects/${config.gcp.projectId}/locations/${region}/connections/deployify-github/repositories/${repoName}`,
-                revision: branch,
+                revision: commitSha,
             },
         },
         steps: commonSteps,
