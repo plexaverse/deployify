@@ -1,4 +1,4 @@
-# Deployify 🚀
+# Deployify 🚀 version 0.1
 
 A self-hosted Vercel-like deployment platform for Next.js applications using Google Cloud Platform.
 
