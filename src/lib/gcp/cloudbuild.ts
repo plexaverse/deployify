@@ -181,6 +181,17 @@ fi`,
                 ...envArgs,
             ],
         },
+        // Route 100% traffic to the latest revision
+        // This is critical - without this, traffic may stay on old revisions
+        {
+            name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+            entrypoint: 'gcloud',
+            args: [
+                'run', 'services', 'update-traffic', serviceName,
+                '--region', region,
+                '--to-latest',
+            ],
+        },
         // Explicitly set IAM policy to allow unauthenticated access
         // Using longer delays and multiple retries for reliability
         {
