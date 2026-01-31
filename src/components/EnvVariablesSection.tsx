@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Eye, EyeOff, Save, X } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Save, X, Copy, Check } from 'lucide-react';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
 
 interface EnvVariablesSectionProps {
@@ -25,6 +25,13 @@ export function EnvVariablesSection({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+
+    const copyToClipboard = async (id: string, value: string) => {
+        await navigator.clipboard.writeText(value);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     const toggleReveal = (id: string) => {
         const newRevealed = new Set(revealedIds);
@@ -258,19 +265,34 @@ export function EnvVariablesSection({
                                         ? '••••••••'
                                         : env.value}
                                 </span>
-                                {env.isSecret && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                    {env.isSecret && (
+                                        <button
+                                            onClick={() => toggleReveal(env.id)}
+                                            className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-1"
+                                            title={revealedIds.has(env.id) ? 'Hide value' : 'Show value'}
+                                            aria-label={revealedIds.has(env.id) ? 'Hide value' : 'Show value'}
+                                        >
+                                            {revealedIds.has(env.id) ? (
+                                                <EyeOff className="w-4 h-4" />
+                                            ) : (
+                                                <Eye className="w-4 h-4" />
+                                            )}
+                                        </button>
+                                    )}
                                     <button
-                                        onClick={() => toggleReveal(env.id)}
-                                        className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex-shrink-0"
-                                        title={revealedIds.has(env.id) ? 'Hide value' : 'Show value'}
+                                        onClick={() => copyToClipboard(env.id, env.value)}
+                                        className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-1"
+                                        title="Copy value"
+                                        aria-label="Copy value"
                                     >
-                                        {revealedIds.has(env.id) ? (
-                                            <EyeOff className="w-4 h-4" />
+                                        {copiedId === env.id ? (
+                                            <Check className="w-4 h-4 text-green-400" />
                                         ) : (
-                                            <Eye className="w-4 h-4" />
+                                            <Copy className="w-4 h-4" />
                                         )}
                                     </button>
-                                )}
+                                </div>
                             </div>
                             <div className="col-span-2">
                                 <span className="text-xs px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)]">
@@ -282,6 +304,7 @@ export function EnvVariablesSection({
                                     onClick={() => handleDelete(env.id, env.key)}
                                     className="text-[var(--muted-foreground)] hover:text-red-400 p-1"
                                     title="Delete variable"
+                                    aria-label={`Delete environment variable ${env.key}`}
                                     disabled={loading}
                                 >
                                     <Trash2 className="w-4 h-4" />
