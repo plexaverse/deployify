@@ -5,3 +5,7 @@
 ## 2026-02-12 - [Accessible Form Patterns and Clearable Search]
 **Learning:** This application frequently uses icons within form sections without semantic label associations, which impairs screen reader accessibility. Additionally, the search interaction lacks a quick way to reset state.
 **Action:** Always wrap section titles in `<label htmlFor="...">` when they precede form elements, and implement a clear button (X icon) for all search inputs that appears only when text is present.
+
+## 2026-02-14 - [Keyboard Shortcuts and Strict Linting]
+**Learning:** Adding a keyboard shortcut (like Cmd+K) significantly improves power-user experience. However, implementing OS-detection via `navigator` in a `useEffect` can trigger cascading render warnings in strict environments if `setState` is called synchronously. Additionally, using `Math.random()` in render for "randomized" visual effects (like beams) violates component purity rules.
+**Action:** Always defer OS-detection state updates using `setTimeout` or `requestAnimationFrame` to appease strict linters, and use pre-defined constants instead of `Math.random()` for visual variations.
