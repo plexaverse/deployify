@@ -14,7 +14,9 @@ import {
     CheckCircle2,
     XCircle,
     Loader2,
-    AlertCircle
+    AlertCircle,
+    Copy,
+    Check
 } from 'lucide-react';
 import type { Project, Deployment } from '@/types';
 
@@ -25,6 +27,7 @@ export default function ProjectDetailPage() {
     const [deployments, setDeployments] = useState<Deployment[]>([]);
     const [loading, setLoading] = useState(true);
     const [deploying, setDeploying] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         async function fetchProject() {
@@ -74,6 +77,17 @@ export default function ProjectDetailPage() {
             hour: '2-digit',
             minute: '2-digit',
         });
+    };
+
+    const handleCopyUrl = async () => {
+        if (!project?.productionUrl) return;
+        try {
+            await navigator.clipboard.writeText(project.productionUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy URL:', err);
+        }
     };
 
     const handleRedeploy = async () => {
@@ -185,14 +199,33 @@ export default function ProjectDetailPage() {
                 </div>
 
                 {project.productionUrl ? (
-                    <div className="flex items-center gap-3 p-4 rounded-lg bg-[var(--background)]">
-                        <div className="status-dot status-dot-ready"></div>
-                        <div>
-                            <p className="font-medium">{project.productionUrl}</p>
-                            <p className="text-sm text-[var(--muted-foreground)]">
-                                Deployed from {project.defaultBranch}
-                            </p>
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--background)]">
+                        <div className="flex items-center gap-3">
+                            <div className="status-dot status-dot-ready"></div>
+                            <div>
+                                <p className="font-medium">{project.productionUrl}</p>
+                                <p className="text-sm text-[var(--muted-foreground)]">
+                                    Deployed from {project.defaultBranch}
+                                </p>
+                            </div>
                         </div>
+                        <button
+                            onClick={handleCopyUrl}
+                            className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-hover)] rounded-md transition-all flex items-center gap-2 text-sm"
+                            aria-label="Copy production URL"
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="w-4 h-4 text-[var(--success)]" />
+                                    <span className="text-[var(--success)]">Copied!</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Copy className="w-4 h-4" />
+                                    <span>Copy</span>
+                                </>
+                            )}
+                        </button>
                     </div>
                 ) : (
                     <div className="p-4 rounded-lg bg-[var(--background)] text-center">

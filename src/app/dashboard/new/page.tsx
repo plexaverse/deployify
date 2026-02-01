@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, MapPin } from 'lucide-react';
+import { ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, MapPin, X } from 'lucide-react';
 import type { GitHubRepo } from '@/types';
 
 export default function NewProjectPage() {
@@ -123,12 +123,13 @@ export default function NewProjectPage() {
             <div className="mb-6 card">
                 <div className="flex items-center gap-2 mb-3">
                     <MapPin className="w-4 h-4 text-[var(--primary)]" />
-                    <span className="font-medium">Deployment Region</span>
+                    <label htmlFor="region-select" className="font-medium">Deployment Region</label>
                 </div>
                 <p className="text-sm text-[var(--muted-foreground)] mb-3">
                     Choose where your app will be deployed. Select a region close to your users.
                 </p>
                 <select
+                    id="region-select"
                     value={selectedRegion}
                     onChange={(e) => setSelectedRegion(e.target.value)}
                     className="input w-full sm:w-auto"
@@ -149,8 +150,18 @@ export default function NewProjectPage() {
                     placeholder="Search repositories..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="input pl-10"
+                    className="input pl-10 pr-10"
+                    aria-label="Search repositories"
                 />
+                {search && (
+                    <button
+                        onClick={() => setSearch('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)] p-1 rounded-md hover:bg-[var(--card-hover)] transition-colors"
+                        aria-label="Clear search"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
             </div>
 
             {/* Error message */}
