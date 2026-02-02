@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu } from 'lucide-react';
+import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Spotlight } from '@/components/ui/spotlight';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { BackgroundBeams } from '@/components/ui/background-beams';
@@ -11,7 +12,15 @@ import { BackgroundBeams } from '@/components/ui/background-beams';
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [os, setOs] = useState<'mac' | 'other' | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   useEffect(() => {
     // Detect OS and defer state update to avoid lint error
@@ -94,7 +103,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-4xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50 leading-tight mb-6"
+              className="text-5xl md:text-8xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50 leading-tight tracking-tighter mb-6"
             >
               Deploy like Vercel, <br /> Pay like raw GCP.
             </motion.h1>
@@ -124,14 +133,118 @@ export default function HomePage() {
                 Connect GitHub
                 <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link
-                href="#features"
-                className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold border border-white/10 hover:bg-white/5 transition-all text-center"
+              <button
+                className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold border border-white/10 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2"
+                aria-label="Watch demo video"
               >
-                Documentation
-              </Link>
+                <Zap className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                Watch Demo
+              </button>
+            </motion.div>
+
+            {/* Micro-UX: Quick Copy Command */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="mt-12 max-w-md mx-auto p-1 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-3 pr-4 group"
+            >
+              <div className="bg-indigo-500/10 px-3 py-2 rounded-xl text-xs font-mono text-indigo-400 font-bold">
+                $
+              </div>
+              <code className="text-sm font-mono text-neutral-300 flex-1 text-left">
+                pnpm dlx deployify login
+              </code>
+              <button
+                onClick={() => handleCopy('pnpm dlx deployify login', 'login-cmd')}
+                className="p-2 hover:bg-white/10 rounded-xl transition-all text-neutral-500 hover:text-white active:scale-95"
+                aria-label="Copy login command"
+              >
+                {copiedId === 'login-cmd' ? (
+                  <Check className="w-4 h-4 text-emerald-500" />
+                ) : (
+                  <Copy className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                )}
+              </button>
             </motion.div>
           </motion.div>
+
+          {/* Social Proof */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            viewport={{ once: true }}
+            className="mt-24 text-center"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-neutral-500 mb-8">
+              Trusted by innovative teams
+            </p>
+            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+              {['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA'].map((logo) => (
+                <span key={logo} className="text-xl md:text-2xl font-black tracking-tighter text-neutral-400 hover:text-white transition-colors cursor-default">
+                  {logo}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* The Method Section */}
+          <div className="mt-40">
+            <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
+              The Deployify Method
+            </h2>
+            <div className="grid md:grid-cols-2 gap-12 items-center bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
+              <div className="space-y-4" role="tablist" aria-label="Deployment Method Tabs">
+                {[
+                  { title: "Connect", desc: "Sync your GitHub repo in one click.", icon: <Github className="w-5 h-5" /> },
+                  { title: "Push", desc: "Automatic builds on every commit.", icon: <Rocket className="w-5 h-5" /> },
+                  { title: "Preview", desc: "Unique URLs for every PR.", icon: <Globe className="w-5 h-5" /> },
+                  { title: "Scale", desc: "Global edge network & WAF.", icon: <Shield className="w-5 h-5" /> }
+                ].map((step, i) => (
+                  <button
+                    key={i}
+                    role="tab"
+                    aria-selected={activeTab === i}
+                    aria-controls={`tab-panel-${i}`}
+                    id={`tab-${i}`}
+                    onClick={() => setActiveTab(i)}
+                    className={cn(
+                      "w-full text-left p-6 rounded-2xl transition-all duration-300 flex gap-4 items-start",
+                      activeTab === i ? "bg-white/10 shadow-lg ring-1 ring-white/20" : "hover:bg-white/5 opacity-50"
+                    )}
+                  >
+                    <div className={cn("mt-1 p-2 rounded-lg", activeTab === i ? "bg-indigo-500 text-white" : "bg-white/5")}>
+                      {step.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-lg">{step.title}</h4>
+                      <p className="text-neutral-400 text-sm">{step.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="relative aspect-square md:aspect-auto md:h-full min-h-[400px] bg-neutral-900 rounded-[2rem] border border-white/10 overflow-hidden flex items-center justify-center p-12">
+                 <motion.div
+                   key={activeTab}
+                   role="tabpanel"
+                   id={`tab-panel-${activeTab}`}
+                   aria-labelledby={`tab-${activeTab}`}
+                   initial={{ opacity: 0, scale: 0.95 }}
+                   animate={{ opacity: 1, scale: 1 }}
+                   className="w-full h-full flex items-center justify-center"
+                 >
+                    <div className="text-center">
+                       <div className="w-20 h-20 rounded-3xl bg-indigo-500/20 flex items-center justify-center mx-auto mb-6">
+                         {[<Github key={0} className="w-10 h-10" />, <Rocket key={1} className="w-10 h-10" />, <Globe key={2} className="w-10 h-10" />, <Shield key={3} className="w-10 h-10" />][activeTab]}
+                       </div>
+                       <h3 className="text-2xl font-bold mb-2">{["GitHub Integration", "Instant Deployment", "Preview Links", "Production Grade"][activeTab]}</h3>
+                       <p className="text-neutral-400">Experience the fastest way to ship Next.js apps.</p>
+                    </div>
+                 </motion.div>
+              </div>
+            </div>
+          </div>
 
           {/* Feature Bento Grid */}
           <div id="features" className="mt-40">
