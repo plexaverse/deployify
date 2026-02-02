@@ -9,3 +9,7 @@
 ## 2026-02-14 - [Keyboard Shortcuts and Strict Linting]
 **Learning:** Adding a keyboard shortcut (like Cmd+K) significantly improves power-user experience. However, implementing OS-detection via `navigator` in a `useEffect` can trigger cascading render warnings in strict environments if `setState` is called synchronously. Additionally, using `Math.random()` in render for "randomized" visual effects (like beams) violates component purity rules.
 **Action:** Always defer OS-detection state updates using `setTimeout` or `requestAnimationFrame` to appease strict linters, and use pre-defined constants instead of `Math.random()` for visual variations.
+
+## 2026-02-15 - [Accessible Tabbed Interfaces]
+**Learning:** Custom tab switchers often lack the necessary ARIA semantics, making them unusable for screen reader users who cannot perceive the relationship between the trigger and the content panel.
+**Action:** Always implement `role="tablist"`, `role="tab"`, and `role="tabpanel"` with appropriate `aria-selected`, `aria-controls`, and `aria-labelledby` attributes for any tab-based navigation.
