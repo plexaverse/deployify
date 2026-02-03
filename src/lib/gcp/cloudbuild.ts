@@ -395,7 +395,7 @@ export function mapBuildStatusToDeploymentStatus(
 /**
  * Cancel a running build
  */
-export async function cancelBuild(buildId: string): Promise<void> {
+export async function cancelBuild(buildId: string, projectRegion?: string | null): Promise<void> {
     const tokenResponse = await fetch(
         'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
         { headers: { 'Metadata-Flavor': 'Google' } }
@@ -408,8 +408,12 @@ export async function cancelBuild(buildId: string): Promise<void> {
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token;
 
+    // Use project-specific region or fall back to global config
+    const region = projectRegion || config.gcp.region;
+
+    // Use regional endpoint
     const response = await fetch(
-        `${CLOUD_BUILD_API}/projects/${config.gcp.projectId}/builds/${buildId}:cancel`,
+        `${CLOUD_BUILD_API}/projects/${config.gcp.projectId}/locations/${region}/builds/${buildId}:cancel`,
         {
             method: 'POST',
             headers: {

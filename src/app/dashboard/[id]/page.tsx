@@ -15,9 +15,10 @@ import {
     XCircle,
     Loader2,
     AlertCircle,
-    Copy,
-    Check
+    Copy
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
@@ -27,7 +28,6 @@ export default function ProjectDetailPage() {
     const [deployments, setDeployments] = useState<Deployment[]>([]);
     const [loading, setLoading] = useState(true);
     const [deploying, setDeploying] = useState(false);
-    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         async function fetchProject() {
@@ -79,14 +79,14 @@ export default function ProjectDetailPage() {
         });
     };
 
-    const handleCopyUrl = async () => {
-        if (!project?.productionUrl) return;
+    const handleCopyUrl = async (url?: string | null) => {
+        if (!url) return;
         try {
-            await navigator.clipboard.writeText(project.productionUrl);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            await navigator.clipboard.writeText(url);
+            toast.success('Copied to clipboard');
         } catch (err) {
             console.error('Failed to copy URL:', err);
+            toast.error('Failed to copy URL');
         }
     };
 
@@ -94,33 +94,73 @@ export default function ProjectDetailPage() {
         if (!project) return;
 
         setDeploying(true);
+        const toastId = toast.loading('Triggering deployment...');
         try {
             const response = await fetch(`/api/projects/${project.id}/deploy`, {
                 method: 'POST',
             });
 
             if (response.ok) {
+                toast.success('Deployment triggered', { id: toastId });
                 // Refresh deployments
                 const projectResponse = await fetch(`/api/projects/${project.id}`);
                 const data = await projectResponse.json();
                 setDeployments(data.deployments || []);
+            } else {
+                toast.error('Failed to trigger deployment', { id: toastId });
             }
         } catch (error) {
             console.error('Failed to trigger deployment:', error);
+            toast.error('Failed to trigger deployment', { id: toastId });
         } finally {
             setDeploying(false);
         }
     };
 
+    const handleCancel = async (deploymentId: string) => {
+        if (!project) return;
+        const toastId = toast.loading('Cancelling deployment...');
+        try {
+            const response = await fetch(`/api/projects/${project.id}/deploy?deploymentId=${deploymentId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                toast.success('Deployment cancelled', { id: toastId });
+                // Refresh deployments
+                const projectResponse = await fetch(`/api/projects/${project.id}`);
+                const data = await projectResponse.json();
+                setDeployments(data.deployments || []);
+            } else {
+                toast.error('Failed to cancel deployment', { id: toastId });
+            }
+        } catch (error) {
+            console.error('Failed to cancel deployment:', error);
+            toast.error('Failed to cancel deployment', { id: toastId });
+        }
+    };
+
+    const formatDuration = (ms?: number) => {
+        if (!ms) return null;
+        const seconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        if (minutes === 0) return `${remainingSeconds}s`;
+        return `${minutes}m ${remainingSeconds}s`;
+    };
+
     if (loading) {
         return (
             <div className="p-8">
-                <div className="animate-pulse">
-                    <div className="h-6 bg-[var(--border)] rounded w-1/4 mb-4"></div>
-                    <div className="h-4 bg-[var(--border)] rounded w-1/2 mb-8"></div>
-                    <div className="card">
-                        <div className="h-32 bg-[var(--border)] rounded"></div>
-                    </div>
+                <Skeleton className="h-8 w-1/4 mb-4" />
+                <Skeleton className="h-5 w-1/2 mb-8" />
+                <div className="card mb-8">
+                    <Skeleton className="h-32 w-full" />
+                </div>
+                <div className="card">
+                    <Skeleton className="h-6 w-48 mb-4" />
+                    <Skeleton className="h-24 w-full mb-4" />
+                    <Skeleton className="h-24 w-full" />
                 </div>
             </div>
         );
@@ -210,21 +250,12 @@ export default function ProjectDetailPage() {
                             </div>
                         </div>
                         <button
-                            onClick={handleCopyUrl}
+                            onClick={() => handleCopyUrl(project.productionUrl)}
                             className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-hover)] rounded-md transition-all flex items-center gap-2 text-sm"
                             aria-label="Copy production URL"
                         >
-                            {copied ? (
-                                <>
-                                    <Check className="w-4 h-4 text-[var(--success)]" />
-                                    <span className="text-[var(--success)]">Copied!</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Copy className="w-4 h-4" />
-                                    <span>Copy</span>
-                                </>
-                            )}
+                            <Copy className="w-4 h-4" />
+                            <span>Copy</span>
                         </button>
                     </div>
                 ) : (
@@ -265,27 +296,56 @@ export default function ProjectDetailPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-right flex flex-col items-end gap-1">
                                         <span className={`badge ${deployment.type === 'production' ? 'badge-success' : 'badge-info'
                                             }`}>
                                             {deployment.type}
                                         </span>
-                                        <p className="text-xs text-[var(--muted)] mt-1">
-                                            {formatDate(deployment.createdAt)}
-                                        </p>
+                                        <div className="flex items-center gap-3 text-xs text-[var(--muted)] mt-1">
+                                            {deployment.buildDurationMs && (
+                                                <span className="flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    {formatDuration(deployment.buildDurationMs)}
+                                                </span>
+                                            )}
+                                            <span>{formatDate(deployment.createdAt)}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            {(deployment.status === 'queued' || deployment.status === 'building') && (
+                                                <button
+                                                    onClick={() => handleCancel(deployment.id)}
+                                                    className="text-xs px-2 py-1 rounded bg-[var(--error)]/10 text-[var(--error)] hover:bg-[var(--error)]/20 transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            )}
+                                            {/* Redeploy button can go here if we want per-deployment redeploy */}
+
+                                        </div>
                                     </div>
                                 </div>
-                                {deployment.url && (
-                                    <a
-                                        href={deployment.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-xs text-[var(--primary)] hover:underline mt-2 ml-7"
-                                    >
-                                        <ExternalLink className="w-3 h-3" />
-                                        {deployment.url}
-                                    </a>
-                                )}
+                                <div className="flex items-center gap-4 mt-2 ml-7">
+                                    {deployment.url && (
+                                        <>
+                                            <a
+                                                href={deployment.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-xs text-[var(--primary)] hover:underline"
+                                            >
+                                                <ExternalLink className="w-3 h-3" />
+                                                {deployment.url}
+                                            </a>
+                                            <button
+                                                onClick={() => handleCopyUrl(deployment.url)}
+                                                className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                            >
+                                                <Copy className="w-3 h-3" />
+                                                Copy URL
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>

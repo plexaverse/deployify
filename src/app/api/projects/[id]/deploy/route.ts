@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getProjectById, createDeployment, updateDeployment, updateProject } from '@/lib/db';
+import { getProjectById, getDeploymentById, createDeployment, updateDeployment, updateProject } from '@/lib/db';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
 import { parseRepoFullName } from '@/lib/utils';
 import { config } from '@/lib/config';
-import { generateCloudRunDeployConfig, submitCloudBuild, getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
+import { generateCloudRunDeployConfig, submitCloudBuild, getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl, cancelBuild } from '@/lib/gcp/cloudbuild';
 import type { EnvVariable } from '@/types';
 
 interface RouteParams {
@@ -169,6 +169,85 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 }
 
+// DELETE /api/projects/[id]/deploy?deploymentId=... - Cancel deployment
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+    try {
+        const session = await getSession();
+        const { id } = await params;
+        const deploymentId = request.nextUrl.searchParams.get('deploymentId');
+
+        if (!session) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401, headers: securityHeaders }
+            );
+        }
+
+        if (!deploymentId) {
+            return NextResponse.json(
+                { error: 'Deployment ID required' },
+                { status: 400, headers: securityHeaders }
+            );
+        }
+
+        const project = await getProjectById(id);
+        if (!project) {
+            return NextResponse.json(
+                { error: 'Project not found' },
+                { status: 404, headers: securityHeaders }
+            );
+        }
+
+        if (project.userId !== session.user.id) {
+            return NextResponse.json(
+                { error: 'Forbidden' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
+
+        const deployment = await getDeploymentById(deploymentId);
+        if (!deployment || deployment.projectId !== id) {
+            return NextResponse.json(
+                { error: 'Deployment not found' },
+                { status: 404, headers: securityHeaders }
+            );
+        }
+
+        if (deployment.status !== 'queued' && deployment.status !== 'building') {
+            return NextResponse.json(
+                { error: 'Cannot cancel completed deployment' },
+                { status: 400, headers: securityHeaders }
+            );
+        }
+
+        if (isRunningOnGCP() && deployment.cloudBuildId) {
+            try {
+                await cancelBuild(deployment.cloudBuildId, project.region);
+            } catch (e) {
+                console.error('Failed to cancel Cloud Build:', e);
+                // Continue to update DB status even if Cloud Build cancel fails
+            }
+        }
+
+        await updateDeployment(deploymentId, {
+            status: 'cancelled',
+            errorMessage: 'Cancelled by user'
+        });
+
+        return NextResponse.json(
+            { success: true },
+            { status: 200, headers: securityHeaders }
+        );
+
+    } catch (error) {
+        console.error('Error cancelling deployment:', error);
+        return NextResponse.json(
+            { error: 'Failed to cancel deployment' },
+            { status: 500, headers: securityHeaders }
+        );
+    }
+}
+
 // Poll Cloud Build status and update deployment
 async function pollBuildStatus(deploymentId: string, projectId: string, projectSlug: string, buildId: string, projectRegion?: string | null) {
     const maxPolls = 60; // 30 minutes max (30s intervals)
@@ -188,7 +267,7 @@ async function pollBuildStatus(deploymentId: string, projectId: string, projectS
         }
 
         try {
-            const { status, finishTime } = await getBuildStatus(buildId, projectRegion);
+            const { status } = await getBuildStatus(buildId, projectRegion);
             const deploymentStatus = mapBuildStatusToDeploymentStatus(status);
 
             if (status === 'SUCCESS') {

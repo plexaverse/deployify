@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { Toaster } from 'sonner';
 import "./globals.css";
 
 const geist = Geist({
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${geist.variable} antialiased`}>
         {children}
+        <Toaster theme="dark" position="bottom-right" />
       </body>
     </html>
   );
