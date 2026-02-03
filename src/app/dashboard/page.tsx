@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, ExternalLink, GitBranch, Clock } from 'lucide-react';
+import { Plus, ExternalLink, GitBranch, Clock, Search } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { Project, Deployment } from '@/types';
 
 interface ProjectWithDeployment extends Project {
@@ -12,6 +13,7 @@ interface ProjectWithDeployment extends Project {
 export default function DashboardPage() {
     const [projects, setProjects] = useState<ProjectWithDeployment[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         async function fetchProjects() {
@@ -28,6 +30,14 @@ export default function DashboardPage() {
 
         fetchProjects();
     }, []);
+
+    const filteredProjects = projects.filter(project => {
+        const query = searchQuery.toLowerCase();
+        return (
+            project.name.toLowerCase().includes(query) ||
+            project.repoFullName.toLowerCase().includes(query)
+        );
+    });
 
     const getStatusBadge = (status?: string) => {
         switch (status) {
@@ -58,33 +68,45 @@ export default function DashboardPage() {
     return (
         <div className="p-8">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold">Projects</h1>
                     <p className="text-[var(--muted-foreground)] mt-1">
                         Manage your Next.js deployments
                     </p>
                 </div>
-                <Link href="/dashboard/new" className="btn btn-primary">
-                    <Plus className="w-4 h-4" />
-                    Add New
-                </Link>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
+                        <input
+                            type="text"
+                            placeholder="Search projects..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full h-10 pl-9 pr-4 bg-[var(--card)] border border-[var(--border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm transition-all"
+                        />
+                    </div>
+                    <Link href="/dashboard/new" className="btn btn-primary whitespace-nowrap">
+                        <Plus className="w-4 h-4" />
+                        Add New
+                    </Link>
+                </div>
             </div>
 
             {/* Loading state */}
             {loading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="card animate-pulse">
-                            <div className="h-4 bg-[var(--border)] rounded w-1/2 mb-4"></div>
-                            <div className="h-3 bg-[var(--border)] rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-[var(--border)] rounded w-1/3"></div>
+                        <div key={i} className="card">
+                            <Skeleton className="h-6 w-1/2 mb-4" />
+                            <Skeleton className="h-4 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-1/3" />
                         </div>
                     ))}
                 </div>
             )}
 
-            {/* Empty state */}
+            {/* Empty state - No projects at all */}
             {!loading && projects.length === 0 && (
                 <div className="card text-center py-16">
                     <div className="w-16 h-16 rounded-full bg-[var(--gradient-subtle)] flex items-center justify-center mx-auto mb-4">
@@ -101,10 +123,29 @@ export default function DashboardPage() {
                 </div>
             )}
 
+            {/* Empty state - No search results */}
+            {!loading && projects.length > 0 && filteredProjects.length === 0 && (
+                <div className="text-center py-12">
+                    <div className="w-12 h-12 rounded-full bg-[var(--card)] flex items-center justify-center mx-auto mb-4 border border-[var(--border)]">
+                        <Search className="w-5 h-5 text-[var(--muted-foreground)]" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">No projects found</h3>
+                    <p className="text-[var(--muted-foreground)]">
+                        No projects match &quot;{searchQuery}&quot;
+                    </p>
+                    <button
+                        onClick={() => setSearchQuery('')}
+                        className="btn btn-ghost mt-4 text-sm"
+                    >
+                        Clear search
+                    </button>
+                </div>
+            )}
+
             {/* Projects grid */}
-            {!loading && projects.length > 0 && (
+            {!loading && filteredProjects.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {projects.map((project) => (
+                    {filteredProjects.map((project) => (
                         <Link
                             key={project.id}
                             href={`/dashboard/${project.id}`}
