@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getProjectById, getDeploymentById } from '@/lib/db';
 import { securityHeaders } from '@/lib/security';
 import { getBuildLogsContent } from '@/lib/gcp/cloudbuild';
+import { isRunningOnGCP } from '@/lib/gcp/auth';
 
 interface RouteParams {
     params: Promise<{ id: string; deployId: string }>;
@@ -35,12 +36,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
              return NextResponse.json({ error: 'No build ID for this deployment' }, { status: 400, headers: securityHeaders });
         }
 
-        const logs = await getBuildLogsContent(deployment.cloudBuildId, project.region);
+        let logs = await getBuildLogsContent(deployment.cloudBuildId, project.region);
 
         if (!logs) {
-            // If logs are not found, it might be because the build is too old or failed early.
-            // Or running locally.
-            return NextResponse.json({ error: 'Logs not found' }, { status: 404, headers: securityHeaders });
+            // If logs are not found, check if we are in local development
+            if (!isRunningOnGCP()) {
+                logs = `[LOCAL DEV MODE]\n\nBuild logs are not available because this is a simulated deployment.\n\nTo view real Cloud Build logs:\n1. Deploy this application to Google Cloud Run\n2. Configure the required environment variables\n\nSimulation Steps:\n[+] Building Docker image...\n[+] Pushing to Artifact Registry...\n[+] Deploying to Cloud Run...\n[+] Done!`;
+            } else {
+                // If logs are not found, it might be because the build is too old or failed early.
+                return NextResponse.json({ error: 'Logs not found' }, { status: 404, headers: securityHeaders });
+            }
         }
 
         return NextResponse.json({ logs }, { status: 200, headers: securityHeaders });
