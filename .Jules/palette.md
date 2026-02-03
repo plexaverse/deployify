@@ -13,3 +13,7 @@
 ## 2026-02-15 - [Accessible Tabbed Interfaces]
 **Learning:** Custom tab switchers often lack the necessary ARIA semantics, making them unusable for screen reader users who cannot perceive the relationship between the trigger and the content panel.
 **Action:** Always implement `role="tablist"`, `role="tab"`, and `role="tabpanel"` with appropriate `aria-selected`, `aria-controls`, and `aria-labelledby` attributes for any tab-based navigation.
+
+## 2026-02-16 - [Vertical Flow and Compact Typography]
+**Learning:** For SaaS landing pages where the process is key, a vertical timeline (using TracingBeam) is more intuitive than a horizontal tabbed interface as it naturally guides the eye downwards to the CTA. Additionally, over-sized elements can make a professional tool feel "huge" and less efficient; scaling down typography (e.g., to text-6xl for hero) and reducing padding creates a more high-end, scripe.io-like feel.
+**Action:** Use TracingBeam for "The Method" section to create a cohesive narrative flow and maintain refined typography scales.
