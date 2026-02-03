@@ -15,10 +15,12 @@ import {
     XCircle,
     Loader2,
     AlertCircle,
-    Copy
+    Copy,
+    FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
@@ -28,6 +30,7 @@ export default function ProjectDetailPage() {
     const [deployments, setDeployments] = useState<Deployment[]>([]);
     const [loading, setLoading] = useState(true);
     const [deploying, setDeploying] = useState(false);
+    const [selectedLogsId, setSelectedLogsId] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchProject() {
@@ -137,6 +140,30 @@ export default function ProjectDetailPage() {
         } catch (error) {
             console.error('Failed to cancel deployment:', error);
             toast.error('Failed to cancel deployment', { id: toastId });
+        }
+    };
+
+    const handleRollback = async (deploymentId: string) => {
+        if (!project) return;
+        const toastId = toast.loading('Initiating rollback...');
+        try {
+            const response = await fetch(`/api/projects/${project.id}/deployments/${deploymentId}/rollback`, {
+                method: 'POST',
+            });
+
+            if (response.ok) {
+                toast.success('Rollback initiated', { id: toastId });
+                // Refresh deployments
+                const projectResponse = await fetch(`/api/projects/${project.id}`);
+                const data = await projectResponse.json();
+                setDeployments(data.deployments || []);
+            } else {
+                const err = await response.json();
+                toast.error(err.error || 'Failed to rollback', { id: toastId });
+            }
+        } catch (error) {
+            console.error('Failed to rollback:', error);
+            toast.error('Failed to rollback', { id: toastId });
         }
     };
 
@@ -319,8 +346,25 @@ export default function ProjectDetailPage() {
                                                     Cancel
                                                 </button>
                                             )}
-                                            {/* Redeploy button can go here if we want per-deployment redeploy */}
 
+                                            <button
+                                                onClick={() => setSelectedLogsId(deployment.id)}
+                                                className="text-xs px-2 py-1 rounded bg-[var(--secondary)] hover:bg-[var(--secondary)]/80 transition-colors flex items-center gap-1"
+                                            >
+                                                <FileText className="w-3 h-3" />
+                                                Logs
+                                            </button>
+
+                                            {deployment.status === 'ready' && deployment.type === 'production' && deployment.cloudRunRevision && (
+                                                <button
+                                                    onClick={() => handleRollback(deployment.id)}
+                                                    className="text-xs px-2 py-1 rounded bg-[var(--secondary)] hover:bg-[var(--secondary)]/80 transition-colors flex items-center gap-1"
+                                                    title="Rollback to this version"
+                                                >
+                                                    <RotateCcw className="w-3 h-3" />
+                                                    Rollback
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -351,6 +395,15 @@ export default function ProjectDetailPage() {
                     </div>
                 )}
             </div>
+
+            {project && (
+                <DeploymentLogsModal
+                    projectId={project.id}
+                    deploymentId={selectedLogsId || ''}
+                    isOpen={!!selectedLogsId}
+                    onClose={() => setSelectedLogsId(null)}
+                />
+            )}
         </div>
     );
 }

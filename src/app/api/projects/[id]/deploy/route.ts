@@ -6,6 +6,8 @@ import { getBranchLatestCommit } from '@/lib/github';
 import { parseRepoFullName } from '@/lib/utils';
 import { config } from '@/lib/config';
 import { generateCloudRunDeployConfig, submitCloudBuild, getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl, cancelBuild } from '@/lib/gcp/cloudbuild';
+import { getService } from '@/lib/gcp/cloudrun';
+import { getGcpAccessToken } from '@/lib/gcp/auth';
 import type { EnvVariable } from '@/types';
 
 interface RouteParams {
@@ -275,10 +277,23 @@ async function pollBuildStatus(deploymentId: string, projectId: string, projectS
                 const serviceName = `dfy-${projectSlug}`.substring(0, 63);
                 const serviceUrl = await getCloudRunServiceUrl(serviceName, projectRegion);
 
+                // Fetch latest revision
+                let latestRevision: string | undefined;
+                try {
+                    const accessToken = await getGcpAccessToken();
+                    const service = await getService(serviceName, accessToken, projectRegion);
+                    if (service) {
+                        latestRevision = service.latestRevision;
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch service revision:', e);
+                }
+
                 await updateDeployment(deploymentId, {
                     status: 'ready',
                     url: serviceUrl || `https://${serviceName}-853384839522.${region}.run.app`,
                     readyAt: new Date(),
+                    cloudRunRevision: latestRevision,
                 });
 
                 if (serviceUrl) {
@@ -346,6 +361,7 @@ async function simulateDeployment(deploymentId: string, projectId: string, proje
                 url: mockUrl,
                 readyAt: new Date(),
                 buildDurationMs: 8000,
+                cloudRunRevision: `dfy-${projectSlug}-00001-sim`,
             });
 
             await updateProject(projectId, {
