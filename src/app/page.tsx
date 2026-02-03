@@ -4,15 +4,15 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Spotlight } from '@/components/ui/spotlight';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { BackgroundBeams } from '@/components/ui/background-beams';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
+import { TracingBeam } from '@/components/ui/tracing-beam';
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [os, setOs] = useState<'mac' | 'other' | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,7 +76,7 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <main className="relative z-10 pt-32 pb-20 px-4">
+      <main className="relative z-10 pt-24 pb-16 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -88,13 +88,13 @@ export default function HomePage() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-8"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-6"
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="text-xs font-medium text-neutral-400 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em]">
                 Deployify 1.0 is here
               </span>
             </motion.div>
@@ -103,7 +103,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-5xl md:text-8xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50 leading-tight tracking-tighter mb-6"
+              className="text-4xl md:text-6xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50 leading-[1.1] tracking-tight mb-6"
             >
               Deploy like Vercel, <br /> Pay like raw GCP.
             </motion.h1>
@@ -112,7 +112,7 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-neutral-400 text-lg md:text-xl max-w-2xl mx-auto mb-10"
+              className="text-neutral-400 text-base md:text-lg max-w-2xl mx-auto mb-10"
             >
               The self-hosted deployment platform that brings Vercel&apos;s developer experience
               to your own Google Cloud infrastructure.
@@ -124,15 +124,16 @@ export default function HomePage() {
               transition={{ delay: 0.5 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link
+              <MovingBorderButton
+                as={Link}
                 href="/api/auth/github"
-                prefetch={false}
-                className="w-full sm:w-auto bg-white text-black px-8 py-4 rounded-xl text-lg font-bold hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+                containerClassName="w-full sm:w-auto h-auto"
+                className="bg-white text-black px-8 py-4 text-base font-bold flex items-center justify-center gap-2"
               >
                 <Github className="w-5 h-5" />
                 Connect GitHub
                 <ArrowRight className="w-5 h-5" />
-              </Link>
+              </MovingBorderButton>
               <button
                 className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold border border-white/10 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2"
                 aria-label="Watch demo video"
@@ -191,57 +192,108 @@ export default function HomePage() {
 
           {/* The Method Section */}
           <div className="mt-40">
-            <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
+            <h2 className="text-3xl md:text-5xl font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
               The Deployify Method
             </h2>
-            <div className="grid md:grid-cols-2 gap-12 items-center bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
-              <div className="space-y-4" role="tablist" aria-label="Deployment Method Tabs">
+            <TracingBeam className="px-6">
+              <div className="max-w-2xl mx-auto antialiased pt-4 relative">
                 {[
-                  { title: "Connect", desc: "Sync your GitHub repo in one click.", icon: <Github className="w-5 h-5" /> },
-                  { title: "Push", desc: "Automatic builds on every commit.", icon: <Rocket className="w-5 h-5" /> },
-                  { title: "Preview", desc: "Unique URLs for every PR.", icon: <Globe className="w-5 h-5" /> },
-                  { title: "Scale", desc: "Global edge network & WAF.", icon: <Shield className="w-5 h-5" /> }
+                  {
+                    title: "Connect",
+                    desc: "Sync your GitHub repository in one click. We'll automatically detect your framework and configuration.",
+                    icon: <Github className="w-6 h-6 text-indigo-500" />,
+                    badge: "Instant Integration"
+                  },
+                  {
+                    title: "Push",
+                    desc: "Every git push triggers a lightning-fast build on Google Cloud Build. No more manual deployment scripts.",
+                    icon: <Rocket className="w-6 h-6 text-indigo-500" />,
+                    badge: "Automated CI/CD"
+                  },
+                  {
+                    title: "Preview",
+                    desc: "Get a unique URL for every pull request. Share with your team for feedback before merging to production.",
+                    icon: <Globe className="w-6 h-6 text-indigo-500" />,
+                    badge: "Collaborate Faster"
+                  },
+                  {
+                    title: "Scale",
+                    desc: "Your app is deployed to Cloud Run, automatically scaling from zero to millions of requests with ease.",
+                    icon: <Shield className="w-6 h-6 text-indigo-500" />,
+                    badge: "Production Ready"
+                  }
                 ].map((step, i) => (
-                  <button
-                    key={i}
-                    role="tab"
-                    aria-selected={activeTab === i}
-                    aria-controls={`tab-panel-${i}`}
-                    id={`tab-${i}`}
-                    onClick={() => setActiveTab(i)}
-                    className={cn(
-                      "w-full text-left p-6 rounded-2xl transition-all duration-300 flex gap-4 items-start",
-                      activeTab === i ? "bg-white/10 shadow-lg ring-1 ring-white/20" : "hover:bg-white/5 opacity-50"
-                    )}
-                  >
-                    <div className={cn("mt-1 p-2 rounded-lg", activeTab === i ? "bg-indigo-500 text-white" : "bg-white/5")}>
-                      {step.icon}
+                  <div key={i} className="mb-20">
+                    <div className="flex items-center gap-4 mb-4">
+                       <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+                         {step.icon}
+                       </div>
+                       <h3 className="text-2xl font-bold">{step.title}</h3>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-lg">{step.title}</h4>
-                      <p className="text-neutral-400 text-sm">{step.desc}</p>
+                    <div className="text-lg text-neutral-400 leading-relaxed mb-4">
+                      {step.desc}
                     </div>
-                  </button>
+                    <div className="p-1 rounded-2xl bg-indigo-500/10 w-fit px-4 py-1 text-[10px] font-bold text-indigo-400 uppercase tracking-widest border border-indigo-500/20">
+                      {step.badge}
+                    </div>
+                  </div>
                 ))}
               </div>
-              <div className="relative aspect-square md:aspect-auto md:h-full min-h-[400px] bg-neutral-900 rounded-[2rem] border border-white/10 overflow-hidden flex items-center justify-center p-12">
-                 <motion.div
-                   key={activeTab}
-                   role="tabpanel"
-                   id={`tab-panel-${activeTab}`}
-                   aria-labelledby={`tab-${activeTab}`}
-                   initial={{ opacity: 0, scale: 0.95 }}
-                   animate={{ opacity: 1, scale: 1 }}
-                   className="w-full h-full flex items-center justify-center"
-                 >
-                    <div className="text-center">
-                       <div className="w-20 h-20 rounded-3xl bg-indigo-500/20 flex items-center justify-center mx-auto mb-6">
-                         {[<Github key={0} className="w-10 h-10" />, <Rocket key={1} className="w-10 h-10" />, <Globe key={2} className="w-10 h-10" />, <Shield key={3} className="w-10 h-10" />][activeTab]}
-                       </div>
-                       <h3 className="text-2xl font-bold mb-2">{["GitHub Integration", "Instant Deployment", "Preview Links", "Production Grade"][activeTab]}</h3>
-                       <p className="text-neutral-400">Experience the fastest way to ship Next.js apps.</p>
+            </TracingBeam>
+          </div>
+
+          {/* Price Efficiency Section */}
+          <div className="mt-40">
+            <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
+              Pay for what you use
+            </h2>
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-sm">
+                <div className="flex justify-between items-start mb-8">
+                  <div>
+                    <h3 className="text-xl font-bold mb-1 text-neutral-400">Vercel / Netlify</h3>
+                    <p className="text-sm text-neutral-500 font-medium">Enterprise DX at a Premium</p>
+                  </div>
+                  <X className="w-6 h-6 text-red-500" />
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { label: "Base Price", value: "$20/mo per user" },
+                    { label: "Bandwidth", value: "$0.15 / GB" },
+                    { label: "Serverless", value: "$0.60 / 1M GB-s" },
+                    { label: "WAF", value: "Enterprise Only ($$$)" }
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between border-b border-white/5 pb-2">
+                      <span className="text-neutral-500">{item.label}</span>
+                      <span className="font-mono text-white">{item.value}</span>
                     </div>
-                 </motion.div>
+                  ))}
+                </div>
+              </div>
+              <div className="p-8 rounded-[2rem] bg-indigo-500/10 border border-indigo-500/30 backdrop-blur-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4">
+                   <div className="bg-indigo-500 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter animate-pulse">Save 80%</div>
+                </div>
+                <div className="flex justify-between items-start mb-8">
+                  <div>
+                    <h3 className="text-xl font-bold mb-1 text-white">Deployify + GCP</h3>
+                    <p className="text-sm text-indigo-400 font-medium">Enterprise DX at Raw Cost</p>
+                  </div>
+                  <Check className="w-6 h-6 text-indigo-500" />
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { label: "Base Price", value: "$0 / mo" },
+                    { label: "Bandwidth", value: "$0.08 / GB (GCP Raw)" },
+                    { label: "Serverless", value: "$0.01 / 1M reqs" },
+                    { label: "WAF", value: "Included (Cloud Armor)" }
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-neutral-400">{item.label}</span>
+                      <span className="font-mono text-white font-bold">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -261,7 +313,25 @@ export default function HomePage() {
               />
               <BentoGridItem
                 title="Preview Deployments"
-                description="Unique URL for every PR."
+                description={
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Unique URL for every PR.</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopy('https://my-app-pr-123.deployify.run', 'preview-url');
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white transition-all active:scale-90"
+                      aria-label="Copy sample preview URL"
+                    >
+                      {copiedId === 'preview-url' ? (
+                        <Check className="w-3 h-3 text-emerald-500" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
+                }
                 header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Globe className="w-12 h-12 text-blue-500" /></div>}
                 icon={<Search className="h-4 w-4 text-neutral-500" />}
               />
@@ -306,16 +376,21 @@ export default function HomePage() {
                   {searchQuery ? (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white transition-all"
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white transition-all active:scale-95"
                       aria-label="Clear search"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   ) : (
                     os && (
-                      <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-white/20 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-neutral-500 opacity-100">
-                        <span className="text-xs">{os === 'mac' ? '⌘' : 'Ctrl'}</span>K
-                      </kbd>
+                      <div className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity">
+                        <kbd className="h-5 select-none items-center gap-1 rounded border border-white/20 bg-white/10 px-1.5 font-mono text-[10px] font-bold text-neutral-400">
+                          {os === 'mac' ? '⌘' : 'Ctrl'}
+                        </kbd>
+                        <kbd className="h-5 select-none items-center gap-1 rounded border border-white/20 bg-white/10 px-1.5 font-mono text-[10px] font-bold text-neutral-400">
+                          K
+                        </kbd>
+                      </div>
                     )
                   )}
                 </div>
