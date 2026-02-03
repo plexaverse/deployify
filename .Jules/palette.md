@@ -17,3 +17,7 @@
 ## 2026-02-16 - [Vertical Flow and Compact Typography]
 **Learning:** For SaaS landing pages where the process is key, a vertical timeline (using TracingBeam) is more intuitive than a horizontal tabbed interface as it naturally guides the eye downwards to the CTA. Additionally, over-sized elements can make a professional tool feel "huge" and less efficient; scaling down typography (e.g., to text-6xl for hero) and reducing padding creates a more high-end, scripe.io-like feel.
 **Action:** Use TracingBeam for "The Method" section to create a cohesive narrative flow and maintain refined typography scales.
+
+## 2026-02-18 - [Global Accessibility with Skip Links]
+**Learning:** For content-heavy landing pages or authenticated apps, keyboard-only users often have to tab through numerous navigation links before reaching the main content. This is a common but easily fixed friction point.
+**Action:** Always implement a "Skip to Content" link in the root layout (using `sr-only focus:not-sr-only` classes) that targets an `id="main-content"` on the primary `<main>` wrapper of every page.
