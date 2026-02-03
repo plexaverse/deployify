@@ -76,7 +76,7 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <main className="relative z-10 pt-24 pb-16 px-4">
+      <main id="main-content" className="relative z-10 pt-24 pb-16 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -395,6 +395,28 @@ export default function HomePage() {
                   )}
                 </div>
               </div>
+            </div>
+          </motion.div>
+
+          {/* Edge Network Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-40 text-center"
+          >
+            <h2 className="text-3xl md:text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
+              Global Edge Network
+            </h2>
+            <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12">
+              Deploy your applications to over 100+ locations worldwide with automatic global load balancing and DDoS protection.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              {['Ultra-low Latency', 'Auto-scaling', 'Anycast IP', 'Cloud Armor'].map((feat) => (
+                <div key={feat} className="p-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm font-bold text-[var(--foreground)] hover:border-[var(--border-hover)] transition-colors">
+                  {feat}
+                </div>
+              ))}
             </div>
           </motion.div>
         </div>
