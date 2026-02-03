@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { getGcpAccessToken } from '@/lib/gcp/auth';
 import type { BuildConfig, Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
@@ -266,20 +267,10 @@ export async function submitCloudBuild(
     buildConfig: object,
     projectRegion?: string | null
 ): Promise<{ buildId: string; logUrl: string; operationName: string }> {
-    // Get access token using the default service account
-    const tokenResponse = await fetch(
-        'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
-        { headers: { 'Metadata-Flavor': 'Google' } }
-    );
-
     let accessToken: string;
-
-    if (tokenResponse.ok) {
-        // Running on GCP (Cloud Run)
-        const tokenData = await tokenResponse.json();
-        accessToken = tokenData.access_token;
-    } else {
-        // For local development, we'll need to use gcloud auth
+    try {
+        accessToken = await getGcpAccessToken();
+    } catch {
         throw new Error('Cloud Build submission requires running on GCP or having application default credentials configured. For local testing, use the simulation mode.');
     }
 
@@ -328,17 +319,7 @@ export async function getBuildStatus(
     serviceUrl?: string;
 }> {
     // Get access token
-    const tokenResponse = await fetch(
-        'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
-        { headers: { 'Metadata-Flavor': 'Google' } }
-    );
-
-    if (!tokenResponse.ok) {
-        throw new Error('Cannot get access token - not running on GCP');
-    }
-
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
+    const accessToken = await getGcpAccessToken();
 
     // Use project-specific region or fall back to global config
     const region = projectRegion || config.gcp.region;
@@ -396,17 +377,7 @@ export function mapBuildStatusToDeploymentStatus(
  * Cancel a running build
  */
 export async function cancelBuild(buildId: string, projectRegion?: string | null): Promise<void> {
-    const tokenResponse = await fetch(
-        'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
-        { headers: { 'Metadata-Flavor': 'Google' } }
-    );
-
-    if (!tokenResponse.ok) {
-        throw new Error('Cannot get access token - not running on GCP');
-    }
-
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
+    const accessToken = await getGcpAccessToken();
 
     // Use project-specific region or fall back to global config
     const region = projectRegion || config.gcp.region;
@@ -431,17 +402,12 @@ export async function cancelBuild(buildId: string, projectRegion?: string | null
  * Get Cloud Run service URL
  */
 export async function getCloudRunServiceUrl(serviceName: string, projectRegion?: string | null): Promise<string | null> {
-    const tokenResponse = await fetch(
-        'http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token',
-        { headers: { 'Metadata-Flavor': 'Google' } }
-    );
-
-    if (!tokenResponse.ok) {
+    let accessToken: string;
+    try {
+        accessToken = await getGcpAccessToken();
+    } catch {
         return null;
     }
-
-    const tokenData = await tokenResponse.json();
-    const accessToken = tokenData.access_token;
 
     // Use project-specific region or fall back to global config
     const region = projectRegion || config.gcp.region;
@@ -461,4 +427,54 @@ export async function getCloudRunServiceUrl(serviceName: string, projectRegion?:
 
     const data = await response.json();
     return data.uri || null;
+}
+
+/**
+ * Fetch build logs content from GCS
+ */
+export async function getBuildLogsContent(buildId: string, projectRegion?: string | null): Promise<string | null> {
+    try {
+        const accessToken = await getGcpAccessToken();
+        const region = projectRegion || config.gcp.region;
+
+        // 1. Get Build details to find logsBucket
+        const buildResponse = await fetch(
+            `${CLOUD_BUILD_API}/projects/${config.gcp.projectId}/locations/${region}/builds/${buildId}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+
+        if (!buildResponse.ok) return null;
+        const buildData = await buildResponse.json();
+
+        // logsBucket is like "gs://project_id_cloudbuild/logs"
+        // We need the bucket name.
+        // It seems logsBucket usually points to the folder?
+        // Actually, the logsBucket field in Build resource is the Google Cloud Storage bucket where logs are written.
+        // Example: "gs://[PROJECT_ID].cloudbuild-logs.googleusercontent.com"
+        // The log file is usually at log-[BUILD_ID].txt
+
+        let logsBucket = buildData.logsBucket;
+        if (!logsBucket) return null;
+
+        if (logsBucket.startsWith('gs://')) {
+            logsBucket = logsBucket.replace('gs://', '');
+        }
+
+        // 2. Fetch log content from Storage JSON API
+        const logFilename = `log-${buildId}.txt`;
+        const storageResponse = await fetch(
+            `https://storage.googleapis.com/storage/v1/b/${logsBucket}/o/${logFilename}?alt=media`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+
+        if (!storageResponse.ok) {
+            console.error('Failed to fetch logs from storage:', await storageResponse.text());
+            return null;
+        }
+
+        return await storageResponse.text();
+    } catch (e) {
+        console.error('Error fetching build logs:', e);
+        return null;
+    }
 }
