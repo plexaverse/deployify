@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { Plus, ExternalLink, GitBranch, Clock, Search } from 'lucide-react';
+import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Project, Deployment } from '@/types';
 
@@ -14,6 +14,21 @@ export default function DashboardPage() {
     const [projects, setProjects] = useState<ProjectWithDeployment[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const [isMac, setIsMac] = useState(false);
+
+    useEffect(() => {
+        setIsMac(navigator.userAgent.indexOf('Mac') !== -1);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') {
+                e.preventDefault();
+                searchInputRef.current?.focus();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     useEffect(() => {
         async function fetchProjects() {
@@ -79,12 +94,33 @@ export default function DashboardPage() {
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
                         <input
+                            ref={searchInputRef}
                             type="text"
                             placeholder="Search projects..."
+                            aria-label="Search projects"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-10 pl-9 pr-4 bg-[var(--card)] border border-[var(--border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm transition-all"
+                            className="w-full h-10 pl-9 pr-10 bg-[var(--card)] border border-[var(--border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm transition-all"
                         />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                            {searchQuery ? (
+                                <button
+                                    onClick={() => {
+                                        setSearchQuery('');
+                                        searchInputRef.current?.focus();
+                                    }}
+                                    className="p-1 rounded-md hover:bg-[var(--background)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                                    aria-label="Clear search"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            ) : (
+                                <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-medium border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                                    <span>{isMac ? '⌘' : 'Ctrl'}</span>
+                                    <span>K</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <Link href="/dashboard/new" className="btn btn-primary whitespace-nowrap">
                         <Plus className="w-4 h-4" />
