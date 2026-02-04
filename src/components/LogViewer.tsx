@@ -81,14 +81,14 @@ export function LogViewer({ projectId, className }: LogViewerProps) {
         };
 
         eventSource.addEventListener('error', (e: MessageEvent) => {
-             if (e.data) {
+            if (e.data) {
                 try {
                     const errData = JSON.parse(e.data);
                     if (errData.error) {
                         setError(errData.error);
                     }
-                } catch {}
-             }
+                } catch { }
+            }
         });
 
         return () => {
@@ -155,11 +155,10 @@ export function LogViewer({ projectId, className }: LogViewerProps) {
                         <Activity className="w-4 h-4 text-[var(--foreground)]" />
                         <h3 className="font-medium text-sm">Runtime Logs</h3>
                     </div>
-                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                        isConnected
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border ${isConnected
                             ? 'bg-green-500/10 text-green-500 border-green-500/20'
                             : 'bg-red-500/10 text-red-500 border-red-500/20'
-                    }`}>
+                        }`}>
                         {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
                         {isConnected ? 'Connected' : 'Disconnected'}
                     </div>
