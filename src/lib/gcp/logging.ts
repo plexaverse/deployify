@@ -5,7 +5,7 @@ export interface LogEntry {
   timestamp: string;
   severity: string;
   textPayload?: string;
-  jsonPayload?: Record<string, any>;
+  jsonPayload?: Record<string, unknown>;
   resource: {
     type: string;
     labels: Record<string, string>;
@@ -14,6 +14,7 @@ export interface LogEntry {
   insertId?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function formatLogEntry(entry: any): LogEntry {
   return {
     timestamp: entry.timestamp,
@@ -75,6 +76,7 @@ export async function listLogEntries(
   const accessToken = await getGcpAccessToken();
   const filter = `resource.type="cloud_run_revision" AND resource.labels.service_name="${serviceName}"`;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: any = {
     resourceNames: [`projects/${config.gcp.projectId}`],
     filter,

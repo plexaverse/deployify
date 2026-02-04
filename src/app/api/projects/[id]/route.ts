@@ -93,6 +93,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'rootDirectory',
             'customDomain',
             'region',
+            'webhookUrl',
         ];
 
         const updates: Record<string, unknown> = {};

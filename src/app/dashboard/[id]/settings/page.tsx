@@ -23,7 +23,9 @@ export default function ProjectSettingsPage() {
     const [installCommand, setInstallCommand] = useState('');
     const [rootDirectory, setRootDirectory] = useState('');
     const [outputDirectory, setOutputDirectory] = useState('');
+    const [webhookUrl, setWebhookUrl] = useState('');
     const [saving, setSaving] = useState(false);
+    const [savingWebhook, setSavingWebhook] = useState(false);
 
     const fetchProject = async () => {
         try {
@@ -40,6 +42,7 @@ export default function ProjectSettingsPage() {
             setInstallCommand(data.project.installCommand || '');
             setRootDirectory(data.project.rootDirectory || '');
             setOutputDirectory(data.project.outputDirectory || '');
+            setWebhookUrl(data.project.webhookUrl || '');
 
             // Fetch env variables separately
             const envResponse = await fetch(`/api/projects/${params.id}/env`);
@@ -258,6 +261,69 @@ export default function ProjectSettingsPage() {
                                 </>
                             ) : (
                                 'Save Changes'
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Notifications */}
+            <div className="card mt-8">
+                <h2 className="text-lg font-semibold mb-4">Notifications</h2>
+                <div className="space-y-4">
+                    <div>
+                        <label htmlFor="webhook-url" className="block text-sm font-medium mb-1">Webhook URL</label>
+                        <input
+                            id="webhook-url"
+                            type="text"
+                            value={webhookUrl}
+                            onChange={(e) => setWebhookUrl(e.target.value)}
+                            placeholder="https://discord.com/api/webhooks/..."
+                            className="input w-full"
+                        />
+                        <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                            Receive notifications when a build fails. Supports Discord, Slack, etc.
+                        </p>
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                        <button
+                            onClick={async () => {
+                                if (!project) return;
+                                setSavingWebhook(true);
+                                const toastId = toast.loading('Saving webhook...');
+                                try {
+                                    const response = await fetch(`/api/projects/${project.id}`, {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            webhookUrl,
+                                        }),
+                                    });
+
+                                    if (response.ok) {
+                                        toast.success('Webhook saved', { id: toastId });
+                                        fetchProject();
+                                    } else {
+                                        toast.error('Failed to save webhook', { id: toastId });
+                                    }
+                                } catch (error) {
+                                    console.error('Failed to save webhook:', error);
+                                    toast.error('Failed to save webhook', { id: toastId });
+                                } finally {
+                                    setSavingWebhook(false);
+                                }
+                            }}
+                            disabled={savingWebhook}
+                            className="btn btn-primary"
+                        >
+                            {savingWebhook ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save'
                             )}
                         </button>
                     </div>
