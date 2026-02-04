@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { Spotlight } from '@/components/ui/spotlight';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { BackgroundBeams } from '@/components/ui/background-beams';
@@ -19,6 +20,7 @@ export default function HomePage() {
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
+    toast.success('Copied to clipboard');
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -136,10 +138,11 @@ export default function HomePage() {
               </MovingBorderButton>
               <button
                 className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold border border-white/10 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2"
-                aria-label="Watch demo video"
+                aria-label="Watch 2-minute demo video"
               >
                 <Zap className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                 Watch Demo
+                <span className="text-xs font-medium text-neutral-500 ml-1">2 min</span>
               </button>
             </motion.div>
 
@@ -181,9 +184,14 @@ export default function HomePage() {
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-neutral-500 mb-8">
               Trusted by innovative teams
             </p>
-            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500" role="list" aria-label="Trusted companies">
               {['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA'].map((logo) => (
-                <span key={logo} className="text-xl md:text-2xl font-black tracking-tighter text-neutral-400 hover:text-white transition-colors cursor-default">
+                <span
+                  key={logo}
+                  role="listitem"
+                  aria-label={`${logo} logo`}
+                  className="text-xl md:text-2xl font-black tracking-tighter text-neutral-400 hover:text-white transition-colors cursor-default"
+                >
                   {logo}
                 </span>
               ))}
@@ -223,9 +231,12 @@ export default function HomePage() {
                     badge: "Production Ready"
                   }
                 ].map((step, i) => (
-                  <div key={i} className="mb-20">
+                  <div key={i} className="mb-20 relative group">
+                    <div className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-neutral-800/30 tabular-nums transition-colors group-hover:text-indigo-500/20">
+                      0{i + 1}
+                    </div>
                     <div className="flex items-center gap-4 mb-4">
-                       <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+                       <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:border-indigo-500/40 transition-colors">
                          {step.icon}
                        </div>
                        <h3 className="text-2xl font-bold">{step.title}</h3>
@@ -248,13 +259,13 @@ export default function HomePage() {
               Pay for what you use
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-              <div className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-sm">
+              <div className="p-6 rounded-[2rem] bg-white/5 border border-neutral-800 backdrop-blur-sm">
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-xl font-bold mb-1 text-neutral-400">Vercel / Netlify</h3>
-                    <p className="text-sm text-neutral-500 font-medium">Enterprise DX at a Premium</p>
+                    <h3 className="text-lg font-bold mb-1 text-neutral-400">Vercel / Netlify</h3>
+                    <p className="text-xs text-neutral-500 font-medium">Enterprise DX at a Premium</p>
                   </div>
-                  <X className="w-6 h-6 text-red-500" />
+                  <X className="w-5 h-5 text-red-500" />
                 </div>
                 <div className="space-y-4">
                   {[
@@ -270,16 +281,16 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
-              <div className="p-8 rounded-[2rem] bg-indigo-500/10 border border-indigo-500/30 backdrop-blur-sm relative overflow-hidden group">
+              <div className="p-6 rounded-[2rem] bg-indigo-500/10 border border-neutral-800 backdrop-blur-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4">
                    <div className="bg-indigo-500 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter animate-pulse">Save 80%</div>
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-xl font-bold mb-1 text-white">Deployify + GCP</h3>
-                    <p className="text-sm text-indigo-400 font-medium">Enterprise DX at Raw Cost</p>
+                    <h3 className="text-lg font-bold mb-1 text-white">Deployify + GCP</h3>
+                    <p className="text-xs text-indigo-400 font-medium">Enterprise DX at Raw Cost</p>
                   </div>
-                  <Check className="w-6 h-6 text-indigo-500" />
+                  <Check className="w-5 h-5 text-indigo-500" />
                 </div>
                 <div className="space-y-4">
                   {[

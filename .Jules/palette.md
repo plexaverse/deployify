@@ -21,3 +21,7 @@
 ## 2026-02-18 - [Global Accessibility with Skip Links]
 **Learning:** For content-heavy landing pages or authenticated apps, keyboard-only users often have to tab through numerous navigation links before reaching the main content. This is a common but easily fixed friction point.
 **Action:** Always implement a "Skip to Content" link in the root layout (using `sr-only focus:not-sr-only` classes) that targets an `id="main-content"` on the primary `<main>` wrapper of every page.
+
+## 2026-02-20 - [Narrative Flow and Interaction Feedback]
+**Learning:** Adding numbered step labels (01, 02, etc.) to a vertical process section significantly improves the narrative flow and guides the user's eye. Additionally, combining icon-state changes with toast notifications for copy-to-clipboard actions provides redundant but highly effective feedback that confirms success even if the user isn't looking directly at the button.
+**Action:** Use absolute-positioned numbers for process sections and always pair local state feedback with global toast notifications for critical interactions.
