@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import type { Project, EnvVariable, Domain } from '@/types';
 import { EnvVariablesSection } from '@/components/EnvVariablesSection';
 import { DomainsSection } from '@/components/DomainsSection';
@@ -17,6 +18,13 @@ export default function ProjectSettingsPage() {
     const [domains, setDomains] = useState<Domain[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Build settings state
+    const [buildCommand, setBuildCommand] = useState('');
+    const [installCommand, setInstallCommand] = useState('');
+    const [rootDirectory, setRootDirectory] = useState('');
+    const [outputDirectory, setOutputDirectory] = useState('');
+    const [saving, setSaving] = useState(false);
+
     const fetchProject = async () => {
         try {
             const response = await fetch(`/api/projects/${params.id}`);
@@ -28,6 +36,10 @@ export default function ProjectSettingsPage() {
 
             const data = await response.json();
             setProject(data.project);
+            setBuildCommand(data.project.buildCommand || '');
+            setInstallCommand(data.project.installCommand || '');
+            setRootDirectory(data.project.rootDirectory || '');
+            setOutputDirectory(data.project.outputDirectory || '');
 
             // Fetch env variables separately
             const envResponse = await fetch(`/api/projects/${params.id}/env`);
@@ -54,6 +66,33 @@ export default function ProjectSettingsPage() {
             fetchProject();
         }
     }, [params.id, router]);
+
+    const handleDeleteProject = async () => {
+        if (!project) return;
+
+        if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+            return;
+        }
+
+        const toastId = toast.loading('Deleting project...');
+
+        try {
+            const response = await fetch(`/api/projects/${project.id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                toast.success('Project deleted successfully', { id: toastId });
+                router.push('/dashboard');
+            } else {
+                const data = await response.json();
+                toast.error(data.error || 'Failed to delete project', { id: toastId });
+            }
+        } catch (error) {
+            console.error('Failed to delete project:', error);
+            toast.error('Failed to delete project', { id: toastId });
+        }
+    };
 
     if (loading) {
         return (
@@ -112,36 +151,115 @@ export default function ProjectSettingsPage() {
                 onUpdate={fetchProject}
             />
 
-            {/* General Settings (can be expanded later) */}
+            {/* Build Settings */}
             <div className="card mt-8">
                 <h2 className="text-lg font-semibold mb-4">Build Settings</h2>
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between py-3 border-b border-[var(--border)]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <p className="font-medium">Build Command</p>
-                            <p className="text-sm text-[var(--muted-foreground)]">The command to build your project</p>
+                            <label htmlFor="build-command" className="block text-sm font-medium mb-1">Build Command</label>
+                            <input
+                                id="build-command"
+                                type="text"
+                                value={buildCommand}
+                                onChange={(e) => setBuildCommand(e.target.value)}
+                                placeholder="npm run build"
+                                className="input w-full"
+                            />
+                            <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                                Command to build your project
+                            </p>
                         </div>
-                        <code className="px-3 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-sm">
-                            {project.buildCommand || 'npm run build'}
-                        </code>
+                        <div>
+                            <label htmlFor="output-directory" className="block text-sm font-medium mb-1">Output Directory</label>
+                            <input
+                                id="output-directory"
+                                type="text"
+                                value={outputDirectory}
+                                onChange={(e) => setOutputDirectory(e.target.value)}
+                                placeholder=".next"
+                                className="input w-full"
+                            />
+                            <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                                Directory where build artifacts are located
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex items-center justify-between py-3 border-b border-[var(--border)]">
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <p className="font-medium">Install Command</p>
-                            <p className="text-sm text-[var(--muted-foreground)]">The command to install dependencies</p>
+                            <label htmlFor="install-command" className="block text-sm font-medium mb-1">Install Command</label>
+                            <input
+                                id="install-command"
+                                type="text"
+                                value={installCommand}
+                                onChange={(e) => setInstallCommand(e.target.value)}
+                                placeholder="npm install"
+                                className="input w-full"
+                            />
+                            <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                                Command to install dependencies
+                            </p>
                         </div>
-                        <code className="px-3 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-sm">
-                            {project.installCommand || 'npm install'}
-                        </code>
+                        <div>
+                            <label htmlFor="root-directory" className="block text-sm font-medium mb-1">Root Directory</label>
+                            <input
+                                id="root-directory"
+                                type="text"
+                                value={rootDirectory}
+                                onChange={(e) => setRootDirectory(e.target.value)}
+                                placeholder="./"
+                                className="input w-full"
+                            />
+                            <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                                Directory where your code lives
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex items-center justify-between py-3">
-                        <div>
-                            <p className="font-medium">Root Directory</p>
-                            <p className="text-sm text-[var(--muted-foreground)]">The directory where your code lives</p>
-                        </div>
-                        <code className="px-3 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-sm">
-                            {project.rootDirectory || './'}
-                        </code>
+
+                    <div className="flex justify-end pt-4">
+                        <button
+                            onClick={async () => {
+                                if (!project) return;
+                                setSaving(true);
+                                const toastId = toast.loading('Saving settings...');
+                                try {
+                                    const response = await fetch(`/api/projects/${project.id}`, {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            buildCommand,
+                                            installCommand,
+                                            rootDirectory,
+                                            outputDirectory,
+                                        }),
+                                    });
+
+                                    if (response.ok) {
+                                        toast.success('Settings saved', { id: toastId });
+                                        fetchProject();
+                                    } else {
+                                        toast.error('Failed to save settings', { id: toastId });
+                                    }
+                                } catch (error) {
+                                    console.error('Failed to save settings:', error);
+                                    toast.error('Failed to save settings', { id: toastId });
+                                } finally {
+                                    setSaving(false);
+                                }
+                            }}
+                            disabled={saving}
+                            className="btn btn-primary"
+                        >
+                            {saving ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Changes'
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -156,7 +274,10 @@ export default function ProjectSettingsPage() {
                             Permanently delete this project and all its deployments
                         </p>
                     </div>
-                    <button className="btn border-red-500/50 text-red-400 hover:bg-red-500/10">
+                    <button
+                        onClick={handleDeleteProject}
+                        className="btn border-red-500/50 text-red-400 hover:bg-red-500/10"
+                    >
                         Delete Project
                     </button>
                 </div>

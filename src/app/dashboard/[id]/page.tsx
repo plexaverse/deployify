@@ -398,13 +398,11 @@ export default function ProjectDetailPage() {
                 )}
             </div>
 
-            {project && (
+            {project && selectedDeployment && (
                 <DeploymentLogsModal
-                    projectId={project.id}
-                    deploymentId={selectedLogsId || ''}
+                    deployment={selectedDeployment}
                     isOpen={!!selectedLogsId}
                     onClose={() => setSelectedLogsId(null)}
-                    status={selectedDeployment?.status}
                 />
             )}
         </div>

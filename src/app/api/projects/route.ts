@@ -45,7 +45,16 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { repoFullName, name, rootDirectory = '', region } = body;
+        const {
+            repoFullName,
+            name,
+            rootDirectory = '',
+            region,
+            framework = 'nextjs',
+            buildCommand,
+            installCommand,
+            outputDirectory
+        } = body;
 
         if (!repoFullName) {
             return NextResponse.json(
@@ -82,6 +91,10 @@ export async function POST(request: NextRequest) {
             // Continue without webhook - user may not have admin access
         }
 
+        // Determine defaults based on framework
+        const defaultBuildCommand = framework === 'vite' ? 'npm run build' : 'npm run build';
+        const defaultOutputDirectory = framework === 'vite' ? 'dist' : '.next';
+
         // Create the project
         const project = await createProject({
             userId: session.user.id,
@@ -90,10 +103,10 @@ export async function POST(request: NextRequest) {
             repoFullName: repoData.full_name,
             repoUrl: repoData.html_url,
             defaultBranch: repoData.default_branch,
-            framework: 'nextjs',
-            buildCommand: 'npm run build',
-            installCommand: 'npm install',
-            outputDirectory: '.next',
+            framework,
+            buildCommand: buildCommand || defaultBuildCommand,
+            installCommand: installCommand || 'npm install',
+            outputDirectory: outputDirectory || defaultOutputDirectory,
             rootDirectory,
             customDomain: null,
             githubToken: session.accessToken,
