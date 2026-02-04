@@ -93,6 +93,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'rootDirectory',
             'customDomain',
             'region',
+            'buildTimeout',
         ];
 
         const updates: Record<string, unknown> = {};
@@ -100,6 +101,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             if (body[field] !== undefined) {
                 updates[field] = body[field];
             }
+        }
+
+        // Validate buildTimeout
+        if (updates.buildTimeout !== undefined) {
+            const timeout = Number(updates.buildTimeout);
+            if (isNaN(timeout) || timeout <= 0) {
+                return NextResponse.json(
+                    { error: 'Build timeout must be a positive number' },
+                    { status: 400, headers: securityHeaders }
+                );
+            }
+            updates.buildTimeout = timeout;
         }
 
         await updateProject(id, updates);
