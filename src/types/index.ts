@@ -21,7 +21,7 @@ export interface Project {
     repoFullName: string; // owner/repo
     repoUrl: string;
     defaultBranch: string;
-    framework: 'nextjs';
+    framework: 'nextjs' | 'vite' | 'remix' | 'astro';
     buildCommand: string;
     installCommand: string;
     outputDirectory: string;

@@ -9,47 +9,37 @@
 ### High Priority
 
 #### 1. **Real-time Deployment Logs**
-- **Current**: Build logs are stored but not streamed to UI
-- **Improvement**: Add WebSocket/SSE for live log streaming during builds
-- **Benefit**: Users can watch deployments in real-time, identify issues faster
-- **Files**: `src/app/dashboard/[id]/page.tsx`, new WebSocket endpoint
+- **Current**: Polling implementation via `DeploymentLogsModal`
+- **Status**: ✅ Implemented (Polling, not WebSocket, but sufficient)
 
 #### 2. **Deployment Status Page with Timeline**
-- **Current**: Basic status badges only
-- **Improvement**: Visual timeline showing deployment stages (queued → building → deploying → ready)
-- **Benefit**: Clear visualization of where deployment is in the pipeline
-- **Inspiration**: Vercel's deployment timeline
+- **Current**: `DeploymentTimeline` component integrated into logs modal
+- **Status**: ✅ Implemented
 
 #### 3. **Mobile Responsive Dashboard**
-- **Current**: Dashboard uses grid layouts that may not adapt well to mobile
-- **Improvement**: Add responsive breakpoints, collapsible sidebar for mobile
-- **Files**: `src/app/dashboard/layout.tsx`, `src/app/globals.css`
+- **Current**: Responsive sidebar and grid layouts
+- **Status**: ✅ Implemented
 
 #### 4. **Toast/Notification System**
-- **Current**: No global notification system
-- **Improvement**: Add toast notifications for actions (copy, deploy triggered, errors)
-- **Benefit**: Better feedback for user actions
-- **Implementation**: React context + animated toast component
+- **Current**: `sonner` integrated
+- **Status**: ✅ Implemented
 
 #### 5. **Loading Skeletons**
-- **Current**: Uses `animate-pulse` on blank divs
-- **Improvement**: Proper skeleton components matching content shape
-- **Benefit**: Better perceived performance, less layout shift
+- **Current**: Skeletons used in dashboard pages
+- **Status**: ✅ Implemented
 
 ### Medium Priority
 
 #### 6. **Dark/Light Theme Toggle**
-- **Current**: Dark mode only
-- **Improvement**: Add theme toggle with system preference detection
-- **Files**: `src/app/globals.css` (add light theme variables), context provider
+- **Current**: Toggle in sidebar
+- **Status**: ✅ Implemented
 
 #### 7. **Project Search/Filter on Dashboard**
-- **Current**: No search functionality on project list
-- **Improvement**: Add search bar + filters (by status, framework, date)
-- **Files**: `src/app/dashboard/page.tsx`
+- **Current**: Search bar on dashboard
+- **Status**: ✅ Implemented
 
 #### 8. **Keyboard Shortcuts Throughout**
-- **Current**: Only Cmd+K on landing page
+- **Current**: Cmd+K on dashboard
 - **Improvement**: Add shortcuts dashboard-wide (N = new project, D = deploy, etc.)
 - **Implementation**: Global keyboard event listener + shortcut overlay (?)
 
@@ -82,29 +72,24 @@
 ### High Priority
 
 #### 1. **Build Logs Fetching & Display**
-- **Current**: `buildLogs` field exists but not populated/displayed
-- **Improvement**: Fetch logs from Cloud Build API and display in UI
-- **Files**: `src/lib/gcp/cloudbuild.ts` (add `getBuildLogs()`), dashboard detail page
+- **Current**: `getBuildLogsContent` implemented
+- **Status**: ✅ Implemented
 
 #### 2. **Rollback to Previous Deployment**
-- **Current**: No rollback capability
-- **Improvement**: Add "Rollback" button on deployment history
-- **Implementation**: Redeploy a previous Cloud Run revision
-- **Files**: `src/lib/gcp/cloudrun.ts`, API route for rollback
+- **Current**: Rollback API and UI implemented
+- **Status**: ✅ Implemented
 
 #### 3. **Cancel In-Progress Build**
-- **Current**: `cancelBuild()` exists in code but not exposed in UI
-- **Improvement**: Add "Cancel" button for queued/building deployments
-- **Files**: `src/app/api/projects/[id]/deploy/route.ts` (add DELETE method)
+- **Current**: Cancel API and UI implemented
+- **Status**: ✅ Implemented
 
 #### 4. **Deployment Notifications**
 - **Improvement**: Email/Slack notifications on deployment success/failure
 - **Implementation**: Add notification settings, integrate with Cloud Pub/Sub
 
 #### 5. **Multi-Framework Support**
-- **Current**: Only Next.js (`framework: 'nextjs'`)
-- **Improvement**: Support Vite, Remix, Astro, static sites
-- **Files**: `src/lib/gcp/cloudbuild.ts`, new Dockerfile templates
+- **Current**: Next.js and Vite support
+- **Status**: ✅ Implemented (Basic support)
 
 #### 6. **Branch-based Environments**
 - **Current**: `main` = production, PRs = preview
@@ -124,18 +109,16 @@
 - **Files**: New `ResourceSettings.tsx` component, update `Project` type
 
 #### 9. **Delete Project Flow**
-- **Current**: `deleteProject()` in db.ts but no UI
-- **Improvement**: Add delete button with confirmation modal
-- **Also**: Clean up Cloud Run service, Artifact Registry images
+- **Current**: API with cleanup and UI implemented
+- **Status**: ✅ Implemented
 
 #### 10. **Monorepo Support**
 - **Current**: `rootDirectory` field exists but limited
 - **Improvement**: Better root directory detection, turborepo/nx awareness
 
 #### 11. **Custom Build Commands**
-- **Current**: Default `npm run build`
-- **Improvement**: UI to customize install/build commands per project
-- **Files**: Settings page, `Project` type already supports this
+- **Current**: Editable in Settings
+- **Status**: ✅ Implemented
 
 #### 12. **Deployment Metrics**
 - **Improvement**: Show build duration, bundle size trends over time
@@ -170,30 +153,6 @@
 
 ---
 
-## 🐛 Bug Fixes / Technical Debt
-
-### 1. **Rate Limit Store Memory Leak**
-- **Issue**: `rateLimitStore` in middleware grows unbounded
-- **Fix**: Periodically clean old entries or use TTL-based Map
-
-### 2. **Error Boundary**
-- **Issue**: No React Error Boundary for dashboard
-- **Fix**: Add error boundary to catch render errors gracefully
-
-### 3. **Type Safety for Dates**
-- **Issue**: `Date` types returned as strings from API
-- **Fix**: Add date parsing utilities or use ISO string consistently
-
-### 4. **Webhook Retry Handling**
-- **Issue**: GitHub may retry webhooks on failure
-- **Fix**: Implement idempotency keys to prevent duplicate deployments
-
-### 5. **Session Refresh**
-- **Issue**: JWT expires after 7 days with no refresh
-- **Fix**: Add token refresh mechanism before expiry
-
----
-
 ## 📋 Implementation Priority Matrix
 
 | Priority | Impact | Effort | Items |
@@ -206,13 +165,13 @@
 
 ## 🚀 Quick Wins (Can Be Done in < 1 Day Each)
 
-1. Add toast notification system
-2. Expose cancel build in UI
-3. Add loading skeletons to dashboard
-4. Implement project search on dashboard
-5. Add copy button for deployment URLs
-6. Show build duration on deployment cards
-7. Add "Redeploy" button on deployment detail
+1. Add toast notification system ✅
+2. Expose cancel build in UI ✅
+3. Add loading skeletons to dashboard ✅
+4. Implement project search on dashboard ✅
+5. Add copy button for deployment URLs ✅
+6. Show build duration on deployment cards ✅
+7. Add "Redeploy" button on deployment detail ✅
 
 ---
 

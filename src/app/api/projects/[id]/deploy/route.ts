@@ -112,6 +112,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     runtimeEnvVars,
                     gitToken: session?.accessToken ?? project.githubToken ?? undefined,
                     projectRegion: project.region, // Use project's selected region
+                    framework: project.framework,
+                    buildCommand: project.buildCommand,
+                    installCommand: project.installCommand,
+                    outputDirectory: project.outputDirectory,
                 });
 
                 // Submit to Cloud Build with project region
