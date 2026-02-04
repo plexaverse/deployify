@@ -30,6 +30,7 @@
 | **Build Pipeline** | GCP Cloud Build |
 | **Deployment Target** | GCP Cloud Run |
 | **Auth** | GitHub OAuth + JWT Sessions (7-day expiry) |
+| **Supported Frameworks** | Next.js, Vite (React, Vue, Svelte, etc.) |
 
 ### Directory Structure
 ```
@@ -50,11 +51,14 @@ deployify/
 │   │   ├── ui/                 # Aceternity-style animated components
 │   │   ├── DomainsSection.tsx  # Domain management UI
 │   │   ├── EnvVariablesSection.tsx # Environment variables UI
-│   │   └── RegionSettings.tsx  # GCP region selector
+│   │   ├── RegionSettings.tsx  # GCP region selector
+│   │   ├── DeploymentTimeline.tsx # Visual deployment steps
+│   │   └── DashboardSidebar.tsx # Responsive sidebar
 │   ├── lib/
 │   │   ├── auth.ts             # JWT auth utilities
 │   │   ├── config.ts           # Environment config validation
 │   │   ├── db.ts               # Firestore CRUD operations
+│   │   ├── dockerfiles.ts      # Dockerfile generation logic
 │   │   ├── firebase.ts         # Firebase client initialization
 │   │   ├── github.ts           # GitHub API client (Octokit)
 │   │   ├── utils.ts            # Helper utilities
@@ -133,7 +137,7 @@ Domain        // Custom domain (status: pending/active/error)
 ### 3. Deployment Flow
 1. GitHub webhook → `/api/webhooks/github`
 2. Create deployment record in Firestore
-3. Submit Cloud Build with generated config
+3. Submit Cloud Build with generated config (using `src/lib/dockerfiles.ts`)
 4. Cloud Build: clone → install → build → Docker → push → deploy Cloud Run
 5. Update deployment status (poll or callback)
 
@@ -193,9 +197,10 @@ Domain        // Custom domain (status: pending/active/error)
 4. Export from component file directly
 
 ### Modifying the build pipeline
-1. Edit `src/lib/gcp/cloudbuild.ts`
-2. `generateCloudRunDeployConfig()` creates the Cloud Build YAML
-3. Test with a sample repository push
+1. Edit `src/lib/dockerfiles.ts` to modify Dockerfile templates
+2. Edit `src/lib/gcp/cloudbuild.ts` for Cloud Build step configuration
+3. `generateCloudRunDeployConfig()` creates the Cloud Build YAML
+4. Test with a sample repository push
 
 ---
 

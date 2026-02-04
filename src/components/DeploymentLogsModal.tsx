@@ -2,16 +2,16 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Loader2 } from 'lucide-react';
+import { DeploymentTimeline } from '@/components/DeploymentTimeline';
+import type { Deployment } from '@/types';
 
 interface DeploymentLogsModalProps {
-    projectId: string;
-    deploymentId: string;
+    deployment: Deployment;
     isOpen: boolean;
     onClose: () => void;
-    status?: string;
 }
 
-export function DeploymentLogsModal({ projectId, deploymentId, isOpen, onClose, status }: DeploymentLogsModalProps) {
+export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentLogsModalProps) {
     const [logs, setLogs] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -23,7 +23,7 @@ export function DeploymentLogsModal({ projectId, deploymentId, isOpen, onClose, 
         if (!isPolling) setError(null);
 
         try {
-            const res = await fetch(`/api/projects/${projectId}/deployments/${deploymentId}/logs`);
+            const res = await fetch(`/api/projects/${deployment.projectId}/deployments/${deployment.id}/logs`);
             const data = await res.json();
             if (res.ok) {
                 setLogs(data.logs);
@@ -35,16 +35,16 @@ export function DeploymentLogsModal({ projectId, deploymentId, isOpen, onClose, 
         } finally {
             if (!isPolling) setLoading(false);
         }
-    }, [projectId, deploymentId]);
+    }, [deployment.projectId, deployment.id]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
 
-        if (isOpen && deploymentId) {
+        if (isOpen && deployment.id) {
             fetchLogs();
 
             // Poll if building or queued
-            if (status === 'building' || status === 'queued') {
+            if (deployment.status === 'building' || deployment.status === 'queued') {
                 interval = setInterval(() => fetchLogs(true), 3000);
             }
         } else {
@@ -55,7 +55,7 @@ export function DeploymentLogsModal({ projectId, deploymentId, isOpen, onClose, 
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [isOpen, deploymentId, status, fetchLogs]);
+    }, [isOpen, deployment.id, deployment.status, fetchLogs]);
 
     // Auto-scroll to bottom when logs update
     useEffect(() => {
@@ -73,19 +73,22 @@ export function DeploymentLogsModal({ projectId, deploymentId, isOpen, onClose, 
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
                     <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-lg">Build Logs</h3>
-                        {status && (
-                             <span className={`badge ${
-                                status === 'ready' ? 'badge-success' :
-                                status === 'error' ? 'badge-error' :
-                                status === 'building' ? 'badge-warning' : 'badge-info'
-                            }`}>
-                                {status}
-                            </span>
-                        )}
+                        <span className={`badge ${
+                            deployment.status === 'ready' ? 'badge-success' :
+                            deployment.status === 'error' ? 'badge-error' :
+                            deployment.status === 'building' ? 'badge-warning' : 'badge-info'
+                        }`}>
+                            {deployment.status}
+                        </span>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-[var(--border)] rounded-md transition-colors">
                         <X className="w-5 h-5" />
                     </button>
+                </div>
+
+                {/* Timeline */}
+                <div className="px-6 py-2 border-b border-[var(--border)] bg-[var(--background)]">
+                    <DeploymentTimeline deployment={deployment} />
                 </div>
 
                 {/* Content */}

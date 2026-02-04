@@ -1,5 +1,6 @@
 import { config } from '@/lib/config';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
+import { getDockerfile } from '@/lib/dockerfiles';
 import type { BuildConfig, Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
@@ -14,9 +15,11 @@ interface BuildSubmissionConfig {
     runtimeEnvVars?: Record<string, string>;  // Env vars for runtime (Cloud Run)
     buildCommand?: string;
     installCommand?: string;
+    outputDirectory?: string;
     rootDirectory?: string;
     gitToken?: string; // GitHub OAuth token for private repo cloning
     projectRegion?: string | null; // Per-project region, falls back to config.gcp.region if not set
+    framework?: string;
 }
 
 /**
@@ -34,6 +37,10 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         runtimeEnvVars = {},
         gitToken,
         projectRegion,
+        framework = 'nextjs',
+        buildCommand,
+        installCommand,
+        outputDirectory,
     } = buildConfig;
 
     // Use project-specific region if set, otherwise fall back to global config
@@ -84,41 +91,13 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
     }
 
     // Generate the Dockerfile content
-    const dockerfileContent = `FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat openssl
-WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
-    elif [ -f package-lock.json ]; then npm ci; \\
-    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
-    else npm install; fi
-
-FROM node:20-alpine AS builder
-RUN apk add --no-cache openssl
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
-${buildEnvSection}
-# Generate Prisma client if prisma folder exists
-RUN if [ -d "prisma" ]; then npx prisma generate; fi
-RUN npm run build
-
-FROM node:20-alpine AS runner
-RUN apk add --no-cache openssl
-WORKDIR /app
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
-COPY --from=builder /app/public ./public
-RUN mkdir .next && chown nextjs:nodejs .next
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-USER nextjs
-EXPOSE 8080
-ENV PORT=8080
-ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]`;
+    const dockerfileContent = getDockerfile({
+        framework,
+        buildEnvSection,
+        outputDirectory,
+        buildCommand,
+        installCommand,
+    });
 
     // Define common steps shared between both deployment methods
     const commonSteps = [

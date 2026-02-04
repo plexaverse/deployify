@@ -15,6 +15,7 @@ export default function NewProjectPage() {
     const [importing, setImporting] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [selectedRegion, setSelectedRegion] = useState('');
+    const [framework, setFramework] = useState('nextjs');
 
     // Common GCP regions for Cloud Run
     const GCP_REGIONS = [
@@ -77,6 +78,7 @@ export default function NewProjectPage() {
                     repoFullName: repo.full_name,
                     name: repo.name,
                     region: selectedRegion || undefined,
+                    framework,
                 }),
             });
 
@@ -119,27 +121,49 @@ export default function NewProjectPage() {
                 </p>
             </div>
 
-            {/* Region Selection */}
-            <div className="mb-6 card">
-                <div className="flex items-center gap-2 mb-3">
-                    <MapPin className="w-4 h-4 text-[var(--primary)]" />
-                    <label htmlFor="region-select" className="font-medium">Deployment Region</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Framework Selection */}
+                <div className="card">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-4 h-4 flex items-center justify-center font-bold text-[var(--primary)]">F</div>
+                        <label htmlFor="framework-select" className="font-medium">Framework Preset</label>
+                    </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-3">
+                        Select your project framework.
+                    </p>
+                    <select
+                        id="framework-select"
+                        value={framework}
+                        onChange={(e) => setFramework(e.target.value)}
+                        className="input w-full"
+                    >
+                        <option value="nextjs">Next.js</option>
+                        <option value="vite">Vite (React, Vue, Svelte)</option>
+                    </select>
                 </div>
-                <p className="text-sm text-[var(--muted-foreground)] mb-3">
-                    Choose where your app will be deployed. Select a region close to your users.
-                </p>
-                <select
-                    id="region-select"
-                    value={selectedRegion}
-                    onChange={(e) => setSelectedRegion(e.target.value)}
-                    className="input w-full sm:w-auto"
-                >
-                    {GCP_REGIONS.map((region) => (
-                        <option key={region.value} value={region.value}>
-                            {region.label}
-                        </option>
-                    ))}
-                </select>
+
+                {/* Region Selection */}
+                <div className="card">
+                    <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="w-4 h-4 text-[var(--primary)]" />
+                        <label htmlFor="region-select" className="font-medium">Deployment Region</label>
+                    </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-3">
+                        Choose where your app will be deployed.
+                    </p>
+                    <select
+                        id="region-select"
+                        value={selectedRegion}
+                        onChange={(e) => setSelectedRegion(e.target.value)}
+                        className="input w-full"
+                    >
+                        {GCP_REGIONS.map((region) => (
+                            <option key={region.value} value={region.value}>
+                                {region.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {/* Search */}
