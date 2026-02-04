@@ -196,6 +196,70 @@ export async function getRepoContents(
 }
 
 /**
+ * Get file content
+ */
+export async function getFileContent(
+    accessToken: string,
+    owner: string,
+    repo: string,
+    path: string
+): Promise<string | null> {
+    const octokit = createGitHubClient(accessToken);
+    try {
+        const { data } = await octokit.repos.getContent({
+            owner,
+            repo,
+            path,
+        });
+
+        if ('content' in data && data.content) {
+            return Buffer.from(data.content, 'base64').toString('utf-8');
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Detect if repository is an Astro project
+ */
+export async function detectAstroProject(
+    accessToken: string,
+    owner: string,
+    repo: string,
+    rootDir: string = ''
+): Promise<boolean> {
+    const contents = await getRepoContents(accessToken, owner, repo, rootDir);
+
+    // Look for astro.config.*
+    const hasAstroConfig = contents.some(
+        item => item.name === 'astro.config.js' ||
+            item.name === 'astro.config.mjs' ||
+            item.name === 'astro.config.ts' ||
+            item.name === 'astro.config.cjs'
+    );
+
+    if (hasAstroConfig) return true;
+
+    // Check package.json for astro dependency
+    const packageJsonPath = rootDir ? `${rootDir}/package.json` : 'package.json';
+    const content = await getFileContent(accessToken, owner, repo, packageJsonPath);
+
+    if (content) {
+        try {
+            const pkg = JSON.parse(content);
+            const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+            return 'astro' in deps;
+        } catch {
+            return false;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Detect if repository is a Next.js project
  */
 export async function detectNextJsProject(
