@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { X } from 'lucide-react';
 import { DeploymentTimeline } from '@/components/DeploymentTimeline';
+import { LogViewer } from '@/components/LogViewer';
 import type { Deployment } from '@/types';
 
 interface DeploymentLogsModalProps {
@@ -15,7 +16,6 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
     const [logs, setLogs] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const logsEndRef = useRef<HTMLDivElement>(null);
 
     const fetchLogs = useCallback(async (isPolling = false) => {
         if (!isPolling) setLoading(true);
@@ -57,13 +57,6 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
         };
     }, [isOpen, deployment.id, deployment.status, fetchLogs]);
 
-    // Auto-scroll to bottom when logs update
-    useEffect(() => {
-        if (logsEndRef.current) {
-            logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [logs]);
-
     if (!isOpen) return null;
 
     return (
@@ -92,23 +85,13 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-auto p-4 bg-[#0d1117] font-mono text-xs md:text-sm text-gray-300">
-                    {loading && !logs ? (
-                        <div className="flex flex-col items-center justify-center h-full text-[var(--muted-foreground)]">
-                            <Loader2 className="w-8 h-8 animate-spin mb-4" />
-                            <p>Fetching build logs...</p>
-                        </div>
-                    ) : error ? (
-                        <div className="flex flex-col items-center justify-center h-full text-[var(--error)]">
-                            <p>{error}</p>
-                            <button onClick={() => fetchLogs()} className="btn btn-secondary mt-4">Retry</button>
-                        </div>
-                    ) : (
-                        <>
-                            <pre className="whitespace-pre-wrap">{logs || 'No logs available.'}</pre>
-                            <div ref={logsEndRef} />
-                        </>
-                    )}
+                <div className="flex-1 overflow-hidden bg-[#0d1117]">
+                    <LogViewer
+                        logs={logs}
+                        loading={loading && !logs}
+                        error={error}
+                        onRetry={() => fetchLogs()}
+                    />
                 </div>
             </div>
         </div>
