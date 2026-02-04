@@ -15,7 +15,7 @@ export default function NewProjectPage() {
     const [importing, setImporting] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [selectedRegion, setSelectedRegion] = useState('');
-    const [framework, setFramework] = useState('nextjs');
+    const [framework, setFramework] = useState('auto');
 
     // Common GCP regions for Cloud Run
     const GCP_REGIONS = [
@@ -43,7 +43,7 @@ export default function NewProjectPage() {
                     setRepos(data.repos || []);
                     setFilteredRepos(data.repos || []);
                 }
-            } catch (err) {
+            } catch {
                 setError('Failed to fetch repositories');
             } finally {
                 setLoading(false);
@@ -137,8 +137,11 @@ export default function NewProjectPage() {
                         onChange={(e) => setFramework(e.target.value)}
                         className="input w-full"
                     >
+                        <option value="auto">Auto-detect</option>
                         <option value="nextjs">Next.js</option>
                         <option value="vite">Vite (React, Vue, Svelte)</option>
+                        <option value="astro">Astro</option>
+                        <option value="remix">Remix</option>
                     </select>
                 </div>
 

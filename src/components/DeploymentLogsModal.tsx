@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { DeploymentTimeline } from '@/components/DeploymentTimeline';
-import { LogViewer } from '@/components/LogViewer';
+import { BuildLogViewer } from '@/components/BuildLogViewer';
 import type { Deployment } from '@/types';
 
 interface DeploymentLogsModalProps {
@@ -66,11 +66,10 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
                     <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-lg">Build Logs</h3>
-                        <span className={`badge ${
-                            deployment.status === 'ready' ? 'badge-success' :
-                            deployment.status === 'error' ? 'badge-error' :
-                            deployment.status === 'building' ? 'badge-warning' : 'badge-info'
-                        }`}>
+                        <span className={`badge ${deployment.status === 'ready' ? 'badge-success' :
+                                deployment.status === 'error' ? 'badge-error' :
+                                    deployment.status === 'building' ? 'badge-warning' : 'badge-info'
+                            }`}>
                             {deployment.status}
                         </span>
                     </div>
@@ -86,7 +85,7 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
 
                 {/* Content */}
                 <div className="flex-1 overflow-hidden bg-[#0d1117]">
-                    <LogViewer
+                    <BuildLogViewer
                         logs={logs}
                         loading={loading && !logs}
                         error={error}

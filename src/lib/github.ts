@@ -196,7 +196,7 @@ export async function getRepoContents(
 }
 
 /**
- * Get file content
+ * Get file content from a repository
  */
 export async function getFileContent(
     accessToken: string,
@@ -222,7 +222,67 @@ export async function getFileContent(
 }
 
 /**
- * Detect if repository is an Astro project
+ * Detect the framework of a repository
+ * Returns the detected framework type or null if unknown
+ */
+export async function detectFramework(
+    accessToken: string,
+    owner: string,
+    repo: string,
+    rootDir: string = ''
+): Promise<'nextjs' | 'vite' | 'astro' | 'remix' | null> {
+    const contents = await getRepoContents(accessToken, owner, repo, rootDir);
+
+    // Helper to check file existence
+    const hasFile = (pattern: RegExp) => contents.some(item => pattern.test(item.name));
+
+    // Try to read package.json for dependencies
+    let dependencies: Record<string, string> = {};
+    let devDependencies: Record<string, string> = {};
+
+    const packageJsonItem = contents.find(item => item.name === 'package.json');
+    if (packageJsonItem) {
+        try {
+            const path = rootDir ? `${rootDir}/package.json` : 'package.json';
+            const content = await getFileContent(accessToken, owner, repo, path);
+
+            if (content) {
+                const pkg = JSON.parse(content);
+                dependencies = pkg.dependencies || {};
+                devDependencies = pkg.devDependencies || {};
+            }
+        } catch (e) {
+            console.error('Failed to read package.json:', e);
+        }
+    }
+
+    const allDeps = { ...dependencies, ...devDependencies };
+
+    // Next.js
+    if (hasFile(/^next\.config\.(js|ts|mjs)$/) || allDeps['next']) {
+        return 'nextjs';
+    }
+
+    // Astro
+    if (hasFile(/^astro\.config\.(js|ts|mjs)$/) || allDeps['astro']) {
+        return 'astro';
+    }
+
+    // Remix
+    if (hasFile(/^remix\.config\.(js|ts)$/) || allDeps['@remix-run/react'] || allDeps['@remix-run/node']) {
+        return 'remix';
+    }
+
+    // Vite
+    if (hasFile(/^vite\.config\.(js|ts)$/) || allDeps['vite']) {
+        return 'vite';
+    }
+
+    return null;
+}
+
+/**
+ * Detect if repository is an Astro project (legacy helper, uses detectFramework internally)
  */
 export async function detectAstroProject(
     accessToken: string,
@@ -230,57 +290,8 @@ export async function detectAstroProject(
     repo: string,
     rootDir: string = ''
 ): Promise<boolean> {
-    const contents = await getRepoContents(accessToken, owner, repo, rootDir);
-
-    // Look for astro.config.*
-    const hasAstroConfig = contents.some(
-        item => item.name === 'astro.config.js' ||
-            item.name === 'astro.config.mjs' ||
-            item.name === 'astro.config.ts' ||
-            item.name === 'astro.config.cjs'
-    );
-
-    if (hasAstroConfig) return true;
-
-    // Check package.json for astro dependency
-    const packageJsonPath = rootDir ? `${rootDir}/package.json` : 'package.json';
-    const content = await getFileContent(accessToken, owner, repo, packageJsonPath);
-
-    if (content) {
-        try {
-            const pkg = JSON.parse(content);
-            const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-            return 'astro' in deps;
-        } catch {
-            return false;
-        }
-    }
-
-    return false;
-}
-
-/**
- * Detect if repository is a Next.js project
- */
-export async function detectNextJsProject(
-    accessToken: string,
-    owner: string,
-    repo: string,
-    rootDir: string = ''
-): Promise<boolean> {
-    const contents = await getRepoContents(accessToken, owner, repo, rootDir);
-
-    // Look for next.config.js or next.config.ts
-    const hasNextConfig = contents.some(
-        item => item.name === 'next.config.js' ||
-            item.name === 'next.config.ts' ||
-            item.name === 'next.config.mjs'
-    );
-
-    // Also check package.json for next dependency
-    const hasPackageJson = contents.some(item => item.name === 'package.json');
-
-    return hasNextConfig || hasPackageJson;
+    const framework = await detectFramework(accessToken, owner, repo, rootDir);
+    return framework === 'astro';
 }
 
 /**
