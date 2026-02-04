@@ -197,6 +197,8 @@ export default function ProjectDetailPage() {
         return null;
     }
 
+    const selectedDeployment = deployments.find(d => d.id === selectedLogsId);
+
     return (
         <div className="p-8">
             {/* Breadcrumb */}
@@ -402,6 +404,7 @@ export default function ProjectDetailPage() {
                     deploymentId={selectedLogsId || ''}
                     isOpen={!!selectedLogsId}
                     onClose={() => setSelectedLogsId(null)}
+                    status={selectedDeployment?.status}
                 />
             )}
         </div>
