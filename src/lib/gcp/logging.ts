@@ -5,7 +5,7 @@ export interface LogEntry {
   timestamp: string;
   severity: string;
   textPayload?: string;
-  jsonPayload?: Record<string, any>;
+  jsonPayload?: Record<string, unknown>;
   resource: {
     type: string;
     labels: Record<string, string>;
@@ -14,7 +14,18 @@ export interface LogEntry {
   insertId?: string;
 }
 
-export function formatLogEntry(entry: any): LogEntry {
+export function formatLogEntry(entry: {
+  timestamp: string;
+  severity?: string;
+  textPayload?: string;
+  jsonPayload?: Record<string, unknown>;
+  resource: {
+    type: string;
+    labels: Record<string, string>;
+  };
+  logName: string;
+  insertId?: string;
+}): LogEntry {
   return {
     timestamp: entry.timestamp,
     severity: entry.severity || 'DEFAULT',
@@ -75,7 +86,13 @@ export async function listLogEntries(
   const accessToken = await getGcpAccessToken();
   const filter = `resource.type="cloud_run_revision" AND resource.labels.service_name="${serviceName}"`;
 
-  const body: any = {
+  const body: {
+    resourceNames: string[];
+    filter: string;
+    orderBy: string;
+    pageSize: number;
+    pageToken?: string;
+  } = {
     resourceNames: [`projects/${config.gcp.projectId}`],
     filter,
     orderBy: 'timestamp desc',

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { listProjectsByUser, createProject, getProjectBySlug } from '@/lib/db';
-import { getRepo, createRepoWebhook } from '@/lib/github';
+import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
 import { slugify, parseRepoFullName } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
 
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
             name,
             rootDirectory = '',
             region,
-            framework = 'nextjs',
+            framework,
             buildCommand,
             installCommand,
             outputDirectory
@@ -83,17 +83,37 @@ export async function POST(request: NextRequest) {
         }
 
         // Create webhook on the repository
-        let webhookId: number | undefined;
         try {
-            webhookId = await createRepoWebhook(session.accessToken, owner, repo);
+            await createRepoWebhook(session.accessToken, owner, repo);
         } catch (error) {
             console.error('Failed to create webhook:', error);
             // Continue without webhook - user may not have admin access
         }
 
+        // Detect framework if auto or not provided
+        let selectedFramework = framework;
+        if (!selectedFramework || selectedFramework === 'auto') {
+            const detected = await detectFramework(session.accessToken, owner, repo, rootDirectory);
+            selectedFramework = detected || 'nextjs';
+        }
+
         // Determine defaults based on framework
-        const defaultBuildCommand = framework === 'vite' ? 'npm run build' : 'npm run build';
-        const defaultOutputDirectory = framework === 'vite' ? 'dist' : '.next';
+        const defaultBuildCommand = 'npm run build';
+        let defaultOutputDirectory = '.next';
+
+        switch (selectedFramework) {
+            case 'vite':
+            case 'astro':
+                defaultOutputDirectory = 'dist';
+                break;
+            case 'remix':
+                defaultOutputDirectory = 'build';
+                break;
+            case 'nextjs':
+            default:
+                defaultOutputDirectory = '.next';
+                break;
+        }
 
         // Create the project
         const project = await createProject({
@@ -103,7 +123,7 @@ export async function POST(request: NextRequest) {
             repoFullName: repoData.full_name,
             repoUrl: repoData.html_url,
             defaultBranch: repoData.default_branch,
-            framework,
+            framework: selectedFramework,
             buildCommand: buildCommand || defaultBuildCommand,
             installCommand: installCommand || 'npm install',
             outputDirectory: outputDirectory || defaultOutputDirectory,

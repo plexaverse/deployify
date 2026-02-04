@@ -10,10 +10,78 @@ export function getDockerfile(config: DockerfileConfig): string {
     switch (config.framework) {
         case 'vite':
             return generateViteDockerfile(config);
+        case 'astro':
+            return generateAstroDockerfile(config);
+        case 'remix':
+            return generateRemixDockerfile(config);
         case 'nextjs':
         default:
             return generateNextjsDockerfile(config);
     }
+}
+
+function generateAstroDockerfile(config: DockerfileConfig): string {
+    const { buildEnvSection, buildCommand = 'npm run build' } = config;
+
+    return `FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
+    elif [ -f package-lock.json ]; then npm ci; \\
+    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
+    else npm install; fi
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+${buildEnvSection}
+RUN ${buildCommand}
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=8080
+
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+EXPOSE 8080
+CMD ["node", "./dist/server/entry.mjs"]`;
+}
+
+function generateRemixDockerfile(config: DockerfileConfig): string {
+    const { buildEnvSection, buildCommand = 'npm run build' } = config;
+
+    return `FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
+    elif [ -f package-lock.json ]; then npm ci; \\
+    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
+    else npm install; fi
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+${buildEnvSection}
+RUN ${buildCommand}
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=8080
+
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/public ./public
+
+EXPOSE 8080
+CMD ["npm", "start"]`;
 }
 
 function generateNextjsDockerfile(config: DockerfileConfig): string {
