@@ -61,7 +61,8 @@ function generateViteDockerfile(config: DockerfileConfig): string {
     // Nginx configuration for SPA routing
     // We use a simple echo approach to create the config file
 
-    return `FROM node:20-alpine AS builder
+    return `FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
 RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
@@ -69,6 +70,10 @@ RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
     elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
     else npm install; fi
 
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ${buildEnvSection}
 RUN ${buildCommand}
