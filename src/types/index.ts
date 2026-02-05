@@ -128,6 +128,14 @@ export type DeploymentStatus =
 export type DeploymentType = 'production' | 'preview';
 
 // Deployment record
+export interface LighthouseMetrics {
+    performanceScore: number; // 0-1
+    lcp: number; // Largest Contentful Paint (ms)
+    cls: number; // Cumulative Layout Shift
+    fid: number | null; // First Input Delay (ms) - may be null for new deployments
+    tbt: number; // Total Blocking Time (ms) - lab proxy for FID
+}
+
 export interface Deployment {
     id: string;
     projectId: string;
@@ -145,6 +153,7 @@ export interface Deployment {
     errorMessage?: string;
     buildLogs?: string[];
     buildDurationMs?: number;
+    performanceMetrics?: LighthouseMetrics;
     createdAt: Date;
     updatedAt: Date;
     readyAt?: Date;

@@ -6,6 +6,7 @@ import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { sendWebhookNotification } from '@/lib/webhooks';
 import { trackDeployment } from '@/lib/billing/tracker';
 import { sendEmail } from '@/lib/email/client';
+import { runLighthouseAudit } from '@/lib/performance/lighthouse';
 
 // Poll Cloud Build status and update deployment
 export async function pollBuildStatus(
@@ -96,6 +97,16 @@ export async function pollBuildStatus(
                     await updateProject(projectId, {
                         productionUrl: serviceUrl,
                     });
+
+                    // Run Lighthouse audit
+                    try {
+                        const metrics = await runLighthouseAudit(serviceUrl);
+                        await updateDeployment(deploymentId, {
+                            performanceMetrics: metrics
+                        });
+                    } catch (auditError) {
+                        console.error('Lighthouse audit failed:', auditError);
+                    }
                 }
 
                 // Send Email Notification
@@ -209,6 +220,21 @@ export async function simulateDeployment(
 
             // Track deployment usage (simulation)
             await trackDeployment(projectId, 8000);
+
+            // Simulate Lighthouse audit
+            try {
+                await updateDeployment(deploymentId, {
+                    performanceMetrics: {
+                        performanceScore: 0.95,
+                        lcp: 1200,
+                        cls: 0.05,
+                        fid: 10,
+                        tbt: 50
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to update mock metrics:', e);
+            }
 
             // Simulate Email
             if (emailNotifications && userEmail && projectName) {
