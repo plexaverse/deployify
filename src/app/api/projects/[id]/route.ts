@@ -94,6 +94,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'customDomain',
             'region',
             'buildTimeout',
+            'webhookUrl',
         ];
 
         const updates: Record<string, unknown> = {};

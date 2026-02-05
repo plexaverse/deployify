@@ -31,6 +31,7 @@ export interface Project {
     region: string | null; // GCP region for Cloud Run deployment (e.g., 'us-central1', 'asia-south1')
     customDomain: string | null;
     buildTimeout?: number; // Custom build timeout in seconds
+    webhookUrl?: string | null; // Webhook URL for build notifications
     githubToken?: string | null; // Stored OAuth token for private repo access
     envVariables?: EnvVariable[];
     domains?: Domain[];

@@ -8,6 +8,7 @@ import { config } from '@/lib/config';
 import { generateCloudRunDeployConfig, submitCloudBuild, getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
+import { sendWebhookNotification } from '@/lib/webhooks';
 import type { EnvVariable } from '@/types';
 
 interface RouteParams {
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 });
 
                 // Start polling for build status with project region
-                pollBuildStatus(deployment.id, project.id, project.slug, buildId, project.region);
+                pollBuildStatus(deployment.id, project.id, project.slug, buildId, project.region, project.webhookUrl, project.name);
 
                 return NextResponse.json(
                     {
@@ -141,10 +142,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 );
             } catch (buildError) {
                 console.error('Cloud Build error:', buildError);
+                const errorMessage = buildError instanceof Error ? buildError.message : 'Cloud Build failed';
                 await updateDeployment(deployment.id, {
                     status: 'error',
-                    errorMessage: buildError instanceof Error ? buildError.message : 'Cloud Build failed',
+                    errorMessage: errorMessage,
                 });
+
+                if (project.webhookUrl) {
+                    const message = `🚨 **Build Trigger Failed** for project **${project.name}**\n\nError: ${errorMessage}`;
+                    await sendWebhookNotification(project.webhookUrl, {
+                        content: message,
+                        text: message,
+                    });
+                }
 
                 return NextResponse.json(
                     {
@@ -256,7 +266,15 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 }
 
 // Poll Cloud Build status and update deployment
-async function pollBuildStatus(deploymentId: string, projectId: string, projectSlug: string, buildId: string, projectRegion?: string | null) {
+async function pollBuildStatus(
+    deploymentId: string,
+    projectId: string,
+    projectSlug: string,
+    buildId: string,
+    projectRegion?: string | null,
+    webhookUrl?: string | null,
+    projectName?: string
+) {
     const maxPolls = 60; // 30 minutes max (30s intervals)
     let pollCount = 0;
 
@@ -266,10 +284,19 @@ async function pollBuildStatus(deploymentId: string, projectId: string, projectS
     const poll = async () => {
         pollCount++;
         if (pollCount > maxPolls) {
+            const errorMessage = 'Build timed out';
             await updateDeployment(deploymentId, {
                 status: 'error',
-                errorMessage: 'Build timed out',
+                errorMessage: errorMessage,
             });
+
+            if (webhookUrl && projectName) {
+                const message = `🚨 **Build Timed Out** for project **${projectName}**`;
+                await sendWebhookNotification(webhookUrl, {
+                    content: message,
+                    text: message,
+                });
+            }
             return;
         }
 
@@ -307,10 +334,19 @@ async function pollBuildStatus(deploymentId: string, projectId: string, projectS
                     });
                 }
             } else if (status === 'FAILURE' || status === 'TIMEOUT' || status === 'CANCELLED') {
+                const errorMessage = `Build ${status.toLowerCase()}`;
                 await updateDeployment(deploymentId, {
                     status: deploymentStatus,
-                    errorMessage: `Build ${status.toLowerCase()}`,
+                    errorMessage: errorMessage,
                 });
+
+                if (webhookUrl && projectName) {
+                    const message = `🚨 **Build ${status}** for project **${projectName}**\n\nStatus: ${status}`;
+                    await sendWebhookNotification(webhookUrl, {
+                        content: message,
+                        text: message,
+                    });
+                }
             } else {
                 // Still building - update status and continue polling
                 await updateDeployment(deploymentId, {
