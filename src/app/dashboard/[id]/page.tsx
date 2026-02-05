@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
+import { LogViewer } from '@/components/LogViewer';
 import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
@@ -397,6 +398,9 @@ export default function ProjectDetailPage() {
                     </div>
                 )}
             </div>
+
+            {/* Runtime Logs */}
+            <LogViewer projectId={project.id} className="mt-8" key={project.id} />
 
             {project && selectedDeployment && (
                 <DeploymentLogsModal
