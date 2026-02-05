@@ -51,4 +51,6 @@ export const Collections = {
     ENV_VARS: 'envVars',
     USAGE: 'usage',
     INVOICES: 'invoices',
+    TEAMS: 'teams',
+    TEAM_MEMBERSHIPS: 'teamMemberships',
 } as const;
