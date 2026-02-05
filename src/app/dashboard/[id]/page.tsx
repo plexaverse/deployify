@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { LogViewer } from '@/components/LogViewer';
 import { RollbackModal } from '@/components/RollbackModal';
+import { WebVitals } from '@/components/WebVitals';
 import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
@@ -321,6 +322,8 @@ export default function ProjectDetailPage() {
                     </div>
                 )}
             </div>
+
+            <WebVitals metrics={deployments[0]?.performanceMetrics} />
 
             {/* Deployments list */}
             <div className="card">
