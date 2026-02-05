@@ -137,10 +137,14 @@ export default function HomePage() {
                 <ArrowRight className="w-5 h-5" />
               </MovingBorderButton>
               <button
-                className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold border border-white/10 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2"
+                onClick={() => toast.info('Demo video coming soon!', { description: 'We are currently polishing our walkthrough.' })}
+                className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold border border-white/10 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2 group"
                 aria-label="Watch 2-minute demo video"
               >
-                <Zap className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <div className="relative">
+                  <div className="absolute inset-0 bg-yellow-500 blur-sm rounded-full opacity-0 group-hover:opacity-50 group-hover:animate-pulse transition-opacity" aria-hidden="true" />
+                  <Zap className="w-5 h-5 text-yellow-500 fill-yellow-500 relative z-10" aria-hidden="true" />
+                </div>
                 Watch Demo
                 <span className="text-xs font-medium text-neutral-500 ml-1">2 min</span>
               </button>
@@ -414,18 +418,25 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-40 text-center"
+            className="mt-40 text-center px-4"
           >
             <h2 className="text-3xl md:text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
               Global Edge Network
             </h2>
-            <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12">
+            <p className="text-neutral-400 max-w-2xl mx-auto mb-12">
               Deploy your applications to over 100+ locations worldwide with automatic global load balancing and DDoS protection.
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              {['Ultra-low Latency', 'Auto-scaling', 'Anycast IP', 'Cloud Armor'].map((feat) => (
-                <div key={feat} className="p-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm font-bold text-[var(--foreground)] hover:border-[var(--border-hover)] transition-colors">
-                  {feat}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              {[
+                { name: 'Ultra-low Latency', icon: Zap },
+                { name: 'Auto-scaling', icon: Rocket },
+                { name: 'Anycast IP', icon: Globe },
+                { name: 'Cloud Armor', icon: Shield },
+              ].map((feat, i) => (
+                <div key={feat.name} className="group relative p-8 rounded-[2rem] border border-white/5 bg-white/5 backdrop-blur-sm hover:border-indigo-500/50 transition-all duration-500 text-center overflow-hidden">
+                  <div className="absolute top-4 right-6 text-xs font-black text-white/10 group-hover:text-indigo-500/20 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
+                  <feat.icon className="w-8 h-8 text-indigo-500 mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
+                  <span className="text-sm font-bold text-neutral-300 block">{feat.name}</span>
                 </div>
               ))}
             </div>
