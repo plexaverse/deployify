@@ -14,7 +14,7 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, getProductionServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { parseBranchFromRef } from '@/lib/utils';
+import { parseBranchFromRef, shouldAutoDeploy } from '@/lib/utils';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 
 export async function POST(request: NextRequest) {
@@ -78,17 +78,17 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     const { repository, head_commit, ref } = payload;
     const branch = parseBranchFromRef(ref);
 
-    // Only deploy pushes to the default branch
-    if (branch !== repository.default_branch) {
-        console.log(`Ignoring push to non-default branch: ${branch}`);
-        return;
-    }
-
     // Find the project
     const project = await getProjectByRepoFullName(repository.full_name);
 
     if (!project) {
         console.log(`No project found for repo: ${repository.full_name}`);
+        return;
+    }
+
+    // Check if we should deploy this branch
+    if (!shouldAutoDeploy(project, branch)) {
+        console.log(`Ignoring push to branch ${branch} for project ${project.name}`);
         return;
     }
 
