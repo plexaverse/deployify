@@ -4,6 +4,7 @@ export interface DockerfileConfig {
     outputDirectory?: string;
     buildCommand?: string;
     installCommand?: string;
+    restoreCache?: boolean;
 }
 
 export function getDockerfile(config: DockerfileConfig): string {
@@ -86,7 +87,7 @@ CMD ["npm", "start"]`;
 }
 
 function generateNextjsDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection } = config;
+    const { buildEnvSection, restoreCache } = config;
     return `FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -105,6 +106,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ${buildEnvSection}
 # Generate Prisma client if prisma folder exists
 RUN if [ -d "prisma" ]; then npx prisma generate; fi
+${restoreCache ? '# Copy restored cache to .next/cache\nCOPY restore_cache/ .next/' : ''}
 RUN npm run build
 
 FROM node:20-alpine AS runner

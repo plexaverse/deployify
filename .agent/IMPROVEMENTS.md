@@ -99,9 +99,7 @@
 
 #### 7. **Build Caching**
 - **Current**: Each build starts fresh
-- **Improvement**: Enable Cloud Build caching for `node_modules`, `.next/cache`
-- **Benefit**: Faster builds (2-5x improvement)
-- **Files**: `src/lib/gcp/cloudbuild.ts` (add cache volumes)
+- **Status**: ✅ Implemented (GCS-based caching for `.next/cache`)
 
 #### 8. **Resource Configuration UI**
 - **Current**: Using defaults (512Mi memory, 1 CPU)

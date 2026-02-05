@@ -4,6 +4,7 @@ import { getDockerfile } from '@/lib/dockerfiles';
 import type { BuildConfig, Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
+const CACHE_BUCKET = `${config.gcp.projectId}_deployify_cache`;
 
 interface BuildSubmissionConfig {
     projectSlug: string;
@@ -100,10 +101,20 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         outputDirectory,
         buildCommand,
         installCommand,
+        restoreCache: true,
     });
 
     // Define common steps shared between both deployment methods
     const commonSteps = [
+        // Restore cache from GCS
+        {
+            name: 'gcr.io/cloud-builders/gsutil',
+            entrypoint: 'bash',
+            args: [
+                '-c',
+                `mkdir -p restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C restore_cache || echo "No cache found or restore failed")`,
+            ],
+        },
         // Create a Dockerfile for Next.js if it doesn't exist
         {
             name: 'gcr.io/cloud-builders/docker',
@@ -162,6 +173,39 @@ fi`,
         {
             name: 'gcr.io/cloud-builders/docker',
             args: ['push', latestImageName],
+        },
+        // Build 'builder' target to extract cache
+        {
+            name: 'gcr.io/cloud-builders/docker',
+            args: [
+                'build',
+                '--target', 'builder',
+                '-t', `${imageName}-builder`,
+                ...dockerBuildArgs,
+                '.'
+            ],
+            dir: '/workspace',
+        },
+        // Extract and Save Cache to GCS (Non-blocking)
+        {
+            name: 'gcr.io/cloud-builders/docker',
+            entrypoint: 'bash',
+            args: [
+                '-c',
+                `{
+  docker create --name cache_extractor ${imageName}-builder && \
+  mkdir -p .next_cache_export && \
+  (docker cp cache_extractor:/app/.next/cache .next_cache_export/cache || echo "No .next/cache found") && \
+  docker rm cache_extractor && \
+  if [ -d .next_cache_export/cache ]; then \
+    tar -czf cache.tgz -C .next_cache_export cache && \
+    (gsutil mb gs://${CACHE_BUCKET} || true) && \
+    gsutil cp cache.tgz gs://${CACHE_BUCKET}/${projectSlug}.tgz; \
+  else \
+    echo "No cache to save"; \
+  fi
+} || echo "Cache save failed, ignoring..."`
+            ],
         },
         // Deploy to Cloud Run
         {
