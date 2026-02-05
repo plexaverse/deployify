@@ -140,6 +140,27 @@ export async function listTeamMembers(teamId: string): Promise<TeamMembership[]>
     });
 }
 
+export async function getTeamMembership(teamId: string, userId: string): Promise<TeamMembership | null> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('teamId', '==', teamId)
+        .where('userId', '==', userId)
+        .limit(1)
+        .get();
+
+    if (snapshot.empty) {
+        return null;
+    }
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+    return {
+        ...data,
+        joinedAt: data?.joinedAt?.toDate(),
+    } as TeamMembership;
+}
+
 // ============= Project Operations =============
 
 export async function createProject(

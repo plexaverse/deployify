@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getProjectById } from '@/lib/db';
+import { checkProjectAccess } from '@/middleware/rbac';
 import { listLogEntries } from '@/lib/gcp/logging';
 import { getProductionServiceName, getPreviewServiceName } from '@/lib/gcp/cloudrun';
 import { securityHeaders } from '@/lib/security';
@@ -21,21 +21,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
-            );
-        }
+        const { project } = access;
 
         const searchParams = request.nextUrl.searchParams;
         const stream = searchParams.get('stream') === 'true';

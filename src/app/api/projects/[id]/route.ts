@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getProjectById, updateProject, deleteProject, listDeploymentsByProject } from '@/lib/db';
+import { updateProject, deleteProject, listDeploymentsByProject } from '@/lib/db';
+import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 
 interface RouteParams {
@@ -20,22 +21,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        // Check ownership
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
-            );
-        }
+        const { project } = access;
 
         // Get recent deployments
         const deployments = await listDeploymentsByProject(id, 5);
@@ -66,21 +61,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
-            );
-        }
+        const { project } = access;
 
         const body = await request.json();
 
@@ -146,19 +136,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
-            );
-        }
-
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 
