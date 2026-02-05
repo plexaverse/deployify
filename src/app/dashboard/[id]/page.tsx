@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { LogViewer } from '@/components/LogViewer';
+import { RollbackModal } from '@/components/RollbackModal';
 import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
@@ -32,6 +33,7 @@ export default function ProjectDetailPage() {
     const [loading, setLoading] = useState(true);
     const [deploying, setDeploying] = useState(false);
     const [selectedLogsId, setSelectedLogsId] = useState<string | null>(null);
+    const [rollbackDeployment, setRollbackDeployment] = useState<Deployment | null>(null);
 
     useEffect(() => {
         async function fetchProject() {
@@ -153,12 +155,25 @@ export default function ProjectDetailPage() {
         }
     };
 
-    const handleRollback = async (deploymentId: string) => {
-        if (!project) return;
+    const handleRollback = (deploymentId: string) => {
+        const deployment = deployments.find(d => d.id === deploymentId);
+        if (deployment) {
+            setRollbackDeployment(deployment);
+        }
+    };
+
+    const confirmRollback = async () => {
+        if (!project || !rollbackDeployment || !rollbackDeployment.cloudRunRevision) return;
         const toastId = toast.loading('Initiating rollback...');
         try {
-            const response = await fetch(`/api/projects/${project.id}/deployments/${deploymentId}/rollback`, {
+            const response = await fetch(`/api/projects/${project.id}/rollback`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    revisionName: rollbackDeployment.cloudRunRevision,
+                }),
             });
 
             if (response.ok) {
@@ -167,6 +182,7 @@ export default function ProjectDetailPage() {
                 const deploymentsResponse = await fetch(`/api/projects/${project.id}/deployments`);
                 const data = await deploymentsResponse.json();
                 setDeployments(data.deployments || []);
+                setRollbackDeployment(null);
             } else {
                 const err = await response.json();
                 toast.error(err.error || 'Failed to rollback', { id: toastId });
@@ -416,6 +432,15 @@ export default function ProjectDetailPage() {
                     deployment={selectedDeployment}
                     isOpen={!!selectedLogsId}
                     onClose={() => setSelectedLogsId(null)}
+                />
+            )}
+
+            {rollbackDeployment && (
+                <RollbackModal
+                    deployment={rollbackDeployment}
+                    isOpen={!!rollbackDeployment}
+                    onClose={() => setRollbackDeployment(null)}
+                    onConfirm={confirmRollback}
                 />
             )}
         </div>
