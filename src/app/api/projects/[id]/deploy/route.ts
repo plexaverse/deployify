@@ -12,6 +12,7 @@ import { getService } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { sendWebhookNotification } from '@/lib/webhooks';
 import { trackDeployment } from '@/lib/billing/tracker';
+import { logAuditEvent } from '@/lib/audit';
 import type { EnvVariable } from '@/types';
 
 interface RouteParams {
@@ -114,6 +115,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             gitCommitMessage: commitMessage,
             gitCommitAuthor: commitAuthor,
         });
+
+        // Log audit event
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'deployment.created',
+            {
+                projectId: project.id,
+                deploymentId: deployment.id,
+                gitCommitSha: commitSha,
+                gitBranch: project.defaultBranch
+            }
+        );
 
         // Check if running on GCP - use real Cloud Build
         if (isRunningOnGCP()) {
