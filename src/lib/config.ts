@@ -49,12 +49,9 @@ export const config = {
 
     // Billing
     billing: {
-        stripe: {
-            secretKey: process.env.STRIPE_SECRET_KEY!,
-        },
         razorpay: {
-            keyId: process.env.RAZORPAY_KEY_ID,
-            keySecret: process.env.RAZORPAY_KEY_SECRET,
+            keyId: process.env.RAZORPAY_KEY_ID!,
+            keySecret: process.env.RAZORPAY_KEY_SECRET!,
         },
     },
 
@@ -77,7 +74,8 @@ export function validateConfig(): void {
         'GITHUB_WEBHOOK_SECRET',
         'GCP_PROJECT_ID',
         'JWT_SECRET',
-        'STRIPE_SECRET_KEY',
+        'RAZORPAY_KEY_ID',
+        'RAZORPAY_KEY_SECRET',
         'RESEND_API_KEY',
     ];
 

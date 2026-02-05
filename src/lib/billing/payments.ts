@@ -1,49 +1,68 @@
-import Stripe from 'stripe';
+import Razorpay from 'razorpay';
 import { config } from '@/lib/config';
+import crypto from 'crypto';
 
-// Initialize Stripe with the secret key from config
-export const stripe = new Stripe(config.billing.stripe.secretKey, {
-    apiVersion: '2026-01-28.clover',
-    typescript: true,
-});
+// Lazy-initialize Razorpay for server-side usage
+let razorpayInstance: Razorpay | null = null;
+
+export function getRazorpay(): Razorpay {
+    if (!razorpayInstance) {
+        razorpayInstance = new Razorpay({
+            key_id: config.billing.razorpay.keyId,
+            key_secret: config.billing.razorpay.keySecret,
+        });
+    }
+    return razorpayInstance;
+}
 
 /**
- * Creates a Stripe Checkout Session for a subscription.
+ * Creates a Razorpay Order
  */
-export async function createCheckoutSession(
-    customerId: string,
-    priceId: string,
-    successUrl: string,
-    cancelUrl: string
+export async function createOrder(
+    amount: number, // in paise
+    currency: string = 'INR',
+    receipt: string
 ) {
-    const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        line_items: [
-            {
-                price: priceId,
-                quantity: 1,
-            },
-        ],
-        mode: 'subscription',
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-    });
-
-    return session;
+    const razorpay = getRazorpay();
+    const options = {
+        amount,
+        currency,
+        receipt,
+    };
+    try {
+        const order = await razorpay.orders.create(options);
+        return order;
+    } catch (error) {
+        console.error('Error creating Razorpay order:', error);
+        throw error;
+    }
 }
 
 /**
- * Cancels a Stripe subscription.
+ * Verify Razorpay Payment Signature
  */
-export async function cancelSubscription(subscriptionId: string) {
-    const subscription = await stripe.subscriptions.cancel(subscriptionId);
-    return subscription;
+export function verifyPaymentSignature(
+    orderId: string,
+    paymentId: string,
+    signature: string
+): boolean {
+    const hmac = crypto.createHmac('sha256', config.billing.razorpay.keySecret);
+    hmac.update(orderId + '|' + paymentId);
+    const generatedSignature = hmac.digest('hex');
+    return generatedSignature === signature;
 }
 
 /**
- * Retrieves the status of a Stripe subscription.
+ * Verify Webhook Signature
  */
-export async function getSubscriptionStatus(subscriptionId: string) {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    return subscription.status;
+export function verifyWebhookSignature(
+    body: string,
+    signature: string,
+    webhookSecret: string
+): boolean {
+    const hmac = crypto.createHmac('sha256', webhookSecret);
+    hmac.update(body);
+    const generatedSignature = hmac.digest('hex');
+    return generatedSignature === signature;
 }
+
