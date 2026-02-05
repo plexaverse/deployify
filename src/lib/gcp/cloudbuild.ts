@@ -296,6 +296,7 @@ export async function getBuildStatus(
 ): Promise<{
     status: 'QUEUED' | 'WORKING' | 'SUCCESS' | 'FAILURE' | 'TIMEOUT' | 'CANCELLED' | 'STATUS_UNKNOWN';
     logUrl: string;
+    startTime?: string;
     finishTime?: string;
     serviceUrl?: string;
 }> {
@@ -324,6 +325,7 @@ export async function getBuildStatus(
     return {
         status: data.status || 'STATUS_UNKNOWN',
         logUrl: data.logUrl || '',
+        startTime: data.startTime,
         finishTime: data.finishTime,
         serviceUrl: undefined, // Would need to parse from build logs
     };

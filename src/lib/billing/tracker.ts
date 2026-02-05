@@ -1,5 +1,5 @@
 import { FieldValue } from 'firebase-admin/firestore';
-import { getDb, Collections } from '../firebase';
+import { getDb, Collections } from '@/lib/firebase';
 
 /**
  * Track deployment usage for a project
@@ -9,13 +9,15 @@ import { getDb, Collections } from '../firebase';
  */
 export async function trackDeployment(projectId: string, buildDurationMs: number): Promise<void> {
     const db = getDb();
-    const minutes = buildDurationMs / 1000 / 60;
+    const buildMinutes = Math.ceil(buildDurationMs / 60000);
 
+    // Update the usage document for the project
+    // Using atomic increments to ensure accuracy
     await db.collection(Collections.USAGE).doc(projectId).set(
         {
             id: projectId,
             totalDeployments: FieldValue.increment(1),
-            totalBuildMinutes: FieldValue.increment(minutes),
+            totalBuildMinutes: FieldValue.increment(buildMinutes),
             lastUpdated: FieldValue.serverTimestamp(),
         },
         { merge: true }

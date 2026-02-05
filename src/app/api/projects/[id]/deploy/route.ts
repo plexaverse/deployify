@@ -9,6 +9,7 @@ import { generateCloudRunDeployConfig, submitCloudBuild, getBuildStatus, mapBuil
 import { getService } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { sendWebhookNotification } from '@/lib/webhooks';
+import { trackDeployment } from '@/lib/billing/tracker';
 import type { EnvVariable } from '@/types';
 
 interface RouteParams {
@@ -301,7 +302,7 @@ async function pollBuildStatus(
         }
 
         try {
-            const { status } = await getBuildStatus(buildId, projectRegion);
+            const { status, startTime, finishTime } = await getBuildStatus(buildId, projectRegion);
             const deploymentStatus = mapBuildStatusToDeploymentStatus(status);
 
             if (status === 'SUCCESS') {
@@ -321,12 +322,24 @@ async function pollBuildStatus(
                     console.error('Failed to fetch service revision:', e);
                 }
 
+                // Calculate build duration
+                let buildDurationMs = 0;
+                if (startTime && finishTime) {
+                    const start = new Date(startTime).getTime();
+                    const end = new Date(finishTime).getTime();
+                    buildDurationMs = end - start;
+                }
+
                 await updateDeployment(deploymentId, {
                     status: 'ready',
                     url: serviceUrl || `https://${serviceName}-853384839522.${region}.run.app`,
                     readyAt: new Date(),
                     cloudRunRevision: latestRevision,
+                    buildDurationMs,
                 });
+
+                // Track deployment usage
+                await trackDeployment(projectId, buildDurationMs);
 
                 if (serviceUrl) {
                     await updateProject(projectId, {
@@ -408,6 +421,9 @@ async function simulateDeployment(deploymentId: string, projectId: string, proje
             await updateProject(projectId, {
                 productionUrl: mockUrl,
             });
+
+            // Track deployment usage (simulation)
+            await trackDeployment(projectId, 8000);
         } catch (e) {
             console.error('Failed to update to ready:', e);
         }
