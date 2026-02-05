@@ -2,12 +2,19 @@ import { getUserById } from '@/lib/db';
 import type { User } from '@/types';
 
 export type TierType = 'free' | 'pro' | 'team' | 'enterprise';
+export type SubscriptionTier = TierType; // Alias for backward compatibility
 
 export interface TierLimits {
     projects: number;
     deployments: number;
     buildMinutes: number;
     bandwidth: number; // in bytes
+}
+
+export interface UsageLimits {
+    deployments: number; // per month
+    buildMinutes: number; // per month
+    bandwidth: number; // GB per month
 }
 
 export interface Tier {
@@ -22,7 +29,7 @@ export const TIERS: Record<TierType, Tier> = {
         name: 'Free',
         limits: {
             projects: 3,
-            deployments: 10,
+            deployments: 20,
             buildMinutes: 100,
             bandwidth: 5 * 1024 * 1024 * 1024, // 5 GB
         }
@@ -32,9 +39,9 @@ export const TIERS: Record<TierType, Tier> = {
         name: 'Pro',
         limits: {
             projects: 10,
-            deployments: 100,
-            buildMinutes: 500,
-            bandwidth: 50 * 1024 * 1024 * 1024, // 50 GB
+            deployments: 1000,
+            buildMinutes: 1000,
+            bandwidth: 100 * 1024 * 1024 * 1024, // 100 GB
         }
     },
     team: {
@@ -42,9 +49,9 @@ export const TIERS: Record<TierType, Tier> = {
         name: 'Team',
         limits: {
             projects: 50,
-            deployments: 500,
-            buildMinutes: 2000,
-            bandwidth: 200 * 1024 * 1024 * 1024, // 200 GB
+            deployments: 5000,
+            buildMinutes: 5000,
+            bandwidth: 500 * 1024 * 1024 * 1024, // 500 GB
         }
     },
     enterprise: {
@@ -70,6 +77,24 @@ export function getTier(tierId?: string): Tier {
     if (!tierId) return DEFAULT_TIER;
     const tier = TIERS[tierId as TierType];
     return tier || DEFAULT_TIER;
+}
+
+export function getTierLimits(tier: SubscriptionTier = 'free'): UsageLimits {
+    const tierData = TIERS[tier];
+    return {
+        deployments: tierData.limits.deployments,
+        buildMinutes: tierData.limits.buildMinutes,
+        bandwidth: tierData.limits.bandwidth / (1024 * 1024 * 1024), // Convert to GB
+    };
+}
+
+export function checkUsageLimits(
+    tier: SubscriptionTier,
+    metric: keyof UsageLimits,
+    currentUsage: number
+): boolean {
+    const limits = getTierLimits(tier);
+    return currentUsage < limits[metric];
 }
 
 export function calculateTierLimits(user: User | null): TierLimits {

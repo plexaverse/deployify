@@ -142,7 +142,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 });
 
                 // Start polling for build status with project region
-                pollBuildStatus(deployment.id, project.id, project.slug, buildId, project.region, project.webhookUrl, project.name);
+                pollBuildStatus(deployment.id, project.id, project.slug, buildId, project.region, project.webhookUrl, project.name, session.user.id);
 
                 return NextResponse.json(
                     {
@@ -284,7 +284,8 @@ async function pollBuildStatus(
     buildId: string,
     projectRegion?: string | null,
     webhookUrl?: string | null,
-    projectName?: string
+    projectName?: string,
+    userId?: string
 ) {
     const maxPolls = 60; // 30 minutes max (30s intervals)
     let pollCount = 0;
