@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getProjectById, getDeploymentById, createDeployment, updateDeployment, updateProject } from '@/lib/db';
+import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
 import { parseRepoFullName } from '@/lib/utils';
@@ -48,6 +49,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         if (project.userId !== session.user.id) {
             return NextResponse.json(
                 { error: 'Forbidden' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
+
+        // Check usage limits
+        const { withinLimits, limitType } = await checkUsageLimits(session.user.id);
+        if (!withinLimits) {
+            return NextResponse.json(
+                { error: `Usage limit exceeded: ${limitType}. Please upgrade your plan.` },
                 { status: 403, headers: securityHeaders }
             );
         }

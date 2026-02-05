@@ -1,46 +1,87 @@
 import { getUserById } from '@/lib/db';
 import type { User } from '@/types';
 
-export type Tier = 'free' | 'pro' | 'team' | 'enterprise';
+export type TierType = 'free' | 'pro' | 'team' | 'enterprise';
 
 export interface TierLimits {
     projects: number;
-    bandwidth: number; // in GB
+    deployments: number;
     buildMinutes: number;
+    bandwidth: number; // in bytes
 }
 
-export const TIER_LIMITS: Record<Tier, TierLimits> = {
+export interface Tier {
+    id: TierType;
+    name: string;
+    limits: TierLimits;
+}
+
+export const TIERS: Record<TierType, Tier> = {
     free: {
-        projects: 3,
-        bandwidth: 5, // 5 GB
-        buildMinutes: 100,
+        id: 'free',
+        name: 'Free',
+        limits: {
+            projects: 3,
+            deployments: 10,
+            buildMinutes: 100,
+            bandwidth: 5 * 1024 * 1024 * 1024, // 5 GB
+        }
     },
     pro: {
-        projects: 10,
-        bandwidth: 50, // 50 GB
-        buildMinutes: 500,
+        id: 'pro',
+        name: 'Pro',
+        limits: {
+            projects: 10,
+            deployments: 100,
+            buildMinutes: 500,
+            bandwidth: 50 * 1024 * 1024 * 1024, // 50 GB
+        }
     },
     team: {
-        projects: 50,
-        bandwidth: 200, // 200 GB
-        buildMinutes: 2000,
+        id: 'team',
+        name: 'Team',
+        limits: {
+            projects: 50,
+            deployments: 500,
+            buildMinutes: 2000,
+            bandwidth: 200 * 1024 * 1024 * 1024, // 200 GB
+        }
     },
     enterprise: {
-        projects: Infinity,
-        bandwidth: Infinity,
-        buildMinutes: Infinity,
-    },
+        id: 'enterprise',
+        name: 'Enterprise',
+        limits: {
+            projects: Infinity,
+            deployments: Infinity,
+            buildMinutes: Infinity,
+            bandwidth: Infinity,
+        }
+    }
 };
 
+export const DEFAULT_TIER = TIERS.free;
+
+// Legacy TIER_LIMITS for backward compatibility
+export const TIER_LIMITS: Record<TierType, TierLimits> = Object.fromEntries(
+    Object.entries(TIERS).map(([key, tier]) => [key, tier.limits])
+) as Record<TierType, TierLimits>;
+
+export function getTier(tierId?: string): Tier {
+    if (!tierId) return DEFAULT_TIER;
+    const tier = TIERS[tierId as TierType];
+    return tier || DEFAULT_TIER;
+}
+
 export function calculateTierLimits(user: User | null): TierLimits {
-    const tier = user?.subscription?.tier || 'free';
+    const tierId = (user as User & { subscription?: { tier?: TierType; expiresAt?: Date } })?.subscription?.tier || 'free';
 
     // Check if subscription is expired
-    if (user?.subscription?.expiresAt && user.subscription.expiresAt < new Date()) {
+    const subscription = (user as User & { subscription?: { tier?: TierType; expiresAt?: Date } })?.subscription;
+    if (subscription?.expiresAt && subscription.expiresAt < new Date()) {
         return TIER_LIMITS['free'];
     }
 
-    return TIER_LIMITS[tier];
+    return TIER_LIMITS[tierId];
 }
 
 export async function getUserTierLimits(userId: string): Promise<TierLimits> {
