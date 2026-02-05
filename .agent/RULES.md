@@ -58,6 +58,7 @@ deployify/
 │   │   ├── auth.ts             # JWT auth utilities
 │   │   ├── config.ts           # Environment config validation
 │   │   ├── db.ts               # Firestore CRUD operations
+│   │   ├── deployment.ts       # Deployment polling & notification logic
 │   │   ├── dockerfiles.ts      # Dockerfile generation logic
 │   │   ├── firebase.ts         # Firebase client initialization
 │   │   ├── github.ts           # GitHub API client (Octokit)
@@ -83,7 +84,7 @@ deployify/
 
 ```typescript
 User          // GitHub OAuth user
-Project       // Deployment project config (repo, build commands, region, etc.)
+Project       // Deployment project config (repo, build commands, region, emailNotifications, etc.)
 Deployment    // Individual deployment record (status, commit, URLs)
 EnvVar        // Environment variable (key, value, target: production/preview/all)
 Domain        // Custom domain (status: pending/active/error)
