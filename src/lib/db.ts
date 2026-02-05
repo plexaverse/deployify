@@ -1,5 +1,5 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, EnvVar } from '@/types';
+import type { User, Project, Deployment, EnvVar, Team, TeamMembership } from '@/types';
 import { generateId } from '@/lib/utils';
 
 // ============= User Operations =============
@@ -63,6 +63,81 @@ export async function upsertUser(userData: Omit<User, 'id' | 'createdAt' | 'upda
     }
 
     return createUser(userData);
+}
+
+// ============= Team Operations =============
+
+export async function createTeam(
+    teamData: Omit<Team, 'id' | 'createdAt' | 'updatedAt'>,
+    ownerId: string
+): Promise<Team> {
+    const db = getDb();
+    const id = generateId('team');
+    const now = new Date();
+
+    const team: Team = {
+        ...teamData,
+        id,
+        createdAt: now,
+        updatedAt: now,
+    };
+
+    const batch = db.batch();
+
+    // Create team
+    batch.set(db.collection(Collections.TEAMS).doc(id), team);
+
+    // Create owner membership
+    const membershipId = generateId('tm');
+    const membership: TeamMembership = {
+        id: membershipId,
+        teamId: id,
+        userId: ownerId,
+        role: 'owner',
+        joinedAt: now,
+    };
+
+    batch.set(db.collection(Collections.TEAM_MEMBERSHIPS).doc(membershipId), membership);
+
+    await batch.commit();
+
+    return team;
+}
+
+export async function getTeamById(id: string): Promise<Team | null> {
+    const db = getDb();
+    const doc = await db.collection(Collections.TEAMS).doc(id).get();
+
+    if (!doc.exists) {
+        return null;
+    }
+
+    const data = doc.data();
+    return {
+        ...data,
+        createdAt: data?.createdAt?.toDate(),
+        updatedAt: data?.updatedAt?.toDate(),
+        subscription: data?.subscription ? {
+            ...data.subscription,
+            expiresAt: data.subscription.expiresAt?.toDate ? data.subscription.expiresAt.toDate() : data.subscription.expiresAt
+        } : undefined,
+    } as Team;
+}
+
+export async function listTeamMembers(teamId: string): Promise<TeamMembership[]> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('teamId', '==', teamId)
+        .get();
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            joinedAt: data?.joinedAt?.toDate(),
+        } as TeamMembership;
+    });
 }
 
 // ============= Project Operations =============

@@ -17,10 +17,34 @@ export interface User {
     updatedAt: Date;
 }
 
+export type TeamRole = 'owner' | 'admin' | 'member' | 'viewer';
+
+export interface Team {
+    id: string;
+    name: string;
+    slug: string;
+    avatarUrl?: string | null;
+    subscription?: {
+        tier: 'free' | 'pro' | 'team' | 'enterprise';
+        expiresAt: Date;
+    };
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface TeamMembership {
+    id: string;
+    teamId: string;
+    userId: string;
+    role: TeamRole;
+    joinedAt: Date;
+}
+
 // Project configuration
 export interface Project {
     id: string;
     userId: string;
+    teamId?: string;
     name: string;
     slug: string;
     repoFullName: string; // owner/repo
