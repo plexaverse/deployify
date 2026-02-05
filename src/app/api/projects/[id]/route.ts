@@ -87,6 +87,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'webhookUrl',
             'resources',
             'autodeployBranches',
+            'emailNotifications',
         ];
 
         const updates: Record<string, unknown> = {};
