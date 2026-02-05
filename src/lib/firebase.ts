@@ -53,4 +53,5 @@ export const Collections = {
     INVOICES: 'invoices',
     TEAMS: 'teams',
     TEAM_MEMBERSHIPS: 'teamMemberships',
+    INVITES: 'invites',
 } as const;

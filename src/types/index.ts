@@ -40,6 +40,17 @@ export interface TeamMembership {
     joinedAt: Date;
 }
 
+export interface TeamInvite {
+    id: string;
+    teamId: string;
+    email: string;
+    role: TeamRole;
+    token: string;
+    inviterId: string;
+    expiresAt: Date;
+    createdAt: Date;
+}
+
 // Project configuration
 export interface Project {
     id: string;

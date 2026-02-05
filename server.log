@@ -1,0 +1,16 @@
+
+> deployify@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 2.1s
+○ Compiling /join ...
+ GET /join?token=invalid-token 307 in 8.2s (compile: 6.7s, proxy.ts: 159ms, render: 1318ms)
+ GET /login?callbackUrl=%2Fjoin%3Ftoken%3Dinvalid-token 200 in 2.6s (compile: 2.4s, proxy.ts: 15ms, render: 212ms)
