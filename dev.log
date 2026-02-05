@@ -1,0 +1,29 @@
+
+> deployify@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1184ms
+○ Compiling /projects/[slug]/crons ...
+⨯ Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectBySlugGlobal (src/lib/db.ts:112:10)
+    at CronJobsPage (src/app/projects/[slug]/crons/page.tsx:15:49)
+  110 |         .where('slug', '==', slug)
+  111 |         .limit(1)
+> 112 |         .get();
+      |          ^
+  113 |
+  114 |     if (snapshot.empty) {
+  115 |         return null; {
+  digest: '3196462600'
+}
+ GET /projects/my-slug/crons 500 in 17.9s (compile: 8.2s, proxy.ts: 176ms, render: 9.5s)
+✓ Compiled in 44ms
+✓ Compiled in 43ms

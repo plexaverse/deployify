@@ -1,8 +1,8 @@
-import { describe, it, mock, beforeEach, before } from 'node:test';
+import { describe, it, mock, beforeEach, before, test } from 'node:test';
 import assert from 'node:assert';
 import { Project } from '@/types';
 
-// Set env vars before importing module under test
+// Set env vars before importing module under test (for shared config)
 process.env.GCP_PROJECT_ID = 'test-gcp-project';
 process.env.GCP_REGION = 'us-central1';
 process.env.GITHUB_CLIENT_ID = 'mock';
@@ -13,7 +13,12 @@ process.env.STRIPE_SECRET_KEY = 'mock';
 process.env.RESEND_API_KEY = 'mock';
 
 // Import the module under test
-let syncCronJobs: any;
+// Note: We need dynamic import or require to ensure re-import if env changed, 
+// but since we set env once at top, we can use top level import if we want, 
+// but sticking to require/import inside before if needed or just top.
+// For mixed content, better to use what we had.
+
+import { listCronJobs, syncCronJobs } from './scheduler';
 
 // Mock data
 const mockProject: Project = {
@@ -38,11 +43,6 @@ const mockProject: Project = {
 };
 
 describe('syncCronJobs', () => {
-    before(async () => {
-        const module = await import('./scheduler');
-        syncCronJobs = module.syncCronJobs;
-    });
-
     // Mocks
     let mockGetGcpAccessToken: any;
     let mockGetProjectById: any;
@@ -173,5 +173,84 @@ describe('syncCronJobs', () => {
             async () => await syncCronJobs(projectId, crons, dependencies),
             { message: /Cloud Run service not found/ }
         );
+    });
+});
+
+test('listCronJobs', async (t) => {
+    // Mock global fetch for listCronJobs which uses global fetch or import from scheduler
+    // Since listCronJobs uses `fetch` from global or imported, we should mock global.fetch here if it uses generic fetch
+    // inspect scheduler.ts: it uses `fetch` directly globally or from simple import?
+    // In our merged file, listCronJobs uses `fetch`. If it's not injected, it uses global `fetch`.
+    
+    // We can mock global.fetch
+    const fetchMock = mock.fn();
+    global.fetch = fetchMock;
+
+    t.beforeEach(() => {
+        fetchMock.mock.resetCalls();
+    });
+
+    await t.test('should return filtered jobs with next run time', async () => {
+        const mockJobsResponse = {
+            jobs: [
+                {
+                    name: 'projects/test-gcp-project/locations/us-central1/jobs/dfy-my-slug-job1',
+                    schedule: '0 0 * * *', // Daily at midnight
+                    timeZone: 'UTC',
+                    state: 'ENABLED',
+                    httpTarget: {
+                        uri: 'https://service.run.app/api/cron/job1',
+                        httpMethod: 'GET'
+                    },
+                    status: {
+                        code: 0,
+                        lastAttemptTime: '2023-01-01T00:00:00Z'
+                    }
+                },
+                {
+                    name: 'projects/test-gcp-project/locations/us-central1/jobs/other-job',
+                    schedule: '0 0 * * *',
+                    timeZone: 'UTC',
+                    state: 'ENABLED'
+                }
+            ]
+        };
+
+        fetchMock.mock.mockImplementation(async () => {
+            return {
+                ok: true,
+                json: async () => mockJobsResponse
+            };
+        });
+
+        const jobs = await listCronJobs('my-slug', 'fake-token');
+
+        assert.strictEqual(jobs.length, 1);
+        assert.strictEqual(jobs[0].name, 'dfy-my-slug-job1');
+        assert.strictEqual(jobs[0].path, '/api/cron/job1');
+        assert.strictEqual(jobs[0].lastRunStatus, 'success');
+        assert.ok(jobs[0].nextRunTime);
+        assert.strictEqual(jobs[0].nextRunTime instanceof Date, true);
+    });
+
+    await t.test('should handle jobs with no status', async () => {
+         const mockJobsResponse = {
+            jobs: [
+                {
+                    name: 'projects/test-gcp-project/locations/us-central1/jobs/dfy-my-slug-job2',
+                    schedule: '0 0 * * *',
+                    timeZone: 'UTC',
+                    state: 'ENABLED'
+                }
+            ]
+        };
+        fetchMock.mock.mockImplementation(async () => ({
+            ok: true,
+            json: async () => mockJobsResponse
+        }));
+
+        const jobs = await listCronJobs('my-slug', 'fake-token');
+        assert.strictEqual(jobs.length, 1);
+        assert.strictEqual(jobs[0].lastRunStatus, 'unknown');
     });
 });
