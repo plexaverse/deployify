@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { getDb, Collections } from '../firebase';
+import { calculateTax } from './tax';
 
 export interface InvoiceItem {
     description: string;
@@ -17,6 +18,7 @@ export interface Invoice {
         name: string;
         email: string;
         address?: string;
+        countryCode?: string;
     };
     items: InvoiceItem[];
     subtotal: number;
@@ -211,4 +213,39 @@ export async function createInvoiceRecord(invoice: Invoice): Promise<string> {
         // Ensure date objects are correctly stored if needed, though Firestore SDK handles Date usually.
     });
     return invoiceRef.id;
+}
+
+/**
+ * Helper to generate invoice data with calculated tax.
+ */
+export function generateInvoiceData(
+    userId: string,
+    userDetails: { name: string; email: string; address?: string; countryCode: string },
+    items: InvoiceItem[],
+    invoiceNumber: string
+): Invoice {
+    const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+    const { taxAmount: rawTaxAmount, taxRate } = calculateTax(subtotal, userDetails.countryCode);
+
+    // Round to 2 decimal places to ensure currency precision
+    const taxAmount = Math.round(rawTaxAmount * 100) / 100;
+    const total = Math.round((subtotal + taxAmount) * 100) / 100;
+
+    return {
+        userId,
+        invoiceNumber,
+        date: new Date(),
+        userDetails: {
+            name: userDetails.name,
+            email: userDetails.email,
+            address: userDetails.address,
+            countryCode: userDetails.countryCode
+        },
+        items,
+        subtotal,
+        gstRate: taxRate,
+        gstAmount: taxAmount,
+        total,
+        status: 'pending'
+    };
 }
