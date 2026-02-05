@@ -72,6 +72,7 @@ export interface Project {
     customDomain: string | null;
     buildTimeout?: number; // Custom build timeout in seconds
     webhookUrl?: string | null; // Webhook URL for build notifications
+    autodeployBranches?: string[]; // Branches to auto-deploy
     githubToken?: string | null; // Stored OAuth token for private repo access
     resources?: {
         cpu?: number;

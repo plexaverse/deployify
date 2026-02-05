@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { Project } from '@/types';
 
 // Utility function to merge Tailwind classes
 export function cn(...inputs: ClassValue[]) {
@@ -88,4 +89,11 @@ export function getStatusColor(status: string): string {
         default:
             return 'text-gray-500';
     }
+}
+
+export function shouldAutoDeploy(project: Project, branch: string): boolean {
+    if (project.autodeployBranches && project.autodeployBranches.length > 0) {
+        return project.autodeployBranches.includes(branch);
+    }
+    return branch === project.defaultBranch;
 }
