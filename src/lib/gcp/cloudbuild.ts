@@ -50,6 +50,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
 
     const serviceName = `dfy-${projectSlug}`.substring(0, 63); // Cloud Run name limit
     const imageName = `${region}-docker.pkg.dev/${config.gcp.projectId}/${config.gcp.artifactRegistry}/${serviceName}:${commitSha.substring(0, 7)}`;
+    const latestImageName = `${region}-docker.pkg.dev/${config.gcp.projectId}/${config.gcp.artifactRegistry}/${serviceName}:latest`;
 
     // Get repository name from full name (owner/repo -> repo)
     const repoName = repoFullName.split('/')[1] || repoFullName;
@@ -133,16 +134,34 @@ fi`,
       fi`,
             ],
         },
-        // Build the Docker image with build-time env vars
+        // Pull the latest image for caching
         {
             name: 'gcr.io/cloud-builders/docker',
-            args: ['build', '-t', imageName, ...dockerBuildArgs, '.'],
+            entrypoint: 'bash',
+            args: ['-c', `docker pull ${latestImageName} || exit 0`],
+        },
+        // Build the Docker image with build-time env vars and caching
+        {
+            name: 'gcr.io/cloud-builders/docker',
+            args: [
+                'build',
+                '-t', imageName,
+                '-t', latestImageName,
+                '--cache-from', latestImageName,
+                ...dockerBuildArgs,
+                '.'
+            ],
             dir: '/workspace',
         },
-        // Push to Artifact Registry
+        // Push to Artifact Registry (commit SHA tag)
         {
             name: 'gcr.io/cloud-builders/docker',
             args: ['push', imageName],
+        },
+        // Push to Artifact Registry (latest tag)
+        {
+            name: 'gcr.io/cloud-builders/docker',
+            args: ['push', latestImageName],
         },
         // Deploy to Cloud Run
         {
@@ -210,7 +229,7 @@ fi`,
                 },
                 ...commonSteps
             ],
-            images: [imageName],
+            images: [imageName, latestImageName],
             options: {
                 logging: 'CLOUD_LOGGING_ONLY',
                 machineType: 'UNSPECIFIED',
@@ -230,7 +249,7 @@ fi`,
             },
         },
         steps: commonSteps,
-        images: [imageName],
+        images: [imageName, latestImageName],
         options: {
             logging: 'CLOUD_LOGGING_ONLY',
             // Use UNSPECIFIED (default) machine type for better quota availability
