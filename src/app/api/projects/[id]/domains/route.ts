@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getProjectById, updateProject } from '@/lib/db';
+import { updateProject } from '@/lib/db';
+import { checkProjectAccess } from '@/middleware/rbac';
 import { createDomainMapping, deleteDomainMapping, getDomainMappingStatus, getDnsRecords } from '@/lib/gcp/domains';
 import type { Domain, DomainStatus } from '@/types';
 
@@ -27,15 +28,16 @@ export async function GET(
         }
 
         const { id } = await params;
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        if (!access.allowed) {
+            return NextResponse.json(
+                { error: access.error },
+                { status: access.status }
+            );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const { project } = access;
 
         const domains = project.domains || [];
 
@@ -85,15 +87,16 @@ export async function POST(
         }
 
         const { id } = await params;
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        if (!access.allowed) {
+            return NextResponse.json(
+                { error: access.error },
+                { status: access.status }
+            );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const { project } = access;
 
         const body = await request.json();
         const { domain } = body;
@@ -173,15 +176,16 @@ export async function DELETE(
         }
 
         const { id } = await params;
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        if (!access.allowed) {
+            return NextResponse.json(
+                { error: access.error },
+                { status: access.status }
+            );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const { project } = access;
 
         const { searchParams } = new URL(request.url);
         const domainId = searchParams.get('domainId');

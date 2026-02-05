@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getProjectById, getDeploymentById, updateDeployment, removeAliasFromOtherDeployments } from '@/lib/db';
+import { getDeploymentById, updateDeployment, removeAliasFromOtherDeployments } from '@/lib/db';
+import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 import { updateTrafficTag, getProductionServiceName } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken, isRunningOnGCP } from '@/lib/gcp/auth';
@@ -20,14 +21,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: securityHeaders });
         }
 
-        const project = await getProjectById(id);
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404, headers: securityHeaders });
+        const access = await checkProjectAccess(session.user.id, id);
+
+        if (!access.allowed) {
+            return NextResponse.json({ error: access.error }, { status: access.status, headers: securityHeaders });
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403, headers: securityHeaders });
-        }
+        const { project } = access;
 
         const deployment = await getDeploymentById(deployId);
         if (!deployment || deployment.projectId !== id) {
@@ -95,14 +95,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: securityHeaders });
         }
 
-        const project = await getProjectById(id);
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404, headers: securityHeaders });
+        const access = await checkProjectAccess(session.user.id, id);
+
+        if (!access.allowed) {
+            return NextResponse.json({ error: access.error }, { status: access.status, headers: securityHeaders });
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403, headers: securityHeaders });
-        }
+        const { project } = access;
 
         const deployment = await getDeploymentById(deployId);
         if (!deployment || deployment.projectId !== id) {
