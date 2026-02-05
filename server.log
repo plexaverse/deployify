@@ -5,12 +5,51 @@
 ▲ Next.js 16.1.6 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
+- Environments: .env
 - Experiments (use with caution):
   · serverActions
 
 ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-✓ Ready in 2.1s
-○ Compiling /join ...
- GET /join?token=invalid-token 307 in 8.2s (compile: 6.7s, proxy.ts: 159ms, render: 1318ms)
- GET /login?callbackUrl=%2Fjoin%3Ftoken%3Dinvalid-token 200 in 2.6s (compile: 2.4s, proxy.ts: 15ms, render: 212ms)
+✓ Ready in 1740ms
+○ Compiling /dashboard/[id] ...
+ GET /dashboard/test-project 200 in 7.2s (compile: 6.6s, proxy.ts: 150ms, render: 422ms)
+ GET /api/projects/test-project/logs?stream=true 200 in 2.0s (proxy.ts: 24ms)
+ GET /api/teams 200 in 2.3s (compile: 2.1s, proxy.ts: 13ms, render: 222ms)
+Error listing teams: Error: Failed to parse private key: Error: Invalid PEM formatted message.
+    at initializeFirebase (src/lib/firebase.ts:19:29)
+    at getDb (src/lib/firebase.ts:39:19)
+    at listTeamsForUser (src/lib/db.ts:253:21)
+    at GET (src/app/api/teams/route.ts:17:45)
+  17 |     if (config.firebase.clientEmail && config.firebase.privateKey) {
+  18 |         return initializeApp({
+> 19 |             credential: cert({
+     |                             ^
+  20 |                 projectId: config.firebase.projectId,
+  21 |                 clientEmail: config.firebase.clientEmail,
+  22 |                 privateKey: config.firebase.privateKey, {
+  errorInfo: [Object],
+  codePrefix: 'app'
+}
+Error checking project access: Error: Failed to parse private key: Error: Invalid PEM formatted message.
+    at initializeFirebase (src/lib/firebase.ts:19:29)
+    at getDb (src/lib/firebase.ts:39:19)
+    at getProjectById (src/lib/db.ts:308:21)
+    at checkProjectAccess (src/middleware/rbac.ts:10:45)
+    at GET (src/app/api/projects/[id]/logs/route.ts:24:48)
+  17 |     if (config.firebase.clientEmail && config.firebase.privateKey) {
+  18 |         return initializeApp({
+> 19 |             credential: cert({
+     |                             ^
+  20 |                 projectId: config.firebase.projectId,
+  21 |                 clientEmail: config.firebase.clientEmail,
+  22 |                 privateKey: config.firebase.privateKey, {
+  errorInfo: [Object],
+  codePrefix: 'app'
+}
+[?25h
