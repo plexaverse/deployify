@@ -22,6 +22,7 @@ interface BuildSubmissionConfig {
     projectRegion?: string | null; // Per-project region, falls back to config.gcp.region if not set
     framework?: string;
     buildTimeout?: number;
+    healthCheckPath?: string;
     resources?: {
         cpu?: number;
         memory?: string;
@@ -50,6 +51,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         installCommand,
         outputDirectory,
         buildTimeout,
+        healthCheckPath,
         resources,
     } = buildConfig;
 
@@ -230,6 +232,7 @@ fi`,
                 '--max-instances', (resources?.maxInstances !== undefined ? resources.maxInstances : config.cloudRun.maxInstances).toString(),
                 '--port', config.cloudRun.port.toString(),
                 '--timeout', `${config.cloudRun.timeout}s`,
+                ...(healthCheckPath ? ['--startup-probe-path', healthCheckPath, '--liveness-probe-path', healthCheckPath] : []),
                 ...envArgs,
             ],
         },

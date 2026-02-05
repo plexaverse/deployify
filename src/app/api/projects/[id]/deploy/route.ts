@@ -12,6 +12,7 @@ import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/l
 import { logAuditEvent } from '@/lib/audit';
 import type { EnvVariable } from '@/types';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
+import { sendWebhookNotification } from '@/lib/webhooks';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -153,6 +154,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     installCommand: project.installCommand,
                     outputDirectory: project.outputDirectory,
                     buildTimeout: project.buildTimeout,
+                    healthCheckPath: project.healthCheckPath,
                     resources: project.resources,
                 });
 
