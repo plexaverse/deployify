@@ -11,20 +11,7 @@ import {
     Wifi,
     WifiOff
 } from 'lucide-react';
-
-// Define LogEntry interface locally to avoid importing server-side code
-interface LogEntry {
-    timestamp: string;
-    severity: string;
-    textPayload?: string;
-    jsonPayload?: Record<string, unknown>;
-    resource: {
-        type: string;
-        labels: Record<string, string>;
-    };
-    logName: string;
-    insertId?: string;
-}
+import { parseLogEntry, type LogEntry } from '@/lib/logging/parser';
 
 interface LogViewerProps {
     projectId: string;
@@ -56,19 +43,24 @@ export function LogViewer({ projectId, className }: LogViewerProps) {
             if (isPausedRef.current) return;
 
             try {
-                const data = JSON.parse(event.data);
+                const result = parseLogEntry(event.data);
+
+                if (!result) return; // Parse error
+
                 // Check if it's an error message from server
-                if (data.error) {
-                    console.error('Server sent error:', data.error);
-                    setError(data.error);
+                if ('error' in result) {
+                    console.error('Server sent error:', result.error);
+                    setError(result.error);
                     return;
                 }
+
+                const data = result as LogEntry;
 
                 setLogs(prev => {
                     // Avoid duplicates if needed
                     const exists = prev.some(l => l.insertId === data.insertId && l.timestamp === data.timestamp);
                     if (exists) return prev;
-                    return [...prev, data as LogEntry];
+                    return [...prev, data];
                 });
             } catch (e) {
                 console.error('Failed to parse log entry:', e);
