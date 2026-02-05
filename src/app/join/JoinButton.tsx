@@ -40,16 +40,16 @@ export default function JoinButton({ token, teamName }: JoinButtonProps) {
     };
 
     return (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center w-full">
             {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded mb-4 text-sm">
+                <div className="bg-[var(--error-bg)] text-[var(--error)] p-3 rounded-lg mb-4 text-sm w-full">
                     {error}
                 </div>
             )}
             <button
                 onClick={handleJoin}
                 disabled={isLoading}
-                className="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isLoading ? 'Joining...' : `Join ${teamName}`}
             </button>

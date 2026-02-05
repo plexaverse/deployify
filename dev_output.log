@@ -1,11 +1,6 @@
-
-> deployify@0.1.0 dev /app
-> next dev
-
 ▲ Next.js 16.1.6 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
-- Environments: .env.local
 - Experiments (use with caution):
   · serverActions
 
@@ -16,9 +11,7 @@ You can learn more, including how to opt-out if you'd not like to participate in
 https://nextjs.org/telemetry
 
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-✓ Ready in 2.6s
-○ Compiling /billing ...
- GET /billing 200 in 4.6s (compile: 4.0s, proxy.ts: 106ms, render: 533ms)
- GET /billing 200 in 92ms (compile: 7ms, proxy.ts: 8ms, render: 76ms)
- GET /billing 200 in 74ms (compile: 5ms, proxy.ts: 7ms, render: 62ms)
+✓ Ready in 1999ms
+○ Compiling /join ...
+ GET /join 200 in 5.1s (compile: 4.3s, proxy.ts: 112ms, render: 700ms)
 [?25h
