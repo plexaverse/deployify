@@ -1,6 +1,6 @@
 
-import { shouldAutoDeploy } from '../src/lib/utils';
-import type { Project } from '../src/types';
+import { shouldAutoDeploy } from '../../src/lib/utils';
+import type { Project } from '../../src/types';
 import * as assert from 'assert';
 
 console.log('Verifying Auto-deploy Logic...');
