@@ -8,6 +8,10 @@ export interface User {
     email: string | null;
     avatarUrl: string;
     name: string | null;
+    subscription?: {
+        tier: 'free' | 'pro' | 'team' | 'enterprise';
+        expiresAt: Date;
+    };
     createdAt: Date;
     updatedAt: Date;
 }

@@ -31,9 +31,18 @@ export async function getUserById(id: string): Promise<User | null> {
     const data = doc.data();
     return {
         ...data,
+        subscription: data?.subscription ? {
+            ...data.subscription,
+            expiresAt: data.subscription.expiresAt?.toDate ? data.subscription.expiresAt.toDate() : data.subscription.expiresAt
+        } : undefined,
         createdAt: data?.createdAt?.toDate(),
         updatedAt: data?.updatedAt?.toDate(),
     } as User;
+}
+
+export async function deleteUser(id: string): Promise<void> {
+    const db = getDb();
+    await db.collection(Collections.USERS).doc(id).delete();
 }
 
 export async function updateUser(id: string, data: Partial<User>): Promise<void> {
