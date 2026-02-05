@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { listProjectsByUser, createProject, getProjectBySlug } from '@/lib/db';
+import { listProjectsByUser, createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
 import { slugify, parseRepoFullName } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
 
 // GET /api/projects - List user's projects
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         const session = await getSession();
 
@@ -17,7 +17,27 @@ export async function GET() {
             );
         }
 
-        const projects = await listProjectsByUser(session.user.id);
+        const searchParams = request.nextUrl.searchParams;
+        const teamId = searchParams.get('teamId');
+
+        let projects;
+
+        if (teamId && teamId !== 'null' && teamId !== 'undefined') {
+            // Verify user is member of the team
+            const teams = await listTeamsForUser(session.user.id);
+            const isMember = teams.some(t => t.id === teamId);
+
+            if (!isMember) {
+                return NextResponse.json(
+                    { error: 'Unauthorized access to team' },
+                    { status: 403, headers: securityHeaders }
+                );
+            }
+            projects = await listProjectsByTeam(teamId);
+        } else {
+             // Default to personal projects if no teamId specified
+             projects = await listPersonalProjects(session.user.id);
+        }
 
         return NextResponse.json(
             { projects },
@@ -53,7 +73,8 @@ export async function POST(request: NextRequest) {
             framework,
             buildCommand,
             installCommand,
-            outputDirectory
+            outputDirectory,
+            teamId
         } = body;
 
         if (!repoFullName) {
@@ -118,6 +139,7 @@ export async function POST(request: NextRequest) {
         // Create the project
         const project = await createProject({
             userId: session.user.id,
+            teamId: teamId || undefined,
             name: projectName,
             slug,
             repoFullName: repoData.full_name,

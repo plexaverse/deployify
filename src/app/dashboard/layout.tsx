@@ -1,5 +1,6 @@
 import { getSession } from '@/lib/auth';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
+import { TeamProvider } from '@/contexts/TeamContext';
 import { GlobalShortcuts } from '@/components/GlobalShortcuts';
 
 export const dynamic = 'force-dynamic';
@@ -27,15 +28,17 @@ export default async function DashboardLayout({
     }
 
     return (
-        <div className="min-h-screen flex flex-col md:flex-row">
+       <TeamProvider>
+       <div className="min-h-screen flex flex-col md:flex-row">
             <GlobalShortcuts />
             {/* Sidebar (Client Component) */}
             <DashboardSidebar session={session} />
 
-            {/* Main content */}
-            <main className="flex-1 bg-[var(--background)] pt-16 md:pt-0">
-                {children}
-            </main>
-        </div>
+                {/* Main content */}
+                <main className="flex-1 bg-[var(--background)] pt-16 md:pt-0">
+                    {children}
+                </main>
+            </div>
+        </TeamProvider>
     );
 }
