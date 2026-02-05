@@ -73,6 +73,12 @@ export interface Project {
     buildTimeout?: number; // Custom build timeout in seconds
     webhookUrl?: string | null; // Webhook URL for build notifications
     githubToken?: string | null; // Stored OAuth token for private repo access
+    resources?: {
+        cpu?: number;
+        memory?: string;
+        minInstances?: number;
+        maxInstances?: number;
+    };
     envVariables?: EnvVariable[];
     domains?: Domain[];
     createdAt: Date;

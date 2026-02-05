@@ -9,6 +9,7 @@ import type { Project, EnvVariable, Domain } from '@/types';
 import { EnvVariablesSection } from '@/components/EnvVariablesSection';
 import { DomainsSection } from '@/components/DomainsSection';
 import { RegionSettings } from '@/components/RegionSettings';
+import { ResourceSettings } from '@/components/ResourceSettings';
 
 export default function ProjectSettingsPage() {
     const params = useParams();
@@ -151,6 +152,13 @@ export default function ProjectSettingsPage() {
             <RegionSettings
                 projectId={project.id}
                 currentRegion={project.region}
+                onUpdate={fetchProject}
+            />
+
+            {/* Resource Settings */}
+            <ResourceSettings
+                projectId={project.id}
+                initialResources={project.resources}
                 onUpdate={fetchProject}
             />
 
