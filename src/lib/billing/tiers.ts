@@ -20,6 +20,7 @@ export interface UsageLimits {
 export interface Tier {
     id: TierType;
     name: string;
+    priceId: string;
     limits: TierLimits;
 }
 
@@ -27,6 +28,7 @@ export const TIERS: Record<TierType, Tier> = {
     free: {
         id: 'free',
         name: 'Free',
+        priceId: '',
         limits: {
             projects: 3,
             deployments: 20,
@@ -37,6 +39,7 @@ export const TIERS: Record<TierType, Tier> = {
     pro: {
         id: 'pro',
         name: 'Pro',
+        priceId: 'price_pro_test',
         limits: {
             projects: 10,
             deployments: 1000,
@@ -47,6 +50,7 @@ export const TIERS: Record<TierType, Tier> = {
     team: {
         id: 'team',
         name: 'Team',
+        priceId: 'price_team_test',
         limits: {
             projects: 50,
             deployments: 5000,
@@ -57,6 +61,7 @@ export const TIERS: Record<TierType, Tier> = {
     enterprise: {
         id: 'enterprise',
         name: 'Enterprise',
+        priceId: 'price_enterprise_test',
         limits: {
             projects: Infinity,
             deployments: Infinity,

@@ -8,6 +8,7 @@ export interface User {
     email: string | null;
     avatarUrl: string;
     name: string | null;
+    stripeCustomerId?: string;
     subscription?: {
         tier: 'free' | 'pro' | 'team' | 'enterprise';
         expiresAt: Date;
