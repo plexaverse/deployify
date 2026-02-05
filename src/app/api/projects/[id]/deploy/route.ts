@@ -8,6 +8,7 @@ import { config } from '@/lib/config';
 import { generateCloudRunDeployConfig, submitCloudBuild, getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
+import { trackDeployment } from '@/lib/billing/tracker';
 import type { EnvVariable } from '@/types';
 
 interface RouteParams {
@@ -129,7 +130,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 });
 
                 // Start polling for build status with project region
-                pollBuildStatus(deployment.id, project.id, project.slug, buildId, project.region);
+                pollBuildStatus(deployment.id, project.id, project.slug, buildId, project.region, session.user.id);
+
+                // Track usage (count)
+                trackDeployment(session.user.id).catch(e => console.error('Usage tracking error:', e));
 
                 return NextResponse.json(
                     {
@@ -255,7 +259,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 }
 
 // Poll Cloud Build status and update deployment
-async function pollBuildStatus(deploymentId: string, projectId: string, projectSlug: string, buildId: string, projectRegion?: string | null) {
+async function pollBuildStatus(deploymentId: string, projectId: string, projectSlug: string, buildId: string, projectRegion?: string | null, userId?: string) {
     const maxPolls = 60; // 30 minutes max (30s intervals)
     let pollCount = 0;
 
@@ -304,6 +308,11 @@ async function pollBuildStatus(deploymentId: string, projectId: string, projectS
                     await updateProject(projectId, {
                         productionUrl: serviceUrl,
                     });
+                }
+
+                // Track usage (minutes)
+                if (userId) {
+                    trackDeployment(userId).catch(e => console.error('Usage tracking error:', e));
                 }
             } else if (status === 'FAILURE' || status === 'TIMEOUT' || status === 'CANCELLED') {
                 await updateDeployment(deploymentId, {

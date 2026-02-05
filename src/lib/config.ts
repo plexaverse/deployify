@@ -35,6 +35,12 @@ export const config = {
         expiresIn: '7d',
     },
 
+    // Email
+    email: {
+        resendApiKey: process.env.RESEND_API_KEY!,
+        fromAddress: process.env.EMAIL_FROM || 'Deployify <noreply@deployify.io>',
+    },
+
     // Security
     security: {
         rateLimitRequests: parseInt(process.env.RATE_LIMIT_REQUESTS || '100'),
@@ -60,6 +66,7 @@ export function validateConfig(): void {
         'GITHUB_WEBHOOK_SECRET',
         'GCP_PROJECT_ID',
         'JWT_SECRET',
+        'RESEND_API_KEY',
     ];
 
     const missing = required.filter(key => !process.env[key]);
