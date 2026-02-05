@@ -4,6 +4,7 @@ import { getProjectById, getDeploymentById, createDeployment, updateDeployment, 
 import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
+import { validateRepository } from '@/lib/github/validator';
 import { parseRepoFullName } from '@/lib/utils';
 import { config } from '@/lib/config';
 import { generateCloudRunDeployConfig, submitCloudBuild, getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl, cancelBuild } from '@/lib/gcp/cloudbuild';
@@ -64,6 +65,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Get latest commit info from GitHub
         const { owner, repo } = parseRepoFullName(project.repoFullName);
+
+        // Run pre-flight checks
+        const validation = await validateRepository(
+            session.accessToken,
+            owner,
+            repo,
+            project.framework,
+            project.rootDirectory
+        );
+
+        if (!validation.valid) {
+            return NextResponse.json(
+                { error: validation.error || 'Repository validation failed' },
+                { status: 400, headers: securityHeaders }
+            );
+        }
+
         let commitSha: string;
         let commitMessage: string;
         let commitAuthor: string;
