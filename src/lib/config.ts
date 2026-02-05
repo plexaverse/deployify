@@ -41,6 +41,17 @@ export const config = {
         rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
     },
 
+    // Billing
+    billing: {
+        stripe: {
+            secretKey: process.env.STRIPE_SECRET_KEY!,
+        },
+        razorpay: {
+            keyId: process.env.RAZORPAY_KEY_ID,
+            keySecret: process.env.RAZORPAY_KEY_SECRET,
+        },
+    },
+
     // Cloud Run defaults
     cloudRun: {
         minInstances: 0,
@@ -60,6 +71,7 @@ export function validateConfig(): void {
         'GITHUB_WEBHOOK_SECRET',
         'GCP_PROJECT_ID',
         'JWT_SECRET',
+        'STRIPE_SECRET_KEY',
     ];
 
     const missing = required.filter(key => !process.env[key]);
