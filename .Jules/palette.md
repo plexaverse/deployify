@@ -25,3 +25,7 @@
 ## 2026-02-20 - [Narrative Flow and Interaction Feedback]
 **Learning:** Adding numbered step labels (01, 02, etc.) to a vertical process section significantly improves the narrative flow and guides the user's eye. Additionally, combining icon-state changes with toast notifications for copy-to-clipboard actions provides redundant but highly effective feedback that confirms success even if the user isn't looking directly at the button.
 **Action:** Use absolute-positioned numbers for process sections and always pair local state feedback with global toast notifications for critical interactions.
+
+## 2026-02-22 - [Subtle Decorative Semantics and Expectation Management]
+**Learning:** Purely decorative elements like pulse glows or stylistic step numbers (e.g., "01") can clutter the experience for screen reader users if not properly hidden. Additionally, providing immediate visual and textual feedback (via toasts) for inactive "Coming Soon" features prevents user frustration and manages expectations effectively.
+**Action:** Always apply `aria-hidden="true"` to decorative stylistic markers and use informative toast notifications for mock features to acknowledge user interaction.
