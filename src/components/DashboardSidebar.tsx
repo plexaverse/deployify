@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Rocket, LayoutDashboard, Settings, LogOut, FolderGit2, Menu, X, Sun, Moon } from 'lucide-react';
 import type { Session } from '@/types';
+import { TeamSwitcher } from '@/components/TeamSwitcher';
 
 interface DashboardSidebarProps {
     session: Session;
@@ -90,6 +91,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
 
                 {/* Navigation */}
                 <nav className="flex-1 p-4 overflow-y-auto">
+                    <TeamSwitcher />
                     <ul className="space-y-1">
                         <li>
                             <Link

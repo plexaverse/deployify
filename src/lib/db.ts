@@ -140,6 +140,38 @@ export async function listTeamMembers(teamId: string): Promise<TeamMembership[]>
     });
 }
 
+export async function listTeamsForUser(userId: string): Promise<Team[]> {
+    const db = getDb();
+    const membershipsSnapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('userId', '==', userId)
+        .get();
+
+    const teamIds = membershipsSnapshot.docs.map(doc => doc.data().teamId);
+
+    if (teamIds.length === 0) {
+        return [];
+    }
+
+    const teamRefs = teamIds.map(id => db.collection(Collections.TEAMS).doc(id));
+    const teamsSnapshot = await db.getAll(...teamRefs);
+
+    return teamsSnapshot
+        .filter(doc => doc.exists)
+        .map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                createdAt: data?.createdAt?.toDate(),
+                updatedAt: data?.updatedAt?.toDate(),
+                subscription: data?.subscription ? {
+                    ...data.subscription,
+                    expiresAt: data.subscription.expiresAt?.toDate ? data.subscription.expiresAt.toDate() : data.subscription.expiresAt
+                } : undefined,
+            } as Team;
+        });
+}
+
 // ============= Project Operations =============
 
 export async function createProject(
@@ -238,6 +270,45 @@ export async function listProjectsByUser(userId: string): Promise<Project[]> {
             updatedAt: data?.updatedAt?.toDate(),
         } as Project;
     });
+}
+
+export async function listProjectsByTeam(teamId: string): Promise<Project[]> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.PROJECTS)
+        .where('teamId', '==', teamId)
+        .orderBy('updatedAt', 'desc')
+        .get();
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            createdAt: data?.createdAt?.toDate(),
+            updatedAt: data?.updatedAt?.toDate(),
+        } as Project;
+    });
+}
+
+export async function listPersonalProjects(userId: string): Promise<Project[]> {
+    const db = getDb();
+    // Fetch all projects created by user
+    const snapshot = await db
+        .collection(Collections.PROJECTS)
+        .where('userId', '==', userId)
+        .orderBy('updatedAt', 'desc')
+        .get();
+
+    return snapshot.docs
+        .map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                createdAt: data?.createdAt?.toDate(),
+                updatedAt: data?.updatedAt?.toDate(),
+            } as Project;
+        })
+        .filter(project => !project.teamId); // Filter out team projects
 }
 
 export async function updateProject(id: string, data: Partial<Project>): Promise<void> {
