@@ -75,7 +75,7 @@ export default function DashboardPage() {
             case 'queued':
                 return <span className="badge badge-info">● Queued</span>;
             default:
-                return <span className="badge" style={{ background: 'var(--card)', color: 'var(--muted)' }}>● No deployments</span>;
+                return <span className="badge bg-[var(--card)] text-[var(--muted)]">● No deployments</span>;
         }
     };
 
