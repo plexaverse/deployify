@@ -20,6 +20,7 @@ interface BuildSubmissionConfig {
     gitToken?: string; // GitHub OAuth token for private repo cloning
     projectRegion?: string | null; // Per-project region, falls back to config.gcp.region if not set
     framework?: string;
+    buildTimeout?: number;
 }
 
 /**
@@ -41,6 +42,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildCommand,
         installCommand,
         outputDirectory,
+        buildTimeout,
     } = buildConfig;
 
     // Use project-specific region if set, otherwise fall back to global config
@@ -213,7 +215,7 @@ fi`,
                 logging: 'CLOUD_LOGGING_ONLY',
                 machineType: 'UNSPECIFIED',
             },
-            timeout: '1800s',
+            timeout: buildTimeout ? `${buildTimeout}s` : '1800s',
             tags: ['deployify', projectSlug, branch],
         };
     }
@@ -234,7 +236,7 @@ fi`,
             // Use UNSPECIFIED (default) machine type for better quota availability
             machineType: 'UNSPECIFIED',
         },
-        timeout: '1800s', // 30 minutes
+        timeout: buildTimeout ? `${buildTimeout}s` : '1800s', // Default 30 minutes or custom
         tags: ['deployify', projectSlug, branch],
     };
 }
