@@ -36,16 +36,25 @@ export default function ProjectDetailPage() {
     useEffect(() => {
         async function fetchProject() {
             try {
-                const response = await fetch(`/api/projects/${params.id}`);
+                const [projectResponse, deploymentsResponse] = await Promise.all([
+                    fetch(`/api/projects/${params.id}`),
+                    fetch(`/api/projects/${params.id}/deployments`)
+                ]);
 
-                if (!response.ok) {
+                if (!projectResponse.ok) {
                     router.push('/dashboard');
                     return;
                 }
 
-                const data = await response.json();
-                setProject(data.project);
-                setDeployments(data.deployments || []);
+                const projectData = await projectResponse.json();
+                setProject(projectData.project);
+
+                if (deploymentsResponse.ok) {
+                    const deploymentsData = await deploymentsResponse.json();
+                    setDeployments(deploymentsData.deployments || []);
+                } else {
+                    setDeployments(projectData.deployments || []);
+                }
             } catch (error) {
                 console.error('Failed to fetch project:', error);
             } finally {
@@ -107,8 +116,8 @@ export default function ProjectDetailPage() {
             if (response.ok) {
                 toast.success('Deployment triggered', { id: toastId });
                 // Refresh deployments
-                const projectResponse = await fetch(`/api/projects/${project.id}`);
-                const data = await projectResponse.json();
+                const deploymentsResponse = await fetch(`/api/projects/${project.id}/deployments`);
+                const data = await deploymentsResponse.json();
                 setDeployments(data.deployments || []);
             } else {
                 toast.error('Failed to trigger deployment', { id: toastId });
@@ -132,8 +141,8 @@ export default function ProjectDetailPage() {
             if (response.ok) {
                 toast.success('Deployment cancelled', { id: toastId });
                 // Refresh deployments
-                const projectResponse = await fetch(`/api/projects/${project.id}`);
-                const data = await projectResponse.json();
+                const deploymentsResponse = await fetch(`/api/projects/${project.id}/deployments`);
+                const data = await deploymentsResponse.json();
                 setDeployments(data.deployments || []);
             } else {
                 toast.error('Failed to cancel deployment', { id: toastId });
@@ -155,8 +164,8 @@ export default function ProjectDetailPage() {
             if (response.ok) {
                 toast.success('Rollback initiated', { id: toastId });
                 // Refresh deployments
-                const projectResponse = await fetch(`/api/projects/${project.id}`);
-                const data = await projectResponse.json();
+                const deploymentsResponse = await fetch(`/api/projects/${project.id}/deployments`);
+                const data = await deploymentsResponse.json();
                 setDeployments(data.deployments || []);
             } else {
                 const err = await response.json();
@@ -299,7 +308,7 @@ export default function ProjectDetailPage() {
 
             {/* Deployments list */}
             <div className="card">
-                <h2 className="font-semibold mb-4">Recent Deployments</h2>
+                <h2 className="font-semibold mb-4">Deployment History</h2>
 
                 {deployments.length === 0 ? (
                     <div className="p-8 text-center text-[var(--muted-foreground)]">
