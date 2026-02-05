@@ -4,6 +4,8 @@ import { listProjectsByUser, listDeploymentsByProject, getUserById, updateUser }
 import { getTierLimits, SubscriptionTier } from './tiers';
 import { sendEmail } from '@/lib/email/client';
 import { usageAlertEmail } from '@/lib/email/templates';
+import { getBandwidthUsage } from '@/lib/gcp/metrics';
+import { getProductionServiceName } from '@/lib/gcp/cloudrun';
 
 export interface Usage {
     deployments: number;
@@ -45,18 +47,34 @@ export async function getUsage(userId: string): Promise<Usage> {
         const projects = await listProjectsByUser(userId);
         let deploymentCount = 0;
         let totalBuildMs = 0;
+        let totalBandwidth = 0;
 
         // Determine start of current month
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        // Fetch deployments (fetching more to ensure we cover the month)
+        // Fetch deployments and bandwidth in parallel
         const deploymentPromises = projects.map(project =>
             listDeploymentsByProject(project.id, 100)
         );
 
-        const results = await Promise.all(deploymentPromises);
-        const allDeployments = results.flat();
+        const bandwidthPromises = projects.map(async (project) => {
+            try {
+                const serviceName = getProductionServiceName(project.slug);
+                return await getBandwidthUsage(serviceName, project.region, { startTime: startOfMonth });
+            } catch (error) {
+                // If service doesn't exist or other error, assume 0 bandwidth
+                console.warn(`Failed to fetch bandwidth for project ${project.slug}:`, error);
+                return 0;
+            }
+        });
+
+        const [deploymentResults, bandwidthResults] = await Promise.all([
+            Promise.all(deploymentPromises),
+            Promise.all(bandwidthPromises)
+        ]);
+
+        const allDeployments = deploymentResults.flat();
 
         allDeployments.forEach(deploy => {
             // Filter by date
@@ -68,10 +86,12 @@ export async function getUsage(userId: string): Promise<Usage> {
             }
         });
 
+        totalBandwidth = bandwidthResults.reduce((acc, curr) => acc + curr, 0);
+
         return {
             deployments: deploymentCount,
             buildMinutes: Math.ceil(totalBuildMs / 1000 / 60),
-            bandwidth: 0
+            bandwidth: totalBandwidth
         };
     } catch (error) {
         console.error('Error fetching usage:', error);
