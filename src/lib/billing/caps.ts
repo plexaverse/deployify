@@ -1,4 +1,4 @@
-import { getUsage } from './tracker';
+import { getUsage, Usage } from './tracker';
 import { getTier, Tier, DEFAULT_TIER } from './tiers';
 
 export interface CheckLimitResult {
@@ -8,20 +8,9 @@ export interface CheckLimitResult {
 }
 
 /**
- * Retrieves the subscription tier for a given user.
- * Currently defaults to Free tier as subscription data is not yet available on User model.
+ * Calculates usage limits status based on usage and tier
  */
-export async function getUserTier(userId: string): Promise<Tier> {
-    // TODO: Fetch user from DB and return their actual tier
-    // const user = await getUserById(userId);
-    // return getTier(user.subscription?.tierId);
-    return DEFAULT_TIER;
-}
-
-export async function checkUsageLimits(userId: string): Promise<CheckLimitResult> {
-    const usage = await getUsage(userId);
-    const tier = await getUserTier(userId);
-
+export function calculateLimitStatus(usage: Usage, tier: Tier): CheckLimitResult {
     const deploymentUsage = (usage.deployments / tier.limits.deployments) * 100;
     const buildTimeUsage = (usage.buildMinutes / tier.limits.buildMinutes) * 100;
     const bandwidthUsage = (usage.bandwidth / tier.limits.bandwidth) * 100;
@@ -39,4 +28,21 @@ export async function checkUsageLimits(userId: string): Promise<CheckLimitResult
         usagePercentage: maxUsage,
         limitType
     };
+}
+
+/**
+ * Retrieves the subscription tier for a given user.
+ * Currently defaults to Free tier as subscription data is not yet available on User model.
+ */
+export async function getUserTier(userId: string): Promise<Tier> {
+    // TODO: Fetch user from DB and return their actual tier
+    // const user = await getUserById(userId);
+    // return getTier(user.subscription?.tierId);
+    return DEFAULT_TIER;
+}
+
+export async function checkUsageLimits(userId: string): Promise<CheckLimitResult> {
+    const usage = await getUsage(userId);
+    const tier = await getUserTier(userId);
+    return calculateLimitStatus(usage, tier);
 }
