@@ -14,8 +14,9 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, getProductionServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { parseBranchFromRef } from '@/lib/utils';
+import { parseBranchFromRef, shouldAutoDeploy } from '@/lib/utils';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
+import { pollBuildStatus } from '@/lib/deployment';
 
 export async function POST(request: NextRequest) {
     try {
@@ -78,17 +79,17 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     const { repository, head_commit, ref } = payload;
     const branch = parseBranchFromRef(ref);
 
-    // Only deploy pushes to the default branch
-    if (branch !== repository.default_branch) {
-        console.log(`Ignoring push to non-default branch: ${branch}`);
-        return;
-    }
-
     // Find the project
     const project = await getProjectByRepoFullName(repository.full_name);
 
     if (!project) {
         console.log(`No project found for repo: ${repository.full_name}`);
+        return;
+    }
+
+    // Check if we should deploy this branch
+    if (!shouldAutoDeploy(project, branch)) {
+        console.log(`Ignoring push to branch ${branch} for project ${project.name}`);
         return;
     }
 
@@ -128,11 +129,28 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             resources: project.resources,
         });
 
-        // Submit build (this would require GCP service account credentials)
-        // For now, we'll update the status to building
+        // Submit build
+        const { buildId, logUrl } = await submitCloudBuild(buildConfig, project.region);
+
+        // Update deployment with build info
         await updateDeployment(deployment.id, {
             status: 'building',
+            cloudBuildId: buildId,
+            buildLogs: [logUrl],
         });
+
+        // Start polling for build status
+        pollBuildStatus(
+            deployment.id,
+            project.id,
+            project.slug,
+            buildId,
+            project.region,
+            project.webhookUrl,
+            project.name,
+            user.email,
+            project.emailNotifications
+        );
 
         console.log(`Started production deployment for ${project.name}: ${deployment.id}`);
     } catch (error) {
@@ -207,9 +225,28 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 resources: project.resources,
             });
 
+            // Submit build
+            const { buildId, logUrl } = await submitCloudBuild(buildConfig, project.region);
+
+            // Update deployment with build info
             await updateDeployment(deployment.id, {
                 status: 'building',
+                cloudBuildId: buildId,
+                buildLogs: [logUrl],
             });
+
+            // Start polling for build status
+            pollBuildStatus(
+                deployment.id,
+                project.id,
+                `${project.slug}-pr-${pull_request.number}`,
+                buildId,
+                project.region,
+                project.webhookUrl,
+                project.name,
+                user.email,
+                project.emailNotifications
+            );
 
             console.log(`Started preview deployment for PR #${pull_request.number}: ${deployment.id}`);
         } catch (error) {

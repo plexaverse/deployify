@@ -39,9 +39,8 @@
 - **Status**: ✅ Implemented
 
 #### 8. **Keyboard Shortcuts Throughout**
-- **Current**: Cmd+K on dashboard
-- **Improvement**: Add shortcuts dashboard-wide (N = new project, D = deploy, etc.)
-- **Implementation**: Global keyboard event listener + shortcut overlay (?)
+- **Current**: Global shortcuts for navigation and actions
+- **Status**: ✅ Implemented (`GlobalShortcuts.tsx`)
 
 #### 9. **Onboarding Flow**
 - **Current**: Direct jump to GitHub connection
@@ -84,8 +83,8 @@
 - **Status**: ✅ Implemented
 
 #### 4. **Deployment Notifications**
-- **Improvement**: Email/Slack notifications on deployment success/failure
-- **Implementation**: Add notification settings, integrate with Cloud Pub/Sub
+- **Current**: Webhook and Email notifications supported
+- **Status**: ✅ Implemented (Resend integration + Webhook)
 
 #### 5. **Multi-Framework Support**
 - **Current**: Next.js and Vite support
@@ -98,13 +97,12 @@
 ### Medium Priority
 
 #### 7. **Build Caching**
-- **Current**: Each build starts fresh
-- **Status**: ✅ Implemented (GCS-based caching for `.next/cache`)
+- **Current**: GCS-based caching for `.next/cache`
+- **Status**: ✅ Implemented
 
 #### 8. **Resource Configuration UI**
-- **Current**: Using defaults (512Mi memory, 1 CPU)
-- **Improvement**: Allow users to configure per-project (memory, CPU, min/max instances)
-- **Files**: New `ResourceSettings.tsx` component, update `Project` type
+- **Current**: Per-project CPU, Memory, Instance scaling
+- **Status**: ✅ Implemented (`ResourceSettings.tsx`)
 
 #### 9. **Delete Project Flow**
 - **Current**: API with cleanup and UI implemented
@@ -170,6 +168,7 @@
 5. Add copy button for deployment URLs ✅
 6. Show build duration on deployment cards ✅
 7. Add "Redeploy" button on deployment detail ✅
+8. Add email notification toggle ✅
 
 ---
 

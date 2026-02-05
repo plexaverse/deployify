@@ -25,6 +25,7 @@ export default function ProjectSettingsPage() {
     const [rootDirectory, setRootDirectory] = useState('');
     const [outputDirectory, setOutputDirectory] = useState('');
     const [webhookUrl, setWebhookUrl] = useState('');
+    const [emailNotifications, setEmailNotifications] = useState(false);
     const [saving, setSaving] = useState(false);
     const [savingWebhook, setSavingWebhook] = useState(false);
 
@@ -44,6 +45,7 @@ export default function ProjectSettingsPage() {
             setRootDirectory(data.project.rootDirectory || '');
             setOutputDirectory(data.project.outputDirectory || '');
             setWebhookUrl(data.project.webhookUrl || '');
+            setEmailNotifications(data.project.emailNotifications || false);
 
             // Fetch env variables separately
             const envResponse = await fetch(`/api/projects/${params.id}/env`);
@@ -279,6 +281,24 @@ export default function ProjectSettingsPage() {
             <div className="card mt-8">
                 <h2 className="text-lg font-semibold mb-4">Notifications</h2>
                 <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)]">
+                        <input
+                            id="email-notifications"
+                            type="checkbox"
+                            checked={emailNotifications}
+                            onChange={(e) => setEmailNotifications(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                        />
+                        <div>
+                            <label htmlFor="email-notifications" className="block text-sm font-medium">
+                                Email Notifications
+                            </label>
+                            <p className="text-xs text-[var(--muted-foreground)]">
+                                Receive email notifications when a deployment succeeds or fails.
+                            </p>
+                        </div>
+                    </div>
+
                     <div>
                         <label htmlFor="webhook-url" className="block text-sm font-medium mb-1">Webhook URL</label>
                         <input
@@ -306,18 +326,19 @@ export default function ProjectSettingsPage() {
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({
                                             webhookUrl,
+                                            emailNotifications,
                                         }),
                                     });
 
                                     if (response.ok) {
-                                        toast.success('Webhook saved', { id: toastId });
+                                        toast.success('Notifications saved', { id: toastId });
                                         fetchProject();
                                     } else {
-                                        toast.error('Failed to save webhook', { id: toastId });
+                                        toast.error('Failed to save notifications', { id: toastId });
                                     }
                                 } catch (error) {
-                                    console.error('Failed to save webhook:', error);
-                                    toast.error('Failed to save webhook', { id: toastId });
+                                    console.error('Failed to save notifications:', error);
+                                    toast.error('Failed to save notifications', { id: toastId });
                                 } finally {
                                     setSavingWebhook(false);
                                 }

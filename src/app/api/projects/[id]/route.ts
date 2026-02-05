@@ -86,6 +86,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'buildTimeout',
             'webhookUrl',
             'resources',
+            'autodeployBranches',
+            'emailNotifications',
         ];
 
         const updates: Record<string, unknown> = {};
@@ -105,6 +107,17 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 );
             }
             updates.buildTimeout = timeout;
+        }
+
+        // Validate autodeployBranches
+        if (updates.autodeployBranches !== undefined) {
+            const branches = updates.autodeployBranches;
+            if (!Array.isArray(branches) || !branches.every(b => typeof b === 'string')) {
+                return NextResponse.json(
+                    { error: 'autodeployBranches must be an array of strings' },
+                    { status: 400, headers: securityHeaders }
+                );
+            }
         }
 
         // Validate resources
