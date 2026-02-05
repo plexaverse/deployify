@@ -154,6 +154,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     installCommand: project.installCommand,
                     outputDirectory: project.outputDirectory,
                     buildTimeout: project.buildTimeout,
+                    healthCheckPath: project.healthCheckPath,
                     resources: project.resources,
                 });
 

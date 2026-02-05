@@ -74,6 +74,7 @@ export interface Project {
     webhookUrl?: string | null; // Webhook URL for build notifications
     emailNotifications?: boolean; // Send email notifications on deployment
     autodeployBranches?: string[]; // Branches to auto-deploy
+    healthCheckPath?: string; // Custom path for health checks (startup/liveness probes)
     githubToken?: string | null; // Stored OAuth token for private repo access
     resources?: {
         cpu?: number;
