@@ -165,7 +165,7 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<Buffer> {
     });
 }
 
-function generateHr(doc: PDFDocument, y: number) {
+function generateHr(doc: InstanceType<typeof PDFDocument>, y: number) {
     doc.strokeColor('#aaaaaa')
         .lineWidth(1)
         .moveTo(50, y)
@@ -174,7 +174,7 @@ function generateHr(doc: PDFDocument, y: number) {
 }
 
 function generateTableRow(
-    doc: PDFDocument,
+    doc: InstanceType<typeof PDFDocument>,
     y: number,
     item: string,
     unitCost: string,
