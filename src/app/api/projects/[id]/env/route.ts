@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
+import { getProjectById, updateProject } from '@/lib/db';
+import { logAuditEvent } from '@/lib/audit';
 import { updateProject } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
@@ -112,6 +114,17 @@ export async function POST(
 
         await updateProject(id, { envVariables });
 
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'env_var.created',
+            {
+                projectId: project.id,
+                envVarKey: key,
+                envVarId: newEnvVar.id
+            }
+        );
+
         return NextResponse.json({
             envVariable: {
                 ...newEnvVar,
@@ -176,6 +189,17 @@ export async function PUT(
 
         await updateProject(id, { envVariables });
 
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'env_var.updated',
+            {
+                projectId: project.id,
+                envVarKey: updatedEnv.key,
+                envVarId: updatedEnv.id
+            }
+        );
+
         return NextResponse.json({
             envVariable: {
                 ...updatedEnv,
@@ -230,6 +254,16 @@ export async function DELETE(
         }
 
         await updateProject(id, { envVariables: filteredEnvs });
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'env_var.deleted',
+            {
+                projectId: project.id,
+                envVarId: envId
+            }
+        );
 
         return NextResponse.json({
             message: 'Environment variable deleted successfully',
