@@ -83,6 +83,10 @@ export interface Project {
     };
     envVariables?: EnvVariable[];
     domains?: Domain[];
+    ipRules?: {
+        allow: string[];
+        block: string[];
+    };
     createdAt: Date;
     updatedAt: Date;
 }
