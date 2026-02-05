@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import Script from 'next/script';
 import "./globals.css";
 
 const geist = Geist({
@@ -20,6 +21,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const domain = new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').hostname;
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geist.variable} antialiased`}>
@@ -37,6 +40,13 @@ export default function RootLayout({
           </a>
           {children}
           <Toaster position="bottom-right" />
+          <Script
+            defer
+            data-domain={domain}
+            data-api="/api/analytics/event"
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
         </ThemeProvider>
       </body>
     </html>

@@ -21,6 +21,7 @@ export interface Tier {
     id: TierType;
     name: string;
     priceId: string;
+    price: number; // in INR
     limits: TierLimits;
 }
 
@@ -29,6 +30,7 @@ export const TIERS: Record<TierType, Tier> = {
         id: 'free',
         name: 'Free',
         priceId: '',
+        price: 0,
         limits: {
             projects: 3,
             deployments: 20,
@@ -40,6 +42,7 @@ export const TIERS: Record<TierType, Tier> = {
         id: 'pro',
         name: 'Pro',
         priceId: 'price_pro_test',
+        price: 1500, // 1500 INR
         limits: {
             projects: 10,
             deployments: 1000,
@@ -51,6 +54,7 @@ export const TIERS: Record<TierType, Tier> = {
         id: 'team',
         name: 'Team',
         priceId: 'price_team_test',
+        price: 5000, // 5000 INR
         limits: {
             projects: 50,
             deployments: 5000,
@@ -62,6 +66,7 @@ export const TIERS: Record<TierType, Tier> = {
         id: 'enterprise',
         name: 'Enterprise',
         priceId: 'price_enterprise_test',
+        price: 15000, // 15000 INR
         limits: {
             projects: Infinity,
             deployments: Infinity,

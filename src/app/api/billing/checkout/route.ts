@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getUserById, updateUser } from '@/lib/db';
-import { getTier, TierType, TIERS } from '@/lib/billing/tiers';
-import { createCheckoutSession, stripe } from '@/lib/billing/payments';
+import { getUserById } from '@/lib/db';
+import { TIERS, TierType } from '@/lib/billing/tiers';
+import { createOrder } from '@/lib/billing/payments';
 import { securityHeaders } from '@/lib/security';
-import { config } from '@/lib/config';
 
 export async function POST(req: Request) {
     try {
@@ -42,14 +41,11 @@ export async function POST(req: Request) {
             );
         }
 
-        if (!tier.priceId) {
-             return NextResponse.json(
-                 { error: 'Price ID not configured for this tier' },
-                 { status: 500, headers: securityHeaders }
-            );
-        }
+        // Razorpay expects amount in paise (multiply by 100)
+        // Assuming price is in INR for Razorpay
+        const amount = tier.price * 100;
 
-        let user = await getUserById(session.user.id);
+        const user = await getUserById(session.user.id);
 
         if (!user) {
             return NextResponse.json(
@@ -58,34 +54,15 @@ export async function POST(req: Request) {
             );
         }
 
-        let stripeCustomerId = user.stripeCustomerId;
-
-        // Create Stripe customer if not exists
-        if (!stripeCustomerId) {
-            const customer = await stripe.customers.create({
-                email: user.email || undefined,
-                name: user.name || undefined,
-                metadata: {
-                    userId: user.id,
-                    githubId: user.githubId.toString(),
-                },
-            });
-            stripeCustomerId = customer.id;
-            await updateUser(user.id, { stripeCustomerId });
-        }
-
-        const successUrl = `${config.appUrl}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`;
-        const cancelUrl = `${config.appUrl}/billing?canceled=true`;
-
-        const checkoutSession = await createCheckoutSession(
-            stripeCustomerId,
-            tier.priceId,
-            successUrl,
-            cancelUrl
-        );
+        const order = await createOrder(amount, 'INR', `receipt_${user.id}_${Date.now()}`);
 
         return NextResponse.json(
-            { url: checkoutSession.url },
+            {
+                orderId: order.id,
+                amount: order.amount,
+                currency: order.currency,
+                keyId: process.env.RAZORPAY_KEY_ID
+            },
             { headers: securityHeaders }
         );
 
