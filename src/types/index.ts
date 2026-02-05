@@ -73,6 +73,7 @@ export interface Project {
     buildTimeout?: number; // Custom build timeout in seconds
     webhookUrl?: string | null; // Webhook URL for build notifications
     emailNotifications?: boolean; // Send email notifications on deployment
+    cloudArmorEnabled?: boolean; // Enable Cloud Armor WAF
     autodeployBranches?: string[]; // Branches to auto-deploy
     healthCheckPath?: string; // Custom path for health checks (startup/liveness probes)
     githubToken?: string | null; // Stored OAuth token for private repo access

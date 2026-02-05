@@ -26,8 +26,10 @@ export default function ProjectSettingsPage() {
     const [outputDirectory, setOutputDirectory] = useState('');
     const [webhookUrl, setWebhookUrl] = useState('');
     const [emailNotifications, setEmailNotifications] = useState(false);
+    const [cloudArmorEnabled, setCloudArmorEnabled] = useState(false);
     const [saving, setSaving] = useState(false);
     const [savingWebhook, setSavingWebhook] = useState(false);
+    const [savingSecurity, setSavingSecurity] = useState(false);
 
     const fetchProject = async () => {
         try {
@@ -46,6 +48,7 @@ export default function ProjectSettingsPage() {
             setOutputDirectory(data.project.outputDirectory || '');
             setWebhookUrl(data.project.webhookUrl || '');
             setEmailNotifications(data.project.emailNotifications || false);
+            setCloudArmorEnabled(data.project.cloudArmorEnabled || false);
 
             // Fetch env variables separately
             const envResponse = await fetch(`/api/projects/${params.id}/env`);
@@ -347,6 +350,72 @@ export default function ProjectSettingsPage() {
                             className="btn btn-primary"
                         >
                             {savingWebhook ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save'
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Security */}
+            <div className="card mt-8">
+                <h2 className="text-lg font-semibold mb-4">Security</h2>
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)]">
+                        <input
+                            id="cloud-armor"
+                            type="checkbox"
+                            checked={cloudArmorEnabled}
+                            onChange={(e) => setCloudArmorEnabled(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                        />
+                        <div>
+                            <label htmlFor="cloud-armor" className="block text-sm font-medium">
+                                Cloud Armor WAF
+                            </label>
+                            <p className="text-xs text-[var(--muted-foreground)]">
+                                Enable Google Cloud Armor Web Application Firewall to protect against DDoS and web attacks.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                        <button
+                            onClick={async () => {
+                                if (!project) return;
+                                setSavingSecurity(true);
+                                const toastId = toast.loading('Saving security settings...');
+                                try {
+                                    const response = await fetch(`/api/projects/${project.id}/security`, {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            enabled: cloudArmorEnabled,
+                                        }),
+                                    });
+
+                                    if (response.ok) {
+                                        toast.success('Security settings saved', { id: toastId });
+                                        fetchProject();
+                                    } else {
+                                        toast.error('Failed to save security settings', { id: toastId });
+                                    }
+                                } catch (error) {
+                                    console.error('Failed to save security settings:', error);
+                                    toast.error('Failed to save security settings', { id: toastId });
+                                } finally {
+                                    setSavingSecurity(false);
+                                }
+                            }}
+                            disabled={savingSecurity}
+                            className="btn btn-primary"
+                        >
+                            {savingSecurity ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                     Saving...
