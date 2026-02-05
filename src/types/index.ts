@@ -91,6 +91,7 @@ export interface Deployment {
     cloudBuildId?: string;
     cloudRunRevision?: string;
     url?: string;
+    aliases?: string[];
     errorMessage?: string;
     buildLogs?: string[];
     buildDurationMs?: number;

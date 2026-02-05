@@ -53,6 +53,7 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
     });
 }
 
+
 export async function upsertUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     const existingUser = await getUserById(userData.githubId.toString());
 
@@ -227,6 +228,35 @@ export async function getDeploymentById(id: string): Promise<Deployment | null> 
         updatedAt: data?.updatedAt?.toDate(),
         readyAt: data?.readyAt?.toDate(),
     } as Deployment;
+}
+
+export async function removeAliasFromOtherDeployments(
+    projectId: string,
+    alias: string,
+    excludeDeploymentId: string
+): Promise<void> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.DEPLOYMENTS)
+        .where('projectId', '==', projectId)
+        .where('aliases', 'array-contains', alias)
+        .get();
+
+    const batch = db.batch();
+    let count = 0;
+
+    snapshot.docs.forEach(doc => {
+        if (doc.id !== excludeDeploymentId) {
+            const data = doc.data();
+            const newAliases = (data.aliases || []).filter((a: string) => a !== alias);
+            batch.update(doc.ref, { aliases: newAliases, updatedAt: new Date() });
+            count++;
+        }
+    });
+
+    if (count > 0) {
+        await batch.commit();
+    }
 }
 
 export async function listDeploymentsByProject(
