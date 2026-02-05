@@ -49,4 +49,5 @@ export const Collections = {
     PROJECTS: 'projects',
     DEPLOYMENTS: 'deployments',
     ENV_VARS: 'envVars',
+    USAGE: 'usage',
 } as const;

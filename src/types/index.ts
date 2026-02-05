@@ -207,3 +207,11 @@ export interface CloudRunConfig {
     cpu: string;
     port: number;
 }
+
+// Usage tracking
+export interface Usage {
+    id: string; // projectId
+    totalDeployments: number;
+    totalBuildMinutes: number;
+    lastUpdated: Date;
+}
