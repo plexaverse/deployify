@@ -21,6 +21,12 @@ interface BuildSubmissionConfig {
     projectRegion?: string | null; // Per-project region, falls back to config.gcp.region if not set
     framework?: string;
     buildTimeout?: number;
+    resources?: {
+        cpu?: number;
+        memory?: string;
+        minInstances?: number;
+        maxInstances?: number;
+    };
 }
 
 /**
@@ -43,6 +49,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         installCommand,
         outputDirectory,
         buildTimeout,
+        resources,
     } = buildConfig;
 
     // Use project-specific region if set, otherwise fall back to global config
@@ -173,10 +180,10 @@ fi`,
                 '--region', region,
                 '--platform', 'managed',
                 '--allow-unauthenticated',
-                '--memory', config.cloudRun.memory,
-                '--cpu', config.cloudRun.cpu,
-                '--min-instances', config.cloudRun.minInstances.toString(),
-                '--max-instances', config.cloudRun.maxInstances.toString(),
+                '--memory', resources?.memory || config.cloudRun.memory,
+                '--cpu', (resources?.cpu || config.cloudRun.cpu).toString(),
+                '--min-instances', (resources?.minInstances !== undefined ? resources.minInstances : config.cloudRun.minInstances).toString(),
+                '--max-instances', (resources?.maxInstances !== undefined ? resources.maxInstances : config.cloudRun.maxInstances).toString(),
                 '--port', config.cloudRun.port.toString(),
                 '--timeout', `${config.cloudRun.timeout}s`,
                 ...envArgs,

@@ -142,6 +142,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     installCommand: project.installCommand,
                     outputDirectory: project.outputDirectory,
                     buildTimeout: project.buildTimeout,
+                    resources: project.resources,
                 });
 
                 // Submit to Cloud Build with project region

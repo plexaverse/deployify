@@ -125,6 +125,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             gitToken: project.githubToken ?? undefined,
             projectRegion: project.region, // Use project's region
             buildTimeout: project.buildTimeout,
+            resources: project.resources,
         });
 
         // Submit build (this would require GCP service account credentials)
@@ -203,6 +204,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 gitToken: project.githubToken ?? undefined,
                 projectRegion: project.region, // Use project's region
                 buildTimeout: project.buildTimeout,
+                resources: project.resources,
             });
 
             await updateDeployment(deployment.id, {
