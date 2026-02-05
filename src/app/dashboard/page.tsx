@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Project, Deployment } from '@/types';
+import { useTeam } from '@/contexts/TeamContext';
 
 interface ProjectWithDeployment extends Project {
     latestDeployment?: Deployment;
@@ -16,6 +17,7 @@ export default function DashboardPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const searchInputRef = useRef<HTMLInputElement>(null);
     const [isMac, setIsMac] = useState(false);
+    const { activeTeam, isLoading: isTeamLoading } = useTeam();
 
     useEffect(() => {
         setIsMac(navigator.userAgent.indexOf('Mac') !== -1);
@@ -32,8 +34,13 @@ export default function DashboardPage() {
 
     useEffect(() => {
         async function fetchProjects() {
+            setLoading(true);
             try {
-                const response = await fetch('/api/projects');
+                let url = '/api/projects';
+                if (activeTeam) {
+                    url += `?teamId=${activeTeam.id}`;
+                }
+                const response = await fetch(url);
                 const data = await response.json();
                 setProjects(data.projects || []);
             } catch (error) {
@@ -43,8 +50,10 @@ export default function DashboardPage() {
             }
         }
 
-        fetchProjects();
-    }, []);
+        if (!isTeamLoading) {
+            fetchProjects();
+        }
+    }, [activeTeam, isTeamLoading]);
 
     const filteredProjects = projects.filter(project => {
         const query = searchQuery.toLowerCase();
@@ -66,7 +75,7 @@ export default function DashboardPage() {
             case 'queued':
                 return <span className="badge badge-info">● Queued</span>;
             default:
-                return <span className="badge" style={{ background: 'var(--card)', color: 'var(--muted)' }}>● No deployments</span>;
+                return <span className="badge bg-[var(--card)] text-[var(--muted)]">● No deployments</span>;
         }
     };
 
@@ -85,7 +94,9 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold">Projects</h1>
+                    <h1 className="text-2xl font-bold">
+                        {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
+                    </h1>
                     <p className="text-[var(--muted-foreground)] mt-1">
                         Manage your Next.js deployments
                     </p>

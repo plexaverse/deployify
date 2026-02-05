@@ -1,5 +1,5 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, EnvVar, Team, TeamMembership } from '@/types';
+import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamInvite, TeamRole } from '@/types';
 import { generateId } from '@/lib/utils';
 
 // ============= User Operations =============
@@ -51,6 +51,115 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
         ...data,
         updatedAt: new Date(),
     });
+}
+
+// ============= Invite Operations =============
+
+export async function createInvite(
+    teamId: string,
+    email: string,
+    role: TeamRole,
+    inviterId: string,
+    token: string
+): Promise<TeamInvite> {
+    const db = getDb();
+    const id = generateId('invite');
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    const invite: TeamInvite = {
+        id,
+        teamId,
+        email,
+        role,
+        token,
+        inviterId,
+        expiresAt,
+        createdAt: now,
+    };
+
+    await db.collection(Collections.INVITES).doc(id).set(invite);
+    return invite;
+}
+
+export async function getInviteByToken(token: string): Promise<TeamInvite | null> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.INVITES)
+        .where('token', '==', token)
+        .limit(1)
+        .get();
+
+    if (snapshot.empty) {
+        return null;
+    }
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+    return {
+        ...data,
+        createdAt: data?.createdAt?.toDate(),
+        expiresAt: data?.expiresAt?.toDate(),
+    } as TeamInvite;
+}
+
+export async function deleteInvite(id: string): Promise<void> {
+    const db = getDb();
+    await db.collection(Collections.INVITES).doc(id).delete();
+}
+
+export async function acceptInvite(inviteId: string, userId: string): Promise<void> {
+    const db = getDb();
+    const inviteRef = db.collection(Collections.INVITES).doc(inviteId);
+
+    // Get invite details for membership creation
+    const inviteDoc = await inviteRef.get();
+    if (!inviteDoc.exists) {
+        throw new Error('Invite not found');
+    }
+    const invite = inviteDoc.data() as TeamInvite;
+
+    const membershipId = generateId('tm');
+    const now = new Date();
+
+    const membership: TeamMembership = {
+        id: membershipId,
+        teamId: invite.teamId,
+        userId,
+        role: invite.role,
+        joinedAt: now,
+    };
+
+    const batch = db.batch();
+
+    // Create membership
+    batch.set(db.collection(Collections.TEAM_MEMBERSHIPS).doc(membershipId), membership);
+
+    // Delete invite
+    batch.delete(inviteRef);
+
+    await batch.commit();
+}
+
+export async function getTeamMembership(teamId: string, userId: string): Promise<TeamMembership | null> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('teamId', '==', teamId)
+        .where('userId', '==', userId)
+        .limit(1)
+        .get();
+
+    if (snapshot.empty) {
+        return null;
+    }
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+    return {
+        ...data,
+        joinedAt: data?.joinedAt?.toDate(),
+    } as TeamMembership;
 }
 
 
@@ -138,6 +247,38 @@ export async function listTeamMembers(teamId: string): Promise<TeamMembership[]>
             joinedAt: data?.joinedAt?.toDate(),
         } as TeamMembership;
     });
+}
+
+export async function listTeamsForUser(userId: string): Promise<Team[]> {
+    const db = getDb();
+    const membershipsSnapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('userId', '==', userId)
+        .get();
+
+    const teamIds = membershipsSnapshot.docs.map(doc => doc.data().teamId);
+
+    if (teamIds.length === 0) {
+        return [];
+    }
+
+    const teamRefs = teamIds.map(id => db.collection(Collections.TEAMS).doc(id));
+    const teamsSnapshot = await db.getAll(...teamRefs);
+
+    return teamsSnapshot
+        .filter(doc => doc.exists)
+        .map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                createdAt: data?.createdAt?.toDate(),
+                updatedAt: data?.updatedAt?.toDate(),
+                subscription: data?.subscription ? {
+                    ...data.subscription,
+                    expiresAt: data.subscription.expiresAt?.toDate ? data.subscription.expiresAt.toDate() : data.subscription.expiresAt
+                } : undefined,
+            } as Team;
+        });
 }
 
 // ============= Project Operations =============
@@ -238,6 +379,45 @@ export async function listProjectsByUser(userId: string): Promise<Project[]> {
             updatedAt: data?.updatedAt?.toDate(),
         } as Project;
     });
+}
+
+export async function listProjectsByTeam(teamId: string): Promise<Project[]> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.PROJECTS)
+        .where('teamId', '==', teamId)
+        .orderBy('updatedAt', 'desc')
+        .get();
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            createdAt: data?.createdAt?.toDate(),
+            updatedAt: data?.updatedAt?.toDate(),
+        } as Project;
+    });
+}
+
+export async function listPersonalProjects(userId: string): Promise<Project[]> {
+    const db = getDb();
+    // Fetch all projects created by user
+    const snapshot = await db
+        .collection(Collections.PROJECTS)
+        .where('userId', '==', userId)
+        .orderBy('updatedAt', 'desc')
+        .get();
+
+    return snapshot.docs
+        .map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                createdAt: data?.createdAt?.toDate(),
+                updatedAt: data?.updatedAt?.toDate(),
+            } as Project;
+        })
+        .filter(project => !project.teamId); // Filter out team projects
 }
 
 export async function updateProject(id: string, data: Partial<Project>): Promise<void> {

@@ -54,4 +54,5 @@ export const Collections = {
     TEAMS: 'teams',
     TEAM_MEMBERSHIPS: 'teamMemberships',
     AUDIT_LOGS: 'auditLogs',
+    INVITES: 'invites',
 } as const;

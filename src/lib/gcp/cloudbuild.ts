@@ -4,6 +4,7 @@ import { getDockerfile } from '@/lib/dockerfiles';
 import type { BuildConfig, Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
+const CACHE_BUCKET = `${config.gcp.projectId}_deployify_cache`;
 
 interface BuildSubmissionConfig {
     projectSlug: string;
@@ -21,6 +22,12 @@ interface BuildSubmissionConfig {
     projectRegion?: string | null; // Per-project region, falls back to config.gcp.region if not set
     framework?: string;
     buildTimeout?: number;
+    resources?: {
+        cpu?: number;
+        memory?: string;
+        minInstances?: number;
+        maxInstances?: number;
+    };
 }
 
 /**
@@ -43,6 +50,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         installCommand,
         outputDirectory,
         buildTimeout,
+        resources,
     } = buildConfig;
 
     // Use project-specific region if set, otherwise fall back to global config
@@ -50,6 +58,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
 
     const serviceName = `dfy-${projectSlug}`.substring(0, 63); // Cloud Run name limit
     const imageName = `${region}-docker.pkg.dev/${config.gcp.projectId}/${config.gcp.artifactRegistry}/${serviceName}:${commitSha.substring(0, 7)}`;
+    const latestImageName = `${region}-docker.pkg.dev/${config.gcp.projectId}/${config.gcp.artifactRegistry}/${serviceName}:latest`;
 
     // Get repository name from full name (owner/repo -> repo)
     const repoName = repoFullName.split('/')[1] || repoFullName;
@@ -99,10 +108,20 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         outputDirectory,
         buildCommand,
         installCommand,
+        restoreCache: true,
     });
 
     // Define common steps shared between both deployment methods
     const commonSteps = [
+        // Restore cache from GCS
+        {
+            name: 'gcr.io/cloud-builders/gsutil',
+            entrypoint: 'bash',
+            args: [
+                '-c',
+                `mkdir -p restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C restore_cache || echo "No cache found or restore failed")`,
+            ],
+        },
         // Create a Dockerfile for Next.js if it doesn't exist
         {
             name: 'gcr.io/cloud-builders/docker',
@@ -133,16 +152,67 @@ fi`,
       fi`,
             ],
         },
-        // Build the Docker image with build-time env vars
+        // Pull the latest image for caching
         {
             name: 'gcr.io/cloud-builders/docker',
-            args: ['build', '-t', imageName, ...dockerBuildArgs, '.'],
+            entrypoint: 'bash',
+            args: ['-c', `docker pull ${latestImageName} || exit 0`],
+        },
+        // Build the Docker image with build-time env vars and caching
+        {
+            name: 'gcr.io/cloud-builders/docker',
+            args: [
+                'build',
+                '-t', imageName,
+                '-t', latestImageName,
+                '--cache-from', latestImageName,
+                ...dockerBuildArgs,
+                '.'
+            ],
             dir: '/workspace',
         },
-        // Push to Artifact Registry
+        // Push to Artifact Registry (commit SHA tag)
         {
             name: 'gcr.io/cloud-builders/docker',
             args: ['push', imageName],
+        },
+        // Push to Artifact Registry (latest tag)
+        {
+            name: 'gcr.io/cloud-builders/docker',
+            args: ['push', latestImageName],
+        },
+        // Build 'builder' target to extract cache
+        {
+            name: 'gcr.io/cloud-builders/docker',
+            args: [
+                'build',
+                '--target', 'builder',
+                '-t', `${imageName}-builder`,
+                ...dockerBuildArgs,
+                '.'
+            ],
+            dir: '/workspace',
+        },
+        // Extract and Save Cache to GCS (Non-blocking)
+        {
+            name: 'gcr.io/cloud-builders/docker',
+            entrypoint: 'bash',
+            args: [
+                '-c',
+                `{
+  docker create --name cache_extractor ${imageName}-builder && \
+  mkdir -p .next_cache_export && \
+  (docker cp cache_extractor:/app/.next/cache .next_cache_export/cache || echo "No .next/cache found") && \
+  docker rm cache_extractor && \
+  if [ -d .next_cache_export/cache ]; then \
+    tar -czf cache.tgz -C .next_cache_export cache && \
+    (gsutil mb gs://${CACHE_BUCKET} || true) && \
+    gsutil cp cache.tgz gs://${CACHE_BUCKET}/${projectSlug}.tgz; \
+  else \
+    echo "No cache to save"; \
+  fi
+} || echo "Cache save failed, ignoring..."`
+            ],
         },
         // Deploy to Cloud Run
         {
@@ -154,10 +224,10 @@ fi`,
                 '--region', region,
                 '--platform', 'managed',
                 '--allow-unauthenticated',
-                '--memory', config.cloudRun.memory,
-                '--cpu', config.cloudRun.cpu,
-                '--min-instances', config.cloudRun.minInstances.toString(),
-                '--max-instances', config.cloudRun.maxInstances.toString(),
+                '--memory', resources?.memory || config.cloudRun.memory,
+                '--cpu', (resources?.cpu || config.cloudRun.cpu).toString(),
+                '--min-instances', (resources?.minInstances !== undefined ? resources.minInstances : config.cloudRun.minInstances).toString(),
+                '--max-instances', (resources?.maxInstances !== undefined ? resources.maxInstances : config.cloudRun.maxInstances).toString(),
                 '--port', config.cloudRun.port.toString(),
                 '--timeout', `${config.cloudRun.timeout}s`,
                 ...envArgs,
@@ -210,7 +280,7 @@ fi`,
                 },
                 ...commonSteps
             ],
-            images: [imageName],
+            images: [imageName, latestImageName],
             options: {
                 logging: 'CLOUD_LOGGING_ONLY',
                 machineType: 'UNSPECIFIED',
@@ -230,7 +300,7 @@ fi`,
             },
         },
         steps: commonSteps,
-        images: [imageName],
+        images: [imageName, latestImageName],
         options: {
             logging: 'CLOUD_LOGGING_ONLY',
             // Use UNSPECIFIED (default) machine type for better quota availability

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getProjectById, updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
+import { updateProject } from '@/lib/db';
+import { checkProjectAccess } from '@/middleware/rbac';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
 
 // Generate unique ID for env variables
@@ -21,15 +23,16 @@ export async function GET(
         }
 
         const { id } = await params;
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        if (!access.allowed) {
+            return NextResponse.json(
+                { error: access.error },
+                { status: access.status }
+            );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const { project } = access;
 
         // Return env variables, masking secret values
         const envVariables = (project.envVariables || []).map((env: EnvVariable) => ({
@@ -59,15 +62,16 @@ export async function POST(
         }
 
         const { id } = await params;
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        if (!access.allowed) {
+            return NextResponse.json(
+                { error: access.error },
+                { status: access.status }
+            );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const { project } = access;
 
         const body = await request.json();
         const { key, value, isSecret = false, target = 'both' } = body;
@@ -149,15 +153,16 @@ export async function PUT(
         }
 
         const { id } = await params;
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        if (!access.allowed) {
+            return NextResponse.json(
+                { error: access.error },
+                { status: access.status }
+            );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const { project } = access;
 
         const body = await request.json();
         const { envId, key, value, isSecret, target } = body;
@@ -223,15 +228,16 @@ export async function DELETE(
         }
 
         const { id } = await params;
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        if (!access.allowed) {
+            return NextResponse.json(
+                { error: access.error },
+                { status: access.status }
+            );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        const { project } = access;
 
         const { searchParams } = new URL(request.url);
         const envId = searchParams.get('envId');

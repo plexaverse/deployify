@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getProjectById, updateProject, deleteProject, listDeploymentsByProject } from '@/lib/db';
+import { updateProject, deleteProject, listDeploymentsByProject, getProjectById } from '@/lib/db';
+import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 
 interface RouteParams {
@@ -20,22 +21,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        // Check ownership
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
-            );
-        }
+        const { project } = access;
 
         // Get recent deployments
         const deployments = await listDeploymentsByProject(id, 5);
@@ -66,21 +61,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
-            );
-        }
+        const { project } = access;
 
         const body = await request.json();
 
@@ -95,6 +85,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'region',
             'buildTimeout',
             'webhookUrl',
+            'resources',
         ];
 
         const updates: Record<string, unknown> = {};
@@ -114,6 +105,56 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 );
             }
             updates.buildTimeout = timeout;
+        }
+
+        // Validate resources
+        if (updates.resources) {
+            const resources = updates.resources as any;
+            const validCpus = [1, 2, 4, 8];
+            const validMemory = ['512Mi', '1Gi', '2Gi', '4Gi', '8Gi', '16Gi', '32Gi'];
+
+            if (resources.cpu && !validCpus.includes(Number(resources.cpu))) {
+                return NextResponse.json(
+                    { error: 'Invalid CPU value. Must be 1, 2, 4, or 8.' },
+                    { status: 400, headers: securityHeaders }
+                );
+            }
+
+            if (resources.memory && !validMemory.includes(resources.memory)) {
+                return NextResponse.json(
+                    { error: 'Invalid memory value.' },
+                    { status: 400, headers: securityHeaders }
+                );
+            }
+
+            if (resources.minInstances !== undefined) {
+                const min = Number(resources.minInstances);
+                if (isNaN(min) || min < 0) {
+                    return NextResponse.json(
+                        { error: 'Min instances must be 0 or greater.' },
+                        { status: 400, headers: securityHeaders }
+                    );
+                }
+            }
+
+            if (resources.maxInstances !== undefined) {
+                const max = Number(resources.maxInstances);
+                const min = resources.minInstances !== undefined ? Number(resources.minInstances) : (project.resources?.minInstances || 0);
+
+                if (isNaN(max) || max <= 0) {
+                    return NextResponse.json(
+                        { error: 'Max instances must be greater than 0.' },
+                        { status: 400, headers: securityHeaders }
+                    );
+                }
+
+                if (max < min) {
+                    return NextResponse.json(
+                        { error: 'Max instances cannot be less than min instances.' },
+                        { status: 400, headers: securityHeaders }
+                    );
+                }
+            }
         }
 
         await updateProject(id, updates);
@@ -146,19 +187,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const project = await getProjectById(id);
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
-            );
-        }
-
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 

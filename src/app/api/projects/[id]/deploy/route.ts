@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getProjectById, getDeploymentById, createDeployment, updateDeployment, updateProject } from '@/lib/db';
+import { getDeploymentById, createDeployment, updateDeployment, updateProject } from '@/lib/db';
+import { checkProjectAccess } from '@/middleware/rbac';
 import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
@@ -37,23 +38,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        // Get the project
-        const project = await getProjectById(id);
+        // Check project access
+        const access = await checkProjectAccess(session.user.id, id);
 
-        if (!project) {
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        // Check ownership
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
-            );
-        }
+        const { project } = access;
 
         // Check usage limits
         const { withinLimits, limitType } = await checkUsageLimits(session.user.id);
@@ -161,6 +156,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     installCommand: project.installCommand,
                     outputDirectory: project.outputDirectory,
                     buildTimeout: project.buildTimeout,
+                    resources: project.resources,
                 });
 
                 // Submit to Cloud Build with project region
@@ -250,20 +246,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const project = await getProjectById(id);
-        if (!project) {
+        const access = await checkProjectAccess(session.user.id, id);
+
+        if (!access.allowed) {
             return NextResponse.json(
-                { error: 'Project not found' },
-                { status: 404, headers: securityHeaders }
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        if (project.userId !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden' },
-                { status: 403, headers: securityHeaders }
-            );
-        }
+        const { project } = access;
 
         const deployment = await getDeploymentById(deploymentId);
         if (!deployment || deployment.projectId !== id) {
