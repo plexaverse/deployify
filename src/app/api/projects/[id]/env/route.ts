@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getProjectById, updateProject } from '@/lib/db';
-import { logAuditEvent } from '@/lib/audit'; 
+import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
 

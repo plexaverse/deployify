@@ -123,12 +123,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         // Validate resources
         if (updates.resources) {
             const resources = updates.resources as any;
-            const validCpus = [1, 2, 4, 8];
-            const validMemory = ['512Mi', '1Gi', '2Gi', '4Gi', '8Gi', '16Gi', '32Gi'];
+            const validCpus = [1, 2, 4];
+            const validMemory = ['256Mi', '512Mi', '1Gi', '2Gi', '4Gi'];
 
             if (resources.cpu && !validCpus.includes(Number(resources.cpu))) {
                 return NextResponse.json(
-                    { error: 'Invalid CPU value. Must be 1, 2, 4, or 8.' },
+                    { error: 'Invalid CPU value. Must be 1, 2, 4.' },
                     { status: 400, headers: securityHeaders }
                 );
             }

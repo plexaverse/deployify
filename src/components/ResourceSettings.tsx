@@ -16,8 +16,8 @@ interface ResourceSettingsProps {
     onUpdate?: () => void;
 }
 
-const CPU_OPTIONS = [1, 2, 4, 8];
-const MEMORY_OPTIONS = ['512Mi', '1Gi', '2Gi', '4Gi', '8Gi', '16Gi', '32Gi'];
+const CPU_OPTIONS = [1, 2, 4];
+const MEMORY_OPTIONS = ['256Mi', '512Mi', '1Gi', '2Gi', '4Gi'];
 
 export function ResourceSettings({ projectId, initialResources, onUpdate }: ResourceSettingsProps) {
     const [cpu, setCpu] = useState(initialResources?.cpu || 1);
