@@ -1,0 +1,47 @@
+# Auto-merge PRs created by Jules (Google's AI coding agent)
+# Jules creates PRs every ~30 mins with code improvements
+
+name: Auto-merge Jules PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  auto-merge-jules:
+    runs-on: ubuntu-latest
+    
+    # Only run for Jules PRs
+    if: github.event.pull_request.user.login == 'jules-google[bot]' || github.event.pull_request.user.login == 'jules[bot]' || contains(github.event.pull_request.user.login, 'jules')
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run build check
+        run: npm run build
+        continue-on-error: false
+
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
