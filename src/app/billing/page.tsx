@@ -3,6 +3,13 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Zap, Server, Wifi, Check, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import Script from 'next/script';
+
+declare global {
+    interface Window {
+        Razorpay: any;
+    }
+}
 
 interface UsageData {
     usage: {
@@ -25,28 +32,28 @@ const PLANS = [
     {
         id: 'free',
         name: 'Free',
-        price: '$0',
+        price: '₹0',
         description: 'Perfect for hobby projects',
         features: ['3 Projects', '20 Deployments/mo', '100 Build Minutes/mo', '5 GB Bandwidth/mo'],
     },
     {
         id: 'pro',
         name: 'Pro',
-        price: '$29',
+        price: '₹1,500',
         description: 'For professional developers',
         features: ['10 Projects', '1,000 Deployments/mo', '1,000 Build Minutes/mo', '100 GB Bandwidth/mo'],
     },
     {
         id: 'team',
         name: 'Team',
-        price: '$99',
+        price: '₹5,000',
         description: 'For growing teams',
         features: ['50 Projects', '5,000 Deployments/mo', '5,000 Build Minutes/mo', '500 GB Bandwidth/mo'],
     },
     {
         id: 'enterprise',
         name: 'Enterprise',
-        price: 'Custom',
+        price: '₹15,000',
         description: 'For large scale applications',
         features: ['Unlimited Projects', 'Unlimited Deployments', 'Unlimited Build Minutes', 'Unlimited Bandwidth'],
     },
@@ -82,7 +89,7 @@ export default function BillingPage() {
     }, []);
 
     const handleUpgrade = async (tierId: string) => {
-        if (tierId === 'free' || tierId === 'enterprise') return; // Enterprise usually contact sales, free is default
+        if (tierId === 'free') return; // Free is default
 
         setUpgrading(tierId);
         try {
@@ -98,11 +105,44 @@ export default function BillingPage() {
                 throw new Error(data.error || 'Failed to create checkout session');
             }
 
+            // Handle redirect if provided (e.g. Stripe or Razorpay Payment Links)
             if (data.url) {
                 window.location.href = data.url;
-            } else {
-                throw new Error('No checkout URL returned');
+                return;
             }
+
+            // Handle Razorpay Modal
+            if (!window.Razorpay) {
+                throw new Error('Payment SDK not loaded. Please refresh the page.');
+            }
+
+            const options = {
+                key: data.keyId,
+                amount: data.amount,
+                currency: data.currency,
+                name: 'Deployify',
+                description: `Upgrade to ${tierId} plan`,
+                order_id: data.orderId,
+                handler: function (response: any) {
+                    alert('Payment Successful. Payment ID: ' + response.razorpay_payment_id);
+                    // In a real app, you would probably redirect or refresh data
+                    setUpgrading(null);
+                    window.location.reload();
+                },
+                modal: {
+                    ondismiss: function() {
+                        setUpgrading(null);
+                    }
+                }
+            };
+
+            const rzp1 = new window.Razorpay(options);
+            rzp1.on('payment.failed', function (response: any) {
+                alert(response.error.description);
+                setUpgrading(null);
+            });
+            rzp1.open();
+
         } catch (err) {
             console.error(err);
             alert(err instanceof Error ? err.message : 'Failed to initiate upgrade');
@@ -152,6 +192,7 @@ export default function BillingPage() {
 
     return (
         <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] p-6 md:p-12">
+            <Script src="https://checkout.razorpay.com/v1/checkout.js" />
             <div className="max-w-6xl mx-auto space-y-12">
                 <div className="flex items-center gap-4">
                     <Link href="/dashboard" className="p-2 hover:bg-[var(--card)] rounded-full transition-colors">
@@ -261,21 +302,17 @@ export default function BillingPage() {
 
                                 <button
                                     onClick={() => handleUpgrade(plan.id)}
-                                    disabled={plan.id === tier.id || plan.id === 'free' || plan.id === 'enterprise' || upgrading !== null}
+                                    disabled={plan.id === tier.id || plan.id === 'free' || upgrading !== null}
                                     className={`w-full py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
                                         plan.id === tier.id
                                             ? 'bg-[var(--muted)] text-[var(--muted-foreground)] cursor-default'
-                                            : plan.id === 'enterprise'
-                                            ? 'bg-transparent border border-[var(--border)] hover:bg-[var(--muted)]'
                                             : 'bg-primary text-primary-foreground hover:bg-primary/90'
                                     }`}
                                 >
                                     {upgrading === plan.id && <Loader2 className="w-4 h-4 animate-spin" />}
                                     {plan.id === tier.id
                                         ? 'Current Plan'
-                                        : plan.id === 'enterprise'
-                                            ? 'Contact Sales'
-                                            : 'Upgrade'}
+                                        : 'Upgrade'}
                                 </button>
                             </div>
                         ))}
