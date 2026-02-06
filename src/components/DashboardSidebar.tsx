@@ -15,7 +15,8 @@ import {
     CreditCard,
     BarChart3,
     Layers,
-    Rocket
+    Rocket,
+    Users
 } from 'lucide-react';
 import type { Session } from '@/types';
 import { TeamSwitcher } from '@/components/TeamSwitcher';
@@ -56,6 +57,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
             label: 'Settings',
             items: [
                 { name: 'Billing', href: '/billing', icon: CreditCard },
+                { name: 'Team', href: '/settings/team', icon: Users },
                 { name: 'Settings', href: '/dashboard/settings', icon: Settings },
             ]
         }
