@@ -57,6 +57,7 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Used `lucide-react` icons for consistent UI.
 - Implemented role updates using `<select>` with custom styling to match the theme.
 
+<<<<<<< HEAD
 ## Mobile-First Monitoring Pass (Session 61)
 
 Audited and optimized UI for mobile responsiveness and performance.
@@ -107,3 +108,27 @@ Audited and optimized UI for mobile responsiveness and performance.
 - Uses `sonner` for toast notifications throughout the flow.
 - Uses `lucide-react` icons for consistent visual language.
 >>>>>>> main
+=======
+## Phase 2: Micro-interactions & Final Polish
+
+### `src/app/layout.tsx`
+- Implemented global page transitions by wrapping the root layout content with `<PageTransition>`.
+
+### `src/app/dashboard/layout.tsx`
+- Removed `<PageTransition>` wrapper to avoid nested transitions and ensure a consistent experience across the app.
+
+### `src/app/settings/team/page.tsx`
+- Replaced the simple pulse loading state with a standardized `<Skeleton>` layout for better visual feedback.
+- Upgraded the "Send Invite" button to use the `MovingBorder` `Button` component for high-priority action emphasis.
+
+### `src/app/dashboard/new/import/page.tsx`
+- Upgraded the "Deploy" button to use the `MovingBorder` `Button` component.
+
+### `src/app/dashboard/[id]/page.tsx`
+- Upgraded the "Rollback" button (in deployment history) to use the `MovingBorder` `Button` component.
+- Added a "Copy to Clipboard" button for the Git Commit SHA in the deployment history list, including a success checkmark state.
+
+### Components
+- **MovingBorder Button**: Utilized `containerClassName` to control dimensions while maintaining the Aceternity UI effect.
+- **Skeleton**: Applied for content loading states.
+>>>>>>> origin/phase2-polish-8612241988918207087

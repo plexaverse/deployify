@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Plus, Trash2, MapPin, Terminal, Settings } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/moving-border';
 
 // Common GCP regions (matching those in new/page.tsx)
 const GCP_REGIONS = [
@@ -309,10 +310,11 @@ export default function ImportProjectPage() {
                 </div>
 
                 <div className="flex justify-end pt-4">
-                    <button
+                    <Button
                         onClick={handleDeploy}
                         disabled={deploying || !projectName}
-                        className="btn btn-primary px-8 py-2 text-base"
+                        containerClassName="h-12 w-full md:w-auto"
+                        className="bg-black text-white dark:bg-slate-900 font-semibold text-base"
                     >
                         {deploying ? (
                             <>
@@ -322,7 +324,7 @@ export default function ImportProjectPage() {
                         ) : (
                             'Deploy'
                         )}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

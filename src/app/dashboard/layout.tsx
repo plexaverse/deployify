@@ -3,7 +3,6 @@ import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { TeamProvider } from '@/contexts/TeamContext';
 import { GlobalShortcuts } from '@/components/GlobalShortcuts';
 import { Header } from '@/components/Header';
-import { PageTransition } from '@/components/PageTransition';
 import { CommandPalette } from '@/components/CommandPalette';
 
 export const dynamic = 'force-dynamic';
@@ -40,11 +39,9 @@ export default async function DashboardLayout({
                 <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[var(--background)] pt-16 md:pt-0">
                     <Header />
                     <div className="flex-1 overflow-y-auto">
-                        <PageTransition>
-                            <div className="p-6">
-                                {children}
-                            </div>
-                        </PageTransition>
+                        <div className="p-6">
+                            {children}
+                        </div>
                     </div>
                 </main>
             </div>
