@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
     LayoutDashboard,
@@ -27,8 +27,10 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ session }: DashboardSidebarProps) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
+    const params = useParams();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const slug = params?.slug as string;
 
     useEffect(() => {
         setMounted(true);
@@ -47,16 +49,32 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
         {
             label: 'Platform',
             items: [
-                { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-                { name: 'Deployments', href: '/dashboard', icon: Layers },
-                { name: 'Analytics', href: '/dashboard', icon: BarChart3 },
+                {
+                    name: 'Overview',
+                    href: slug ? `/projects/${slug}` : '/dashboard',
+                    icon: LayoutDashboard
+                },
+                {
+                    name: 'Deployments',
+                    href: slug ? `/projects/${slug}/deployments` : '/dashboard',
+                    icon: Layers
+                },
+                {
+                    name: 'Analytics',
+                    href: slug ? `/projects/${slug}/analytics` : '/dashboard',
+                    icon: BarChart3
+                },
             ]
         },
         {
             label: 'Settings',
             items: [
                 { name: 'Billing', href: '/billing', icon: CreditCard },
-                { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+                {
+                    name: 'Settings',
+                    href: slug ? `/projects/${slug}/settings` : '/dashboard/settings',
+                    icon: Settings
+                },
             ]
         }
     ];
@@ -65,10 +83,10 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
         <>
             {/* Mobile Header */}
             <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 bg-[var(--card)] border-b border-[var(--border)] h-16">
-                 <Link href="/dashboard" className="flex items-center gap-2">
+                <Link href="/dashboard" className="flex items-center gap-2">
                     <Rocket className="w-6 h-6 text-[var(--primary)]" />
                     <span className="text-xl font-bold gradient-text">Deployify</span>
-                 </Link>
+                </Link>
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="p-2 text-[var(--foreground)]"
@@ -111,11 +129,10 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                         <li key={item.name}>
                                             <Link
                                                 href={item.href}
-                                                className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-colors ${
-                                                    isActive
-                                                    ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
-                                                    : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
-                                                }`}
+                                                className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-colors ${isActive
+                                                        ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
+                                                        : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
+                                                    }`}
                                                 onClick={() => setIsOpen(false)}
                                             >
                                                 <item.icon className="w-4 h-4" />
@@ -135,10 +152,10 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                         className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-[var(--background)] cursor-pointer text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-2"
                         onClick={toggleTheme}
                     >
-                         <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2">
                             {mounted && theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             Theme
-                         </span>
+                        </span>
                     </div>
 
                     <div className="flex items-center gap-3 px-3 py-2">
@@ -157,7 +174,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                             </p>
                         </div>
                     </div>
-                     <Link
+                    <Link
                         href="/api/auth/logout"
                         className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
                     >
