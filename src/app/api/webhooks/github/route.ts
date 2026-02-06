@@ -157,7 +157,10 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             project.webhookUrl,
             project.name,
             user.email,
-            project.emailNotifications
+            project.emailNotifications,
+            undefined,
+            undefined,
+            undefined
         );
 
         console.log(`Started ${deploymentType} deployment for ${project.name}: ${deployment.id}`);
@@ -254,7 +257,10 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 project.webhookUrl,
                 project.name,
                 user.email,
-                project.emailNotifications
+                project.emailNotifications,
+                project.repoFullName,
+                pull_request.number,
+                project.githubToken
             );
 
             console.log(`Started preview deployment for PR #${pull_request.number}: ${deployment.id}`);

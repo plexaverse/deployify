@@ -178,7 +178,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     project.webhookUrl,
                     project.name,
                     session.user.email,
-                    project.emailNotifications
+                    project.emailNotifications,
+                    undefined,
+                    undefined,
+                    undefined
                 );
 
                 return NextResponse.json(

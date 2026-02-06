@@ -7,6 +7,8 @@ import { sendWebhookNotification } from '@/lib/webhooks';
 import { trackDeployment } from '@/lib/billing/tracker';
 import { sendEmail } from '@/lib/email/client';
 import { runLighthouseAudit } from '@/lib/performance/lighthouse';
+import { createPRComment } from '@/lib/github';
+import { parseRepoFullName, formatDuration } from '@/lib/utils';
 
 // Poll Cloud Build status and update deployment
 export async function pollBuildStatus(
@@ -18,7 +20,10 @@ export async function pollBuildStatus(
     webhookUrl?: string | null,
     projectName?: string,
     userEmail?: string | null,
-    emailNotifications?: boolean
+    emailNotifications?: boolean,
+    repoFullName?: string,
+    pullRequestNumber?: number,
+    accessToken?: string | null
 ) {
     const maxPolls = 60; // 30 minutes max (30s intervals)
     let pollCount = 0;
@@ -121,6 +126,24 @@ export async function pollBuildStatus(
                             <p>Duration: ${Math.round(buildDurationMs / 1000)}s</p>
                         `,
                     });
+                }
+
+                // Send PR Comment if applicable
+                if (pullRequestNumber && repoFullName && accessToken) {
+                    const { owner, repo } = parseRepoFullName(repoFullName);
+                    const commentBody = `
+### 🚀 Deploy Preview Ready!
+
+| Project | Status | Duration |
+| :--- | :--- | :--- |
+| **${projectName || projectSlug}** | ✅ Ready | ${formatDuration(buildDurationMs)} |
+
+[**Visit Preview**](${serviceUrl})
+
+> Built with Deployify
+                    `.trim();
+
+                    await createPRComment(accessToken, owner, repo, pullRequestNumber, commentBody);
                 }
 
             } else if (status === 'FAILURE' || status === 'TIMEOUT' || status === 'CANCELLED') {

@@ -358,3 +358,27 @@ export async function createDeploymentStatus(
         console.error('Failed to create deployment status:', error);
     }
 }
+
+/**
+ * Create a comment on a Pull Request (Issue)
+ */
+export async function createPRComment(
+    accessToken: string,
+    owner: string,
+    repo: string,
+    prNumber: number,
+    body: string
+): Promise<void> {
+    const octokit = createGitHubClient(accessToken);
+
+    try {
+        await octokit.issues.createComment({
+            owner,
+            repo,
+            issue_number: prNumber,
+            body,
+        });
+    } catch (error) {
+        console.error('Failed to create PR comment:', error);
+    }
+}

@@ -125,6 +125,7 @@
 #### 13. **Preview Deployment Comments**
 - **Improvement**: Add deployment URL as comment on GitHub PRs
 - **Files**: `src/lib/github.ts` (add `createPRComment()`)
+- **Status**: ✅ Implemented
 
 #### 14. **Team/Organization Support**
 - **Current**: Single user projects
