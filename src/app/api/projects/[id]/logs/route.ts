@@ -36,6 +36,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         const stream = searchParams.get('stream') === 'true';
         const environment = searchParams.get('environment') || 'production';
         const prId = searchParams.get('prId');
+        const revision = searchParams.get('revision');
 
         let serviceName: string;
 
@@ -78,7 +79,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
                             try {
                                 // Fetch logs
-                                const response = await listLogEntries(serviceName, { pageSize: 50 }, project.region);
+                                const response = await listLogEntries(
+                                    serviceName,
+                                    {
+                                        pageSize: 50,
+                                        revisionName: revision || undefined
+                                    },
+                                    project.region
+                                );
                                 const entries = response.entries;
 
                                 // Filter entries strictly newer than lastTimestamp
@@ -124,7 +132,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             });
         } else {
             // Standard fetch
-            const response = await listLogEntries(serviceName, { pageSize: 50 }, project.region);
+            const response = await listLogEntries(
+                serviceName,
+                {
+                    pageSize: 50,
+                    revisionName: revision || undefined
+                },
+                project.region
+            );
             return NextResponse.json(response, { headers: securityHeaders });
         }
 

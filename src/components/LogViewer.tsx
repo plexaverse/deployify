@@ -16,9 +16,10 @@ import { parseLogEntry, type LogEntry } from '@/lib/logging/parser';
 interface LogViewerProps {
     projectId: string;
     className?: string;
+    revision?: string;
 }
 
-export function LogViewer({ projectId, className }: LogViewerProps) {
+export function LogViewer({ projectId, className, revision }: LogViewerProps) {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isConnected, setIsConnected] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
@@ -31,7 +32,10 @@ export function LogViewer({ projectId, className }: LogViewerProps) {
     useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
     useEffect(() => {
-        const url = `/api/projects/${projectId}/logs?stream=true`;
+        let url = `/api/projects/${projectId}/logs?stream=true`;
+        if (revision) {
+            url += `&revision=${revision}`;
+        }
         const eventSource = new EventSource(url);
 
         eventSource.onopen = () => {
@@ -86,7 +90,7 @@ export function LogViewer({ projectId, className }: LogViewerProps) {
         return () => {
             eventSource.close();
         };
-    }, [projectId]);
+    }, [projectId, revision]);
 
     // Auto-scroll logic
     useEffect(() => {

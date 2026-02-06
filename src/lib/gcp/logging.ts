@@ -40,6 +40,7 @@ export function formatLogEntry(entry: {
 export interface ListLogEntriesOptions {
   pageSize?: number;
   pageToken?: string;
+  revisionName?: string;
 }
 
 export interface ListLogEntriesResponse {
@@ -84,7 +85,11 @@ export async function listLogEntries(
   }
 
   const accessToken = await getGcpAccessToken();
-  const filter = `resource.type="cloud_run_revision" AND resource.labels.service_name="${serviceName}"`;
+  let filter = `resource.type="cloud_run_revision" AND resource.labels.service_name="${serviceName}"`;
+
+  if (options.revisionName) {
+    filter += ` AND resource.labels.revision_name="${options.revisionName}"`;
+  }
 
   const body: {
     resourceNames: string[];
