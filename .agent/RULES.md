@@ -49,6 +49,7 @@ deployify/
 │   │   └── page.tsx            # Landing page (marketing)
 │   ├── components/
 │   │   ├── ui/                 # Aceternity-style animated components
+│   │   ├── analytics/          # Analytics components
 │   │   ├── DomainsSection.tsx  # Domain management UI
 │   │   ├── EnvVariablesSection.tsx # Environment variables UI
 │   │   ├── RegionSettings.tsx  # GCP region selector
