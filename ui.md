@@ -47,3 +47,12 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Replaced hardcoded gradient text with `gradient-text` class.
 - Updated "Continue with GitHub" button to use `.btn` and `.btn-primary` classes.
 - Updated divider background and text colors to use `border-[var(--border)]` and `bg-[var(--card)]`.
+
+### `src/app/settings/team/page.tsx`
+- Created new Team Settings page with the following sections:
+  - **Invite New Member**: Card with email input and role selector, using `.card`, `.input`, and `.btn-primary` classes.
+  - **Team Members**: List of members with avatar, name, email, and role selector. Uses `.card` and `divide-y`.
+  - **Audit Log**: Mocked activity feed with timeline styling using `border-l` and relative positioning.
+- Integrated into global layout via `src/app/settings/layout.tsx` which reuses `DashboardSidebar`.
+- Used `lucide-react` icons for consistent UI.
+- Implemented role updates using `<select>` with custom styling to match the theme.

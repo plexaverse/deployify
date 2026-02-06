@@ -103,6 +103,39 @@ export async function getInviteByToken(token: string): Promise<TeamInvite | null
     } as TeamInvite;
 }
 
+export async function getInviteById(id: string): Promise<TeamInvite | null> {
+    const db = getDb();
+    const doc = await db.collection(Collections.INVITES).doc(id).get();
+
+    if (!doc.exists) {
+        return null;
+    }
+
+    const data = doc.data();
+    return {
+        ...data,
+        createdAt: data?.createdAt?.toDate(),
+        expiresAt: data?.expiresAt?.toDate(),
+    } as TeamInvite;
+}
+
+export async function listInvitesForTeam(teamId: string): Promise<TeamInvite[]> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.INVITES)
+        .where('teamId', '==', teamId)
+        .get();
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            createdAt: data?.createdAt?.toDate(),
+            expiresAt: data?.expiresAt?.toDate(),
+        } as TeamInvite;
+    });
+}
+
 export async function getProjectBySlugGlobal(slug: string): Promise<Project | null> {
     const db = getDb();
     const snapshot = await db
@@ -268,6 +301,16 @@ export async function listTeamMembers(teamId: string): Promise<TeamMembership[]>
             joinedAt: data?.joinedAt?.toDate(),
         } as TeamMembership;
     });
+}
+
+export async function deleteTeamMembership(id: string): Promise<void> {
+    const db = getDb();
+    await db.collection(Collections.TEAM_MEMBERSHIPS).doc(id).delete();
+}
+
+export async function updateTeamMembership(id: string, data: Partial<TeamMembership>): Promise<void> {
+    const db = getDb();
+    await db.collection(Collections.TEAM_MEMBERSHIPS).doc(id).update(data);
 }
 
 export async function listTeamsForUser(userId: string): Promise<Team[]> {
