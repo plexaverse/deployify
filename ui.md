@@ -56,3 +56,13 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Integrated into global layout via `src/app/settings/layout.tsx` which reuses `DashboardSidebar`.
 - Used `lucide-react` icons for consistent UI.
 - Implemented role updates using `<select>` with custom styling to match the theme.
+
+### `src/app/new/page.tsx`
+- Created a new full-screen Project Creation Wizard with a 3-step flow (Select, Configure, Deploy).
+- Uses `BackgroundBeams` for a premium background effect.
+- Implemented a custom Stepper UI with `StepIndicator` component.
+- **Step 1 (Select)**: Searchable repository list with `.card`-like styling using `bg-white/5` and `border-white/10` for glassmorphism effect.
+- **Step 2 (Configure)**: Form for project settings and environment variables using consistent input styling (`bg-black/40`, `border-white/10`).
+- **Step 3 (Deploy)**: Real-time terminal log console with `bg-black/80` and monospaced font, including status indicators and auto-scrolling.
+- Uses `sonner` for toast notifications throughout the flow.
+- Uses `lucide-react` icons for consistent visual language.
