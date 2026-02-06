@@ -14,6 +14,8 @@ import {
     Search,
     History
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/moving-border';
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
 
 // Mock Audit Log Data
@@ -160,7 +162,21 @@ export default function TeamSettingsPage() {
     };
 
     if (teamLoading) {
-        return <div className="animate-pulse h-96 bg-[var(--card)] rounded-xl" />;
+        return (
+            <div className="max-w-6xl mx-auto space-y-8 p-6">
+                <div>
+                    <Skeleton className="h-10 w-48 mb-2" />
+                    <Skeleton className="h-4 w-96" />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        <Skeleton className="h-48 w-full rounded-xl" />
+                        <Skeleton className="h-96 w-full rounded-xl" />
+                    </div>
+                    <Skeleton className="h-96 w-full rounded-xl" />
+                </div>
+            </div>
+        );
     }
 
     if (!activeTeam) {
@@ -227,13 +243,14 @@ export default function TeamSettingsPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-end">
-                                    <button
+                                    <Button
                                         type="submit"
                                         disabled={isInviting || !inviteEmail}
-                                        className="btn btn-primary w-full sm:w-auto h-[42px]"
+                                        containerClassName="h-[42px] w-full sm:w-auto"
+                                        className="bg-black text-white dark:bg-slate-900 font-medium text-sm"
                                     >
                                         {isInviting ? 'Sending...' : 'Send Invite'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                             {error && (
@@ -255,7 +272,23 @@ export default function TeamSettingsPage() {
                         </div>
 
                         {isLoading ? (
-                            <div className="p-8 text-center text-[var(--muted-foreground)]">Loading members...</div>
+                            <div className="divide-y divide-[var(--border)]">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="p-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <Skeleton className="w-10 h-10 rounded-full" />
+                                            <div>
+                                                <Skeleton className="h-4 w-32 mb-2" />
+                                                <Skeleton className="h-3 w-48" />
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <Skeleton className="h-8 w-24" />
+                                            <Skeleton className="h-8 w-8" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         ) : (
                             <div className="divide-y divide-[var(--border)]">
                                 {members.map((membership) => (

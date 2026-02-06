@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/moving-border';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { LogViewer } from '@/components/LogViewer';
 import { RollbackModal } from '@/components/RollbackModal';
@@ -376,7 +377,20 @@ export default function ProjectDetailPage() {
                                             <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
                                                 <span>{deployment.gitBranch}</span>
                                                 <span>•</span>
-                                                <span>{deployment.gitCommitSha.substring(0, 7)}</span>
+                                                <div className="flex items-center gap-1">
+                                                    <span>{deployment.gitCommitSha.substring(0, 7)}</span>
+                                                    <button
+                                                        onClick={() => handleCopyUrl(deployment.gitCommitSha, `sha-${deployment.id}`)}
+                                                        className="hover:text-[var(--foreground)] transition-colors"
+                                                        title="Copy SHA"
+                                                    >
+                                                        {copiedId === `sha-${deployment.id}` ? (
+                                                            <Check className="w-3 h-3 text-[var(--success)]" />
+                                                        ) : (
+                                                            <Copy className="w-3 h-3" />
+                                                        )}
+                                                    </button>
+                                                </div>
                                                 <span>•</span>
                                                 <span>{deployment.gitCommitAuthor}</span>
                                             </div>
@@ -415,14 +429,15 @@ export default function ProjectDetailPage() {
                                             </button>
 
                                             {deployment.status === 'ready' && deployment.type === 'production' && deployment.cloudRunRevision && (
-                                                <button
+                                                <Button
                                                     onClick={() => handleRollback(deployment.id)}
-                                                    className="text-xs px-2 py-1 rounded bg-[var(--secondary)] hover:bg-[var(--secondary)]/80 transition-colors flex items-center gap-1"
+                                                    containerClassName="h-8 w-24"
+                                                    className="bg-black text-white dark:bg-slate-900 text-xs flex items-center gap-1"
                                                     title="Rollback to this version"
                                                 >
                                                     <RotateCcw className="w-3 h-3" />
                                                     Rollback
-                                                </button>
+                                                </Button>
                                             )}
                                         </div>
                                     </div>
