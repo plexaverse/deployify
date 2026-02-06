@@ -92,7 +92,7 @@ This section details the verification of features implemented in Day 2, includin
 - **Implementation:** Fetches data from Plausible Analytics API, with a fallback to mock data for development.
 
 **Test Results:**
-- `verification/sprint_50_review.test.ts` executed successfully.
+- `src/lib/analytics.test.ts` executed successfully.
 - Verified that the function returns structured analytics data (aggregate, timeseries, sources).
 - Verified correct fallback behavior when `PLAUSIBLE_API_KEY` is missing.
 - Verified correct API calls when key is present.
