@@ -12,9 +12,9 @@
   --muted-foreground: #52525b;
 
   /* Brand colors */
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-hover: #f4f4f5;
+  --primary-foreground: #000000;
 
   /* Status colors */
   --success: #22c55e;
@@ -27,8 +27,8 @@
   --info-bg: rgba(59, 130, 246, 0.1);
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-  --gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  --gradient-primary: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
   --gradient-card: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
 
   /* Glass effects */
@@ -54,12 +54,12 @@
   --muted-foreground: #a1a1aa;
 
   /* Brand colors */
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --primary-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-hover: #f4f4f5;
+  --primary-foreground: #000000;
 
   /* Gradients */
-  --gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
   --gradient-card: linear-gradient(135deg, rgba(17, 17, 19, 1) 0%, rgba(24, 24, 27, 1) 100%);
 
   /* Glass effects */

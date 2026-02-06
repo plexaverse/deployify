@@ -236,7 +236,7 @@ export default function HomePage() {
                   }
                 ].map((step, i) => (
                   <div key={i} className="mb-20 relative group">
-                    <div className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-neutral-800/30 tabular-nums transition-colors group-hover:text-indigo-500/20">
+                    <div className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-neutral-800/30 tabular-nums transition-colors group-hover:text-indigo-500/20" aria-hidden="true">
                       0{i + 1}
                     </div>
                     <div className="flex items-center gap-4 mb-4">
