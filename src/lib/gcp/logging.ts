@@ -124,3 +124,62 @@ export async function listLogEntries(
     nextPageToken: data.nextPageToken,
   };
 }
+
+export async function getErrorRate(
+  serviceName: string,
+  hours: number = 24,
+  projectRegion?: string | null
+): Promise<number> {
+  // Simulation mode
+  if (!isRunningOnGCP()) {
+    console.log(`[Simulation] Fetching error rate for ${serviceName}`);
+    return Math.floor(Math.random() * 10); // Random count for simulation
+  }
+
+  const accessToken = await getGcpAccessToken();
+  // Filter for errors in the last X hours
+  const startTime = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+  const filter = `resource.type="cloud_run_revision" AND resource.labels.service_name="${serviceName}" AND severity="ERROR" AND timestamp >= "${startTime}"`;
+
+  let totalErrors = 0;
+  let pageToken: string | undefined;
+
+  do {
+    const body: {
+      resourceNames: string[];
+      filter: string;
+      pageSize: number;
+      pageToken?: string;
+    } = {
+      resourceNames: [`projects/${config.gcp.projectId}`],
+      filter,
+      pageSize: 1000, // Max page size to minimize requests
+    };
+
+    if (pageToken) {
+      body.pageToken = pageToken;
+    }
+
+    const response = await fetch('https://logging.googleapis.com/v2/entries:list', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to list log entries for error rate: ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const entries = data.entries || [];
+    totalErrors += entries.length;
+    pageToken = data.nextPageToken;
+
+  } while (pageToken);
+
+  return totalErrors;
+}

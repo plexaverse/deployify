@@ -31,6 +31,7 @@ export default function ProjectDetailPage() {
     const router = useRouter();
     const [project, setProject] = useState<Project | null>(null);
     const [deployments, setDeployments] = useState<Deployment[]>([]);
+    const [errorCount, setErrorCount] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [deploying, setDeploying] = useState(false);
     const [selectedLogsId, setSelectedLogsId] = useState<string | null>(null);
@@ -39,9 +40,10 @@ export default function ProjectDetailPage() {
     useEffect(() => {
         async function fetchProject() {
             try {
-                const [projectResponse, deploymentsResponse] = await Promise.all([
+                const [projectResponse, deploymentsResponse, statsResponse] = await Promise.all([
                     fetch(`/api/projects/${params.id}`),
-                    fetch(`/api/projects/${params.id}/deployments`)
+                    fetch(`/api/projects/${params.id}/deployments`),
+                    fetch(`/api/projects/${params.id}/logs/stats`)
                 ]);
 
                 if (!projectResponse.ok) {
@@ -57,6 +59,11 @@ export default function ProjectDetailPage() {
                     setDeployments(deploymentsData.deployments || []);
                 } else {
                     setDeployments(projectData.deployments || []);
+                }
+
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    setErrorCount(statsData.errorCount);
                 }
             } catch (error) {
                 console.error('Failed to fetch project:', error);
@@ -276,6 +283,19 @@ export default function ProjectDetailPage() {
                     </Link>
                 </div>
             </div>
+
+            {/* Error Rate Card */}
+            {errorCount !== null && (
+                <div className="card mb-8 p-4 flex items-center gap-4">
+                    <div className={`p-3 rounded-full ${errorCount > 0 ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>
+                        <AlertCircle className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-sm text-[var(--muted-foreground)]">Error Rate (24h)</p>
+                        <p className="text-2xl font-bold">{errorCount}</p>
+                    </div>
+                </div>
+            )}
 
             {/* Production deployment card */}
             <div className="card mb-8">
