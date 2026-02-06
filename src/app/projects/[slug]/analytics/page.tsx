@@ -1,9 +1,10 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import { getProjectBySlugGlobal, getTeamMembership } from '@/lib/db';
+import { getProjectBySlugGlobal, getTeamMembership, listDeploymentsByProject } from '@/lib/db';
 import { getAnalyticsStats } from '@/lib/analytics';
 import { AnalyticsCharts } from '@/components/analytics/AnalyticsCharts';
+import { DeploymentMetricsCharts } from '@/components/analytics/DeploymentMetricsCharts';
 
 interface PageProps {
     params: Promise<{
@@ -78,6 +79,9 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
     const period = searchPeriod || '30d';
     const stats = await getAnalyticsStats(siteId, period);
 
+    // Fetch deployment metrics
+    const deployments = await listDeploymentsByProject(project.id, 50);
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-2">
@@ -87,16 +91,25 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
                 </p>
             </div>
 
-            {stats ? (
-                <AnalyticsCharts data={stats} period={period} />
-            ) : (
-                <div className="p-12 rounded-xl border border-[var(--border)] bg-[var(--card)] text-center">
-                    <h3 className="text-lg font-semibold mb-2">No Analytics Data</h3>
-                    <p className="text-[var(--muted-foreground)]">
-                        We couldn't fetch analytics data for this project. Ensure your project is deployed and the domain is correct.
-                    </p>
-                </div>
-            )}
+            {/* Deployment Metrics Section */}
+            <div>
+                <h2 className="text-xl font-semibold mb-4">Deployment Performance</h2>
+                <DeploymentMetricsCharts deployments={deployments} />
+            </div>
+
+            <div className="pt-6 border-t border-[var(--border)]">
+                <h2 className="text-xl font-semibold mb-4">Traffic Analytics</h2>
+                {stats ? (
+                    <AnalyticsCharts data={stats} period={period} />
+                ) : (
+                    <div className="p-12 rounded-xl border border-[var(--border)] bg-[var(--card)] text-center">
+                        <h3 className="text-lg font-semibold mb-2">No Analytics Data</h3>
+                        <p className="text-[var(--muted-foreground)]">
+                            We couldn't fetch analytics data for this project. Ensure your project is deployed and the domain is correct.
+                        </p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
