@@ -640,14 +640,18 @@ export async function getEnvVarsForDeployment(
     projectId: string,
     target: 'production' | 'preview'
 ): Promise<Record<string, string>> {
-    const envVars = await listEnvVarsByProject(projectId);
+    // Read from Project.envVariables (source of truth from UI)
+    const project = await getProjectById(projectId);
+    const envVars = project?.envVariables || [];
 
     const result: Record<string, string> = {};
 
     for (const envVar of envVars) {
-        if (envVar.target === 'all' || envVar.target === target) {
-            result[envVar.key] = envVar.value;
-        }
+        // Currently EnvVariable.target is 'build' | 'runtime' | 'both'
+        // We don't have production/preview distinction yet in the UI model.
+        // So we return all variables.
+        // TODO: Filter by target when we add production/preview support to EnvVariable
+        result[envVar.key] = envVar.value;
     }
 
     return result;

@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
             buildCommand,
             installCommand,
             outputDirectory,
+            envVariables,
             teamId
         } = body;
 
@@ -153,6 +154,7 @@ export async function POST(request: NextRequest) {
             customDomain: null,
             githubToken: session.accessToken,
             region: region || null,
+            envVariables: envVariables || [],
         });
 
         return NextResponse.json(

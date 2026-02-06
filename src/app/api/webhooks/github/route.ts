@@ -9,7 +9,6 @@ import {
     getProjectByRepoFullName,
     createDeployment,
     updateDeployment,
-    getEnvVarsForDeployment,
     getUserById
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
@@ -97,8 +96,15 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     const isDefaultBranch = branch === project.defaultBranch;
     const deploymentType = isDefaultBranch ? 'production' : 'branch';
     const projectSlug = isDefaultBranch ? project.slug : `${project.slug}-${slugify(branch)}`;
-    // Use preview env vars for non-default branches
-    const envTarget = isDefaultBranch ? 'production' : 'preview';
+
+    // Use preview env vars for non-default branches, unless overridden by branchEnvironments
+    let envTarget: 'production' | 'preview' = isDefaultBranch ? 'production' : 'preview';
+    if (project.branchEnvironments) {
+        const branchEnv = project.branchEnvironments.find(be => be.branch === branch);
+        if (branchEnv) {
+            envTarget = branchEnv.envTarget;
+        }
+    }
 
     // Get user for access token
     const user = await getUserById(project.userId);
@@ -120,8 +126,23 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     });
 
     try {
-        // Get environment variables
-        const envVars = await getEnvVarsForDeployment(project.id, envTarget);
+        // Get environment variables directly from project and split by target
+        const allEnvVars = project.envVariables || [];
+        const buildEnvVars: Record<string, string> = {};
+        const runtimeEnvVars: Record<string, string> = {};
+
+        for (const env of allEnvVars) {
+            // Respect Build vs Runtime settings
+            // Note: We currently don't filter by envTarget (Production vs Preview)
+            // because EnvVariable doesn't support it yet. All vars apply to all envs.
+
+            if (env.target === 'build' || env.target === 'both') {
+                buildEnvVars[env.key] = env.value;
+            }
+            if (env.target === 'runtime' || env.target === 'both') {
+                runtimeEnvVars[env.key] = env.value;
+            }
+        }
 
         // Generate build config with project's selected region
         const buildConfig = generateCloudRunDeployConfig({
@@ -129,7 +150,9 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             repoFullName: project.repoFullName,
             branch,
             commitSha: head_commit.id,
-            envVars,
+            envVars: {}, // Legacy support cleared
+            buildEnvVars,
+            runtimeEnvVars,
             gitToken: project.githubToken ?? undefined,
             projectRegion: project.region, // Use project's region
             buildTimeout: project.buildTimeout,
@@ -220,8 +243,19 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         });
 
         try {
-            // Get environment variables
-            const envVars = await getEnvVarsForDeployment(project.id, 'preview');
+            // Get environment variables directly from project and split by target
+            const allEnvVars = project.envVariables || [];
+            const buildEnvVars: Record<string, string> = {};
+            const runtimeEnvVars: Record<string, string> = {};
+
+            for (const env of allEnvVars) {
+                if (env.target === 'build' || env.target === 'both') {
+                    buildEnvVars[env.key] = env.value;
+                }
+                if (env.target === 'runtime' || env.target === 'both') {
+                    runtimeEnvVars[env.key] = env.value;
+                }
+            }
 
             // Generate build config for preview with project's selected region
             const buildConfig = generateCloudRunDeployConfig({
@@ -229,7 +263,9 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 repoFullName: project.repoFullName,
                 branch: pull_request.head.ref,
                 commitSha: pull_request.head.sha,
-                envVars,
+                envVars: {}, // Legacy support cleared
+                buildEnvVars,
+                runtimeEnvVars,
                 gitToken: project.githubToken ?? undefined,
                 projectRegion: project.region, // Use project's region
                 buildTimeout: project.buildTimeout,
