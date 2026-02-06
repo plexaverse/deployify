@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Zap, Server, Wifi, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Zap, Server, Wifi, Check, Loader2, FileText } from 'lucide-react';
 import Link from 'next/link';
 import Script from 'next/script';
 
@@ -9,6 +9,14 @@ declare global {
     interface Window {
         Razorpay: any;
     }
+}
+
+interface Invoice {
+    id: string;
+    invoiceNumber: string;
+    date: string;
+    total: number;
+    status: string;
 }
 
 interface UsageData {
@@ -61,28 +69,35 @@ const PLANS = [
 
 export default function BillingPage() {
     const [data, setData] = useState<UsageData | null>(null);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [upgrading, setUpgrading] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch('/api/billing/usage')
-            .then(res => {
+        Promise.all([
+            fetch('/api/billing/usage').then(res => {
                 if (res.status === 401) {
                     window.location.href = '/login';
                     throw new Error('Unauthorized');
                 }
                 if (!res.ok) throw new Error('Failed to load billing data');
                 return res.json();
+            }),
+            fetch('/api/billing/invoices').then(res => {
+                if (res.ok) return res.json();
+                return { invoices: [] };
             })
-            .then(data => {
-                setData(data);
+        ])
+            .then(([usageData, invoicesData]) => {
+                setData(usageData);
+                setInvoices(invoicesData.invoices || []);
                 setLoading(false);
             })
             .catch(err => {
                 if (err.message !== 'Unauthorized') {
                     console.error(err);
-                    setError('Failed to load usage data. Please try again later.');
+                    setError('Failed to load billing data. Please try again later.');
                     setLoading(false);
                 }
             });
@@ -230,7 +245,7 @@ export default function BillingPage() {
                     <h2 className="text-xl font-semibold mb-6">Resource Usage</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {/* Deployments */}
-                        <UsageCard
+                        <UsageGauge
                             icon={<Zap className="w-5 h-5 text-yellow-500" />}
                             title="Deployments"
                             used={usage.deployments}
@@ -240,7 +255,7 @@ export default function BillingPage() {
                         />
 
                         {/* Build Minutes */}
-                        <UsageCard
+                        <UsageGauge
                             icon={<Server className="w-5 h-5 text-blue-500" />}
                             title="Build Minutes"
                             used={usage.buildMinutes}
@@ -250,7 +265,7 @@ export default function BillingPage() {
                         />
 
                         {/* Bandwidth */}
-                        <UsageCard
+                        <UsageGauge
                             icon={<Wifi className="w-5 h-5 text-green-500" />}
                             title="Bandwidth"
                             used={usage.bandwidth}
@@ -258,6 +273,60 @@ export default function BillingPage() {
                             format={formatBytes}
                             percent={getPercent(usage.bandwidth, limits.bandwidth)}
                         />
+                    </div>
+                </section>
+
+                {/* Invoice History */}
+                <section>
+                    <h2 className="text-xl font-semibold mb-6">Invoice History</h2>
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-[var(--muted)]/50 border-b border-[var(--border)]">
+                                <tr>
+                                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Invoice #</th>
+                                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Date</th>
+                                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Amount</th>
+                                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Status</th>
+                                    <th className="p-4 font-medium text-[var(--muted-foreground)] text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[var(--border)]">
+                                {invoices.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="p-8 text-center text-[var(--muted-foreground)]">
+                                            No invoices found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    invoices.map((invoice) => (
+                                        <tr key={invoice.id} className="hover:bg-[var(--muted)]/20 transition-colors">
+                                            <td className="p-4 font-medium">{invoice.invoiceNumber}</td>
+                                            <td className="p-4">{new Date(invoice.date).toLocaleDateString()}</td>
+                                            <td className="p-4">₹{invoice.total.toFixed(2)}</td>
+                                            <td className="p-4">
+                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                                                    invoice.status === 'paid'
+                                                        ? 'bg-green-500/10 text-green-500'
+                                                        : 'bg-yellow-500/10 text-yellow-500'
+                                                }`}>
+                                                    {invoice.status}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                <a
+                                                    href={`/api/billing/invoices/${invoice.id}/download`}
+                                                    className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
+                                                    download
+                                                >
+                                                    <FileText className="w-4 h-4" />
+                                                    Download
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </section>
 
@@ -270,7 +339,7 @@ export default function BillingPage() {
                                 key={plan.id}
                                 className={`bg-[var(--card)] border rounded-xl p-6 flex flex-col ${
                                     plan.id === tier.id
-                                        ? 'border-primary ring-1 ring-primary relative overflow-hidden'
+                                        ? 'border-primary ring-1 ring-primary relative overflow-hidden bg-primary/5'
                                         : 'border-[var(--border)]'
                                 }`}
                             >
@@ -323,7 +392,7 @@ export default function BillingPage() {
     );
 }
 
-function UsageCard({
+function UsageGauge({
     icon,
     title,
     used,
@@ -340,32 +409,66 @@ function UsageCard({
     percent: number,
     format?: (v: number) => string
 }) {
+    const radius = 50;
+    const stroke = 8;
+    const normalizedRadius = radius - stroke * 2;
+    const circumference = normalizedRadius * 2 * Math.PI;
+    const strokeDashoffset = circumference - (percent / 100) * circumference;
+
     const formattedUsed = format ? format(used) : used;
     const formattedLimit = limit === Infinity ? 'Unlimited' : (format ? format(limit) : limit);
 
     return (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-[var(--background)] rounded-lg border border-[var(--border)]">
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
+             <div className="absolute top-4 left-4 flex items-center gap-2">
+                <div className="p-1.5 bg-[var(--background)] rounded-lg border border-[var(--border)]">
                     {icon}
                 </div>
-                <h3 className="font-medium">{title}</h3>
+                <h3 className="font-medium text-sm">{title}</h3>
             </div>
 
-            <div className="mb-2 flex justify-between items-end">
-                <div className="text-2xl font-bold">
-                    {formattedUsed} <span className="text-sm text-[var(--muted-foreground)] font-normal">{unit}</span>
+            <div className="mt-8 relative flex items-center justify-center">
+                <svg
+                    height={radius * 2 + 20}
+                    width={radius * 2 + 20}
+                    className="transform -rotate-90"
+                >
+                    <circle
+                        stroke="currentColor"
+                        fill="transparent"
+                        strokeWidth={stroke}
+                        strokeDasharray={circumference + ' ' + circumference}
+                        style={{ strokeDashoffset: 0 }}
+                        r={normalizedRadius}
+                        cx={radius + 10}
+                        cy={radius + 10}
+                        className="text-[var(--muted)]/20"
+                    />
+                    <circle
+                        stroke="currentColor"
+                        fill="transparent"
+                        strokeWidth={stroke}
+                        strokeDasharray={circumference + ' ' + circumference}
+                        style={{ strokeDashoffset }}
+                        r={normalizedRadius}
+                        cx={radius + 10}
+                        cy={radius + 10}
+                        className={`transition-all duration-1000 ease-out ${percent > 90 ? 'text-red-500' : 'text-primary'}`}
+                        strokeLinecap="round"
+                    />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span className="text-2xl font-bold">{percent}%</span>
                 </div>
-                <div className="text-sm text-[var(--muted-foreground)]">
+            </div>
+
+             <div className="mt-4 text-center">
+                <div className="text-lg font-bold">
+                    {formattedUsed} <span className="text-xs text-[var(--muted-foreground)] font-normal">{unit}</span>
+                </div>
+                <div className="text-xs text-[var(--muted-foreground)]">
                     of {formattedLimit} {unit && limit !== Infinity ? unit : ''}
                 </div>
-            </div>
-
-            <div className="h-2 w-full bg-[var(--background)] rounded-full overflow-hidden">
-                <div
-                    className={`h-full rounded-full transition-all duration-500 ${percent > 90 ? 'bg-red-500' : 'bg-primary'}`}
-                    style={{ width: `${percent}%` }}
-                />
             </div>
         </div>
     );
