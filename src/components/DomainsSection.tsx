@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Globe, CheckCircle2, Clock, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
+import { Plus, Trash2, Globe, CheckCircle2, Clock, XCircle, ExternalLink, Copy, Check, Loader2, ShieldCheck } from 'lucide-react';
 import type { Domain } from '@/types';
 
 interface DomainsSectionProps {
@@ -43,7 +43,7 @@ export function DomainsSection({
             case 'active':
                 return <CheckCircle2 className="w-4 h-4 text-green-400" />;
             case 'pending':
-                return <Clock className="w-4 h-4 text-yellow-400" />;
+                return <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />;
             case 'error':
                 return <XCircle className="w-4 h-4 text-red-400" />;
             default:
@@ -54,9 +54,9 @@ export function DomainsSection({
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'active':
-                return 'Active';
+                return 'Ready';
             case 'pending':
-                return 'Pending DNS';
+                return 'Validating';
             case 'error':
                 return 'Error';
             default:
@@ -215,40 +215,69 @@ export function DomainsSection({
                 </div>
             )}
 
-            {/* DNS Records Instructions */}
+            {/* Verification Steps UI */}
             {dnsRecords.length > 0 && (
-                <div className="mb-6 p-4 rounded-lg border border-blue-500/30 bg-blue-500/5">
-                    <h3 className="font-medium text-blue-400 mb-3">Configure DNS Records</h3>
-                    <p className="text-sm text-[var(--muted-foreground)] mb-3">
-                        Add the following DNS records at your domain registrar:
+                <div className="mb-6 p-6 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="font-semibold text-lg flex items-center gap-2">
+                            <ShieldCheck className="w-5 h-5 text-[var(--primary)]" />
+                            Verification Steps
+                        </h3>
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                            <span className="flex h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                            <span className="text-xs font-medium text-yellow-400">Analyzing...</span>
+                        </div>
+                    </div>
+
+                    <div className="mb-8 flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-2 text-[var(--foreground)] font-medium">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-bold">1</div>
+                            <span>DNS Configuration</span>
+                        </div>
+                        <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
+                        <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-xs font-bold">2</div>
+                            <span>Securing your site</span>
+                        </div>
+                        <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
+                        <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-xs font-bold">3</div>
+                            <span>Ready</span>
+                        </div>
+                    </div>
+
+                    <p className="text-sm text-[var(--muted-foreground)] mb-4">
+                        Please add the following DNS records to your domain provider to verify ownership.
                     </p>
-                    <div className="overflow-x-auto">
+
+                    <div className="overflow-hidden rounded-md border border-[var(--border)] mb-4">
                         <table className="w-full text-sm">
-                            <thead>
+                            <thead className="bg-[var(--muted)]/50">
                                 <tr className="text-left text-[var(--muted-foreground)]">
-                                    <th className="pb-2 pr-4">Type</th>
-                                    <th className="pb-2 pr-4">Name</th>
-                                    <th className="pb-2">Value</th>
+                                    <th className="py-3 px-4 font-medium">Type</th>
+                                    <th className="py-3 px-4 font-medium">Host</th>
+                                    <th className="py-3 px-4 font-medium">Value</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-[var(--border)]">
                                 {dnsRecords.map((record, index) => (
-                                    <tr key={index} className="border-t border-[var(--border)]">
-                                        <td className="py-2 pr-4 font-mono">{record.type}</td>
-                                        <td className="py-2 pr-4 font-mono">{record.name}</td>
-                                        <td className="py-2">
-                                            <div className="flex items-center gap-2">
-                                                <code className="font-mono text-xs bg-[var(--card)] px-2 py-1 rounded">
+                                    <tr key={index} className="bg-[var(--background)]">
+                                        <td className="py-3 px-4 font-mono font-medium">{record.type}</td>
+                                        <td className="py-3 px-4 font-mono text-[var(--muted-foreground)]">{record.name}</td>
+                                        <td className="py-3 px-4">
+                                            <div className="flex items-center gap-3">
+                                                <code className="font-mono text-xs bg-[var(--muted)]/50 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate" title={record.value}>
                                                     {record.value}
                                                 </code>
                                                 <button
                                                     onClick={() => copyToClipboard(record.value)}
-                                                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                                    className="p-1.5 hover:bg-[var(--muted)] rounded-md transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                                    title="Copy value"
                                                 >
                                                     {copiedValue === record.value ? (
-                                                        <Check className="w-4 h-4 text-green-400" />
+                                                        <Check className="w-3.5 h-3.5 text-green-500" />
                                                     ) : (
-                                                        <Copy className="w-4 h-4" />
+                                                        <Copy className="w-3.5 h-3.5" />
                                                     )}
                                                 </button>
                                             </div>
@@ -258,12 +287,15 @@ export function DomainsSection({
                             </tbody>
                         </table>
                     </div>
-                    <button
-                        onClick={() => setDnsRecords([])}
-                        className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] mt-3"
-                    >
-                        Dismiss
-                    </button>
+
+                    <div className="flex justify-end">
+                        <button
+                            onClick={() => setDnsRecords([])}
+                            className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
                 </div>
             )}
 
