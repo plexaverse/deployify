@@ -13,24 +13,26 @@ const generateSparklineData = () => {
 };
 
 const statusConfig = {
-  ready: { icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10', label: 'Healthy', hex: '#10b981' },
-  building: { icon: Loader2, color: 'text-amber-500', bg: 'bg-amber-500/10', label: 'Building', hex: '#f59e0b' },
-  deploying: { icon: Loader2, color: 'text-blue-500', bg: 'bg-blue-500/10', label: 'Deploying', hex: '#3b82f6' },
-  error: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-500/10', label: 'Error', hex: '#ef4444' },
-  queued: { icon: AlertCircle, color: 'text-neutral-500', bg: 'bg-neutral-500/10', label: 'Queued', hex: '#737373' },
-  cancelled: { icon: XCircle, color: 'text-neutral-500', bg: 'bg-neutral-500/10', label: 'Cancelled', hex: '#737373' },
+  ready: { icon: CheckCircle2, color: 'text-[var(--success)]', bg: 'bg-[var(--success-bg)]', label: 'Healthy', hex: '#22c55e' },
+  building: { icon: Loader2, color: 'text-[var(--warning)]', bg: 'bg-[var(--warning-bg)]', label: 'Building', hex: '#eab308' },
+  deploying: { icon: Loader2, color: 'text-[var(--info)]', bg: 'bg-[var(--info-bg)]', label: 'Deploying', hex: '#3b82f6' },
+  error: { icon: XCircle, color: 'text-[var(--error)]', bg: 'bg-[var(--error-bg)]', label: 'Error', hex: '#ef4444' },
+  queued: { icon: AlertCircle, color: 'text-[var(--muted-foreground)]', bg: 'bg-[var(--muted)]/10', label: 'Queued', hex: '#71717a' },
+  cancelled: { icon: XCircle, color: 'text-[var(--muted-foreground)]', bg: 'bg-[var(--muted)]/10', label: 'Cancelled', hex: '#71717a' },
 };
 
 export function ProjectCard({ project }: { project: Project }) {
   const latestDeployment = project.latestDeployment;
   const status = latestDeployment?.status || 'queued';
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
-  const StatusIcon = config.icon;
 
   const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
 
   useEffect(() => {
-    setSparklineData(generateSparklineData());
+    const timer = setTimeout(() => {
+      setSparklineData(generateSparklineData());
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -63,12 +65,12 @@ export function ProjectCard({ project }: { project: Project }) {
       <div className="mt-auto space-y-2">
         {latestDeployment ? (
           <>
-            <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono bg-white/5 p-2 rounded-lg border border-white/5">
+            <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] font-mono bg-[var(--card)] p-2 rounded-lg border border-[var(--border)]">
               <GitCommit className="w-3 h-3" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
               <span className="opacity-50">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-neutral-500">
+            <div className="flex items-center justify-between text-[10px] text-[var(--muted-foreground)]">
                <div className="flex items-center gap-1.5">
                  <GitBranch className="w-3 h-3" />
                  <span>{latestDeployment.gitBranch}</span>
@@ -80,7 +82,7 @@ export function ProjectCard({ project }: { project: Project }) {
             </div>
           </>
         ) : (
-          <div className="text-xs text-neutral-500 italic p-2">
+          <div className="text-xs text-[var(--muted-foreground)] italic p-2">
             No deployments yet
           </div>
         )}
