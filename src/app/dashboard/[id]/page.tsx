@@ -16,6 +16,7 @@ import {
     Loader2,
     AlertCircle,
     Copy,
+    Check,
     FileText
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -35,6 +36,7 @@ export default function ProjectDetailPage() {
     const [loading, setLoading] = useState(true);
     const [deploying, setDeploying] = useState(false);
     const [selectedLogsId, setSelectedLogsId] = useState<string | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
     const [rollbackDeployment, setRollbackDeployment] = useState<Deployment | null>(null);
 
     useEffect(() => {
@@ -102,11 +104,13 @@ export default function ProjectDetailPage() {
         });
     };
 
-    const handleCopyUrl = async (url?: string | null) => {
+    const handleCopyUrl = async (url: string | undefined | null, id: string) => {
         if (!url) return;
         try {
             await navigator.clipboard.writeText(url);
+            setCopiedId(id);
             toast.success('Copied to clipboard');
+            setTimeout(() => setCopiedId(null), 2000);
         } catch (err) {
             console.error('Failed to copy URL:', err);
             toast.error('Failed to copy URL');
@@ -326,12 +330,16 @@ export default function ProjectDetailPage() {
                             </div>
                         </div>
                         <button
-                            onClick={() => handleCopyUrl(project.productionUrl)}
+                            onClick={() => handleCopyUrl(project.productionUrl, 'production-url')}
                             className="p-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card-hover)] rounded-md transition-all flex items-center gap-2 text-sm"
-                            aria-label="Copy production URL"
+                            aria-label={copiedId === 'production-url' ? "Production URL copied" : "Copy production URL"}
                         >
-                            <Copy className="w-4 h-4" />
-                            <span>Copy</span>
+                            {copiedId === 'production-url' ? (
+                                <Check className="w-4 h-4 text-[var(--success)]" />
+                            ) : (
+                                <Copy className="w-4 h-4" />
+                            )}
+                            <span>{copiedId === 'production-url' ? 'Copied' : 'Copy'}</span>
                         </button>
                     </div>
                 ) : (
@@ -432,11 +440,16 @@ export default function ProjectDetailPage() {
                                                 {deployment.url}
                                             </a>
                                             <button
-                                                onClick={() => handleCopyUrl(deployment.url)}
+                                                onClick={() => handleCopyUrl(deployment.url, deployment.id)}
                                                 className="inline-flex items-center gap-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                                aria-label={copiedId === deployment.id ? "URL copied" : "Copy URL"}
                                             >
-                                                <Copy className="w-3 h-3" />
-                                                Copy URL
+                                                {copiedId === deployment.id ? (
+                                                    <Check className="w-3 h-3 text-[var(--success)]" />
+                                                ) : (
+                                                    <Copy className="w-3 h-3" />
+                                                )}
+                                                {copiedId === deployment.id ? 'URL copied' : 'Copy URL'}
                                             </button>
                                         </>
                                     )}
