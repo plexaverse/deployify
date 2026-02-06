@@ -56,6 +56,47 @@ This document outlines the end-to-end verification of Day 1 features for Deployi
 - `scripts/verification/test-billing-logic.ts` executed successfully.
 - Verified `calculateLimitStatus` logic against various usage scenarios using actual project types.
 
-## Summary
+# Day 2 Verification Walkthrough
 
-All Day 1 features have been verified through a combination of automated logic tests and code inspection. The core business logic for billing, deployment configuration, and logging is in place.
+This section details the verification of features implemented in Day 2, including Teams/RBAC, Rollbacks, and Analytics.
+
+## 5. Team Creation & RBAC
+
+**Feature:** Create teams, invite members, and manage roles.
+**Verification:**
+- **Logic:** `src/lib/db.ts` contains `createTeam`, `createInvite`, `acceptInvite`.
+- **RBAC:** Verified that team creation sets the creator as 'owner' and invites work correctly.
+
+**Test Results:**
+- `verification/sprint_50_review.test.ts` executed successfully.
+- Verified `createTeam` creates both a team document and a membership document for the owner.
+- Verified `createInvite` stores invitation data correctly.
+- Verified `acceptInvite` converts an invite into a team membership.
+
+## 6. Rollback Functionality
+
+**Feature:** Instantly revert traffic to a previous deployment revision.
+**Verification:**
+- **Logic:** `src/lib/gcp/cloudrun.ts` -> `updateTraffic`.
+- **Implementation:** Sends a PATCH request to Cloud Run API to set 100% traffic to the specified revision.
+
+**Test Results:**
+- `verification/sprint_50_review.test.ts` executed successfully.
+- Verified that `updateTraffic` sends the correct payload (`TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION`, `percent: 100`) to the Google Cloud Run API.
+
+## 7. Analytics Dashboard
+
+**Feature:** View traffic stats (visitors, pageviews, sources) for projects.
+**Verification:**
+- **Logic:** `src/lib/analytics.ts` -> `getAnalyticsStats`.
+- **Implementation:** Fetches data from Plausible Analytics API, with a fallback to mock data for development.
+
+**Test Results:**
+- `verification/sprint_50_review.test.ts` executed successfully.
+- Verified that the function returns structured analytics data (aggregate, timeseries, sources).
+- Verified correct fallback behavior when `PLAUSIBLE_API_KEY` is missing.
+- Verified correct API calls when key is present.
+
+## Final Summary
+
+All Day 1 and Day 2 features have been verified through a combination of automated logic tests and code inspection. The core business logic for billing, deployment configuration, logging, team management, rollbacks, and analytics is in place and functioning as expected.
