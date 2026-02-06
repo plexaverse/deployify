@@ -44,14 +44,14 @@ export default function DashboardHome() {
 
       <div className="flex items-center justify-between mb-8">
         <div>
-           <h1 className="text-2xl font-bold">
+           <h1 className="text-2xl font-bold text-[var(--foreground)]">
                {activeTeam ? `${activeTeam.name} Projects` : 'Project Overview'}
            </h1>
-           <p className="text-neutral-500 text-sm mt-1">
+           <p className="text-[var(--muted-foreground)] text-sm mt-1">
                Command Center • {projects.length} Projects
            </p>
         </div>
-        <Link href="/dashboard/new" className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+        <Link href="/dashboard/new" className="btn btn-primary">
            <Plus className="w-4 h-4" />
            New Project
         </Link>
@@ -70,10 +70,10 @@ export default function DashboardHome() {
            ))}
         </BentoGrid>
       ) : projects.length === 0 ? (
-        <div className="text-center py-20 border border-white/10 rounded-2xl bg-white/5">
-           <h2 className="text-xl font-bold mb-2">No projects found</h2>
-           <p className="text-neutral-400 mb-6">Get started by creating your first project.</p>
-           <Link href="/dashboard/new" className="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-neutral-200 transition-colors inline-flex items-center gap-2">
+        <div className="text-center py-20 border border-[var(--border)] rounded-2xl bg-[var(--card)]">
+           <h2 className="text-xl font-bold mb-2 text-[var(--foreground)]">No projects found</h2>
+           <p className="text-[var(--muted-foreground)] mb-6">Get started by creating your first project.</p>
+           <Link href="/dashboard/new" className="btn btn-primary">
              <Plus className="w-4 h-4" />
              Create Project
            </Link>
@@ -90,7 +90,7 @@ export default function DashboardHome() {
                  title={null}
                  description={null}
                  header={<ProjectCard project={project} />}
-                 className="h-full min-h-[12rem] cursor-pointer hover:border-indigo-500/50 transition-colors"
+                 className="h-full min-h-[12rem] cursor-pointer hover:border-[var(--primary)] transition-colors"
                />
              </Link>
            ))}
