@@ -117,8 +117,8 @@
 - **Status**: ✅ Implemented
 
 #### 12. **Deployment Metrics**
-- **Improvement**: Show build duration, bundle size trends over time
-- **Implementation**: Store metrics in Firestore, add charts (use Recharts or Chart.js)
+- **Current**: Build Duration and Performance Score History charts implemented using Recharts
+- **Status**: ✅ Implemented (`DeploymentMetricsCharts.tsx`)
 
 ### Low Priority (Nice-to-Have)
 
