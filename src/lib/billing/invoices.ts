@@ -249,3 +249,47 @@ export function generateInvoiceData(
         status: 'pending'
     };
 }
+
+/**
+ * Lists all invoices for a given user.
+ */
+export async function listInvoicesForUser(userId: string): Promise<Invoice[]> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.INVOICES)
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .get();
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            date: data.date?.toDate ? data.date.toDate() : new Date(data.date),
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+        } as Invoice;
+    });
+}
+
+/**
+ * Gets a single invoice by ID.
+ */
+export async function getInvoiceById(invoiceId: string): Promise<Invoice | null> {
+    const db = getDb();
+    const doc = await db.collection(Collections.INVOICES).doc(invoiceId).get();
+
+    if (!doc.exists) {
+        return null;
+    }
+
+    const data = doc.data();
+    if (!data) return null;
+
+    return {
+        id: doc.id,
+        ...data,
+        date: data.date?.toDate ? data.date.toDate() : new Date(data.date),
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+    } as Invoice;
+}
