@@ -285,6 +285,7 @@ export default function ProjectSettingsPage() {
             <BranchDeploymentsSettings
                 projectId={project.id}
                 initialBranches={project.autodeployBranches || []}
+                initialBranchEnvironments={project.branchEnvironments || []}
                 onUpdate={fetchProject}
             />
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, MapPin, X } from 'lucide-react';
+import { ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X } from 'lucide-react';
 import type { GitHubRepo } from '@/types';
 
 export default function NewProjectPage() {
@@ -14,22 +14,6 @@ export default function NewProjectPage() {
     const [loading, setLoading] = useState(true);
     const [importing, setImporting] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [selectedRegion, setSelectedRegion] = useState('');
-    const [framework, setFramework] = useState('auto');
-
-    // Common GCP regions for Cloud Run
-    const GCP_REGIONS = [
-        { value: '', label: 'Default region' },
-        { value: 'us-central1', label: 'Iowa (us-central1)' },
-        { value: 'us-east1', label: 'South Carolina (us-east1)' },
-        { value: 'europe-west1', label: 'Belgium (europe-west1)' },
-        { value: 'europe-west2', label: 'London (europe-west2)' },
-        { value: 'asia-east1', label: 'Taiwan (asia-east1)' },
-        { value: 'asia-northeast1', label: 'Tokyo (asia-northeast1)' },
-        { value: 'asia-southeast1', label: 'Singapore (asia-southeast1)' },
-        { value: 'asia-south1', label: 'Mumbai (asia-south1)' },
-        { value: 'australia-southeast1', label: 'Sydney (australia-southeast1)' },
-    ];
 
     useEffect(() => {
         async function fetchRepos() {
@@ -66,33 +50,9 @@ export default function NewProjectPage() {
         }
     }, [search, repos]);
 
-    const handleImport = async (repo: GitHubRepo) => {
+    const handleImport = (repo: GitHubRepo) => {
         setImporting(repo.full_name);
-        setError(null);
-
-        try {
-            const response = await fetch('/api/projects', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    repoFullName: repo.full_name,
-                    name: repo.name,
-                    region: selectedRegion || undefined,
-                    framework,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to import project');
-            }
-
-            router.push(`/dashboard/${data.project.id}`);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to import project');
-            setImporting(null);
-        }
+        router.push(`/dashboard/new/import?repo=${repo.full_name}`);
     };
 
     const formatDate = (dateStr: string) => {
@@ -119,54 +79,6 @@ export default function NewProjectPage() {
                 <p className="text-[var(--muted-foreground)] mt-1">
                     Select a repository to import and deploy
                 </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Framework Selection */}
-                <div className="card">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-4 h-4 flex items-center justify-center font-bold text-[var(--primary)]">F</div>
-                        <label htmlFor="framework-select" className="font-medium">Framework Preset</label>
-                    </div>
-                    <p className="text-sm text-[var(--muted-foreground)] mb-3">
-                        Select your project framework.
-                    </p>
-                    <select
-                        id="framework-select"
-                        value={framework}
-                        onChange={(e) => setFramework(e.target.value)}
-                        className="input w-full"
-                    >
-                        <option value="auto">Auto-detect</option>
-                        <option value="nextjs">Next.js</option>
-                        <option value="vite">Vite (React, Vue, Svelte)</option>
-                        <option value="astro">Astro</option>
-                        <option value="remix">Remix</option>
-                    </select>
-                </div>
-
-                {/* Region Selection */}
-                <div className="card">
-                    <div className="flex items-center gap-2 mb-3">
-                        <MapPin className="w-4 h-4 text-[var(--primary)]" />
-                        <label htmlFor="region-select" className="font-medium">Deployment Region</label>
-                    </div>
-                    <p className="text-sm text-[var(--muted-foreground)] mb-3">
-                        Choose where your app will be deployed.
-                    </p>
-                    <select
-                        id="region-select"
-                        value={selectedRegion}
-                        onChange={(e) => setSelectedRegion(e.target.value)}
-                        className="input w-full"
-                    >
-                        {GCP_REGIONS.map((region) => (
-                            <option key={region.value} value={region.value}>
-                                {region.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
             </div>
 
             {/* Search */}
@@ -267,7 +179,7 @@ export default function NewProjectPage() {
                                 {importing === repo.full_name ? (
                                     <>
                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                        Importing...
+                                        Loading...
                                     </>
                                 ) : (
                                     'Import'
