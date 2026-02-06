@@ -4,6 +4,7 @@ import { TeamProvider } from '@/contexts/TeamContext';
 import { GlobalShortcuts } from '@/components/GlobalShortcuts';
 import { Header } from '@/components/Header';
 import { PageTransition } from '@/components/PageTransition';
+import { CommandPalette } from '@/components/CommandPalette';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -33,6 +34,7 @@ export default async function DashboardLayout({
        <TeamProvider>
        <div className="min-h-screen flex flex-col md:flex-row bg-[var(--background)]">
             <GlobalShortcuts />
+            <CommandPalette />
             <DashboardSidebar session={session} />
 
                 <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[var(--background)] pt-16 md:pt-0">

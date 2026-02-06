@@ -89,6 +89,7 @@ export interface Project {
         allow: string[];
         block: string[];
     };
+    latestDeployment?: Deployment;
     createdAt: Date;
     updatedAt: Date;
 }
