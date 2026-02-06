@@ -57,6 +57,33 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Used `lucide-react` icons for consistent UI.
 - Implemented role updates using `<select>` with custom styling to match the theme.
 
+## Mobile-First Monitoring Pass (Session 61)
+
+Audited and optimized UI for mobile responsiveness and performance.
+
+### `src/components/DashboardSidebar.tsx`
+- Added `z-50` to mobile overlay and sidebar container for proper layering.
+- Added `backdrop-blur-sm` to mobile overlay.
+- Added `shadow-xl` to sidebar in mobile view.
+- Increased navigation link padding (`py-3` on mobile) for better touch targets.
+- Added auto-close behavior when clicking a link on mobile.
+
+### `src/components/ui/background-beams.tsx` & `src/components/ui/spotlight.tsx`
+- Added `hidden md:block` utility class to disable these resource-intensive animations on mobile viewports (< 768px).
+
+### `src/app/dashboard/[id]/page.tsx`
+- Refactored Deployment History list items to use `flex-col md:flex-row` layout.
+- Stacked deployment metadata and actions vertically on mobile for better readability.
+- Aligned action buttons and status badges to the left on mobile (`items-start`) and right on desktop (`md:items-end`).
+
+### `src/components/analytics/AnalyticsCharts.tsx`
+- Added `min-h-[300px]` to chart container to prevent layout collapse on small screens.
+
+### `src/components/RollbackModal.tsx`
+- Added `max-h-[85vh]` to modal container to fit within mobile viewports.
+- Added `overflow-y-auto` to content area to support scrolling in landscape mode or small screens.
+- Added `shrink-0` to header and footer to prevent them from collapsing.
+
 <<<<<<< multi-stream-logging-12966338149114447475
 ### `src/components/LogViewer.tsx`
 - Rebuilt component with "Professional Log Viewer" features:

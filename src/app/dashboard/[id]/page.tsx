@@ -365,7 +365,7 @@ export default function ProjectDetailPage() {
                     <div className="divide-y divide-[var(--border)]">
                         {deployments.map((deployment) => (
                             <div key={deployment.id} className="py-4 first:pt-0 last:pb-0">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-0">
                                     <div className="flex items-center gap-3">
                                         {getStatusIcon(deployment.status)}
                                         <div>
@@ -382,7 +382,7 @@ export default function ProjectDetailPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-right flex flex-col items-end gap-1">
+                                    <div className="text-right flex flex-col items-start md:items-end gap-1 w-full md:w-auto pl-7 md:pl-0">
                                         <span className={`badge ${deployment.type === 'production' ? 'badge-success' : 'badge-info'
                                             }`}>
                                             {deployment.type}

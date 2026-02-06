@@ -74,7 +74,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                 {/* Main Chart */}
                 <div className="lg:col-span-2 p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
                     <h3 className="text-lg font-semibold mb-6">Traffic Over Time</h3>
-                    <div className="h-[300px] w-full">
+                    <div className="h-[300px] min-h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={timeseries}>
                                 <defs>

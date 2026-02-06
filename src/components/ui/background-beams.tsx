@@ -16,7 +16,7 @@ export const BackgroundBeams = ({ className }: { className?: string }) => {
   return (
     <div
       className={cn(
-        "absolute inset-0 z-0 h-full w-full overflow-hidden [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]",
+        "absolute inset-0 z-0 h-full w-full overflow-hidden [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)] hidden md:block",
         className
       )}
     >
