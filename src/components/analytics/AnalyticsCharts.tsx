@@ -7,21 +7,9 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar
+    ResponsiveContainer
 } from 'recharts';
 import type { AnalyticsStats } from '@/lib/analytics';
-
-// Simple Card components if they don't exist in @/components/ui/card,
-// but assuming they might since previous files used similar structure.
-// If not, I'll fallback to div with classes.
-// Wait, I haven't checked for ui/card. I'll just use raw divs with tailwind and theme vars to be safe and consistent with "Edit Source, Not Artifacts" and avoiding assuming shadcn presence if not verified.
-// Actually, looking at ui.md, it mentions `src/components/ui`.
-// Let me quickly check if card exists.
-// I'll stick to raw HTML/Tailwind to avoid dependency on unverified components,
-// OR I can quickly check. I'll check first.
-// But to save turn, I'll write the code using standard Tailwind classes that match the theme.
 
 interface AnalyticsChartsProps {
     data: AnalyticsStats;
@@ -29,13 +17,35 @@ interface AnalyticsChartsProps {
 }
 
 export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
-    const { aggregate, timeseries, sources } = data;
+    const { aggregate, timeseries, sources, locations } = data;
 
     // Format duration
     const formatDuration = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins}m ${secs}s`;
+    };
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 shadow-xl ring-1 ring-black/5">
+                    <p className="text-sm font-medium text-[var(--foreground)] mb-2">
+                        {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                    <div className="space-y-1">
+                        {payload.map((entry: any, index: number) => (
+                            <div key={index} className="flex items-center gap-2 text-xs">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
+                                <span className="font-mono font-medium text-[var(--foreground)]">{entry.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+        return null;
     };
 
     return (
@@ -62,22 +72,22 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Chart */}
-                <div className="lg:col-span-2 p-6 rounded-xl border border-[var(--border)] bg-[var(--card)]">
+                <div className="lg:col-span-2 p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
                     <h3 className="text-lg font-semibold mb-6">Traffic Over Time</h3>
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={timeseries}>
                                 <defs>
                                     <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
                                         <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="colorPageviews" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="var(--secondary)" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="var(--secondary)" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="var(--info)" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="var(--info)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} opacity={0.4} />
                                 <XAxis
                                     dataKey="date"
                                     stroke="var(--muted-foreground)"
@@ -88,6 +98,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                                         const date = new Date(value);
                                         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                                     }}
+                                    dy={10}
                                 />
                                 <YAxis
                                     stroke="var(--muted-foreground)"
@@ -95,17 +106,9 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                                     tickLine={false}
                                     axisLine={false}
                                     tickFormatter={(value) => `${value}`}
+                                    dx={-10}
                                 />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: 'var(--popover)',
-                                        borderColor: 'var(--border)',
-                                        borderRadius: '8px',
-                                        color: 'var(--popover-foreground)',
-                                    }}
-                                    itemStyle={{ color: 'var(--foreground)' }}
-                                    labelStyle={{ color: 'var(--muted-foreground)' }}
-                                />
+                                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }} />
                                 <Area
                                     type="monotone"
                                     dataKey="visitors"
@@ -118,7 +121,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                                 <Area
                                     type="monotone"
                                     dataKey="pageviews"
-                                    stroke="var(--secondary)"
+                                    stroke="var(--info)"
                                     fillOpacity={1}
                                     fill="url(#colorPageviews)"
                                     strokeWidth={2}
@@ -129,51 +132,47 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                     </div>
                 </div>
 
-                {/* Top Sources */}
-                <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)]">
-                    <h3 className="text-lg font-semibold mb-6">Top Sources</h3>
-                    <div className="space-y-4">
-                        {sources.map((source, index) => (
-                            <div key={index} className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
-                                    <span className="text-sm font-medium">{source.source}</span>
+                <div className="space-y-6">
+                    {/* Top Sources */}
+                    <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm h-fit">
+                        <h3 className="text-lg font-semibold mb-4">Top Sources</h3>
+                        <div className="space-y-4">
+                            {sources.map((source, index) => (
+                                <div key={index} className="flex items-center justify-between group">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-[var(--primary)] group-hover:scale-125 transition-transform duration-200" />
+                                        <span className="text-sm font-medium">{source.source}</span>
+                                    </div>
+                                    <span className="text-sm text-[var(--muted-foreground)] font-mono">
+                                        {source.visitors.toLocaleString()}
+                                    </span>
                                 </div>
-                                <span className="text-sm text-[var(--muted-foreground)]">
-                                    {source.visitors.toLocaleString()}
-                                </span>
-                            </div>
-                        ))}
-                        {sources.length === 0 && (
-                            <p className="text-sm text-[var(--muted-foreground)]">No data available</p>
-                        )}
+                            ))}
+                            {sources.length === 0 && (
+                                <p className="text-sm text-[var(--muted-foreground)]">No data available</p>
+                            )}
+                        </div>
                     </div>
-                    {/* Optional Bar Chart for sources if needed, but list is usually cleaner for small breakdown */}
-                    <div className="mt-6 h-[150px] w-full">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={sources} layout="vertical" margin={{ top: 0, right: 0, left: 40, bottom: 0 }}>
-                                <XAxis type="number" hide />
-                                <YAxis
-                                    type="category"
-                                    dataKey="source"
-                                    stroke="var(--muted-foreground)"
-                                    fontSize={10}
-                                    tickLine={false}
-                                    axisLine={false}
-                                    width={50}
-                                />
-                                <Tooltip
-                                    cursor={{fill: 'var(--muted)', opacity: 0.1}}
-                                    contentStyle={{
-                                        backgroundColor: 'var(--popover)',
-                                        borderColor: 'var(--border)',
-                                        borderRadius: '8px',
-                                        color: 'var(--popover-foreground)',
-                                    }}
-                                />
-                                <Bar dataKey="visitors" fill="var(--primary)" radius={[0, 4, 4, 0]} barSize={20} />
-                            </BarChart>
-                        </ResponsiveContainer>
+
+                    {/* Top Locations */}
+                    <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm h-fit">
+                        <h3 className="text-lg font-semibold mb-4">Top Locations</h3>
+                        <div className="space-y-4">
+                            {locations.map((location, index) => (
+                                <div key={index} className="flex items-center justify-between group">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-[var(--info)] group-hover:scale-125 transition-transform duration-200" />
+                                        <span className="text-sm font-medium">{location.country}</span>
+                                    </div>
+                                    <span className="text-sm text-[var(--muted-foreground)] font-mono">
+                                        {location.visitors.toLocaleString()}
+                                    </span>
+                                </div>
+                            ))}
+                            {locations.length === 0 && (
+                                <p className="text-sm text-[var(--muted-foreground)]">No data available</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -183,9 +182,9 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
 
 function SummaryCard({ title, value }: { title: string; value: string }) {
     return (
-        <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)]">
+        <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm hover:border-[var(--primary)] transition-colors duration-200">
             <h3 className="text-sm font-medium text-[var(--muted-foreground)]">{title}</h3>
-            <div className="mt-2 text-2xl font-bold">{value}</div>
+            <div className="mt-2 text-2xl font-bold font-mono tracking-tight">{value}</div>
         </div>
     );
 }

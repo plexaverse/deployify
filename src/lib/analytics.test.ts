@@ -25,11 +25,13 @@ describe('getAnalyticsStats', () => {
         const mockAggregate = { results: { visitors: { value: 100 }, pageviews: { value: 200 }, bounce_rate: { value: 50 }, visit_duration: { value: 60 } } };
         const mockTimeseries = { results: [{ date: '2023-01-01', visitors: 10, pageviews: 20 }] };
         const mockSources = { results: [{ source: 'Google', visitors: 50 }] };
+        const mockLocations = { results: [{ country: 'United States', visitors: 40 }] };
 
         (global.fetch as any).mock.mockImplementation(async (url: string) => {
             if (url.includes('/aggregate')) return { ok: true, json: async () => mockAggregate };
             if (url.includes('/timeseries')) return { ok: true, json: async () => mockTimeseries };
-            if (url.includes('/breakdown')) return { ok: true, json: async () => mockSources };
+            if (url.includes('property=visit:source')) return { ok: true, json: async () => mockSources };
+            if (url.includes('property=visit:country')) return { ok: true, json: async () => mockLocations };
             return { ok: false };
         });
 
@@ -38,6 +40,7 @@ describe('getAnalyticsStats', () => {
         assert.deepEqual(stats?.aggregate, mockAggregate.results);
         assert.deepEqual(stats?.timeseries, mockTimeseries.results);
         assert.deepEqual(stats?.sources, mockSources.results);
+        assert.deepEqual(stats?.locations, mockLocations.results);
     });
 
     test('returns mock data when API key is missing', async () => {
@@ -47,6 +50,7 @@ describe('getAnalyticsStats', () => {
         assert.ok(stats);
         assert.ok(stats?.aggregate.visitors.value > 0);
         assert.ok(stats?.timeseries.length > 0);
+        assert.ok(stats?.locations.length > 0);
     });
 
     test('handles API errors gracefully', async () => {

@@ -15,6 +15,11 @@ export interface AnalyticsStats {
         source: string;
         visitors: number;
     }>;
+    locations: Array<{
+        country: string;
+        visitors: number;
+        country_code?: string;
+    }>;
 }
 
 export async function getAnalyticsStats(
@@ -36,17 +41,19 @@ export async function getAnalyticsStats(
             'Authorization': `Bearer ${key}`,
         };
 
-        const [aggregateRes, timeseriesRes, sourcesRes] = await Promise.all([
+        const [aggregateRes, timeseriesRes, sourcesRes, locationsRes] = await Promise.all([
             fetch(`${PLAUSIBLE_API_URL}/stats/aggregate?site_id=${siteId}&period=${period}&metrics=visitors,pageviews,bounce_rate,visit_duration`, { headers }),
             fetch(`${PLAUSIBLE_API_URL}/stats/timeseries?site_id=${siteId}&period=${period}&metrics=visitors,pageviews`, { headers }),
             fetch(`${PLAUSIBLE_API_URL}/stats/breakdown?site_id=${siteId}&period=${period}&property=visit:source&limit=5`, { headers }),
+            fetch(`${PLAUSIBLE_API_URL}/stats/breakdown?site_id=${siteId}&period=${period}&property=visit:country&limit=5`, { headers }),
         ]);
 
-        if (!aggregateRes.ok || !timeseriesRes.ok || !sourcesRes.ok) {
+        if (!aggregateRes.ok || !timeseriesRes.ok || !sourcesRes.ok || !locationsRes.ok) {
             console.error('Failed to fetch analytics from Plausible', {
                 aggregate: aggregateRes.status,
                 timeseries: timeseriesRes.status,
-                sources: sourcesRes.status
+                sources: sourcesRes.status,
+                locations: locationsRes.status
             });
             // If the site doesn't exist in Plausible yet, this might fail.
             // We can return null or mock data. For now, null to indicate no data or error.
@@ -56,11 +63,13 @@ export async function getAnalyticsStats(
         const aggregate = await aggregateRes.json();
         const timeseries = await timeseriesRes.json();
         const sources = await sourcesRes.json();
+        const locations = await locationsRes.json();
 
         return {
             aggregate: aggregate.results,
             timeseries: timeseries.results,
             sources: sources.results,
+            locations: locations.results,
         };
     } catch (error) {
         console.error('Error fetching analytics:', error);
@@ -98,6 +107,13 @@ function getMockData(period: string): AnalyticsStats {
             { source: 'Twitter', visitors: Math.floor(totalVisitors * 0.2) },
             { source: 'GitHub', visitors: Math.floor(totalVisitors * 0.05) },
             { source: 'Other', visitors: Math.floor(totalVisitors * 0.05) },
+        ],
+        locations: [
+            { country: 'United States', visitors: Math.floor(totalVisitors * 0.4) },
+            { country: 'India', visitors: Math.floor(totalVisitors * 0.2) },
+            { country: 'Germany', visitors: Math.floor(totalVisitors * 0.1) },
+            { country: 'United Kingdom', visitors: Math.floor(totalVisitors * 0.1) },
+            { country: 'Other', visitors: Math.floor(totalVisitors * 0.2) },
         ],
     };
 }
