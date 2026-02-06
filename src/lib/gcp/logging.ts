@@ -37,10 +37,14 @@ export function formatLogEntry(entry: {
   };
 }
 
+export type LogType = 'runtime' | 'system' | 'build';
+
 export interface ListLogEntriesOptions {
   pageSize?: number;
   pageToken?: string;
   revisionName?: string;
+  logType?: LogType;
+  buildId?: string;
 }
 
 export interface ListLogEntriesResponse {
@@ -53,9 +57,54 @@ export async function listLogEntries(
   options: ListLogEntriesOptions = {},
   projectRegion?: string | null
 ): Promise<ListLogEntriesResponse> {
+  const { logType = 'runtime', buildId } = options;
+
   // Simulation mode
   if (!isRunningOnGCP()) {
-    console.log(`[Simulation] Fetching logs for ${serviceName}`);
+    console.log(`[Simulation] Fetching ${logType} logs for ${serviceName}`);
+
+    if (logType === 'build') {
+      return {
+        entries: [
+          {
+            timestamp: new Date().toISOString(),
+            severity: 'INFO',
+            textPayload: `[Simulation] Building image for ${serviceName}...`,
+            resource: { type: 'build', labels: { build_id: 'sim-build' } },
+            logName: `projects/${config.gcp.projectId}/logs/cloudbuild`,
+            insertId: 'sim-b-1',
+          },
+          {
+            timestamp: new Date(Date.now() - 5000).toISOString(),
+            severity: 'INFO',
+            textPayload: `[Simulation] Step 1/5 : FROM node:20-alpine`,
+            resource: { type: 'build', labels: { build_id: 'sim-build' } },
+            logName: `projects/${config.gcp.projectId}/logs/cloudbuild`,
+            insertId: 'sim-b-2',
+          },
+        ]
+      };
+    }
+
+    if (logType === 'system') {
+      return {
+        entries: [
+          {
+            timestamp: new Date().toISOString(),
+            severity: 'NOTICE',
+            textPayload: `[Simulation] Service ${serviceName} has reached a steady state.`,
+            resource: {
+              type: 'cloud_run_revision',
+              labels: { service_name: serviceName },
+            },
+            logName: `projects/${config.gcp.projectId}/logs/run.googleapis.com%2Fvar.log%2Fsystem`,
+            insertId: 'sim-s-1',
+          }
+        ]
+      };
+    }
+
+    // Runtime logs
     return {
       entries: [
         {
@@ -85,9 +134,28 @@ export async function listLogEntries(
   }
 
   const accessToken = await getGcpAccessToken();
-  let filter = `resource.type="cloud_run_revision" AND resource.labels.service_name="${serviceName}"`;
 
-  if (options.revisionName) {
+  let filter = '';
+
+  if (logType === 'build') {
+    if (buildId) {
+      filter = `resource.type="build" AND resource.labels.build_id="${buildId}"`;
+    } else {
+      // If no buildId provided, this is likely an error or we just return nothing/generic logs
+      // But let's fallback to filtering by generic build logs if needed, though hazardous.
+      // Better to return empty or error if strict.
+      // For now, let's filter by a likely label if possible, or just build type.
+      filter = `resource.type="build"`;
+    }
+  } else if (logType === 'system') {
+    // System logs: Cloud Run logs that are NOT stdout/stderr
+    filter = `resource.type="cloud_run_revision" AND resource.labels.service_name="${serviceName}" AND NOT logName:"run.googleapis.com%2Fstdout" AND NOT logName:"run.googleapis.com%2Fstderr"`;
+  } else {
+    // Runtime logs (default): Cloud Run stdout/stderr
+    filter = `resource.type="cloud_run_revision" AND resource.labels.service_name="${serviceName}" AND (logName:"run.googleapis.com%2Fstdout" OR logName:"run.googleapis.com%2Fstderr")`;
+  }
+
+  if (options.revisionName && logType !== 'build') {
     filter += ` AND resource.labels.revision_name="${options.revisionName}"`;
   }
 

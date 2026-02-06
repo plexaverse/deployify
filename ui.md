@@ -57,6 +57,19 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Used `lucide-react` icons for consistent UI.
 - Implemented role updates using `<select>` with custom styling to match the theme.
 
+<<<<<<< multi-stream-logging-12966338149114447475
+### `src/components/LogViewer.tsx`
+- Rebuilt component with "Professional Log Viewer" features:
+  - Added tabbed navigation for **Runtime Logs**, **System Logs**, and **Build Logs**.
+  - Implemented toolbar with:
+    - Text search input with clear button.
+    - Severity filter toggles (INFO, WARNING, ERROR).
+    - "Follow" (Pause/Resume) toggle.
+    - "Clear" logs action.
+  - Standardized log display using `font-mono text-[12px] leading-relaxed` (JetBrains Mono).
+  - Integrated `Skeleton` component for loading states.
+  - Implemented client-side filtering for immediate feedback.
+=======
 ### `src/app/new/page.tsx`
 - Created a new full-screen Project Creation Wizard with a 3-step flow (Select, Configure, Deploy).
 - Uses `BackgroundBeams` for a premium background effect.
@@ -66,3 +79,4 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - **Step 3 (Deploy)**: Real-time terminal log console with `bg-black/80` and monospaced font, including status indicators and auto-scrolling.
 - Uses `sonner` for toast notifications throughout the flow.
 - Uses `lucide-react` icons for consistent visual language.
+>>>>>>> main

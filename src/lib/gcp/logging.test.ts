@@ -65,4 +65,60 @@ describe('listLogEntries', () => {
 
         global.fetch = originalFetch;
     });
+
+    it('should filter by build type and buildId', async () => {
+        let requestBody: any = null;
+        global.fetch = mock.fn(async (url: any, options: any) => {
+             if (url.toString().includes('metadata.google.internal')) {
+                 return {
+                     ok: true,
+                     json: async () => ({ access_token: 'mock-token' })
+                 };
+             }
+             if (url.toString().includes('logging.googleapis.com')) {
+                 requestBody = JSON.parse(options?.body || '{}');
+                 return {
+                     ok: true,
+                     json: async () => ({ entries: [] })
+                 };
+             }
+             return { ok: true, json: async () => ({}) };
+        });
+
+        await listLogEntries('test-service', { logType: 'build', buildId: 'test-build-id' });
+
+        assert.ok(requestBody);
+        assert.match(requestBody.filter, /resource.type="build"/);
+        assert.match(requestBody.filter, /resource.labels.build_id="test-build-id"/);
+
+        global.fetch = originalFetch;
+    });
+
+    it('should filter by system type', async () => {
+        let requestBody: any = null;
+        global.fetch = mock.fn(async (url: any, options: any) => {
+             if (url.toString().includes('metadata.google.internal')) {
+                 return {
+                     ok: true,
+                     json: async () => ({ access_token: 'mock-token' })
+                 };
+             }
+             if (url.toString().includes('logging.googleapis.com')) {
+                 requestBody = JSON.parse(options?.body || '{}');
+                 return {
+                     ok: true,
+                     json: async () => ({ entries: [] })
+                 };
+             }
+             return { ok: true, json: async () => ({}) };
+        });
+
+        await listLogEntries('test-service', { logType: 'system' });
+
+        assert.ok(requestBody);
+        assert.match(requestBody.filter, /resource.type="cloud_run_revision"/);
+        assert.match(requestBody.filter, /NOT logName:"run.googleapis.com%2Fstdout"/);
+
+        global.fetch = originalFetch;
+    });
 });

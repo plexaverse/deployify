@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
-import { listLogEntries } from '@/lib/gcp/logging';
+import { listLogEntries, type LogType } from '@/lib/gcp/logging';
 import { getProductionServiceName, getPreviewServiceName } from '@/lib/gcp/cloudrun';
 import { securityHeaders } from '@/lib/security';
+import { getLatestDeployment } from '@/lib/db';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -37,8 +38,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         const environment = searchParams.get('environment') || 'production';
         const prId = searchParams.get('prId');
         const revision = searchParams.get('revision');
+        const logType = (searchParams.get('type') as LogType) || 'runtime';
 
         let serviceName: string;
+        let buildId: string | undefined;
+
+        if (logType === 'build') {
+            const latestDeployment = await getLatestDeployment(project.id);
+            if (latestDeployment?.cloudBuildId) {
+                buildId = latestDeployment.cloudBuildId;
+            }
+        }
 
         if (environment === 'preview') {
             if (!prId) {
@@ -83,7 +93,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                                     serviceName,
                                     {
                                         pageSize: 50,
-                                        revisionName: revision || undefined
+                                        revisionName: revision || undefined,
+                                        logType,
+                                        buildId
                                     },
                                     project.region
                                 );
@@ -136,7 +148,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 serviceName,
                 {
                     pageSize: 50,
-                    revisionName: revision || undefined
+                    revisionName: revision || undefined,
+                    logType,
+                    buildId
                 },
                 project.region
             );
