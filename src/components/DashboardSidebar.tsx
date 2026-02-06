@@ -81,14 +81,14 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
             {/* Sidebar Overlay for Mobile */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 md:hidden pt-16"
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden pt-16"
                     onClick={() => setIsOpen(false)}
                 />
             )}
 
             {/* Sidebar */}
             <aside className={`
-                fixed inset-y-0 left-0 z-50 w-64 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transition-transform duration-300 ease-in-out
+                fixed inset-y-0 left-0 z-50 w-64 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transition-transform duration-300 ease-in-out shadow-xl md:shadow-none
                 md:static md:translate-x-0 md:h-screen md:z-0
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
@@ -111,11 +111,12 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                         <li key={item.name}>
                                             <Link
                                                 href={item.href}
-                                                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                                                className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-colors ${
                                                     isActive
                                                     ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
                                                     : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
                                                 }`}
+                                                onClick={() => setIsOpen(false)}
                                             >
                                                 <item.icon className="w-4 h-4" />
                                                 {item.name}

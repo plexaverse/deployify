@@ -15,9 +15,9 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-md rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+            <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-md rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in max-h-[85vh]">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
+                <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                         <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
                         Confirm Rollback
@@ -31,7 +31,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
+                <div className="p-6 overflow-y-auto">
                     <p className="text-[var(--muted-foreground)] mb-4">
                         Are you sure you want to rollback to this version? This will immediately switch traffic to the selected revision.
                     </p>
@@ -61,7 +61,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-[var(--border)] bg-[var(--background)] flex justify-end gap-3">
+                <div className="p-4 border-t border-[var(--border)] bg-[var(--background)] flex justify-end gap-3 shrink-0">
                     <button
                         onClick={onClose}
                         className="px-4 py-2 rounded-md hover:bg-[var(--border)] transition-colors"
