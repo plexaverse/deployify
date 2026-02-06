@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
     Loader2,
     Pause,
@@ -9,9 +9,16 @@ import {
     ArrowDown,
     Activity,
     Wifi,
-    WifiOff
+    WifiOff,
+    Terminal,
+    Monitor,
+    Server,
+    Search,
+    Filter,
+    X
 } from 'lucide-react';
 import { parseLogEntry, type LogEntry } from '@/lib/logging/parser';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface LogViewerProps {
     projectId: string;
@@ -19,32 +26,50 @@ interface LogViewerProps {
     revision?: string;
 }
 
+type LogTab = 'runtime' | 'system' | 'build';
+
 export function LogViewer({ projectId, className, revision }: LogViewerProps) {
+    const [activeTab, setActiveTab] = useState<LogTab>('runtime');
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isConnected, setIsConnected] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [severityFilter, setSeverityFilter] = useState<Set<string>>(new Set());
+
     const logsEndRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
     const isPausedRef = useRef(isPaused);
     useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
+    // Reset logs when tab changes
     useEffect(() => {
-        let url = `/api/projects/${projectId}/logs?stream=true`;
-        if (revision) {
+        setLogs([]);
+        setIsLoading(true);
+        setError(null);
+        setShouldAutoScroll(true);
+    }, [activeTab]);
+
+    useEffect(() => {
+        let url = `/api/projects/${projectId}/logs?stream=true&type=${activeTab}`;
+        if (revision && activeTab !== 'build') {
             url += `&revision=${revision}`;
         }
+
         const eventSource = new EventSource(url);
 
         eventSource.onopen = () => {
             setIsConnected(true);
             setError(null);
+            setIsLoading(false);
         };
 
         eventSource.onmessage = (event) => {
             if (isPausedRef.current) return;
+            setIsLoading(false);
 
             try {
                 const result = parseLogEntry(event.data);
@@ -74,6 +99,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
         eventSource.onerror = (e) => {
             console.error('EventSource error:', e);
             setIsConnected(false);
+            // Don't set isLoading to true here as we might have logs already
         };
 
         eventSource.addEventListener('error', (e: MessageEvent) => {
@@ -90,7 +116,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
         return () => {
             eventSource.close();
         };
-    }, [projectId, revision]);
+    }, [projectId, revision, activeTab]);
 
     // Auto-scroll logic
     useEffect(() => {
@@ -108,6 +134,35 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
     };
 
     const clearLogs = () => setLogs([]);
+
+    const toggleSeverityFilter = (severity: string) => {
+        const next = new Set(severityFilter);
+        if (next.has(severity)) {
+            next.delete(severity);
+        } else {
+            next.add(severity);
+        }
+        setSeverityFilter(next);
+    };
+
+    const filteredLogs = useMemo(() => {
+        return logs.filter(log => {
+            // Severity filter
+            if (severityFilter.size > 0 && !severityFilter.has(log.severity)) {
+                return false;
+            }
+
+            // Text search filter
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                const textContent = log.textPayload?.toLowerCase() || '';
+                const jsonContent = log.jsonPayload ? JSON.stringify(log.jsonPayload).toLowerCase() : '';
+                return textContent.includes(query) || jsonContent.includes(query);
+            }
+
+            return true;
+        });
+    }, [logs, severityFilter, searchQuery]);
 
     const getSeverityColor = (severity: string) => {
         switch (severity?.toUpperCase()) {
@@ -144,14 +199,52 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
     return (
         <div className={`flex flex-col rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm ${className || ''}`}>
-            {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-[var(--border)] bg-[var(--muted)]/30">
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-[var(--foreground)]" />
-                        <h3 className="font-medium text-sm">Runtime Logs</h3>
+            {/* Header / Tabs */}
+            <div className="flex flex-col border-b border-[var(--border)] bg-[var(--muted)]/30">
+                <div className="flex items-center justify-between px-3 pt-3">
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => setActiveTab('runtime')}
+                            className={`px-3 py-2 text-xs font-medium rounded-t-lg border-t border-x border-b-0 transition-colors ${
+                                activeTab === 'runtime'
+                                    ? 'bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]'
+                                    : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Activity className="w-3.5 h-3.5" />
+                                Runtime Logs
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('system')}
+                            className={`px-3 py-2 text-xs font-medium rounded-t-lg border-t border-x border-b-0 transition-colors ${
+                                activeTab === 'system'
+                                    ? 'bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]'
+                                    : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Server className="w-3.5 h-3.5" />
+                                System Logs
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('build')}
+                            className={`px-3 py-2 text-xs font-medium rounded-t-lg border-t border-x border-b-0 transition-colors ${
+                                activeTab === 'build'
+                                    ? 'bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]'
+                                    : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Terminal className="w-3.5 h-3.5" />
+                                Build Logs
+                            </div>
+                        </button>
                     </div>
-                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border ${isConnected
+
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border mb-2 ${isConnected
                             ? 'bg-green-500/10 text-green-500 border-green-500/20'
                             : 'bg-red-500/10 text-red-500 border-red-500/20'
                         }`}>
@@ -160,27 +253,74 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setIsPaused(!isPaused)}
-                        className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                        title={isPaused ? "Resume auto-scroll" : "Pause auto-scroll"}
-                    >
-                        {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-                    </button>
-                    <button
-                        onClick={clearLogs}
-                        className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                        title="Clear logs"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
+                {/* Toolbar */}
+                <div className="flex items-center justify-between p-2 gap-2 border-t border-[var(--border)] bg-[var(--card)]">
+                    <div className="flex items-center gap-2 flex-1">
+                        <div className="relative flex-1 max-w-xs">
+                            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                            <input
+                                type="text"
+                                placeholder="Filter logs..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-8 pr-2 py-1.5 text-xs bg-[var(--muted)]/50 border border-[var(--border)] rounded-md focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                            {['INFO', 'WARNING', 'ERROR'].map((sev) => (
+                                <button
+                                    key={sev}
+                                    onClick={() => toggleSeverityFilter(sev)}
+                                    className={`px-2 py-1 rounded-md text-[10px] font-medium border transition-colors ${
+                                        severityFilter.has(sev)
+                                            ? sev === 'ERROR' ? 'bg-red-500/10 text-red-500 border-red-500/30'
+                                            : sev === 'WARNING' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'
+                                            : 'bg-blue-500/10 text-blue-500 border-blue-500/30'
+                                            : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] border-transparent hover:bg-[var(--muted)]'
+                                    }`}
+                                >
+                                    {sev}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => setIsPaused(!isPaused)}
+                            className={`p-1.5 rounded-md transition-colors ${
+                                isPaused
+                                    ? 'bg-yellow-500/10 text-yellow-500'
+                                    : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
+                            }`}
+                            title={isPaused ? "Resume auto-scroll" : "Pause auto-scroll"}
+                        >
+                            {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                        </button>
+                        <button
+                            onClick={clearLogs}
+                            className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                            title="Clear logs"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Error Message */}
             {error && (
-                <div className="bg-red-500/10 text-red-500 px-4 py-2 text-xs border-b border-red-500/20">
+                <div className="bg-red-500/10 text-red-500 px-4 py-2 text-xs border-b border-red-500/20 flex items-center gap-2">
+                    <Activity className="w-4 h-4" />
                     Error: {error}
                 </div>
             )}
@@ -189,9 +329,19 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
             <div
                 ref={containerRef}
                 onScroll={handleScroll}
-                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[#0d1117] font-mono text-xs relative"
+                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[#0d1117] font-mono text-[12px] leading-relaxed relative"
             >
-                {logs.length === 0 ? (
+                {logs.length === 0 && isLoading ? (
+                    <div className="space-y-2 p-2">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="flex gap-4">
+                                <Skeleton className="h-4 w-24 bg-white/5" />
+                                <Skeleton className="h-4 w-12 bg-white/5" />
+                                <Skeleton className="h-4 w-full bg-white/5" />
+                            </div>
+                        ))}
+                    </div>
+                ) : logs.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
                         {isConnected ? (
                             <>
@@ -203,16 +353,16 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                         )}
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-1">
-                        {logs.map((log, index) => (
-                            <div key={log.insertId || index} className="flex items-start gap-3 hover:bg-white/5 p-0.5 rounded px-2 -mx-2">
-                                <span className="text-gray-500 shrink-0 select-none w-24">
+                    <div className="flex flex-col">
+                        {filteredLogs.map((log, index) => (
+                            <div key={log.insertId || index} className="flex items-start gap-3 hover:bg-white/5 px-1 py-0.5 rounded -mx-1 group transition-colors">
+                                <span className="text-gray-500 shrink-0 select-none w-[100px] opacity-70 group-hover:opacity-100 transition-opacity">
                                     {formatTimestamp(log.timestamp)}
                                 </span>
-                                <span className={`font-bold shrink-0 w-16 select-none ${getSeverityColor(log.severity)}`}>
+                                <span className={`font-bold shrink-0 w-[70px] select-none ${getSeverityColor(log.severity)}`}>
                                     {log.severity}
                                 </span>
-                                <span className="text-gray-300 break-all whitespace-pre-wrap">
+                                <span className="text-gray-300 break-all whitespace-pre-wrap flex-1">
                                     {log.textPayload || (log.jsonPayload ? JSON.stringify(log.jsonPayload) : '')}
                                 </span>
                             </div>

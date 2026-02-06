@@ -56,3 +56,15 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Integrated into global layout via `src/app/settings/layout.tsx` which reuses `DashboardSidebar`.
 - Used `lucide-react` icons for consistent UI.
 - Implemented role updates using `<select>` with custom styling to match the theme.
+
+### `src/components/LogViewer.tsx`
+- Rebuilt component with "Professional Log Viewer" features:
+  - Added tabbed navigation for **Runtime Logs**, **System Logs**, and **Build Logs**.
+  - Implemented toolbar with:
+    - Text search input with clear button.
+    - Severity filter toggles (INFO, WARNING, ERROR).
+    - "Follow" (Pause/Resume) toggle.
+    - "Clear" logs action.
+  - Standardized log display using `font-mono text-[12px] leading-relaxed` (JetBrains Mono).
+  - Integrated `Skeleton` component for loading states.
+  - Implemented client-side filtering for immediate feedback.
