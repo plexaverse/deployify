@@ -13,8 +13,8 @@ import {
     getUserById
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
-import { getPreviewServiceName, getProductionServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { parseBranchFromRef, shouldAutoDeploy } from '@/lib/utils';
+// import { getPreviewServiceName } from '@/lib/gcp/cloudrun';
+import { parseBranchFromRef, shouldAutoDeploy, slugify } from '@/lib/utils';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 import { pollBuildStatus } from '@/lib/deployment';
 
@@ -93,6 +93,13 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         return;
     }
 
+    // Determine deployment type and details
+    const isDefaultBranch = branch === project.defaultBranch;
+    const deploymentType = isDefaultBranch ? 'production' : 'branch';
+    const projectSlug = isDefaultBranch ? project.slug : `${project.slug}-${slugify(branch)}`;
+    // Use preview env vars for non-default branches
+    const envTarget = isDefaultBranch ? 'production' : 'preview';
+
     // Get user for access token
     const user = await getUserById(project.userId);
 
@@ -104,7 +111,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     // Create deployment record
     const deployment = await createDeployment({
         projectId: project.id,
-        type: 'production',
+        type: deploymentType,
         status: 'queued',
         gitBranch: branch,
         gitCommitSha: head_commit.id,
@@ -114,11 +121,11 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
 
     try {
         // Get environment variables
-        const envVars = await getEnvVarsForDeployment(project.id, 'production');
+        const envVars = await getEnvVarsForDeployment(project.id, envTarget);
 
         // Generate build config with project's selected region
         const buildConfig = generateCloudRunDeployConfig({
-            projectSlug: project.slug,
+            projectSlug: projectSlug,
             repoFullName: project.repoFullName,
             branch,
             commitSha: head_commit.id,
@@ -144,7 +151,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         pollBuildStatus(
             deployment.id,
             project.id,
-            project.slug,
+            projectSlug,
             buildId,
             project.region,
             project.webhookUrl,
@@ -153,7 +160,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             project.emailNotifications
         );
 
-        console.log(`Started production deployment for ${project.name}: ${deployment.id}`);
+        console.log(`Started ${deploymentType} deployment for ${project.name}: ${deployment.id}`);
     } catch (error) {
         console.error('Failed to start build:', error);
         await updateDeployment(deployment.id, {
@@ -182,7 +189,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         return;
     }
 
-    const previewServiceName = getPreviewServiceName(project.slug, pull_request.number);
+    // const previewServiceName = getPreviewServiceName(project.slug, pull_request.number);
 
     // Handle PR closed - cleanup preview deployment
     if (action === 'closed') {

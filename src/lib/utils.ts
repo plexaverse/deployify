@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 export function slugify(text: string): string {
     return text
         .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
+        .replace(/[^\w\s-]/g, '-')
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '');
 }
@@ -92,8 +92,10 @@ export function getStatusColor(status: string): string {
 }
 
 export function shouldAutoDeploy(project: Project, branch: string): boolean {
+    if (branch === project.defaultBranch) return true;
+
     if (project.autodeployBranches && project.autodeployBranches.length > 0) {
         return project.autodeployBranches.includes(branch);
     }
-    return branch === project.defaultBranch;
+    return false;
 }

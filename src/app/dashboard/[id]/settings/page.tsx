@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -10,6 +10,7 @@ import { EnvVariablesSection } from '@/components/EnvVariablesSection';
 import { DomainsSection } from '@/components/DomainsSection';
 import { RegionSettings } from '@/components/RegionSettings';
 import { ResourceSettings } from '@/components/ResourceSettings';
+import { BranchDeploymentsSettings } from '@/components/BranchDeploymentsSettings';
 
 export default function ProjectSettingsPage() {
     const params = useParams();
@@ -31,7 +32,7 @@ export default function ProjectSettingsPage() {
     const [savingWebhook, setSavingWebhook] = useState(false);
     const [savingSecurity, setSavingSecurity] = useState(false);
 
-    const fetchProject = async () => {
+    const fetchProject = useCallback(async () => {
         try {
             const response = await fetch(`/api/projects/${params.id}`);
 
@@ -68,13 +69,13 @@ export default function ProjectSettingsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [params.id, router]);
 
     useEffect(() => {
         if (params.id) {
             fetchProject();
         }
-    }, [params.id, router]);
+    }, [params.id, fetchProject]);
 
     const handleDeleteProject = async () => {
         if (!project) return;
@@ -279,6 +280,13 @@ export default function ProjectSettingsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Branch Deployments */}
+            <BranchDeploymentsSettings
+                projectId={project.id}
+                initialBranches={project.autodeployBranches || []}
+                onUpdate={fetchProject}
+            />
 
             {/* Notifications */}
             <div className="card mt-8">

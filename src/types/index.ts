@@ -125,7 +125,7 @@ export type DeploymentStatus =
     | 'error'
     | 'cancelled';
 
-export type DeploymentType = 'production' | 'preview';
+export type DeploymentType = 'production' | 'preview' | 'branch';
 
 // Deployment record
 export interface LighthouseMetrics {
