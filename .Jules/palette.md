@@ -29,3 +29,7 @@
 ## 2026-02-22 - [Subtle Decorative Semantics and Expectation Management]
 **Learning:** Purely decorative elements like pulse glows or stylistic step numbers (e.g., "01") can clutter the experience for screen reader users if not properly hidden. Additionally, providing immediate visual and textual feedback (via toasts) for inactive "Coming Soon" features prevents user frustration and manages expectations effectively.
 **Action:** Always apply `aria-hidden="true"` to decorative stylistic markers and use informative toast notifications for mock features to acknowledge user interaction.
+
+## 2026-02-24 - [Search Input Interaction and Focus Feedback]
+**Learning:** Search inputs in modal contexts (like a Command Palette) often lack quick-reset mechanisms and clear focus states for accompanying icons. Adding a "Clear" button and using `group-focus-within` on the container to highlight the search icon significantly improves the visual and functional clarity of the interaction.
+**Action:** Implement clear buttons for all search inputs and use `group-focus-within` to provide holistic focus feedback for the entire search component.

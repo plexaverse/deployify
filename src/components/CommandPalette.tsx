@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Rocket } from 'lucide-react';
+import { Search, Rocket, X } from 'lucide-react';
 import { Project } from '@/types';
 
 export function CommandPalette() {
@@ -54,17 +54,27 @@ export function CommandPalette() {
          className="w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
          onClick={e => e.stopPropagation()}
        >
-          <div className="flex items-center border-b border-white/10 px-4">
-            <Search className="w-5 h-5 text-neutral-500" />
+          <div className="flex items-center border-b border-white/10 px-4 group">
+            <Search className="w-5 h-5 text-neutral-500 group-focus-within:text-white transition-colors" />
             <input
                ref={inputRef}
                className="flex-1 bg-transparent border-0 p-4 text-white placeholder:text-neutral-500 focus:ring-0 focus:outline-none"
                placeholder="Search projects..."
+               aria-label="Search projects"
                value={query}
                onChange={e => setQuery(e.target.value)}
             />
-            <div className="flex items-center gap-1">
-               <span className="text-xs text-neutral-500 font-mono border border-white/10 rounded px-1.5 py-0.5">ESC</span>
+            <div className="flex items-center gap-2">
+               {query && (
+                 <button
+                   onClick={() => { setQuery(''); inputRef.current?.focus(); }}
+                   className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-white transition-all active:scale-95"
+                   aria-label="Clear search"
+                 >
+                   <X className="w-4 h-4" />
+                 </button>
+               )}
+               <span className="text-xs text-neutral-500 font-mono border border-white/10 rounded px-1.5 py-0.5 select-none">ESC</span>
             </div>
           </div>
           <div className="max-h-[60vh] overflow-y-auto p-2">
