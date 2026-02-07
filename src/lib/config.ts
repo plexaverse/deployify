@@ -18,6 +18,7 @@ export const config = {
     // GCP Configuration
     gcp: {
         projectId: process.env.GCP_PROJECT_ID!,
+        projectNumber: process.env.GCP_PROJECT_NUMBER || '853384839522', // Fallback to provided default if not set
         region: process.env.GCP_REGION || 'asia-south1',
         artifactRegistry: process.env.GCP_ARTIFACT_REGISTRY || 'deployify-images',
     },

@@ -70,7 +70,18 @@ export async function GET(
     const fullPath = searchParams ? `${pathStr}?${searchParams}` : pathStr;
 
     // 1. Resolve Project
-    const project = await getProjectBySlugGlobal(slug);
+    let project = await getProjectBySlugGlobal(slug);
+
+    // Fallback: If slug is like "my-app-853384839522", try "my-app"
+    if (!project && slug.includes('-')) {
+        const parts = slug.split('-');
+        const potentialNumber = parts[parts.length - 1];
+        if (/^\d{10,}$/.test(potentialNumber)) {
+            const strippedSlug = parts.slice(0, -1).join('-');
+            console.log(`[Proxy] Slug not found: ${slug}, trying stripped version: ${strippedSlug}`);
+            project = await getProjectBySlugGlobal(strippedSlug);
+        }
+    }
 
     if (!project || !project.productionUrl) {
         return NextResponse.json({ error: `Project not found or not deployed: ${slug}` }, { status: 404 });

@@ -87,9 +87,11 @@ export async function pollBuildStatus(
                     buildDurationMs = end - start;
                 }
 
+                const effectiveUrl = serviceUrl || `https://${serviceName}-${config.gcp.projectNumber}.${region}.run.app`;
+
                 await updateDeployment(deploymentId, {
                     status: 'ready',
-                    url: serviceUrl || `https://${serviceName}-853384839522.${region}.run.app`,
+                    url: effectiveUrl,
                     readyAt: new Date(),
                     cloudRunRevision: latestRevision,
                     buildDurationMs,
@@ -98,14 +100,14 @@ export async function pollBuildStatus(
                 // Track deployment usage
                 await trackDeployment(projectId, buildDurationMs);
 
-                if (serviceUrl) {
-                    await updateProject(projectId, {
-                        productionUrl: serviceUrl,
-                    });
+                await updateProject(projectId, {
+                    productionUrl: effectiveUrl,
+                });
 
-                    // Run Lighthouse audit
+                // Run Lighthouse audit if possible
+                if (effectiveUrl) {
                     try {
-                        const metrics = await runLighthouseAudit(serviceUrl);
+                        const metrics = await runLighthouseAudit(effectiveUrl);
                         await updateDeployment(deploymentId, {
                             performanceMetrics: metrics
                         });
@@ -227,7 +229,7 @@ export async function simulateDeployment(
     setTimeout(async () => {
         try {
             // Use project region or fall back to default
-            const mockUrl = `https://dfy-${projectSlug}-853384839522.${config.gcp.region}.run.app`;
+            const mockUrl = `https://dfy-${projectSlug}-${config.gcp.projectNumber}.${config.gcp.region}.run.app`;
 
             await updateDeployment(deploymentId, {
                 status: 'ready',
