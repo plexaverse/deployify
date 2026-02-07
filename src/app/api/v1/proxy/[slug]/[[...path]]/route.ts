@@ -88,7 +88,12 @@ export async function GET(
     }
 
     // 2. Fetch from Target
-    const targetUrl = `${project.productionUrl}${fullPath}`;
+    const baseUrl = project.productionUrl.endsWith('/')
+        ? project.productionUrl.slice(0, -1)
+        : project.productionUrl;
+    const targetUrl = `${baseUrl}${fullPath}`;
+
+    console.log(`[Proxy] Forwarding to: ${targetUrl}`);
 
     try {
         const targetResponse = await fetch(targetUrl, {
@@ -98,15 +103,27 @@ export async function GET(
                 'Accept': req.headers.get('Accept') || '',
                 'Accept-Language': req.headers.get('Accept-Language') || '',
                 'X-Forwarded-For': req.headers.get('x-forwarded-for') || '',
+                'X-Forwarded-Host': req.headers.get('host') || '',
+                'X-Forwarded-Proto': req.headers.get('x-forwarded-proto') || 'https',
+                'Cookie': req.headers.get('cookie') || '',
+                'Referer': req.headers.get('referer') || '',
             },
         });
 
         const contentType = targetResponse.headers.get('content-type') || '';
+        const responseHeaders = new Headers();
+
+        // Copy allowed headers from target response
+        const skipHeaders = ['content-encoding', 'content-length', 'transfer-encoding', 'connection', 'x-frame-options'];
+        targetResponse.headers.forEach((value, key) => {
+            if (!skipHeaders.includes(key.toLowerCase())) {
+                responseHeaders.set(key, value);
+            }
+        });
 
         // 3. Inject SDK and Log Edge Event if HTML
         if (contentType.includes('text/html')) {
             // Log analytics at the edge (server-side)
-            // We do this asynchronously to not block the response
             logEdgeEvent(project.id, req, pathStr).catch(() => { });
 
             let html = await targetResponse.text();
@@ -123,12 +140,13 @@ export async function GET(
                 }
             }
 
+            // Ensure content type and prevent undesirable caching for HTML
+            responseHeaders.set('Content-Type', 'text/html');
+            responseHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+
             return new NextResponse(html, {
                 status: targetResponse.status,
-                headers: {
-                    'Content-Type': 'text/html',
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                },
+                headers: responseHeaders,
             });
         }
 
@@ -136,10 +154,7 @@ export async function GET(
         const body = await targetResponse.arrayBuffer();
         return new NextResponse(body, {
             status: targetResponse.status,
-            headers: {
-                'Content-Type': contentType,
-                'Cache-Control': targetResponse.headers.get('cache-control') || 'public, max-age=3600',
-            },
+            headers: responseHeaders,
         });
 
     } catch (error: any) {
@@ -161,18 +176,38 @@ export async function POST(
     if (!project || !project.productionUrl) return new NextResponse('Not found', { status: 404 });
 
     const pathStr = path ? `/${path.join('/')}` : '/';
-    const targetUrl = `${project.productionUrl}${pathStr}`;
+    const baseUrl = project.productionUrl.endsWith('/')
+        ? project.productionUrl.slice(0, -1)
+        : project.productionUrl;
+    const targetUrl = `${baseUrl}${pathStr}`;
 
-    const body = await req.json();
+    console.log(`[Proxy POST] Forwarding to: ${targetUrl}`);
+
     const res = await fetch(targetUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': req.headers.get('content-type') || 'application/json',
+            'User-Agent': req.headers.get('user-agent') || '',
+            'X-Forwarded-For': req.headers.get('x-forwarded-for') || '',
+            'X-Forwarded-Host': req.headers.get('host') || '',
+            'X-Forwarded-Proto': req.headers.get('x-forwarded-proto') || 'https',
+            'Cookie': req.headers.get('cookie') || '',
+            'Referer': req.headers.get('referer') || '',
+        },
+        body: await req.text(), // Use text() to avoid double parsing/stringifying
+    });
+
+    const responseHeaders = new Headers();
+    const skipHeaders = ['content-encoding', 'content-length', 'transfer-encoding', 'connection'];
+    res.headers.forEach((value, key) => {
+        if (!skipHeaders.includes(key.toLowerCase())) {
+            responseHeaders.set(key, value);
+        }
     });
 
     const data = await res.arrayBuffer();
     return new NextResponse(data, {
         status: res.status,
-        headers: { 'Content-Type': res.headers.get('content-type') || 'application/json' }
+        headers: responseHeaders,
     });
 }
