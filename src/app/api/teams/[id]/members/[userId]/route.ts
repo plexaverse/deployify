@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getTeamMembership, deleteTeamMembership, listTeamMembers, updateTeamMembership } from '@/lib/db';
 import { securityHeaders } from '@/lib/security';
+import { logAuditEvent } from '@/lib/audit';
 
 interface RouteParams {
     params: Promise<{ id: string; userId: string }>;
@@ -61,6 +62,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         }
 
         await deleteTeamMembership(targetMembership.id);
+
+        await logAuditEvent(teamId, session.user.id, 'member.removed', {
+            removedUserId: targetUserId
+        });
 
         return NextResponse.json(
             { success: true },
@@ -146,6 +151,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         }
 
         await updateTeamMembership(targetMembership.id, { role });
+
+        await logAuditEvent(teamId, session.user.id, 'member.role_updated', {
+            targetUserId: targetUserId,
+            oldRole: targetMembership.role,
+            newRole: role
+        });
 
         return NextResponse.json(
             { success: true, role },

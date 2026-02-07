@@ -57,6 +57,7 @@ deployify/
 │   │   └── DashboardSidebar.tsx # Responsive sidebar
 │   ├── lib/
 │   │   ├── auth.ts             # JWT auth utilities
+│   │   ├── audit.ts            # Audit logging utilities
 │   │   ├── config.ts           # Environment config validation
 │   │   ├── db.ts               # Firestore CRUD operations
 │   │   ├── deployment.ts       # Deployment polling & notification logic
@@ -153,6 +154,10 @@ Domain        // Custom domain (status: pending/active/error)
 - Console logging for debugging
 - User-facing error states in UI components
 
+### 6. Audit Logging
+- Use `logAuditEvent` in `src/lib/audit.ts` for sensitive actions
+- Frontend retrieves logs via `/api/teams/[id]/audit`
+
 ---
 
 ## 🛡️ Security Features
@@ -224,6 +229,7 @@ Domain        // Custom domain (status: pending/active/error)
 | Add project setting | `src/components/[Name]Section.tsx` |
 | Modify auth | `src/lib/auth.ts`, `src/app/api/auth/` |
 | Add database operation | `src/lib/db.ts` |
+| Log sensitive action | `src/lib/audit.ts` |
 | Modify deployment | `src/lib/gcp/cloudbuild.ts` |
 | Change styles | `src/app/globals.css` |
 | Add type | `src/types/index.ts` |

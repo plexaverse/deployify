@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getTeamMembership, deleteInvite, getInviteById } from '@/lib/db';
 import { securityHeaders } from '@/lib/security';
+import { logAuditEvent } from '@/lib/audit';
 
 interface RouteParams {
     params: Promise<{ id: string; inviteId: string }>;
@@ -45,6 +46,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         }
 
         await deleteInvite(inviteId);
+
+        await logAuditEvent(teamId, session.user.id, 'invite.revoked', {
+            inviteId: inviteId,
+            revokedEmail: invite.email
+        });
 
         return NextResponse.json(
             { success: true },

@@ -5,6 +5,7 @@ import { sendEmail } from '@/lib/email/client';
 import { teamInviteEmail } from '@/lib/email/templates';
 import { config } from '@/lib/config';
 import { securityHeaders } from '@/lib/security';
+import { logAuditEvent } from '@/lib/audit';
 import { TeamRole } from '@/types';
 
 interface RouteParams {
@@ -62,6 +63,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         const token = crypto.randomUUID();
         const invite = await createInvite(id, email, role as TeamRole, session.user.id, token);
+
+        await logAuditEvent(id, session.user.id, 'member.invited', {
+            invitedEmail: email,
+            role: role,
+            inviteId: invite.id
+        });
 
         const inviteUrl = `${config.appUrl}/join?token=${token}`;
         const { subject, html } = teamInviteEmail(team.name, inviteUrl);

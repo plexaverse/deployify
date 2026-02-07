@@ -286,3 +286,12 @@ export interface Usage {
     totalBuildMinutes: number;
     lastUpdated: Date;
 }
+
+export interface AuditEvent {
+    id: string;
+    teamId: string | null;
+    userId: string;
+    action: string;
+    details: Record<string, any>;
+    createdAt: Date;
+}

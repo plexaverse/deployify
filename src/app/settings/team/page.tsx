@@ -7,29 +7,66 @@ import {
     Shield,
     Trash2,
     Mail,
-    Plus,
-    Clock,
-    CheckCircle2,
     AlertCircle,
-    Search,
     History
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/moving-border';
-import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
+import type { TeamMembership, TeamInvite, TeamRole, AuditEvent } from '@/types';
 
-// Mock Audit Log Data
-const MOCK_AUDIT_LOGS = [
-    { id: 1, action: 'Member Invited', details: 'Alice invited Bob to the team', user: 'Alice', time: '2 hours ago' },
-    { id: 2, action: 'Role Updated', details: 'Charlie promoted to Admin', user: 'Alice', time: '1 day ago' },
-    { id: 3, action: 'Project Created', details: 'New project "Frontend V2" created', user: 'Bob', time: '2 days ago' },
-    { id: 4, action: 'Deployment', details: 'Production deployment for "API Service"', user: 'Charlie', time: '3 days ago' },
-];
+function timeAgo(date: Date | string) {
+    const d = new Date(date);
+    const seconds = Math.floor((new Date().getTime() - d.getTime()) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " years ago";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " months ago";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " days ago";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " hours ago";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " minutes ago";
+    return Math.floor(seconds) + " seconds ago";
+}
+
+function formatAction(action: string) {
+    switch (action) {
+        case 'member.invited': return 'Member Invited';
+        case 'member.role_updated': return 'Role Updated';
+        case 'member.removed': return 'Member Removed';
+        case 'invite.revoked': return 'Invite Revoked';
+        case 'team.created': return 'Team Created';
+        case 'deployment.created': return 'Deployment Triggered';
+        default: return action;
+    }
+}
+
+function formatDetails(action: string, details: Record<string, any>) {
+    if (!details) return '';
+    switch (action) {
+        case 'member.invited':
+            return `Invited ${details.invitedEmail} as ${details.role}`;
+        case 'member.role_updated':
+            return `Updated role for user (ID: ${details.targetUserId?.substring(0, 8)}...) from ${details.oldRole} to ${details.newRole}`;
+        case 'member.removed':
+            return `Removed user (ID: ${details.removedUserId?.substring(0, 8)}...)`;
+        case 'invite.revoked':
+            return `Revoked invite for ${details.revokedEmail || 'user'}`;
+        case 'team.created':
+            return `Created team ${details.teamName}`;
+        case 'deployment.created':
+            return `Deployed branch ${details.gitBranch}`;
+        default:
+            return JSON.stringify(details);
+    }
+}
 
 export default function TeamSettingsPage() {
     const { activeTeam, isLoading: teamLoading } = useTeam();
     const [members, setMembers] = useState<(TeamMembership & { user: any })[]>([]);
     const [invites, setInvites] = useState<TeamInvite[]>([]);
+    const [auditLogs, setAuditLogs] = useState<(AuditEvent & { user: { name: string; email: string } | null })[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteRole, setInviteRole] = useState<TeamRole>('member');
@@ -42,9 +79,10 @@ export default function TeamSettingsPage() {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const [membersRes, invitesRes] = await Promise.all([
+                const [membersRes, invitesRes, auditRes] = await Promise.all([
                     fetch(`/api/teams/${activeTeam.id}/members`),
-                    fetch(`/api/teams/${activeTeam.id}/invites`)
+                    fetch(`/api/teams/${activeTeam.id}/invites`),
+                    fetch(`/api/teams/${activeTeam.id}/audit`)
                 ]);
 
                 if (membersRes.ok) {
@@ -55,6 +93,11 @@ export default function TeamSettingsPage() {
                 if (invitesRes.ok) {
                     const data = await invitesRes.json();
                     setInvites(data.invites);
+                }
+
+                if (auditRes.ok) {
+                    const data = await auditRes.json();
+                    setAuditLogs(data.logs);
                 }
             } catch (err) {
                 console.error('Failed to fetch team data', err);
@@ -86,11 +129,19 @@ export default function TeamSettingsPage() {
                 throw new Error(data.error || 'Failed to send invite');
             }
 
-            // Refresh invites
-            const invitesRes = await fetch(`/api/teams/${activeTeam.id}/invites`);
+            // Refresh invites and audit logs
+            const [invitesRes, auditRes] = await Promise.all([
+                fetch(`/api/teams/${activeTeam.id}/invites`),
+                fetch(`/api/teams/${activeTeam.id}/audit`)
+            ]);
+
             if (invitesRes.ok) {
                 const invitesData = await invitesRes.json();
                 setInvites(invitesData.invites);
+            }
+            if (auditRes.ok) {
+                const auditData = await auditRes.json();
+                setAuditLogs(auditData.logs);
             }
 
             setInviteEmail('');
@@ -118,6 +169,13 @@ export default function TeamSettingsPage() {
             }
 
             setMembers(members.map(m => m.userId === userId ? { ...m, role: newRole } : m));
+
+            // Refresh audit logs
+            const auditRes = await fetch(`/api/teams/${activeTeam.id}/audit`);
+            if (auditRes.ok) {
+                const auditData = await auditRes.json();
+                setAuditLogs(auditData.logs);
+            }
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to update role');
         }
@@ -137,6 +195,13 @@ export default function TeamSettingsPage() {
             }
 
             setMembers(members.filter(m => m.userId !== userId));
+
+            // Refresh audit logs
+            const auditRes = await fetch(`/api/teams/${activeTeam.id}/audit`);
+            if (auditRes.ok) {
+                const auditData = await auditRes.json();
+                setAuditLogs(auditData.logs);
+            }
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to remove member');
         }
@@ -156,6 +221,13 @@ export default function TeamSettingsPage() {
             }
 
             setInvites(invites.filter(i => i.id !== inviteId));
+
+            // Refresh audit logs
+            const auditRes = await fetch(`/api/teams/${activeTeam.id}/audit`);
+            if (auditRes.ok) {
+                const auditData = await auditRes.json();
+                setAuditLogs(auditData.logs);
+            }
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to revoke invite');
         }
@@ -271,7 +343,7 @@ export default function TeamSettingsPage() {
                             </div>
                         </div>
 
-                        {isLoading ? (
+                        {isLoading && members.length === 0 ? (
                             <div className="divide-y divide-[var(--border)]">
                                 {[...Array(3)].map((_, i) => (
                                     <div key={i} className="p-4 flex items-center justify-between">
@@ -347,7 +419,6 @@ export default function TeamSettingsPage() {
                                     </div>
                                 ))}
 
-                                {/* Pending Invites within the same list or separate? Let's append them */}
                                 {invites.map((invite) => (
                                     <div key={invite.id} className="p-4 flex items-center justify-between bg-[var(--muted)]/5 hover:bg-[var(--card-hover)] transition-colors">
                                         <div className="flex items-center gap-4 opacity-75">
@@ -399,32 +470,40 @@ export default function TeamSettingsPage() {
                         </h3>
 
                         <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--border)]">
-                            {MOCK_AUDIT_LOGS.map((log) => (
-                                <div key={log.id} className="relative pl-8">
-                                    <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-sm font-medium text-[var(--foreground)]">
-                                            {log.action}
-                                        </span>
-                                        <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                                            {log.details}
-                                        </span>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
-                                                {log.user}
+                            {isLoading && auditLogs.length === 0 ? (
+                                [...Array(5)].map((_, i) => (
+                                    <div key={i} className="relative pl-8 mb-4">
+                                         <Skeleton className="h-4 w-32 mb-1" />
+                                         <Skeleton className="h-3 w-48 mb-1" />
+                                         <Skeleton className="h-3 w-24" />
+                                    </div>
+                                ))
+                            ) : auditLogs.length === 0 ? (
+                                <p className="text-sm text-[var(--muted-foreground)] pl-8">No audit logs found.</p>
+                            ) : (
+                                auditLogs.map((log) => (
+                                    <div key={log.id} className="relative pl-8">
+                                        <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-medium text-[var(--foreground)]">
+                                                {formatAction(log.action)}
                                             </span>
-                                            <span className="text-[10px] text-[var(--muted-foreground)]">
-                                                {log.time}
+                                            <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                                                {formatDetails(log.action, log.details)}
                                             </span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
+                                                    {log.user?.name || log.user?.email || 'Unknown User'}
+                                                </span>
+                                                <span className="text-[10px] text-[var(--muted-foreground)]">
+                                                    {timeAgo(log.createdAt)}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
-
-                        <button className="w-full mt-8 btn btn-secondary text-xs">
-                            View Full History
-                        </button>
                     </div>
                 </div>
             </div>
