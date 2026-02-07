@@ -9,61 +9,7 @@
   · serverActions
 
 ✓ Starting...
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
-
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-✓ Ready in 1849ms
-○ Compiling /settings/team ...
- GET /settings/team 200 in 8.0s (compile: 7.2s, proxy.ts: 118ms, render: 686ms)
-Error listing teams: Error: Unable to detect a Project Id in the current environment.
-To learn more about authentication and Google APIs, visit:
-https://cloud.google.com/docs/authentication/getting-started
-    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at listTeamsForUser (src/lib/db.ts:321:10)
-    at GET (src/app/api/teams/route.ts:17:45)
-  319 |         .collection(Collections.TEAM_MEMBERSHIPS)
-  320 |         .where('userId', '==', userId)
-> 321 |         .get();
-      |          ^
-  322 |
-  323 |     const teamIds = membershipsSnapshot.docs.map(doc => doc.data().teamId);
-  324 |
- GET /api/teams 500 in 4.0s (compile: 1488ms, proxy.ts: 16ms, render: 2.5s)
- GET /dashboard/new/import?repo=test/repo 200 in 1726ms (compile: 1579ms, proxy.ts: 7ms, render: 140ms)
-Error listing teams: Error: Unable to detect a Project Id in the current environment.
-To learn more about authentication and Google APIs, visit:
-https://cloud.google.com/docs/authentication/getting-started
-    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at listTeamsForUser (src/lib/db.ts:321:10)
-    at GET (src/app/api/teams/route.ts:17:45)
-    at listTeamsForUser (src/lib/db.ts:321:10)
-    at GET (src/app/api/teams/route.ts:17:45)
-  319 |         .collection(Collections.TEAM_MEMBERSHIPS)
-  320 |         .where('userId', '==', userId)
-> 321 |         .get();
-      |          ^
-  322 |
-  323 |     const teamIds = membershipsSnapshot.docs.map(doc => doc.data().teamId);
-  324 |
- GET /api/teams 500 in 90ms (compile: 4ms, proxy.ts: 5ms, render: 81ms)
- GET /dashboard/new/import?repo=test/repo 200 in 135ms (compile: 8ms, proxy.ts: 8ms, render: 118ms)
-Error listing teams: Error: Unable to detect a Project Id in the current environment.
-To learn more about authentication and Google APIs, visit:
-https://cloud.google.com/docs/authentication/getting-started
-    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at listTeamsForUser (src/lib/db.ts:321:10)
-    at GET (src/app/api/teams/route.ts:17:45)
-    ... collapsed 4 duplicate lines matching above 2 lines 2 times...
-  319 |         .collection(Collections.TEAM_MEMBERSHIPS)
-  320 |         .where('userId', '==', userId)
-> 321 |         .get();
-      |          ^
-  322 |
-  323 |     const teamIds = membershipsSnapshot.docs.map(doc => doc.data().teamId);
-  324 |
- GET /api/teams 500 in 142ms (compile: 3ms, proxy.ts: 6ms, render: 132ms)
-✓ Compiled in 53ms
-[?25h
+✓ Ready in 1496ms
+○ Compiling /edge-debug ...
+ GET /edge-debug 200 in 4.7s (compile: 4.3s, proxy.ts: 100ms, render: 318ms)

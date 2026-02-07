@@ -52,10 +52,6 @@ export function SettingsClient({ project: initialProject, user }: SettingsClient
             if (response.ok) {
                 const data = await response.json();
                 setProject(data.project);
-                // Update local state if needed, but usually we want to keep user input if they are editing
-                // For now, we only update if not editing? No, let's just update refs or something.
-                // Actually, standard practice: if user is editing, don't overwrite.
-                // But for "refetch", usually implies "reload from server".
             }
 
             // Fetch env variables
@@ -313,7 +309,7 @@ export function SettingsClient({ project: initialProject, user }: SettingsClient
                                     onClick={handleSaveBuildSettings}
                                     disabled={savingBuild}
                                     borderRadius="0.5rem"
-                                    className="bg-zinc-900 text-white dark:bg-zinc-900 dark:text-white border-zinc-800"
+                                    className="bg-primary text-primary-foreground border-zinc-800"
                                     containerClassName="w-32 h-10"
                                 >
                                     {savingBuild ? (
@@ -350,16 +346,16 @@ export function SettingsClient({ project: initialProject, user }: SettingsClient
                     <section className="card">
                         <h2 className="text-lg font-semibold mb-4">Notifications</h2>
                         <div className="space-y-6">
-                            <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)]">
+                            <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:border-[var(--border-hover)] transition-colors">
                                 <input
                                     id="email-notifications"
                                     type="checkbox"
                                     checked={emailNotifications}
                                     onChange={(e) => setEmailNotifications(e.target.checked)}
-                                    className="mt-1 w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                                    className="mt-1 w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-[var(--background)]"
                                 />
                                 <div>
-                                    <label htmlFor="email-notifications" className="block text-sm font-medium">
+                                    <label htmlFor="email-notifications" className="block text-sm font-medium cursor-pointer">
                                         Email Notifications
                                     </label>
                                     <p className="text-xs text-[var(--muted-foreground)]">
@@ -384,20 +380,23 @@ export function SettingsClient({ project: initialProject, user }: SettingsClient
                             </div>
 
                             <div className="flex justify-end pt-4">
-                                <button
+                                <Button
+                                    as="button"
                                     onClick={handleSaveNotifications}
                                     disabled={savingNotifications}
-                                    className="btn btn-primary"
+                                    borderRadius="0.5rem"
+                                    className="bg-primary text-primary-foreground border-zinc-800"
+                                    containerClassName="w-32 h-10"
                                 >
                                     {savingNotifications ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
                                             Saving...
                                         </>
                                     ) : (
                                         'Save'
                                     )}
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </section>
@@ -433,16 +432,16 @@ export function SettingsClient({ project: initialProject, user }: SettingsClient
                     <div className="card">
                         <h2 className="text-lg font-semibold mb-4">Web Application Firewall</h2>
                         <div className="space-y-4">
-                            <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)]">
+                            <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:border-[var(--border-hover)] transition-colors">
                                 <input
                                     id="cloud-armor"
                                     type="checkbox"
                                     checked={cloudArmorEnabled}
                                     onChange={(e) => setCloudArmorEnabled(e.target.checked)}
-                                    className="mt-1 w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                                    className="mt-1 w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-[var(--background)]"
                                 />
                                 <div>
-                                    <label htmlFor="cloud-armor" className="block text-sm font-medium">
+                                    <label htmlFor="cloud-armor" className="block text-sm font-medium cursor-pointer">
                                         Cloud Armor WAF
                                     </label>
                                     <p className="text-xs text-[var(--muted-foreground)]">
@@ -457,7 +456,7 @@ export function SettingsClient({ project: initialProject, user }: SettingsClient
                                     onClick={handleSaveSecurity}
                                     disabled={savingSecurity}
                                     borderRadius="0.5rem"
-                                    className="bg-zinc-900 text-white dark:bg-zinc-900 dark:text-white border-zinc-800"
+                                    className="bg-primary text-primary-foreground border-zinc-800"
                                     containerClassName="w-32 h-10"
                                 >
                                     {savingSecurity ? (
@@ -473,8 +472,8 @@ export function SettingsClient({ project: initialProject, user }: SettingsClient
                         </div>
                     </div>
 
-                    <div className="card border-red-500/30 bg-red-500/5">
-                        <h2 className="text-lg font-semibold mb-4 text-red-500 flex items-center gap-2">
+                    <div className="card border-[var(--error)]/30 bg-[var(--error-bg)]">
+                        <h2 className="text-lg font-semibold mb-4 text-[var(--error)] flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5" />
                             Danger Zone
                         </h2>
@@ -490,7 +489,7 @@ export function SettingsClient({ project: initialProject, user }: SettingsClient
                                 onClick={handleDeleteProject}
                                 disabled={deletingProject}
                                 borderRadius="0.5rem"
-                                className="bg-red-500 text-white border-red-600 hover:bg-red-600"
+                                className="bg-[var(--error)] text-white border-[var(--error)] hover:bg-red-600"
                                 containerClassName="w-40 h-10"
                             >
                                 {deletingProject ? (

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Zap, Server, Wifi, Check, Loader2, FileText } from 'lucide-react';
 import Link from 'next/link';
 import Script from 'next/script';
+import { Button } from '@/components/ui/moving-border';
 
 declare global {
     interface Window {
@@ -217,12 +218,12 @@ export default function BillingPage() {
                 </div>
 
                 {/* Current Plan Card */}
-                <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="card flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
                         <h2 className="text-lg font-medium text-[var(--muted-foreground)] mb-1">Current Plan</h2>
                         <div className="text-4xl font-bold flex items-center gap-3">
                             {tier.name}
-                            <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full border border-primary/30 uppercase tracking-wider font-semibold">
+                            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20 uppercase tracking-wider font-semibold">
                                 Active
                             </span>
                         </div>
@@ -231,12 +232,15 @@ export default function BillingPage() {
                         </p>
                     </div>
                     {tier.id !== 'enterprise' && (
-                        <button
+                        <Button
+                            as="button"
                             onClick={scrollToPlans}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-lg font-medium transition-colors shadow-lg shadow-primary/20"
+                            borderRadius="0.5rem"
+                            className="bg-primary text-primary-foreground border-zinc-800"
+                            containerClassName="w-40 h-12"
                         >
                             Upgrade Plan
-                        </button>
+                        </Button>
                     )}
                 </div>
 
@@ -246,7 +250,7 @@ export default function BillingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {/* Deployments */}
                         <UsageGauge
-                            icon={<Zap className="w-5 h-5 text-yellow-500" />}
+                            icon={<Zap className="w-5 h-5 text-[var(--warning)]" />}
                             title="Deployments"
                             used={usage.deployments}
                             limit={limits.deployments}
@@ -256,7 +260,7 @@ export default function BillingPage() {
 
                         {/* Build Minutes */}
                         <UsageGauge
-                            icon={<Server className="w-5 h-5 text-blue-500" />}
+                            icon={<Server className="w-5 h-5 text-[var(--info)]" />}
                             title="Build Minutes"
                             used={usage.buildMinutes}
                             limit={limits.buildMinutes}
@@ -266,7 +270,7 @@ export default function BillingPage() {
 
                         {/* Bandwidth */}
                         <UsageGauge
-                            icon={<Wifi className="w-5 h-5 text-green-500" />}
+                            icon={<Wifi className="w-5 h-5 text-[var(--success)]" />}
                             title="Bandwidth"
                             used={usage.bandwidth}
                             limit={limits.bandwidth}
@@ -279,9 +283,9 @@ export default function BillingPage() {
                 {/* Invoice History */}
                 <section>
                     <h2 className="text-xl font-semibold mb-6">Invoice History</h2>
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden">
+                    <div className="card p-0 overflow-hidden">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-[var(--muted)]/50 border-b border-[var(--border)]">
+                            <thead className="bg-[var(--muted)]/10 border-b border-[var(--border)]">
                                 <tr>
                                     <th className="p-4 font-medium text-[var(--muted-foreground)]">Invoice #</th>
                                     <th className="p-4 font-medium text-[var(--muted-foreground)]">Date</th>
@@ -299,15 +303,15 @@ export default function BillingPage() {
                                     </tr>
                                 ) : (
                                     invoices.map((invoice) => (
-                                        <tr key={invoice.id} className="hover:bg-[var(--muted)]/20 transition-colors">
+                                        <tr key={invoice.id} className="hover:bg-[var(--muted)]/5 transition-colors">
                                             <td className="p-4 font-medium">{invoice.invoiceNumber}</td>
                                             <td className="p-4">{new Date(invoice.date).toLocaleDateString()}</td>
                                             <td className="p-4">₹{invoice.total.toFixed(2)}</td>
                                             <td className="p-4">
                                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize ${
                                                     invoice.status === 'paid'
-                                                        ? 'bg-green-500/10 text-green-500'
-                                                        : 'bg-yellow-500/10 text-yellow-500'
+                                                        ? 'bg-[var(--success-bg)] text-[var(--success)]'
+                                                        : 'bg-[var(--warning-bg)] text-[var(--warning)]'
                                                 }`}>
                                                     {invoice.status}
                                                 </span>
@@ -337,14 +341,14 @@ export default function BillingPage() {
                         {PLANS.map((plan) => (
                             <div
                                 key={plan.id}
-                                className={`bg-[var(--card)] border rounded-xl p-6 flex flex-col ${
+                                className={`card flex flex-col relative ${
                                     plan.id === tier.id
-                                        ? 'border-primary ring-1 ring-primary relative overflow-hidden bg-primary/5'
-                                        : 'border-[var(--border)]'
+                                        ? 'border-primary ring-1 ring-primary bg-primary/5'
+                                        : ''
                                 }`}
                             >
                                 {plan.id === tier.id && (
-                                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-bl-lg font-medium">
+                                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-bl-lg rounded-tr-lg font-medium">
                                         Current
                                     </div>
                                 )}
@@ -369,20 +373,32 @@ export default function BillingPage() {
                                     ))}
                                 </div>
 
-                                <button
-                                    onClick={() => handleUpgrade(plan.id)}
-                                    disabled={plan.id === tier.id || plan.id === 'free' || upgrading !== null}
-                                    className={`w-full py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-                                        plan.id === tier.id
-                                            ? 'bg-[var(--muted)] text-[var(--muted-foreground)] cursor-default'
-                                            : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                                    }`}
-                                >
-                                    {upgrading === plan.id && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {plan.id === tier.id
-                                        ? 'Current Plan'
-                                        : 'Upgrade'}
-                                </button>
+                                {plan.id === tier.id ? (
+                                     <button
+                                        disabled
+                                        className="w-full py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-[var(--muted)]/20 text-[var(--muted-foreground)] cursor-default"
+                                    >
+                                        Current Plan
+                                    </button>
+                                ) : (
+                                    <Button
+                                        as="button"
+                                        onClick={() => handleUpgrade(plan.id)}
+                                        disabled={plan.id === 'free' || upgrading !== null}
+                                        borderRadius="0.5rem"
+                                        className="bg-primary text-primary-foreground border-zinc-800"
+                                        containerClassName="w-full h-12"
+                                    >
+                                        {upgrading === plan.id ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                Processing...
+                                            </>
+                                        ) : (
+                                            'Upgrade'
+                                        )}
+                                    </Button>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -419,7 +435,7 @@ function UsageGauge({
     const formattedLimit = limit === Infinity ? 'Unlimited' : (format ? format(limit) : limit);
 
     return (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="card flex flex-col items-center justify-center relative overflow-hidden">
              <div className="absolute top-4 left-4 flex items-center gap-2">
                 <div className="p-1.5 bg-[var(--background)] rounded-lg border border-[var(--border)]">
                     {icon}
@@ -453,7 +469,7 @@ function UsageGauge({
                         r={normalizedRadius}
                         cx={radius + 10}
                         cy={radius + 10}
-                        className={`transition-all duration-1000 ease-out ${percent > 90 ? 'text-red-500' : 'text-primary'}`}
+                        className={`transition-all duration-1000 ease-out ${percent > 90 ? 'text-[var(--error)]' : 'text-primary'}`}
                         strokeLinecap="round"
                     />
                 </svg>
