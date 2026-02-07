@@ -1,0 +1,167 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getProjectBySlugGlobal } from '@/lib/db';
+import { getDb, Collections } from '@/lib/firebase';
+import { FieldValue } from 'firebase-admin/firestore';
+
+// Helper for bot detection
+const isBot = (ua: string) => {
+    const bots = ['bot', 'crawler', 'spider', 'lighthouse', 'chrome-lighthouse', 'headless'];
+    return bots.some(bot => ua.toLowerCase().includes(bot));
+};
+
+async function logEdgeEvent(projectId: string, req: NextRequest, path: string) {
+    const ua = req.headers.get('user-agent') || '';
+    if (isBot(ua)) return;
+
+    let ip = req.headers.get('x-forwarded-for')?.split(',')[0] ||
+        req.headers.get('x-real-ip') ||
+        'unknown';
+
+    // Privacy: Mask IP
+    if (ip !== 'unknown' && ip.includes('.')) {
+        const parts = ip.split('.');
+        parts[parts.length - 1] = '0';
+        ip = parts.join('.');
+    } else if (ip !== 'unknown' && ip.includes(':')) {
+        const parts = ip.split(':');
+        parts[parts.length - 1] = '0000';
+        ip = parts.join(':');
+    }
+
+    const eventData = {
+        projectId,
+        type: 'pageview',
+        path: path.split('?')[0] || '/',
+        referrer: req.headers.get('referer') || '',
+        ip,
+        userAgent: ua,
+        source: 'edge', // Distinguish from client SDK
+        timestamp: FieldValue.serverTimestamp(),
+    };
+
+    try {
+        const db = getDb();
+        await db.collection(Collections.ANALYTICS_EVENTS).add(eventData);
+        console.log(`[Edge Analytics] Logged visit for ${projectId} at ${eventData.path}`);
+
+        // BigQuery DUAL-WRITE
+        const { streamEventToBigQuery } = await import('@/lib/gcp/bigquery');
+        streamEventToBigQuery({
+            ...eventData,
+            source: 'edge',
+            timestamp: new Date().toISOString(),
+        }).catch(err => console.error('[BigQuery Dual-Write Error (Edge)]:', err));
+
+    } catch (e) {
+        console.error('[Edge Analytics] Failed to log event:', e);
+    }
+}
+
+export async function GET(
+    req: NextRequest,
+    { params }: { params: Promise<{ slug: string; path?: string[] }> }
+) {
+    // Next.js 15/16: params is a promise
+    const awaitedParams = await params;
+    const { slug, path } = awaitedParams;
+
+    const pathStr = path ? `/${path.join('/')}` : '/';
+    const searchParams = req.nextUrl.searchParams.toString();
+    const fullPath = searchParams ? `${pathStr}?${searchParams}` : pathStr;
+
+    // 1. Resolve Project
+    const project = await getProjectBySlugGlobal(slug);
+
+    if (!project || !project.productionUrl) {
+        return NextResponse.json({ error: `Project not found or not deployed: ${slug}` }, { status: 404 });
+    }
+
+    // 2. Fetch from Target
+    const targetUrl = `${project.productionUrl}${fullPath}`;
+
+    try {
+        const targetResponse = await fetch(targetUrl, {
+            method: 'GET',
+            headers: {
+                'User-Agent': req.headers.get('User-Agent') || '',
+                'Accept': req.headers.get('Accept') || '',
+                'Accept-Language': req.headers.get('Accept-Language') || '',
+                'X-Forwarded-For': req.headers.get('x-forwarded-for') || '',
+            },
+        });
+
+        const contentType = targetResponse.headers.get('content-type') || '';
+
+        // 3. Inject SDK and Log Edge Event if HTML
+        if (contentType.includes('text/html')) {
+            // Log analytics at the edge (server-side)
+            // We do this asynchronously to not block the response
+            logEdgeEvent(project.id, req, pathStr).catch(() => { });
+
+            let html = await targetResponse.text();
+
+            if (project.analyticsApiKey) {
+                const scriptTag = `\n<script src="/deployify-insights.js" data-api-key="${project.analyticsApiKey}" defer></script>\n`;
+
+                if (html.includes('</body>')) {
+                    html = html.replace('</body>', `${scriptTag}</body>`);
+                } else if (html.includes('</html>')) {
+                    html = html.replace('</html>', `${scriptTag}</html>`);
+                } else {
+                    html += scriptTag;
+                }
+            }
+
+            return new NextResponse(html, {
+                status: targetResponse.status,
+                headers: {
+                    'Content-Type': 'text/html',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                },
+            });
+        }
+
+        // 4. Proxy through non-HTML content
+        const body = await targetResponse.arrayBuffer();
+        return new NextResponse(body, {
+            status: targetResponse.status,
+            headers: {
+                'Content-Type': contentType,
+                'Cache-Control': targetResponse.headers.get('cache-control') || 'public, max-age=3600',
+            },
+        });
+
+    } catch (error: any) {
+        console.error(`[Proxy Error] Failed to proxy ${targetUrl}:`, error);
+        return NextResponse.json({
+            error: 'Internal Proxy Error',
+            message: error.message,
+            targetUrl
+        }, { status: 502 });
+    }
+}
+
+export async function POST(
+    req: NextRequest,
+    { params }: { params: Promise<{ slug: string; path?: string[] }> }
+) {
+    const { slug, path } = await params;
+    const project = await getProjectBySlugGlobal(slug);
+    if (!project || !project.productionUrl) return new NextResponse('Not found', { status: 404 });
+
+    const pathStr = path ? `/${path.join('/')}` : '/';
+    const targetUrl = `${project.productionUrl}${pathStr}`;
+
+    const body = await req.json();
+    const res = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
+
+    const data = await res.arrayBuffer();
+    return new NextResponse(data, {
+        status: res.status,
+        headers: { 'Content-Type': res.headers.get('content-type') || 'application/json' }
+    });
+}

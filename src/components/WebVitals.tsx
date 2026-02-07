@@ -31,9 +31,10 @@ function getStatusBg(status: MetricStatus): string {
 
 interface WebVitalsProps {
     metrics?: LighthouseMetrics | null;
+    isCompact?: boolean;
 }
 
-export function WebVitals({ metrics }: WebVitalsProps) {
+export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
     if (!metrics) {
         return null;
     }
@@ -61,7 +62,7 @@ export function WebVitals({ metrics }: WebVitalsProps) {
             label: 'FID',
             value: fid !== null ? Math.round(fid) : 'N/A',
             unit: fid !== null ? 'ms' : '',
-            status: fid !== null ? getFIDStatus(fid) : 'average', // Default to average or handle null differently
+            status: fid !== null ? getFIDStatus(fid) : 'average',
             icon: MousePointerClick,
             description: 'First Input Delay'
         },
@@ -75,6 +76,27 @@ export function WebVitals({ metrics }: WebVitalsProps) {
         }
     ];
 
+    if (isCompact) {
+        return (
+            <div className="grid grid-cols-1 gap-4">
+                {stats.map((stat) => (
+                    <div key={stat.label} className="p-3 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
+                            <stat.icon className={`w-3.5 h-3.5 ${getStatusColor(stat.status as MetricStatus)}`} />
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                            <span className={`text-lg font-bold ${getStatusColor(stat.status as MetricStatus)}`}>
+                                {stat.value}
+                            </span>
+                            <span className="text-[10px] text-[var(--muted-foreground)]">{stat.unit}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
     return (
         <div className="card mb-8">
             <h2 className="font-semibold mb-4 flex items-center gap-2">
@@ -83,7 +105,7 @@ export function WebVitals({ metrics }: WebVitalsProps) {
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {stats.map((stat) => (
-                    <div key={stat.label} className="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+                    <div key={stat.label} className="p-4 rounded-lg bg-[var(--background)] border border-[var(--border)] group hover:border-[var(--foreground)] transition-colors">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-[var(--muted-foreground)]">{stat.label}</span>
                             <stat.icon className={`w-4 h-4 ${getStatusColor(stat.status as MetricStatus)}`} />

@@ -16,6 +16,14 @@ export async function POST(req: Request) {
             );
         }
 
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            console.error('Razorpay keys are missing');
+            return NextResponse.json(
+                { error: 'Payment gateway not configured' },
+                { status: 503, headers: securityHeaders }
+            );
+        }
+
         const body = await req.json();
         const { tierId } = body;
 
@@ -36,8 +44,8 @@ export async function POST(req: Request) {
 
         if (tier.id === 'free') {
             return NextResponse.json(
-                 { error: 'Cannot checkout for free tier' },
-                 { status: 400, headers: securityHeaders }
+                { error: 'Cannot checkout for free tier' },
+                { status: 400, headers: securityHeaders }
             );
         }
 
@@ -54,7 +62,12 @@ export async function POST(req: Request) {
             );
         }
 
-        const order = await createOrder(amount, 'INR', `receipt_${user.id}_${Date.now()}`);
+        const order = await createOrder(
+            amount,
+            'INR',
+            `receipt_${user.id}_${Date.now()}`,
+            { userId: user.id, tierId: tier.id }
+        );
 
         return NextResponse.json(
             {

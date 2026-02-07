@@ -42,6 +42,39 @@ const strictRateLimitRoutes = [
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+    const hostname = request.headers.get('host') || '';
+
+    // 1. Detect Subdomain (Project Routing)
+    const isLocalhost = hostname.includes('localhost');
+    const parts = hostname.split('.');
+    let subdomain = '';
+
+    if (isLocalhost) {
+        // slug.localhost:3000 or localhost:3000
+        if (parts.length > 1 && parts[0] !== 'localhost') {
+            subdomain = parts[0];
+        }
+    } else {
+        // slug.deployify.io
+        if (parts.length > 2) {
+            subdomain = parts[0];
+        }
+    }
+
+    // If it's a project subdomain, rewrite to the proxy
+    // Bypass for internal API/dashboard routes if requested on the subdomain? 
+    // Usually, subdomains shouldn't access dashboard anyway.
+    if (subdomain && !['www', 'api', 'dashboard'].includes(subdomain)) {
+        // Check if we are trying to access the collector API - allow it to pass through
+        if (pathname.startsWith('/api/v1/collect') || pathname.startsWith('/deployify-insights.js')) {
+            return NextResponse.next();
+        }
+
+        console.log(`[Middleware] project subdomain detected: ${subdomain}, rewriting to proxy`);
+        const url = request.nextUrl.clone();
+        url.pathname = `/api/v1/proxy/${subdomain}${pathname}`;
+        return NextResponse.rewrite(url);
+    }
 
     // Apply security headers to all responses
     const response = NextResponse.next();
@@ -89,6 +122,11 @@ export async function middleware(request: NextRequest) {
     // Check authentication for protected dashboard routes
     // Only check if cookie EXISTS - layout will verify JWT validity
     if (pathname.startsWith('/dashboard')) {
+        // Bypass for local development
+        if (process.env.NODE_ENV === 'development') {
+            return response;
+        }
+
         const sessionCookie = request.cookies.get('deployify_session');
 
         // For RSC prefetch requests, be more lenient

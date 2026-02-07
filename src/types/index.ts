@@ -1,6 +1,36 @@
 // TypeScript types for Deployify
 
 // User type from GitHub OAuth
+export interface AnalyticsStats {
+    aggregate: {
+        visitors: { value: number };
+        pageviews: { value: number };
+        bounce_rate: { value: number };
+        visit_duration: { value: number };
+    };
+    timeseries: Array<{
+        date: string;
+        visitors: number;
+        pageviews: number;
+    }>;
+    sources: Array<{
+        source: string;
+        visitors: number;
+    }>;
+    locations: Array<{
+        country: string;
+        visitors: number;
+        country_code?: string;
+    }>;
+    performance: {
+        lcp: number;
+        cls: number;
+        fid: number;
+        fcp: number;
+        ttfb: number;
+    };
+}
+
 export interface User {
     id: string;
     githubId: number;
@@ -11,7 +41,11 @@ export interface User {
     stripeCustomerId?: string;
     subscription?: {
         tier: 'free' | 'pro' | 'team' | 'enterprise';
-        expiresAt: Date;
+        status?: 'active' | 'past_due' | 'canceled' | 'unpaid';
+        expiresAt?: Date;
+        currentPeriodStart?: Date;
+        currentPeriodEnd?: Date;
+        razorpaySubscriptionId?: string;
     };
     createdAt: Date;
     updatedAt: Date;
@@ -81,6 +115,7 @@ export interface Project {
     }[]; // Custom environment mapping for branches
     healthCheckPath?: string; // Custom path for health checks (startup/liveness probes)
     githubToken?: string | null; // Stored OAuth token for private repo access
+    analyticsApiKey?: string; // API key for internal analytics collector
     resources?: {
         cpu?: number;
         memory?: string;

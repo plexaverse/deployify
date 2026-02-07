@@ -64,6 +64,11 @@ export const config = {
         port: 8080,
         timeout: 300,
     },
+    // BigQuery
+    bigquery: {
+        dataset: process.env.BIGQUERY_DATASET || 'deployify_analytics',
+        table: process.env.BIGQUERY_TABLE || 'events',
+    },
 } as const;
 
 // Validate required environment variables

@@ -157,6 +157,27 @@ export async function getProjectBySlugGlobal(slug: string): Promise<Project | nu
     } as Project;
 }
 
+export async function getProjectByApiKey(apiKey: string): Promise<Project | null> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.PROJECTS)
+        .where('analyticsApiKey', '==', apiKey)
+        .limit(1)
+        .get();
+
+    if (snapshot.empty) {
+        return null;
+    }
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+    return {
+        ...data,
+        createdAt: data?.createdAt?.toDate(),
+        updatedAt: data?.updatedAt?.toDate(),
+    } as Project;
+}
+
 export async function deleteInvite(id: string): Promise<void> {
     const db = getDb();
     await db.collection(Collections.INVITES).doc(id).delete();

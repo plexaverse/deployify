@@ -21,13 +21,15 @@ export function getRazorpay(): Razorpay {
 export async function createOrder(
     amount: number, // in paise
     currency: string = 'INR',
-    receipt: string
+    receipt: string,
+    notes?: Record<string, string>
 ) {
     const razorpay = getRazorpay();
     const options = {
         amount,
         currency,
         receipt,
+        notes,
     };
     try {
         const order = await razorpay.orders.create(options);

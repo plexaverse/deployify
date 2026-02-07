@@ -16,19 +16,19 @@ export default async function Page() {
 
   return (
     <TeamProvider>
-      <div className="min-h-screen flex flex-col md:flex-row bg-[var(--background)]">
+      <div className="md:h-screen md:overflow-hidden flex flex-col md:flex-row bg-[var(--background)]">
         <GlobalShortcuts />
         <DashboardSidebar session={session} />
 
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[var(--background)] pt-16 md:pt-0">
-           <Header />
-           <div className="flex-1 overflow-y-auto">
-              <PageTransition>
-                 <div className="p-6">
-                   <DashboardHome />
-                 </div>
-              </PageTransition>
-           </div>
+          <Header />
+          <div className="flex-1 overflow-y-auto">
+            <PageTransition>
+              <div className="p-6">
+                <DashboardHome />
+              </div>
+            </PageTransition>
+          </div>
         </main>
       </div>
     </TeamProvider>

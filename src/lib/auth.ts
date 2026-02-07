@@ -24,6 +24,7 @@ export async function createSessionToken(user: User, accessToken: string): Promi
             email: user.email,
             avatarUrl: user.avatarUrl,
             name: user.name,
+            subscription: user.subscription,
         },
         accessToken,
         expiresAt,
@@ -60,10 +61,36 @@ export async function verifySessionToken(token: string): Promise<Session | null>
     }
 }
 
+const MOCK_USER: User = {
+    id: '233623958',
+    githubId: 233623958,
+    githubUsername: 'plexaverse',
+    email: 'plexaverse@gmail.com',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/233623958?v=4',
+    name: 'Plexaverse Admin',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    subscription: {
+        tier: 'enterprise',
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+    }
+};
+
+const MOCK_SESSION: Session = {
+    user: MOCK_USER,
+    accessToken: 'mock-access-token',
+    expiresAt: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
+};
+
 /**
  * Get the current session from cookies
  */
 export async function getSession(): Promise<Session | null> {
+    // Bypass for local development
+    if (process.env.NODE_ENV === 'development') {
+        return MOCK_SESSION;
+    }
+
     const cookieStore = await cookies();
     const token = cookieStore.get(COOKIE_NAME)?.value;
 

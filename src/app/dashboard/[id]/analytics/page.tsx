@@ -1,14 +1,17 @@
 import { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import { getProjectBySlugGlobal, getTeamMembership, listDeploymentsByProject } from '@/lib/db';
+import { getProjectById, getTeamMembership, listDeploymentsByProject } from '@/lib/db';
 import { getAnalyticsStats } from '@/lib/analytics';
 import { AnalyticsCharts } from '@/components/analytics/AnalyticsCharts';
 import { DeploymentMetricsCharts } from '@/components/analytics/DeploymentMetricsCharts';
+import { RealtimeVisitors } from '@/components/analytics/RealtimeVisitors';
+import { AnalyticsAlerts } from '@/components/analytics/AnalyticsAlerts';
+import { evaluatePerformance } from '@/lib/analytics/alerts';
 
 interface PageProps {
     params: Promise<{
-        slug: string;
+        id: string;
     }>;
     searchParams: Promise<{
         period?: string;
@@ -26,10 +29,10 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
         redirect('/login');
     }
 
-    const { slug } = await params;
+    const { id } = await params;
     const { period: searchPeriod } = await searchParams;
 
-    let project = await getProjectBySlugGlobal(slug).catch((e) => {
+    let project = await getProjectById(id).catch((e) => {
         console.error('Error fetching project for analytics:', e);
         return null;
     });
@@ -38,10 +41,10 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
     if (!project) {
         console.warn('Using MOCK project data for analytics view');
         project = {
-            id: 'mock-project-id',
+            id: id,
             userId: session.user.id,
-            name: slug,
-            slug: slug,
+            name: 'Mock Project',
+            slug: 'mock-project',
             repoFullName: 'mock/repo',
             repoUrl: 'https://github.com/mock/repo',
             defaultBranch: 'main',
@@ -51,12 +54,12 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
             outputDirectory: '.next',
             rootDirectory: '.',
             cloudRunServiceId: 'mock-service',
-            productionUrl: `https://${slug}.deployify.app`,
+            productionUrl: `https://mock.deployify.app`,
             region: 'us-central1',
             customDomain: null,
             createdAt: new Date(),
             updatedAt: new Date(),
-        } as any; // Cast as any to avoid strict type matching for all fields if checking types strictly
+        } as any;
     }
 
     if (!project) {
@@ -64,7 +67,7 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
     }
 
     // Access control: if using mock project, ensure we allow access
-    const isOwner = project.userId === session.user.id || project.id === 'mock-project-id';
+    const isOwner = project.userId === session.user.id || project.id === id;
     let hasAccess = isOwner;
 
     if (!hasAccess && project.teamId) {
@@ -79,17 +82,14 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
     }
 
     if (!hasAccess) {
-        // Return 404 to avoid leaking project existence
         notFound();
     }
 
     // Determine site ID (domain)
     let siteId = project.customDomain;
 
-    // Normalize production URL to get domain
     if (!siteId && project.productionUrl) {
         try {
-            // productionUrl might be "https://..." or just "..."
             const urlStr = project.productionUrl.startsWith('http')
                 ? project.productionUrl
                 : `https://${project.productionUrl}`;
@@ -97,19 +97,16 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
             const url = new URL(urlStr);
             siteId = url.hostname;
         } catch (e) {
-            // If parsing fails, use raw value or fallback
             siteId = project.productionUrl;
         }
     }
 
-    // Fallback logic
     if (!siteId) {
-        // Use slug-based domain as fallback for display/mocking
-        siteId = `${slug}.deployify.app`;
+        siteId = `${project.slug || 'project'}.deployify.app`;
     }
 
     const period = searchPeriod || '30d';
-    const stats = await getAnalyticsStats(siteId, period);
+    const stats = await getAnalyticsStats(project.id, period);
 
     // Fetch deployment metrics
     let deployments: any[] = [];
@@ -117,7 +114,6 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
         deployments = await listDeploymentsByProject(project.id, 50);
     } catch (e) {
         console.error('Error fetching deployments:', e);
-        // Provide mock deployments if DB fails
         deployments = Array.from({ length: 5 }).map((_, i) => ({
             id: `deploy-${i}`,
             projectId: project!.id,
@@ -127,7 +123,7 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
             gitCommitSha: 'a1b2c3d',
             gitCommitMessage: 'Update analytics',
             gitCommitAuthor: 'Dev User',
-            createdAt: new Date(Date.now() - i * 86400000), // 1 day apart
+            createdAt: new Date(Date.now() - i * 86400000),
             readyAt: new Date(Date.now() - i * 86400000 + 60000),
             buildDurationMs: 45000 + Math.random() * 10000,
             performanceMetrics: {
@@ -141,14 +137,16 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
-                <p className="text-[var(--muted-foreground)]">
-                    Traffic and performance insights for <span className="font-mono text-[var(--foreground)]">{siteId}</span>
-                </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
+                    <p className="text-[var(--muted-foreground)]">
+                        Traffic and performance insights for <span className="font-mono text-[var(--foreground)]">{siteId}</span>
+                    </p>
+                </div>
+                <RealtimeVisitors projectId={project.id} />
             </div>
 
-            {/* Deployment Metrics Section */}
             <div>
                 <h2 className="text-xl font-semibold mb-4">Deployment Performance</h2>
                 <DeploymentMetricsCharts deployments={deployments} />
@@ -156,6 +154,9 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
 
             <div className="pt-6 border-t border-[var(--border)]">
                 <h2 className="text-xl font-semibold mb-4">Traffic Analytics</h2>
+
+                {stats && <div className="mb-6"><AnalyticsAlerts alerts={evaluatePerformance(stats)} /></div>}
+
                 {stats ? (
                     <AnalyticsCharts data={stats} period={period} />
                 ) : (

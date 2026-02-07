@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { Session } from '@/types';
 import { TeamSwitcher } from '@/components/TeamSwitcher';
+import { PlanBadge } from '@/components/ui/PlanBadge';
 
 interface DashboardSidebarProps {
     session: Session;
@@ -30,7 +31,9 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
     const params = useParams();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
-    const slug = params?.slug as string;
+
+    // Support both id (dashboard) and slug (projects) params
+    const projectId = (params?.id || params?.slug) as string;
 
     useEffect(() => {
         setMounted(true);
@@ -45,23 +48,33 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
         setTheme(theme === 'dark' ? 'light' : 'dark');
     };
 
+    // Helper to check if a route is a project route
+    const isProjectRoute = !!projectId;
+    const getProjectHref = (subPath: string = '') => {
+        if (!projectId) return '/dashboard';
+
+        // Use /dashboard/[id] for dashboard routes, or /projects/[slug]
+        const prefix = params.id ? `/dashboard/${params.id}` : `/projects/${params.slug}`;
+        return subPath ? `${prefix}/${subPath}` : prefix;
+    };
+
     const navGroups = [
         {
             label: 'Platform',
             items: [
                 {
                     name: 'Overview',
-                    href: slug ? `/projects/${slug}` : '/dashboard',
+                    href: getProjectHref(),
                     icon: LayoutDashboard
                 },
                 {
                     name: 'Deployments',
-                    href: slug ? `/projects/${slug}/deployments` : '/dashboard',
+                    href: getProjectHref('deployments'),
                     icon: Layers
                 },
                 {
                     name: 'Analytics',
-                    href: slug ? `/projects/${slug}/analytics` : '/dashboard',
+                    href: getProjectHref('analytics'),
                     icon: BarChart3
                 },
             ]
@@ -72,7 +85,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                 { name: 'Billing', href: '/billing', icon: CreditCard },
                 {
                     name: 'Settings',
-                    href: slug ? `/projects/${slug}/settings` : '/dashboard/settings',
+                    href: getProjectHref('settings'),
                     icon: Settings
                 },
             ]
@@ -107,7 +120,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
             {/* Sidebar */}
             <aside className={`
                 fixed inset-y-0 left-0 z-50 w-64 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transition-transform duration-300 ease-in-out shadow-xl md:shadow-none
-                md:static md:translate-x-0 md:h-screen md:z-0
+                md:sticky md:top-0 md:translate-x-0 md:h-screen md:z-0
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 {/* Header / Team Switcher */}
@@ -130,8 +143,8 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                             <Link
                                                 href={item.href}
                                                 className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-colors ${isActive
-                                                        ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
-                                                        : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
+                                                    ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
+                                                    : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
                                                     }`}
                                                 onClick={() => setIsOpen(false)}
                                             >
@@ -166,9 +179,14 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                             className="w-8 h-8 rounded-full border border-[var(--border)]"
                         />
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate text-[var(--foreground)]">
-                                {session.user.name || session.user.githubUsername}
-                            </p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium truncate text-[var(--foreground)]">
+                                    {session.user.name || session.user.githubUsername}
+                                </p>
+                                {session.user.subscription?.tier && session.user.subscription.tier !== 'free' && (
+                                    <PlanBadge tier={session.user.subscription.tier} />
+                                )}
+                            </div>
                             <p className="text-xs text-[var(--muted-foreground)] truncate">
                                 @{session.user.githubUsername}
                             </p>

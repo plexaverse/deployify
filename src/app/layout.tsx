@@ -44,10 +44,8 @@ export default function RootLayout({
           </PageTransition>
           <Toaster position="bottom-right" />
           <Script
-            defer
-            data-domain={domain}
-            data-api="/api/analytics/event"
-            src="https://plausible.io/js/script.js"
+            src="/deployify-insights.js"
+            data-api-key="dp_37c36f31aeca110699c7cacc6c2476f2b780ca652cc19daa"
             strategy="afterInteractive"
           />
         </ThemeProvider>

@@ -31,11 +31,11 @@ export default async function SettingsLayout({
     }
 
     return (
-       <TeamProvider>
-       <div className="min-h-screen flex flex-col md:flex-row bg-[var(--background)]">
-            <GlobalShortcuts />
-            <CommandPalette />
-            <DashboardSidebar session={session} />
+        <TeamProvider>
+            <div className="md:h-screen md:overflow-hidden flex flex-col md:flex-row bg-[var(--background)]">
+                <GlobalShortcuts />
+                <CommandPalette />
+                <DashboardSidebar session={session} />
 
                 <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[var(--background)] pt-16 md:pt-0">
                     <Header />

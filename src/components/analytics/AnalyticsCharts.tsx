@@ -9,7 +9,14 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import type { AnalyticsStats } from '@/lib/analytics';
+import {
+    BarChart3,
+    TrendingUp,
+    Users,
+    Clock,
+    MousePointer2,
+} from 'lucide-react';
+import { AnalyticsStats } from '@/types';
 
 interface AnalyticsChartsProps {
     data: AnalyticsStats;
@@ -17,7 +24,17 @@ interface AnalyticsChartsProps {
 }
 
 export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
-    const { aggregate, timeseries, sources, locations } = data;
+    const { aggregate, timeseries, sources, locations, performance } = data;
+
+    // Helper for Web Vitals status
+    const getVitalStatus = (metric: string, value: number) => {
+        if (metric === 'lcp') return value < 2500 ? 'good' : value < 4000 ? 'needs-improvement' : 'poor';
+        if (metric === 'fid') return value < 100 ? 'good' : value < 300 ? 'needs-improvement' : 'poor';
+        if (metric === 'cls') return value < 0.1 ? 'good' : value < 0.25 ? 'needs-improvement' : 'poor';
+        if (metric === 'fcp') return value < 1800 ? 'good' : value < 3000 ? 'needs-improvement' : 'poor';
+        if (metric === 'ttfb') return value < 800 ? 'good' : value < 1800 ? 'needs-improvement' : 'poor';
+        return 'good';
+    };
 
     // Format duration
     const formatDuration = (seconds: number) => {
@@ -62,11 +79,50 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                 />
                 <SummaryCard
                     title="Bounce Rate"
-                    value={`${aggregate.bounce_rate.value}%`}
+                    value={`${aggregate.bounce_rate.value.toFixed(1)}%`}
                 />
                 <SummaryCard
                     title="Visit Duration"
                     value={formatDuration(aggregate.visit_duration.value)}
+                />
+            </div>
+
+            {/* Performance Metrics (Web Vitals) */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                <WebVitalCard
+                    title="LCP"
+                    value={performance?.lcp || 0}
+                    unit="ms"
+                    status={getVitalStatus('lcp', performance?.lcp || 0)}
+                    description="Largest Contentful Paint: Measures loading performance."
+                />
+                <WebVitalCard
+                    title="FID"
+                    value={performance?.fid || 0}
+                    unit="ms"
+                    status={getVitalStatus('fid', performance?.fid || 0)}
+                    description="First Input Delay: Measures interactivity."
+                />
+                <WebVitalCard
+                    title="CLS"
+                    value={performance?.cls || 0}
+                    unit=""
+                    status={getVitalStatus('cls', performance?.cls || 0)}
+                    description="Cumulative Layout Shift: Measures visual stability."
+                />
+                <WebVitalCard
+                    title="FCP"
+                    value={performance?.fcp || 0}
+                    unit="ms"
+                    status={getVitalStatus('fcp', performance?.fcp || 0)}
+                    description="First Contentful Paint: Time until first pixels render."
+                />
+                <WebVitalCard
+                    title="TTFB"
+                    value={performance?.ttfb || 0}
+                    unit="ms"
+                    status={getVitalStatus('ttfb', performance?.ttfb || 0)}
+                    description="Time to First Byte: Server response time."
                 />
             </div>
 
@@ -137,7 +193,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                     <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm h-fit">
                         <h3 className="text-lg font-semibold mb-4">Top Sources</h3>
                         <div className="space-y-4">
-                            {sources.map((source, index) => (
+                            {sources.map((source: { source: string; visitors: number }, index: number) => (
                                 <div key={index} className="flex items-center justify-between group">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-[var(--primary)] group-hover:scale-125 transition-transform duration-200" />
@@ -158,7 +214,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                     <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm h-fit">
                         <h3 className="text-lg font-semibold mb-4">Top Locations</h3>
                         <div className="space-y-4">
-                            {locations.map((location, index) => (
+                            {locations.map((location: { country: string; visitors: number }, index: number) => (
                                 <div key={index} className="flex items-center justify-between group">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-[var(--info)] group-hover:scale-125 transition-transform duration-200" />
@@ -180,6 +236,40 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
     );
 }
 
+function WebVitalCard({ title, value, unit, status, description }: {
+    title: string;
+    value: number;
+    unit: string;
+    status: 'good' | 'needs-improvement' | 'poor';
+    description: string;
+}) {
+    const statusColors = {
+        good: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+        'needs-improvement': 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+        poor: 'text-rose-500 bg-rose-500/10 border-rose-500/20'
+    };
+
+    return (
+        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm hover:border-[var(--primary)] transition-all duration-200 group">
+            <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">{title}</span>
+                <div className={`w-2 h-2 rounded-full animate-pulse ${status === 'good' ? 'bg-emerald-500' : status === 'needs-improvement' ? 'bg-amber-500' : 'bg-rose-500'}`} />
+            </div>
+            <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
+                    {value < 1 ? value.toFixed(3) : Math.round(value)}
+                </span>
+                <span className="text-[10px] text-[var(--muted-foreground)] font-medium uppercase">{unit}</span>
+            </div>
+            <div className={`mt-2 text-[9px] px-1.5 py-0.5 rounded border inline-block font-semibold uppercase ${statusColors[status]}`}>
+                {status.replace('-', ' ')}
+            </div>
+            <p className="mt-3 text-[10px] text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                {description}
+            </p>
+        </div>
+    );
+}
 function SummaryCard({ title, value }: { title: string; value: string }) {
     return (
         <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm hover:border-[var(--primary)] transition-colors duration-200">
