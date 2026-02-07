@@ -128,8 +128,8 @@
 - **Status**: ✅ Implemented
 
 #### 14. **Team/Organization Support**
-- **Current**: Single user projects
-- **Improvement**: Allow team members with role-based access
+- **Current**: Team creation, switching, inviting members, role-based access control (RBAC).
+- **Status**: ✅ Implemented
 
 #### 15. **Custom Dockerfile Support**
 - **Improvement**: Detect and use repo's Dockerfile if present

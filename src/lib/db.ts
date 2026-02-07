@@ -345,6 +345,41 @@ export async function listTeamsForUser(userId: string): Promise<Team[]> {
         });
 }
 
+export async function listTeamsWithMembership(userId: string): Promise<(Team & { role: TeamRole })[]> {
+    const db = getDb();
+    const membershipsSnapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('userId', '==', userId)
+        .get();
+
+    if (membershipsSnapshot.empty) {
+        return [];
+    }
+
+    const memberships = membershipsSnapshot.docs.map(doc => doc.data() as TeamMembership);
+    const teamIds = memberships.map(m => m.teamId);
+
+    const teamRefs = teamIds.map(id => db.collection(Collections.TEAMS).doc(id));
+    const teamsSnapshot = await db.getAll(...teamRefs);
+
+    return teamsSnapshot
+        .filter(doc => doc.exists)
+        .map(doc => {
+            const data = doc.data();
+            const membership = memberships.find(m => m.teamId === doc.id);
+            return {
+                ...data,
+                role: membership?.role || 'viewer',
+                createdAt: data?.createdAt?.toDate(),
+                updatedAt: data?.updatedAt?.toDate(),
+                subscription: data?.subscription ? {
+                    ...data.subscription,
+                    expiresAt: data.subscription.expiresAt?.toDate ? data.subscription.expiresAt.toDate() : data.subscription.expiresAt
+                } : undefined,
+            } as Team & { role: TeamRole };
+        });
+}
+
 // ============= Project Operations =============
 
 export async function createProject(

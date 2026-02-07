@@ -7,11 +7,7 @@ import {
     Shield,
     Trash2,
     Mail,
-    Plus,
-    Clock,
-    CheckCircle2,
     AlertCircle,
-    Search,
     History
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,7 +23,7 @@ const MOCK_AUDIT_LOGS = [
 ];
 
 export default function TeamSettingsPage() {
-    const { activeTeam, isLoading: teamLoading } = useTeam();
+    const { activeTeam, isLoading: teamLoading, role } = useTeam();
     const [members, setMembers] = useState<(TeamMembership & { user: any })[]>([]);
     const [invites, setInvites] = useState<TeamInvite[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +31,8 @@ export default function TeamSettingsPage() {
     const [inviteRole, setInviteRole] = useState<TeamRole>('member');
     const [isInviting, setIsInviting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const canManageMembers = role === 'owner' || role === 'admin';
 
     useEffect(() => {
         if (!activeTeam) return;
@@ -205,62 +203,64 @@ export default function TeamSettingsPage() {
                 <div className="lg:col-span-2 space-y-8">
 
                     {/* Invite Section */}
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <Mail className="w-5 h-5 text-[var(--primary)]" />
-                            Invite New Member
-                        </h3>
-                        <form onSubmit={handleInvite} className="space-y-4">
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <div className="flex-1">
-                                    <label className="text-xs font-medium text-[var(--muted-foreground)] mb-1 block">
-                                        Email Address
-                                    </label>
-                                    <input
-                                        type="email"
-                                        required
-                                        value={inviteEmail}
-                                        onChange={(e) => setInviteEmail(e.target.value)}
-                                        placeholder="colleague@example.com"
-                                        className="input"
-                                    />
-                                </div>
-                                <div className="w-full sm:w-40">
-                                    <label className="text-xs font-medium text-[var(--muted-foreground)] mb-1 block">
-                                        Role
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            value={inviteRole}
-                                            onChange={(e) => setInviteRole(e.target.value as TeamRole)}
-                                            className="input appearance-none cursor-pointer"
+                    {canManageMembers && (
+                        <div className="card p-6">
+                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <Mail className="w-5 h-5 text-[var(--primary)]" />
+                                Invite New Member
+                            </h3>
+                            <form onSubmit={handleInvite} className="space-y-4">
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <div className="flex-1">
+                                        <label className="text-xs font-medium text-[var(--muted-foreground)] mb-1 block">
+                                            Email Address
+                                        </label>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={inviteEmail}
+                                            onChange={(e) => setInviteEmail(e.target.value)}
+                                            placeholder="colleague@example.com"
+                                            className="input"
+                                        />
+                                    </div>
+                                    <div className="w-full sm:w-40">
+                                        <label className="text-xs font-medium text-[var(--muted-foreground)] mb-1 block">
+                                            Role
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                value={inviteRole}
+                                                onChange={(e) => setInviteRole(e.target.value as TeamRole)}
+                                                className="input appearance-none cursor-pointer"
+                                            >
+                                                <option value="admin">Admin</option>
+                                                <option value="member">Member</option>
+                                                <option value="viewer">Viewer</option>
+                                            </select>
+                                            <Shield className="w-4 h-4 text-[var(--muted-foreground)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end">
+                                        <Button
+                                            type="submit"
+                                            disabled={isInviting || !inviteEmail}
+                                            containerClassName="h-[42px] w-full sm:w-auto"
+                                            className="bg-black text-white dark:bg-slate-900 font-medium text-sm"
                                         >
-                                            <option value="admin">Admin</option>
-                                            <option value="member">Member</option>
-                                            <option value="viewer">Viewer</option>
-                                        </select>
-                                        <Shield className="w-4 h-4 text-[var(--muted-foreground)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                            {isInviting ? 'Sending...' : 'Send Invite'}
+                                        </Button>
                                     </div>
                                 </div>
-                                <div className="flex items-end">
-                                    <Button
-                                        type="submit"
-                                        disabled={isInviting || !inviteEmail}
-                                        containerClassName="h-[42px] w-full sm:w-auto"
-                                        className="bg-black text-white dark:bg-slate-900 font-medium text-sm"
-                                    >
-                                        {isInviting ? 'Sending...' : 'Send Invite'}
-                                    </Button>
-                                </div>
-                            </div>
-                            {error && (
-                                <div className="flex items-center gap-2 text-sm text-[var(--error)] bg-[var(--error-bg)] p-3 rounded-md">
-                                    <AlertCircle className="w-4 h-4" />
-                                    {error}
-                                </div>
-                            )}
-                        </form>
-                    </div>
+                                {error && (
+                                    <div className="flex items-center gap-2 text-sm text-[var(--error)] bg-[var(--error-bg)] p-3 rounded-md">
+                                        <AlertCircle className="w-4 h-4" />
+                                        {error}
+                                    </div>
+                                )}
+                            </form>
+                        </div>
+                    )}
 
                     {/* Members List */}
                     <div className="card overflow-hidden p-0">
@@ -324,7 +324,8 @@ export default function TeamSettingsPage() {
                                                 <select
                                                     value={membership.role}
                                                     onChange={(e) => handleRoleUpdate(membership.userId, e.target.value as TeamRole)}
-                                                    className="appearance-none bg-transparent text-sm px-3 py-1 pr-8 rounded-full border border-[var(--border)] hover:border-[var(--muted-foreground)] transition-colors capitalize cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                                                    disabled={!canManageMembers || membership.role === 'owner'}
+                                                    className="appearance-none bg-transparent text-sm px-3 py-1 pr-8 rounded-full border border-[var(--border)] hover:border-[var(--muted-foreground)] transition-colors capitalize cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     <option value="owner">Owner</option>
                                                     <option value="admin">Admin</option>
@@ -334,7 +335,7 @@ export default function TeamSettingsPage() {
                                                 <Shield className="w-3 h-3 text-[var(--muted-foreground)] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                                             </div>
 
-                                            {membership.role !== 'owner' && (
+                                            {canManageMembers && membership.role !== 'owner' && (
                                                 <button
                                                     onClick={() => handleRemoveMember(membership.userId)}
                                                     className="p-2 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] rounded-md transition-colors"
@@ -347,7 +348,6 @@ export default function TeamSettingsPage() {
                                     </div>
                                 ))}
 
-                                {/* Pending Invites within the same list or separate? Let's append them */}
                                 {invites.map((invite) => (
                                     <div key={invite.id} className="p-4 flex items-center justify-between bg-[var(--muted)]/5 hover:bg-[var(--card-hover)] transition-colors">
                                         <div className="flex items-center gap-4 opacity-75">
@@ -369,13 +369,15 @@ export default function TeamSettingsPage() {
                                             <div className="text-sm px-3 py-1 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] capitalize">
                                                 {invite.role}
                                             </div>
-                                            <button
-                                                onClick={() => handleRevokeInvite(invite.id)}
-                                                className="p-2 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] rounded-md transition-colors"
-                                                title="Revoke invite"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            {canManageMembers && (
+                                                <button
+                                                    onClick={() => handleRevokeInvite(invite.id)}
+                                                    className="p-2 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] rounded-md transition-colors"
+                                                    title="Revoke invite"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
