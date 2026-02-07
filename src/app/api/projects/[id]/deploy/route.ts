@@ -113,6 +113,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         await logAuditEvent(
             project.teamId || null,
             session.user.id,
+            session.user.name || session.user.email || 'Unknown User',
             'deployment.created',
             {
                 projectId: project.id,

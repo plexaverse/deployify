@@ -16,20 +16,13 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/moving-border';
-import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
-
-// Mock Audit Log Data
-const MOCK_AUDIT_LOGS = [
-    { id: 1, action: 'Member Invited', details: 'Alice invited Bob to the team', user: 'Alice', time: '2 hours ago' },
-    { id: 2, action: 'Role Updated', details: 'Charlie promoted to Admin', user: 'Alice', time: '1 day ago' },
-    { id: 3, action: 'Project Created', details: 'New project "Frontend V2" created', user: 'Bob', time: '2 days ago' },
-    { id: 4, action: 'Deployment', details: 'Production deployment for "API Service"', user: 'Charlie', time: '3 days ago' },
-];
+import type { TeamMembership, TeamInvite, TeamRole, AuditEvent } from '@/types';
 
 export default function TeamSettingsPage() {
     const { activeTeam, isLoading: teamLoading } = useTeam();
     const [members, setMembers] = useState<(TeamMembership & { user: any })[]>([]);
     const [invites, setInvites] = useState<TeamInvite[]>([]);
+    const [auditLogs, setAuditLogs] = useState<AuditEvent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteRole, setInviteRole] = useState<TeamRole>('member');
@@ -42,9 +35,10 @@ export default function TeamSettingsPage() {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const [membersRes, invitesRes] = await Promise.all([
+                const [membersRes, invitesRes, logsRes] = await Promise.all([
                     fetch(`/api/teams/${activeTeam.id}/members`),
-                    fetch(`/api/teams/${activeTeam.id}/invites`)
+                    fetch(`/api/teams/${activeTeam.id}/invites`),
+                    fetch(`/api/teams/${activeTeam.id}/audit-logs`)
                 ]);
 
                 if (membersRes.ok) {
@@ -55,6 +49,11 @@ export default function TeamSettingsPage() {
                 if (invitesRes.ok) {
                     const data = await invitesRes.json();
                     setInvites(data.invites);
+                }
+
+                if (logsRes.ok) {
+                    const data = await logsRes.json();
+                    setAuditLogs(data.logs);
                 }
             } catch (err) {
                 console.error('Failed to fetch team data', err);
@@ -399,27 +398,33 @@ export default function TeamSettingsPage() {
                         </h3>
 
                         <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--border)]">
-                            {MOCK_AUDIT_LOGS.map((log) => (
-                                <div key={log.id} className="relative pl-8">
-                                    <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-sm font-medium text-[var(--foreground)]">
-                                            {log.action}
-                                        </span>
-                                        <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                                            {log.details}
-                                        </span>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
-                                                {log.user}
+                            {auditLogs.length === 0 ? (
+                                <div className="text-center text-[var(--muted-foreground)] py-4 text-sm">
+                                    No audit logs found.
+                                </div>
+                            ) : (
+                                auditLogs.map((log) => (
+                                    <div key={log.id} className="relative pl-8">
+                                        <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-medium text-[var(--foreground)] capitalize">
+                                                {log.action.replace(/_/g, ' ').replace('.', ' ')}
                                             </span>
-                                            <span className="text-[10px] text-[var(--muted-foreground)]">
-                                                {log.time}
+                                            <span className="text-xs text-[var(--muted-foreground)] leading-relaxed line-clamp-2">
+                                                {JSON.stringify(log.details, null, 2)}
                                             </span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
+                                                    {log.userName}
+                                                </span>
+                                                <span className="text-[10px] text-[var(--muted-foreground)]">
+                                                    {new Date(log.createdAt).toLocaleDateString()}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
 
                         <button className="w-full mt-8 btn btn-secondary text-xs">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getTeamById, getTeamMembership, createInvite } from '@/lib/db';
+import { logAuditEvent } from '@/lib/audit';
 import { sendEmail } from '@/lib/email/client';
 import { teamInviteEmail } from '@/lib/email/templates';
 import { config } from '@/lib/config';
@@ -79,6 +80,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 { status: 500, headers: securityHeaders }
             );
         }
+
+        // Log audit event
+        await logAuditEvent(
+            id,
+            session.user.id,
+            session.user.name || session.user.email || 'Unknown User',
+            'member.invited',
+            {
+                email,
+                role,
+                inviteId: invite.id
+            }
+        );
 
         return NextResponse.json(
             { invite },

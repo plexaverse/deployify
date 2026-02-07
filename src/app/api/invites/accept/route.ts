@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getInviteByToken, acceptInvite } from '@/lib/db';
+import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
@@ -41,6 +42,18 @@ export async function POST(request: NextRequest) {
         }
 
         await acceptInvite(invite.id, session.user.id);
+
+        // Log audit event
+        await logAuditEvent(
+            invite.teamId,
+            session.user.id,
+            session.user.name || session.user.email || 'Unknown User',
+            'member.joined',
+            {
+                inviteId: invite.id,
+                role: invite.role
+            }
+        );
 
         return NextResponse.json(
             { success: true },

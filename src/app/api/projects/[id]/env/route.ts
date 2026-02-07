@@ -116,6 +116,7 @@ export async function POST(
         await logAuditEvent(
             project.teamId || null,
             session.user.id,
+            session.user.name || session.user.email || 'Unknown User',
             'env_var.created',
             {
                 projectId: project.id,
@@ -191,6 +192,7 @@ export async function PUT(
         await logAuditEvent(
             project.teamId || null,
             session.user.id,
+            session.user.name || session.user.email || 'Unknown User',
             'env_var.updated',
             {
                 projectId: project.id,
@@ -257,6 +259,7 @@ export async function DELETE(
         await logAuditEvent(
             project.teamId || null,
             session.user.id,
+            session.user.name || session.user.email || 'Unknown User',
             'env_var.deleted',
             {
                 projectId: project.id,
