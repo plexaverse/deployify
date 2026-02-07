@@ -1,139 +1,76 @@
-import { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth';
-import { getProjectById, getTeamMembership, listDeploymentsByProject } from '@/lib/db';
-import { getAnalyticsStats } from '@/lib/analytics';
+'use client';
+
+import { useEffect, useMemo } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useStore } from '@/store';
 import { AnalyticsCharts } from '@/components/analytics/AnalyticsCharts';
 import { DeploymentMetricsCharts } from '@/components/analytics/DeploymentMetricsCharts';
 import { RealtimeVisitors } from '@/components/analytics/RealtimeVisitors';
 import { AnalyticsAlerts } from '@/components/analytics/AnalyticsAlerts';
 import { evaluatePerformance } from '@/lib/analytics/alerts';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface PageProps {
-    params: Promise<{
-        id: string;
-    }>;
-    searchParams: Promise<{
-        period?: string;
-    }>;
-}
+export default function ProjectAnalyticsPage() {
+    const params = useParams();
+    const searchParams = useSearchParams();
+    const projectId = params.id as string;
+    const period = searchParams.get('period') || '30d';
 
-export const metadata: Metadata = {
-    title: 'Analytics | Deployify',
-};
+    const {
+        currentProject,
+        analyticsData: stats,
+        isLoadingProject: loadingProject,
+        isLoadingAnalytics: loadingAnalytics,
+        fetchProjectDetails,
+        fetchProjectAnalytics,
+        currentDeployments: deployments
+    } = useStore();
 
-export default async function ProjectAnalyticsPage({ params, searchParams }: PageProps) {
-    const session = await getSession();
-
-    if (!session) {
-        redirect('/login');
-    }
-
-    const { id } = await params;
-    const { period: searchPeriod } = await searchParams;
-
-    let project = await getProjectById(id).catch((e) => {
-        console.error('Error fetching project for analytics:', e);
-        return null;
-    });
-
-    // Mock project for development/demo only if DB fails
-    if (!project) {
-        console.warn('Using MOCK project data for analytics view');
-        project = {
-            id: id,
-            userId: session.user.id,
-            name: 'Mock Project',
-            slug: 'mock-project',
-            repoFullName: 'mock/repo',
-            repoUrl: 'https://github.com/mock/repo',
-            defaultBranch: 'main',
-            framework: 'nextjs',
-            buildCommand: 'npm run build',
-            installCommand: 'npm install',
-            outputDirectory: '.next',
-            rootDirectory: '.',
-            cloudRunServiceId: 'mock-service',
-            productionUrl: `https://mock.deployify.app`,
-            region: 'us-central1',
-            customDomain: null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        } as any;
-    }
-
-    if (!project) {
-        notFound();
-    }
-
-    // Access control: if using mock project, ensure we allow access
-    const isOwner = project.userId === session.user.id || project.id === id;
-    let hasAccess = isOwner;
-
-    if (!hasAccess && project.teamId) {
-        try {
-            const membership = await getTeamMembership(project.teamId, session.user.id);
-            if (membership) {
-                hasAccess = true;
-            }
-        } catch (e) {
-            console.error('Error checking team membership:', e);
+    useEffect(() => {
+        if (projectId) {
+            fetchProjectDetails(projectId);
+            fetchProjectAnalytics(projectId, period);
         }
-    }
+    }, [projectId, period, fetchProjectDetails, fetchProjectAnalytics]);
 
-    if (!hasAccess) {
-        notFound();
-    }
+    const project = currentProject;
 
-    // Determine site ID (domain)
-    let siteId = project.customDomain;
+    // Site ID logic
+    const siteId = useMemo(() => {
+        if (!project) return '';
 
-    if (!siteId && project.productionUrl) {
-        try {
-            const urlStr = project.productionUrl.startsWith('http')
-                ? project.productionUrl
-                : `https://${project.productionUrl}`;
+        let id = project.customDomain;
+        if (!id && project.productionUrl) {
+            try {
+                const urlStr = project.productionUrl.startsWith('http')
+                    ? project.productionUrl
+                    : `https://${project.productionUrl}`;
 
-            const url = new URL(urlStr);
-            siteId = url.hostname;
-        } catch (e) {
-            siteId = project.productionUrl;
-        }
-    }
-
-    if (!siteId) {
-        siteId = `${project.slug || 'project'}.deployify.app`;
-    }
-
-    const period = searchPeriod || '30d';
-    const stats = await getAnalyticsStats(project.id, period);
-
-    // Fetch deployment metrics
-    let deployments: any[] = [];
-    try {
-        deployments = await listDeploymentsByProject(project.id, 50);
-    } catch (e) {
-        console.error('Error fetching deployments:', e);
-        deployments = Array.from({ length: 5 }).map((_, i) => ({
-            id: `deploy-${i}`,
-            projectId: project!.id,
-            status: 'ready',
-            type: 'production',
-            gitBranch: 'main',
-            gitCommitSha: 'a1b2c3d',
-            gitCommitMessage: 'Update analytics',
-            gitCommitAuthor: 'Dev User',
-            createdAt: new Date(Date.now() - i * 86400000),
-            readyAt: new Date(Date.now() - i * 86400000 + 60000),
-            buildDurationMs: 45000 + Math.random() * 10000,
-            performanceMetrics: {
-                performanceScore: 0.85 + Math.random() * 0.15,
-                lcp: 1200 + Math.random() * 500,
-                cls: Math.random() * 0.1,
-                tbt: Math.random() * 200,
+                const url = new URL(urlStr);
+                id = url.hostname;
+            } catch (e) {
+                id = project.productionUrl;
             }
-        }));
+        }
+
+        return id || `${project.slug || 'project'}.deployify.app`;
+    }, [project]);
+
+    if (loadingProject && !project) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-24 w-full rounded-xl" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Skeleton className="h-64 w-full rounded-xl" />
+                    <Skeleton className="h-64 w-full rounded-xl" />
+                    <Skeleton className="h-64 w-full rounded-xl" />
+                </div>
+            </div>
+        );
     }
+
+    if (!project) return null;
 
     return (
         <div className="space-y-6">
@@ -157,7 +94,11 @@ export default async function ProjectAnalyticsPage({ params, searchParams }: Pag
 
                 {stats && <div className="mb-6"><AnalyticsAlerts alerts={evaluatePerformance(stats)} /></div>}
 
-                {stats ? (
+                {loadingAnalytics && !stats ? (
+                    <div className="space-y-4">
+                        <Skeleton className="h-[400px] w-full rounded-xl" />
+                    </div>
+                ) : stats ? (
                     <AnalyticsCharts data={stats} period={period} />
                 ) : (
                     <div className="p-12 rounded-xl border border-[var(--border)] bg-[var(--card)] text-center">

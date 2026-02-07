@@ -19,46 +19,30 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
+import { useStore } from '@/store';
 import type { Deployment, Project } from '@/types';
 
 export default function DeploymentsPage() {
     const params = useParams();
-    const [project, setProject] = useState<Project | null>(null);
-    const [deployments, setDeployments] = useState<Deployment[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedLogsId, setSelectedLogsId] = useState<string | null>(null);
+    const {
+        currentProject: project,
+        currentDeployments: deployments,
+        isLoadingProject: loading,
+        fetchProjectDetails,
+        selectedLogsId,
+        setSelectedLogsId,
+        rollbackDeployment,
+        setRollbackDeployment,
+        cancelDeployment
+    } = useStore();
+
     const [copiedId, setCopiedId] = useState<string | null>(null);
-    const [rollbackDeployment, setRollbackDeployment] = useState<Deployment | null>(null);
 
     useEffect(() => {
-        async function fetchData() {
-            try {
-                const [projectRes, deploymentsRes] = await Promise.all([
-                    fetch(`/api/projects/${params.id}`),
-                    fetch(`/api/projects/${params.id}/deployments`)
-                ]);
-
-                if (projectRes.ok) {
-                    const data = await projectRes.json();
-                    setProject(data.project);
-                }
-
-                if (deploymentsRes.ok) {
-                    const data = await deploymentsRes.json();
-                    setDeployments(data.deployments || []);
-                }
-            } catch (err) {
-                console.error('Failed to fetch data:', err);
-                toast.error('Failed to load deployments');
-            } finally {
-                setLoading(false);
-            }
-        }
-
         if (params.id) {
-            fetchData();
+            fetchProjectDetails(params.id as string);
         }
-    }, [params.id]);
+    }, [params.id, fetchProjectDetails]);
 
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -104,7 +88,42 @@ export default function DeploymentsPage() {
         }
     };
 
-    if (loading) {
+    const confirmRollback = async () => {
+        if (!project || !rollbackDeployment || !rollbackDeployment.cloudRunRevision) return;
+        const toastId = toast.loading('Initiating rollback...');
+        try {
+            const response = await fetch(`/api/projects/${project.id}/rollback`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    revisionName: rollbackDeployment.cloudRunRevision,
+                }),
+            });
+
+            if (response.ok) {
+                toast.success('Rollback initiated', { id: toastId });
+                fetchProjectDetails(project.id);
+                setRollbackDeployment(null);
+            } else {
+                const err = await response.json();
+                toast.error(err.error || 'Failed to rollback', { id: toastId });
+            }
+        } catch (error) {
+            console.error('Failed to rollback:', error);
+            toast.error('Failed to rollback', { id: toastId });
+        }
+    };
+
+    const handleCancel = async (deploymentId: string) => {
+        if (!project) return;
+        const toastId = toast.loading('Cancelling deployment...');
+        await cancelDeployment(project.id, deploymentId);
+        toast.success('Deployment cancelled', { id: toastId });
+    };
+
+    if (loading && !project) {
         return (
             <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-6">
                 <Skeleton className="h-8 w-48 mb-6" />
@@ -116,6 +135,8 @@ export default function DeploymentsPage() {
             </div>
         );
     }
+
+    if (!project) return null;
 
     const selectedDeployment = deployments.find(d => d.id === selectedLogsId);
 
@@ -204,6 +225,15 @@ export default function DeploymentsPage() {
                                                 Rollback
                                             </button>
                                         )}
+
+                                        {(deployment.status === 'queued' || deployment.status === 'building') && (
+                                            <button
+                                                onClick={() => handleCancel(deployment.id)}
+                                                className="btn btn-ghost h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10"
+                                            >
+                                                Cancel
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -225,11 +255,7 @@ export default function DeploymentsPage() {
                     deployment={rollbackDeployment}
                     isOpen={!!rollbackDeployment}
                     onClose={() => setRollbackDeployment(null)}
-                    onConfirm={() => {
-                        // Rollback logic would go here, but for now we close and toast
-                        setRollbackDeployment(null);
-                        toast.info('Rollback functionality is currently available on the Overview tab');
-                    }}
+                    onConfirm={confirmRollback}
                 />
             )}
         </div>

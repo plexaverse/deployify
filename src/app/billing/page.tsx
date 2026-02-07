@@ -1,42 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { ArrowLeft, Zap, Server, Wifi, FileText, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Script from 'next/script';
 import { PricingCard } from '@/components/billing/PricingCard';
 import { ComparePlansTable } from '@/components/billing/ComparePlansTable';
 import { Badge } from '@/components/ui/badge';
+import { useStore } from '@/store';
 
 declare global {
     interface Window {
         Razorpay: any;
     }
-}
-
-interface Invoice {
-    id: string;
-    invoiceNumber: string;
-    date: string;
-    total: number;
-    status: string;
-}
-
-interface UsageData {
-    usage: {
-        deployments: number;
-        buildMinutes: number;
-        bandwidth: number;
-    };
-    limits: {
-        deployments: number;
-        buildMinutes: number;
-        bandwidth: number;
-    };
-    tier: {
-        id: string;
-        name: string;
-    };
 }
 
 const PLANS = [
@@ -71,45 +47,24 @@ const PLANS = [
 ];
 
 export default function BillingPage() {
-    const [data, setData] = useState<UsageData | null>(null);
-    const [invoices, setInvoices] = useState<Invoice[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [upgrading, setUpgrading] = useState<string | null>(null);
+    const {
+        usageData,
+        invoices,
+        isLoadingBilling,
+        billingError,
+        upgradingTierId,
+        setUpgradingTierId,
+        fetchBillingData
+    } = useStore();
 
     useEffect(() => {
-        Promise.all([
-            fetch('/api/billing/usage').then(res => {
-                if (res.status === 401) {
-                    window.location.href = '/login';
-                    throw new Error('Unauthorized');
-                }
-                if (!res.ok) throw new Error('Failed to load billing data');
-                return res.json();
-            }),
-            fetch('/api/billing/invoices').then(res => {
-                if (res.ok) return res.json();
-                return { invoices: [] };
-            })
-        ])
-            .then(([usageData, invoicesData]) => {
-                setData(usageData);
-                setInvoices(invoicesData.invoices || []);
-                setLoading(false);
-            })
-            .catch(err => {
-                if (err.message !== 'Unauthorized') {
-                    console.error(err);
-                    setError('Failed to load billing data. Please try again later.');
-                    setLoading(false);
-                }
-            });
-    }, []);
+        fetchBillingData();
+    }, [fetchBillingData]);
 
     const handleUpgrade = async (tierId: string) => {
         if (tierId === 'free') return; // Free is default
 
-        setUpgrading(tierId);
+        setUpgradingTierId(tierId);
         try {
             const res = await fetch('/api/billing/checkout', {
                 method: 'POST',
@@ -158,7 +113,7 @@ export default function BillingPage() {
 
                         if (verifyRes.ok) {
                             alert('Payment Successful & Verified! Upgrading your plan...');
-                            setUpgrading(null);
+                            setUpgradingTierId(null);
                             window.location.reload();
                         } else {
                             throw new Error(verifyData.error || 'Payment verification failed');
@@ -166,12 +121,12 @@ export default function BillingPage() {
                     } catch (err) {
                         console.error('Verification error:', err);
                         alert('Payment successful but verification failed. Please contact support.');
-                        setUpgrading(null);
+                        setUpgradingTierId(null);
                     }
                 },
                 modal: {
                     ondismiss: function () {
-                        setUpgrading(null);
+                        setUpgradingTierId(null);
                     }
                 }
             };
@@ -179,18 +134,18 @@ export default function BillingPage() {
             const rzp1 = new window.Razorpay(options);
             rzp1.on('payment.failed', function (response: any) {
                 alert(response.error.description);
-                setUpgrading(null);
+                setUpgradingTierId(null);
             });
             rzp1.open();
 
         } catch (err) {
             console.error(err);
             alert(err instanceof Error ? err.message : 'Failed to initiate upgrade');
-            setUpgrading(null);
+            setUpgradingTierId(null);
         }
     };
 
-    if (loading) {
+    if (isLoadingBilling) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -198,11 +153,11 @@ export default function BillingPage() {
         );
     }
 
-    if (error || !data) {
+    if (billingError || !usageData) {
         return (
             <div className="min-h-screen bg-background p-8 flex flex-col items-center justify-center text-center">
                 <h1 className="text-2xl font-bold mb-4">Error</h1>
-                <p className="text-muted-foreground mb-6">{error || 'Something went wrong'}</p>
+                <p className="text-muted-foreground mb-6">{billingError || 'Something went wrong'}</p>
                 <Link href="/dashboard" className="text-primary hover:underline">
                     Back to Dashboard
                 </Link>
@@ -210,7 +165,7 @@ export default function BillingPage() {
         );
     }
 
-    const { usage, limits, tier } = data;
+    const { usage, limits, tier } = usageData;
 
     const formatBytes = (bytes: number) => {
         if (bytes === 0) return '0 B';
@@ -300,7 +255,7 @@ export default function BillingPage() {
                                 plan={plan}
                                 currentPlanId={tier.id}
                                 onUpgrade={handleUpgrade}
-                                loading={upgrading === plan.id}
+                                loading={upgradingTierId === plan.id}
                                 isPopular={plan.id === 'pro'}
                             />
                         ))}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Loader2, MapPin, Check, RefreshCcw } from 'lucide-react';
+import { useStore } from '@/store';
 
 // Common GCP regions for Cloud Run
 // See: https://cloud.google.com/run/docs/locations
@@ -25,11 +26,13 @@ const GCP_REGIONS = [
 
 interface RegionSettingsProps {
     projectId: string;
-    currentRegion: string | null;
-    onUpdate: () => void;
+    onUpdate?: () => void;
 }
 
-export function RegionSettings({ projectId, currentRegion, onUpdate }: RegionSettingsProps) {
+export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
+    const { currentProject, updateProjectRegion } = useStore();
+    const currentRegion = currentProject?.region;
+
     const [selectedRegion, setSelectedRegion] = useState(currentRegion || '');
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -42,22 +45,16 @@ export function RegionSettings({ projectId, currentRegion, onUpdate }: RegionSet
         setSaved(false);
 
         try {
-            const response = await fetch(`/api/projects/${projectId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ region: newRegion || null }),
-            });
+            const success = await updateProjectRegion(projectId, newRegion || null);
 
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to update region');
+            if (success) {
+                setSaved(true);
+                if (onUpdate) onUpdate();
+                // Hide the saved indicator after 2 seconds
+                setTimeout(() => setSaved(false), 2000);
+            } else {
+                throw new Error('Failed to update region');
             }
-
-            setSaved(true);
-            onUpdate();
-
-            // Hide the saved indicator after 2 seconds
-            setTimeout(() => setSaved(false), 2000);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to update region');
         } finally {

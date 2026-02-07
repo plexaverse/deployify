@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -20,29 +20,29 @@ import {
 import type { Session } from '@/types';
 import { TeamSwitcher } from '@/components/TeamSwitcher';
 import { PlanBadge } from '@/components/ui/PlanBadge';
+import { useStore } from '@/store';
 
 interface DashboardSidebarProps {
     session: Session;
 }
 
 export function DashboardSidebar({ session }: DashboardSidebarProps) {
-    const [isOpen, setIsOpen] = useState(false);
+    const { isSidebarOpen, setSidebarOpen, toggleSidebar, isMounted, setMounted } = useStore();
     const pathname = usePathname();
     const params = useParams();
     const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
 
     // Support both id (dashboard) and slug (projects) params
     const projectId = (params?.id || params?.slug) as string;
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+    }, [setMounted]);
 
     // Close sidebar on route change on mobile
     useEffect(() => {
-        setIsOpen(false);
-    }, [pathname]);
+        setSidebarOpen(false);
+    }, [pathname, setSidebarOpen]);
 
     const toggleTheme = () => {
         setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -101,19 +101,19 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                     <span className="text-xl font-bold gradient-text">Deployify</span>
                 </Link>
                 <button
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={toggleSidebar}
                     className="p-2 text-[var(--foreground)]"
                     aria-label="Toggle menu"
                 >
-                    {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                    {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>
             </div>
 
             {/* Sidebar Overlay for Mobile */}
-            {isOpen && (
+            {isSidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden pt-16"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setSidebarOpen(false)}
                 />
             )}
 
@@ -121,7 +121,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
             <aside className={`
                 fixed inset-y-0 left-0 z-50 w-64 bg-[var(--card)] border-r border-[var(--border)] flex flex-col transition-transform duration-300 ease-in-out shadow-xl md:shadow-none
                 md:sticky md:top-0 md:translate-x-0 md:h-screen md:z-0
-                ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 {/* Header / Team Switcher */}
                 <div className="p-4 border-b border-[var(--border)]">
@@ -146,7 +146,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                                     ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
                                                     : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
                                                     }`}
-                                                onClick={() => setIsOpen(false)}
+                                                onClick={() => setSidebarOpen(false)}
                                             >
                                                 <item.icon className="w-4 h-4" />
                                                 {item.name}
@@ -166,7 +166,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                         onClick={toggleTheme}
                     >
                         <span className="flex items-center gap-2">
-                            {mounted && theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                            {isMounted && theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             Theme
                         </span>
                     </div>

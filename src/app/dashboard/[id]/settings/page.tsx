@@ -1,106 +1,51 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import type { Project, EnvVariable, Domain } from '@/types';
 import { EnvVariablesSection } from '@/components/EnvVariablesSection';
 import { DomainsSection } from '@/components/DomainsSection';
 import { RegionSettings } from '@/components/RegionSettings';
 import { ResourceSettings } from '@/components/ResourceSettings';
 import { BranchDeploymentsSettings } from '@/components/BranchDeploymentsSettings';
+import { useStore } from '@/store';
 
 export default function ProjectSettingsPage() {
     const params = useParams();
     const router = useRouter();
-    const [project, setProject] = useState<Project | null>(null);
-    const [envVariables, setEnvVariables] = useState<EnvVariable[]>([]);
-    const [domains, setDomains] = useState<Domain[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    // Build settings state
-    const [buildCommand, setBuildCommand] = useState('');
-    const [installCommand, setInstallCommand] = useState('');
-    const [rootDirectory, setRootDirectory] = useState('');
-    const [outputDirectory, setOutputDirectory] = useState('');
-    const [webhookUrl, setWebhookUrl] = useState('');
-    const [emailNotifications, setEmailNotifications] = useState(false);
-    const [cloudArmorEnabled, setCloudArmorEnabled] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [savingWebhook, setSavingWebhook] = useState(false);
-    const [savingSecurity, setSavingSecurity] = useState(false);
-
-    const fetchProject = useCallback(async () => {
-        try {
-            const response = await fetch(`/api/projects/${params.id}`);
-
-            if (!response.ok) {
-                router.push('/dashboard');
-                return;
-            }
-
-            const data = await response.json();
-            setProject(data.project);
-            setBuildCommand(data.project.buildCommand || '');
-            setInstallCommand(data.project.installCommand || '');
-            setRootDirectory(data.project.rootDirectory || '');
-            setOutputDirectory(data.project.outputDirectory || '');
-            setWebhookUrl(data.project.webhookUrl || '');
-            setEmailNotifications(data.project.emailNotifications || false);
-            setCloudArmorEnabled(data.project.cloudArmorEnabled || false);
-
-            // Fetch env variables separately
-            const envResponse = await fetch(`/api/projects/${params.id}/env`);
-            if (envResponse.ok) {
-                const envData = await envResponse.json();
-                setEnvVariables(envData.envVariables || []);
-            }
-
-            // Fetch domains separately
-            const domainsResponse = await fetch(`/api/projects/${params.id}/domains`);
-            if (domainsResponse.ok) {
-                const domainsData = await domainsResponse.json();
-                setDomains(domainsData.domains || []);
-            }
-        } catch (error) {
-            console.error('Failed to fetch project:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [params.id, router]);
+    const {
+        currentProject: project,
+        isLoadingProject: loading,
+        buildCommand,
+        installCommand,
+        rootDirectory,
+        outputDirectory,
+        webhookUrl,
+        emailNotifications,
+        cloudArmorEnabled,
+        isSavingProjectSettings: saving,
+        isSavingWebhook: savingWebhook,
+        isSavingSecurity: savingSecurity,
+        setProjectSettingsField,
+        fetchProjectDetails,
+        saveProjectSettings,
+        saveNotificationSettings,
+        saveSecuritySettings,
+        deleteProject
+    } = useStore();
 
     useEffect(() => {
         if (params.id) {
-            fetchProject();
+            fetchProjectDetails(params.id as string);
         }
-    }, [params.id, fetchProject]);
+    }, [params.id, fetchProjectDetails]);
 
     const handleDeleteProject = async () => {
         if (!project) return;
-
-        if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-            return;
-        }
-
-        const toastId = toast.loading('Deleting project...');
-
-        try {
-            const response = await fetch(`/api/projects/${project.id}`, {
-                method: 'DELETE',
-            });
-
-            if (response.ok) {
-                toast.success('Project deleted successfully', { id: toastId });
-                router.push('/dashboard');
-            } else {
-                const data = await response.json();
-                toast.error(data.error || 'Failed to delete project', { id: toastId });
-            }
-        } catch (error) {
-            console.error('Failed to delete project:', error);
-            toast.error('Failed to delete project', { id: toastId });
+        const success = await deleteProject(project.id);
+        if (success) {
+            router.push('/dashboard');
         }
     };
 
@@ -140,32 +85,28 @@ export default function ProjectSettingsPage() {
             {/* Domains Section */}
             <DomainsSection
                 projectId={project.id}
-                initialDomains={domains}
                 productionUrl={project.productionUrl}
-                onUpdate={fetchProject}
+                onUpdate={() => fetchProjectDetails(project.id)}
             />
 
             {/* Environment Variables Section */}
             <div className="mt-8">
                 <EnvVariablesSection
                     projectId={project.id}
-                    initialEnvVariables={envVariables}
-                    onUpdate={fetchProject}
+                    onUpdate={() => fetchProjectDetails(project.id)}
                 />
             </div>
 
             {/* Region Settings */}
             <RegionSettings
                 projectId={project.id}
-                currentRegion={project.region}
-                onUpdate={fetchProject}
+                onUpdate={() => fetchProjectDetails(project.id)}
             />
 
             {/* Resource Settings */}
             <ResourceSettings
                 projectId={project.id}
-                initialResources={project.resources}
-                onUpdate={fetchProject}
+                onUpdate={() => fetchProjectDetails(project.id)}
             />
 
             {/* Build Settings */}
@@ -179,7 +120,7 @@ export default function ProjectSettingsPage() {
                                 id="build-command"
                                 type="text"
                                 value={buildCommand}
-                                onChange={(e) => setBuildCommand(e.target.value)}
+                                onChange={(e) => setProjectSettingsField('buildCommand', e.target.value)}
                                 placeholder="npm run build"
                                 className="input w-full"
                             />
@@ -193,7 +134,7 @@ export default function ProjectSettingsPage() {
                                 id="output-directory"
                                 type="text"
                                 value={outputDirectory}
-                                onChange={(e) => setOutputDirectory(e.target.value)}
+                                onChange={(e) => setProjectSettingsField('outputDirectory', e.target.value)}
                                 placeholder=".next"
                                 className="input w-full"
                             />
@@ -210,7 +151,7 @@ export default function ProjectSettingsPage() {
                                 id="install-command"
                                 type="text"
                                 value={installCommand}
-                                onChange={(e) => setInstallCommand(e.target.value)}
+                                onChange={(e) => setProjectSettingsField('installCommand', e.target.value)}
                                 placeholder="npm install"
                                 className="input w-full"
                             />
@@ -224,7 +165,7 @@ export default function ProjectSettingsPage() {
                                 id="root-directory"
                                 type="text"
                                 value={rootDirectory}
-                                onChange={(e) => setRootDirectory(e.target.value)}
+                                onChange={(e) => setProjectSettingsField('rootDirectory', e.target.value)}
                                 placeholder="./"
                                 className="input w-full"
                             />
@@ -236,35 +177,7 @@ export default function ProjectSettingsPage() {
 
                     <div className="flex justify-end pt-4">
                         <button
-                            onClick={async () => {
-                                if (!project) return;
-                                setSaving(true);
-                                const toastId = toast.loading('Saving settings...');
-                                try {
-                                    const response = await fetch(`/api/projects/${project.id}`, {
-                                        method: 'PATCH',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            buildCommand,
-                                            installCommand,
-                                            rootDirectory,
-                                            outputDirectory,
-                                        }),
-                                    });
-
-                                    if (response.ok) {
-                                        toast.success('Settings saved', { id: toastId });
-                                        fetchProject();
-                                    } else {
-                                        toast.error('Failed to save settings', { id: toastId });
-                                    }
-                                } catch (error) {
-                                    console.error('Failed to save settings:', error);
-                                    toast.error('Failed to save settings', { id: toastId });
-                                } finally {
-                                    setSaving(false);
-                                }
-                            }}
+                            onClick={() => saveProjectSettings(project.id)}
                             disabled={saving}
                             className="btn btn-primary"
                         >
@@ -284,9 +197,7 @@ export default function ProjectSettingsPage() {
             {/* Branch Deployments */}
             <BranchDeploymentsSettings
                 projectId={project.id}
-                initialBranches={project.autodeployBranches || []}
-                initialBranchEnvironments={project.branchEnvironments || []}
-                onUpdate={fetchProject}
+                onUpdate={() => fetchProjectDetails(project.id)}
             />
 
             {/* Notifications */}
@@ -298,7 +209,7 @@ export default function ProjectSettingsPage() {
                             id="email-notifications"
                             type="checkbox"
                             checked={emailNotifications}
-                            onChange={(e) => setEmailNotifications(e.target.checked)}
+                            onChange={(e) => setProjectSettingsField('emailNotifications', e.target.checked)}
                             className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                         />
                         <div>
@@ -317,7 +228,7 @@ export default function ProjectSettingsPage() {
                             id="webhook-url"
                             type="text"
                             value={webhookUrl}
-                            onChange={(e) => setWebhookUrl(e.target.value)}
+                            onChange={(e) => setProjectSettingsField('webhookUrl', e.target.value)}
                             placeholder="https://discord.com/api/webhooks/..."
                             className="input w-full"
                         />
@@ -328,33 +239,7 @@ export default function ProjectSettingsPage() {
 
                     <div className="flex justify-end pt-4">
                         <button
-                            onClick={async () => {
-                                if (!project) return;
-                                setSavingWebhook(true);
-                                const toastId = toast.loading('Saving webhook...');
-                                try {
-                                    const response = await fetch(`/api/projects/${project.id}`, {
-                                        method: 'PATCH',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            webhookUrl,
-                                            emailNotifications,
-                                        }),
-                                    });
-
-                                    if (response.ok) {
-                                        toast.success('Notifications saved', { id: toastId });
-                                        fetchProject();
-                                    } else {
-                                        toast.error('Failed to save notifications', { id: toastId });
-                                    }
-                                } catch (error) {
-                                    console.error('Failed to save notifications:', error);
-                                    toast.error('Failed to save notifications', { id: toastId });
-                                } finally {
-                                    setSavingWebhook(false);
-                                }
-                            }}
+                            onClick={() => saveNotificationSettings(project.id)}
                             disabled={savingWebhook}
                             className="btn btn-primary"
                         >
@@ -380,7 +265,7 @@ export default function ProjectSettingsPage() {
                             id="cloud-armor"
                             type="checkbox"
                             checked={cloudArmorEnabled}
-                            onChange={(e) => setCloudArmorEnabled(e.target.checked)}
+                            onChange={(e) => setProjectSettingsField('cloudArmorEnabled', e.target.checked)}
                             className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                         />
                         <div>
@@ -395,32 +280,7 @@ export default function ProjectSettingsPage() {
 
                     <div className="flex justify-end pt-4">
                         <button
-                            onClick={async () => {
-                                if (!project) return;
-                                setSavingSecurity(true);
-                                const toastId = toast.loading('Saving security settings...');
-                                try {
-                                    const response = await fetch(`/api/projects/${project.id}/security`, {
-                                        method: 'PATCH',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                            enabled: cloudArmorEnabled,
-                                        }),
-                                    });
-
-                                    if (response.ok) {
-                                        toast.success('Security settings saved', { id: toastId });
-                                        fetchProject();
-                                    } else {
-                                        toast.error('Failed to save security settings', { id: toastId });
-                                    }
-                                } catch (error) {
-                                    console.error('Failed to save security settings:', error);
-                                    toast.error('Failed to save security settings', { id: toastId });
-                                } finally {
-                                    setSavingSecurity(false);
-                                }
-                            }}
+                            onClick={() => saveSecuritySettings(project.id)}
                             disabled={savingSecurity}
                             className="btn btn-primary"
                         >

@@ -1,37 +1,51 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Trash2, Eye, EyeOff, Save, X, Copy, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import {
+    Plus,
+    Trash2,
+    Eye,
+    EyeOff,
+    Save,
+    X,
+    Copy,
+    Check,
+    Loader2,
+    AlertCircle,
+    Info,
+    Shield
+} from 'lucide-react';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
+import { useStore } from '@/store';
 
 interface EnvVariablesSectionProps {
     projectId: string;
-    initialEnvVariables: EnvVariable[];
     onUpdate?: () => void;
 }
 
-export function EnvVariablesSection({
-    projectId,
-    initialEnvVariables,
-    onUpdate,
-}: EnvVariablesSectionProps) {
-    const [envVariables, setEnvVariables] = useState<EnvVariable[]>(initialEnvVariables);
+export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSectionProps) {
+    const {
+        projectEnvVariables: envVariables,
+        isLoadingEnv: isLoading,
+        fetchProjectEnvVariables,
+        addEnvVariable,
+        deleteEnvVariable
+    } = useStore();
+
     const [isAdding, setIsAdding] = useState(false);
     const [newKey, setNewKey] = useState('');
     const [newValue, setNewValue] = useState('');
     const [newIsSecret, setNewIsSecret] = useState(false);
     const [newTarget, setNewTarget] = useState<EnvVariableTarget>('both');
-    const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
-    const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    const copyToClipboard = async (id: string, value: string) => {
-        await navigator.clipboard.writeText(value);
-        setCopiedId(id);
-        setTimeout(() => setCopiedId(null), 2000);
-    };
+    const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetchProjectEnvVariables(projectId);
+    }, [projectId, fetchProjectEnvVariables]);
 
     const toggleReveal = (id: string) => {
         const newRevealed = new Set(revealedIds);
@@ -43,75 +57,58 @@ export function EnvVariablesSection({
         setRevealedIds(newRevealed);
     };
 
+    const copyToClipboard = async (id: string, text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedId(id);
+            setTimeout(() => setCopiedId(null), 2000);
+        } catch (err) {
+            console.error('Failed to copy!', err);
+        }
+    };
+
     const handleAdd = async () => {
-        if (!newKey.trim() || !newValue.trim()) {
-            setError('Both key and value are required');
+        if (!newKey.trim()) {
+            setError('Key is required');
             return;
         }
 
-        setLoading(true);
         setError(null);
+        setIsSubmitting(true);
 
         try {
-            const response = await fetch(`/api/projects/${projectId}/env`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    key: newKey.toUpperCase().replace(/[^A-Z0-9_]/g, '_'),
-                    value: newValue,
-                    isSecret: newIsSecret,
-                    target: newTarget,
-                }),
+            const success = await addEnvVariable(projectId, {
+                key: newKey.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_'),
+                value: newValue,
+                isSecret: newIsSecret,
+                target: newTarget,
             });
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to add environment variable');
+            if (success) {
+                // Reset form
+                setNewKey('');
+                setNewValue('');
+                setNewIsSecret(false);
+                setIsAdding(false);
+                if (onUpdate) onUpdate();
             }
-
-            setEnvVariables([...envVariables, data.envVariable]);
-            setNewKey('');
-            setNewValue('');
-            setNewIsSecret(false);
-            setNewTarget('both');
-            setIsAdding(false);
-            setSuccess('Environment variable added successfully');
-            setTimeout(() => setSuccess(null), 3000);
-            onUpdate?.();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to add environment variable');
+            setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
-            setLoading(false);
+            setIsSubmitting(false);
         }
     };
 
     const handleDelete = async (envId: string, key: string) => {
-        if (!confirm(`Are you sure you want to delete ${key}?`)) {
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
+        if (!confirm(`Are you sure you want to delete ${key}?`)) return;
 
         try {
-            const response = await fetch(`/api/projects/${projectId}/env?envId=${envId}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to delete environment variable');
+            const success = await deleteEnvVariable(projectId, envId);
+            if (success && onUpdate) {
+                onUpdate();
             }
-
-            setEnvVariables(envVariables.filter((env) => env.id !== envId));
-            setSuccess('Environment variable deleted successfully');
-            setTimeout(() => setSuccess(null), 3000);
-            onUpdate?.();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to delete environment variable');
-        } finally {
-            setLoading(false);
+            console.error('Failed to delete:', err);
         }
     };
 
@@ -133,193 +130,203 @@ export function EnvVariablesSection({
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-lg font-semibold">Environment Variables</h2>
-                    <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                        Configure environment variables for your deployments
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                        Variables that are available to your build and runtime environments
                     </p>
                 </div>
-                {!isAdding && (
-                    <button
-                        onClick={() => setIsAdding(true)}
-                        className="btn btn-primary"
-                        disabled={loading}
-                    >
-                        <Plus className="w-4 h-4" />
-                        Add Variable
-                    </button>
-                )}
+                <button
+                    onClick={() => setIsAdding(!isAdding)}
+                    className="btn btn-primary flex items-center gap-2"
+                >
+                    <Plus className="w-4 h-4" />
+                    Add Variable
+                </button>
             </div>
 
-            {/* Error/Success Messages */}
             {error && (
-                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                <div className="mb-6 p-3 bg-red-500/10 border border-red-500/50 rounded-md flex items-center gap-3 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     {error}
                 </div>
             )}
-            {success && (
-                <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
-                    {success}
-                </div>
-            )}
 
-            {/* Add New Variable Form */}
             {isAdding && (
-                <div className="mb-6 p-4 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+                <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)]">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label className="block text-sm font-medium mb-2">Key</label>
+                            <label className="block text-sm font-medium mb-1">Key</label>
                             <input
                                 type="text"
                                 value={newKey}
                                 onChange={(e) => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                                placeholder="DATABASE_URL"
-                                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                placeholder="API_KEY"
+                                className="input w-full font-mono text-sm"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-2">Value</label>
+                            <label className="block text-sm font-medium mb-1">Value</label>
                             <input
                                 type={newIsSecret ? 'password' : 'text'}
                                 value={newValue}
                                 onChange={(e) => setNewValue(e.target.value)}
-                                placeholder="Enter value..."
-                                className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                placeholder="secret-value"
+                                className="input w-full font-mono text-sm"
                             />
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-4 mb-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
+
+                    <div className="flex flex-wrap items-center gap-6 mb-6">
+                        <div className="flex items-center gap-2">
                             <input
+                                id="is-secret"
                                 type="checkbox"
                                 checked={newIsSecret}
                                 onChange={(e) => setNewIsSecret(e.target.checked)}
-                                className="w-4 h-4 rounded border-[var(--border)]"
+                                className="w-4 h-4 rounded border-gray-300 text-[var(--primary)]"
                             />
-                            <span className="text-sm">Secret (value will be encrypted)</span>
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm">Target:</span>
-                            <select
-                                value={newTarget}
-                                onChange={(e) => setNewTarget(e.target.value as EnvVariableTarget)}
-                                className="px-2 py-1 rounded border border-[var(--border)] bg-[var(--card)] text-sm"
-                            >
-                                <option value="both">Build & Runtime</option>
-                                <option value="build">Build Only</option>
-                                <option value="runtime">Runtime Only</option>
-                            </select>
+                            <label htmlFor="is-secret" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                                <Shield className="w-3.5 h-3.5 text-blue-400" />
+                                Secret (Encrypted)
+                            </label>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm font-medium">Environment:</span>
+                            <div className="flex items-center gap-4">
+                                {(['both', 'build', 'runtime'] as EnvVariableTarget[]).map((t) => (
+                                    <label key={t} className="flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="target"
+                                            checked={newTarget === t}
+                                            onChange={() => setNewTarget(t)}
+                                            className="w-4 h-4 border-gray-300 text-[var(--primary)]"
+                                        />
+                                        <span className="text-sm capitalize">{t}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
                     </div>
-                    <div className="flex gap-2">
+
+                    <div className="flex justify-end gap-3">
                         <button
-                            onClick={handleAdd}
-                            className="btn btn-primary"
-                            disabled={loading || !newKey.trim() || !newValue.trim()}
+                            onClick={() => setIsAdding(false)}
+                            className="btn btn-ghost"
                         >
-                            <Save className="w-4 h-4" />
-                            {loading ? 'Adding...' : 'Add'}
-                        </button>
-                        <button
-                            onClick={() => {
-                                setIsAdding(false);
-                                setNewKey('');
-                                setNewValue('');
-                                setNewIsSecret(false);
-                                setNewTarget('both');
-                                setError(null);
-                            }}
-                            className="btn"
-                            disabled={loading}
-                        >
-                            <X className="w-4 h-4" />
                             Cancel
                         </button>
+                        <button
+                            onClick={handleAdd}
+                            disabled={isSubmitting}
+                            className="btn btn-primary"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Adding...
+                                </>
+                            ) : (
+                                'Add Variable'
+                            )}
+                        </button>
                     </div>
                 </div>
             )}
 
-            {/* Environment Variables List */}
-            {envVariables.length === 0 ? (
-                <div className="text-center py-8 text-[var(--muted-foreground)]">
-                    <p>No environment variables configured.</p>
-                    <p className="text-sm mt-1">Add variables to use during build and runtime.</p>
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
+                </div>
+            ) : envVariables.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed border-[var(--border)] rounded-md">
+                    <div className="bg-[var(--muted)] w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Plus className="w-6 h-6 text-[var(--muted-foreground)]" />
+                    </div>
+                    <p className="text-[var(--muted-foreground)]">No environment variables yet</p>
+                    <p className="text-xs text-[var(--muted-foreground)] mt-1 max-w-[280px] mx-auto">
+                        Add keys like API_KEY, DATABASE_URL, etc. to configure your app at build and runtime.
+                    </p>
                 </div>
             ) : (
-                <div className="space-y-2">
-                    <div className="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-medium text-[var(--muted-foreground)] uppercase">
-                        <div className="col-span-3">Key</div>
-                        <div className="col-span-5">Value</div>
-                        <div className="col-span-2">Target</div>
-                        <div className="col-span-2 text-right">Actions</div>
-                    </div>
-                    {envVariables.map((env) => (
-                        <div
-                            key={env.id}
-                            className="grid grid-cols-12 gap-4 px-3 py-3 rounded-lg border border-[var(--border)] bg-[var(--background)] items-center"
-                        >
-                            <div className="col-span-3 font-mono text-sm truncate" title={env.key}>
-                                {env.key}
-                            </div>
-                            <div className="col-span-5 font-mono text-sm truncate flex items-center gap-2">
-                                <span className="truncate">
-                                    {env.isSecret && !revealedIds.has(env.id)
-                                        ? '••••••••'
-                                        : env.value}
-                                </span>
-                                <div className="flex items-center gap-1 flex-shrink-0">
-                                    {env.isSecret && (
-                                        <button
-                                            onClick={() => toggleReveal(env.id)}
-                                            className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-1"
-                                            title={revealedIds.has(env.id) ? 'Hide value' : 'Show value'}
-                                            aria-label={revealedIds.has(env.id) ? 'Hide value' : 'Show value'}
-                                        >
-                                            {revealedIds.has(env.id) ? (
-                                                <EyeOff className="w-4 h-4" />
-                                            ) : (
-                                                <Eye className="w-4 h-4" />
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-[var(--border)]">
+                                <th className="py-3 px-4 font-semibold text-sm">Key</th>
+                                <th className="py-3 px-4 font-semibold text-sm">Value</th>
+                                <th className="py-3 px-4 font-semibold text-sm">Environment</th>
+                                <th className="py-3 px-4 font-semibold text-sm text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {envVariables.map((env) => (
+                                <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--muted)]/30 transition-colors">
+                                    <td className="py-3 px-4 text-sm font-mono">
+                                        <div className="flex items-center gap-2">
+                                            {env.key}
+                                            {env.isSecret && (
+                                                <span title="Secret">
+                                                    <Shield className="w-3 h-3 text-blue-400" />
+                                                </span>
                                             )}
+                                        </div>
+                                    </td>
+                                    <td className="py-3 px-4 text-sm font-mono">
+                                        <div className="flex items-center gap-2 bg-[var(--muted)]/50 px-2 py-1 rounded w-fit">
+                                            {revealedIds.has(env.id) ? (
+                                                <span className="text-[var(--foreground)]">{env.value}</span>
+                                            ) : (
+                                                <span className="text-[var(--muted-foreground)]">••••••••••••••••</span>
+                                            )}
+
+                                            <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => toggleReveal(env.id)}
+                                                    className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)]"
+                                                    title={revealedIds.has(env.id) ? "Hide value" : "Show value"}
+                                                >
+                                                    {revealedIds.has(env.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                                </button>
+                                                <button
+                                                    onClick={() => copyToClipboard(env.id, env.value)}
+                                                    className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)]"
+                                                    title="Copy to clipboard"
+                                                >
+                                                    {copiedId === env.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize">
+                                            {getTargetLabel(env.target)}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-4 text-right">
+                                        <button
+                                            onClick={() => handleDelete(env.id, env.key)}
+                                            className="p-2 text-[var(--muted-foreground)] hover:text-red-500 rounded-md hover:bg-red-500/10 transition-colors"
+                                            title="Delete environment variable"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
-                                    )}
-                                    <button
-                                        onClick={() => copyToClipboard(env.id, env.value)}
-                                        className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] p-1"
-                                        title="Copy value"
-                                        aria-label="Copy value"
-                                    >
-                                        {copiedId === env.id ? (
-                                            <Check className="w-4 h-4 text-green-400" />
-                                        ) : (
-                                            <Copy className="w-4 h-4" />
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="col-span-2">
-                                <span className="text-xs px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)]">
-                                    {getTargetLabel(env.target)}
-                                </span>
-                            </div>
-                            <div className="col-span-2 flex justify-end">
-                                <button
-                                    onClick={() => handleDelete(env.id, env.key)}
-                                    className="text-[var(--muted-foreground)] hover:text-red-400 p-1"
-                                    title="Delete variable"
-                                    aria-label={`Delete environment variable ${env.key}`}
-                                    disabled={loading}
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
 
-            {/* Info */}
-            <div className="mt-6 text-xs text-[var(--muted-foreground)]">
-                <p><strong>Build:</strong> Available during the build process (npm run build)</p>
-                <p><strong>Runtime:</strong> Available when your app is running (passed to Cloud Run)</p>
-                <p><strong>Build & Runtime:</strong> Available in both environments</p>
+            <div className="mt-6 flex items-start gap-3 p-4 bg-blue-500/5 border border-blue-500/20 rounded-md">
+                <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                    <p className="font-medium text-blue-400 mb-1 text-sm">Deployment required</p>
+                    <p className="text-[var(--muted-foreground)] leading-relaxed">
+                        Changes to environment variables will apply to new deployments. Existing deployments will keep their current variables until redeployed.
+                    </p>
+                </div>
             </div>
         </div>
     );

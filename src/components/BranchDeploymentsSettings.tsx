@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, Loader2, GitBranch } from 'lucide-react';
 import { toast } from 'sonner';
+import { useStore } from '@/store';
 
 interface BranchEnvironments {
     branch: string;
@@ -11,19 +12,17 @@ interface BranchEnvironments {
 
 interface BranchDeploymentsSettingsProps {
     projectId: string;
-    initialBranches: string[];
-    initialBranchEnvironments?: BranchEnvironments[];
     onUpdate?: () => void;
 }
 
 export function BranchDeploymentsSettings({
     projectId,
-    initialBranches = [],
-    initialBranchEnvironments = [],
     onUpdate,
 }: BranchDeploymentsSettingsProps) {
-    const [branches, setBranches] = useState<string[]>(initialBranches);
-    const [branchEnvironments, setBranchEnvironments] = useState<BranchEnvironments[]>(initialBranchEnvironments);
+    const { currentProject, updateBranchSettings } = useStore();
+    const branches = currentProject?.autodeployBranches || [];
+    const branchEnvironments = (currentProject?.branchEnvironments as any[]) || [];
+
     const [newBranch, setNewBranch] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -60,7 +59,7 @@ export function BranchDeploymentsSettings({
         );
 
         if (!updatedEnvironments.find(be => be.branch === branch)) {
-             updatedEnvironments.push({ branch, envTarget });
+            updatedEnvironments.push({ branch, envTarget });
         }
 
         await updateBranches(branches, updatedEnvironments);
@@ -69,18 +68,12 @@ export function BranchDeploymentsSettings({
     const updateBranches = async (updatedBranches: string[], updatedEnvironments: BranchEnvironments[]) => {
         setLoading(true);
         try {
-            const response = await fetch(`/api/projects/${projectId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    autodeployBranches: updatedBranches,
-                    branchEnvironments: updatedEnvironments,
-                }),
+            const success = await updateBranchSettings(projectId, {
+                autodeployBranches: updatedBranches,
+                branchEnvironments: updatedEnvironments,
             });
 
-            if (response.ok) {
-                setBranches(updatedBranches);
-                setBranchEnvironments(updatedEnvironments);
+            if (success) {
                 toast.success('Branch settings updated');
                 if (onUpdate) onUpdate();
             } else {

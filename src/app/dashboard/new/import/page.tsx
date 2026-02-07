@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Plus, Trash2, MapPin, Terminal, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/moving-border';
+import { useStore } from '@/store';
 
 // Common GCP regions (matching those in new/page.tsx)
 const GCP_REGIONS = [
@@ -26,21 +27,27 @@ export default function ImportProjectPage() {
     const searchParams = useSearchParams();
     const repoFullName = searchParams.get('repo');
 
-    const [projectName, setProjectName] = useState('');
-    const [framework, setFramework] = useState('auto');
-    const [rootDirectory, setRootDirectory] = useState('');
-    const [buildCommand, setBuildCommand] = useState('');
-    const [outputDirectory, setOutputDirectory] = useState('');
-    const [installCommand, setInstallCommand] = useState('');
-    const [region, setRegion] = useState('');
+    const {
+        projectName, setProjectName,
+        framework, setFramework,
+        rootDirectory, setRootDirectory,
+        buildCommand, setBuildCommand,
+        outputDirectory, setOutputDirectory,
+        installCommand, setInstallCommand,
+        region, setRegion,
+        envVars, setEnvVars,
+        newEnvKey, setNewEnvKey,
+        newEnvValue, setNewEnvValue,
+        newEnvTarget, setNewEnvTarget,
+        isDeploying, setDeploying,
+        resetImportState
+    } = useStore();
 
-    // Env Vars State
-    const [envVars, setEnvVars] = useState<{ key: string; value: string; target: 'both' | 'build' | 'runtime' }[]>([]);
-    const [newEnvKey, setNewEnvKey] = useState('');
-    const [newEnvValue, setNewEnvValue] = useState('');
-    const [newEnvTarget, setNewEnvTarget] = useState<'both' | 'build' | 'runtime'>('both');
-
-    const [deploying, setDeploying] = useState(false);
+    useEffect(() => {
+        return () => {
+            resetImportState();
+        };
+    }, [resetImportState]);
 
     useEffect(() => {
         if (repoFullName) {
@@ -50,7 +57,7 @@ export default function ImportProjectPage() {
         } else {
             router.push('/dashboard/new');
         }
-    }, [repoFullName, router]);
+    }, [repoFullName, router, setProjectName]);
 
     // Update defaults when framework changes
     useEffect(() => {
@@ -68,7 +75,7 @@ export default function ImportProjectPage() {
             setInstallCommand('npm install');
         }
         // 'auto' leaves them empty for auto-detection or manual input
-    }, [framework]);
+    }, [framework, setBuildCommand, setOutputDirectory, setInstallCommand]);
 
     const handleAddEnv = () => {
         if (!newEnvKey.trim() || !newEnvValue.trim()) return;
@@ -111,10 +118,10 @@ export default function ImportProjectPage() {
                     installCommand,
                     region: region || undefined,
                     envVariables: envVars.map(e => ({
-                         key: e.key,
-                         value: e.value,
-                         target: e.target,
-                         isSecret: false // TODO: Support secrets in import flow
+                        key: e.key,
+                        value: e.value,
+                        target: e.target,
+                        isSecret: false // TODO: Support secrets in import flow
                     }))
                 }),
             });
@@ -214,8 +221,8 @@ export default function ImportProjectPage() {
                 {/* Build Settings */}
                 <div className="card">
                     <div className="flex items-center gap-2 mb-4">
-                         <Settings className="w-5 h-5 text-[var(--muted-foreground)]" />
-                         <h2 className="text-lg font-semibold">Build Settings</h2>
+                        <Settings className="w-5 h-5 text-[var(--muted-foreground)]" />
+                        <h2 className="text-lg font-semibold">Build Settings</h2>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -256,23 +263,23 @@ export default function ImportProjectPage() {
                 {/* Environment Variables */}
                 <div className="card">
                     <div className="flex items-center gap-2 mb-4">
-                         <Terminal className="w-5 h-5 text-[var(--muted-foreground)]" />
-                         <h2 className="text-lg font-semibold">Environment Variables</h2>
+                        <Terminal className="w-5 h-5 text-[var(--muted-foreground)]" />
+                        <h2 className="text-lg font-semibold">Environment Variables</h2>
                     </div>
 
                     <div className="mb-4 space-y-2">
-                         {envVars.map((env) => (
-                             <div key={env.key} className="flex items-center gap-2 p-2 rounded bg-[var(--background)] border border-[var(--border)]">
-                                 <div className="flex-1 grid grid-cols-3 gap-2">
-                                     <div className="font-mono text-sm truncate" title={env.key}>{env.key}</div>
-                                     <div className="font-mono text-sm truncate" title={env.value}>{env.value}</div>
-                                     <div className="text-xs text-[var(--muted-foreground)] flex items-center">{env.target}</div>
-                                 </div>
-                                 <button onClick={() => handleRemoveEnv(env.key)} className="text-[var(--muted-foreground)] hover:text-red-500">
-                                     <Trash2 className="w-4 h-4" />
-                                 </button>
-                             </div>
-                         ))}
+                        {envVars.map((env) => (
+                            <div key={env.key} className="flex items-center gap-2 p-2 rounded bg-[var(--background)] border border-[var(--border)]">
+                                <div className="flex-1 grid grid-cols-3 gap-2">
+                                    <div className="font-mono text-sm truncate" title={env.key}>{env.key}</div>
+                                    <div className="font-mono text-sm truncate" title={env.value}>{env.value}</div>
+                                    <div className="text-xs text-[var(--muted-foreground)] flex items-center">{env.target}</div>
+                                </div>
+                                <button onClick={() => handleRemoveEnv(env.key)} className="text-[var(--muted-foreground)] hover:text-red-500">
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ))}
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-2">
@@ -291,13 +298,13 @@ export default function ImportProjectPage() {
                             className="input flex-1 font-mono text-sm"
                         />
                         <select
-                             value={newEnvTarget}
-                             onChange={(e) => setNewEnvTarget(e.target.value as any)}
-                             className="input w-32 text-sm"
+                            value={newEnvTarget}
+                            onChange={(e) => setNewEnvTarget(e.target.value as any)}
+                            className="input w-32 text-sm"
                         >
-                             <option value="both">Both</option>
-                             <option value="build">Build</option>
-                             <option value="runtime">Runtime</option>
+                            <option value="both">Both</option>
+                            <option value="build">Build</option>
+                            <option value="runtime">Runtime</option>
                         </select>
                         <button
                             onClick={handleAddEnv}
@@ -312,11 +319,11 @@ export default function ImportProjectPage() {
                 <div className="flex justify-end pt-4">
                     <Button
                         onClick={handleDeploy}
-                        disabled={deploying || !projectName}
+                        disabled={isDeploying || !projectName}
                         containerClassName="h-12 w-full md:w-auto"
                         className="bg-black text-white dark:bg-slate-900 font-semibold text-base"
                     >
-                        {deploying ? (
+                        {isDeploying ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
                                 Deploying...

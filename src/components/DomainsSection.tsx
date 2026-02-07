@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Trash2, Globe, CheckCircle2, Clock, XCircle, ExternalLink, Copy, Check, Loader2, ShieldCheck } from 'lucide-react';
 import type { Domain } from '@/types';
+import { useStore } from '@/store';
 
 interface DomainsSectionProps {
     projectId: string;
-    initialDomains: Domain[];
     productionUrl?: string | null;
     onUpdate?: () => void;
 }
@@ -19,18 +19,28 @@ interface DnsRecord {
 
 export function DomainsSection({
     projectId,
-    initialDomains,
     productionUrl,
     onUpdate,
 }: DomainsSectionProps) {
-    const [domains, setDomains] = useState<Domain[]>(initialDomains);
+    const {
+        projectDomains: domains,
+        isLoadingDomains: isLoading,
+        fetchProjectDomains,
+        addDomain,
+        deleteDomain
+    } = useStore();
+
     const [isAdding, setIsAdding] = useState(false);
     const [newDomain, setNewDomain] = useState('');
     const [dnsRecords, setDnsRecords] = useState<DnsRecord[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [copiedValue, setCopiedValue] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetchProjectDomains(projectId);
+    }, [projectId, fetchProjectDomains]);
 
     const copyToClipboard = async (value: string) => {
         await navigator.clipboard.writeText(value);
@@ -70,32 +80,23 @@ export function DomainsSection({
             return;
         }
 
-        setLoading(true);
+        setIsSubmitting(true);
         setError(null);
 
         try {
-            const response = await fetch(`/api/projects/${projectId}/domains`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ domain: newDomain.trim() }),
-            });
+            const data = await addDomain(projectId, newDomain.trim());
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to add domain');
+            if (data) {
+                setDnsRecords(data.dnsRecords || []);
+                setNewDomain('');
+                setIsAdding(false);
+                setSuccess('Domain added! Configure the DNS records below.');
+                if (onUpdate) onUpdate();
             }
-
-            setDomains([...domains, data.domain]);
-            setDnsRecords(data.dnsRecords || []);
-            setNewDomain('');
-            setIsAdding(false);
-            setSuccess('Domain added! Configure the DNS records below.');
-            onUpdate?.();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to add domain');
         } finally {
-            setLoading(false);
+            setIsSubmitting(false);
         }
     };
 
@@ -104,42 +105,15 @@ export function DomainsSection({
             return;
         }
 
-        setLoading(true);
-        setError(null);
-
         try {
-            const response = await fetch(`/api/projects/${projectId}/domains?domainId=${domainId}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to delete domain');
-            }
-
-            setDomains(domains.filter((d) => d.id !== domainId));
-            setSuccess('Domain deleted successfully');
-            setTimeout(() => setSuccess(null), 3000);
-            onUpdate?.();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to delete domain');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const refreshStatus = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch(`/api/projects/${projectId}/domains`);
-            if (response.ok) {
-                const data = await response.json();
-                setDomains(data.domains || []);
+            const success = await deleteDomain(projectId, domainId);
+            if (success) {
+                setSuccess('Domain deleted successfully');
+                setTimeout(() => setSuccess(null), 3000);
+                if (onUpdate) onUpdate();
             }
         } catch (err) {
-            console.error('Failed to refresh domains:', err);
-        } finally {
-            setLoading(false);
+            console.error('Failed to delete:', err);
         }
     };
 
@@ -156,7 +130,7 @@ export function DomainsSection({
                     <button
                         onClick={() => setIsAdding(true)}
                         className="btn btn-primary"
-                        disabled={loading}
+                        disabled={isLoading}
                     >
                         <Plus className="w-4 h-4" />
                         Add Domain
@@ -196,9 +170,9 @@ export function DomainsSection({
                         <button
                             onClick={handleAdd}
                             className="btn btn-primary"
-                            disabled={loading || !newDomain.trim()}
+                            disabled={isSubmitting || !newDomain.trim()}
                         >
-                            {loading ? 'Adding...' : 'Add Domain'}
+                            {isSubmitting ? 'Adding...' : 'Add Domain'}
                         </button>
                         <button
                             onClick={() => {
@@ -207,7 +181,7 @@ export function DomainsSection({
                                 setError(null);
                             }}
                             className="btn"
-                            disabled={loading}
+                            disabled={isSubmitting}
                         >
                             Cancel
                         </button>
@@ -396,7 +370,11 @@ export function DomainsSection({
             )}
 
             {/* Domains List */}
-            {domains.length === 0 ? (
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
+                </div>
+            ) : domains.length === 0 ? (
                 <div className="text-center py-8 text-[var(--muted-foreground)]">
                     <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     <p>No custom domains configured.</p>
@@ -432,9 +410,8 @@ export function DomainsSection({
                             <div className="flex items-center gap-2">
                                 {domain.status === 'pending' && (
                                     <button
-                                        onClick={refreshStatus}
+                                        onClick={() => fetchProjectDomains(projectId)}
                                         className="text-xs text-[var(--primary)] hover:underline"
-                                        disabled={loading}
                                     >
                                         Refresh
                                     </button>
@@ -443,7 +420,6 @@ export function DomainsSection({
                                     onClick={() => handleDelete(domain.id, domain.domain)}
                                     className="text-[var(--muted-foreground)] hover:text-red-400 p-1"
                                     title="Delete domain"
-                                    disabled={loading}
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>

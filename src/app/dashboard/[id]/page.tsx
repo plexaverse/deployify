@@ -24,62 +24,36 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/moving-border';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
-import { LogViewer } from '@/components/LogViewer';
 import { RollbackModal } from '@/components/RollbackModal';
 import { WebVitals } from '@/components/WebVitals';
+import { useStore } from '@/store';
 import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const [project, setProject] = useState<Project | null>(null);
-    const [deployments, setDeployments] = useState<Deployment[]>([]);
-    const [errorCount, setErrorCount] = useState<number | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [deploying, setDeploying] = useState(false);
-    const [selectedLogsId, setSelectedLogsId] = useState<string | null>(null);
+    const {
+        currentProject: project,
+        currentDeployments: deployments,
+        errorCount,
+        isLoadingProject: loading,
+        isRedeploying: deploying,
+        selectedLogsId,
+        setSelectedLogsId,
+        rollbackDeployment,
+        setRollbackDeployment,
+        fetchProjectDetails,
+        redeployProject,
+        cancelDeployment
+    } = useStore();
+
     const [copiedId, setCopiedId] = useState<string | null>(null);
-    const [rollbackDeployment, setRollbackDeployment] = useState<Deployment | null>(null);
 
     useEffect(() => {
-        async function fetchProject() {
-            try {
-                const [projectResponse, deploymentsResponse, statsResponse] = await Promise.all([
-                    fetch(`/api/projects/${params.id}`),
-                    fetch(`/api/projects/${params.id}/deployments`),
-                    fetch(`/api/projects/${params.id}/logs/stats`)
-                ]);
-
-                if (!projectResponse.ok) {
-                    router.push('/dashboard');
-                    return;
-                }
-
-                const projectData = await projectResponse.json();
-                setProject(projectData.project);
-
-                if (deploymentsResponse.ok) {
-                    const deploymentsData = await deploymentsResponse.json();
-                    setDeployments(deploymentsData.deployments || []);
-                } else {
-                    setDeployments(projectData.deployments || []);
-                }
-
-                if (statsResponse.ok) {
-                    const statsData = await statsResponse.json();
-                    setErrorCount(statsData.errorCount);
-                }
-            } catch (error) {
-                console.error('Failed to fetch project:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
         if (params.id) {
-            fetchProject();
+            fetchProjectDetails(params.id as string);
         }
-    }, [params.id, router]);
+    }, [params.id, fetchProjectDetails]);
 
     const getStatusIcon = (status: string) => {
         switch (status) {
@@ -121,52 +95,16 @@ export default function ProjectDetailPage() {
 
     const handleRedeploy = async () => {
         if (!project) return;
-
-        setDeploying(true);
         const toastId = toast.loading('Triggering deployment...');
-        try {
-            const response = await fetch(`/api/projects/${project.id}/deploy`, {
-                method: 'POST',
-            });
-
-            if (response.ok) {
-                toast.success('Deployment triggered', { id: toastId });
-                // Refresh deployments
-                const deploymentsResponse = await fetch(`/api/projects/${project.id}/deployments`);
-                const data = await deploymentsResponse.json();
-                setDeployments(data.deployments || []);
-            } else {
-                toast.error('Failed to trigger deployment', { id: toastId });
-            }
-        } catch (error) {
-            console.error('Failed to trigger deployment:', error);
-            toast.error('Failed to trigger deployment', { id: toastId });
-        } finally {
-            setDeploying(false);
-        }
+        await redeployProject(project.id);
+        toast.success('Deployment triggered', { id: toastId });
     };
 
     const handleCancel = async (deploymentId: string) => {
         if (!project) return;
         const toastId = toast.loading('Cancelling deployment...');
-        try {
-            const response = await fetch(`/api/projects/${project.id}/deploy?deploymentId=${deploymentId}`, {
-                method: 'DELETE',
-            });
-
-            if (response.ok) {
-                toast.success('Deployment cancelled', { id: toastId });
-                // Refresh deployments
-                const deploymentsResponse = await fetch(`/api/projects/${project.id}/deployments`);
-                const data = await deploymentsResponse.json();
-                setDeployments(data.deployments || []);
-            } else {
-                toast.error('Failed to cancel deployment', { id: toastId });
-            }
-        } catch (error) {
-            console.error('Failed to cancel deployment:', error);
-            toast.error('Failed to cancel deployment', { id: toastId });
-        }
+        await cancelDeployment(project.id, deploymentId);
+        toast.success('Deployment cancelled', { id: toastId });
     };
 
     const handleRollback = (deploymentId: string) => {
@@ -192,10 +130,7 @@ export default function ProjectDetailPage() {
 
             if (response.ok) {
                 toast.success('Rollback initiated', { id: toastId });
-                // Refresh deployments
-                const deploymentsResponse = await fetch(`/api/projects/${project.id}/deployments`);
-                const data = await deploymentsResponse.json();
-                setDeployments(data.deployments || []);
+                fetchProjectDetails(project.id);
                 setRollbackDeployment(null);
             } else {
                 const err = await response.json();
@@ -216,7 +151,7 @@ export default function ProjectDetailPage() {
         return `${minutes}m ${remainingSeconds}s`;
     };
 
-    if (loading) {
+    if (loading && !project) {
         return (
             <div className="p-8">
                 <Skeleton className="h-8 w-1/4 mb-4" />

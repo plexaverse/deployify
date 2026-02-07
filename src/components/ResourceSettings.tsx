@@ -3,23 +3,20 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import type { Project } from '@/types';
+import { useStore } from '@/store';
 
 interface ResourceSettingsProps {
     projectId: string;
-    initialResources?: {
-        cpu?: number;
-        memory?: string;
-        minInstances?: number;
-        maxInstances?: number;
-    };
     onUpdate?: () => void;
 }
 
 const CPU_OPTIONS = [1, 2, 4];
 const MEMORY_OPTIONS = ['256Mi', '512Mi', '1Gi', '2Gi', '4Gi'];
 
-export function ResourceSettings({ projectId, initialResources, onUpdate }: ResourceSettingsProps) {
+export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps) {
+    const { currentProject, updateProjectResources } = useStore();
+    const initialResources = currentProject?.resources;
+
     const [cpu, setCpu] = useState(initialResources?.cpu || 1);
     const [memory, setMemory] = useState(initialResources?.memory || '512Mi');
     const [minInstances, setMinInstances] = useState(initialResources?.minInstances || 0);
@@ -47,25 +44,18 @@ export function ResourceSettings({ projectId, initialResources, onUpdate }: Reso
         const toastId = toast.loading('Saving resource settings...');
 
         try {
-            const response = await fetch(`/api/projects/${projectId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    resources: {
-                        cpu,
-                        memory,
-                        minInstances,
-                        maxInstances,
-                    },
-                }),
+            const success = await updateProjectResources(projectId, {
+                cpu,
+                memory,
+                minInstances,
+                maxInstances,
             });
 
-            if (response.ok) {
+            if (success) {
                 toast.success('Resource settings saved', { id: toastId });
-                onUpdate?.();
+                if (onUpdate) onUpdate();
             } else {
-                const data = await response.json();
-                toast.error(data.error || 'Failed to save settings', { id: toastId });
+                toast.error('Failed to save settings', { id: toastId });
             }
         } catch (error) {
             console.error('Failed to save settings:', error);

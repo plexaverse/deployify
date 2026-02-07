@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
 import type { Team } from '@/types';
+import { useStore } from '@/store';
 
 interface TeamContextType {
     activeTeam: Team | null;
@@ -13,53 +14,18 @@ interface TeamContextType {
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
 export function TeamProvider({ children }: { children: ReactNode }) {
-    const [activeTeam, setActiveTeam] = useState<Team | null>(null);
-    const [teams, setTeams] = useState<Team[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { activeTeam, teams, isLoadingTeams, setActiveTeam, fetchTeams } = useStore();
 
     useEffect(() => {
-        async function fetchTeams() {
-            try {
-                const response = await fetch('/api/teams');
-                const data = await response.json();
-                if (data.teams) {
-                    setTeams(data.teams);
-                }
-            } catch (error) {
-                console.error('Failed to fetch teams:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
         fetchTeams();
-    }, []);
-
-    useEffect(() => {
-        const storedTeamId = localStorage.getItem('activeTeamId');
-        if (storedTeamId && teams.length > 0) {
-            const team = teams.find(t => t.id === storedTeamId);
-            if (team) {
-                setActiveTeam(team);
-            }
-        }
-    }, [teams]);
-
-    const handleSetActiveTeam = (team: Team | null) => {
-        setActiveTeam(team);
-        if (team) {
-            localStorage.setItem('activeTeamId', team.id);
-        } else {
-            localStorage.removeItem('activeTeamId');
-        }
-    };
+    }, [fetchTeams]);
 
     return (
         <TeamContext.Provider value={{
             activeTeam,
-            setActiveTeam: handleSetActiveTeam,
+            setActiveTeam,
             teams,
-            isLoading
+            isLoading: isLoadingTeams
         }}>
             {children}
         </TeamContext.Provider>

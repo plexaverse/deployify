@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import {
     User as UserIcon,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/moving-border';
+import { useStore } from '@/store';
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
 
 // Mock Audit Log Data
@@ -28,136 +29,51 @@ const MOCK_AUDIT_LOGS = [
 
 export default function TeamSettingsPage() {
     const { activeTeam, isLoading: teamLoading } = useTeam();
-    const [members, setMembers] = useState<(TeamMembership & { user: any })[]>([]);
-    const [invites, setInvites] = useState<TeamInvite[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [inviteEmail, setInviteEmail] = useState('');
-    const [inviteRole, setInviteRole] = useState<TeamRole>('member');
-    const [isInviting, setIsInviting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const {
+        teamMembers: members,
+        teamInvites: invites,
+        isLoadingSettings: isLoading,
+        inviteEmail,
+        setInviteEmail,
+        inviteRole,
+        setInviteRole,
+        isInvitingMember: isInviting,
+        settingsError: error,
+        fetchTeamSettingsData,
+        sendTeamInvite,
+        updateMemberRole,
+        removeTeamMember,
+        revokeTeamInvite
+    } = useStore();
 
     useEffect(() => {
-        if (!activeTeam) return;
-
-        const fetchData = async () => {
-            setIsLoading(true);
-            try {
-                const [membersRes, invitesRes] = await Promise.all([
-                    fetch(`/api/teams/${activeTeam.id}/members`),
-                    fetch(`/api/teams/${activeTeam.id}/invites`)
-                ]);
-
-                if (membersRes.ok) {
-                    const data = await membersRes.json();
-                    setMembers(data.members);
-                }
-
-                if (invitesRes.ok) {
-                    const data = await invitesRes.json();
-                    setInvites(data.invites);
-                }
-            } catch (err) {
-                console.error('Failed to fetch team data', err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [activeTeam]);
+        if (activeTeam) {
+            fetchTeamSettingsData(activeTeam.id);
+        }
+    }, [activeTeam, fetchTeamSettingsData]);
 
     const handleInvite = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!activeTeam || !inviteEmail) return;
-
-        setIsInviting(true);
-        setError(null);
-
-        try {
-            const res = await fetch(`/api/teams/${activeTeam.id}/invite`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.error || 'Failed to send invite');
-            }
-
-            // Refresh invites
-            const invitesRes = await fetch(`/api/teams/${activeTeam.id}/invites`);
-            if (invitesRes.ok) {
-                const invitesData = await invitesRes.json();
-                setInvites(invitesData.invites);
-            }
-
-            setInviteEmail('');
-            alert('Invite sent successfully!');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to send invite');
-        } finally {
-            setIsInviting(false);
+        if (activeTeam) {
+            await sendTeamInvite(activeTeam.id);
         }
     };
 
     const handleRoleUpdate = async (userId: string, newRole: TeamRole) => {
-        if (!activeTeam) return;
-
-        try {
-            const res = await fetch(`/api/teams/${activeTeam.id}/members/${userId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ role: newRole }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to update role');
-            }
-
-            setMembers(members.map(m => m.userId === userId ? { ...m, role: newRole } : m));
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to update role');
+        if (activeTeam) {
+            await updateMemberRole(activeTeam.id, userId, newRole);
         }
     };
 
     const handleRemoveMember = async (userId: string) => {
-        if (!activeTeam || !confirm('Are you sure you want to remove this member?')) return;
-
-        try {
-            const res = await fetch(`/api/teams/${activeTeam.id}/members/${userId}`, {
-                method: 'DELETE',
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to remove member');
-            }
-
-            setMembers(members.filter(m => m.userId !== userId));
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to remove member');
+        if (activeTeam) {
+            await removeTeamMember(activeTeam.id, userId);
         }
     };
 
     const handleRevokeInvite = async (inviteId: string) => {
-        if (!activeTeam || !confirm('Are you sure you want to revoke this invite?')) return;
-
-        try {
-            const res = await fetch(`/api/teams/${activeTeam.id}/invites/${inviteId}`, {
-                method: 'DELETE',
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.error || 'Failed to revoke invite');
-            }
-
-            setInvites(invites.filter(i => i.id !== inviteId));
-        } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to revoke invite');
+        if (activeTeam) {
+            await revokeTeamInvite(activeTeam.id, inviteId);
         }
     };
 
