@@ -57,6 +57,24 @@ async function logEdgeEvent(projectId: string, req: NextRequest, path: string) {
     }
 }
 
+// Helper to resolve project by slug with fallback logic
+async function resolveProject(slug: string) {
+    let project = await getProjectBySlugGlobal(slug);
+
+    // Fallback: If slug is like "my-app-853384839522", try "my-app"
+    if (!project && slug.includes('-')) {
+        const parts = slug.split('-');
+        const potentialNumber = parts[parts.length - 1];
+        if (/^\d{10,}$/.test(potentialNumber)) {
+            const strippedSlug = parts.slice(0, -1).join('-');
+            console.log(`[Proxy] Slug not found: ${slug}, trying stripped version: ${strippedSlug}`);
+            project = await getProjectBySlugGlobal(strippedSlug);
+        }
+    }
+
+    return project;
+}
+
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ slug: string; path?: string[] }> }
@@ -74,21 +92,15 @@ export async function GET(
     console.log(`[Proxy Trace] Resolved fullPath: ${fullPath}`);
 
     // 1. Resolve Project
-    let project = await getProjectBySlugGlobal(slug);
-
-    // Fallback: If slug is like "my-app-853384839522", try "my-app"
-    if (!project && slug.includes('-')) {
-        const parts = slug.split('-');
-        const potentialNumber = parts[parts.length - 1];
-        if (/^\d{10,}$/.test(potentialNumber)) {
-            const strippedSlug = parts.slice(0, -1).join('-');
-            console.log(`[Proxy] Slug not found: ${slug}, trying stripped version: ${strippedSlug}`);
-            project = await getProjectBySlugGlobal(strippedSlug);
-        }
-    }
+    const project = await resolveProject(slug);
 
     if (!project || !project.productionUrl) {
-        return NextResponse.json({ error: `Project not found or not deployed: ${slug}` }, { status: 404 });
+        console.error(`[Proxy] Project not found or not deployed: ${slug}`);
+        return NextResponse.json({
+            error: 'Project not found or not deployed',
+            slug,
+            details: 'If you just deployed, wait 30-60 seconds for Cloud Run to propagate.'
+        }, { status: 404 });
     }
 
     // 2. Fetch from Target
@@ -191,8 +203,16 @@ export async function POST(
     { params }: { params: Promise<{ slug: string; path?: string[] }> }
 ) {
     const { slug, path } = await params;
-    const project = await getProjectBySlugGlobal(slug);
-    if (!project || !project.productionUrl) return new NextResponse('Not found', { status: 404 });
+    const project = await resolveProject(slug);
+
+    if (!project || !project.productionUrl) {
+        console.error(`[Proxy POST] Project not found or not deployed: ${slug}`);
+        return NextResponse.json({
+            error: 'Project not found or not deployed',
+            slug,
+            details: 'If you just deployed, wait 30-60 seconds for Cloud Run to propagate.'
+        }, { status: 404 });
+    }
 
     const pathStr = path ? `/${path.join('/')}` : '/';
     const baseUrl = project.productionUrl.endsWith('/')
