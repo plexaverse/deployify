@@ -163,17 +163,18 @@ export default function LandingPage() {
               <code className="text-sm font-mono text-neutral-300 flex-1 text-left">
                 pnpm dlx deployify login
               </code>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleCopy('pnpm dlx deployify login', 'login-cmd')}
                 className="p-2 hover:bg-white/10 rounded-xl transition-all text-neutral-500 hover:text-white active:scale-95"
-                aria-label="Copy login command"
+                aria-label={copiedId === 'login-cmd' ? "Login command copied" : "Copy login command"}
               >
                 {copiedId === 'login-cmd' ? (
                   <Check className="w-4 h-4 text-emerald-500" />
                 ) : (
                   <Copy className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 )}
-              </button>
+              </motion.button>
             </motion.div>
           </motion.div>
 
@@ -236,14 +237,26 @@ export default function LandingPage() {
                   }
                 ].map((step, i) => (
                   <div key={i} className="mb-20 relative group">
-                    <div className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-neutral-800/30 tabular-nums transition-colors group-hover:text-indigo-500/20" aria-hidden="true">
+                    <motion.div
+                      initial={{ opacity: 0.1, x: -20 }}
+                      whileInView={{ opacity: 0.3, x: 0 }}
+                      viewport={{ margin: "-100px" }}
+                      transition={{ duration: 0.8 }}
+                      className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-neutral-800/30 tabular-nums transition-colors group-hover:text-indigo-500/30 group-hover:opacity-100"
+                      aria-hidden="true"
+                    >
                       0{i + 1}
-                    </div>
+                    </motion.div>
                     <div className="flex items-center gap-4 mb-4">
-                       <div className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:border-indigo-500/40 transition-colors">
+                       <motion.div
+                         initial={{ scale: 0.8, opacity: 0.5 }}
+                         whileInView={{ scale: 1, opacity: 1 }}
+                         viewport={{ margin: "-100px" }}
+                         className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:border-indigo-500/40 transition-colors shadow-[0_0_15px_rgba(99,102,241,0.1)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.2)]"
+                       >
                          {step.icon}
-                       </div>
-                       <h3 className="text-2xl font-bold">{step.title}</h3>
+                       </motion.div>
+                       <h3 className="text-2xl font-bold group-hover:text-white transition-colors">{step.title}</h3>
                     </div>
                     <div className="text-lg text-neutral-400 leading-relaxed mb-4">
                       {step.desc}
@@ -331,20 +344,21 @@ export default function LandingPage() {
                 description={
                   <div className="flex items-center justify-between gap-2">
                     <span>Unique URL for every PR.</span>
-                    <button
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCopy('https://my-app-pr-123.deployify.run', 'preview-url');
                       }}
                       className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white transition-all active:scale-90"
-                      aria-label="Copy sample preview URL"
+                      aria-label={copiedId === 'preview-url' ? "Sample preview URL copied" : "Copy sample preview URL"}
                     >
                       {copiedId === 'preview-url' ? (
                         <Check className="w-3 h-3 text-emerald-500" />
                       ) : (
                         <Copy className="w-3 h-3" />
                       )}
-                    </button>
+                    </motion.button>
                   </div>
                 }
                 header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Globe className="w-12 h-12 text-blue-500" /></div>}
