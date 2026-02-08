@@ -7,6 +7,7 @@ export interface TeamSlice {
     isLoadingTeams: boolean;
     setActiveTeam: (team: Team | null) => void;
     fetchTeams: () => Promise<void>;
+    createTeam: (name: string, slug: string) => Promise<Team | null>;
 }
 
 export const createTeamSlice: StateCreator<TeamSlice> = (set, get) => ({
@@ -42,6 +43,27 @@ export const createTeamSlice: StateCreator<TeamSlice> = (set, get) => ({
             console.error('Failed to fetch teams:', error);
         } finally {
             set({ isLoadingTeams: false });
+        }
+    },
+    createTeam: async (name: string, slug: string) => {
+        try {
+            const response = await fetch('/api/teams', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, slug }),
+            });
+            const data = await response.json();
+            if (response.ok && data.team) {
+                const { teams } = get();
+                set({ teams: [...teams, data.team] });
+                return data.team;
+            } else {
+                console.error('Failed to create team:', data.error);
+                return null;
+            }
+        } catch (error) {
+            console.error('Failed to create team:', error);
+            return null;
         }
     },
 });
