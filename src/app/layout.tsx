@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { PageTransition } from '@/components/PageTransition';
+import { config } from "@/lib/config";
 import Script from 'next/script';
 import "./globals.css";
 
@@ -22,7 +23,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const domain = new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').hostname;
+  let hostname = 'localhost';
+  try {
+    hostname = new URL(config.appUrl).hostname;
+  } catch (e) {
+    console.error('[Layout] Failed to parse APP_URL:', config.appUrl, e);
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>

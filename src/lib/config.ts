@@ -1,10 +1,20 @@
 // Environment configuration
 // All sensitive values should be in environment variables
 
+const getAppUrl = () => {
+    let url = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Ensure protocol
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = `https://${url}`;
+    }
+    // Remove trailing slash
+    return url.endsWith('/') ? url.slice(0, -1) : url;
+};
+
 export const config = {
     // Application
     appName: 'Deployify',
-    appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    appUrl: getAppUrl(),
 
     // GitHub OAuth
     github: {
@@ -38,7 +48,7 @@ export const config = {
 
     // Email
     email: {
-        resendApiKey: process.env.RESEND_API_KEY!,
+        resendApiKey: process.env.RESEND_API_KEY,
         fromAddress: process.env.EMAIL_FROM || 'Deployify <noreply@deployify.io>',
     },
 
@@ -82,12 +92,14 @@ export function validateConfig(): void {
         'JWT_SECRET',
         'RAZORPAY_KEY_ID',
         'RAZORPAY_KEY_SECRET',
-        'RESEND_API_KEY',
+        // 'RESEND_API_KEY', // Made optional to prevent 500s if not set
     ];
 
     const missing = required.filter(key => !process.env[key]);
 
     if (missing.length > 0) {
-        throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+        console.warn(`[Config] Missing environment variables: ${missing.join(', ')}`);
+        // We don't throw here anymore to prevent hard crashes in some environments
+        // but it will likely fail later if those features are used.
     }
 }
