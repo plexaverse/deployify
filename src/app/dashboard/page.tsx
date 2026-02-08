@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { OnboardingGuide } from '@/components/OnboardingGuide';
 import type { Project, Deployment } from '@/types';
 import { useTeam } from '@/contexts/TeamContext';
 
@@ -155,18 +156,8 @@ export default function DashboardPage() {
 
             {/* Empty state - No projects at all */}
             {!loading && projects.length === 0 && (
-                <div className="card text-center py-16">
-                    <div className="w-16 h-16 rounded-full bg-[var(--gradient-subtle)] flex items-center justify-center mx-auto mb-4">
-                        <GitBranch className="w-8 h-8 text-[var(--primary)]" />
-                    </div>
-                    <h2 className="text-xl font-semibold mb-2">No projects yet</h2>
-                    <p className="text-[var(--muted-foreground)] mb-6 max-w-md mx-auto">
-                        Import a Git repository to start deploying your Next.js applications.
-                    </p>
-                    <Link href="/dashboard/new" className="btn btn-primary">
-                        <Plus className="w-4 h-4" />
-                        Import Project
-                    </Link>
+                <div className="py-4">
+                    <OnboardingGuide />
                 </div>
             )}
 

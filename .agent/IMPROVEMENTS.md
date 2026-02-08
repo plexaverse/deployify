@@ -43,14 +43,12 @@
 - **Status**: ✅ Implemented (`GlobalShortcuts.tsx`)
 
 #### 9. **Onboarding Flow**
-- **Current**: Direct jump to GitHub connection
-- **Improvement**: Guided onboarding (connect → import → configure → deploy)
-- **Benefit**: Better first-time user experience
+- **Current**: Guided onboarding (connect → import → configure → deploy)
+- **Status**: ✅ Implemented (`OnboardingGuide.tsx`)
 
 #### 10. **Empty States with Illustrations**
-- **Current**: Basic empty state with icon
-- **Improvement**: Custom illustrations for empty states (no projects, no deployments, no domains)
-- **Benefit**: More engaging, professional feel
+- **Current**: Custom illustrations/guides for empty states
+- **Status**: ✅ Implemented (`OnboardingGuide` integrated)
 
 ### Low Priority (Polish)
 
@@ -128,8 +126,8 @@
 - **Status**: ✅ Implemented
 
 #### 14. **Team/Organization Support**
-- **Current**: Single user projects
-- **Improvement**: Allow team members with role-based access
+- **Current**: Team members with role-based access (RBAC) supported
+- **Status**: ✅ Implemented
 
 #### 15. **Custom Dockerfile Support**
 - **Improvement**: Detect and use repo's Dockerfile if present
@@ -142,7 +140,8 @@
 - **Improvement**: End-to-end encryption for environment variable values
 
 #### 18. **Audit Log**
-- **Improvement**: Track all actions (deploys, config changes, user logins)
+- **Current**: Track actions (invites, role updates) via `logAuditEvent`
+- **Status**: ✅ Implemented (Backend + Frontend View)
 
 #### 19. **CLI Tool**
 - **Current**: Landing page mentions `pnpm dlx deployify login`

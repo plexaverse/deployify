@@ -1,31 +1,19 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import {
     User as UserIcon,
     Shield,
     Trash2,
     Mail,
-    Plus,
-    Clock,
-    CheckCircle2,
     AlertCircle,
-    Search,
     History
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/moving-border';
 import { useStore } from '@/store';
-import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
-
-// Mock Audit Log Data
-const MOCK_AUDIT_LOGS = [
-    { id: 1, action: 'Member Invited', details: 'Alice invited Bob to the team', user: 'Alice', time: '2 hours ago' },
-    { id: 2, action: 'Role Updated', details: 'Charlie promoted to Admin', user: 'Alice', time: '1 day ago' },
-    { id: 3, action: 'Project Created', details: 'New project "Frontend V2" created', user: 'Bob', time: '2 days ago' },
-    { id: 4, action: 'Deployment', details: 'Production deployment for "API Service"', user: 'Charlie', time: '3 days ago' },
-];
+import type { TeamRole } from '@/types';
 
 export default function TeamSettingsPage() {
     const { activeTeam, isLoading: teamLoading } = useTeam();
@@ -46,11 +34,36 @@ export default function TeamSettingsPage() {
         revokeTeamInvite
     } = useStore();
 
+    const [auditLogs, setAuditLogs] = useState<any[]>([]);
+    const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+
     useEffect(() => {
         if (activeTeam) {
             fetchTeamSettingsData(activeTeam.id);
         }
     }, [activeTeam, fetchTeamSettingsData]);
+
+    useEffect(() => {
+        async function fetchAuditLogs() {
+            if (!activeTeam) return;
+            setIsLoadingLogs(true);
+            try {
+                const res = await fetch(`/api/teams/${activeTeam.id}/audit`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setAuditLogs(data.logs);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoadingLogs(false);
+            }
+        }
+
+        if (activeTeam) {
+            fetchAuditLogs();
+        }
+    }, [activeTeam]);
 
     const handleInvite = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,6 +88,25 @@ export default function TeamSettingsPage() {
         if (activeTeam) {
             await revokeTeamInvite(activeTeam.id, inviteId);
         }
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    };
+
+    const formatDetails = (details: any) => {
+        if (typeof details === 'string') return details;
+        if (details && typeof details === 'object') {
+            // Try to find a human readable message field or stringify
+            return details.message || details.description || JSON.stringify(details);
+        }
+        return JSON.stringify(details);
     };
 
     if (teamLoading) {
@@ -314,33 +346,48 @@ export default function TeamSettingsPage() {
                             Audit Log
                         </h3>
 
-                        <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--border)]">
-                            {MOCK_AUDIT_LOGS.map((log) => (
-                                <div key={log.id} className="relative pl-8">
-                                    <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-sm font-medium text-[var(--foreground)]">
-                                            {log.action}
-                                        </span>
-                                        <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                                            {log.details}
-                                        </span>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
-                                                {log.user}
-                                            </span>
-                                            <span className="text-[10px] text-[var(--muted-foreground)]">
-                                                {log.time}
-                                            </span>
+                        {isLoadingLogs ? (
+                            <div className="space-y-4">
+                                {[...Array(5)].map((_, i) => (
+                                    <div key={i} className="flex gap-3">
+                                        <Skeleton className="w-2 h-2 rounded-full mt-2" />
+                                        <div className="flex-1 space-y-2">
+                                            <Skeleton className="h-4 w-3/4" />
+                                            <Skeleton className="h-3 w-1/2" />
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <button className="w-full mt-8 btn btn-secondary text-xs">
-                            View Full History
-                        </button>
+                                ))}
+                            </div>
+                        ) : auditLogs.length > 0 ? (
+                            <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--border)]">
+                                {auditLogs.map((log) => (
+                                    <div key={log.id} className="relative pl-8">
+                                        <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-medium text-[var(--foreground)]">
+                                                {log.action}
+                                            </span>
+                                            <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                                                {formatDetails(log.details)}
+                                            </span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
+                                                    {log.userName}
+                                                </span>
+                                                <span className="text-[10px] text-[var(--muted-foreground)]">
+                                                    {formatDate(log.createdAt)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-[var(--muted-foreground)] text-sm">
+                                <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                No audit logs yet.
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

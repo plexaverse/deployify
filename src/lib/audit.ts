@@ -1,4 +1,4 @@
-import { getDb, Collections } from '@/lib/firebase';
+import { getDb as defaultGetDb, Collections } from '@/lib/firebase';
 import { generateId } from '@/lib/utils';
 
 export interface AuditEvent {
@@ -16,7 +16,7 @@ export async function logAuditEvent(
     action: string,
     details: Record<string, any>
 ): Promise<void> {
-    const db = getDb();
+    const db = defaultGetDb();
     const id = generateId('audit');
     const now = new Date();
 
@@ -30,4 +30,27 @@ export async function logAuditEvent(
     };
 
     await db.collection(Collections.AUDIT_LOGS).doc(id).set(event);
+}
+
+export async function listAuditLogs(
+    teamId: string,
+    limit: number = 50,
+    // Dependency Injection for testing
+    getDbImpl = defaultGetDb
+): Promise<AuditEvent[]> {
+    const db = getDbImpl();
+    const snapshot = await db
+        .collection(Collections.AUDIT_LOGS)
+        .where('teamId', '==', teamId)
+        .orderBy('createdAt', 'desc')
+        .limit(limit)
+        .get();
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            createdAt: data?.createdAt?.toDate(),
+        } as AuditEvent;
+    });
 }
