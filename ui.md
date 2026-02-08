@@ -27,6 +27,8 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 ### `src/app/dashboard/page.tsx`
 - Removed inline style `style={{ background: 'var(--card)', color: 'var(--muted)' }}`.
 - Replaced with Tailwind utility classes `bg-[var(--card)] text-[var(--muted)]`.
+- Replaced the basic "No projects yet" empty state with the new `<OnboardingGuide />` component.
+- Updated "Add New" button link to point to the improved wizard at `/new` instead of `/dashboard/new`.
 
 ### `src/components/DashboardHome.tsx`
 - Replaced hardcoded colors with theme variables:
@@ -57,7 +59,6 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Used `lucide-react` icons for consistent UI.
 - Implemented role updates using `<select>` with custom styling to match the theme.
 
-<<<<<<< HEAD
 ## Mobile-First Monitoring Pass (Session 61)
 
 Audited and optimized UI for mobile responsiveness and performance.
@@ -85,7 +86,6 @@ Audited and optimized UI for mobile responsiveness and performance.
 - Added `overflow-y-auto` to content area to support scrolling in landscape mode or small screens.
 - Added `shrink-0` to header and footer to prevent them from collapsing.
 
-<<<<<<< multi-stream-logging-12966338149114447475
 ### `src/components/LogViewer.tsx`
 - Rebuilt component with "Professional Log Viewer" features:
   - Added tabbed navigation for **Runtime Logs**, **System Logs**, and **Build Logs**.
@@ -97,7 +97,7 @@ Audited and optimized UI for mobile responsiveness and performance.
   - Standardized log display using `font-mono text-[12px] leading-relaxed` (JetBrains Mono).
   - Integrated `Skeleton` component for loading states.
   - Implemented client-side filtering for immediate feedback.
-=======
+
 ### `src/app/new/page.tsx`
 - Created a new full-screen Project Creation Wizard with a 3-step flow (Select, Configure, Deploy).
 - Uses `BackgroundBeams` for a premium background effect.
@@ -107,8 +107,7 @@ Audited and optimized UI for mobile responsiveness and performance.
 - **Step 3 (Deploy)**: Real-time terminal log console with `bg-black/80` and monospaced font, including status indicators and auto-scrolling.
 - Uses `sonner` for toast notifications throughout the flow.
 - Uses `lucide-react` icons for consistent visual language.
->>>>>>> main
-=======
+
 ## Phase 2: Micro-interactions & Final Polish
 
 ### `src/app/layout.tsx`
@@ -131,4 +130,13 @@ Audited and optimized UI for mobile responsiveness and performance.
 ### Components
 - **MovingBorder Button**: Utilized `containerClassName` to control dimensions while maintaining the Aceternity UI effect.
 - **Skeleton**: Applied for content loading states.
->>>>>>> origin/phase2-polish-8612241988918207087
+
+## Onboarding & Empty States
+
+### `src/components/OnboardingGuide.tsx`
+- Created a new component for the dashboard empty state.
+- Features `BackgroundBeams` for a visual "hero" section feel.
+- Visualizes the onboarding steps: Connect GitHub -> Import Project -> Configure -> Deploy.
+- Provides a prominent "Import Project" call-to-action using the `MovingBorder` `Button`.
+- Uses `framer-motion` for entrance animations.
+- Links to the improved Project Creation Wizard at `/new`.
