@@ -97,6 +97,19 @@ export async function GET(
         : project.productionUrl;
     const targetUrl = `${baseUrl}${fullPath}`;
 
+    // Security/Safety: Avoid fetching localhost/127.0.0.1 from a production server
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isLocalTarget = targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1');
+
+    if (isProduction && isLocalTarget) {
+        console.error(`[Proxy Security] Blocking localhost target in production: ${targetUrl}`);
+        return NextResponse.json({
+            error: 'Invalid Target URL',
+            message: 'A production server cannot proxy to a local address. Please update the project\'s Production URL in the dashboard.',
+            targetUrl
+        }, { status: 400 });
+    }
+
     console.log(`[Proxy] Forwarding to: ${targetUrl}`);
 
     try {
@@ -164,12 +177,12 @@ export async function GET(
         });
 
     } catch (error: any) {
-        console.error(`[Proxy Error] Failed to proxy ${targetUrl}:`, error);
+        console.error('Internal Proxy Error:', error);
         return NextResponse.json({
             error: 'Internal Proxy Error',
-            message: error.message,
+            message: error.message || 'Unknown error occurred during proxying',
             targetUrl
-        }, { status: 502 });
+        }, { status: 502 }); // Bad Gateway is more appropriate than 500
     }
 }
 
@@ -187,33 +200,55 @@ export async function POST(
         : project.productionUrl;
     const targetUrl = `${baseUrl}${pathStr}`;
 
+    // Security/Safety: Avoid fetching localhost/127.0.0.1 from a production server
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isLocalTarget = targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1');
+
+    if (isProduction && isLocalTarget) {
+        console.error(`[Proxy Security] Blocking localhost target in production: ${targetUrl}`);
+        return NextResponse.json({
+            error: 'Invalid Target URL',
+            message: 'A production server cannot proxy to a local address. Please update the project\'s Production URL in the dashboard.',
+            targetUrl
+        }, { status: 400 });
+    }
+
     console.log(`[Proxy POST] Forwarding to: ${targetUrl}`);
 
-    const res = await fetch(targetUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': req.headers.get('content-type') || 'application/json',
-            'User-Agent': req.headers.get('user-agent') || '',
-            'X-Forwarded-For': req.headers.get('x-forwarded-for') || '',
-            'X-Forwarded-Host': req.headers.get('host') || '',
-            'X-Forwarded-Proto': req.headers.get('x-forwarded-proto') || 'https',
-            'Cookie': req.headers.get('cookie') || '',
-            'Referer': req.headers.get('referer') || '',
-        },
-        body: await req.text(), // Use text() to avoid double parsing/stringifying
-    });
+    try {
+        const res = await fetch(targetUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': req.headers.get('content-type') || 'application/json',
+                'User-Agent': req.headers.get('user-agent') || '',
+                'X-Forwarded-For': req.headers.get('x-forwarded-for') || '',
+                'X-Forwarded-Host': req.headers.get('host') || '',
+                'X-Forwarded-Proto': req.headers.get('x-forwarded-proto') || 'https',
+                'Cookie': req.headers.get('cookie') || '',
+                'Referer': req.headers.get('referer') || '',
+            },
+            body: await req.text(),
+        });
 
-    const responseHeaders = new Headers();
-    const skipHeaders = ['content-encoding', 'content-length', 'transfer-encoding', 'connection'];
-    res.headers.forEach((value, key) => {
-        if (!skipHeaders.includes(key.toLowerCase())) {
-            responseHeaders.set(key, value);
-        }
-    });
+        const responseHeaders = new Headers();
+        const skipHeaders = ['content-encoding', 'content-length', 'transfer-encoding', 'connection'];
+        res.headers.forEach((value, key) => {
+            if (!skipHeaders.includes(key.toLowerCase())) {
+                responseHeaders.set(key, value);
+            }
+        });
 
-    const data = await res.arrayBuffer();
-    return new NextResponse(data, {
-        status: res.status,
-        headers: responseHeaders,
-    });
+        const data = await res.arrayBuffer();
+        return new NextResponse(data, {
+            status: res.status,
+            headers: responseHeaders,
+        });
+    } catch (error: any) {
+        console.error('Internal Proxy Error (POST):', error);
+        return NextResponse.json({
+            error: 'Internal Proxy Error',
+            message: error.message || 'Unknown error occurred during proxying',
+            targetUrl
+        }, { status: 502 });
+    }
 }
