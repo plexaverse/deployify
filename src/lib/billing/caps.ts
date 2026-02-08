@@ -1,5 +1,6 @@
 import { getUsage, Usage } from './tracker';
 import { getTier, Tier, DEFAULT_TIER } from './tiers';
+import { getUserById } from '@/lib/db';
 
 export interface CheckLimitResult {
     withinLimits: boolean;
@@ -32,13 +33,11 @@ export function calculateLimitStatus(usage: Usage, tier: Tier): CheckLimitResult
 
 /**
  * Retrieves the subscription tier for a given user.
- * Currently defaults to Free tier as subscription data is not yet available on User model.
  */
 export async function getUserTier(userId: string): Promise<Tier> {
-    // TODO: Fetch user from DB and return their actual tier
-    // const user = await getUserById(userId);
-    // return getTier(user.subscription?.tierId);
-    return DEFAULT_TIER;
+    const user = await getUserById(userId);
+    if (!user) return DEFAULT_TIER;
+    return getTier(user.subscription?.tier);
 }
 
 export async function checkUsageLimits(userId: string): Promise<CheckLimitResult> {
