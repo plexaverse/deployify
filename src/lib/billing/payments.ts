@@ -7,6 +7,9 @@ let razorpayInstance: Razorpay | null = null;
 
 export function getRazorpay(): Razorpay {
     if (!razorpayInstance) {
+        if (!config.billing.razorpay.keyId || !config.billing.razorpay.keySecret) {
+            throw new Error('Razorpay keys are not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.');
+        }
         razorpayInstance = new Razorpay({
             key_id: config.billing.razorpay.keyId,
             key_secret: config.billing.razorpay.keySecret,
@@ -48,7 +51,13 @@ export function verifyPaymentSignature(
     paymentId: string,
     signature: string
 ): boolean {
-    const hmac = crypto.createHmac('sha256', config.billing.razorpay.keySecret);
+    const secret = config.billing.razorpay.keySecret;
+    if (!secret) {
+        console.error('[Razorpay] Cannot verify signature: keySecret is missing');
+        return false;
+    }
+
+    const hmac = crypto.createHmac('sha256', secret);
     hmac.update(orderId + '|' + paymentId);
     const generatedSignature = hmac.digest('hex');
     return generatedSignature === signature;
@@ -60,11 +69,15 @@ export function verifyPaymentSignature(
 export function verifyWebhookSignature(
     body: string,
     signature: string,
-    webhookSecret: string
+    webhookSecret: string | undefined
 ): boolean {
+    if (!webhookSecret) {
+        console.error('[Razorpay Webhook] Cannot verify signature: webhookSecret is missing');
+        return false;
+    }
+
     const hmac = crypto.createHmac('sha256', webhookSecret);
     hmac.update(body);
     const generatedSignature = hmac.digest('hex');
     return generatedSignature === signature;
 }
-

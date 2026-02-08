@@ -25,6 +25,7 @@ export async function POST(req: Request) {
             );
         }
 
+        // verifyPaymentSignature handles missing keySecret internally
         const isValid = verifyPaymentSignature(orderId, paymentId, signature);
 
         if (!isValid) {
@@ -48,7 +49,6 @@ export async function POST(req: Request) {
         });
 
         // Refresh session token with new subscription data
-        // We need to import createSessionToken, setSessionCookie from @/lib/auth
         const { createSessionToken, setSessionCookie } = await import('@/lib/auth');
 
         const updatedUser = {
@@ -57,7 +57,6 @@ export async function POST(req: Request) {
         };
 
         // We need the original access token to recreate the session
-        // session object has accessToken
         const newToken = await createSessionToken(updatedUser, session.accessToken);
         await setSessionCookie(newToken);
 

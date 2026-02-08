@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { config as appConfig } from '@/lib/config';
 
 // Security headers to apply
 const securityHeaders = {
@@ -44,43 +45,60 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const hostname = request.headers.get('host') || '';
 
+    // Create a base response headers
+    const responseHeaders = new Headers();
+    for (const [key, value] of Object.entries(securityHeaders)) {
+        responseHeaders.set(key, value);
+    }
+
     // 1. Detect Subdomain (Project Routing)
     const isLocalhost = hostname.includes('localhost');
     const parts = hostname.split('.');
     let subdomain = '';
 
-    if (isLocalhost) {
-        // slug.localhost:3000 or localhost:3000
-        if (parts.length > 1 && parts[0] !== 'localhost') {
-            subdomain = parts[0];
-        }
-    } else {
-        // slug.deployify.io
-        if (parts.length > 2) {
-            subdomain = parts[0];
+    // Get base hostname from config for comparison
+    let baseHostname = 'localhost';
+    try {
+        baseHostname = new URL(appConfig.appUrl).hostname;
+    } catch (e) {
+        // Fallback or ignore
+    }
+
+    const isBaseDomain = hostname === baseHostname || hostname === `www.${baseHostname}`;
+
+    if (!isBaseDomain) {
+        if (isLocalhost) {
+            // slug.localhost:3000 or localhost:3000
+            if (parts.length > 1 && parts[0] !== 'localhost') {
+                subdomain = parts[0];
+            }
+        } else {
+            // slug.deployify.io or slug.custom-domain.com
+            // We check if it's a subdomain of our base domain
+            if (hostname.endsWith(`.${baseHostname}`)) {
+                subdomain = hostname.replace(`.${baseHostname}`, '');
+            } else if (parts.length > 2) {
+                // Fallback for other domains: assume first part is subdomain
+                subdomain = parts[0];
+            }
         }
     }
 
     // If it's a project subdomain, rewrite to the proxy
-    // Bypass for internal API/dashboard routes if requested on the subdomain? 
-    // Usually, subdomains shouldn't access dashboard anyway.
     if (subdomain && !['www', 'api', 'dashboard'].includes(subdomain)) {
-        // Check if we are trying to access the collector API - allow it to pass through
+        // Check if we are trying to access the collector API or insights script - allow it to pass through
         if (pathname.startsWith('/api/v1/collect') || pathname.startsWith('/deployify-insights.js')) {
-            return NextResponse.next();
+            return NextResponse.next({
+                headers: responseHeaders,
+            });
         }
 
         console.log(`[Middleware] project subdomain detected: ${subdomain}, rewriting to proxy`);
         const url = request.nextUrl.clone();
         url.pathname = `/api/v1/proxy/${subdomain}${pathname}`;
-        return NextResponse.rewrite(url);
-    }
-
-    // Apply security headers to all responses
-    const response = NextResponse.next();
-
-    for (const [key, value] of Object.entries(securityHeaders)) {
-        response.headers.set(key, value);
+        return NextResponse.rewrite(url, {
+            headers: responseHeaders,
+        });
     }
 
     // Rate limiting for API routes
@@ -91,14 +109,9 @@ export async function middleware(request: NextRequest) {
 
         // Determine rate limit based on route
         const isStrictRoute = strictRateLimitRoutes.some(route => pathname.startsWith(route));
-        const limit = isStrictRoute ? 30 : 100; // 30 req/min for auth, 100 for others
+        const limit = isStrictRoute ? 30 : 100;
 
         const rateLimitResult = checkRateLimit(`${ip}:${pathname}`, limit);
-
-        // Add rate limit headers
-        response.headers.set('X-RateLimit-Limit', limit.toString());
-        response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
-        response.headers.set('X-RateLimit-Reset', rateLimitResult.resetAt.toString());
 
         if (!rateLimitResult.allowed) {
             return NextResponse.json(
@@ -108,13 +121,22 @@ export async function middleware(request: NextRequest) {
                     headers: {
                         'Retry-After': Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000).toString(),
                         ...securityHeaders,
+                        'X-RateLimit-Limit': limit.toString(),
+                        'X-RateLimit-Remaining': '0',
+                        'X-RateLimit-Reset': rateLimitResult.resetAt.toString(),
                     }
                 }
             );
         }
     }
 
-    // Webhook route should skip auth check but verify signature
+    // Apply security headers to all other responses
+    const response = NextResponse.next();
+    for (const [key, value] of Object.entries(securityHeaders)) {
+        response.headers.set(key, value);
+    }
+
+    // Webhook route should skip auth check
     if (pathname === '/api/webhooks/github') {
         return response;
     }
@@ -124,26 +146,23 @@ export async function middleware(request: NextRequest) {
         const sessionCookie = request.cookies.get('deployify_session');
         const token = sessionCookie ? decodeURIComponent(sessionCookie.value) : '';
 
-        // Allow logout to work in dev by respecting the 'deleted' status
+        // Allow logout to work in dev
         if (process.env.NODE_ENV === 'development' && token === 'deleted') {
             return NextResponse.redirect(new URL('/login', request.url));
         }
 
-        // Bypass for local development if no 'deleted' status found
+        // Bypass for local development
         if (process.env.NODE_ENV === 'development') {
             return response;
         }
 
-        // For RSC prefetch requests, be more lenient
         const isRscRequest = request.nextUrl.searchParams.has('_rsc');
 
         if (!sessionCookie && !isRscRequest) {
             return NextResponse.redirect(new URL('/login', request.url));
         }
 
-        // For RSC requests without cookie, let them through - layout handles it
         if (!sessionCookie && isRscRequest) {
-            // Return 401 for RSC requests without auth
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
     }
@@ -156,7 +175,7 @@ export const config = {
         /*
          * Match all request paths except:
          * - favicon.ico (favicon file)
-         * - public folder and specific static assets that don't need proxying/auth
+         * - public folder
          */
         '/((?!favicon.ico|public/).*)',
     ],
