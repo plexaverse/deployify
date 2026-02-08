@@ -375,10 +375,22 @@ export function DomainsSection({
                     <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
                 </div>
             ) : domains.length === 0 ? (
-                <div className="text-center py-8 text-[var(--muted-foreground)]">
-                    <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p>No custom domains configured.</p>
-                    <p className="text-sm mt-1">Add a domain to use your own URL.</p>
+                <div className="flex flex-col items-center justify-center py-12 px-4 border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                    <div className="w-16 h-16 rounded-full bg-[var(--background)] border border-[var(--border)] flex items-center justify-center mb-4 shadow-sm">
+                        <Globe className="w-8 h-8 text-[var(--muted-foreground)] opacity-50" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">No domains configured</h3>
+                    <p className="text-sm text-[var(--muted-foreground)] text-center max-w-sm mb-6">
+                        Connect a custom domain to give your project a professional look.
+                        We handle the SSL certificates automatically.
+                    </p>
+                    <button
+                        onClick={() => setIsAdding(true)}
+                        className="btn btn-secondary text-sm"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Your First Domain
+                    </button>
                 </div>
             ) : (
                 <div className="space-y-2">

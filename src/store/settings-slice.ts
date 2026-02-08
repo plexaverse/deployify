@@ -1,9 +1,10 @@
 import { StateCreator } from 'zustand';
-import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
+import type { TeamMembership, TeamInvite, TeamRole, AuditEvent } from '@/types';
 
 export interface SettingsSlice {
     teamMembers: (TeamMembership & { user: any })[];
     teamInvites: TeamInvite[];
+    auditLogs: AuditEvent[];
     isLoadingSettings: boolean;
     isInvitingMember: boolean;
     inviteEmail: string;
@@ -12,6 +13,7 @@ export interface SettingsSlice {
 
     setTeamMembers: (members: (TeamMembership & { user: any })[]) => void;
     setTeamInvites: (invites: TeamInvite[]) => void;
+    setAuditLogs: (logs: AuditEvent[]) => void;
     setLoadingSettings: (isLoading: boolean) => void;
     setInvitingMember: (isInviting: boolean) => void;
     setInviteEmail: (email: string) => void;
@@ -19,6 +21,7 @@ export interface SettingsSlice {
     setSettingsError: (error: string | null) => void;
 
     fetchTeamSettingsData: (teamId: string) => Promise<void>;
+    fetchAuditLogs: (teamId: string) => Promise<void>;
     sendTeamInvite: (teamId: string) => Promise<void>;
     updateMemberRole: (teamId: string, userId: string, role: TeamRole) => Promise<void>;
     removeTeamMember: (teamId: string, userId: string) => Promise<void>;
@@ -28,6 +31,7 @@ export interface SettingsSlice {
 export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
     teamMembers: [],
     teamInvites: [],
+    auditLogs: [],
     isLoadingSettings: true,
     isInvitingMember: false,
     inviteEmail: '',
@@ -36,6 +40,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
 
     setTeamMembers: (members) => set({ teamMembers: members }),
     setTeamInvites: (invites) => set({ teamInvites: invites }),
+    setAuditLogs: (logs) => set({ auditLogs: logs }),
     setLoadingSettings: (isLoading) => set({ isLoadingSettings: isLoading }),
     setInvitingMember: (isInviting) => set({ isInvitingMember: isInviting }),
     setInviteEmail: (email) => set({ inviteEmail: email }),
@@ -45,9 +50,10 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
     fetchTeamSettingsData: async (teamId) => {
         set({ isLoadingSettings: true });
         try {
-            const [membersRes, invitesRes] = await Promise.all([
+            const [membersRes, invitesRes, auditRes] = await Promise.all([
                 fetch(`/api/teams/${teamId}/members`),
-                fetch(`/api/teams/${teamId}/invites`)
+                fetch(`/api/teams/${teamId}/invites`),
+                fetch(`/api/teams/${teamId}/audit`)
             ]);
 
             if (membersRes.ok) {
@@ -59,10 +65,27 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
                 const data = await invitesRes.json();
                 set({ teamInvites: data.invites });
             }
+
+            if (auditRes.ok) {
+                const data = await auditRes.json();
+                set({ auditLogs: data.logs || [] });
+            }
         } catch (err) {
             console.error('Failed to fetch team data', err);
         } finally {
             set({ isLoadingSettings: false });
+        }
+    },
+
+    fetchAuditLogs: async (teamId) => {
+        try {
+            const res = await fetch(`/api/teams/${teamId}/audit`);
+            if (res.ok) {
+                const data = await res.json();
+                set({ auditLogs: data.logs || [] });
+            }
+        } catch (err) {
+            console.error('Failed to fetch audit logs', err);
         }
     },
 
@@ -84,12 +107,13 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
                 throw new Error(data.error || 'Failed to send invite');
             }
 
-            // Refresh invites
+            // Refresh invites and audit logs
             const invitesRes = await fetch(`/api/teams/${teamId}/invites`);
             if (invitesRes.ok) {
                 const invitesData = await invitesRes.json();
                 set({ teamInvites: invitesData.invites });
             }
+            get().fetchAuditLogs(teamId);
 
             set({ inviteEmail: '' });
             alert('Invite sent successfully!');
@@ -117,6 +141,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
             set({
                 teamMembers: teamMembers.map(m => m.userId === userId ? { ...m, role } : m)
             });
+            get().fetchAuditLogs(teamId);
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to update role');
         }
@@ -139,6 +164,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
             set({
                 teamMembers: teamMembers.filter(m => m.userId !== userId)
             });
+            get().fetchAuditLogs(teamId);
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to remove member');
         }
@@ -161,6 +187,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
             set({
                 teamInvites: teamInvites.filter(i => i.id !== inviteId)
             });
+            // Revoke isn't audited yet in API but if we add it, we should fetch logs here too.
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to revoke invite');
         }

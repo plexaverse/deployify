@@ -19,19 +19,12 @@ import { Button } from '@/components/ui/moving-border';
 import { useStore } from '@/store';
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
 
-// Mock Audit Log Data
-const MOCK_AUDIT_LOGS = [
-    { id: 1, action: 'Member Invited', details: 'Alice invited Bob to the team', user: 'Alice', time: '2 hours ago' },
-    { id: 2, action: 'Role Updated', details: 'Charlie promoted to Admin', user: 'Alice', time: '1 day ago' },
-    { id: 3, action: 'Project Created', details: 'New project "Frontend V2" created', user: 'Bob', time: '2 days ago' },
-    { id: 4, action: 'Deployment', details: 'Production deployment for "API Service"', user: 'Charlie', time: '3 days ago' },
-];
-
 export default function TeamSettingsPage() {
     const { activeTeam, isLoading: teamLoading } = useTeam();
     const {
         teamMembers: members,
         teamInvites: invites,
+        auditLogs: logs,
         isLoadingSettings: isLoading,
         inviteEmail,
         setInviteEmail,
@@ -40,6 +33,7 @@ export default function TeamSettingsPage() {
         isInvitingMember: isInviting,
         settingsError: error,
         fetchTeamSettingsData,
+        fetchAuditLogs,
         sendTeamInvite,
         updateMemberRole,
         removeTeamMember,
@@ -49,6 +43,7 @@ export default function TeamSettingsPage() {
     useEffect(() => {
         if (activeTeam) {
             fetchTeamSettingsData(activeTeam.id);
+            // fetchAuditLogs(activeTeam.id); // Included in fetchTeamSettingsData now
         }
     }, [activeTeam, fetchTeamSettingsData]);
 
@@ -308,39 +303,41 @@ export default function TeamSettingsPage() {
 
                 {/* Sidebar: Audit Log */}
                 <div className="space-y-6">
-                    <div className="card p-6 h-full">
-                        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                    <div className="card p-6 h-full max-h-[800px] flex flex-col">
+                        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 shrink-0">
                             <History className="w-5 h-5 text-[var(--muted-foreground)]" />
                             Audit Log
                         </h3>
 
-                        <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--border)]">
-                            {MOCK_AUDIT_LOGS.map((log) => (
-                                <div key={log.id} className="relative pl-8">
-                                    <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-sm font-medium text-[var(--foreground)]">
-                                            {log.action}
-                                        </span>
-                                        <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                                            {log.details}
-                                        </span>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
-                                                {log.user}
+                        <div className="flex-1 overflow-y-auto pr-2 space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--border)]">
+                            {logs.length === 0 && !isLoading ? (
+                                <div className="text-center text-[var(--muted-foreground)] text-sm py-8 pl-8">
+                                    No activity recorded yet.
+                                </div>
+                            ) : (
+                                logs.map((log) => (
+                                    <div key={log.id} className="relative pl-8">
+                                        <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-medium text-[var(--foreground)]">
+                                                {log.action}
                                             </span>
-                                            <span className="text-[10px] text-[var(--muted-foreground)]">
-                                                {log.time}
+                                            <span className="text-xs text-[var(--muted-foreground)] leading-relaxed line-clamp-2">
+                                                {JSON.stringify(log.details)}
                                             </span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
+                                                    {log.user?.email || 'Unknown User'}
+                                                </span>
+                                                <span className="text-[10px] text-[var(--muted-foreground)]">
+                                                    {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
-
-                        <button className="w-full mt-8 btn btn-secondary text-xs">
-                            View Full History
-                        </button>
                     </div>
                 </div>
             </div>

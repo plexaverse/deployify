@@ -211,6 +211,20 @@ export interface EnvVar {
     updatedAt: Date;
 }
 
+export interface AuditEvent {
+    id: string;
+    teamId: string | null;
+    userId: string;
+    action: string;
+    details: Record<string, any>;
+    createdAt: Date;
+    user?: {
+        name: string | null;
+        email: string | null;
+        avatarUrl: string;
+    } | null;
+}
+
 // GitHub repository from API
 export interface GitHubRepo {
     id: number;
