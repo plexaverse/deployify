@@ -120,14 +120,19 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check authentication for protected dashboard routes
-    // Only check if cookie EXISTS - layout will verify JWT validity
     if (pathname.startsWith('/dashboard')) {
-        // Bypass for local development
+        const sessionCookie = request.cookies.get('deployify_session');
+        const token = sessionCookie ? decodeURIComponent(sessionCookie.value) : '';
+
+        // Allow logout to work in dev by respecting the 'deleted' status
+        if (process.env.NODE_ENV === 'development' && token === 'deleted') {
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+
+        // Bypass for local development if no 'deleted' status found
         if (process.env.NODE_ENV === 'development') {
             return response;
         }
-
-        const sessionCookie = request.cookies.get('deployify_session');
 
         // For RSC prefetch requests, be more lenient
         const isRscRequest = request.nextUrl.searchParams.has('_rsc');
@@ -150,11 +155,9 @@ export const config = {
     matcher: [
         /*
          * Match all request paths except:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
-         * - public folder
+         * - public folder and specific static assets that don't need proxying/auth
          */
-        '/((?!_next/static|_next/image|favicon.ico|public/).*)',
+        '/((?!favicon.ico|public/).*)',
     ],
 };

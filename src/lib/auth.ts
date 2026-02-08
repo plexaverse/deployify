@@ -86,15 +86,19 @@ const MOCK_SESSION: Session = {
  * Get the current session from cookies
  */
 export async function getSession(): Promise<Session | null> {
-    // Bypass for local development
-    if (process.env.NODE_ENV === 'development') {
-        return MOCK_SESSION;
+    const cookieStore = await cookies();
+    const token = decodeURIComponent(cookieStore.get(COOKIE_NAME)?.value || '');
+
+    // In dev, if the user explicitly cleared the cookie, respect it
+    if (process.env.NODE_ENV === 'development' && token === 'deleted') {
+        return null;
     }
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
-
     if (!token) {
+        // Fallback for local development if no session exists
+        if (process.env.NODE_ENV === 'development') {
+            return MOCK_SESSION;
+        }
         return null;
     }
 
@@ -124,7 +128,12 @@ export async function setSessionCookie(token: string): Promise<void> {
  */
 export async function clearSessionCookie(): Promise<void> {
     const cookieStore = await cookies();
-    cookieStore.delete(COOKIE_NAME);
+    if (process.env.NODE_ENV === 'development') {
+        // Set to a value that getSession recognizes as "logged out"
+        cookieStore.set(COOKIE_NAME, 'deleted', { path: '/', maxAge: 3600 });
+    } else {
+        cookieStore.delete(COOKIE_NAME);
+    }
 }
 
 /**

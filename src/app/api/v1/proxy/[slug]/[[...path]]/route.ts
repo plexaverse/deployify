@@ -65,9 +65,13 @@ export async function GET(
     const awaitedParams = await params;
     const { slug, path } = awaitedParams;
 
+    console.log(`[Proxy Trace] Incoming request: slug=${slug}, path=${JSON.stringify(path)}`);
+
     const pathStr = path ? `/${path.join('/')}` : '/';
     const searchParams = req.nextUrl.searchParams.toString();
     const fullPath = searchParams ? `${pathStr}?${searchParams}` : pathStr;
+
+    console.log(`[Proxy Trace] Resolved fullPath: ${fullPath}`);
 
     // 1. Resolve Project
     let project = await getProjectBySlugGlobal(slug);
@@ -109,6 +113,8 @@ export async function GET(
                 'Referer': req.headers.get('referer') || '',
             },
         });
+
+        console.log(`[Proxy] Target Response: ${targetResponse.status} ${targetResponse.statusText} (${targetResponse.headers.get('content-type')})`);
 
         const contentType = targetResponse.headers.get('content-type') || '';
         const responseHeaders = new Headers();

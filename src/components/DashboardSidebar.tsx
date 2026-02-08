@@ -192,13 +192,13 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                             </p>
                         </div>
                     </div>
-                    <Link
+                    <a
                         href="/api/auth/logout"
                         className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
                     >
                         <LogOut className="w-4 h-4" />
                         Sign out
-                    </Link>
+                    </a>
                 </div>
             </aside>
         </>
