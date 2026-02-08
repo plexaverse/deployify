@@ -140,3 +140,27 @@ Audited and optimized UI for mobile responsiveness and performance.
 - Provides a prominent "Import Project" call-to-action using the `MovingBorder` `Button`.
 - Uses `framer-motion` for entrance animations.
 - Links to the improved Project Creation Wizard at `/new`.
+
+## Project Settings & Billing (Progressive Update)
+
+### `src/app/dashboard/[id]/settings/page.tsx`
+- Refactored to use `MovingBorder` `Button` for primary "Save" actions.
+- Implemented `ConfirmationModal` for project deletion to prevent accidental deletions and improve UX over browser alerts.
+- Updated "Danger Zone" styling to use `red-500` variables consistently.
+- Improved spacing and typography for better readability.
+
+### `src/components/DomainsSection.tsx`
+- Updated "Add Domain" button to use `MovingBorder` `Button`.
+- Replaced `window.confirm` with `ConfirmationModal` for domain deletion.
+- Maintained consistent card styling.
+
+### `src/app/billing/page.tsx`
+- Refactored `UsageGauge` into a reusable component `src/components/billing/UsageGauge.tsx`.
+- Replaced all `window.alert` calls with `sonner` toasts for better user feedback.
+- Updated "Upgrade" buttons in `PricingCard` to use `MovingBorder` `Button` for visual emphasis.
+- Polished the UI to be more consistent with the theme.
+
+### `src/components/ui/confirmation-modal.tsx`
+- Created a generic `ConfirmationModal` component for standardized destructive action confirmations.
+- Supports `title`, `description`, `confirmText`, `cancelText`, and `variant` props.
+- Uses `animate-in` transitions for smooth appearance.

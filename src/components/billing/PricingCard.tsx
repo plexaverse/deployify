@@ -1,8 +1,9 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 
 interface PricingCardProps {
     plan: {
@@ -21,6 +22,51 @@ interface PricingCardProps {
 export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular }: PricingCardProps) {
     const isCurrent = plan.id === currentPlanId;
     const isEnterprise = plan.id === 'enterprise';
+
+    const renderButton = () => {
+        if (loading) {
+            return (
+                <Button disabled className="w-full" size="lg">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Upgrading...
+                </Button>
+            );
+        }
+
+        if (isCurrent) {
+            return (
+                <Button disabled variant="outline" className="w-full" size="lg">
+                    Current Plan
+                </Button>
+            );
+        }
+
+        if (isEnterprise) {
+            return (
+                <Button variant="secondary" className="w-full" size="lg">
+                    Contact Sales
+                </Button>
+            );
+        }
+
+        if (plan.id === 'free') {
+             return (
+                <Button disabled variant="outline" className="w-full" size="lg">
+                    Downgrade
+                </Button>
+            );
+        }
+
+        return (
+            <MovingBorderButton
+                onClick={() => onUpgrade(plan.id)}
+                containerClassName="w-full h-12"
+                className="w-full bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold"
+            >
+                Upgrade to {plan.name}
+            </MovingBorderButton>
+        );
+    };
 
     return (
         <div
@@ -66,19 +112,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
             </div>
 
             <div className="mt-auto">
-                <Button
-                    onClick={() => onUpgrade(plan.id)}
-                    disabled={isCurrent || (plan.id === 'free' && !isCurrent) || loading}
-                    className="w-full"
-                    variant={isCurrent ? 'outline' : isEnterprise ? 'secondary' : 'primary'}
-                    size="lg"
-                >
-                    {isCurrent
-                        ? 'Current Plan'
-                        : isEnterprise
-                            ? 'Contact Sales'
-                            : `Upgrade to ${plan.name}`}
-                </Button>
+                {renderButton()}
             </div>
         </div>
     );

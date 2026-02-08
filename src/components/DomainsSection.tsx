@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, Globe, CheckCircle2, Clock, XCircle, ExternalLink, Copy, Check, Loader2, ShieldCheck } from 'lucide-react';
 import type { Domain } from '@/types';
 import { useStore } from '@/store';
+import { Button } from '@/components/ui/moving-border';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 
 interface DomainsSectionProps {
     projectId: string;
@@ -37,6 +39,11 @@ export function DomainsSection({
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [copiedValue, setCopiedValue] = useState<string | null>(null);
+
+    // Delete Modal State
+    const [deleteDomainId, setDeleteDomainId] = useState<string | null>(null);
+    const [deleteDomainName, setDeleteDomainName] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         fetchProjectDomains(projectId);
@@ -100,13 +107,17 @@ export function DomainsSection({
         }
     };
 
-    const handleDelete = async (domainId: string, domainName: string) => {
-        if (!confirm(`Are you sure you want to delete ${domainName}?`)) {
-            return;
-        }
+    const confirmDelete = (domainId: string, domainName: string) => {
+        setDeleteDomainId(domainId);
+        setDeleteDomainName(domainName);
+    };
+
+    const handleDelete = async () => {
+        if (!deleteDomainId) return;
+        setIsDeleting(true);
 
         try {
-            const success = await deleteDomain(projectId, domainId);
+            const success = await deleteDomain(projectId, deleteDomainId);
             if (success) {
                 setSuccess('Domain deleted successfully');
                 setTimeout(() => setSuccess(null), 3000);
@@ -114,11 +125,26 @@ export function DomainsSection({
             }
         } catch (err) {
             console.error('Failed to delete:', err);
+        } finally {
+            setIsDeleting(false);
+            setDeleteDomainId(null);
+            setDeleteDomainName(null);
         }
     };
 
     return (
         <div className="card">
+             <ConfirmationModal
+                isOpen={!!deleteDomainId}
+                onClose={() => setDeleteDomainId(null)}
+                onConfirm={handleDelete}
+                title="Delete Domain"
+                description={`Are you sure you want to delete ${deleteDomainName}? This will permanently remove the domain from your project.`}
+                confirmText="Delete Domain"
+                variant="destructive"
+                loading={isDeleting}
+            />
+
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-lg font-semibold">Domains</h2>
@@ -127,14 +153,14 @@ export function DomainsSection({
                     </p>
                 </div>
                 {!isAdding && (
-                    <button
+                    <Button
                         onClick={() => setIsAdding(true)}
-                        className="btn btn-primary"
                         disabled={isLoading}
+                        className="bg-[var(--primary)] text-[var(--primary-foreground)] h-10 px-4 py-2"
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4 mr-2" />
                         Add Domain
-                    </button>
+                    </Button>
                 )}
             </div>
 
@@ -167,20 +193,20 @@ export function DomainsSection({
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <button
+                        <Button
                             onClick={handleAdd}
-                            className="btn btn-primary"
                             disabled={isSubmitting || !newDomain.trim()}
+                             className="bg-[var(--primary)] text-[var(--primary-foreground)]"
                         >
                             {isSubmitting ? 'Adding...' : 'Add Domain'}
-                        </button>
+                        </Button>
                         <button
                             onClick={() => {
                                 setIsAdding(false);
                                 setNewDomain('');
                                 setError(null);
                             }}
-                            className="btn"
+                            className="btn bg-transparent hover:bg-[var(--muted)] border border-[var(--border)]"
                             disabled={isSubmitting}
                         >
                             Cancel
@@ -417,8 +443,8 @@ export function DomainsSection({
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => handleDelete(domain.id, domain.domain)}
-                                    className="text-[var(--muted-foreground)] hover:text-red-400 p-1"
+                                    onClick={() => confirmDelete(domain.id, domain.domain)}
+                                    className="text-[var(--muted-foreground)] hover:text-red-400 p-1 transition-colors"
                                     title="Delete domain"
                                 >
                                     <Trash2 className="w-4 h-4" />
