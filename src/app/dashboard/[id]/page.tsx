@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/moving-border';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
 import { WebVitals } from '@/components/WebVitals';
+import { EmptyState } from '@/components/EmptyState';
 import { useStore } from '@/store';
 import type { Project, Deployment } from '@/types';
 
@@ -274,11 +275,12 @@ export default function ProjectDetailPage() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="py-12 text-center space-y-3">
-                                    <p className="text-[var(--muted-foreground)] text-sm">
-                                        No production deployment yet. Push to {project.defaultBranch} to deploy.
-                                    </p>
-                                </div>
+                                <EmptyState
+                                    type="deployment"
+                                    title="No production deployment"
+                                    description={`Push to ${project.defaultBranch} to deploy.`}
+                                    className="py-12 border-none bg-transparent"
+                                />
                             )}
                         </div>
                     </div>
@@ -317,9 +319,12 @@ export default function ProjectDetailPage() {
                 </div>
 
                 {deployments.length === 0 ? (
-                    <div className="border border-dashed border-[var(--border)] rounded-xl p-12 text-center">
-                        <p className="text-[var(--muted-foreground)] text-sm">No deployments yet</p>
-                    </div>
+                    <EmptyState
+                        type="deployment"
+                        title="No deployments yet"
+                        description="Trigger a deployment to see history here."
+                        className="py-12"
+                    />
                 ) : (
                     <div className="border border-[var(--border)] rounded-xl bg-[var(--card)] overflow-hidden shadow-sm">
                         <div className="divide-y divide-[var(--border)]">

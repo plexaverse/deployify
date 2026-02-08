@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, Globe, CheckCircle2, Clock, XCircle, ExternalLink, Copy, Check, Loader2, ShieldCheck } from 'lucide-react';
 import type { Domain } from '@/types';
 import { useStore } from '@/store';
+import { EmptyState } from '@/components/EmptyState';
 
 interface DomainsSectionProps {
     projectId: string;
@@ -375,11 +376,12 @@ export function DomainsSection({
                     <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
                 </div>
             ) : domains.length === 0 ? (
-                <div className="text-center py-8 text-[var(--muted-foreground)]">
-                    <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p>No custom domains configured.</p>
-                    <p className="text-sm mt-1">Add a domain to use your own URL.</p>
-                </div>
+                <EmptyState
+                    type="domain"
+                    title="No custom domains"
+                    description="Add a domain to use your own URL."
+                    className="py-8"
+                />
             ) : (
                 <div className="space-y-2">
                     {domains.map((domain) => (
