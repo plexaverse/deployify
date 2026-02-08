@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import {
     User as UserIcon,
@@ -18,14 +18,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/moving-border';
 import { useStore } from '@/store';
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
-
-// Mock Audit Log Data
-const MOCK_AUDIT_LOGS = [
-    { id: 1, action: 'Member Invited', details: 'Alice invited Bob to the team', user: 'Alice', time: '2 hours ago' },
-    { id: 2, action: 'Role Updated', details: 'Charlie promoted to Admin', user: 'Alice', time: '1 day ago' },
-    { id: 3, action: 'Project Created', details: 'New project "Frontend V2" created', user: 'Bob', time: '2 days ago' },
-    { id: 4, action: 'Deployment', details: 'Production deployment for "API Service"', user: 'Charlie', time: '3 days ago' },
-];
 
 export default function TeamSettingsPage() {
     const { activeTeam, isLoading: teamLoading } = useTeam();
@@ -46,11 +38,32 @@ export default function TeamSettingsPage() {
         revokeTeamInvite
     } = useStore();
 
+    const [auditLogs, setAuditLogs] = useState<any[]>([]);
+    const [isLoadingAuditLogs, setIsLoadingAuditLogs] = useState(false);
+
     useEffect(() => {
         if (activeTeam) {
             fetchTeamSettingsData(activeTeam.id);
+            fetchAuditLogs(activeTeam.id);
         }
     }, [activeTeam, fetchTeamSettingsData]);
+
+    const fetchAuditLogs = async (teamId: string) => {
+        setIsLoadingAuditLogs(true);
+        try {
+            const res = await fetch(`/api/teams/${teamId}/audit`);
+            const data = await res.json();
+            if (res.ok) {
+                setAuditLogs(data.logs);
+            } else {
+                console.error('Failed to fetch audit logs:', data.error);
+            }
+        } catch (error) {
+            console.error('Failed to fetch audit logs:', error);
+        } finally {
+            setIsLoadingAuditLogs(false);
+        }
+    };
 
     const handleInvite = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -315,27 +328,38 @@ export default function TeamSettingsPage() {
                         </h3>
 
                         <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--border)]">
-                            {MOCK_AUDIT_LOGS.map((log) => (
-                                <div key={log.id} className="relative pl-8">
-                                    <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-sm font-medium text-[var(--foreground)]">
-                                            {log.action}
-                                        </span>
-                                        <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                                            {log.details}
-                                        </span>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
-                                                {log.user}
+                            {isLoadingAuditLogs ? (
+                                <div className="pl-8 py-4">
+                                    <Skeleton className="h-4 w-3/4 mb-2" />
+                                    <Skeleton className="h-3 w-1/2" />
+                                </div>
+                            ) : auditLogs.length > 0 ? (
+                                auditLogs.map((log) => (
+                                    <div key={log.id} className="relative pl-8">
+                                        <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-medium text-[var(--foreground)]">
+                                                {log.action}
                                             </span>
-                                            <span className="text-[10px] text-[var(--muted-foreground)]">
-                                                {log.time}
+                                            <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                                                {Object.entries(log.details || {}).map(([key, value]) => `${key}: ${value}`).join(', ')}
                                             </span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
+                                                    {log.user?.name || 'Unknown'}
+                                                </span>
+                                                <span className="text-[10px] text-[var(--muted-foreground)]">
+                                                    {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString()}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
+                                ))
+                            ) : (
+                                <div className="pl-8 text-sm text-[var(--muted-foreground)]">
+                                    No activity recorded yet.
                                 </div>
-                            ))}
+                            )}
                         </div>
 
                         <button className="w-full mt-8 btn btn-secondary text-xs">

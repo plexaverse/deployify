@@ -140,3 +140,22 @@ Audited and optimized UI for mobile responsiveness and performance.
 - Provides a prominent "Import Project" call-to-action using the `MovingBorder` `Button`.
 - Uses `framer-motion` for entrance animations.
 - Links to the improved Project Creation Wizard at `/new`.
+
+## Team Management & Audit Logging
+
+### `src/components/CreateTeamModal.tsx`
+- Created a new modal for team creation.
+- Uses standard modal layout with backdrop blur and centered content.
+- Implemented form for team name input.
+- Integrated `sonner` for success/error notifications.
+
+### `src/components/TeamSwitcher.tsx`
+- Added "Create Team" button to the bottom of the switcher dropdown.
+- Integrated `CreateTeamModal` for seamless team creation flow.
+- Uses `lucide-react` icons (`Plus`) for visual cues.
+
+### `src/app/settings/team/page.tsx`
+- Connected Audit Log section to real backend API (`/api/teams/[id]/audit`).
+- Replaced mock data with dynamic rendering of audit events.
+- Added loading state using `Skeleton` component for the audit log list.
+- Formatted audit log timestamps and user details.

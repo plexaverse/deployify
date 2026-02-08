@@ -31,3 +31,24 @@ export async function logAuditEvent(
 
     await db.collection(Collections.AUDIT_LOGS).doc(id).set(event);
 }
+
+export async function listAuditLogs(
+    teamId: string,
+    limit: number = 20
+): Promise<AuditEvent[]> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.AUDIT_LOGS)
+        .where('teamId', '==', teamId)
+        .orderBy('createdAt', 'desc')
+        .limit(limit)
+        .get();
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            createdAt: data.createdAt.toDate(),
+        } as AuditEvent;
+    });
+}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { listProjectsByUser, createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
+import { logAuditEvent } from '@/lib/audit';
 import { slugify, parseRepoFullName } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
 
@@ -156,6 +157,10 @@ export async function POST(request: NextRequest) {
             region: region || null,
             envVariables: envVariables || [],
         });
+
+        if (project.teamId) {
+            await logAuditEvent(project.teamId, session.user.id, 'Project Created', { projectName: project.name, projectId: project.id });
+        }
 
         return NextResponse.json(
             { project },

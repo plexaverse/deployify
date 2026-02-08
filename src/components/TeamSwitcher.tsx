@@ -1,11 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
-import { Check, ChevronsUpDown, User, Users } from 'lucide-react';
+import { Check, ChevronsUpDown, User, Users, Plus } from 'lucide-react';
 import { useStore } from '@/store';
+import { CreateTeamModal } from './CreateTeamModal';
 
 export function TeamSwitcher() {
     const { activeTeam, setActiveTeam, teams, isLoading } = useTeam();
     const { isTeamSwitcherOpen, setTeamSwitcherOpen, toggleTeamSwitcher } = useStore();
+    const [isCreateModalOpen, setCreateModalOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -97,8 +99,25 @@ export function TeamSwitcher() {
                             ))}
                         </div>
                     )}
+
+                    <div className="p-1 border-t border-[var(--border)]">
+                        <button
+                            onClick={() => {
+                                setCreateModalOpen(true);
+                                setTeamSwitcherOpen(false);
+                            }}
+                            className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        >
+                            <div className="flex items-center justify-center w-6 h-6 rounded border border-dashed border-[var(--muted-foreground)]">
+                                <Plus className="w-4 h-4" />
+                            </div>
+                            <span className="flex-1 text-left">Create Team</span>
+                        </button>
+                    </div>
                 </div>
             )}
+
+            <CreateTeamModal isOpen={isCreateModalOpen} onClose={() => setCreateModalOpen(false)} />
         </div>
     );
 }
