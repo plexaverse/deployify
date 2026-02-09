@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
+import { EmptyState } from '@/components/EmptyState';
 import type { Project, Deployment } from '@/types';
 import { useTeam } from '@/contexts/TeamContext';
 
@@ -161,21 +162,19 @@ export default function DashboardPage() {
 
             {/* Empty state - No search results */}
             {!loading && projects.length > 0 && filteredProjects.length === 0 && (
-                <div className="text-center py-12">
-                    <div className="w-12 h-12 rounded-full bg-[var(--card)] flex items-center justify-center mx-auto mb-4 border border-[var(--border)]">
-                        <Search className="w-5 h-5 text-[var(--muted-foreground)]" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-1">No projects found</h3>
-                    <p className="text-[var(--muted-foreground)]">
-                        No projects match &quot;{searchQuery}&quot;
-                    </p>
-                    <button
-                        onClick={() => setSearchQuery('')}
-                        className="btn btn-ghost mt-4 text-sm"
-                    >
-                        Clear search
-                    </button>
-                </div>
+                <EmptyState
+                    title="No projects found"
+                    description={<>No projects match &quot;{searchQuery}&quot;</>}
+                    icon={Search}
+                    action={
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="btn btn-ghost mt-4 text-sm"
+                        >
+                            Clear search
+                        </button>
+                    }
+                />
             )}
 
             {/* Projects grid */}
