@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { updateProject } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
+import { logAuditEvent } from '@/lib/audit';
 import { createDomainMapping, deleteDomainMapping, getDomainMappingStatus, getDnsRecords } from '@/lib/gcp/domains';
 import type { Domain, DomainStatus } from '@/types';
 
@@ -87,7 +88,7 @@ export async function POST(
         }
 
         const { id } = await params;
-        const access = await checkProjectAccess(session.user.id, id);
+        const access = await checkProjectAccess(session.user.id, id, { minRole: 'admin' });
 
         if (!access.allowed) {
             return NextResponse.json(
@@ -147,6 +148,16 @@ export async function POST(
         domains.push(newDomain);
         await updateProject(id, { domains });
 
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'Domain Added',
+            {
+                projectId: id,
+                domain: normalizedDomain
+            }
+        );
+
         // Get DNS records for the user
         const dnsRecords = getDnsRecords(normalizedDomain);
 
@@ -176,7 +187,7 @@ export async function DELETE(
         }
 
         const { id } = await params;
-        const access = await checkProjectAccess(session.user.id, id);
+        const access = await checkProjectAccess(session.user.id, id, { minRole: 'admin' });
 
         if (!access.allowed) {
             return NextResponse.json(
@@ -206,6 +217,16 @@ export async function DELETE(
 
         const filteredDomains = domains.filter((d: Domain) => d.id !== domainId);
         await updateProject(id, { domains: filteredDomains });
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'Domain Removed',
+            {
+                projectId: id,
+                domain: domainToDelete.domain
+            }
+        );
 
         return NextResponse.json({
             message: 'Domain deleted successfully',

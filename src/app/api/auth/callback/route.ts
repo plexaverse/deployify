@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { exchangeCodeForToken, getGitHubUser, getGitHubUserEmail } from '@/lib/github';
 import { createSessionToken } from '@/lib/auth';
+import { logAuditEvent } from '@/lib/audit';
 import { upsertUser } from '@/lib/db';
 import { config } from '@/lib/config';
 
@@ -57,6 +58,16 @@ export async function GET(request: NextRequest) {
 
         // Create session token
         const sessionToken = await createSessionToken(user, accessToken);
+
+        await logAuditEvent(
+            null,
+            user.id,
+            'User Login',
+            {
+                method: 'github',
+                ip: request.headers.get('x-forwarded-for') || 'unknown'
+            }
+        );
 
         // Create redirect response
         const response = NextResponse.redirect(new URL('/dashboard', config.appUrl));

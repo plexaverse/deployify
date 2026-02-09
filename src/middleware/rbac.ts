@@ -1,11 +1,30 @@
 import { getProjectById, getTeamMembership } from '@/lib/db';
-import type { Project } from '@/types';
+import type { Project, TeamRole } from '@/types';
 
 export type ProjectAccessResult =
     | { allowed: true; project: Project }
     | { allowed: false; error: string; status: number };
 
-export async function checkProjectAccess(userId: string, projectId: string): Promise<ProjectAccessResult> {
+const ROLE_HIERARCHY: Record<TeamRole, number> = {
+    'owner': 4,
+    'admin': 3,
+    'member': 2,
+    'viewer': 1,
+};
+
+function hasRole(userRole: TeamRole, requiredRole: TeamRole): boolean {
+    return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
+}
+
+export interface CheckProjectAccessOptions {
+    minRole?: TeamRole;
+}
+
+export async function checkProjectAccess(
+    userId: string,
+    projectId: string,
+    options: CheckProjectAccessOptions = {}
+): Promise<ProjectAccessResult> {
     try {
         const project = await getProjectById(projectId);
 
@@ -16,9 +35,21 @@ export async function checkProjectAccess(userId: string, projectId: string): Pro
         if (project.teamId) {
             // Check team membership
             const membership = await getTeamMembership(project.teamId, userId);
-            if (membership) {
-                return { allowed: true, project };
+            if (!membership) {
+                 return { allowed: false, error: 'Forbidden: You are not a member of this team', status: 403 };
             }
+
+            if (options.minRole) {
+                if (!hasRole(membership.role, options.minRole)) {
+                    return {
+                        allowed: false,
+                        error: `Forbidden: Requires ${options.minRole} role or higher`,
+                        status: 403
+                    };
+                }
+            }
+
+            return { allowed: true, project };
         } else {
             // Check personal ownership
             if (project.userId === userId) {

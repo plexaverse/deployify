@@ -163,6 +163,12 @@ Domain        // Custom domain (status: pending/active/error)
 4. **Session Management**: JWT with 7-day expiry
 5. **CSRF Protection**: State token for OAuth flow
 
+### 6. Access Control & Audit
+- **RBAC**: Hierarchy `owner` > `admin` > `member` > `viewer`.
+  - `checkProjectAccess(userId, projectId, { minRole: 'admin' })`
+- **Audit Logging**: All critical actions (create/update/delete/deploy/rollback/login) are logged to `auditLogs` collection.
+  - Use `logAuditEvent(teamId, userId, action, details)`
+
 ---
 
 ## ⚙️ Required Environment Variables

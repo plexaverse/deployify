@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { listProjectsByUser, createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser } from '@/lib/db';
+import { listProjectsByUser, createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser, getTeamMembership } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
+import { logAuditEvent } from '@/lib/audit';
 import { slugify, parseRepoFullName } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
 
@@ -85,6 +86,25 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        if (teamId) {
+            const membership = await getTeamMembership(teamId, session.user.id);
+            if (!membership) {
+                return NextResponse.json(
+                    { error: 'Unauthorized access to team' },
+                    { status: 403, headers: securityHeaders }
+                );
+            }
+
+            // Check if user has permission to create projects (Member or above)
+            const allowedRoles = ['owner', 'admin', 'member'];
+            if (!allowedRoles.includes(membership.role)) {
+                return NextResponse.json(
+                    { error: 'Forbidden: You do not have permission to create projects in this team' },
+                    { status: 403, headers: securityHeaders }
+                );
+            }
+        }
+
         // Parse repo owner and name
         const { owner, repo } = parseRepoFullName(repoFullName);
 
@@ -156,6 +176,18 @@ export async function POST(request: NextRequest) {
             region: region || null,
             envVariables: envVariables || [],
         });
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'Project Created',
+            {
+                projectId: project.id,
+                name: project.name,
+                slug: project.slug,
+                repoFullName: project.repoFullName
+            }
+        );
 
         return NextResponse.json(
             { project },

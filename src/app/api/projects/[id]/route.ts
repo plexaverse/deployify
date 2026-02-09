@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { updateProject, deleteProject, listDeploymentsByProject, getProjectById } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
+import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
 
 interface RouteParams {
@@ -61,7 +62,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const access = await checkProjectAccess(session.user.id, id);
+        // Require admin role for project updates
+        const access = await checkProjectAccess(session.user.id, id, { minRole: 'admin' });
 
         if (!access.allowed) {
             return NextResponse.json(
@@ -173,6 +175,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         await updateProject(id, updates);
 
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'Project Updated',
+            {
+                projectId: id,
+                updates: Object.keys(updates)
+            }
+        );
+
         const updatedProject = await getProjectById(id);
 
         return NextResponse.json(
@@ -201,7 +213,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const access = await checkProjectAccess(session.user.id, id);
+        // Require admin role for project deletion
+        const access = await checkProjectAccess(session.user.id, id, { minRole: 'admin' });
 
         if (!access.allowed) {
             return NextResponse.json(
@@ -210,8 +223,20 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        const { project } = access;
+
         // Delete project and all associated data
         await deleteProject(id);
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'Project Deleted',
+            {
+                projectId: id,
+                name: project.name
+            }
+        );
 
         // TODO: Also delete Cloud Run services and cleanup
 

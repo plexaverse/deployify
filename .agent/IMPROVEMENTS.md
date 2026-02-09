@@ -128,8 +128,8 @@
 - **Status**: ✅ Implemented
 
 #### 14. **Team/Organization Support**
-- **Current**: Single user projects
-- **Improvement**: Allow team members with role-based access
+- **Current**: Teams with RBAC (Owner, Admin, Member, Viewer) implemented.
+- **Status**: ✅ Implemented
 
 #### 15. **Custom Dockerfile Support**
 - **Improvement**: Detect and use repo's Dockerfile if present
@@ -142,7 +142,8 @@
 - **Improvement**: End-to-end encryption for environment variable values
 
 #### 18. **Audit Log**
-- **Improvement**: Track all actions (deploys, config changes, user logins)
+- **Current**: Comprehensive audit logging for projects, domains, rollbacks, and auth.
+- **Status**: ✅ Implemented
 
 #### 19. **CLI Tool**
 - **Current**: Landing page mentions `pnpm dlx deployify login`

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
+import { logAuditEvent } from '@/lib/audit';
 import { updateTraffic, getProductionServiceName } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken, isRunningOnGCP } from '@/lib/gcp/auth';
 import { securityHeaders } from '@/lib/security';
@@ -21,8 +22,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        // Check project access
-        const access = await checkProjectAccess(session.user.id, id);
+        // Check project access (Member or above)
+        const access = await checkProjectAccess(session.user.id, id, { minRole: 'member' });
 
         if (!access.allowed) {
             return NextResponse.json(
@@ -52,6 +53,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     revisionName,
                     accessToken,
                     project.region
+                );
+
+                await logAuditEvent(
+                    project.teamId || null,
+                    session.user.id,
+                    'Rollback Triggered',
+                    {
+                        projectId: id,
+                        revision: revisionName
+                    }
                 );
 
                 return NextResponse.json(
