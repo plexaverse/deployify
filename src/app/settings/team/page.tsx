@@ -72,6 +72,38 @@ export default function TeamSettingsPage() {
         }
     };
 
+    const formatAuditDetails = (action: string, details: Record<string, any>) => {
+        switch (action) {
+            case 'team.create':
+                return `Created team "${details.name}"`;
+            case 'team.invite':
+                return `Invited ${details.email} as ${details.role}`;
+            case 'invite.accept':
+                return `Accepted invite`;
+            case 'invite.revoke':
+                return `Revoked invite for ${details.email || details.inviteId}`;
+            case 'member.update':
+                return `Updated role for user to ${details.role}`;
+            case 'member.remove':
+                return `Removed member from team`;
+            case 'project.create':
+                return `Created project "${details.projectName}"`;
+            case 'project.update':
+                return `Updated project "${details.projectName}" settings: ${details.updates?.join(', ')}`;
+            case 'project.delete':
+                return `Deleted project "${details.projectName}"`;
+            case 'user.login':
+                return `Logged in via ${details.method}`;
+            default:
+                // Fallback for unknown actions or if details is complex
+                try {
+                    return JSON.stringify(details);
+                } catch {
+                    return 'Details unavailable';
+                }
+        }
+    };
+
     if (teamLoading) {
         return (
             <div className="max-w-6xl mx-auto space-y-8 p-6">
@@ -320,10 +352,10 @@ export default function TeamSettingsPage() {
                                         <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
                                         <div className="flex flex-col gap-1">
                                             <span className="text-sm font-medium text-[var(--foreground)]">
-                                                {log.action}
+                                                {log.action.replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                             </span>
                                             <span className="text-xs text-[var(--muted-foreground)] leading-relaxed line-clamp-2">
-                                                {JSON.stringify(log.details)}
+                                                {formatAuditDetails(log.action, log.details)}
                                             </span>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">

@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { updateProject, deleteProject, listDeploymentsByProject, getProjectById } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
+import { logAuditEvent } from '@/lib/audit';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -175,6 +176,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         const updatedProject = await getProjectById(id);
 
+        // Log audit event
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'project.update',
+            {
+                projectId: id,
+                projectName: project.name,
+                updates: Object.keys(updates)
+            }
+        );
+
         return NextResponse.json(
             { project: updatedProject },
             { headers: securityHeaders }
@@ -212,6 +225,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         // Delete project and all associated data
         await deleteProject(id);
+
+        // Log audit event
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'project.delete',
+            {
+                projectId: id,
+                projectName: project.name
+            }
+        );
 
         // TODO: Also delete Cloud Run services and cleanup
 

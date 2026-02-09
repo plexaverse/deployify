@@ -4,6 +4,7 @@ import { exchangeCodeForToken, getGitHubUser, getGitHubUserEmail } from '@/lib/g
 import { createSessionToken } from '@/lib/auth';
 import { upsertUser } from '@/lib/db';
 import { config } from '@/lib/config';
+import { logAuditEvent } from '@/lib/audit';
 
 const COOKIE_NAME = 'deployify_session';
 
@@ -57,6 +58,17 @@ export async function GET(request: NextRequest) {
 
         // Create session token
         const sessionToken = await createSessionToken(user, accessToken);
+
+        // Log login event
+        await logAuditEvent(
+            null,
+            user.id,
+            'user.login',
+            {
+                method: 'github',
+                ip: request.headers.get('x-forwarded-for') || 'unknown'
+            }
+        );
 
         // Create redirect response
         const response = NextResponse.redirect(new URL('/dashboard', config.appUrl));

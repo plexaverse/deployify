@@ -4,6 +4,7 @@ import { listProjectsByUser, createProject, getProjectBySlug, listProjectsByTeam
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
 import { slugify, parseRepoFullName } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
+import { logAuditEvent } from '@/lib/audit';
 
 // GET /api/projects - List user's projects
 export async function GET(request: NextRequest) {
@@ -156,6 +157,18 @@ export async function POST(request: NextRequest) {
             region: region || null,
             envVariables: envVariables || [],
         });
+
+        // Log audit event
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'project.create',
+            {
+                projectId: project.id,
+                projectName: project.name,
+                repoFullName: project.repoFullName
+            }
+        );
 
         return NextResponse.json(
             { project },

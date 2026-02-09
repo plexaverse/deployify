@@ -5,6 +5,7 @@ export interface DockerfileConfig {
     buildCommand?: string;
     installCommand?: string;
     restoreCache?: boolean;
+    rootDirectory?: string;
 }
 
 export function getDockerfile(config: DockerfileConfig): string {
@@ -22,7 +23,8 @@ export function getDockerfile(config: DockerfileConfig): string {
 }
 
 function generateAstroDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build' } = config;
+    const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build', rootDirectory } = config;
+    const workDir = rootDirectory ? `/app/${rootDirectory}` : '/app';
 
     return `FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
@@ -38,6 +40,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ${buildEnvSection}
+${rootDirectory ? `WORKDIR ${workDir}` : ''}
 RUN ${buildCommand}
 
 FROM node:20-alpine AS runner
@@ -48,14 +51,15 @@ ENV PORT=8080
 
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/${outputDirectory} ./${outputDirectory}
+COPY --from=builder ${workDir}/${outputDirectory} ./${outputDirectory}
 
 EXPOSE 8080
 CMD ["node", "./${outputDirectory}/server/entry.mjs"]`;
 }
 
 function generateRemixDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection, buildCommand = 'npm run build' } = config;
+    const { buildEnvSection, buildCommand = 'npm run build', rootDirectory } = config;
+    const workDir = rootDirectory ? `/app/${rootDirectory}` : '/app';
 
     return `FROM node:20-alpine AS deps
 WORKDIR /app
@@ -70,6 +74,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ${buildEnvSection}
+${rootDirectory ? `WORKDIR ${workDir}` : ''}
 RUN ${buildCommand}
 
 FROM node:20-alpine AS runner
@@ -79,15 +84,17 @@ ENV PORT=8080
 
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/public ./public
+COPY --from=builder ${workDir}/build ./build
+COPY --from=builder ${workDir}/public ./public
 
 EXPOSE 8080
 CMD ["npm", "start"]`;
 }
 
 function generateNextjsDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection, restoreCache } = config;
+    const { buildEnvSection, restoreCache, rootDirectory } = config;
+    const workDir = rootDirectory ? `/app/${rootDirectory}` : '/app';
+
     return `FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -104,6 +111,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ${buildEnvSection}
+${rootDirectory ? `WORKDIR ${workDir}` : ''}
 # Generate Prisma client if prisma folder exists
 RUN if [ -d "prisma" ]; then npx prisma generate; fi
 ${restoreCache ? '# Copy restored cache to .next/cache\nCOPY restore_cache/ .next/' : ''}
@@ -115,10 +123,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
-COPY --from=builder /app/public ./public
+COPY --from=builder ${workDir}/public ./public
 RUN mkdir .next && chown nextjs:nodejs .next
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs ${workDir}/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs ${workDir}/.next/static ./.next/static
 USER nextjs
 EXPOSE 8080
 ENV PORT=8080
@@ -127,7 +135,8 @@ CMD ["node", "server.js"]`;
 }
 
 function generateViteDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build' } = config;
+    const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build', rootDirectory } = config;
+    const workDir = rootDirectory ? `/app/${rootDirectory}` : '/app';
 
     // Nginx configuration for SPA routing
     // We use a simple echo approach to create the config file
@@ -147,10 +156,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ${buildEnvSection}
+${rootDirectory ? `WORKDIR ${workDir}` : ''}
 RUN ${buildCommand}
 
 FROM nginx:alpine
-COPY --from=builder /app/${outputDirectory} /usr/share/nginx/html
+COPY --from=builder ${workDir}/${outputDirectory} /usr/share/nginx/html
 # Add custom nginx config for SPA
 RUN echo 'server { \\
     listen 8080; \\

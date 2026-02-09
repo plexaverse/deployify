@@ -111,7 +111,10 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildCommand,
         installCommand,
         restoreCache: true,
+        rootDirectory,
     });
+
+    const userDockerfilePath = rootDirectory ? `${rootDirectory}/Dockerfile` : 'Dockerfile';
 
     // Define common steps shared between both deployment methods
     const commonSteps = [
@@ -124,16 +127,21 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
                 `mkdir -p restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C restore_cache || echo "No cache found or restore failed")`,
             ],
         },
-        // Create a Dockerfile for Next.js if it doesn't exist
+        // Prepare Dockerfile (use user's if exists, else generate)
         {
             name: 'gcr.io/cloud-builders/docker',
             entrypoint: 'bash',
             args: [
                 '-c',
-                `if [ ! -f /workspace/Dockerfile ]; then cat > /workspace/Dockerfile << 'EOFMARKER'
+                `if [ -f /workspace/${userDockerfilePath} ]; then
+          echo "Using user Dockerfile from ${userDockerfilePath}";
+          cp /workspace/${userDockerfilePath} /workspace/Dockerfile.used;
+        else
+          echo "Generating Dockerfile";
+          cat > /workspace/Dockerfile.used << 'EOFMARKER'
 ${dockerfileContent}
 EOFMARKER
-fi`,
+        fi`,
             ],
         },
         // Check if next.config has output: 'standalone'
@@ -165,6 +173,7 @@ fi`,
             name: 'gcr.io/cloud-builders/docker',
             args: [
                 'build',
+                '-f', 'Dockerfile.used',
                 '-t', imageName,
                 '-t', latestImageName,
                 '--cache-from', latestImageName,
