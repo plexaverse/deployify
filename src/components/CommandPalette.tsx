@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Rocket } from 'lucide-react';
+import { Search, Rocket, X } from 'lucide-react';
 import { Project } from '@/types';
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,6 +47,39 @@ export function CommandPalette() {
     p.repoFullName.toLowerCase().includes(query.toLowerCase())
   );
 
+  // Reset active index when query changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setActiveIndex(0);
+    }, 0);
+    return () => clearTimeout(timeoutId);
+  }, [query]);
+
+  // Navigation keys
+  useEffect(() => {
+    if (!isOpen || filtered.length === 0) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIndex(prev => (prev + 1) % filtered.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIndex(prev => (prev - 1 + filtered.length) % filtered.length);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const selected = filtered[activeIndex];
+        if (selected) {
+          router.push(`/dashboard/${selected.id}`);
+          setIsOpen(false);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, filtered, activeIndex, router]);
+
   if (!isOpen) return null;
 
   return (
@@ -54,20 +88,30 @@ export function CommandPalette() {
          className="w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
          onClick={e => e.stopPropagation()}
        >
-          <div className="flex items-center border-b border-white/10 px-4">
-            <Search className="w-5 h-5 text-neutral-500" />
+          <div className="flex items-center border-b border-white/10 px-4 group">
+            <Search className="w-5 h-5 text-neutral-500 group-focus-within:text-white transition-colors" />
             <input
                ref={inputRef}
                className="flex-1 bg-transparent border-0 p-4 text-white placeholder:text-neutral-500 focus:ring-0 focus:outline-none"
                placeholder="Search projects..."
+               aria-label="Search projects"
                value={query}
                onChange={e => setQuery(e.target.value)}
             />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
+              {query && (
+                <button
+                  onClick={() => setQuery('')}
+                  className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-white transition-all"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
                <span className="text-xs text-neutral-500 font-mono border border-white/10 rounded px-1.5 py-0.5">ESC</span>
             </div>
           </div>
-          <div className="max-h-[60vh] overflow-y-auto p-2">
+          <div className="max-h-[60vh] overflow-y-auto p-2" role="listbox" aria-label="Project results">
              {!isOpen ? (
                <div className="p-4 text-center text-neutral-500 text-sm">Loading...</div>
              ) : filtered.length === 0 && projects.length > 0 ? (
@@ -76,16 +120,22 @@ export function CommandPalette() {
                <div className="p-4 text-center text-neutral-500 text-sm">Loading projects...</div>
              ) : (
                <div className="space-y-1">
-                 {filtered.map(project => (
+                 {filtered.map((project, index) => (
                    <button
                      key={project.id}
+                     role="option"
                      onClick={() => {
                        router.push(`/dashboard/${project.id}`);
                        setIsOpen(false);
                      }}
-                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 text-left transition-colors group"
+                     className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all group ${
+                       index === activeIndex ? 'bg-white/10' : 'hover:bg-white/5'
+                     }`}
+                     aria-selected={index === activeIndex}
                    >
-                     <Rocket className="w-4 h-4 text-neutral-500 group-hover:text-indigo-500" />
+                     <Rocket className={`w-4 h-4 transition-colors ${
+                       index === activeIndex ? 'text-indigo-500' : 'text-neutral-500 group-hover:text-indigo-500'
+                     }`} />
                      <div className="flex-1">
                         <div className="text-sm font-medium text-white">{project.name}</div>
                         <div className="text-xs text-neutral-500">{project.repoFullName}</div>
