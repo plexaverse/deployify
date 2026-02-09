@@ -143,6 +143,7 @@
 
 #### 18. **Audit Log**
 - **Improvement**: Track all actions (deploys, config changes, user logins)
+- **Status**: ✅ Implemented (Project CRUD, Deploys, Auth, Domains, Rollback)
 
 #### 19. **CLI Tool**
 - **Current**: Landing page mentions `pnpm dlx deployify login`

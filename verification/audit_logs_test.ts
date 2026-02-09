@@ -82,14 +82,14 @@ describe('Audit Logs Verification', () => {
 
         // Verify collection access
         assert.strictEqual(mockDb.collection.mock.callCount(), 1);
-        assert.strictEqual(mockDb.collection.mock.calls[0].arguments[0], 'auditLogs');
+        assert.strictEqual((mockDb.collection.mock.calls[0] as any).arguments[0], 'auditLogs');
 
         // Verify doc creation
         assert.strictEqual(mockCollection.doc.mock.callCount(), 1);
 
         // Verify set call
         assert.strictEqual(mockDoc.set.mock.callCount(), 1);
-        const event = mockDoc.set.mock.calls[0].arguments[0];
+        const event = (mockDoc.set.mock.calls[0] as any).arguments[0];
 
         assert.strictEqual(event.teamId, teamId);
         assert.strictEqual(event.userId, userId);
@@ -112,32 +112,32 @@ describe('Audit Logs Verification', () => {
             details: {},
             createdAt: { toDate: () => new Date() } // Simulate Firestore Timestamp
         };
-        mockDoc.data.mock.mockImplementation(() => mockLogData);
+        (mockDoc.data.mock as any).mockImplementation(() => mockLogData);
 
         await listAuditLogs(teamId, limit);
 
         // Verify collection access
         assert.strictEqual(mockDb.collection.mock.callCount(), 1);
-        assert.strictEqual(mockDb.collection.mock.calls[0].arguments[0], 'auditLogs');
+        assert.strictEqual((mockDb.collection.mock.calls[0] as any).arguments[0], 'auditLogs');
 
         // Verify query chain
         // Note: checking call order or arguments
         // where('teamId', '==', teamId)
         assert.ok(mockCollection.where.mock.calls.length >= 1);
-        const whereArgs = mockCollection.where.mock.calls[0].arguments;
+        const whereArgs = (mockCollection.where.mock.calls[0] as any).arguments;
         assert.strictEqual(whereArgs[0], 'teamId');
         assert.strictEqual(whereArgs[1], '==');
         assert.strictEqual(whereArgs[2], teamId);
 
         // orderBy('createdAt', 'desc')
         assert.ok(mockCollection.orderBy.mock.calls.length >= 1);
-        const orderByArgs = mockCollection.orderBy.mock.calls[0].arguments;
+        const orderByArgs = (mockCollection.orderBy.mock.calls[0] as any).arguments;
         assert.strictEqual(orderByArgs[0], 'createdAt');
         assert.strictEqual(orderByArgs[1], 'desc');
 
         // limit(limit)
         assert.ok(mockCollection.limit.mock.calls.length >= 1);
-        const limitArgs = mockCollection.limit.mock.calls[0].arguments;
+        const limitArgs = (mockCollection.limit.mock.calls[0] as any).arguments;
         assert.strictEqual(limitArgs[0], limit);
 
         // get()
