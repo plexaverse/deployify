@@ -140,3 +140,36 @@ Audited and optimized UI for mobile responsiveness and performance.
 - Provides a prominent "Import Project" call-to-action using the `MovingBorder` `Button`.
 - Uses `framer-motion` for entrance animations.
 - Links to the improved Project Creation Wizard at `/new`.
+
+## Component System & Settings Refactor
+
+Established a robust UI component system and refactored key pages to use it.
+
+### UI Primitives (`src/components/ui/`)
+- Created standardized components to replace utility classes and inline styles:
+  - **`Card`**: Standardized container with border, background, and shadow.
+  - **`Input`**: Standardized text input field with focus states and theming.
+  - **`Button`**: Reusable button component with variants (primary, secondary, ghost, etc.) and loading state.
+  - **`Label`**: Standardized form label.
+  - **`ConfirmationModal`**: Reusable modal for destructive actions.
+- Updated **`MovingBorderButton`** to use CSS variables for better theme compatibility (light/dark mode).
+
+### `src/app/dashboard/[id]/settings/page.tsx`
+- Refactored entire page to use new UI primitives (`Card`, `Input`, `Label`, `Button`).
+- Replaced custom `Loader2` loading states with `Skeleton`.
+- Implemented `ConfirmationModal` for the "Delete Project" action, providing a safer and better UX.
+- Improved layout spacing and typography.
+
+### Settings Components
+Refactored all project settings components to use the new UI system:
+- **`DomainsSection`**: Updated to use `Card`, `Button`, `Input`. Added `Skeleton` loading state.
+- **`EnvVariablesSection`**: Updated layout and inputs.
+- **`RegionSettings`**: Standardized region selection with `Card` and styled select.
+- **`ResourceSettings`**: Updated sliders/inputs to use standard components.
+- **`BranchDeploymentsSettings`**: Updated branch management UI.
+
+### `src/app/billing/page.tsx`
+- Refactored page structure to use `Card` and standard typography.
+- Extracted `UsageGauge` into a reusable component (`src/components/billing/UsageGauge.tsx`) with updated styling.
+- Updated **`PricingCard`** and **`ComparePlansTable`** to use `Card`, `Button`, and `Badge` components.
+- Ensured all colors are derived from CSS variables for consistent theming.

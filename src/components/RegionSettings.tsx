@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { Loader2, MapPin, Check, RefreshCcw } from 'lucide-react';
 import { useStore } from '@/store';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 // Common GCP regions for Cloud Run
-// See: https://cloud.google.com/run/docs/locations
 const GCP_REGIONS = [
     { value: 'us-central1', label: 'Iowa (us-central1)', tier: 'Tier 1' },
     { value: 'us-east1', label: 'South Carolina (us-east1)', tier: 'Tier 1' },
@@ -67,13 +69,13 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
     const tier2Regions = GCP_REGIONS.filter(r => r.tier === 'Tier 2');
 
     return (
-        <div className="card mt-8">
+        <Card className="mt-8">
             <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-[var(--primary)]" />
                 <h2 className="text-lg font-semibold">Deployment Region</h2>
             </div>
 
-            <p className="text-sm text-[var(--muted-foreground)] mb-4">
+            <p className="text-sm text-[var(--muted-foreground)] mb-6">
                 Select the Google Cloud region where your application will be deployed.
                 Choose a region close to your users for better performance.
             </p>
@@ -84,62 +86,71 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 </div>
             )}
 
-            <div className="flex items-center gap-4">
-                <div className="flex-1">
-                    <select
-                        value={selectedRegion}
-                        onChange={(e) => handleRegionChange(e.target.value)}
-                        disabled={saving}
-                        className="input w-full"
-                    >
-                        <option value="">Use default region</option>
+            <div className="space-y-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="region-select">Region</Label>
+                    <div className="relative">
+                        <select
+                            id="region-select"
+                            value={selectedRegion}
+                            onChange={(e) => handleRegionChange(e.target.value)}
+                            disabled={saving}
+                            className={cn(
+                                "flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                            )}
+                        >
+                            <option value="">Use default region</option>
 
-                        <optgroup label="Tier 1 Regions (Lower latency)">
-                            {tier1Regions.map((region) => (
-                                <option key={region.value} value={region.value}>
-                                    {region.label}
-                                </option>
-                            ))}
-                        </optgroup>
+                            <optgroup label="Tier 1 Regions (Lower latency)">
+                                {tier1Regions.map((region) => (
+                                    <option key={region.value} value={region.value}>
+                                        {region.label}
+                                    </option>
+                                ))}
+                            </optgroup>
 
-                        <optgroup label="Tier 2 Regions">
-                            {tier2Regions.map((region) => (
-                                <option key={region.value} value={region.value}>
-                                    {region.label}
-                                </option>
-                            ))}
-                        </optgroup>
-                    </select>
+                            <optgroup label="Tier 2 Regions">
+                                {tier2Regions.map((region) => (
+                                    <option key={region.value} value={region.value}>
+                                        {region.label}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[var(--muted-foreground)]">
+                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-2 min-w-[80px]">
+                <div className="flex items-center gap-2 h-6">
                     {saving && (
-                        <span className="flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
-                            <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] animate-fade-in">
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             Saving...
                         </span>
                     )}
                     {saved && (
-                        <span className="flex items-center gap-1 text-sm text-[var(--success)]">
-                            <Check className="w-4 h-4" />
-                            Saved
+                        <span className="flex items-center gap-2 text-sm text-[var(--success)] animate-fade-in">
+                            <Check className="w-3.5 h-3.5" />
+                            Saved successfully
                         </span>
                     )}
                 </div>
             </div>
 
-            <div className="mt-4 p-3 rounded-lg bg-[var(--background)] border border-[var(--border)]">
-                <div className="flex items-start gap-2">
+            <div className="mt-6 p-4 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+                <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
-                    <div className="text-sm text-[var(--muted-foreground)]">
-                        <p className="font-medium text-[var(--foreground)]">Note:</p>
-                        <p>
+                    <div className="text-sm">
+                        <p className="font-medium text-[var(--foreground)] mb-1">Deployment Required</p>
+                        <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changing the region will affect the next deployment.
                             To apply the change immediately, trigger a redeploy after saving.
                         </p>
                     </div>
                 </div>
             </div>
-        </div>
+        </Card>
     );
 }
