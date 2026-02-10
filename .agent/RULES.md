@@ -228,6 +228,7 @@ Domain        // Custom domain (status: pending/active/error)
 | Change styles | `src/app/globals.css` |
 | Add type | `src/types/index.ts` |
 | Add animated component | `src/components/ui/` |
+| Project Avatar logic | `src/components/ProjectAvatar.tsx` |
 
 ### Running Commands
 ```bash

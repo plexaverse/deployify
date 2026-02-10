@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
+import { ProjectAvatar } from '@/components/ProjectAvatar';
 import type { Project, Deployment } from '@/types';
 import { useTeam } from '@/contexts/TeamContext';
 
@@ -189,15 +190,20 @@ export default function DashboardPage() {
                         >
                             {/* Project header */}
                             <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold truncate group-hover:text-[var(--primary)] transition-colors">
-                                        {project.name}
-                                    </h3>
-                                    <p className="text-sm text-[var(--muted-foreground)] truncate">
-                                        {project.repoFullName}
-                                    </p>
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
+                                    <ProjectAvatar project={project} size={40} />
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-semibold truncate group-hover:text-[var(--primary)] transition-colors">
+                                            {project.name}
+                                        </h3>
+                                        <p className="text-sm text-[var(--muted-foreground)] truncate">
+                                            {project.repoFullName}
+                                        </p>
+                                    </div>
                                 </div>
-                                {getStatusBadge(project.latestDeployment?.status)}
+                                <div className="ml-2">
+                                    {getStatusBadge(project.latestDeployment?.status)}
+                                </div>
                             </div>
 
                             {/* Production URL */}

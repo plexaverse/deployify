@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/moving-border';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
+import { ProjectAvatar } from '@/components/ProjectAvatar';
 import { WebVitals } from '@/components/WebVitals';
 import { useStore } from '@/store';
 import type { Project, Deployment } from '@/types';
@@ -178,22 +179,25 @@ export default function ProjectDetailPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             {/* Project Header Info */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-                    <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
-                        <a
-                            href={project.repoUrl}
+                <div className="flex items-center gap-4">
+                    <ProjectAvatar project={project} size={48} />
+                    <div className="space-y-1">
+                        <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+                        <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
+                            <a
+                                href={project.repoUrl}
                             target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors"
-                        >
-                            <Github className="w-4 h-4" />
-                            {project.repoFullName}
-                        </a>
-                        <span className="flex items-center gap-1.5">
-                            <GitBranch className="w-4 h-4" />
-                            {project.defaultBranch}
-                        </span>
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors"
+                            >
+                                <Github className="w-4 h-4" />
+                                {project.repoFullName}
+                            </a>
+                            <span className="flex items-center gap-1.5">
+                                <GitBranch className="w-4 h-4" />
+                                {project.defaultBranch}
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
