@@ -40,6 +40,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     const [newValue, setNewValue] = useState('');
     const [newIsSecret, setNewIsSecret] = useState(false);
     const [newTarget, setNewTarget] = useState<EnvVariableTarget>('both');
+    const [newEnvironment, setNewEnvironment] = useState<'production' | 'preview' | 'both'>('both');
 
     const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -85,6 +86,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 value: newValue,
                 isSecret: newIsSecret,
                 target: newTarget,
+                environment: newEnvironment,
             });
 
             if (success) {
@@ -192,21 +194,41 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             </Label>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <span className="text-sm font-medium">Environment:</span>
+                        <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-4">
-                                {(['both', 'build', 'runtime'] as EnvVariableTarget[]).map((t) => (
-                                    <label key={t} className="flex items-center gap-1.5 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="target"
-                                            checked={newTarget === t}
-                                            onChange={() => setNewTarget(t)}
-                                            className="w-4 h-4 border-gray-300 text-[var(--primary)]"
-                                        />
-                                        <span className="text-sm capitalize">{t}</span>
-                                    </label>
-                                ))}
+                                <span className="text-sm font-medium w-24">Type:</span>
+                                <div className="flex items-center gap-4">
+                                    {(['both', 'build', 'runtime'] as EnvVariableTarget[]).map((t) => (
+                                        <label key={t} className="flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="target"
+                                                checked={newTarget === t}
+                                                onChange={() => setNewTarget(t)}
+                                                className="w-4 h-4 border-gray-300 text-[var(--primary)]"
+                                            />
+                                            <span className="text-sm capitalize">{t === 'both' ? 'Build & Runtime' : t}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium w-24">Scope:</span>
+                                <div className="flex items-center gap-4">
+                                    {(['both', 'production', 'preview'] as const).map((e) => (
+                                        <label key={e} className="flex items-center gap-1.5 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="environment"
+                                                checked={newEnvironment === e}
+                                                onChange={() => setNewEnvironment(e)}
+                                                className="w-4 h-4 border-gray-300 text-[var(--primary)]"
+                                            />
+                                            <span className="text-sm capitalize">{e === 'both' ? 'All Environments' : e}</span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -253,7 +275,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             <tr className="border-b border-[var(--border)] bg-[var(--muted)]/20">
                                 <th className="py-3 px-4 font-semibold text-sm">Key</th>
                                 <th className="py-3 px-4 font-semibold text-sm">Value</th>
-                                <th className="py-3 px-4 font-semibold text-sm">Environment</th>
+                                <th className="py-3 px-4 font-semibold text-sm">Type</th>
+                                <th className="py-3 px-4 font-semibold text-sm">Scope</th>
                                 <th className="py-3 px-4 font-semibold text-sm text-right">Actions</th>
                             </tr>
                         </thead>
@@ -299,6 +322,11 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                     <td className="py-3 px-4">
                                         <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize text-[var(--muted-foreground)]">
                                             {getTargetLabel(env.target)}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize">
+                                            {env.environment === 'both' || !env.environment ? 'All Envs' : env.environment}
                                         </span>
                                     </td>
                                     <td className="py-3 px-4 text-right">

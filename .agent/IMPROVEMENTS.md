@@ -93,6 +93,12 @@
 #### 6. **Branch-based Environments**
 - **Current**: `main` = production, PRs = preview
 - **Improvement**: Allow custom branch → environment mappings (e.g., `staging` branch)
+- **Status**: ✅ Implemented (`BranchDeploymentsSettings.tsx`)
+
+#### 7. **Environment Variable Scoping**
+- **Current**: Env vars scoped to Build/Runtime
+- **Improvement**: Scope to Environment (Production/Preview)
+- **Status**: ✅ Implemented
 
 ### Medium Priority
 
