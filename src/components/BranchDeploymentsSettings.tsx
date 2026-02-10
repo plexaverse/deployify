@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { Plus, Trash2, Loader2, GitBranch } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStore } from '@/store';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 interface BranchEnvironments {
     branch: string;
@@ -19,56 +24,18 @@ export function BranchDeploymentsSettings({
     projectId,
     onUpdate,
 }: BranchDeploymentsSettingsProps) {
-    const { currentProject, updateBranchSettings } = useStore();
+    const { currentProject, updateBranchSettings: updateStoreBranchSettings } = useStore();
     const branches = currentProject?.autodeployBranches || [];
     const branchEnvironments = (currentProject?.branchEnvironments as any[]) || [];
 
     const [newBranch, setNewBranch] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleAddBranch = async () => {
-        if (!newBranch.trim()) return;
-
-        const branchToAdd = newBranch.trim();
-
-        if (branches.includes(branchToAdd)) {
-            toast.error('Branch already added');
-            return;
-        }
-
-        const updatedBranches = [...branches, branchToAdd];
-        // Default new branch to preview, unless it already exists in mapping
-        let updatedEnvironments = [...branchEnvironments];
-        if (!updatedEnvironments.find(be => be.branch === branchToAdd)) {
-            updatedEnvironments.push({ branch: branchToAdd, envTarget: 'preview' });
-        }
-
-        await updateBranches(updatedBranches, updatedEnvironments);
-        setNewBranch('');
-    };
-
-    const handleRemoveBranch = async (branchToRemove: string) => {
-        const updatedBranches = branches.filter(b => b !== branchToRemove);
-        const updatedEnvironments = branchEnvironments.filter(be => be.branch !== branchToRemove);
-        await updateBranches(updatedBranches, updatedEnvironments);
-    };
-
-    const handleEnvironmentChange = async (branch: string, envTarget: 'production' | 'preview') => {
-        let updatedEnvironments = branchEnvironments.map(be =>
-            be.branch === branch ? { ...be, envTarget } : be
-        );
-
-        if (!updatedEnvironments.find(be => be.branch === branch)) {
-            updatedEnvironments.push({ branch, envTarget });
-        }
-
-        await updateBranches(branches, updatedEnvironments);
-    };
-
+    // Helper to call store action
     const updateBranches = async (updatedBranches: string[], updatedEnvironments: BranchEnvironments[]) => {
         setLoading(true);
         try {
-            const success = await updateBranchSettings(projectId, {
+            const success = await updateStoreBranchSettings(projectId, {
                 autodeployBranches: updatedBranches,
                 branchEnvironments: updatedEnvironments,
             });
@@ -87,30 +54,75 @@ export function BranchDeploymentsSettings({
         }
     };
 
+    const handleAddBranch = async () => {
+        if (!newBranch.trim()) return;
+
+        const branchToAdd = newBranch.trim();
+
+        if (branches.includes(branchToAdd)) {
+            toast.error('Branch already added');
+            return;
+        }
+
+        const updatedBranches = [...branches, branchToAdd];
+        // Default new branch to preview, unless it already exists in mapping
+        const updatedEnvironments = [...branchEnvironments];
+        if (!updatedEnvironments.find((be: BranchEnvironments) => be.branch === branchToAdd)) {
+            updatedEnvironments.push({ branch: branchToAdd, envTarget: 'preview' });
+        }
+
+        await updateBranches(updatedBranches, updatedEnvironments);
+        setNewBranch('');
+    };
+
+    const handleRemoveBranch = async (branchToRemove: string) => {
+        const updatedBranches = branches.filter((b: string) => b !== branchToRemove);
+        const updatedEnvironments = branchEnvironments.filter((be: BranchEnvironments) => be.branch !== branchToRemove);
+        await updateBranches(updatedBranches, updatedEnvironments);
+    };
+
+    const handleEnvironmentChange = async (branch: string, envTarget: string) => {
+        const target = envTarget as 'production' | 'preview';
+        const updatedEnvironments = branchEnvironments.map((be: BranchEnvironments) =>
+            be.branch === branch ? { ...be, envTarget: target } : be
+        );
+
+        if (!updatedEnvironments.find((be: BranchEnvironments) => be.branch === branch)) {
+            updatedEnvironments.push({ branch, envTarget: target });
+        }
+
+        await updateBranches(branches, updatedEnvironments);
+    };
+
     const getEnvTarget = (branch: string) => {
-        return branchEnvironments.find(be => be.branch === branch)?.envTarget || 'preview';
+        const env = branchEnvironments.find((be: BranchEnvironments) => be.branch === branch);
+        return env?.envTarget || 'preview';
     };
 
     return (
-        <div className="card mt-8">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <GitBranch className="w-5 h-5" />
-                Branch Deployments
-            </h2>
-            <p className="text-sm text-[var(--muted-foreground)] mb-6">
-                Configure which branches should trigger automatic deployments.
-                The default branch is always deployed to Production.
-                Other branches listed here will be deployed to a persistent branch environment (e.g., <code>dfy-project-branchname</code>).
-            </p>
+        <Card>
+            <div className="mb-6">
+                <div className="flex items-center gap-2 mb-1">
+                    <GitBranch className="w-5 h-5 text-[var(--primary)]" />
+                    <h2 className="text-xl font-semibold">Branch Deployments</h2>
+                </div>
+                <div className="text-sm text-[var(--muted-foreground)]">
+                    <p>Configure which branches should trigger automatic deployments.</p>
+                    <p className="mt-1">
+                        The default branch is always deployed to Production.
+                        Other branches listed here will be deployed to a persistent branch environment (e.g., <code className="bg-[var(--muted)]/50 px-1 py-0.5 rounded text-xs">dfy-project-branchname</code>).
+                    </p>
+                </div>
+            </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
                 <div className="flex gap-2">
-                    <input
+                    <Input
                         type="text"
                         value={newBranch}
                         onChange={(e) => setNewBranch(e.target.value)}
                         placeholder="e.g., staging, develop"
-                        className="input flex-1"
+                        className="flex-1"
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -118,52 +130,57 @@ export function BranchDeploymentsSettings({
                             }
                         }}
                     />
-                    <button
+                    <Button
                         onClick={handleAddBranch}
                         disabled={loading || !newBranch.trim()}
-                        className="btn btn-primary"
+                        loading={loading}
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                        <span className="ml-2 hidden sm:inline">Add Branch</span>
-                    </button>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Branch
+                    </Button>
                 </div>
 
                 {branches.length === 0 ? (
-                    <div className="text-center py-8 border border-dashed border-[var(--border)] rounded-lg text-[var(--muted-foreground)]">
+                    <div className="text-center py-8 border border-dashed border-[var(--border)] rounded-lg text-[var(--muted-foreground)] bg-[var(--muted)]/5">
+                        <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-50" />
                         No additional branches configured. Only the default branch will be deployed (to Production).
                     </div>
                 ) : (
-                    <div className="divide-y divide-[var(--border)] border border-[var(--border)] rounded-md overflow-hidden">
-                        {branches.map((branch) => (
-                            <div key={branch} className="flex items-center justify-between p-3 bg-[var(--background)]">
+                    <div className="border border-[var(--border)] rounded-md overflow-hidden divide-y divide-[var(--border)]">
+                        {branches.map((branch: string) => (
+                            <div key={branch} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[var(--background)] gap-4">
                                 <div className="flex items-center gap-2">
                                     <GitBranch className="w-4 h-4 text-[var(--muted-foreground)]" />
-                                    <span className="font-medium">{branch}</span>
+                                    <span className="font-medium font-mono text-sm">{branch}</span>
                                 </div>
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
                                     <select
                                         value={getEnvTarget(branch)}
-                                        onChange={(e) => handleEnvironmentChange(branch, e.target.value as 'production' | 'preview')}
+                                        onChange={(e) => handleEnvironmentChange(branch, e.target.value)}
                                         disabled={loading}
-                                        className="text-sm border border-[var(--border)] bg-[var(--card)] rounded px-2 py-1"
+                                        className={cn(
+                                            "h-9 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50"
+                                        )}
                                     >
                                         <option value="preview">Preview Env</option>
                                         <option value="production">Production Env</option>
                                     </select>
-                                    <button
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={() => handleRemoveBranch(branch)}
                                         disabled={loading}
-                                        className="p-2 text-[var(--muted-foreground)] hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
+                                        className="text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)]"
                                         title="Remove branch"
                                     >
                                         <Trash2 className="w-4 h-4" />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
-        </div>
+        </Card>
     );
 }

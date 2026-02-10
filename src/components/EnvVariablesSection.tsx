@@ -6,8 +6,6 @@ import {
     Trash2,
     Eye,
     EyeOff,
-    Save,
-    X,
     Copy,
     Check,
     Loader2,
@@ -15,8 +13,13 @@ import {
     Info,
     Shield
 } from 'lucide-react';
-import type { EnvVariable, EnvVariableTarget } from '@/types';
+import type { EnvVariableTarget } from '@/types';
 import { useStore } from '@/store';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface EnvVariablesSectionProps {
     projectId: string;
@@ -126,51 +129,50 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     };
 
     return (
-        <div className="card">
+        <Card>
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-lg font-semibold">Environment Variables</h2>
+                    <h2 className="text-xl font-semibold mb-1">Environment Variables</h2>
                     <p className="text-sm text-[var(--muted-foreground)]">
                         Variables that are available to your build and runtime environments
                     </p>
                 </div>
-                <button
+                <Button
                     onClick={() => setIsAdding(!isAdding)}
-                    className="btn btn-primary flex items-center gap-2"
                 >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 mr-2" />
                     Add Variable
-                </button>
+                </Button>
             </div>
 
             {error && (
-                <div className="mb-6 p-3 bg-red-500/10 border border-red-500/50 rounded-md flex items-center gap-3 text-red-500 text-sm">
+                <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-sm">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     {error}
                 </div>
             )}
 
             {isAdding && (
-                <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)]">
+                <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Key</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>Key</Label>
+                            <Input
                                 type="text"
                                 value={newKey}
                                 onChange={(e) => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="API_KEY"
-                                className="input w-full font-mono text-sm"
+                                className="font-mono text-sm"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Value</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>Value</Label>
+                            <Input
                                 type={newIsSecret ? 'password' : 'text'}
                                 value={newValue}
                                 onChange={(e) => setNewValue(e.target.value)}
                                 placeholder="secret-value"
-                                className="input w-full font-mono text-sm"
+                                className="font-mono text-sm"
                             />
                         </div>
                     </div>
@@ -184,10 +186,10 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 onChange={(e) => setNewIsSecret(e.target.checked)}
                                 className="w-4 h-4 rounded border-gray-300 text-[var(--primary)]"
                             />
-                            <label htmlFor="is-secret" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                            <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer">
                                 <Shield className="w-3.5 h-3.5 text-blue-400" />
                                 Secret (Encrypted)
-                            </label>
+                            </Label>
                         </div>
 
                         <div className="flex items-center gap-4">
@@ -210,33 +212,29 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </div>
 
                     <div className="flex justify-end gap-3">
-                        <button
+                        <Button
+                            variant="ghost"
                             onClick={() => setIsAdding(false)}
-                            className="btn btn-ghost"
+                            disabled={isSubmitting}
                         >
                             Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={handleAdd}
                             disabled={isSubmitting}
-                            className="btn btn-primary"
+                            loading={isSubmitting}
                         >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    Adding...
-                                </>
-                            ) : (
-                                'Add Variable'
-                            )}
-                        </button>
+                            Add Variable
+                        </Button>
                     </div>
                 </div>
             )}
 
             {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
+                <div className="flex flex-col gap-2 py-6">
+                     <Skeleton className="h-12 w-full" />
+                     <Skeleton className="h-12 w-full" />
+                     <Skeleton className="h-12 w-full" />
                 </div>
             ) : envVariables.length === 0 ? (
                 <div className="text-center py-12 border-2 border-dashed border-[var(--border)] rounded-md">
@@ -249,10 +247,10 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </p>
                 </div>
             ) : (
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto rounded-md border border-[var(--border)]">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-[var(--border)]">
+                            <tr className="border-b border-[var(--border)] bg-[var(--muted)]/20">
                                 <th className="py-3 px-4 font-semibold text-sm">Key</th>
                                 <th className="py-3 px-4 font-semibold text-sm">Value</th>
                                 <th className="py-3 px-4 font-semibold text-sm">Environment</th>
@@ -261,7 +259,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                         </thead>
                         <tbody>
                             {envVariables.map((env) => (
-                                <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--muted)]/30 transition-colors">
+                                <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--muted)]/10 transition-colors last:border-0">
                                     <td className="py-3 px-4 text-sm font-mono">
                                         <div className="flex items-center gap-2">
                                             {env.key}
@@ -283,14 +281,14 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                             <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => toggleReveal(env.id)}
-                                                    className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)]"
+                                                    className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
                                                     title={revealedIds.has(env.id) ? "Hide value" : "Show value"}
                                                 >
                                                     {revealedIds.has(env.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                                                 </button>
                                                 <button
                                                     onClick={() => copyToClipboard(env.id, env.value)}
-                                                    className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)]"
+                                                    className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
                                                     title="Copy to clipboard"
                                                 >
                                                     {copiedId === env.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -299,18 +297,20 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                         </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize">
+                                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize text-[var(--muted-foreground)]">
                                             {getTargetLabel(env.target)}
                                         </span>
                                     </td>
                                     <td className="py-3 px-4 text-right">
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => handleDelete(env.id, env.key)}
-                                            className="p-2 text-[var(--muted-foreground)] hover:text-red-500 rounded-md hover:bg-red-500/10 transition-colors"
+                                            className="text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] h-8 w-8 p-0"
                                             title="Delete environment variable"
                                         >
                                             <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -328,6 +328,6 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </p>
                 </div>
             </div>
-        </div>
+        </Card>
     );
 }

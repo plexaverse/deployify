@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, Globe, CheckCircle2, Clock, XCircle, ExternalLink, Copy, Check, Loader2, ShieldCheck } from 'lucide-react';
 import type { Domain } from '@/types';
 import { useStore } from '@/store';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface DomainsSectionProps {
     projectId: string;
@@ -118,80 +123,78 @@ export function DomainsSection({
     };
 
     return (
-        <div className="card">
+        <Card>
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-lg font-semibold">Domains</h2>
-                    <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                    <h2 className="text-xl font-semibold mb-1">Domains</h2>
+                    <p className="text-sm text-[var(--muted-foreground)]">
                         Configure custom domains for your deployment
                     </p>
                 </div>
                 {!isAdding && (
-                    <button
+                    <Button
                         onClick={() => setIsAdding(true)}
-                        className="btn btn-primary"
                         disabled={isLoading}
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4 mr-2" />
                         Add Domain
-                    </button>
+                    </Button>
                 )}
             </div>
 
             {/* Error/Success Messages */}
             {error && (
-                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-sm">
                     {error}
                 </div>
             )}
             {success && (
-                <div className="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
+                <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-sm">
                     {success}
                 </div>
             )}
 
             {/* Add New Domain Form */}
             {isAdding && (
-                <div className="mb-6 p-4 rounded-lg border border-[var(--border)] bg-[var(--background)]">
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Domain</label>
-                        <input
+                <div className="mb-6 p-4 rounded-lg border border-[var(--border)] bg-[var(--background)] animate-fade-in">
+                    <div className="mb-4 space-y-2">
+                        <Label>Domain</Label>
+                        <Input
                             type="text"
                             value={newDomain}
                             onChange={(e) => setNewDomain(e.target.value)}
                             placeholder="app.example.com"
-                            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--card)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
                         />
-                        <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                        <p className="text-xs text-[var(--muted-foreground)]">
                             Enter your domain or subdomain (e.g., app.example.com)
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <button
+                        <Button
                             onClick={handleAdd}
-                            className="btn btn-primary"
                             disabled={isSubmitting || !newDomain.trim()}
+                            loading={isSubmitting}
                         >
-                            {isSubmitting ? 'Adding...' : 'Add Domain'}
-                        </button>
-                        <button
+                            Add Domain
+                        </Button>
+                        <Button
+                            variant="ghost"
                             onClick={() => {
                                 setIsAdding(false);
                                 setNewDomain('');
                                 setError(null);
                             }}
-                            className="btn"
                             disabled={isSubmitting}
                         >
                             Cancel
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
 
             {/* Verification Steps UI */}
             {dnsRecords.length > 0 && (
-                <div className="mb-6 p-6 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm">
+                <div className="mb-6 p-6 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm animate-fade-in">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="font-semibold text-lg flex items-center gap-2">
                             <ShieldCheck className="w-5 h-5 text-[var(--primary)]" />
@@ -263,12 +266,13 @@ export function DomainsSection({
                     </div>
 
                     <div className="flex justify-end">
-                        <button
+                        <Button
+                            variant="ghost"
                             onClick={() => setDnsRecords([])}
-                            className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                            className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                         >
                             Dismiss
-                        </button>
+                        </Button>
                     </div>
                 </div>
             )}
@@ -371,8 +375,9 @@ export function DomainsSection({
 
             {/* Domains List */}
             {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
+                <div className="flex flex-col gap-2 py-6">
+                    <Skeleton className="h-14 w-full" />
+                    <Skeleton className="h-14 w-full" />
                 </div>
             ) : domains.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 px-4 border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
@@ -384,13 +389,13 @@ export function DomainsSection({
                         Connect a custom domain to give your project a professional look.
                         We handle the SSL certificates automatically.
                     </p>
-                    <button
+                    <Button
+                        variant="secondary"
                         onClick={() => setIsAdding(true)}
-                        className="btn btn-secondary text-sm"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Your First Domain
-                    </button>
+                    </Button>
                 </div>
             ) : (
                 <div className="space-y-2">
@@ -421,20 +426,24 @@ export function DomainsSection({
                             </div>
                             <div className="flex items-center gap-2">
                                 {domain.status === 'pending' && (
-                                    <button
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
                                         onClick={() => fetchProjectDomains(projectId)}
                                         className="text-xs text-[var(--primary)] hover:underline"
                                     >
                                         Refresh
-                                    </button>
+                                    </Button>
                                 )}
-                                <button
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
                                     onClick={() => handleDelete(domain.id, domain.domain)}
-                                    className="text-[var(--muted-foreground)] hover:text-red-400 p-1"
+                                    className="text-[var(--muted-foreground)] hover:text-[var(--error)] p-1 hover:bg-[var(--error-bg)]"
                                     title="Delete domain"
                                 >
                                     <Trash2 className="w-4 h-4" />
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     ))}
@@ -446,6 +455,6 @@ export function DomainsSection({
                 <p><strong>Note:</strong> DNS changes may take up to 48 hours to propagate worldwide.</p>
                 <p className="mt-1">SSL certificates are automatically provisioned by Google Cloud.</p>
             </div>
-        </div>
+        </Card>
     );
 }
