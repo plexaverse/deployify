@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { Spotlight } from '@/components/ui/spotlight';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { BackgroundBeams } from '@/components/ui/background-beams';
@@ -13,9 +14,12 @@ import { TracingBeam } from '@/components/ui/tracing-beam';
 
 export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [os, setOs] = useState<'mac' | 'other' | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const MOCK_REPOS = ['nextjs-dashboard', 'deployify-cli', 'awesome-gcp-templates', 'react-portfolio'];
+  const filteredRepos = searchQuery.trim() ? MOCK_REPOS.filter(r => r.toLowerCase().includes(searchQuery.toLowerCase())) : [];
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -394,17 +398,33 @@ export default function LandingPage() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500 group-focus-within:text-white transition-colors" />
                 <input
                   id="repo-search"
+                  role="combobox"
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search your GitHub repositories..."
                   className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setSelectedIndex(-1); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setSelectedIndex(prev => (prev < filteredRepos.length - 1 ? prev + 1 : prev));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setSelectedIndex(prev => (prev > -1 ? prev - 1 : -1));
+                    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                      setSearchQuery(filteredRepos[selectedIndex]);
+                      setSelectedIndex(-1);
+                    }
+                  }}
+                  aria-expanded={searchQuery.trim().length > 0}
+                  aria-haspopup="listbox"
+                  aria-controls="repo-results"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {searchQuery ? (
                     <button
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => { setSearchQuery(''); setSelectedIndex(-1); }}
                       className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white transition-all active:scale-95"
                       aria-label="Clear search"
                     >
@@ -423,6 +443,16 @@ export default function LandingPage() {
                     )
                   )}
                 </div>
+                {searchQuery.trim() && (
+                  <motion.div id="repo-results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} role="listbox" className="absolute top-full left-0 right-0 mt-2 bg-neutral-900 border border-white/10 rounded-2xl overflow-hidden z-20 shadow-2xl p-2">
+                    {filteredRepos.length > 0 ? filteredRepos.map((repo, i) => (
+                      <div key={repo} role="option" aria-selected={selectedIndex === i} onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
+                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-sm transition-colors", selectedIndex === i ? "bg-white/10 text-white" : "text-neutral-400 hover:bg-white/5 hover:text-white")}>
+                        <Github className="w-4 h-4" /> {repo}
+                      </div>
+                    )) : <div className="px-4 py-4 text-center text-sm text-neutral-500">No results for &quot;{searchQuery}&quot;</div>}
+                  </motion.div>
+                )}
               </div>
             </div>
           </motion.div>
