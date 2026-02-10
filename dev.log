@@ -1,0 +1,275 @@
+
+> deployify@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1560ms
+○ Compiling /settings/team ...
+ GET /settings/team 200 in 6.0s (compile: 5.4s, proxy.ts: 113ms, render: 424ms)
+ GET /login 200 in 1185ms (compile: 966ms, proxy.ts: 4ms, render: 215ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 4.7s (compile: 1717ms, proxy.ts: 8ms, render: 3.0s)
+ GET /dashboard/new/import?repo=test/repo 200 in 1219ms (compile: 1111ms, proxy.ts: 5ms, render: 103ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 148ms (compile: 12ms, proxy.ts: 11ms, render: 125ms)
+ GET /login 200 in 188ms (compile: 18ms, proxy.ts: 5ms, render: 165ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 4 duplicate lines matching above 2 lines 2 times...
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 142ms (compile: 3ms, proxy.ts: 4ms, render: 135ms)
+ GET /billing 200 in 1224ms (compile: 1041ms, proxy.ts: 5ms, render: 178ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 261ms (compile: 7ms, proxy.ts: 8ms, render: 246ms)
+Error fetching invoices: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+    at listInvoicesForUser (src/lib/billing/invoices.ts:262:10)
+    at GET (src/app/api/billing/invoices/route.ts:17:51)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/billing/invoices 500 in 2.2s (compile: 1684ms, proxy.ts: 6ms, render: 543ms)
+Error fetching billing usage: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+    at listInvoicesForUser (src/lib/billing/invoices.ts:262:10)
+    at GET (src/app/api/billing/invoices/route.ts:17:51)
+    at getUserById (src/lib/db.ts:25:64)
+    at GET (src/app/api/billing/usage/route.ts:19:39)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/billing/usage 500 in 2.5s (compile: 1952ms, proxy.ts: 6ms, render: 552ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+    at listInvoicesForUser (src/lib/billing/invoices.ts:262:10)
+    at GET (src/app/api/billing/invoices/route.ts:17:51)
+    at getUserById (src/lib/db.ts:25:64)
+    at GET (src/app/api/billing/usage/route.ts:19:39)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 187ms (compile: 6ms, proxy.ts: 5ms, render: 177ms)
+ GET /dashboard/project-123/settings 200 in 2.4s (compile: 1970ms, proxy.ts: 5ms, render: 393ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+    at listInvoicesForUser (src/lib/billing/invoices.ts:262:10)
+    at GET (src/app/api/billing/invoices/route.ts:17:51)
+    at getUserById (src/lib/db.ts:25:64)
+    at GET (src/app/api/billing/usage/route.ts:19:39)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 304ms (compile: 10ms, proxy.ts: 9ms, render: 286ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+    at listInvoicesForUser (src/lib/billing/invoices.ts:262:10)
+    at GET (src/app/api/billing/invoices/route.ts:17:51)
+    at getUserById (src/lib/db.ts:25:64)
+    at GET (src/app/api/billing/usage/route.ts:19:39)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsForUser (src/lib/db.ts:342:10)
+    at GET (src/app/api/teams/route.ts:18:45)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/teams 500 in 1266ms (compile: 945ms, proxy.ts: 9ms, render: 311ms)
+Error getting deployments: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+    at listInvoicesForUser (src/lib/billing/invoices.ts:262:10)
+    at GET (src/app/api/billing/invoices/route.ts:17:51)
+    at getUserById (src/lib/db.ts:25:64)
+    at GET (src/app/api/billing/usage/route.ts:19:39)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsForUser (src/lib/db.ts:342:10)
+    at GET (src/app/api/teams/route.ts:18:45)
+    at getProjectById (src/lib/db.ts:394:67)
+    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/projects/project-123/deployments 500 in 2.7s (compile: 2.5s, proxy.ts: 8ms, render: 196ms)
+Error checking project access: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+    at listInvoicesForUser (src/lib/billing/invoices.ts:262:10)
+    at GET (src/app/api/billing/invoices/route.ts:17:51)
+    at getUserById (src/lib/db.ts:25:64)
+    at GET (src/app/api/billing/usage/route.ts:19:39)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsForUser (src/lib/db.ts:342:10)
+    at GET (src/app/api/teams/route.ts:18:45)
+    at getProjectById (src/lib/db.ts:394:67)
+    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
+    at getProjectById (src/lib/db.ts:394:67)
+    at checkProjectAccess (src/middleware/rbac.ts:10:45)
+    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/projects/project-123/logs/stats 500 in 2.9s (compile: 2.7s, proxy.ts: 9ms, render: 186ms)
+Error checking project access: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    ... collapsed 6 duplicate lines matching above 2 lines 3 times...
+    at listInvoicesForUser (src/lib/billing/invoices.ts:262:10)
+    at GET (src/app/api/billing/invoices/route.ts:17:51)
+    at getUserById (src/lib/db.ts:25:64)
+    at GET (src/app/api/billing/usage/route.ts:19:39)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsForUser (src/lib/db.ts:342:10)
+    at GET (src/app/api/teams/route.ts:18:45)
+    at getProjectById (src/lib/db.ts:394:67)
+    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
+    at getProjectById (src/lib/db.ts:394:67)
+    at checkProjectAccess (src/middleware/rbac.ts:10:45)
+    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
+    at getProjectById (src/lib/db.ts:394:67)
+    at checkProjectAccess (src/middleware/rbac.ts:10:45)
+    at GET (src/app/api/projects/[id]/route.ts:24:48)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/projects/project-123 500 in 3.1s (compile: 2.9s, proxy.ts: 3ms, render: 182ms)

@@ -4,9 +4,12 @@ import { useEffect } from 'react';
 import { ArrowLeft, Zap, Server, Wifi, FileText, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Script from 'next/script';
+import { toast } from 'sonner';
 import { PricingCard } from '@/components/billing/PricingCard';
 import { ComparePlansTable } from '@/components/billing/ComparePlansTable';
+import { UsageGauge } from '@/components/billing/UsageGauge';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useStore } from '@/store';
 
 declare global {
@@ -112,7 +115,7 @@ export default function BillingPage() {
                         const verifyData = await verifyRes.json();
 
                         if (verifyRes.ok) {
-                            alert('Payment Successful & Verified! Upgrading your plan...');
+                            toast.success('Payment Successful & Verified! Upgrading your plan...');
                             setUpgradingTierId(null);
                             window.location.reload();
                         } else {
@@ -120,7 +123,7 @@ export default function BillingPage() {
                         }
                     } catch (err) {
                         console.error('Verification error:', err);
-                        alert('Payment successful but verification failed. Please contact support.');
+                        toast.error('Payment successful but verification failed. Please contact support.');
                         setUpgradingTierId(null);
                     }
                 },
@@ -133,14 +136,14 @@ export default function BillingPage() {
 
             const rzp1 = new window.Razorpay(options);
             rzp1.on('payment.failed', function (response: any) {
-                alert(response.error.description);
+                toast.error(response.error.description);
                 setUpgradingTierId(null);
             });
             rzp1.open();
 
         } catch (err) {
             console.error(err);
-            alert(err instanceof Error ? err.message : 'Failed to initiate upgrade');
+            toast.error(err instanceof Error ? err.message : 'Failed to initiate upgrade');
             setUpgradingTierId(null);
         }
     };
@@ -182,33 +185,33 @@ export default function BillingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24 relative overflow-hidden">
+        <div className="min-h-screen bg-background text-foreground pb-24 relative overflow-hidden">
             <div className="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
             <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
             {/* Header */}
-            <div className="border-b border-[var(--border)] bg-[var(--background)]/50 backdrop-blur-md sticky top-0 z-30">
+            <div className="border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/dashboard" className="p-2 -ml-2 hover:bg-[var(--card-hover)] rounded-full transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                        <Link href="/dashboard" className="p-2 -ml-2 hover:bg-secondary/50 rounded-full transition-colors text-muted-foreground hover:text-foreground">
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
                         <h1 className="text-lg font-semibold gradient-text">Billing & Usage</h1>
                     </div>
                     <div className="flex items-center gap-x-2">
-                        <span className="text-sm text-[var(--muted-foreground)]">Current Plan:</span>
-                        <Badge variant="secondary" className="capitalize bg-[var(--primary)] text-[var(--primary-foreground)]">{tier.name}</Badge>
+                        <span className="text-sm text-muted-foreground">Current Plan:</span>
+                        <Badge variant="secondary" className="capitalize bg-primary text-primary-foreground">{tier.name}</Badge>
                     </div>
                 </div>
             </div>
 
             <main className="max-w-7xl mx-auto px-6 py-12 space-y-20">
 
-                {/* Usage Section - Kept similar but refined */}
+                {/* Usage Section */}
                 <section>
                     <div className="mb-8">
-                        <h2 className="text-2xl font-bold mb-2 text-[var(--foreground)]">Usage</h2>
-                        <p className="text-[var(--muted-foreground)]">Monitor your resource consumption for the current billing cycle.</p>
+                        <h2 className="text-2xl font-bold mb-2 text-foreground">Usage</h2>
+                        <p className="text-muted-foreground">Monitor your resource consumption for the current billing cycle.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -242,8 +245,8 @@ export default function BillingPage() {
                 {/* Plans Section */}
                 <section id="plans" className="scroll-mt-24">
                     <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 className="text-3xl font-bold mb-4 text-[var(--foreground)] tracking-tight">Simple, transparent pricing</h2>
-                        <p className="text-lg text-[var(--muted-foreground)]">
+                        <h2 className="text-3xl font-bold mb-4 text-foreground tracking-tight">Simple, transparent pricing</h2>
+                        <p className="text-lg text-muted-foreground">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
                         </p>
                     </div>
@@ -273,21 +276,21 @@ export default function BillingPage() {
                 {/* Invoice History */}
                 <section>
                     <div className="mb-8">
-                        <h2 className="text-2xl font-bold mb-2 text-[var(--foreground)]">Invoices</h2>
-                        <p className="text-[var(--muted-foreground)]">View and download your past invoices.</p>
+                        <h2 className="text-2xl font-bold mb-2 text-foreground">Invoices</h2>
+                        <p className="text-muted-foreground">View and download your past invoices.</p>
                     </div>
-                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl overflow-hidden shadow-sm">
+                    <Card className="overflow-hidden">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-[var(--card-hover)] border-b border-[var(--border)]">
+                            <thead className="bg-secondary/50 border-b border-border">
                                 <tr>
-                                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Invoice #</th>
-                                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Date</th>
-                                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Amount</th>
-                                    <th className="p-4 font-medium text-[var(--muted-foreground)]">Status</th>
-                                    <th className="p-4 font-medium text-[var(--muted-foreground)] text-right">Action</th>
+                                    <th className="p-4 font-medium text-muted-foreground">Invoice #</th>
+                                    <th className="p-4 font-medium text-muted-foreground">Date</th>
+                                    <th className="p-4 font-medium text-muted-foreground">Amount</th>
+                                    <th className="p-4 font-medium text-muted-foreground">Status</th>
+                                    <th className="p-4 font-medium text-muted-foreground text-right">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[var(--border)]">
+                            <tbody className="divide-y divide-border">
                                 {invoices.length === 0 ? (
                                     <tr>
                                         <td colSpan={5} className="p-8 text-center text-muted-foreground">
@@ -315,7 +318,7 @@ export default function BillingPage() {
                                             <td className="p-4 text-right">
                                                 <a
                                                     href={`/api/billing/invoices/${invoice.id}/download`}
-                                                    className="inline-flex items-center gap-2 text-[var(--primary)] hover:underline font-medium"
+                                                    className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
                                                     download
                                                 >
                                                     <FileText className="w-4 h-4" />
@@ -327,91 +330,9 @@ export default function BillingPage() {
                                 )}
                             </tbody>
                         </table>
-                    </div>
+                    </Card>
                 </section>
             </main>
-        </div>
-    );
-}
-
-function UsageGauge({
-    icon,
-    title,
-    used,
-    limit,
-    unit,
-    percent,
-    format
-}: {
-    icon: React.ReactNode,
-    title: string,
-    used: number,
-    limit: number,
-    unit?: string,
-    percent: number,
-    format?: (v: number) => string
-}) {
-    const radius = 50;
-    const stroke = 8;
-    const normalizedRadius = radius - stroke * 2;
-    const circumference = normalizedRadius * 2 * Math.PI;
-    const strokeDashoffset = circumference - (percent / 100) * circumference;
-
-    const formattedUsed = format ? format(used) : used;
-    const formattedLimit = limit === Infinity ? 'Unlimited' : (format ? format(limit) : limit);
-
-    return (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 flex flex-col items-center justify-center relative overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-                <div className="p-2 bg-[var(--card-hover)] rounded-md">
-                    {icon}
-                </div>
-                <h3 className="font-medium text-sm text-[var(--muted-foreground)]">{title}</h3>
-            </div>
-
-            <div className="mt-8 relative flex items-center justify-center">
-                <svg
-                    height={radius * 2 + 20}
-                    width={radius * 2 + 20}
-                    className="transform -rotate-90"
-                >
-                    <circle
-                        stroke="currentColor"
-                        fill="transparent"
-                        strokeWidth={stroke}
-                        strokeDasharray={circumference + ' ' + circumference}
-                        style={{ strokeDashoffset: 0 }}
-                        r={normalizedRadius}
-                        cx={radius + 10}
-                        cy={radius + 10}
-                        className="text-[var(--border)] opacity-20"
-                    />
-                    <circle
-                        stroke="currentColor"
-                        fill="transparent"
-                        strokeWidth={stroke}
-                        strokeDasharray={circumference + ' ' + circumference}
-                        style={{ strokeDashoffset }}
-                        r={normalizedRadius}
-                        cx={radius + 10}
-                        cy={radius + 10}
-                        className={`transition-all duration-1000 ease-out ${percent > 90 ? 'text-[var(--error)]' : 'text-[var(--primary)]'}`}
-                        strokeLinecap="round"
-                    />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-3xl font-bold tracking-tighter text-[var(--foreground)]">{percent}%</span>
-                </div>
-            </div>
-
-            <div className="mt-4 text-center">
-                <div className="text-xl font-bold text-[var(--foreground)]">
-                    {formattedUsed} <span className="text-sm text-[var(--muted-foreground)] font-normal">{unit}</span>
-                </div>
-                <div className="text-xs text-[var(--muted-foreground)] mt-1">
-                    of {formattedLimit} {unit && limit !== Infinity ? unit : ''}
-                </div>
-            </div>
         </div>
     );
 }

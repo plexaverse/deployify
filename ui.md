@@ -140,3 +140,40 @@ Audited and optimized UI for mobile responsiveness and performance.
 - Provides a prominent "Import Project" call-to-action using the `MovingBorder` `Button`.
 - Uses `framer-motion` for entrance animations.
 - Links to the improved Project Creation Wizard at `/new`.
+
+## Component Refactoring & Standardization
+
+Implemented foundational UI components and refactored key pages to ensure theme consistency and maintainability.
+
+### `src/app/globals.css`
+- Added missing CSS variables for standard UI components:
+  - `--secondary`, `--secondary-foreground`
+  - `--destructive`, `--destructive-foreground`
+  - `--accent`, `--accent-foreground`
+  - `--popover`, `--popover-foreground`
+  - `--card-foreground`
+  - `--input`, `--ring`, `--radius`
+- Mapped these variables to appropriate colors for both Light and Dark modes.
+
+### New Reusable UI Components
+Created standard components in `src/components/ui/` adhering to the new theme variables:
+- `Input`: Standardized input field.
+- `Label`: Accessible label component.
+- `Card`: Full suite of card sub-components (`Card`, `Header`, `Title`, `Content`, `Footer`).
+- `Switch`: Custom toggle switch component.
+- `Separator`: Visual separator.
+
+### `src/app/billing/page.tsx`
+- Refactored to use the new `Card`, `Badge`, and `UsageGauge` components.
+- Extracted `UsageGauge` to `src/components/billing/UsageGauge.tsx`.
+- Replaced native `alert()` with `sonner` toast notifications for better UX.
+- Improved layout and consistency with the rest of the dashboard.
+
+### `src/app/dashboard/[id]/settings/page.tsx`
+- Refactored to use the new UI components (`Input`, `Label`, `Button`, `Switch`, `Card`).
+- Extracted inline settings sections into dedicated components in `src/components/project-settings/`:
+  - `BuildSettings.tsx`
+  - `NotificationSettings.tsx`
+  - `SecuritySettings.tsx`
+  - `DangerZone.tsx`
+- Improved code organization and readability.
