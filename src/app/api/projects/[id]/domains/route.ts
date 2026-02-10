@@ -4,6 +4,7 @@ import { updateProject } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { createDomainMapping, deleteDomainMapping, getDomainMappingStatus, getDnsRecords } from '@/lib/gcp/domains';
 import type { Domain, DomainStatus } from '@/types';
+import { logAuditEvent } from '@/lib/audit';
 
 // Generate unique ID for domains
 function generateDomainId(): string {
@@ -147,6 +148,17 @@ export async function POST(
         domains.push(newDomain);
         await updateProject(id, { domains });
 
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'domain.created',
+            {
+                projectId: project.id,
+                domain: normalizedDomain,
+                domainId: newDomain.id
+            }
+        );
+
         // Get DNS records for the user
         const dnsRecords = getDnsRecords(normalizedDomain);
 
@@ -206,6 +218,17 @@ export async function DELETE(
 
         const filteredDomains = domains.filter((d: Domain) => d.id !== domainId);
         await updateProject(id, { domains: filteredDomains });
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'domain.deleted',
+            {
+                projectId: project.id,
+                domainId,
+                domain: domainToDelete.domain
+            }
+        );
 
         return NextResponse.json({
             message: 'Domain deleted successfully',

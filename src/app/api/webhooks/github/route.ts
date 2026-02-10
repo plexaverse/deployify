@@ -16,6 +16,7 @@ import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudb
 import { parseBranchFromRef, shouldAutoDeploy, slugify } from '@/lib/utils';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 import { pollBuildStatus } from '@/lib/deployment';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function POST(request: NextRequest) {
     try {
@@ -124,6 +125,19 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         gitCommitMessage: head_commit.message,
         gitCommitAuthor: head_commit.author.username || head_commit.author.name,
     });
+
+        await logAuditEvent(
+            project.teamId || null,
+            project.userId,
+            'deployment.created',
+            {
+                projectId: project.id,
+                deploymentId: deployment.id,
+                trigger: 'webhook',
+                branch,
+                commitSha: head_commit.id
+            }
+        );
 
     try {
         // Get environment variables directly from project and split by target
@@ -241,6 +255,19 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             gitCommitAuthor: pull_request.user.login,
             pullRequestNumber: pull_request.number,
         });
+
+        await logAuditEvent(
+            project.teamId || null,
+            project.userId,
+            'deployment.created',
+            {
+                projectId: project.id,
+                deploymentId: deployment.id,
+                trigger: 'webhook',
+                branch: pull_request.head.ref,
+                commitSha: pull_request.head.sha
+            }
+        );
 
         try {
             // Get environment variables directly from project and split by target
