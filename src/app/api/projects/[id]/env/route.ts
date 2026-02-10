@@ -70,7 +70,14 @@ export async function POST(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (project.teamId && membership && membership.role === 'viewer') {
+             return NextResponse.json(
+                { error: 'Viewers cannot manage environment variables' },
+                { status: 403 }
+            );
+        }
 
         const body = await request.json();
         const { key, value, isSecret = false, target = 'both' } = body;
@@ -161,7 +168,14 @@ export async function PUT(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (project.teamId && membership && membership.role === 'viewer') {
+             return NextResponse.json(
+                { error: 'Viewers cannot manage environment variables' },
+                { status: 403 }
+            );
+        }
 
         const body = await request.json();
         const { envId, key, value, isSecret, target } = body;
@@ -236,7 +250,14 @@ export async function DELETE(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (project.teamId && membership && membership.role === 'viewer') {
+             return NextResponse.json(
+                { error: 'Viewers cannot manage environment variables' },
+                { status: 403 }
+            );
+        }
 
         const { searchParams } = new URL(request.url);
         const envId = searchParams.get('envId');

@@ -46,7 +46,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (project.teamId && membership && membership.role === 'viewer') {
+             return NextResponse.json(
+                { error: 'Viewers cannot trigger deployments' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         // Check usage limits
         const { withinLimits, limitType } = await checkUsageLimits(session.user.id);
@@ -274,7 +281,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (project.teamId && membership && membership.role === 'viewer') {
+             return NextResponse.json(
+                { error: 'Viewers cannot cancel deployments' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const deployment = await getDeploymentById(deploymentId);
         if (!deployment || deployment.projectId !== id) {
@@ -304,6 +318,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             status: 'cancelled',
             errorMessage: 'Cancelled by user'
         });
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'deployment.cancelled',
+            {
+                projectId: project.id,
+                deploymentId: deploymentId
+            }
+        );
 
         return NextResponse.json(
             { success: true },

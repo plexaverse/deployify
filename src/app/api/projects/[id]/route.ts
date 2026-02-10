@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { updateProject, deleteProject, listDeploymentsByProject, getProjectById } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
+import { logAuditEvent } from '@/lib/audit';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -70,7 +71,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (project.teamId && membership && !['owner', 'admin'].includes(membership.role)) {
+             return NextResponse.json(
+                { error: 'Only owners and admins can update project settings' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const body = await request.json();
 
@@ -173,6 +181,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         await updateProject(id, updates);
 
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'project.updated',
+            {
+                projectId: project.id,
+                updates: Object.keys(updates)
+            }
+        );
+
         const updatedProject = await getProjectById(id);
 
         return NextResponse.json(
@@ -210,8 +228,27 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        const { project, membership } = access;
+
+        if (project.teamId && membership && !['owner', 'admin'].includes(membership.role)) {
+             return NextResponse.json(
+                { error: 'Only owners and admins can delete projects' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
+
         // Delete project and all associated data
         await deleteProject(id);
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'project.deleted',
+            {
+                projectId: project.id,
+                name: project.name
+            }
+        );
 
         // TODO: Also delete Cloud Run services and cleanup
 

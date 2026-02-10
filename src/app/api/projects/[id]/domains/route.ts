@@ -4,6 +4,7 @@ import { updateProject } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { createDomainMapping, deleteDomainMapping, getDomainMappingStatus, getDnsRecords } from '@/lib/gcp/domains';
 import type { Domain, DomainStatus } from '@/types';
+import { logAuditEvent } from '@/lib/audit';
 
 // Generate unique ID for domains
 function generateDomainId(): string {
@@ -96,7 +97,14 @@ export async function POST(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (project.teamId && membership && !['owner', 'admin'].includes(membership.role)) {
+             return NextResponse.json(
+                { error: 'Only owners and admins can manage domains' },
+                { status: 403 }
+            );
+        }
 
         const body = await request.json();
         const { domain } = body;
@@ -147,6 +155,17 @@ export async function POST(
         domains.push(newDomain);
         await updateProject(id, { domains });
 
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'domain.created',
+            {
+                projectId: project.id,
+                domain: normalizedDomain,
+                domainId: newDomain.id
+            }
+        );
+
         // Get DNS records for the user
         const dnsRecords = getDnsRecords(normalizedDomain);
 
@@ -185,7 +204,14 @@ export async function DELETE(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (project.teamId && membership && !['owner', 'admin'].includes(membership.role)) {
+             return NextResponse.json(
+                { error: 'Only owners and admins can manage domains' },
+                { status: 403 }
+            );
+        }
 
         const { searchParams } = new URL(request.url);
         const domainId = searchParams.get('domainId');
@@ -206,6 +232,17 @@ export async function DELETE(
 
         const filteredDomains = domains.filter((d: Domain) => d.id !== domainId);
         await updateProject(id, { domains: filteredDomains });
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'domain.deleted',
+            {
+                projectId: project.id,
+                domain: domainToDelete.domain,
+                domainId: domainId
+            }
+        );
 
         return NextResponse.json({
             message: 'Domain deleted successfully',
