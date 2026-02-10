@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { updateProject, deleteProject, listDeploymentsByProject, getProjectById } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
+import { logAuditEvent } from '@/lib/audit';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -70,7 +71,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        // RBAC Check: Viewers cannot update settings
+        if (membership && membership.role === 'viewer') {
+             return NextResponse.json(
+                { error: 'Viewers cannot update project settings' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const body = await request.json();
 
@@ -173,6 +182,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         await updateProject(id, updates);
 
+        // Audit Log
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'project.updated',
+            { projectId: id, updates },
+            id
+        );
+
         const updatedProject = await getProjectById(id);
 
         return NextResponse.json(
@@ -210,8 +228,27 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        const { project, membership } = access;
+
+        // RBAC Check: Only Owners/Admins can delete
+        if (membership && !['owner', 'admin'].includes(membership.role)) {
+            return NextResponse.json(
+                { error: 'Only owners and admins can delete projects' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
+
         // Delete project and all associated data
         await deleteProject(id);
+
+        // Audit Log
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'project.deleted',
+            { projectId: id, name: project.name },
+            id
+        );
 
         // TODO: Also delete Cloud Run services and cleanup
 

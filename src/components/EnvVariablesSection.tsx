@@ -6,16 +6,14 @@ import {
     Trash2,
     Eye,
     EyeOff,
-    Save,
-    X,
-    Copy,
     Check,
     Loader2,
     AlertCircle,
     Info,
-    Shield
+    Shield,
+    Copy
 } from 'lucide-react';
-import type { EnvVariable, EnvVariableTarget } from '@/types';
+import type { EnvVariableTarget } from '@/types';
 import { useStore } from '@/store';
 
 interface EnvVariablesSectionProps {
@@ -37,6 +35,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     const [newValue, setNewValue] = useState('');
     const [newIsSecret, setNewIsSecret] = useState(false);
     const [newTarget, setNewTarget] = useState<EnvVariableTarget>('both');
+    const [newEnvironment, setNewEnvironment] = useState<'production' | 'preview' | 'all'>('all');
 
     const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -82,6 +81,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 value: newValue,
                 isSecret: newIsSecret,
                 target: newTarget,
+                environment: newEnvironment,
             });
 
             if (success) {
@@ -89,6 +89,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 setNewKey('');
                 setNewValue('');
                 setNewIsSecret(false);
+                setNewTarget('both');
+                setNewEnvironment('all');
                 setIsAdding(false);
                 if (onUpdate) onUpdate();
             }
@@ -122,6 +124,15 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 return 'Build & Runtime';
             default:
                 return target;
+        }
+    };
+
+    const getEnvironmentLabel = (env?: string) => {
+        switch (env) {
+            case 'production': return 'Production';
+            case 'preview': return 'Preview';
+            case 'all': return 'All Environments';
+            default: return 'All Environments';
         }
     };
 
@@ -165,51 +176,90 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1">Value</label>
-                            <input
-                                type={newIsSecret ? 'password' : 'text'}
-                                value={newValue}
-                                onChange={(e) => setNewValue(e.target.value)}
-                                placeholder="secret-value"
-                                className="input w-full font-mono text-sm"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={newIsSecret ? 'password' : 'text'}
+                                    value={newValue}
+                                    onChange={(e) => setNewValue(e.target.value)}
+                                    placeholder="secret-value"
+                                    className="input w-full font-mono text-sm pr-10"
+                                />
+                                <button
+                                    onClick={() => setNewIsSecret(!newIsSecret)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                    type="button"
+                                >
+                                    {newIsSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-6 mb-6">
-                        <div className="flex items-center gap-2">
-                            <input
-                                id="is-secret"
-                                type="checkbox"
-                                checked={newIsSecret}
-                                onChange={(e) => setNewIsSecret(e.target.checked)}
-                                className="w-4 h-4 rounded border-gray-300 text-[var(--primary)]"
-                            />
-                            <label htmlFor="is-secret" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
-                                <Shield className="w-3.5 h-3.5 text-blue-400" />
-                                Secret (Encrypted)
-                            </label>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <span className="text-sm font-medium">Environment:</span>
-                            <div className="flex items-center gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <span className="block text-sm font-medium mb-2">Target (When)</span>
+                            <div className="flex flex-wrap gap-2">
                                 {(['both', 'build', 'runtime'] as EnvVariableTarget[]).map((t) => (
-                                    <label key={t} className="flex items-center gap-1.5 cursor-pointer">
+                                    <label key={t} className={`
+                                        cursor-pointer px-3 py-1.5 rounded-md text-sm border transition-colors flex items-center justify-center
+                                        ${newTarget === t
+                                            ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                                            : 'bg-[var(--card)] border-[var(--border)] hover:border-[var(--muted-foreground)]'
+                                        }
+                                    `}>
                                         <input
                                             type="radio"
                                             name="target"
                                             checked={newTarget === t}
                                             onChange={() => setNewTarget(t)}
-                                            className="w-4 h-4 border-gray-300 text-[var(--primary)]"
+                                            className="hidden"
                                         />
-                                        <span className="text-sm capitalize">{t}</span>
+                                        {getTargetLabel(t)}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <span className="block text-sm font-medium mb-2">Environment (Where)</span>
+                            <div className="flex flex-wrap gap-2">
+                                {(['all', 'production', 'preview'] as const).map((e) => (
+                                    <label key={e} className={`
+                                        cursor-pointer px-3 py-1.5 rounded-md text-sm border transition-colors flex items-center justify-center
+                                        ${newEnvironment === e
+                                            ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                                            : 'bg-[var(--card)] border-[var(--border)] hover:border-[var(--muted-foreground)]'
+                                        }
+                                    `}>
+                                        <input
+                                            type="radio"
+                                            name="environment"
+                                            checked={newEnvironment === e}
+                                            onChange={() => setNewEnvironment(e)}
+                                            className="hidden"
+                                        />
+                                        <span className="capitalize">{e === 'all' ? 'All' : e}</span>
                                     </label>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3">
+                    <div className="flex items-center gap-2 mb-6">
+                         <input
+                             id="is-secret-check"
+                             type="checkbox"
+                             checked={newIsSecret}
+                             onChange={(e) => setNewIsSecret(e.target.checked)}
+                             className="w-4 h-4 rounded border-gray-300 text-[var(--primary)]"
+                         />
+                         <label htmlFor="is-secret-check" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                             <Shield className="w-3.5 h-3.5 text-blue-400" />
+                             Treat as secret (masked in UI)
+                         </label>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border)]">
                         <button
                             onClick={() => setIsAdding(false)}
                             className="btn btn-ghost"
@@ -253,8 +303,9 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-[var(--border)]">
-                                <th className="py-3 px-4 font-semibold text-sm">Key</th>
-                                <th className="py-3 px-4 font-semibold text-sm">Value</th>
+                                <th className="py-3 px-4 font-semibold text-sm w-1/4">Key</th>
+                                <th className="py-3 px-4 font-semibold text-sm w-1/4">Value</th>
+                                <th className="py-3 px-4 font-semibold text-sm">Target</th>
                                 <th className="py-3 px-4 font-semibold text-sm">Environment</th>
                                 <th className="py-3 px-4 font-semibold text-sm text-right">Actions</th>
                             </tr>
@@ -273,12 +324,14 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                         </div>
                                     </td>
                                     <td className="py-3 px-4 text-sm font-mono">
-                                        <div className="flex items-center gap-2 bg-[var(--muted)]/50 px-2 py-1 rounded w-fit">
-                                            {revealedIds.has(env.id) ? (
-                                                <span className="text-[var(--foreground)]">{env.value}</span>
-                                            ) : (
-                                                <span className="text-[var(--muted-foreground)]">••••••••••••••••</span>
-                                            )}
+                                        <div className="flex items-center gap-2 bg-[var(--muted)]/50 px-2 py-1 rounded w-fit max-w-[200px] overflow-hidden">
+                                            <span className="truncate block">
+                                                {revealedIds.has(env.id) ? (
+                                                    env.value
+                                                ) : (
+                                                    '••••••••••••••••'
+                                                )}
+                                            </span>
 
                                             <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
@@ -301,6 +354,15 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                     <td className="py-3 px-4">
                                         <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize">
                                             {getTargetLabel(env.target)}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full border capitalize
+                                            ${env.environment === 'production' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                              env.environment === 'preview' ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' :
+                                              'bg-[var(--muted)] border-[var(--border)]'}
+                                        `}>
+                                            {getEnvironmentLabel(env.environment)}
                                         </span>
                                     </td>
                                     <td className="py-3 px-4 text-right">

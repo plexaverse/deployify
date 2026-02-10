@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { updateProject } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { createDomainMapping, deleteDomainMapping, getDomainMappingStatus, getDnsRecords } from '@/lib/gcp/domains';
+import { logAuditEvent } from '@/lib/audit';
 import type { Domain, DomainStatus } from '@/types';
 
 // Generate unique ID for domains
@@ -96,7 +97,14 @@ export async function POST(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot manage domains' },
+                { status: 403 }
+            );
+        }
 
         const body = await request.json();
         const { domain } = body;
@@ -147,6 +155,14 @@ export async function POST(
         domains.push(newDomain);
         await updateProject(id, { domains });
 
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'domain.created',
+            { projectId: id, domain: normalizedDomain },
+            id
+        );
+
         // Get DNS records for the user
         const dnsRecords = getDnsRecords(normalizedDomain);
 
@@ -185,7 +201,14 @@ export async function DELETE(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot manage domains' },
+                { status: 403 }
+            );
+        }
 
         const { searchParams } = new URL(request.url);
         const domainId = searchParams.get('domainId');
@@ -206,6 +229,14 @@ export async function DELETE(
 
         const filteredDomains = domains.filter((d: Domain) => d.id !== domainId);
         await updateProject(id, { domains: filteredDomains });
+
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'domain.deleted',
+            { projectId: id, domain: domainToDelete.domain },
+            id
+        );
 
         return NextResponse.json({
             message: 'Domain deleted successfully',

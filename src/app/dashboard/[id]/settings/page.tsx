@@ -9,6 +9,7 @@ import { DomainsSection } from '@/components/DomainsSection';
 import { RegionSettings } from '@/components/RegionSettings';
 import { ResourceSettings } from '@/components/ResourceSettings';
 import { BranchDeploymentsSettings } from '@/components/BranchDeploymentsSettings';
+import { AuditLogViewer } from '@/components/AuditLogViewer';
 import { useStore } from '@/store';
 
 export default function ProjectSettingsPage() {
@@ -295,6 +296,11 @@ export default function ProjectSettingsPage() {
                         </button>
                     </div>
                 </div>
+            </div>
+
+            {/* Audit Logs */}
+            <div className="mt-8">
+                <AuditLogViewer projectId={project.id} />
             </div>
 
             {/* Danger Zone */}

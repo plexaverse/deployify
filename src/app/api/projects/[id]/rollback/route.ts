@@ -4,6 +4,7 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { updateTraffic, getProductionServiceName } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken, isRunningOnGCP } from '@/lib/gcp/auth';
 import { securityHeaders } from '@/lib/security';
+import { logAuditEvent } from '@/lib/audit';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -31,7 +32,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot perform rollbacks' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
+
         const body = await request.json();
         const { revisionName } = body;
 
@@ -54,6 +63,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     project.region
                 );
 
+                await logAuditEvent(
+                    project.teamId || null,
+                    session.user.id,
+                    'deployment.rollback',
+                    { projectId: id, revisionName },
+                    id
+                );
+
                 return NextResponse.json(
                     { message: 'Rollback successful' },
                     { status: 200, headers: securityHeaders }
@@ -68,6 +85,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         } else {
             // Local development simulation
             console.log(`[SIMULATION] Rolling back project ${project.name} to revision ${revisionName}`);
+
+            await logAuditEvent(
+                project.teamId || null,
+                session.user.id,
+                'deployment.rollback',
+                { projectId: id, revisionName, simulation: true },
+                id
+            );
+
             return NextResponse.json(
                 { message: 'Rollback simulated (local dev mode)' },
                 { status: 200, headers: securityHeaders }

@@ -142,6 +142,7 @@ export interface EnvVariable {
     value: string;
     isSecret: boolean; // If true, value is masked in UI
     target: EnvVariableTarget; // Where the variable is used
+    environment?: 'production' | 'preview' | 'all';
 }
 
 // Custom domain for a project
@@ -214,6 +215,7 @@ export interface EnvVar {
 export interface AuditEvent {
     id: string;
     teamId: string | null;
+    projectId?: string | null;
     userId: string;
     action: string;
     details: Record<string, any>;

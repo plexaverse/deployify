@@ -132,10 +132,13 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         const runtimeEnvVars: Record<string, string> = {};
 
         for (const env of allEnvVars) {
-            // Respect Build vs Runtime settings
-            // Note: We currently don't filter by envTarget (Production vs Preview)
-            // because EnvVariable doesn't support it yet. All vars apply to all envs.
+            // Filter by environment (Production vs Preview vs All)
+            const envEnvironment = env.environment || 'all';
+            if (envEnvironment !== 'all' && envEnvironment !== envTarget) {
+                continue;
+            }
 
+            // Respect Build vs Runtime settings
             if (env.target === 'build' || env.target === 'both') {
                 buildEnvVars[env.key] = env.value;
             }
@@ -247,8 +250,15 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             const allEnvVars = project.envVariables || [];
             const buildEnvVars: Record<string, string> = {};
             const runtimeEnvVars: Record<string, string> = {};
+            const envTarget = 'preview'; // PRs are always preview
 
             for (const env of allEnvVars) {
+                // Filter by environment
+                const envEnvironment = env.environment || 'all';
+                if (envEnvironment !== 'all' && envEnvironment !== envTarget) {
+                    continue;
+                }
+
                 if (env.target === 'build' || env.target === 'both') {
                     buildEnvVars[env.key] = env.value;
                 }

@@ -70,10 +70,17 @@ export async function POST(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot manage environment variables' },
+                { status: 403 }
+            );
+        }
 
         const body = await request.json();
-        const { key, value, isSecret = false, target = 'both' } = body;
+        const { key, value, isSecret = false, target = 'both', environment = 'all' } = body;
 
         if (!key || typeof key !== 'string') {
             return NextResponse.json({ error: 'Key is required' }, { status: 400 });
@@ -107,6 +114,7 @@ export async function POST(
             value,
             isSecret: Boolean(isSecret),
             target: target as EnvVariableTarget,
+            environment: environment as 'production' | 'preview' | 'all',
         };
 
         envVariables.push(newEnvVar);
@@ -121,7 +129,8 @@ export async function POST(
                 projectId: project.id,
                 envVarKey: key,
                 envVarId: newEnvVar.id
-            }
+            },
+            project.id
         );
 
         return NextResponse.json({
@@ -161,10 +170,17 @@ export async function PUT(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot manage environment variables' },
+                { status: 403 }
+            );
+        }
 
         const body = await request.json();
-        const { envId, key, value, isSecret, target } = body;
+        const { envId, key, value, isSecret, target, environment } = body;
 
         if (!envId) {
             return NextResponse.json({ error: 'Environment variable ID is required' }, { status: 400 });
@@ -183,6 +199,7 @@ export async function PUT(
         if (value !== undefined) updatedEnv.value = value;
         if (isSecret !== undefined) updatedEnv.isSecret = Boolean(isSecret);
         if (target !== undefined) updatedEnv.target = target as EnvVariableTarget;
+        if (environment !== undefined) updatedEnv.environment = environment as 'production' | 'preview' | 'all';
 
         envVariables[envIndex] = updatedEnv;
 
@@ -196,7 +213,8 @@ export async function PUT(
                 projectId: project.id,
                 envVarKey: updatedEnv.key,
                 envVarId: updatedEnv.id
-            }
+            },
+            project.id
         );
 
         return NextResponse.json({
@@ -236,7 +254,14 @@ export async function DELETE(
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot manage environment variables' },
+                { status: 403 }
+            );
+        }
 
         const { searchParams } = new URL(request.url);
         const envId = searchParams.get('envId');
@@ -261,7 +286,8 @@ export async function DELETE(
             {
                 projectId: project.id,
                 envVarId: envId
-            }
+            },
+            project.id
         );
 
         return NextResponse.json({

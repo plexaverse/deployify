@@ -46,7 +46,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot deploy projects' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         // Check usage limits
         const { withinLimits, limitType } = await checkUsageLimits(session.user.id);
@@ -119,7 +126,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 deploymentId: deployment.id,
                 gitCommitSha: commitSha,
                 gitBranch: project.defaultBranch
-            }
+            },
+            project.id
         );
 
         // Check if running on GCP - use real Cloud Build
@@ -129,8 +137,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 const envVars = project.envVariables || [];
                 const buildEnvVars: Record<string, string> = {};
                 const runtimeEnvVars: Record<string, string> = {};
+                const envTarget = 'production'; // Manual deploy is production
 
                 envVars.forEach((env: EnvVariable) => {
+                    const envEnvironment = env.environment || 'all';
+                    if (envEnvironment !== 'all' && envEnvironment !== envTarget) {
+                        return;
+                    }
+
                     if (env.target === 'build' || env.target === 'both') {
                         buildEnvVars[env.key] = env.value;
                     }
@@ -274,7 +288,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot cancel deployments' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const deployment = await getDeploymentById(deploymentId);
         if (!deployment || deployment.projectId !== id) {

@@ -4,6 +4,7 @@ import { generateId } from '@/lib/utils';
 export interface AuditEvent {
     id: string;
     teamId: string | null;
+    projectId?: string | null;
     userId: string;
     action: string;
     details: Record<string, any>;
@@ -14,7 +15,8 @@ export async function logAuditEvent(
     teamId: string | null,
     userId: string,
     action: string,
-    details: Record<string, any>
+    details: Record<string, any>,
+    projectId?: string
 ): Promise<void> {
     const db = getDb();
     const id = generateId('audit');
@@ -23,6 +25,7 @@ export async function logAuditEvent(
     const event: AuditEvent = {
         id,
         teamId,
+        projectId: projectId || null,
         userId,
         action,
         details,
@@ -40,6 +43,27 @@ export async function listAuditLogs(
     const snapshot = await db
         .collection(Collections.AUDIT_LOGS)
         .where('teamId', '==', teamId)
+        .orderBy('createdAt', 'desc')
+        .limit(limit)
+        .get();
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            createdAt: data?.createdAt?.toDate(),
+        } as AuditEvent;
+    });
+}
+
+export async function listProjectAuditLogs(
+    projectId: string,
+    limit: number = 20
+): Promise<AuditEvent[]> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.AUDIT_LOGS)
+        .where('projectId', '==', projectId)
         .orderBy('createdAt', 'desc')
         .limit(limit)
         .get();
