@@ -29,3 +29,7 @@
 ## 2026-02-22 - [Subtle Decorative Semantics and Expectation Management]
 **Learning:** Purely decorative elements like pulse glows or stylistic step numbers (e.g., "01") can clutter the experience for screen reader users if not properly hidden. Additionally, providing immediate visual and textual feedback (via toasts) for inactive "Coming Soon" features prevents user frustration and manages expectations effectively.
 **Action:** Always apply `aria-hidden="true"` to decorative stylistic markers and use informative toast notifications for mock features to acknowledge user interaction.
+
+## 2026-02-23 - [Direct State Management vs. Effects]
+**Learning:** Resetting a selection index in a search component via `useEffect` can trigger cascading render warnings in strict environments. Performing the reset directly in the `onChange` and "Clear" event handlers is more efficient, reduces render cycles, and avoids the need for `setTimeout` hacks.
+**Action:** Prefer direct state updates within event handlers over `useEffect` for state that is dependent on user input.
