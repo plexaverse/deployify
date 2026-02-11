@@ -17,6 +17,8 @@ import {
     MousePointer2,
 } from 'lucide-react';
 import { AnalyticsStats } from '@/types';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface AnalyticsChartsProps {
     data: AnalyticsStats;
@@ -46,7 +48,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 shadow-xl ring-1 ring-black/5">
+                <Card className="p-3 shadow-xl ring-1 ring-black/5 bg-[var(--card)] border-[var(--border)]">
                     <p className="text-sm font-medium text-[var(--foreground)] mb-2">
                         {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
@@ -59,7 +61,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                             </div>
                         ))}
                     </div>
-                </div>
+                </Card>
             );
         }
         return null;
@@ -128,7 +130,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Main Chart */}
-                <div className="lg:col-span-2 p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
+                <Card className="lg:col-span-2 p-6 shadow-sm">
                     <h3 className="text-lg font-semibold mb-6">Traffic Over Time</h3>
                     <div className="h-[300px] min-h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -186,11 +188,11 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
-                </div>
+                </Card>
 
                 <div className="space-y-6">
                     {/* Top Sources */}
-                    <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm h-fit">
+                    <Card className="p-6 h-fit shadow-sm">
                         <h3 className="text-lg font-semibold mb-4">Top Sources</h3>
                         <div className="space-y-4">
                             {sources.map((source: { source: string; visitors: number }, index: number) => (
@@ -208,10 +210,10 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                                 <p className="text-sm text-[var(--muted-foreground)]">No data available</p>
                             )}
                         </div>
-                    </div>
+                    </Card>
 
                     {/* Top Locations */}
-                    <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm h-fit">
+                    <Card className="p-6 h-fit shadow-sm">
                         <h3 className="text-lg font-semibold mb-4">Top Locations</h3>
                         <div className="space-y-4">
                             {locations.map((location: { country: string; visitors: number }, index: number) => (
@@ -229,7 +231,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                                 <p className="text-sm text-[var(--muted-foreground)]">No data available</p>
                             )}
                         </div>
-                    </div>
+                    </Card>
                 </div>
             </div>
         </div>
@@ -243,17 +245,14 @@ function WebVitalCard({ title, value, unit, status, description }: {
     status: 'good' | 'needs-improvement' | 'poor';
     description: string;
 }) {
-    const statusColors = {
-        good: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
-        'needs-improvement': 'text-amber-500 bg-amber-500/10 border-amber-500/20',
-        poor: 'text-rose-500 bg-rose-500/10 border-rose-500/20'
-    };
-
     return (
-        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm hover:border-[var(--primary)] transition-all duration-200 group">
+        <Card className="p-4 hover:border-[var(--primary)] transition-all duration-200 group">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">{title}</span>
-                <div className={`w-2 h-2 rounded-full animate-pulse ${status === 'good' ? 'bg-emerald-500' : status === 'needs-improvement' ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                <div className={cn("w-2 h-2 rounded-full animate-pulse",
+                    status === 'good' ? 'bg-[var(--success)]' :
+                    status === 'needs-improvement' ? 'bg-[var(--warning)]' :
+                    'bg-[var(--error)]')} />
             </div>
             <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-bold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
@@ -261,20 +260,25 @@ function WebVitalCard({ title, value, unit, status, description }: {
                 </span>
                 <span className="text-[10px] text-[var(--muted-foreground)] font-medium uppercase">{unit}</span>
             </div>
-            <div className={`mt-2 text-[9px] px-1.5 py-0.5 rounded border inline-block font-semibold uppercase ${statusColors[status]}`}>
+            <div className={cn("mt-2 text-[9px] px-1.5 py-0.5 rounded border inline-block font-semibold uppercase",
+                    status === 'good' ? 'text-[var(--success)] bg-[var(--success-bg)] border-[var(--success)]/20' :
+                    status === 'needs-improvement' ? 'text-[var(--warning)] bg-[var(--warning-bg)] border-[var(--warning)]/20' :
+                    'text-[var(--error)] bg-[var(--error-bg)] border-[var(--error)]/20'
+                )}>
                 {status.replace('-', ' ')}
             </div>
             <p className="mt-3 text-[10px] text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
                 {description}
             </p>
-        </div>
+        </Card>
     );
 }
+
 function SummaryCard({ title, value }: { title: string; value: string }) {
     return (
-        <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm hover:border-[var(--primary)] transition-colors duration-200">
+        <Card className="p-6 hover:border-[var(--primary)] transition-colors duration-200">
             <h3 className="text-sm font-medium text-[var(--muted-foreground)]">{title}</h3>
             <div className="mt-2 text-2xl font-bold font-mono tracking-tight">{value}</div>
-        </div>
+        </Card>
     );
 }

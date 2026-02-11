@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { parseLogEntry, type LogEntry } from '@/lib/logging/parser';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface LogViewerProps {
     projectId: string;
@@ -170,16 +171,16 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
             case 'CRITICAL':
             case 'EMERGENCY':
             case 'ALERT':
-                return 'text-red-500';
+                return 'text-[var(--error)]';
             case 'WARNING':
-                return 'text-yellow-500';
+                return 'text-[var(--warning)]';
             case 'INFO':
             case 'NOTICE':
-                return 'text-blue-400';
+                return 'text-[var(--info)]';
             case 'DEBUG':
-                return 'text-gray-400';
+                return 'text-[var(--muted)]';
             default:
-                return 'text-gray-300';
+                return 'text-[var(--muted-foreground)]';
         }
     };
 
@@ -198,7 +199,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
     };
 
     return (
-        <div className={`flex flex-col rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm ${className || ''}`}>
+        <div className={cn("flex flex-col rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm", className)}>
             {/* Header / Tabs */}
             <div className="flex flex-col border-b border-[var(--border)] bg-[var(--muted)]/30">
                 <div className="flex items-center justify-between px-3 pt-3">
@@ -244,10 +245,11 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                         </button>
                     </div>
 
-                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border mb-2 ${isConnected
-                            ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                            : 'bg-red-500/10 text-red-500 border-red-500/20'
-                        }`}>
+                    <div className={cn("flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border mb-2",
+                            isConnected
+                            ? 'bg-[var(--success-bg)] text-[var(--success)] border-[var(--success)]/20'
+                            : 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/20'
+                        )}>
                         {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
                         {isConnected ? 'Connected' : 'Disconnected'}
                     </div>
@@ -282,9 +284,9 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                     onClick={() => toggleSeverityFilter(sev)}
                                     className={`px-2 py-1 rounded-md text-[10px] font-medium border transition-colors ${
                                         severityFilter.has(sev)
-                                            ? sev === 'ERROR' ? 'bg-red-500/10 text-red-500 border-red-500/30'
-                                            : sev === 'WARNING' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'
-                                            : 'bg-blue-500/10 text-blue-500 border-blue-500/30'
+                                            ? sev === 'ERROR' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/30'
+                                            : sev === 'WARNING' ? 'bg-[var(--warning-bg)] text-[var(--warning)] border-[var(--warning)]/30'
+                                            : 'bg-[var(--info-bg)] text-[var(--info)] border-[var(--info)]/30'
                                             : 'bg-[var(--muted)]/50 text-[var(--muted-foreground)] border-transparent hover:bg-[var(--muted)]'
                                     }`}
                                 >
@@ -299,7 +301,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                             onClick={() => setIsPaused(!isPaused)}
                             className={`p-1.5 rounded-md transition-colors ${
                                 isPaused
-                                    ? 'bg-yellow-500/10 text-yellow-500'
+                                    ? 'bg-[var(--warning-bg)] text-[var(--warning)]'
                                     : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]'
                             }`}
                             title={isPaused ? "Resume auto-scroll" : "Pause auto-scroll"}
@@ -319,7 +321,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
             {/* Error Message */}
             {error && (
-                <div className="bg-red-500/10 text-red-500 px-4 py-2 text-xs border-b border-red-500/20 flex items-center gap-2">
+                <div className="bg-[var(--error-bg)] text-[var(--error)] px-4 py-2 text-xs border-b border-[var(--error)]/20 flex items-center gap-2">
                     <Activity className="w-4 h-4" />
                     Error: {error}
                 </div>
@@ -342,7 +344,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                         ))}
                     </div>
                 ) : logs.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
+                    <div className="flex flex-col items-center justify-center h-full text-[var(--muted-foreground)] gap-2">
                         {isConnected ? (
                             <>
                                 <Loader2 className="w-6 h-6 animate-spin opacity-50" />
@@ -356,13 +358,13 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                     <div className="flex flex-col">
                         {filteredLogs.map((log, index) => (
                             <div key={log.insertId || index} className="flex items-start gap-3 hover:bg-white/5 px-1 py-0.5 rounded -mx-1 group transition-colors">
-                                <span className="text-gray-500 shrink-0 select-none w-[100px] opacity-70 group-hover:opacity-100 transition-opacity">
+                                <span className="text-[var(--muted)] shrink-0 select-none w-[100px] opacity-70 group-hover:opacity-100 transition-opacity">
                                     {formatTimestamp(log.timestamp)}
                                 </span>
                                 <span className={`font-bold shrink-0 w-[70px] select-none ${getSeverityColor(log.severity)}`}>
                                     {log.severity}
                                 </span>
-                                <span className="text-gray-300 break-all whitespace-pre-wrap flex-1">
+                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1">
                                     {log.textPayload || (log.jsonPayload ? JSON.stringify(log.jsonPayload) : '')}
                                 </span>
                             </div>

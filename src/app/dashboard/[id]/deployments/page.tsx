@@ -3,11 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
-    CheckCircle2,
-    XCircle,
-    Loader2,
-    Clock,
-    AlertCircle,
     ExternalLink,
     FileText,
     RotateCcw,
@@ -20,7 +15,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
 import { useStore } from '@/store';
-import type { Deployment, Project } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 export default function DeploymentsPage() {
     const params = useParams();
@@ -44,19 +41,19 @@ export default function DeploymentsPage() {
         }
     }, [params.id, fetchProjectDetails]);
 
-    const getStatusIcon = (status: string) => {
+    const getStatusBadge = (status: string) => {
         switch (status) {
             case 'ready':
-                return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
+                return <Badge variant="success">Ready</Badge>;
             case 'error':
-                return <XCircle className="w-4 h-4 text-red-500" />;
+                return <Badge variant="destructive">Error</Badge>;
             case 'building':
             case 'deploying':
-                return <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />;
+                return <Badge variant="warning" className="animate-pulse">Building</Badge>;
             case 'queued':
-                return <Clock className="w-4 h-4 text-[var(--muted-foreground)]" />;
+                return <Badge variant="secondary">Queued</Badge>;
             default:
-                return <AlertCircle className="w-4 h-4 text-[var(--muted-foreground)]" />;
+                return <Badge variant="secondary">{status}</Badge>;
         }
     };
 
@@ -154,28 +151,23 @@ export default function DeploymentsPage() {
                     <p className="text-[var(--muted-foreground)] text-sm">No deployments found</p>
                 </div>
             ) : (
-                <div className="border border-[var(--border)] rounded-xl bg-[var(--card)] overflow-hidden shadow-sm">
+                <Card className="overflow-hidden p-0">
                     <div className="divide-y divide-[var(--border)]">
                         {deployments.map((deployment) => (
                             <div key={deployment.id} className="p-4 md:p-6 hover:bg-[var(--card-hover)] transition-colors group">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div className="flex items-start gap-4">
                                         <div className="mt-1">
-                                            {getStatusIcon(deployment.status)}
+                                            {getStatusBadge(deployment.status)}
                                         </div>
                                         <div className="space-y-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <p className="font-medium text-sm truncate max-w-md">
                                                     {deployment.gitCommitMessage}
                                                 </p>
-                                                <span className={cn(
-                                                    "text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
-                                                    deployment.type === 'production'
-                                                        ? "bg-emerald-500/10 text-emerald-500"
-                                                        : "bg-blue-500/10 text-blue-500"
-                                                )}>
+                                                <Badge variant={deployment.type === 'production' ? 'success' : 'info'} className="text-[10px] px-1.5 py-0">
                                                     {deployment.type}
-                                                </span>
+                                                </Badge>
                                             </div>
                                             <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
                                                 <div className="flex items-center gap-1 font-mono">
@@ -195,51 +187,57 @@ export default function DeploymentsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-3 pl-11 md:pl-0">
+                                    <div className="flex items-center gap-2 pl-11 md:pl-0">
                                         {deployment.url && (
                                             <a
                                                 href={deployment.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="btn btn-ghost h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
+                                                className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]' })}
                                             >
                                                 <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                                                 View
                                             </a>
                                         )}
 
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
                                             onClick={() => setSelectedLogsId(deployment.id)}
-                                            className="btn btn-ghost h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
+                                            className="h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
                                         >
                                             <FileText className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                                             Logs
-                                        </button>
+                                        </Button>
 
                                         {deployment.status === 'ready' && deployment.type === 'production' && deployment.cloudRunRevision && (
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => handleRollback(deployment.id)}
-                                                className="btn btn-ghost h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10"
+                                                className="h-8 px-2.5 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200 dark:border-red-900/30"
                                             >
                                                 <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                                                 Rollback
-                                            </button>
+                                            </Button>
                                         )}
 
                                         {(deployment.status === 'queued' || deployment.status === 'building') && (
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => handleCancel(deployment.id)}
-                                                className="btn btn-ghost h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10"
+                                                className="h-8 px-2.5 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200 dark:border-red-900/30"
                                             >
                                                 Cancel
-                                            </button>
+                                            </Button>
                                         )}
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
-                </div>
+                </Card>
             )}
 
             {project && selectedDeployment && (

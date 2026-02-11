@@ -173,3 +173,33 @@ Refactored all project settings components to use the new UI system:
 - Extracted `UsageGauge` into a reusable component (`src/components/billing/UsageGauge.tsx`) with updated styling.
 - Updated **`PricingCard`** and **`ComparePlansTable`** to use `Card`, `Button`, and `Badge` components.
 - Ensured all colors are derived from CSS variables for consistent theming.
+
+## Dashboard & Analytics Refactor
+
+Refactored deployment and analytics pages to use standard UI components and theme variables.
+
+### `src/components/ui/badge.tsx`
+- Added `success`, `warning`, `info` variants to support semantic status colors using CSS variables.
+
+### `src/app/dashboard/[id]/deployments/page.tsx`
+- Replaced `div` elements with `Card` component.
+- Replaced manual status indicators with `Badge` component using new variants.
+- Replaced `btn btn-ghost` with `Button` component.
+- Updated text colors to use theme variables (`text-[var(--muted-foreground)]`).
+
+### `src/app/dashboard/[id]/analytics/page.tsx`
+- Wrapped content sections in `Card` components.
+- Standardized empty state with `Card`.
+- Ensured consistent text colors.
+
+### `src/components/analytics/AnalyticsCharts.tsx`
+- Refactored `WebVitalCard` and `SummaryCard` to use `Card`.
+- Replaced hardcoded colors with CSS variables (e.g., `text-[var(--success)]`).
+- Wrapped charts in `Card`.
+
+### `src/app/dashboard/[id]/logs/page.tsx`
+- Wrapped `LogViewer` in `Card`.
+
+### `src/components/LogViewer.tsx`
+- Updated styling to use theme variables for severity filters and status indicators.
+- Ensured consistent border and background usage.
