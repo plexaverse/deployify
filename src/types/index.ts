@@ -66,6 +66,10 @@ export interface Team {
     updatedAt: Date;
 }
 
+export interface TeamWithRole extends Team {
+    role: TeamRole;
+}
+
 export interface TeamMembership {
     id: string;
     teamId: string;

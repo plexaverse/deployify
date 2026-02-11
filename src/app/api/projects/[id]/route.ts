@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { updateProject, deleteProject, listDeploymentsByProject, getProjectById } from '@/lib/db';
-import { checkProjectAccess } from '@/middleware/rbac';
+import { checkProjectAccess, hasRole } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
 
@@ -68,6 +68,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json(
                 { error: access.error },
                 { status: access.status, headers: securityHeaders }
+            );
+        }
+
+        if (!hasRole(access.membership?.role, 'admin')) {
+            return NextResponse.json(
+                { error: 'Forbidden: Admin access required' },
+                { status: 403, headers: securityHeaders }
             );
         }
 

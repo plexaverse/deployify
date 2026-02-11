@@ -1,13 +1,13 @@
 'use client';
 
 import { createContext, useContext, useEffect, ReactNode } from 'react';
-import type { Team } from '@/types';
+import type { Team, TeamWithRole } from '@/types';
 import { useStore } from '@/store';
 
 interface TeamContextType {
-    activeTeam: Team | null;
-    setActiveTeam: (team: Team | null) => void;
-    teams: Team[];
+    activeTeam: TeamWithRole | null;
+    setActiveTeam: (team: TeamWithRole | null) => void;
+    teams: TeamWithRole[];
     isLoading: boolean;
 }
 

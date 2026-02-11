@@ -1,8 +1,8 @@
 import { getProjectById, getTeamMembership } from '@/lib/db';
-import type { Project } from '@/types';
+import type { Project, TeamMembership, TeamRole } from '@/types';
 
 export type ProjectAccessResult =
-    | { allowed: true; project: Project }
+    | { allowed: true; project: Project; membership?: TeamMembership }
     | { allowed: false; error: string; status: number };
 
 export async function checkProjectAccess(userId: string, projectId: string): Promise<ProjectAccessResult> {
@@ -17,7 +17,7 @@ export async function checkProjectAccess(userId: string, projectId: string): Pro
             // Check team membership
             const membership = await getTeamMembership(project.teamId, userId);
             if (membership) {
-                return { allowed: true, project };
+                return { allowed: true, project, membership };
             }
         } else {
             // Check personal ownership
@@ -31,4 +31,15 @@ export async function checkProjectAccess(userId: string, projectId: string): Pro
         console.error('Error checking project access:', error);
         return { allowed: false, error: 'Internal Server Error', status: 500 };
     }
+}
+
+export function hasRole(userRole: TeamRole | undefined, requiredRole: TeamRole): boolean {
+    // If userRole is undefined, it implies personal project owner (full access)
+    if (!userRole) return true;
+
+    const roles: TeamRole[] = ['viewer', 'member', 'admin', 'owner'];
+    const userRoleIndex = roles.indexOf(userRole);
+    const requiredRoleIndex = roles.indexOf(requiredRole);
+
+    return userRoleIndex >= requiredRoleIndex;
 }

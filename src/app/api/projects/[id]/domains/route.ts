@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { updateProject } from '@/lib/db';
-import { checkProjectAccess } from '@/middleware/rbac';
+import { checkProjectAccess, hasRole } from '@/middleware/rbac';
 import { createDomainMapping, deleteDomainMapping, getDomainMappingStatus, getDnsRecords } from '@/lib/gcp/domains';
 import type { Domain, DomainStatus } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
@@ -95,6 +95,10 @@ export async function POST(
                 { error: access.error },
                 { status: access.status }
             );
+        }
+
+        if (!hasRole(access.membership?.role, 'member')) {
+             return NextResponse.json({ error: 'Forbidden: Member access required' }, { status: 403 });
         }
 
         const { project } = access;
@@ -195,6 +199,10 @@ export async function DELETE(
                 { error: access.error },
                 { status: access.status }
             );
+        }
+
+        if (!hasRole(access.membership?.role, 'member')) {
+             return NextResponse.json({ error: 'Forbidden: Member access required' }, { status: 403 });
         }
 
         const { project } = access;

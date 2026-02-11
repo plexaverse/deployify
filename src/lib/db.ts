@@ -1,5 +1,5 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamInvite, TeamRole } from '@/types';
+import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamInvite, TeamRole, TeamWithRole } from '@/types';
 import { generateId } from '@/lib/utils';
 
 // ============= User Operations =============
@@ -364,6 +364,50 @@ export async function listTeamsForUser(userId: string): Promise<Team[]> {
                 } : undefined,
             } as Team;
         });
+}
+
+export async function listTeamsWithMembership(userId: string): Promise<TeamWithRole[]> {
+    const db = getDb();
+    const membershipsSnapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('userId', '==', userId)
+        .get();
+
+    const memberships = membershipsSnapshot.docs.map(doc => doc.data() as TeamMembership);
+
+    if (memberships.length === 0) {
+        return [];
+    }
+
+    const teamRefs = memberships.map(m => db.collection(Collections.TEAMS).doc(m.teamId));
+    const teamsSnapshot = await db.getAll(...teamRefs);
+
+    const teamsMap = new Map<string, Team>();
+    teamsSnapshot.forEach(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            teamsMap.set(doc.id, {
+                ...data,
+                createdAt: data?.createdAt?.toDate(),
+                updatedAt: data?.updatedAt?.toDate(),
+                subscription: data?.subscription ? {
+                    ...data.subscription,
+                    expiresAt: data.subscription.expiresAt?.toDate ? data.subscription.expiresAt.toDate() : data.subscription.expiresAt
+                } : undefined,
+            } as Team);
+        }
+    });
+
+    return memberships
+        .map(m => {
+            const team = teamsMap.get(m.teamId);
+            if (!team) return null;
+            return {
+                ...team,
+                role: m.role
+            } as TeamWithRole;
+        })
+        .filter((t): t is TeamWithRole => t !== null);
 }
 
 // ============= Project Operations =============

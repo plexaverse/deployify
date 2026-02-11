@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getDeploymentById, updateDeployment, removeAliasFromOtherDeployments } from '@/lib/db';
-import { checkProjectAccess } from '@/middleware/rbac';
+import { checkProjectAccess, hasRole } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 import { updateTrafficTag, getProductionServiceName } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken, isRunningOnGCP } from '@/lib/gcp/auth';
@@ -25,6 +25,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         if (!access.allowed) {
             return NextResponse.json({ error: access.error }, { status: access.status, headers: securityHeaders });
+        }
+
+        if (!hasRole(access.membership?.role, 'member')) {
+            return NextResponse.json({ error: 'Forbidden: Member access required' }, { status: 403, headers: securityHeaders });
         }
 
         const { project } = access;

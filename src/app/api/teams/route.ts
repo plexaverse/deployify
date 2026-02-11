@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { listTeamsForUser, createTeam } from '@/lib/db';
+import { listTeamsWithMembership, createTeam } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
 
@@ -15,7 +15,7 @@ export async function GET() {
             );
         }
 
-        const teams = await listTeamsForUser(session.user.id);
+        const teams = await listTeamsWithMembership(session.user.id);
 
         return NextResponse.json(
             { teams },

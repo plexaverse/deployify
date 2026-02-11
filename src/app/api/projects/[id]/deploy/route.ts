@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getDeploymentById, createDeployment, updateDeployment, updateProject } from '@/lib/db';
-import { checkProjectAccess } from '@/middleware/rbac';
+import { checkProjectAccess, hasRole } from '@/middleware/rbac';
 import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
@@ -43,6 +43,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json(
                 { error: access.error },
                 { status: access.status, headers: securityHeaders }
+            );
+        }
+
+        if (!hasRole(access.membership?.role, 'member')) {
+            return NextResponse.json(
+                { error: 'Forbidden: Member access required' },
+                { status: 403, headers: securityHeaders }
             );
         }
 
@@ -271,6 +278,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json(
                 { error: access.error },
                 { status: access.status, headers: securityHeaders }
+            );
+        }
+
+        if (!hasRole(access.membership?.role, 'member')) {
+            return NextResponse.json(
+                { error: 'Forbidden: Member access required' },
+                { status: 403, headers: securityHeaders }
             );
         }
 

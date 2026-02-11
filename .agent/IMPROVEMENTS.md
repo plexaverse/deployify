@@ -134,8 +134,9 @@
 - **Status**: ✅ Implemented
 
 #### 14. **Team/Organization Support**
-- **Current**: Single user projects
+- **Current**: RBAC enforced for Projects, Deployments, Env Vars, Domains.
 - **Improvement**: Allow team members with role-based access
+- **Status**: ✅ Implemented (Backend RBAC Enforcement)
 
 #### 15. **Custom Dockerfile Support**
 - **Improvement**: Detect and use repo's Dockerfile if present
