@@ -1,5 +1,5 @@
 
-> deployify@0.1.0 dev /app
+> deployify@0.1.0 dev
 > next dev
 
 ▲ Next.js 16.1.6 (Turbopack)
@@ -9,209 +9,208 @@
   · serverActions
 
 ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-✓ Ready in 2.3s
-○ Compiling /dashboard/[id]/settings ...
- GET /dashboard/mock-project-id/settings 200 in 7.3s (compile: 6.6s, proxy.ts: 112ms, render: 536ms)
-Error getting deployments: Error: Unable to detect a Project Id in the current environment.
-To learn more about authentication and Google APIs, visit:
-https://cloud.google.com/docs/authentication/getting-started
-    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
-Error checking project access: Error: Unable to detect a Project Id in the current environment.
-To learn more about authentication and Google APIs, visit:
-https://cloud.google.com/docs/authentication/getting-started
-    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
- GET /api/projects/mock-project-id/deployments 500 in 5.9s (compile: 4.1s, proxy.ts: 25ms, render: 1760ms)
- GET /api/projects/mock-project-id/logs/stats 500 in 5.9s (compile: 4.1s, proxy.ts: 17ms, render: 1735ms)
+✓ Ready in 1620ms
+○ Compiling /dashboard ...
+ GET /dashboard 200 in 8.3s (compile: 7.5s, proxy.ts: 120ms, render: 690ms)
+○ Compiling /api/teams ...
+ GET /dashboard/settings 200 in 2.5s (compile: 2.4s, proxy.ts: 22ms, render: 40ms)
 Error listing teams: Error: Unable to detect a Project Id in the current environment.
 To learn more about authentication and Google APIs, visit:
 https://cloud.google.com/docs/authentication/getting-started
     at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
 In-house collector error: Error: Unable to detect a Project Id in the current environment.
 To learn more about authentication and Google APIs, visit:
 https://cloud.google.com/docs/authentication/getting-started
     at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
- GET /api/teams 500 in 6.3s (compile: 2.4s, proxy.ts: 20ms, render: 3.9s)
- POST /api/v1/collect 500 in 6.2s (compile: 2.8s, proxy.ts: 12ms, render: 3.4s)
- GET /billing 200 in 1125ms (compile: 963ms, proxy.ts: 5ms, render: 157ms)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
 In-house collector error: Error: Unable to detect a Project Id in the current environment.
 To learn more about authentication and Google APIs, visit:
 https://cloud.google.com/docs/authentication/getting-started
     at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
- POST /api/v1/collect 500 in 215ms (compile: 10ms, proxy.ts: 6ms, render: 200ms)
-In-house collector error: Error: Unable to detect a Project Id in the current environment.
-To learn more about authentication and Google APIs, visit:
-https://cloud.google.com/docs/authentication/getting-started
-    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
-    at getProjectByApiKey (src/lib/db.ts:166:10)
-    at POST (src/app/api/v1/collect/route.ts:53:49)
-    ... collapsed 4 duplicate lines matching above 2 lines 2 times...
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
- POST /api/v1/collect 500 in 170ms (compile: 11ms, proxy.ts: 5ms, render: 154ms)
- GET /dashboard/mock-project-id/settings 200 in 268ms (compile: 58ms, proxy.ts: 5ms, render: 204ms)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
+ GET /api/teams 500 in 6.5s (compile: 3.5s, proxy.ts: 13ms, render: 2.9s)
+ POST /api/v1/collect 500 in 6.2s (compile: 3.6s, proxy.ts: 23ms, render: 2.6s)
+ POST /api/v1/collect 500 in 1853ms (compile: 7ms, proxy.ts: 5ms, render: 1841ms)
 Error listing teams: Error: Unable to detect a Project Id in the current environment.
 To learn more about authentication and Google APIs, visit:
 https://cloud.google.com/docs/authentication/getting-started
     at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
+ GET /api/teams 500 in 169ms (compile: 3ms, proxy.ts: 3ms, render: 162ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
+ GET /api/teams 500 in 160ms (compile: 3ms, proxy.ts: 4ms, render: 153ms)
+ GET /dashboard 200 in 182ms (compile: 16ms, proxy.ts: 5ms, render: 161ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     ... collapsed 4 duplicate lines matching above 2 lines 2 times...
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
- GET /api/teams 500 in 232ms (compile: 10ms, proxy.ts: 4ms, render: 218ms)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
+ GET /api/teams 500 in 217ms (compile: 5ms, proxy.ts: 4ms, render: 209ms)
 In-house collector error: Error: Unable to detect a Project Id in the current environment.
 To learn more about authentication and Google APIs, visit:
 https://cloud.google.com/docs/authentication/getting-started
     at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     ... collapsed 4 duplicate lines matching above 2 lines 2 times...
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
- POST /api/v1/collect 500 in 432ms (compile: 236ms, proxy.ts: 3ms, render: 192ms)
- GET /billing 200 in 76ms (compile: 6ms, proxy.ts: 5ms, render: 65ms)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
+ POST /api/v1/collect 500 in 191ms (compile: 16ms, proxy.ts: 10ms, render: 165ms)
+Error listing projects: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    ... collapsed 4 duplicate lines matching above 2 lines 2 times...
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listPersonalProjects (src/lib/db.ts:540:10)
+    at GET (src/app/api/projects/route.ts:40:51)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
+ GET /api/projects 500 in 533ms (compile: 346ms, proxy.ts: 4ms, render: 182ms)
+ GET /dashboard/settings 200 in 39ms (compile: 11ms, proxy.ts: 4ms, render: 24ms)
 In-house collector error: Error: Unable to detect a Project Id in the current environment.
 To learn more about authentication and Google APIs, visit:
 https://cloud.google.com/docs/authentication/getting-started
     at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
-    at getProjectById (src/lib/db.ts:394:67)
-    at GET (src/app/api/projects/[id]/deployments/route.ts:22:45)
-    at getProjectById (src/lib/db.ts:394:67)
-    at checkProjectAccess (src/middleware/rbac.ts:10:45)
-    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:375:10)
+    at GET (src/app/api/teams/route.ts:18:52)
     ... collapsed 4 duplicate lines matching above 2 lines 2 times...
-    at listTeamsForUser (src/lib/db.ts:342:10)
-    at GET (src/app/api/teams/route.ts:18:45)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listPersonalProjects (src/lib/db.ts:540:10)
+    at GET (src/app/api/projects/route.ts:40:51)
     at getProjectByApiKey (src/lib/db.ts:166:10)
     at POST (src/app/api/v1/collect/route.ts:53:49)
-  392 | export async function getProjectById(id: string): Promise<Project | null> {
-  393 |     const db = getDb();
-> 394 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
-      |                                                                   ^
-  395 |
-  396 |     if (!doc.exists) {
-  397 |         return null;
- POST /api/v1/collect 500 in 176ms (compile: 5ms, proxy.ts: 4ms, render: 166ms)
+  373 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  374 |         .where('userId', '==', userId)
+> 375 |         .get();
+      |          ^
+  376 |
+  377 |     if (membershipsSnapshot.empty) {
+  378 |         return [];
+ POST /api/v1/collect 500 in 182ms (compile: 12ms, proxy.ts: 5ms, render: 165ms)

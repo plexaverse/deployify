@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { listTeamsForUser, createTeam } from '@/lib/db';
+import { listTeamsWithMembership, createTeam } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
 
@@ -15,7 +15,7 @@ export async function GET() {
             );
         }
 
-        const teams = await listTeamsForUser(session.user.id);
+        const teams = await listTeamsWithMembership(session.user.id);
 
         return NextResponse.json(
             { teams },
@@ -64,8 +64,20 @@ export async function POST(request: NextRequest) {
 
         await logAuditEvent(team.id, session.user.id, 'Team Created', { name, slug });
 
+        // Return TeamWithRole
+        const teamWithRole = {
+            ...team,
+            membership: {
+                id: 'generated-in-db', // We don't have the exact ID here without extra fetch, but role is known
+                teamId: team.id,
+                userId: session.user.id,
+                role: 'owner',
+                joinedAt: new Date()
+            }
+        };
+
         return NextResponse.json(
-            { team },
+            { team: teamWithRole },
             { status: 201, headers: securityHeaders }
         );
     } catch (error) {

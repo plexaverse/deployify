@@ -1,13 +1,13 @@
 import { StateCreator } from 'zustand';
-import type { Team } from '@/types';
+import type { Team, TeamWithRole } from '@/types';
 
 export interface TeamSlice {
-    activeTeam: Team | null;
-    teams: Team[];
+    activeTeam: TeamWithRole | null;
+    teams: TeamWithRole[];
     isLoadingTeams: boolean;
-    setActiveTeam: (team: Team | null) => void;
+    setActiveTeam: (team: TeamWithRole | null) => void;
     fetchTeams: () => Promise<void>;
-    createTeam: (name: string, slug: string) => Promise<Team | null>;
+    createTeam: (name: string, slug: string) => Promise<TeamWithRole | null>;
 }
 
 export const createTeamSlice: StateCreator<TeamSlice> = (set, get) => ({
@@ -33,7 +33,7 @@ export const createTeamSlice: StateCreator<TeamSlice> = (set, get) => ({
                 // Initialize active team from localStorage if not set
                 const storedTeamId = localStorage.getItem('activeTeamId');
                 if (storedTeamId && data.teams.length > 0) {
-                    const team = data.teams.find((t: Team) => t.id === storedTeamId);
+                    const team = data.teams.find((t: TeamWithRole) => t.id === storedTeamId);
                     if (team) {
                         set({ activeTeam: team });
                     }
