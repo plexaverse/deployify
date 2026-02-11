@@ -27,6 +27,7 @@ import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
 import { WebVitals } from '@/components/WebVitals';
 import { useStore } from '@/store';
+import { EmptyState } from '@/components/EmptyState';
 import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
@@ -317,17 +318,17 @@ export default function ProjectDetailPage() {
                 </div>
 
                 {deployments.length === 0 ? (
-                    <div className="border border-dashed border-[var(--border)] rounded-xl py-16 px-6 text-center flex flex-col items-center justify-center bg-[var(--muted)]/5">
-                        <div className="w-20 h-20 rounded-full bg-[var(--background)] border border-[var(--border)] flex items-center justify-center mb-6 shadow-sm relative">
-                            <div className="absolute inset-0 bg-blue-500/5 rounded-full animate-pulse-glow" />
-                            <GitBranch className="w-10 h-10 text-[var(--muted-foreground)] opacity-50" />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2">Ready to deploy</h3>
-                        <p className="text-[var(--muted-foreground)] max-w-md mb-8 leading-relaxed">
-                            Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-xs">{project.defaultBranch}</code> to trigger your first deployment.
-                            We&apos;ll build and deploy your application automatically.
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)]">
+                    <EmptyState
+                        title="Ready to deploy"
+                        description={
+                            <>
+                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-xs">{project.defaultBranch}</code> to trigger your first deployment.
+                                We&apos;ll build and deploy your application automatically.
+                            </>
+                        }
+                        type="deployment"
+                    >
+                        <div className="flex items-center gap-4 text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)] w-fit mx-auto">
                             <span className="flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                                 Git Push
@@ -343,7 +344,7 @@ export default function ProjectDetailPage() {
                                 Deploy
                             </span>
                         </div>
-                    </div>
+                    </EmptyState>
                 ) : (
                     <div className="border border-[var(--border)] rounded-xl bg-[var(--card)] overflow-hidden shadow-sm">
                         <div className="divide-y divide-[var(--border)]">
