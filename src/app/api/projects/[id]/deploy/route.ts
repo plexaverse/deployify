@@ -46,7 +46,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot trigger deployments' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         // Check usage limits
         const { withinLimits, limitType } = await checkUsageLimits(session.user.id);
@@ -274,7 +281,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot cancel deployments' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const deployment = await getDeploymentById(deploymentId);
         if (!deployment || deployment.projectId !== id) {

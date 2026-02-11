@@ -1,13 +1,22 @@
 import { getProjectById, getTeamMembership } from '@/lib/db';
-import type { Project } from '@/types';
+import type { Project, TeamMembership } from '@/types';
 
 export type ProjectAccessResult =
-    | { allowed: true; project: Project }
+    | { allowed: true; project: Project; membership?: TeamMembership }
     | { allowed: false; error: string; status: number };
 
-export async function checkProjectAccess(userId: string, projectId: string): Promise<ProjectAccessResult> {
+export interface RBACDependencies {
+    getProjectById: typeof getProjectById;
+    getTeamMembership: typeof getTeamMembership;
+}
+
+export async function checkProjectAccess(
+    userId: string,
+    projectId: string,
+    deps: RBACDependencies = { getProjectById, getTeamMembership }
+): Promise<ProjectAccessResult> {
     try {
-        const project = await getProjectById(projectId);
+        const project = await deps.getProjectById(projectId);
 
         if (!project) {
             return { allowed: false, error: 'Project not found', status: 404 };
@@ -15,9 +24,9 @@ export async function checkProjectAccess(userId: string, projectId: string): Pro
 
         if (project.teamId) {
             // Check team membership
-            const membership = await getTeamMembership(project.teamId, userId);
+            const membership = await deps.getTeamMembership(project.teamId, userId);
             if (membership) {
-                return { allowed: true, project };
+                return { allowed: true, project, membership };
             }
         } else {
             // Check personal ownership

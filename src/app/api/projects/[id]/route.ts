@@ -71,7 +71,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot update projects' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const body = await request.json();
 
@@ -218,6 +225,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json(
                 { error: access.error },
                 { status: access.status, headers: securityHeaders }
+            );
+        }
+
+        if (access.membership && access.membership.role !== 'owner' && access.membership.role !== 'admin') {
+            return NextResponse.json(
+                { error: 'Only owners and admins can delete projects' },
+                { status: 403, headers: securityHeaders }
             );
         }
 

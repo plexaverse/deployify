@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getProjectById, updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
+import { securityHeaders } from '@/lib/security';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
 
 // Generate unique ID for env variables
@@ -27,7 +28,7 @@ export async function GET(
         if (!access.allowed) {
             return NextResponse.json(
                 { error: access.error },
-                { status: access.status }
+                { status: access.status, headers: securityHeaders }
             );
         }
 
@@ -66,11 +67,18 @@ export async function POST(
         if (!access.allowed) {
             return NextResponse.json(
                 { error: access.error },
-                { status: access.status }
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot create environment variables' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const body = await request.json();
         const { key, value, isSecret = false, target = 'both', environment = 'both' } = body;
@@ -158,11 +166,18 @@ export async function PUT(
         if (!access.allowed) {
             return NextResponse.json(
                 { error: access.error },
-                { status: access.status }
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot update environment variables' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const body = await request.json();
         const { envId, key, value, isSecret, target, environment } = body;
@@ -234,11 +249,18 @@ export async function DELETE(
         if (!access.allowed) {
             return NextResponse.json(
                 { error: access.error },
-                { status: access.status }
+                { status: access.status, headers: securityHeaders }
             );
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Viewers cannot delete environment variables' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         const { searchParams } = new URL(request.url);
         const envId = searchParams.get('envId');

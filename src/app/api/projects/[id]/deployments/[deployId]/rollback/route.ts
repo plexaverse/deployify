@@ -25,7 +25,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: access.error }, { status: access.status, headers: securityHeaders });
         }
 
-        const { project } = access;
+        const { project, membership } = access;
+
+        if (membership && membership.role === 'viewer') {
+             return NextResponse.json({ error: 'Viewers cannot rollback deployments' }, { status: 403, headers: securityHeaders });
+        }
 
         const targetDeployment = await getDeploymentById(deployId);
         if (!targetDeployment || targetDeployment.projectId !== id) {
