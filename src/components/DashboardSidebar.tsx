@@ -51,7 +51,10 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
     // Helper to check if a route is a project route
     const isProjectRoute = !!projectId;
     const getProjectHref = (subPath: string = '') => {
-        if (!projectId) return '/dashboard';
+        if (!projectId) {
+            if (subPath === 'settings') return '/dashboard/settings';
+            return '/dashboard';
+        }
 
         // Use /dashboard/[id] for dashboard routes, or /projects/[slug]
         const prefix = params.id ? `/dashboard/${params.id}` : `/projects/${params.slug}`;
@@ -67,16 +70,18 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                     href: getProjectHref(),
                     icon: LayoutDashboard
                 },
-                {
-                    name: 'Deployments',
-                    href: getProjectHref('deployments'),
-                    icon: Layers
-                },
-                {
-                    name: 'Analytics',
-                    href: getProjectHref('analytics'),
-                    icon: BarChart3
-                },
+                ...(projectId ? [
+                    {
+                        name: 'Deployments',
+                        href: getProjectHref('deployments'),
+                        icon: Layers
+                    },
+                    {
+                        name: 'Analytics',
+                        href: getProjectHref('analytics'),
+                        icon: BarChart3
+                    },
+                ] : [])
             ]
         },
         {

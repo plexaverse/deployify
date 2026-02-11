@@ -1,5 +1,5 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamInvite, TeamRole } from '@/types';
+import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
 import { generateId } from '@/lib/utils';
 
 // ============= User Operations =============
@@ -288,6 +288,35 @@ export async function createTeam(
     return team;
 }
 
+export async function deleteTeam(teamId: string): Promise<void> {
+    const db = getDb();
+
+    // 1. Delete all projects (handled separately as they have their own cleanup logic)
+    const projects = await listProjectsByTeam(teamId);
+    for (const project of projects) {
+        await deleteProject(project.id);
+    }
+
+    const batch = db.batch();
+
+    // 2. Delete memberships
+    const membershipsSnapshot = await db.collection(Collections.TEAM_MEMBERSHIPS).where('teamId', '==', teamId).get();
+    membershipsSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    // 3. Delete invites
+    const invitesSnapshot = await db.collection(Collections.INVITES).where('teamId', '==', teamId).get();
+    invitesSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+
+    // 4. Delete team
+    batch.delete(db.collection(Collections.TEAMS).doc(teamId));
+
+    await batch.commit();
+}
+
 export async function getTeamById(id: string): Promise<Team | null> {
     const db = getDb();
     const doc = await db.collection(Collections.TEAMS).doc(id).get();
@@ -364,6 +393,52 @@ export async function listTeamsForUser(userId: string): Promise<Team[]> {
                 } : undefined,
             } as Team;
         });
+}
+
+// Allow injecting db for testing
+export async function listTeamsWithMembership(userId: string, dbClient?: any): Promise<TeamWithRole[]> {
+    const db = dbClient || getDb();
+    const membershipsSnapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('userId', '==', userId)
+        .get();
+
+    if (membershipsSnapshot.empty) {
+        return [];
+    }
+
+    const memberships = membershipsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            ...data,
+            joinedAt: data?.joinedAt?.toDate(),
+        } as TeamMembership;
+    });
+
+    const teamIds = memberships.map(m => m.teamId);
+    const teamRefs = teamIds.map(id => db.collection(Collections.TEAMS).doc(id));
+    const teamsSnapshot = await db.getAll(...teamRefs);
+
+    return teamsSnapshot
+        .map((doc, index) => {
+            if (!doc.exists) return null;
+            const data = doc.data();
+            const team = {
+                ...data,
+                createdAt: data?.createdAt?.toDate(),
+                updatedAt: data?.updatedAt?.toDate(),
+                subscription: data?.subscription ? {
+                    ...data.subscription,
+                    expiresAt: data.subscription.expiresAt?.toDate ? data.subscription.expiresAt.toDate() : data.subscription.expiresAt
+                } : undefined,
+            } as Team;
+
+            return {
+                ...team,
+                membership: memberships[index]
+            } as TeamWithRole;
+        })
+        .filter((t): t is TeamWithRole => t !== null);
 }
 
 // ============= Project Operations =============
