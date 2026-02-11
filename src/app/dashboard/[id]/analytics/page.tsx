@@ -9,6 +9,7 @@ import { RealtimeVisitors } from '@/components/analytics/RealtimeVisitors';
 import { AnalyticsAlerts } from '@/components/analytics/AnalyticsAlerts';
 import { evaluatePerformance } from '@/lib/analytics/alerts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 
 export default function ProjectAnalyticsPage() {
     const params = useParams();
@@ -101,12 +102,12 @@ export default function ProjectAnalyticsPage() {
                 ) : stats ? (
                     <AnalyticsCharts data={stats} period={period} />
                 ) : (
-                    <div className="p-12 rounded-xl border border-[var(--border)] bg-[var(--card)] text-center">
+                    <Card className="p-12 text-center">
                         <h3 className="text-lg font-semibold mb-2">No Analytics Data</h3>
                         <p className="text-[var(--muted-foreground)]">
                             We couldn't fetch analytics data for this project. Ensure your project is deployed and the domain is correct.
                         </p>
-                    </div>
+                    </Card>
                 )}
             </div>
         </div>
