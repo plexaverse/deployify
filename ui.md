@@ -203,3 +203,37 @@ Refactored deployment and analytics pages to use standard UI components and them
 ### `src/components/LogViewer.tsx`
 - Updated styling to use theme variables for severity filters and status indicators.
 - Ensured consistent border and background usage.
+
+## Dashboard & Team Settings Refactor
+
+Refactored the main dashboard and team settings pages to use the standardized UI component system and CSS variables.
+
+### `src/components/ui/button.tsx`
+- Refactored `buttonVariants` to use explicit CSS variable classes (e.g., `bg-[var(--primary)]`) instead of relying on Tailwind utility classes that might be missing the variable mapping.
+- Ensured consistent theming across all button variants (`primary`, `secondary`, `outline`, `ghost`).
+
+### `src/app/dashboard/page.tsx`
+- Replaced the search `<input>` with the `Input` component.
+- Replaced manual card divs with the `Card` component.
+- Replaced manual badge spans with the `Badge` component.
+- Updated the "Add New" button to use `buttonVariants`.
+- Replaced the "Clear search" button with the `Button` component.
+
+### `src/app/settings/team/page.tsx`
+- Replaced manual card containers with the `Card` component.
+- Replaced manual input fields with the `Input` component.
+- Replaced manual badges with the `Badge` component.
+- Standardized action buttons (Remove Member, Revoke Invite) to use the `Button` component with `ghost` variant.
+- Aliased the `MovingBorder` `Button` as `MovingBorderButton` to coexist with the standard `Button`.
+
+### `src/components/DashboardHome.tsx`
+- Updated to use `OnboardingGuide` for the empty state instead of a manual implementation.
+- Updated links to point to `/new` instead of `/dashboard/new`.
+- Updated to use `buttonVariants` for consistent button styling.
+- Updated `BentoGrid` and `BentoGridItem` usage to align with the new theme variables.
+
+### `src/components/ui/bento-grid.tsx`
+- Updated styles to use `bg-[var(--card)]`, `border-[var(--border)]`, and text variables instead of hardcoded `bg-white/5`.
+
+### `src/components/CommandPalette.tsx`
+- Updated styles to use theme variables (`bg-[var(--card)]`, `border-[var(--border)]`) for the modal and input.

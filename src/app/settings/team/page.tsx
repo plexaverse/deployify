@@ -15,7 +15,11 @@ import {
     History
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/moving-border';
+import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { useStore } from '@/store';
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
 
@@ -116,7 +120,7 @@ export default function TeamSettingsPage() {
                 <div className="lg:col-span-2 space-y-8">
 
                     {/* Invite Section */}
-                    <div className="card p-6">
+                    <Card className="p-6">
                         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             <Mail className="w-5 h-5 text-[var(--primary)]" />
                             Invite New Member
@@ -127,13 +131,12 @@ export default function TeamSettingsPage() {
                                     <label className="text-xs font-medium text-[var(--muted-foreground)] mb-1 block">
                                         Email Address
                                     </label>
-                                    <input
+                                    <Input
                                         type="email"
                                         required
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         placeholder="colleague@example.com"
-                                        className="input"
                                     />
                                 </div>
                                 <div className="w-full sm:w-40">
@@ -154,14 +157,14 @@ export default function TeamSettingsPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-end">
-                                    <Button
+                                    <MovingBorderButton
                                         type="submit"
                                         disabled={isInviting || !inviteEmail}
                                         containerClassName="h-[42px] w-full sm:w-auto"
                                         className="bg-black text-white dark:bg-slate-900 font-medium text-sm"
                                     >
                                         {isInviting ? 'Sending...' : 'Send Invite'}
-                                    </Button>
+                                    </MovingBorderButton>
                                 </div>
                             </div>
                             {error && (
@@ -171,10 +174,10 @@ export default function TeamSettingsPage() {
                                 </div>
                             )}
                         </form>
-                    </div>
+                    </Card>
 
                     {/* Members List */}
-                    <div className="card overflow-hidden p-0">
+                    <Card className="overflow-hidden p-0">
                         <div className="p-6 border-b border-[var(--border)] flex justify-between items-center">
                             <h3 className="text-lg font-semibold">Team Members</h3>
                             <div className="text-sm text-[var(--muted-foreground)]">
@@ -221,7 +224,7 @@ export default function TeamSettingsPage() {
                                                 <div className="font-medium flex items-center gap-2">
                                                     {membership.user?.name || 'Unknown User'}
                                                     {membership.role === 'owner' && (
-                                                        <span className="badge badge-warning text-[10px] px-1.5 py-0.5 h-5">Owner</span>
+                                                        <Badge variant="warning" className="h-5 px-1.5 py-0.5 text-[10px]">Owner</Badge>
                                                     )}
                                                 </div>
                                                 <div className="text-sm text-[var(--muted-foreground)]">
@@ -246,13 +249,15 @@ export default function TeamSettingsPage() {
                                             </div>
 
                                             {membership.role !== 'owner' && (
-                                                <button
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
                                                     onClick={() => handleRemoveMember(membership.userId)}
-                                                    className="p-2 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] rounded-md transition-colors"
+                                                    className="p-2 h-auto text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)]"
                                                     title="Remove member"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                </Button>
                                             )}
                                         </div>
                                     </div>
@@ -268,7 +273,7 @@ export default function TeamSettingsPage() {
                                             <div>
                                                 <div className="font-medium flex items-center gap-2">
                                                     {invite.email}
-                                                    <span className="badge badge-info text-[10px] px-1.5 py-0.5 h-5">Invited</span>
+                                                    <Badge variant="info" className="h-5 px-1.5 py-0.5 text-[10px]">Invited</Badge>
                                                 </div>
                                                 <div className="text-sm text-[var(--muted-foreground)]">
                                                     Expires in {Math.ceil((new Date(invite.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
@@ -280,13 +285,15 @@ export default function TeamSettingsPage() {
                                             <div className="text-sm px-3 py-1 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] capitalize">
                                                 {invite.role}
                                             </div>
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => handleRevokeInvite(invite.id)}
-                                                className="p-2 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] rounded-md transition-colors"
+                                                className="p-2 h-auto text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)]"
                                                 title="Revoke invite"
                                             >
                                                 <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            </Button>
                                         </div>
                                     </div>
                                 ))}
@@ -298,12 +305,12 @@ export default function TeamSettingsPage() {
                                 )}
                             </div>
                         )}
-                    </div>
+                    </Card>
                 </div>
 
                 {/* Sidebar: Audit Log */}
                 <div className="space-y-6">
-                    <div className="card p-6 h-full max-h-[800px] flex flex-col">
+                    <Card className="p-6 h-full max-h-[800px] flex flex-col">
                         <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 shrink-0">
                             <History className="w-5 h-5 text-[var(--muted-foreground)]" />
                             Audit Log
@@ -338,7 +345,7 @@ export default function TeamSettingsPage() {
                                 ))
                             )}
                         </div>
-                    </div>
+                    </Card>
                 </div>
             </div>
         </div>

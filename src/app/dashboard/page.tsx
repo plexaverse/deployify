@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button, buttonVariants } from '@/components/ui/button';
 import type { Project, Deployment } from '@/types';
 import { useTeam } from '@/contexts/TeamContext';
 
@@ -67,16 +71,16 @@ export default function DashboardPage() {
     const getStatusBadge = (status?: string) => {
         switch (status) {
             case 'ready':
-                return <span className="badge badge-success">● Ready</span>;
+                return <Badge variant="success" className="gap-1">● Ready</Badge>;
             case 'building':
             case 'deploying':
-                return <span className="badge badge-warning">● Building</span>;
+                return <Badge variant="warning" className="gap-1">● Building</Badge>;
             case 'error':
-                return <span className="badge badge-error">● Error</span>;
+                return <Badge variant="destructive" className="gap-1">● Error</Badge>;
             case 'queued':
-                return <span className="badge badge-info">● Queued</span>;
+                return <Badge variant="info" className="gap-1">● Queued</Badge>;
             default:
-                return <span className="badge bg-[var(--card)] text-[var(--muted)]">● No deployments</span>;
+                return <Badge variant="secondary" className="gap-1 text-[var(--muted)] bg-[var(--card)]">● No deployments</Badge>;
         }
     };
 
@@ -104,15 +108,15 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)]" />
-                        <input
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
+                        <Input
                             ref={searchInputRef}
                             type="text"
                             placeholder="Search projects..."
                             aria-label="Search projects"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-10 pl-9 pr-10 bg-[var(--card)] border border-[var(--border)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm transition-all"
+                            className="pl-9 pr-10"
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                             {searchQuery ? (
@@ -134,8 +138,8 @@ export default function DashboardPage() {
                             )}
                         </div>
                     </div>
-                    <Link href="/new" className="btn btn-primary whitespace-nowrap">
-                        <Plus className="w-4 h-4" />
+                    <Link href="/new" className={buttonVariants({ variant: 'primary', className: 'whitespace-nowrap' })}>
+                        <Plus className="w-4 h-4 mr-2" />
                         Add New
                     </Link>
                 </div>
@@ -145,11 +149,11 @@ export default function DashboardPage() {
             {loading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="card">
+                        <Card key={i}>
                             <Skeleton className="h-6 w-1/2 mb-4" />
                             <Skeleton className="h-4 w-3/4 mb-2" />
                             <Skeleton className="h-4 w-1/3" />
-                        </div>
+                        </Card>
                     ))}
                 </div>
             )}
@@ -169,12 +173,13 @@ export default function DashboardPage() {
                     <p className="text-[var(--muted-foreground)]">
                         No projects match &quot;{searchQuery}&quot;
                     </p>
-                    <button
+                    <Button
+                        variant="ghost"
                         onClick={() => setSearchQuery('')}
-                        className="btn btn-ghost mt-4 text-sm"
+                        className="mt-4"
                     >
                         Clear search
-                    </button>
+                    </Button>
                 </div>
             )}
 
@@ -185,40 +190,42 @@ export default function DashboardPage() {
                         <Link
                             key={project.id}
                             href={`/dashboard/${project.id}`}
-                            className="card group cursor-pointer"
+                            className="block group"
                         >
-                            {/* Project header */}
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold truncate group-hover:text-[var(--primary)] transition-colors">
-                                        {project.name}
-                                    </h3>
-                                    <p className="text-sm text-[var(--muted-foreground)] truncate">
-                                        {project.repoFullName}
-                                    </p>
+                            <Card className="h-full hover:border-[var(--primary)] transition-colors">
+                                {/* Project header */}
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-semibold truncate group-hover:text-[var(--primary)] transition-colors">
+                                            {project.name}
+                                        </h3>
+                                        <p className="text-sm text-[var(--muted-foreground)] truncate">
+                                            {project.repoFullName}
+                                        </p>
+                                    </div>
+                                    {getStatusBadge(project.latestDeployment?.status)}
                                 </div>
-                                {getStatusBadge(project.latestDeployment?.status)}
-                            </div>
 
-                            {/* Production URL */}
-                            {project.productionUrl && (
-                                <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] mb-4">
-                                    <ExternalLink className="w-4 h-4" />
-                                    <span className="truncate">{project.productionUrl}</span>
-                                </div>
-                            )}
+                                {/* Production URL */}
+                                {project.productionUrl && (
+                                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] mb-4">
+                                        <ExternalLink className="w-4 h-4" />
+                                        <span className="truncate">{project.productionUrl}</span>
+                                    </div>
+                                )}
 
-                            {/* Footer */}
-                            <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
-                                <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
-                                    <GitBranch className="w-3.5 h-3.5" />
-                                    {project.defaultBranch}
+                                {/* Footer */}
+                                <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+                                    <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                                        <GitBranch className="w-3.5 h-3.5" />
+                                        {project.defaultBranch}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        {formatDate(project.updatedAt)}
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    {formatDate(project.updatedAt)}
-                                </div>
-                            </div>
+                            </Card>
                         </Link>
                     ))}
                 </div>
