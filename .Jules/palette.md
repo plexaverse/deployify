@@ -33,3 +33,7 @@
 ## 2026-02-23 - [Direct State Management vs. Effects]
 **Learning:** Resetting a selection index in a search component via `useEffect` can trigger cascading render warnings in strict environments. Performing the reset directly in the `onChange` and "Clear" event handlers is more efficient, reduces render cycles, and avoids the need for `setTimeout` hacks.
 **Action:** Prefer direct state updates within event handlers over `useEffect` for state that is dependent on user input.
+
+## 2026-02-25 - [Monochromatic Brand Identity and Navigation UX]
+**Learning:** To align with high-end monochromatic themes like scripe.io, transitioning UI accents from secondary colors to `white` or `neutral` tones creates a more refined, professional aesthetic. Additionally, users expect the brand logo to be a functional link back to the homepage; adding a subtle hover animation (e.g., rotation) provides clear feedback that the element is interactive and adds a touch of delight.
+**Action:** Wrap brand logos in a `Link` to `/` and prioritize neutral tones for icons and badges in premium designs.

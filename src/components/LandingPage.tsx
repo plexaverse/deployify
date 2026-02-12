@@ -59,10 +59,10 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.1] bg-black/50 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Rocket className="w-6 h-6 text-indigo-500" />
+            <Link href="/" className="flex items-center gap-2 group" aria-label="Deployify Home">
+              <Rocket className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
               <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">Deployify</span>
-            </div>
+            </Link>
             <div className="flex items-center gap-4">
               <Link href="/login" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
                 Sign In
@@ -161,7 +161,7 @@ export default function LandingPage() {
               transition={{ delay: 0.6 }}
               className="mt-12 max-w-md mx-auto p-1 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center gap-3 pr-4 group"
             >
-              <div className="bg-indigo-500/10 px-3 py-2 rounded-xl text-xs font-mono text-indigo-400 font-bold">
+              <div className="bg-white/10 px-3 py-2 rounded-xl text-xs font-mono text-white font-bold">
                 $
               </div>
               <code className="text-sm font-mono text-neutral-300 flex-1 text-left">
@@ -218,25 +218,25 @@ export default function LandingPage() {
                   {
                     title: "Connect",
                     desc: "Sync your GitHub repository in one click. We'll automatically detect your framework and configuration.",
-                    icon: <Github className="w-6 h-6 text-indigo-500" />,
+                    icon: <Github className="w-6 h-6 text-white" />,
                     badge: "Instant Integration"
                   },
                   {
                     title: "Push",
                     desc: "Every git push triggers a lightning-fast build on Google Cloud Build. No more manual deployment scripts.",
-                    icon: <Rocket className="w-6 h-6 text-indigo-500" />,
+                    icon: <Rocket className="w-6 h-6 text-white" />,
                     badge: "Automated CI/CD"
                   },
                   {
                     title: "Preview",
                     desc: "Get a unique URL for every pull request. Share with your team for feedback before merging to production.",
-                    icon: <Globe className="w-6 h-6 text-indigo-500" />,
+                    icon: <Globe className="w-6 h-6 text-white" />,
                     badge: "Collaborate Faster"
                   },
                   {
                     title: "Scale",
                     desc: "Your app is deployed to Cloud Run, automatically scaling from zero to millions of requests with ease.",
-                    icon: <Shield className="w-6 h-6 text-indigo-500" />,
+                    icon: <Shield className="w-6 h-6 text-white" />,
                     badge: "Production Ready"
                   }
                 ].map((step, i) => (
@@ -246,7 +246,7 @@ export default function LandingPage() {
                       whileInView={{ opacity: 0.3, x: 0 }}
                       viewport={{ margin: "-100px" }}
                       transition={{ duration: 0.8 }}
-                      className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-neutral-800/30 tabular-nums transition-colors group-hover:text-indigo-500/30 group-hover:opacity-100"
+                      className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-neutral-800/30 tabular-nums transition-colors group-hover:text-white/30 group-hover:opacity-100"
                       aria-hidden="true"
                     >
                       0{i + 1}
@@ -256,7 +256,7 @@ export default function LandingPage() {
                          initial={{ scale: 0.8, opacity: 0.5 }}
                          whileInView={{ scale: 1, opacity: 1 }}
                          viewport={{ margin: "-100px" }}
-                         className="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:border-indigo-500/40 transition-colors shadow-[0_0_15px_rgba(99,102,241,0.1)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.2)]"
+                         className="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:border-white/20 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.05)] group-hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                        >
                          {step.icon}
                        </motion.div>
@@ -265,7 +265,7 @@ export default function LandingPage() {
                     <div className="text-lg text-neutral-400 leading-relaxed mb-4">
                       {step.desc}
                     </div>
-                    <div className="p-1 rounded-2xl bg-indigo-500/10 w-fit px-4 py-1 text-[10px] font-bold text-indigo-400 uppercase tracking-widest border border-indigo-500/20">
+                    <div className="p-1 rounded-2xl bg-white/5 w-fit px-4 py-1 text-[10px] font-bold text-neutral-400 uppercase tracking-widest border border-white/10">
                       {step.badge}
                     </div>
                   </div>
@@ -280,7 +280,10 @@ export default function LandingPage() {
               Pay for what you use
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-              <div className="p-6 rounded-[2rem] bg-white/5 border border-neutral-800 backdrop-blur-sm">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="p-6 rounded-[2rem] bg-white/5 border border-neutral-800 backdrop-blur-sm"
+              >
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-lg font-bold mb-1 text-neutral-400">Vercel / Netlify</h3>
@@ -301,17 +304,20 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="p-6 rounded-[2rem] bg-indigo-500/10 border border-neutral-800 backdrop-blur-sm relative overflow-hidden group">
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="p-6 rounded-[2rem] bg-white/5 border border-neutral-800 backdrop-blur-sm relative overflow-hidden group"
+              >
                 <div className="absolute top-0 right-0 p-4">
-                   <div className="bg-indigo-500 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter animate-pulse">Save 80%</div>
+                   <div className="bg-white text-[10px] text-black font-black px-2 py-1 rounded-md uppercase tracking-tighter animate-pulse">Save 80%</div>
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-lg font-bold mb-1 text-white">Deployify + GCP</h3>
-                    <p className="text-xs text-indigo-400 font-medium">Enterprise DX at Raw Cost</p>
+                    <p className="text-xs text-neutral-400 font-medium">Enterprise DX at Raw Cost</p>
                   </div>
-                  <Check className="w-5 h-5 text-indigo-500" />
+                  <Check className="w-5 h-5 text-white" />
                 </div>
                 <div className="space-y-4">
                   {[
@@ -326,7 +332,7 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
 
@@ -420,6 +426,8 @@ export default function LandingPage() {
                   aria-expanded={searchQuery.trim().length > 0}
                   aria-haspopup="listbox"
                   aria-controls="repo-results"
+                  aria-autocomplete="list"
+                  aria-activedescendant={selectedIndex >= 0 ? `repo-option-${selectedIndex}` : undefined}
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {searchQuery ? (
@@ -446,8 +454,14 @@ export default function LandingPage() {
                 {searchQuery.trim() && (
                   <motion.div id="repo-results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} role="listbox" className="absolute top-full left-0 right-0 mt-2 bg-neutral-900 border border-white/10 rounded-2xl overflow-hidden z-20 shadow-2xl p-2">
                     {filteredRepos.length > 0 ? filteredRepos.map((repo, i) => (
-                      <div key={repo} role="option" aria-selected={selectedIndex === i} onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
-                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-sm transition-colors", selectedIndex === i ? "bg-white/10 text-white" : "text-neutral-400 hover:bg-white/5 hover:text-white")}>
+                      <div
+                        key={repo}
+                        id={`repo-option-${i}`}
+                        role="option"
+                        aria-selected={selectedIndex === i}
+                        onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
+                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-sm transition-colors", selectedIndex === i ? "bg-white/10 text-white" : "text-neutral-400 hover:bg-white/5 hover:text-white")}
+                      >
                         <Github className="w-4 h-4" /> {repo}
                       </div>
                     )) : <div className="px-4 py-4 text-center text-sm text-neutral-500">No results for &quot;{searchQuery}&quot;</div>}
@@ -477,9 +491,9 @@ export default function LandingPage() {
                 { name: 'Anycast IP', icon: Globe },
                 { name: 'Cloud Armor', icon: Shield },
               ].map((feat, i) => (
-                <div key={feat.name} className="group relative p-8 rounded-[2rem] border border-white/5 bg-white/5 backdrop-blur-sm hover:border-indigo-500/50 transition-all duration-500 text-center overflow-hidden">
-                  <div className="absolute top-4 right-6 text-xs font-black text-white/10 group-hover:text-indigo-500/20 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
-                  <feat.icon className="w-8 h-8 text-indigo-500 mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
+                <div key={feat.name} className="group relative p-8 rounded-[2rem] border border-white/5 bg-white/5 backdrop-blur-sm hover:border-white/50 transition-all duration-500 text-center overflow-hidden">
+                  <div className="absolute top-4 right-6 text-xs font-black text-white/10 group-hover:text-white/20 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
+                  <feat.icon className="w-8 h-8 text-white mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
                   <span className="text-sm font-bold text-neutral-300 block">{feat.name}</span>
                 </div>
               ))}
@@ -494,7 +508,7 @@ export default function LandingPage() {
       <footer className="relative z-10 border-t border-white/10 py-12 mt-40">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Rocket className="w-6 h-6 text-indigo-500" />
+            <Rocket className="w-6 h-6 text-white" />
             <span className="font-bold text-xl">Deployify</span>
           </div>
           <p className="text-neutral-500 text-sm">
