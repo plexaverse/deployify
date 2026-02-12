@@ -50,6 +50,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildCommand,
         installCommand,
         outputDirectory,
+        rootDirectory,
         buildTimeout,
         healthCheckPath,
         resources,
@@ -111,6 +112,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildCommand,
         installCommand,
         restoreCache: true,
+        rootDirectory,
     });
 
     // Define common steps shared between both deployment methods

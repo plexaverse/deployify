@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { EnvVariableTarget } from '@/types';
 import { useStore } from '@/store';
+import { EmptyState } from '@/components/EmptyState';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -259,15 +260,12 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                      <Skeleton className="h-12 w-full" />
                 </div>
             ) : envVariables.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed border-[var(--border)] rounded-md">
-                    <div className="bg-[var(--muted)] w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Plus className="w-6 h-6 text-[var(--muted-foreground)]" />
-                    </div>
-                    <p className="text-[var(--muted-foreground)]">No environment variables yet</p>
-                    <p className="text-xs text-[var(--muted-foreground)] mt-1 max-w-[280px] mx-auto">
-                        Add keys like API_KEY, DATABASE_URL, etc. to configure your app at build and runtime.
-                    </p>
-                </div>
+                <EmptyState
+                    type="env"
+                    title="No environment variables yet"
+                    description="Add keys like API_KEY, DATABASE_URL, etc. to configure your app at build and runtime."
+                    className="border-2"
+                />
             ) : (
                 <div className="overflow-x-auto rounded-md border border-[var(--border)]">
                     <table className="w-full text-left border-collapse">
