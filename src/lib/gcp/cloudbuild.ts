@@ -50,10 +50,23 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildCommand,
         installCommand,
         outputDirectory,
+        rootDirectory,
         buildTimeout,
         healthCheckPath,
         resources,
     } = buildConfig;
+
+    // Validate rootDirectory to prevent command injection
+    let safeRootDirectory = '';
+    if (rootDirectory && /^[a-zA-Z0-9_\-./]+$/.test(rootDirectory) && !rootDirectory.includes('..')) {
+        safeRootDirectory = rootDirectory.replace(/^\/+|\/+$/g, ''); // Trim slashes
+    } else if (rootDirectory) {
+        console.warn(`Invalid rootDirectory provided: "${rootDirectory}". Defaulting to root.`);
+    }
+
+    // Determine the working directory (defaults to /workspace)
+    // Avoid path.join to reduce dependencies, simple slash check is enough
+    const workDir = safeRootDirectory ? `/workspace/${safeRootDirectory}` : '/workspace';
 
     // Use project-specific region if set, otherwise fall back to global config
     const region = projectRegion || config.gcp.region;
@@ -121,7 +134,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
             entrypoint: 'bash',
             args: [
                 '-c',
-                `mkdir -p restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C restore_cache || echo "No cache found or restore failed")`,
+                `mkdir -p ${workDir}/restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C ${workDir}/restore_cache || echo "No cache found or restore failed")`,
             ],
         },
         // Create a Dockerfile for Next.js if it doesn't exist
@@ -130,7 +143,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
             entrypoint: 'bash',
             args: [
                 '-c',
-                `if [ ! -f /workspace/Dockerfile ]; then cat > /workspace/Dockerfile << 'EOFMARKER'
+                `if [ ! -f ${workDir}/Dockerfile ]; then cat > ${workDir}/Dockerfile << 'EOFMARKER'
 ${dockerfileContent}
 EOFMARKER
 fi`,
@@ -142,7 +155,7 @@ fi`,
             entrypoint: 'sh',
             args: [
                 '-c',
-                `cd /workspace && if ! grep -q "output.*standalone" next.config.* 2>/dev/null; then
+                `cd ${workDir} && if ! grep -q "output.*standalone" next.config.* 2>/dev/null; then
         echo "Adding standalone output to next.config..."
         if [ -f next.config.ts ]; then
           sed -i "s/const nextConfig.*=.*{/const nextConfig = { output: 'standalone',/" next.config.ts
@@ -171,7 +184,7 @@ fi`,
                 ...dockerBuildArgs,
                 '.'
             ],
-            dir: '/workspace',
+            dir: workDir,
         },
         // Push to Artifact Registry (commit SHA tag)
         {
@@ -193,12 +206,14 @@ fi`,
                 ...dockerBuildArgs,
                 '.'
             ],
-            dir: '/workspace',
+            dir: workDir,
         },
         // Extract and Save Cache to GCS (Non-blocking)
+        // Note: Running in dir: workDir, so relative paths work as expected
         {
             name: 'gcr.io/cloud-builders/docker',
             entrypoint: 'bash',
+            dir: workDir,
             args: [
                 '-c',
                 `{

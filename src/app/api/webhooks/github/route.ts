@@ -174,6 +174,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             buildTimeout: project.buildTimeout,
             healthCheckPath: project.healthCheckPath,
             resources: project.resources,
+            rootDirectory: project.rootDirectory,
         });
 
         // Submit build
@@ -306,6 +307,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 buildTimeout: project.buildTimeout,
                 healthCheckPath: project.healthCheckPath,
                 resources: project.resources,
+                rootDirectory: project.rootDirectory,
             });
 
             // Submit build
