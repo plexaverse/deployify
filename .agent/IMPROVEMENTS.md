@@ -49,8 +49,7 @@
 
 #### 10. **Empty States with Illustrations**
 - **Current**: Basic empty state with icon
-- **Improvement**: Custom illustrations for empty states (no projects, no deployments, no domains)
-- **Benefit**: More engaging, professional feel
+- **Status**: ✅ Implemented (Reusable `EmptyState` component used in Dashboard, Domains, EnvVars)
 
 ### Low Priority (Polish)
 
@@ -115,8 +114,8 @@
 - **Status**: ✅ Implemented
 
 #### 10. **Monorepo Support**
-- **Current**: `rootDirectory` field exists but limited
-- **Improvement**: Better root directory detection, turborepo/nx awareness
+- **Current**: `rootDirectory` field supported in build config
+- **Status**: ✅ Implemented (Updated Dockerfile generation and Cloud Build steps to respect `rootDirectory`)
 
 #### 11. **Custom Build Commands**
 - **Current**: Editable in Settings

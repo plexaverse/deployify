@@ -54,7 +54,8 @@ deployify/
 │   │   ├── EnvVariablesSection.tsx # Environment variables UI
 │   │   ├── RegionSettings.tsx  # GCP region selector
 │   │   ├── DeploymentTimeline.tsx # Visual deployment steps
-│   │   └── DashboardSidebar.tsx # Responsive sidebar
+│   │   ├── DashboardSidebar.tsx # Responsive sidebar
+│   │   └── EmptyState.tsx      # Standardized empty state component
 │   ├── lib/
 │   │   ├── auth.ts             # JWT auth utilities
 │   │   ├── config.ts           # Environment config validation
@@ -199,7 +200,7 @@ Domain        // Custom domain (status: pending/active/error)
 4. Export from component file directly
 
 ### Modifying the build pipeline
-1. Edit `src/lib/dockerfiles.ts` to modify Dockerfile templates
+1. Edit `src/lib/dockerfiles.ts` to modify Dockerfile templates (supports monorepos via `rootDirectory`)
 2. Edit `src/lib/gcp/cloudbuild.ts` for Cloud Build step configuration
 3. `generateCloudRunDeployConfig()` creates the Cloud Build YAML
 4. Test with a sample repository push

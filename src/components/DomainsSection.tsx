@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/EmptyState';
 
 interface DomainsSectionProps {
     projectId: string;
@@ -380,23 +381,20 @@ export function DomainsSection({
                     <Skeleton className="h-14 w-full" />
                 </div>
             ) : domains.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 px-4 border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
-                    <div className="w-16 h-16 rounded-full bg-[var(--background)] border border-[var(--border)] flex items-center justify-center mb-4 shadow-sm">
-                        <Globe className="w-8 h-8 text-[var(--muted-foreground)] opacity-50" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-1">No domains configured</h3>
-                    <p className="text-sm text-[var(--muted-foreground)] text-center max-w-sm mb-6">
-                        Connect a custom domain to give your project a professional look.
-                        We handle the SSL certificates automatically.
-                    </p>
-                    <Button
-                        variant="secondary"
-                        onClick={() => setIsAdding(true)}
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Your First Domain
-                    </Button>
-                </div>
+                <EmptyState
+                    title="No domains configured"
+                    description="Connect a custom domain to give your project a professional look. We handle the SSL certificates automatically."
+                    icon={Globe}
+                    action={
+                        <Button
+                            variant="secondary"
+                            onClick={() => setIsAdding(true)}
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Your First Domain
+                        </Button>
+                    }
+                />
             ) : (
                 <div className="space-y-2">
                     {domains.map((domain) => (

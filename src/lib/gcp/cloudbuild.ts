@@ -50,6 +50,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildCommand,
         installCommand,
         outputDirectory,
+        rootDirectory,
         buildTimeout,
         healthCheckPath,
         resources,
@@ -111,6 +112,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildCommand,
         installCommand,
         restoreCache: true,
+        rootDirectory,
     });
 
     // Define common steps shared between both deployment methods
@@ -142,7 +144,7 @@ fi`,
             entrypoint: 'sh',
             args: [
                 '-c',
-                `cd /workspace && if ! grep -q "output.*standalone" next.config.* 2>/dev/null; then
+                `cd /workspace${rootDirectory ? '/' + rootDirectory : ''} && if ! grep -q "output.*standalone" next.config.* 2>/dev/null; then
         echo "Adding standalone output to next.config..."
         if [ -f next.config.ts ]; then
           sed -i "s/const nextConfig.*=.*{/const nextConfig = { output: 'standalone',/" next.config.ts

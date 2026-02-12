@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, FolderPlus } from 'lucide-react';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { ProjectCard } from '@/components/ProjectCard';
 import { CommandPalette } from '@/components/CommandPalette';
+import { EmptyState } from '@/components/EmptyState';
 import { Project } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTeam } from '@/contexts/TeamContext';
@@ -70,14 +71,17 @@ export default function DashboardHome() {
            ))}
         </BentoGrid>
       ) : projects.length === 0 ? (
-        <div className="text-center py-20 border border-[var(--border)] rounded-2xl bg-[var(--card)]">
-           <h2 className="text-xl font-bold mb-2 text-[var(--foreground)]">No projects found</h2>
-           <p className="text-[var(--muted-foreground)] mb-6">Get started by creating your first project.</p>
-           <Link href="/dashboard/new" className="btn btn-primary">
-             <Plus className="w-4 h-4" />
-             Create Project
-           </Link>
-        </div>
+        <EmptyState
+          title="No projects found"
+          description="Get started by creating your first project."
+          icon={FolderPlus}
+          action={
+            <Link href="/dashboard/new" className="btn btn-primary">
+              <Plus className="w-4 h-4" />
+              Create Project
+            </Link>
+          }
+        />
       ) : (
         <BentoGrid>
            {projects.map((project) => (
