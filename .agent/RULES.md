@@ -162,6 +162,7 @@ Domain        // Custom domain (status: pending/active/error)
 3. **Webhook Verification**: HMAC-SHA256 signature validation
 4. **Session Management**: JWT with 7-day expiry
 5. **CSRF Protection**: State token for OAuth flow
+6. **Role-Based Access Control (RBAC)**: Enforced in API routes via `checkProjectAccess` (Viewer: Read-only, Member: Deploy/Env, Admin/Owner: Full access).
 
 ---
 

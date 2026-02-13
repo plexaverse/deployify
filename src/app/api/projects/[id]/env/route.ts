@@ -70,6 +70,13 @@ export async function POST(
             );
         }
 
+        if (access.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Forbidden: Viewers cannot manage environment variables' },
+                { status: 403 }
+            );
+        }
+
         const { project } = access;
 
         const body = await request.json();
@@ -159,6 +166,13 @@ export async function PUT(
             return NextResponse.json(
                 { error: access.error },
                 { status: access.status }
+            );
+        }
+
+        if (access.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Forbidden: Viewers cannot manage environment variables' },
+                { status: 403 }
             );
         }
 

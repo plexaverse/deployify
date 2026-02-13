@@ -221,6 +221,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        if (access.role !== 'owner' && access.role !== 'admin') {
+            return NextResponse.json(
+                { error: 'Forbidden: Only owners and admins can delete projects' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
+
         // Delete project and all associated data
         await deleteProject(id);
 
