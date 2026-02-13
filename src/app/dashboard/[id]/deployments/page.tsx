@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
     ExternalLink,
     FileText,
     RotateCcw,
     Check,
-    Copy
+    Copy,
+    ArrowLeftRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -139,11 +141,22 @@ export default function DeploymentsPage() {
 
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-6">
-            <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold tracking-tight">Deployments</h1>
-                <p className="text-[var(--muted-foreground)] text-sm">
-                    A history of all deployments for this project.
-                </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-2xl font-bold tracking-tight">Deployments</h1>
+                    <p className="text-[var(--muted-foreground)] text-sm">
+                        A history of all deployments for this project.
+                    </p>
+                </div>
+                {deployments.length >= 2 && (
+                    <Link
+                        href={`/dashboard/${project.id}/deployments/compare`}
+                        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                    >
+                        <ArrowLeftRight className="w-4 h-4 mr-2" />
+                        Compare Deployments
+                    </Link>
+                )}
             </div>
 
             {deployments.length === 0 ? (
