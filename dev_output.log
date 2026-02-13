@@ -1,0 +1,249 @@
+
+> deployify@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1687ms
+○ Compiling /dashboard ...
+ GET /dashboard 200 in 7.1s (compile: 6.4s, proxy.ts: 112ms, render: 584ms)
+ GET /login 200 in 1099ms (compile: 912ms, proxy.ts: 9ms, render: 178ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 4.8s (compile: 2.1s, proxy.ts: 10ms, render: 2.7s)
+ GET /dashboard 200 in 142ms (compile: 6ms, proxy.ts: 5ms, render: 130ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 265ms (compile: 6ms, proxy.ts: 7ms, render: 251ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/teams 500 in 675ms (compile: 483ms, proxy.ts: 6ms, render: 185ms)
+ GET /dashboard/p1 200 in 1709ms (compile: 1571ms, proxy.ts: 5ms, render: 134ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/teams 500 in 150ms (compile: 6ms, proxy.ts: 3ms, render: 141ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 277ms (compile: 6ms, proxy.ts: 141ms, render: 130ms)
+ GET /dashboard/p1/deployments 200 in 1771ms (compile: 1593ms, proxy.ts: 4ms, render: 174ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 169ms (compile: 21ms, proxy.ts: 4ms, render: 143ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/teams 500 in 307ms (compile: 21ms, proxy.ts: 6ms, render: 281ms)
+ GET /dashboard/p1/deployments/compare 200 in 1383ms (compile: 1344ms, proxy.ts: 4ms, render: 35ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 154ms (compile: 5ms, proxy.ts: 10ms, render: 140ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    ... collapsed 4 duplicate lines matching above lines ...
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/teams 500 in 155ms (compile: 7ms, proxy.ts: 6ms, render: 142ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    ... collapsed 4 duplicate lines matching above lines ...
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/teams 500 in 295ms (compile: 10ms, proxy.ts: 7ms, render: 278ms)
