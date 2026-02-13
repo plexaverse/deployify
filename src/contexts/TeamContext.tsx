@@ -9,6 +9,7 @@ interface TeamContextType {
     setActiveTeam: (team: TeamWithRole | null) => void;
     teams: TeamWithRole[];
     isLoading: boolean;
+    fetchTeams: () => Promise<void>;
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -25,7 +26,8 @@ export function TeamProvider({ children }: { children: ReactNode }) {
             activeTeam,
             setActiveTeam,
             teams,
-            isLoading: isLoadingTeams
+            isLoading: isLoadingTeams,
+            fetchTeams
         }}>
             {children}
         </TeamContext.Provider>
