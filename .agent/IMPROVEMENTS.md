@@ -117,6 +117,7 @@
 #### 10. **Monorepo Support**
 - **Current**: `rootDirectory` field exists but limited
 - **Improvement**: Better root directory detection, turborepo/nx awareness
+- **Status**: ✅ Implemented (Subdirectory support via `rootDirectory` setting)
 
 #### 11. **Custom Build Commands**
 - **Current**: Editable in Settings
