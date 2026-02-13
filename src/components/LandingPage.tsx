@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check } from 'lucide-react';
+import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Spotlight } from '@/components/ui/spotlight';
@@ -67,15 +67,17 @@ export default function LandingPage() {
               <Link href="/login" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
                 Sign In
               </Link>
-              <Link
-                href="/api/auth/github"
-                prefetch={false}
-                className="bg-white text-black px-4 py-2 rounded-lg text-sm font-semibold hover:bg-neutral-200 transition-colors flex items-center gap-2"
-                aria-label="Sign in with GitHub"
-              >
-                <Github className="w-4 h-4" />
-                Get Started
-              </Link>
+              <motion.div whileTap={{ scale: 0.95 }}>
+                <Link
+                  href="/api/auth/github"
+                  prefetch={false}
+                  className="bg-white text-black px-4 py-2 rounded-lg text-sm font-semibold hover:bg-neutral-200 transition-colors flex items-center gap-2"
+                  aria-label="Sign in with GitHub"
+                >
+                  <Github className="w-4 h-4" />
+                  Get Started
+                </Link>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -130,28 +132,31 @@ export default function LandingPage() {
               transition={{ delay: 0.5 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <MovingBorderButton
-                as={Link}
-                href="/api/auth/github"
-                containerClassName="w-full sm:w-auto h-auto"
-                className="bg-white text-black px-8 py-4 text-base font-bold flex items-center justify-center gap-2"
-              >
-                <Github className="w-5 h-5" />
-                Connect GitHub
-                <ArrowRight className="w-5 h-5" />
-              </MovingBorderButton>
-              <button
+              <motion.div whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
+                <MovingBorderButton
+                  as={Link}
+                  href="/api/auth/github"
+                  containerClassName="w-full h-auto"
+                  className="bg-white text-black px-8 py-4 text-base font-bold flex items-center justify-center gap-2"
+                >
+                  <Github className="w-5 h-5" />
+                  Connect GitHub
+                  <ArrowRight className="w-5 h-5" />
+                </MovingBorderButton>
+              </motion.div>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={() => toast.info('Demo video coming soon!', { description: 'We are currently polishing our walkthrough.' })}
                 className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold border border-white/10 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2 group"
                 aria-label="Watch 2-minute demo video"
               >
                 <div className="relative">
-                  <div className="absolute inset-0 bg-yellow-500 blur-sm rounded-full opacity-0 group-hover:opacity-50 group-hover:animate-pulse transition-opacity" aria-hidden="true" />
-                  <Zap className="w-5 h-5 text-yellow-500 fill-yellow-500 relative z-10" aria-hidden="true" />
+                  <div className="absolute inset-0 bg-white blur-sm rounded-full opacity-0 group-hover:opacity-50 group-hover:animate-pulse transition-opacity" aria-hidden="true" />
+                  <Play className="w-5 h-5 text-white fill-white relative z-10" aria-hidden="true" />
                 </div>
                 Watch Demo
                 <span className="text-xs font-medium text-neutral-500 ml-1">2 min</span>
-              </button>
+              </motion.button>
             </motion.div>
 
             {/* Micro-UX: Quick Copy Command */}
@@ -243,7 +248,7 @@ export default function LandingPage() {
                   <div key={i} className="mb-20 relative group">
                     <motion.div
                       initial={{ opacity: 0.1, x: -20 }}
-                      whileInView={{ opacity: 0.3, x: 0 }}
+                      whileInView={{ opacity: 1, scale: 1.1, x: 0 }}
                       viewport={{ margin: "-100px" }}
                       transition={{ duration: 0.8 }}
                       className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-neutral-800/30 tabular-nums transition-colors group-hover:text-white/30 group-hover:opacity-100"
@@ -345,7 +350,7 @@ export default function LandingPage() {
               <BentoGridItem
                 title="Git-Push Deploys"
                 description="Push to GitHub and your app is live. Automatic deployments on every commit."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Zap className="w-12 h-12 text-yellow-500" /></div>}
+                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Zap className="w-12 h-12 text-white" /></div>}
                 icon={<Rocket className="h-4 w-4 text-neutral-500" />}
                 className="md:col-span-2"
               />
@@ -364,26 +369,26 @@ export default function LandingPage() {
                       aria-label={copiedId === 'preview-url' ? "Sample preview URL copied" : "Copy sample preview URL"}
                     >
                       {copiedId === 'preview-url' ? (
-                        <Check className="w-3 h-3 text-emerald-500" />
+                        <Check className="w-3 h-3 text-white" />
                       ) : (
                         <Copy className="w-3 h-3" />
                       )}
                     </motion.button>
                   </div>
                 }
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Globe className="w-12 h-12 text-blue-500" /></div>}
+                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Globe className="w-12 h-12 text-white" /></div>}
                 icon={<Search className="h-4 w-4 text-neutral-500" />}
               />
               <BentoGridItem
                 title="Cloud Armor WAF"
                 description="DDoS protection & security."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Shield className="w-12 h-12 text-emerald-500" /></div>}
+                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Shield className="w-12 h-12 text-white" /></div>}
                 icon={<Shield className="h-4 w-4 text-neutral-500" />}
               />
               <BentoGridItem
                 title="Full Resource Control"
                 description="Choose CPU, Memory and Auto-scaling limits."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Cpu className="w-12 h-12 text-purple-500" /></div>}
+                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-900 to-neutral-800 border border-white/5 items-center justify-center"><Cpu className="w-12 h-12 text-white" /></div>}
                 icon={<Cpu className="h-4 w-4 text-neutral-500" />}
                 className="md:col-span-2"
               />
@@ -507,10 +512,10 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 py-12 mt-40">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Rocket className="w-6 h-6 text-white" />
+          <Link href="/" className="flex items-center justify-center gap-2 mb-4 group w-fit mx-auto" aria-label="Deployify Home">
+            <Rocket className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
             <span className="font-bold text-xl">Deployify</span>
-          </div>
+          </Link>
           <p className="text-neutral-500 text-sm">
             © 2026 Deployify. Built for the modern developer.
           </p>
