@@ -4,6 +4,7 @@ import { TeamProvider } from '@/contexts/TeamContext';
 import { GlobalShortcuts } from '@/components/GlobalShortcuts';
 import { Header } from '@/components/Header';
 import { CommandPalette } from '@/components/CommandPalette';
+import { PageTransition } from '@/components/PageTransition';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -40,7 +41,9 @@ export default async function DashboardLayout({
                     <Header />
                     <div className="flex-1 overflow-y-auto">
                         <div className="p-6">
-                            {children}
+                            <PageTransition>
+                                {children}
+                            </PageTransition>
                         </div>
                     </div>
                 </main>

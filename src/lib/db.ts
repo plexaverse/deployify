@@ -407,7 +407,7 @@ export async function listTeamsWithMembership(userId: string, dbClient?: any): P
         return [];
     }
 
-    const memberships = membershipsSnapshot.docs.map(doc => {
+    const memberships: TeamMembership[] = membershipsSnapshot.docs.map((doc: any) => {
         const data = doc.data();
         return {
             ...data,
@@ -415,12 +415,12 @@ export async function listTeamsWithMembership(userId: string, dbClient?: any): P
         } as TeamMembership;
     });
 
-    const teamIds = memberships.map(m => m.teamId);
-    const teamRefs = teamIds.map(id => db.collection(Collections.TEAMS).doc(id));
+    const teamIds = memberships.map((m: TeamMembership) => m.teamId);
+    const teamRefs = teamIds.map((id: string) => db.collection(Collections.TEAMS).doc(id));
     const teamsSnapshot = await db.getAll(...teamRefs);
 
     return teamsSnapshot
-        .map((doc, index) => {
+        .map((doc: any, index: number) => {
             if (!doc.exists) return null;
             const data = doc.data();
             const team = {
@@ -438,7 +438,7 @@ export async function listTeamsWithMembership(userId: string, dbClient?: any): P
                 membership: memberships[index]
             } as TeamWithRole;
         })
-        .filter((t): t is TeamWithRole => t !== null);
+        .filter((t: TeamWithRole | null): t is TeamWithRole => t !== null);
 }
 
 // ============= Project Operations =============
