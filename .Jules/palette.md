@@ -37,3 +37,7 @@
 ## 2026-02-25 - [Monochromatic Brand Identity and Navigation UX]
 **Learning:** To align with high-end monochromatic themes like scripe.io, transitioning UI accents from secondary colors to `white` or `neutral` tones creates a more refined, professional aesthetic. Additionally, users expect the brand logo to be a functional link back to the homepage; adding a subtle hover animation (e.g., rotation) provides clear feedback that the element is interactive and adds a touch of delight.
 **Action:** Wrap brand logos in a `Link` to `/` and prioritize neutral tones for icons and badges in premium designs.
+
+## 2026-03-01 - [Interactive Narrative Flow and Monochromatic Icons]
+**Learning:** Aligning with high-end monochromatic themes like scripe.io involves more than just color; it requires consistent iconography (e.g., using 'Play' instead of 'Zap' for video CTAs) and tactile feedback. An interactive narrative flow that 'lights up' process steps during scroll significantly improves engagement.
+**Action:** Use monochromatic icons (white/neutral) for dark-themed landing pages and implement whileInView scale/opacity enhancements for sequential content sections.
