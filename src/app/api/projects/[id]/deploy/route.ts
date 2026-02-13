@@ -46,6 +46,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        if (access.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Forbidden: Viewers cannot trigger deployments' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
+
         const { project } = access;
 
         // Check usage limits
@@ -271,6 +278,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json(
                 { error: access.error },
                 { status: access.status, headers: securityHeaders }
+            );
+        }
+
+        if (access.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Forbidden: Viewers cannot cancel deployments' },
+                { status: 403, headers: securityHeaders }
             );
         }
 

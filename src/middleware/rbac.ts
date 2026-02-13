@@ -1,8 +1,8 @@
 import { getProjectById, getTeamMembership } from '@/lib/db';
-import type { Project } from '@/types';
+import type { Project, TeamRole } from '@/types';
 
 export type ProjectAccessResult =
-    | { allowed: true; project: Project }
+    | { allowed: true; project: Project; role: TeamRole }
     | { allowed: false; error: string; status: number };
 
 export async function checkProjectAccess(userId: string, projectId: string): Promise<ProjectAccessResult> {
@@ -17,12 +17,12 @@ export async function checkProjectAccess(userId: string, projectId: string): Pro
             // Check team membership
             const membership = await getTeamMembership(project.teamId, userId);
             if (membership) {
-                return { allowed: true, project };
+                return { allowed: true, project, role: membership.role };
             }
         } else {
             // Check personal ownership
             if (project.userId === userId) {
-                return { allowed: true, project };
+                return { allowed: true, project, role: 'owner' };
             }
         }
 

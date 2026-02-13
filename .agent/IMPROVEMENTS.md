@@ -137,6 +137,7 @@
 #### 14. **Team/Organization Support**
 - **Current**: Single user projects
 - **Improvement**: Allow team members with role-based access
+- **Status**: ✅ Implemented (RBAC enforced in API routes)
 
 #### 15. **Custom Dockerfile Support**
 - **Improvement**: Detect and use repo's Dockerfile if present

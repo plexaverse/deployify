@@ -97,6 +97,13 @@ export async function POST(
             );
         }
 
+        if (access.role !== 'owner' && access.role !== 'admin') {
+            return NextResponse.json(
+                { error: 'Forbidden: Only owners and admins can manage domains' },
+                { status: 403 }
+            );
+        }
+
         const { project } = access;
 
         const body = await request.json();
