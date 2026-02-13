@@ -237,3 +237,26 @@ Refactored the main dashboard and team settings pages to use the standardized UI
 
 ### `src/components/CommandPalette.tsx`
 - Updated styles to use theme variables (`bg-[var(--card)]`, `border-[var(--border)]`) for the modal and input.
+
+## Authentication & Onboarding Refactor
+
+Refactored the Login and New Project Wizard pages to ensure full theme compatibility and use standard UI components.
+
+### `src/app/new/page.tsx` (New Project Wizard)
+- Replaced hardcoded dark mode colors (`bg-black`, `text-white`, `bg-white/5`) with CSS variables (`bg-[var(--background)]`, `text-[var(--foreground)]`, `bg-[var(--card)]`).
+- **Step 1 (Select)**:
+  - Replaced `<input>` search with `Input` component.
+  - Replaced repo list items with `Card` components.
+- **Step 2 (Configure)**:
+  - Wrapped settings and environment variables sections in `Card` components.
+  - Replaced all `<input>` elements with `Input` component.
+  - Styled `<select>` elements to match `Input` styling using `cn` utility.
+  - Replaced "Deploy" and action buttons with `Button` component.
+- **Step 3 (Deploy)**:
+  - Updated status indicators to use theme colors (`--success`, `--error`, `--info`).
+  - Preserved the dark terminal look for the logs while ensuring layout consistency.
+
+### `src/app/login/page.tsx`
+- Replaced the custom `card-glass` div with the `Card` component, adding `backdrop-blur-xl`.
+- Replaced the "Continue with GitHub" link styling with `buttonVariants({ variant: 'primary', size: 'lg' })`.
+- Ensured all text colors use `text-[var(--foreground)]` or `text-[var(--muted-foreground)]`.

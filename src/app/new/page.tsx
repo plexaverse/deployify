@@ -11,6 +11,10 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { BackgroundBeams } from '@/components/ui/background-beams';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { GitHubRepo, Project, Deployment } from '@/types';
 
 // Common GCP regions
@@ -51,7 +55,7 @@ export default function NewProjectPage() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-black/[0.96] antialiased bg-grid-white/[0.02] relative overflow-hidden">
+        <div className="min-h-screen w-full bg-[var(--background)] antialiased relative overflow-hidden">
             <BackgroundBeams className="opacity-40" />
 
             <div className="relative z-10 container mx-auto px-4 py-8 max-w-5xl h-screen flex flex-col">
@@ -60,11 +64,11 @@ export default function NewProjectPage() {
                     <div className="flex items-center gap-4">
                         <Link
                             href="/dashboard"
-                            className="p-2 rounded-full hover:bg-white/10 transition-colors text-white/70 hover:text-white"
+                            className="p-2 rounded-full hover:bg-[var(--card)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </Link>
-                        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neutral-200 to-neutral-500">
+                        <h1 className="text-2xl font-bold gradient-text">
                             Create Project
                         </h1>
                     </div>
@@ -72,9 +76,9 @@ export default function NewProjectPage() {
                     {/* Stepper Indicator */}
                     <div className="flex items-center gap-2 text-sm">
                         <StepIndicator current={step} number={1} label="Select" />
-                        <div className="w-8 h-[1px] bg-white/10" />
+                        <div className="w-8 h-[1px] bg-[var(--border)]" />
                         <StepIndicator current={step} number={2} label="Configure" />
-                        <div className="w-8 h-[1px] bg-white/10" />
+                        <div className="w-8 h-[1px] bg-[var(--border)]" />
                         <StepIndicator current={step} number={3} label="Deploy" />
                     </div>
                 </div>
@@ -112,15 +116,14 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
     const currentStep = current === number;
 
     return (
-        <div className={`flex items-center gap-2 ${active ? 'text-white' : 'text-white/40'}`}>
-            <div className={`
-                w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border
-                ${active
-                    ? 'bg-white text-black border-white'
-                    : 'bg-transparent border-white/20'
-                }
-                ${currentStep ? 'ring-2 ring-white/20 ring-offset-2 ring-offset-black' : ''}
-            `}>
+        <div className={`flex items-center gap-2 ${active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'}`}>
+            <div className={cn(
+                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border transition-colors",
+                active
+                    ? 'bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]'
+                    : 'bg-transparent border-[var(--border)]',
+                currentStep && 'ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]'
+            )}>
                 {active && current > number ? <CheckCircle2 className="w-3.5 h-3.5" /> : number}
             </div>
             <span>{label}</span>
@@ -180,19 +183,19 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
             className="w-full max-w-3xl mx-auto space-y-6"
         >
             <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                <input
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
+                <Input
                     type="text"
                     placeholder="Search your repositories..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+                    className="pl-12 pr-12 h-14"
                     autoFocus
                 />
                 {search && (
                     <button
                         onClick={() => setSearch('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -202,42 +205,42 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
             {loading ? (
                 <div className="space-y-4">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="h-24 bg-white/5 rounded-xl animate-pulse" />
+                        <div key={i} className="h-24 bg-[var(--card)] rounded-xl animate-pulse" />
                     ))}
                 </div>
             ) : (
                 <div className="grid gap-4">
                     {filteredRepos.map((repo) => (
-                        <div
+                        <Card
                             key={repo.id}
                             onClick={() => onSelect(repo)}
-                            className="group relative bg-white/5 border border-white/10 hover:border-indigo-500/50 hover:bg-white/[0.07] rounded-xl p-4 transition-all cursor-pointer"
+                            className="group relative hover:border-[var(--primary)] transition-all cursor-pointer p-4"
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-black/40 flex items-center justify-center border border-white/10">
+                                    <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)]">
                                         {repo.private ? (
-                                            <Lock className="w-5 h-5 text-amber-400/80" />
+                                            <Lock className="w-5 h-5 text-[var(--warning)]" />
                                         ) : (
-                                            <Globe className="w-5 h-5 text-emerald-400/80" />
+                                            <Globe className="w-5 h-5 text-[var(--success)]" />
                                         )}
                                     </div>
                                     <div>
-                                        <h3 className="font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+                                        <h3 className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
                                             {repo.full_name}
                                             {repo.private && (
-                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
                                                     Private
                                                 </span>
                                             )}
                                         </h3>
-                                        <p className="text-sm text-white/50 mt-1 line-clamp-1">
+                                        <p className="text-sm text-[var(--muted-foreground)] mt-1 line-clamp-1">
                                             {repo.description || 'No description'}
                                         </p>
-                                        <div className="flex items-center gap-4 mt-3 text-xs text-white/40">
+                                        <div className="flex items-center gap-4 mt-3 text-xs text-[var(--muted-foreground)]">
                                             {repo.language && (
                                                 <span className="flex items-center gap-1.5">
-                                                    <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                                                    <span className="w-2 h-2 rounded-full bg-[var(--info)]" />
                                                     {repo.language}
                                                 </span>
                                             )}
@@ -250,14 +253,14 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                     </div>
                                 </div>
                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center pr-2">
-                                    <ChevronRight className="w-5 h-5 text-white/40" />
+                                    <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
                                 </div>
                             </div>
-                        </div>
+                        </Card>
                     ))}
 
                     {filteredRepos.length === 0 && (
-                        <div className="text-center py-12 text-white/40">
+                        <div className="text-center py-12 text-[var(--muted-foreground)]">
                             <p>No repositories found matching your search.</p>
                         </div>
                     )}
@@ -357,33 +360,32 @@ function Step2Configure({ repo, onBack, onDeploy }: {
             exit={{ opacity: 0, x: -20 }}
             className="max-w-3xl mx-auto space-y-6 pb-20"
         >
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-6">
-                <div className="flex items-center gap-4 pb-4 border-b border-white/10">
-                    <div className="w-12 h-12 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+            <Card className="space-y-6">
+                <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
+                    <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
                         <Settings className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-white">Project Settings</h2>
-                        <p className="text-white/40 text-sm">Configure your deployment environment</p>
+                        <h2 className="text-lg font-semibold text-[var(--foreground)]">Project Settings</h2>
+                        <p className="text-[var(--muted-foreground)] text-sm">Configure your deployment environment</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Project Name</label>
-                        <input
+                        <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Project Name</label>
+                        <Input
                             type="text"
                             value={projectName}
                             onChange={(e) => setProjectName(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Framework</label>
+                        <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Framework</label>
                         <select
                             value={framework}
                             onChange={(e) => setFramework(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none transition-colors appearance-none"
+                            className="flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <option value="auto">Auto-detect</option>
                             <option value="nextjs">Next.js</option>
@@ -393,21 +395,20 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Root Directory</label>
-                        <input
+                        <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Root Directory</label>
+                        <Input
                             type="text"
                             value={rootDirectory}
                             onChange={(e) => setRootDirectory(e.target.value)}
                             placeholder="./"
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none transition-colors"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-white/60 uppercase tracking-wider">Region</label>
+                        <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Region</label>
                         <select
                             value={region}
                             onChange={(e) => setRegion(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-indigo-500 focus:outline-none transition-colors appearance-none"
+                            className="flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {GCP_REGIONS.map((r) => (
                                 <option key={r.value} value={r.value}>{r.label}</option>
@@ -415,83 +416,91 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         </select>
                     </div>
                 </div>
-            </div>
+            </Card>
 
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-6">
-                <div className="flex items-center gap-4 pb-4 border-b border-white/10">
-                    <div className="w-12 h-12 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <Card className="space-y-6">
+                <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
+                    <div className="w-12 h-12 rounded-lg bg-[var(--success-bg)] text-[var(--success)] flex items-center justify-center border border-[var(--success)]/30">
                         <Terminal className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-white">Environment Variables</h2>
-                        <p className="text-white/40 text-sm">Add build and runtime variables</p>
+                        <h2 className="text-lg font-semibold text-[var(--foreground)]">Environment Variables</h2>
+                        <p className="text-[var(--muted-foreground)] text-sm">Add build and runtime variables</p>
                     </div>
                 </div>
 
                 <div className="space-y-3">
                     {envVars.map((env) => (
-                        <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-black/40 border border-white/10">
+                        <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
                             <div className="flex-1 grid grid-cols-3 gap-4">
-                                <span className="font-mono text-sm text-indigo-400">{env.key}</span>
-                                <span className="font-mono text-sm text-white/70 truncate">{env.value}</span>
-                                <span className="text-xs text-white/40 uppercase">{env.target}</span>
+                                <span className="font-mono text-sm text-[var(--primary)]">{env.key}</span>
+                                <span className="font-mono text-sm text-[var(--foreground)] truncate">{env.value}</span>
+                                <span className="text-xs text-[var(--muted-foreground)] uppercase">{env.target}</span>
                             </div>
-                            <button onClick={() => setEnvVars(envVars.filter(e => e.key !== env.key))} className="text-white/40 hover:text-red-400">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEnvVars(envVars.filter(e => e.key !== env.key))}
+                                className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                            >
                                 <Trash2 className="w-4 h-4" />
-                            </button>
+                            </Button>
                         </div>
                     ))}
                 </div>
 
-                <div className="flex gap-2 p-4 bg-black/20 rounded-lg border border-white/5">
-                    <input
+                <div className="flex gap-2 p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)]">
+                    <Input
                         type="text"
                         placeholder="KEY"
                         value={newEnvKey}
                         onChange={(e) => setNewEnvKey(e.target.value)}
-                        className="flex-1 bg-transparent border-b border-white/20 px-2 py-1 text-sm font-mono text-white focus:border-indigo-500 focus:outline-none"
+                        className="font-mono"
                     />
-                    <input
+                    <Input
                         type="text"
                         placeholder="VALUE"
                         value={newEnvValue}
                         onChange={(e) => setNewEnvValue(e.target.value)}
-                        className="flex-1 bg-transparent border-b border-white/20 px-2 py-1 text-sm font-mono text-white focus:border-indigo-500 focus:outline-none"
+                        className="font-mono"
                     />
                     <select
                         value={newEnvTarget}
                         onChange={(e) => setNewEnvTarget(e.target.value as any)}
-                        className="bg-transparent text-white/60 text-xs focus:outline-none border-b border-white/20"
+                        className="bg-transparent text-[var(--muted-foreground)] text-xs focus:outline-none border-b border-[var(--border)] px-2"
                     >
                         <option value="both">Both</option>
                         <option value="build">Build</option>
                         <option value="runtime">Runtime</option>
                     </select>
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={handleAddEnv}
                         disabled={!newEnvKey || !newEnvValue}
-                        className="p-1 hover:bg-white/10 rounded-md disabled:opacity-50 text-indigo-400"
+                        className="text-[var(--primary)]"
                     >
                         <Plus className="w-5 h-5" />
-                    </button>
+                    </Button>
                 </div>
-            </div>
+            </Card>
 
             <div className="flex justify-between items-center pt-4">
-                <button
+                <Button
+                    variant="ghost"
                     onClick={onBack}
-                    className="text-white/50 hover:text-white transition-colors"
+                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 >
                     Back to Select
-                </button>
-                <button
+                </Button>
+                <Button
                     onClick={handleDeploy}
                     disabled={deploying || !projectName}
-                    className="bg-white text-black hover:bg-neutral-200 px-8 py-3 rounded-full font-semibold transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-full px-8 py-6"
                 >
-                    {deploying ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                    {deploying ? <Loader2 className="mr-2 w-5 h-5 animate-spin" /> : null}
                     {deploying ? 'Deploying...' : 'Deploy Project'}
-                </button>
+                </Button>
             </div>
         </motion.div>
     );
@@ -564,44 +573,45 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
         >
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                    <h2 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-3">
                         {isReady ? (
-                            <span className="text-emerald-400 flex items-center gap-2">
+                            <span className="text-[var(--success)] flex items-center gap-2">
                                 <CheckCircle2 className="w-6 h-6" /> Deployed Successfully
                             </span>
                         ) : isError ? (
-                            <span className="text-red-400 flex items-center gap-2">
+                            <span className="text-[var(--error)] flex items-center gap-2">
                                 <AlertCircle className="w-6 h-6" /> Deployment Failed
                             </span>
                         ) : (
-                            <span className="text-indigo-400 flex items-center gap-2">
+                            <span className="text-[var(--info)] flex items-center gap-2">
                                 <Loader2 className="w-6 h-6 animate-spin" /> Building & Deploying...
                             </span>
                         )}
                     </h2>
-                    <p className="text-white/40 mt-1">
+                    <p className="text-[var(--muted-foreground)] mt-1">
                         {project.name} • {initialDeployment.gitBranch} • {initialDeployment.gitCommitSha.substring(0, 7)}
                     </p>
                 </div>
                 {isReady && (
-                    <button
+                    <Button
                         onClick={() => router.push(`/dashboard/${project.id}`)}
-                        className="bg-white text-black hover:bg-neutral-200 px-6 py-2 rounded-full font-semibold transition-all"
+                        className="rounded-full px-6"
                     >
                         Go to Dashboard
-                    </button>
+                    </Button>
                 )}
                  {isError && (
-                    <button
-                         onClick={() => window.location.reload()}
-                        className="bg-white/10 text-white hover:bg-white/20 px-6 py-2 rounded-full font-semibold transition-all"
+                    <Button
+                        variant="secondary"
+                        onClick={() => window.location.reload()}
+                        className="rounded-full px-6"
                     >
                         Try Again
-                    </button>
+                    </Button>
                 )}
             </div>
 
-            <div className="flex-1 bg-black/80 rounded-xl border border-white/10 overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
+            <div className="flex-1 bg-neutral-950 rounded-xl border border-[var(--border)] overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
                 <div className="bg-white/5 p-3 flex items-center gap-2 border-b border-white/5">
                     <div className="flex gap-1.5">
                         <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
@@ -624,7 +634,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                 </div>
 
                 {!isReady && !isError && (
-                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-neutral-950 to-transparent pointer-events-none" />
                 )}
             </div>
         </motion.div>
