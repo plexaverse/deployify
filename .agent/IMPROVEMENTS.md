@@ -48,9 +48,8 @@
 - **Benefit**: Better first-time user experience
 
 #### 10. **Empty States with Illustrations**
-- **Current**: Basic empty state with icon
-- **Improvement**: Custom illustrations for empty states (no projects, no deployments, no domains)
-- **Benefit**: More engaging, professional feel
+- **Current**: Reusable `EmptyState` component used across dashboard
+- **Status**: ✅ Implemented (Standardized empty states for deployments, domains, and env vars)
 
 ### Low Priority (Polish)
 
