@@ -4,6 +4,9 @@ import { Rocket, Github } from 'lucide-react';
 import { getSession } from '@/lib/auth';
 import { Spotlight } from '@/components/ui/spotlight';
 import { BackgroundBeams } from '@/components/ui/background-beams';
+import { Card } from '@/components/ui/card';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default async function LoginPage() {
     // Redirect if already logged in
@@ -21,14 +24,14 @@ export default async function LoginPage() {
                     <span className="text-3xl font-bold gradient-text">Deployify</span>
                 </div>
 
-                <div className="card-glass p-8 rounded-3xl">
+                <Card className="p-8 rounded-3xl backdrop-blur-xl bg-[var(--card)]/80">
                     <h1 className="text-2xl font-bold text-center mb-2 text-[var(--foreground)]">Welcome back</h1>
                     <p className="text-[var(--muted-foreground)] text-center mb-8">Sign in to manage your deployments</p>
 
                     <Link
                         href="/api/auth/github"
                         prefetch={false}
-                        className="btn btn-primary w-full py-4 text-base"
+                        className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), "w-full py-6 text-base gap-2")}
                         aria-label="Sign in with GitHub"
                     >
                         <Github className="w-5 h-5" />
@@ -47,7 +50,7 @@ export default async function LoginPage() {
                         <Link href="/terms" className="text-[var(--primary)] hover:underline">Terms</Link> and{' '}
                         <Link href="/privacy" className="text-[var(--primary)] hover:underline">Privacy</Link>
                     </p>
-                </div>
+                </Card>
                 <p className="text-center mt-8">
                     <Link href="/" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">← Back to home</Link>
                 </p>
