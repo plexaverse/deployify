@@ -27,6 +27,7 @@ export default function ProjectSettingsPage() {
         installCommand,
         rootDirectory,
         outputDirectory,
+        framework,
         webhookUrl,
         emailNotifications,
         cloudArmorEnabled,
@@ -136,6 +137,40 @@ export default function ProjectSettingsPage() {
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
+                                <Label htmlFor="framework">Framework</Label>
+                                <select
+                                    id="framework"
+                                    value={framework}
+                                    onChange={(e) => setProjectSettingsField('framework', e.target.value)}
+                                    className="flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="nextjs">Next.js</option>
+                                    <option value="vite">Vite</option>
+                                    <option value="astro">Astro</option>
+                                    <option value="remix">Remix</option>
+                                    <option value="docker">Docker</option>
+                                </select>
+                                <p className="text-xs text-[var(--muted-foreground)]">
+                                    The framework used for building. Use "Docker" to use your own Dockerfile.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="root-directory">Root Directory</Label>
+                                <Input
+                                    id="root-directory"
+                                    type="text"
+                                    value={rootDirectory}
+                                    onChange={(e) => setProjectSettingsField('rootDirectory', e.target.value)}
+                                    placeholder="./"
+                                />
+                                <p className="text-xs text-[var(--muted-foreground)]">
+                                    The directory within your project where code is located.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
                                 <Label htmlFor="build-command">Build Command</Label>
                                 <Input
                                     id="build-command"
@@ -175,19 +210,6 @@ export default function ProjectSettingsPage() {
                                 />
                                 <p className="text-xs text-[var(--muted-foreground)]">
                                     The command used to install dependencies.
-                                </p>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="root-directory">Root Directory</Label>
-                                <Input
-                                    id="root-directory"
-                                    type="text"
-                                    value={rootDirectory}
-                                    onChange={(e) => setProjectSettingsField('rootDirectory', e.target.value)}
-                                    placeholder="./"
-                                />
-                                <p className="text-xs text-[var(--muted-foreground)]">
-                                    The directory within your project where code is located.
                                 </p>
                             </div>
                         </div>

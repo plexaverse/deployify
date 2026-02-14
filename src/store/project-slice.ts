@@ -19,6 +19,7 @@ export interface ProjectSlice {
     installCommand: string;
     rootDirectory: string;
     outputDirectory: string;
+    framework: string;
     webhookUrl: string;
     emailNotifications: boolean;
     cloudArmorEnabled: boolean;
@@ -90,6 +91,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     installCommand: '',
     rootDirectory: '',
     outputDirectory: '',
+    framework: '',
     webhookUrl: '',
     emailNotifications: false,
     cloudArmorEnabled: false,
@@ -139,6 +141,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                     installCommand: project.installCommand || '',
                     rootDirectory: project.rootDirectory || '',
                     outputDirectory: project.outputDirectory || '',
+                    framework: project.framework || 'nextjs',
                     webhookUrl: project.webhookUrl || '',
                     emailNotifications: project.emailNotifications || false,
                     cloudArmorEnabled: project.cloudArmorEnabled || false,
@@ -199,7 +202,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     },
 
     saveProjectSettings: async (projectId) => {
-        const { buildCommand, installCommand, rootDirectory, outputDirectory } = get();
+        const { buildCommand, installCommand, rootDirectory, outputDirectory, framework } = get();
         set({ isSavingProjectSettings: true });
         const toastId = toast.loading('Saving settings...');
         try {
@@ -211,6 +214,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                     installCommand,
                     rootDirectory,
                     outputDirectory,
+                    framework,
                 }),
             });
 

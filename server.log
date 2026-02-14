@@ -15,11 +15,10 @@ You can learn more, including how to opt-out if you'd not like to participate in
 https://nextjs.org/telemetry
 
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-✓ Ready in 1737ms
+✓ Ready in 1649ms
 ○ Compiling /new ...
- GET /new 200 in 7.6s (compile: 6.7s, proxy.ts: 105ms, render: 793ms)
+ GET /new 200 in 7.1s (compile: 6.5s, proxy.ts: 108ms, render: 563ms)
 ○ Compiling /api/v1/collect ...
- POST /api/v1/collect 200 in 4.0s (compile: 3.8s, proxy.ts: 47ms, render: 156ms)
 In-house collector error: Error: Unable to detect a Project Id in the current environment.
 To learn more about authentication and Google APIs, visit:
 https://cloud.google.com/docs/authentication/getting-started
@@ -33,4 +32,94 @@ https://cloud.google.com/docs/authentication/getting-started
   167 |
   168 |     if (snapshot.empty) {
   169 |         return null;
-[?25h
+ POST /api/v1/collect 500 in 5.1s (compile: 2.4s, proxy.ts: 12ms, render: 2.7s)
+ GET /dashboard/p-docker/settings 200 in 3.7s (compile: 3.2s, proxy.ts: 8ms, render: 490ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 279ms (compile: 8ms, proxy.ts: 6ms, render: 265ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/teams 500 in 839ms (compile: 637ms, proxy.ts: 4ms, render: 198ms)
+Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET'
+}
+⨯ uncaughtException: Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET'
+}
+⨯ uncaughtException:  Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET'
+}
+ GET /dashboard/p-docker/settings 200 in 197ms (compile: 75ms, proxy.ts: 7ms, render: 115ms)
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /api/teams 500 in 392ms (compile: 7ms, proxy.ts: 10ms, render: 375ms)
+In-house collector error: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 211ms (compile: 5ms, proxy.ts: 19ms, render: 187ms)

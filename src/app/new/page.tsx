@@ -392,7 +392,13 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             <option value="vite">Vite</option>
                             <option value="astro">Astro</option>
                             <option value="remix">Remix</option>
+                            <option value="docker">Docker</option>
                         </select>
+                        {framework === 'docker' && (
+                            <p className="text-xs text-[var(--info)] pt-1">
+                                Deployify will use the <code>Dockerfile</code> in your repository root.
+                            </p>
+                        )}
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Root Directory</label>
