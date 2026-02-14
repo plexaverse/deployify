@@ -392,6 +392,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             <option value="vite">Vite</option>
                             <option value="astro">Astro</option>
                             <option value="remix">Remix</option>
+                            <option value="docker">Docker</option>
                         </select>
                     </div>
                     <div className="space-y-2">

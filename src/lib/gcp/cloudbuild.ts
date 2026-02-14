@@ -129,17 +129,17 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
 
     // Define common steps shared between both deployment methods
     const commonSteps = [
-        // Restore cache from GCS
-        {
+        // Restore cache from GCS (Only for Next.js)
+        ...(framework === 'nextjs' ? [{
             name: 'gcr.io/cloud-builders/gsutil',
             entrypoint: 'bash',
             args: [
                 '-c',
                 `mkdir -p ${workDir}/restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C ${workDir}/restore_cache || echo "No cache found or restore failed")`,
             ],
-        },
-        // Create a Dockerfile for Next.js if it doesn't exist
-        {
+        }] : []),
+        // Create a Dockerfile for framework if it doesn't exist and framework is not docker
+        ...(framework !== 'docker' ? [{
             name: 'gcr.io/cloud-builders/docker',
             entrypoint: 'bash',
             args: [
@@ -149,9 +149,9 @@ ${dockerfileContent}
 EOFMARKER
 fi`,
             ],
-        },
-        // Check if next.config has output: 'standalone'
-        {
+        }] : []),
+        // Check if next.config has output: 'standalone' (Only for Next.js)
+        ...(framework === 'nextjs' ? [{
             name: 'node:20-alpine',
             entrypoint: 'sh',
             args: [
@@ -167,7 +167,7 @@ fi`,
         fi
       fi`,
             ],
-        },
+        }] : []),
         // Pull the latest image for caching
         {
             name: 'gcr.io/cloud-builders/docker',
@@ -197,8 +197,8 @@ fi`,
             name: 'gcr.io/cloud-builders/docker',
             args: ['push', latestImageName],
         },
-        // Build 'builder' target to extract cache
-        {
+        // Build 'builder' target to extract cache (Only for Next.js)
+        ...(framework === 'nextjs' ? [{
             name: 'gcr.io/cloud-builders/docker',
             args: [
                 'build',
@@ -231,7 +231,7 @@ fi`,
   fi
 } || echo "Cache save failed, ignoring..."`
             ],
-        },
+        }] : []),
         // Deploy to Cloud Run
         {
             name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',

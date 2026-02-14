@@ -15,6 +15,7 @@ export interface ProjectSlice {
     analyticsData: any | null;
 
     // Settings Form State
+    framework: string;
     buildCommand: string;
     installCommand: string;
     rootDirectory: string;
@@ -86,6 +87,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     analyticsData: null,
 
     // Settings Form State Initial
+    framework: 'nextjs',
     buildCommand: '',
     installCommand: '',
     rootDirectory: '',
@@ -135,6 +137,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 const project = projectData.project;
                 set({
                     currentProject: project,
+                    framework: project.framework || 'nextjs',
                     buildCommand: project.buildCommand || '',
                     installCommand: project.installCommand || '',
                     rootDirectory: project.rootDirectory || '',
@@ -199,7 +202,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     },
 
     saveProjectSettings: async (projectId) => {
-        const { buildCommand, installCommand, rootDirectory, outputDirectory } = get();
+        const { framework, buildCommand, installCommand, rootDirectory, outputDirectory } = get();
         set({ isSavingProjectSettings: true });
         const toastId = toast.loading('Saving settings...');
         try {
@@ -207,6 +210,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    framework,
                     buildCommand,
                     installCommand,
                     rootDirectory,

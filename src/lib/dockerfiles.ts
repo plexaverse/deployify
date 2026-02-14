@@ -16,6 +16,8 @@ export function getDockerfile(config: DockerfileConfig): string {
             return generateViteDockerfile(config);
         case 'remix':
             return generateRemixDockerfile(config);
+        case 'docker':
+            return '';
         case 'nextjs':
         default:
             return generateNextjsDockerfile(config);
