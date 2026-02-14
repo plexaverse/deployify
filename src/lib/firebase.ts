@@ -1,9 +1,13 @@
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { config } from '@/lib/config';
+import { MockFirestore } from '@/lib/mock-firestore';
 
 let app: App | undefined;
 let db: Firestore | undefined;
+// Use global to persist mock DB across hot reloads
+const globalWithMock = global as typeof global & { mockDb?: any };
+let mockDb: any | undefined = globalWithMock.mockDb;
 
 /**
  * Initialize Firebase Admin SDK
@@ -34,6 +38,15 @@ function initializeFirebase(): App {
  * Get Firestore database instance
  */
 export function getDb(): Firestore {
+    if (process.env.MOCK_DB === 'true') {
+        if (!mockDb) {
+            console.log('Using Mock Firestore');
+            mockDb = new MockFirestore();
+            globalWithMock.mockDb = mockDb;
+        }
+        return mockDb as unknown as Firestore;
+    }
+
     if (!db) {
         if (!app) {
             app = initializeFirebase();

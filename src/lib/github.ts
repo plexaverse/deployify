@@ -74,6 +74,21 @@ export async function getRepo(
     owner: string,
     repo: string
 ): Promise<GitHubRepo> {
+    if (accessToken === 'mock-access-token') {
+        return {
+            id: Math.floor(Math.random() * 100000),
+            name: repo,
+            full_name: `${owner}/${repo}`,
+            private: false,
+            html_url: `https://github.com/${owner}/${repo}`,
+            description: 'Mock repository',
+            default_branch: 'main',
+            language: 'TypeScript',
+            updated_at: new Date().toISOString(),
+            pushed_at: new Date().toISOString(),
+        };
+    }
+
     const octokit = createGitHubClient(accessToken);
 
     const { data } = await octokit.repos.get({
@@ -103,6 +118,10 @@ export async function createRepoWebhook(
     owner: string,
     repo: string
 ): Promise<number> {
+    if (accessToken === 'mock-access-token') {
+        return Math.floor(Math.random() * 100000);
+    }
+
     const octokit = createGitHubClient(accessToken);
 
     const { data } = await octokit.repos.createWebhook({
@@ -231,6 +250,10 @@ export async function detectFramework(
     repo: string,
     rootDir: string = ''
 ): Promise<'nextjs' | 'vite' | 'astro' | 'remix' | null> {
+    if (accessToken === 'mock-access-token') {
+        return 'nextjs';
+    }
+
     const contents = await getRepoContents(accessToken, owner, repo, rootDir);
 
     // Helper to check file existence

@@ -205,6 +205,10 @@ Domain        // Custom domain (status: pending/active/error)
 3. `generateCloudRunDeployConfig()` creates the Cloud Build YAML
 4. Test with a sample repository push
 
+### Local Development & Testing
+- **Mock Firestore**: Set `MOCK_DB=true` in environment to use an in-memory mock Firestore. This bypasses GCP credentials requirement.
+- **Mock GitHub Token**: Use `'mock-access-token'` as the GitHub token to trigger mock responses from `getRepo` and other GitHub helpers.
+
 ---
 
 ## 📝 Learnings (from `.Jules/palette.md`)
