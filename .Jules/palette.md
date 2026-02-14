@@ -41,3 +41,7 @@
 ## 2026-03-01 - [Interactive Narrative Flow and Monochromatic Icons]
 **Learning:** Aligning with high-end monochromatic themes like scripe.io involves more than just color; it requires consistent iconography (e.g., using 'Play' instead of 'Zap' for video CTAs) and tactile feedback. An interactive narrative flow that 'lights up' process steps during scroll significantly improves engagement.
 **Action:** Use monochromatic icons (white/neutral) for dark-themed landing pages and implement whileInView scale/opacity enhancements for sequential content sections.
+
+## 2026-03-05 - [Visual Progress and State Synchronization]
+**Learning:** For long, content-rich landing pages, a horizontal reading progress bar provides subtle but helpful orientation for the user. Additionally, in search-driven interfaces, synchronizing the 'selected' index with the mouse hover state prevents confusing visual conflicts where a keyboard selection and a mouse hover both appear active, ensuring a smoother, more premium interaction.
+**Action:** Implement scroll progress indicators for long pages and always sync `selectedIndex` on `onMouseEnter` for list-based navigation.
