@@ -132,6 +132,9 @@ export async function POST(request: NextRequest) {
             case 'remix':
                 defaultOutputDirectory = 'build';
                 break;
+            case 'docker':
+                defaultOutputDirectory = '';
+                break;
             case 'nextjs':
             default:
                 defaultOutputDirectory = '.next';

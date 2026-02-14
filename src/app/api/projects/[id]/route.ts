@@ -78,6 +78,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         // Only allow updating specific fields
         const allowedFields = [
             'name',
+            'framework',
             'buildCommand',
             'installCommand',
             'outputDirectory',

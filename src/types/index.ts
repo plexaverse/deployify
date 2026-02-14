@@ -99,7 +99,7 @@ export interface Project {
     repoFullName: string; // owner/repo
     repoUrl: string;
     defaultBranch: string;
-    framework: 'nextjs' | 'vite' | 'remix' | 'astro';
+    framework: 'nextjs' | 'vite' | 'remix' | 'astro' | 'docker';
     buildCommand: string;
     installCommand: string;
     outputDirectory: string;

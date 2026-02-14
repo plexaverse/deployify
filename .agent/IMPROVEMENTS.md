@@ -141,6 +141,7 @@
 
 #### 15. **Custom Dockerfile Support**
 - **Improvement**: Detect and use repo's Dockerfile if present
+- **Status**: ✅ Implemented (Support for `docker` framework in detection and build pipeline)
 
 #### 16. **Environment Variable Groups**
 - **Improvement**: Group env vars (e.g., "Database", "API Keys") for organization

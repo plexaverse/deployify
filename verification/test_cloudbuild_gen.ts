@@ -18,10 +18,17 @@ try {
     const config = generateCloudRunDeployConfig(buildConfig as any) as any;
 
     // Check if the generated Dockerfile inside the steps contains the rootDirectory logic
-    const dockerStep = config.steps.find((s: any) => s.name === 'gcr.io/cloud-builders/docker' && s.args[1].includes('cat > /workspace/Dockerfile'));
+    // Modified to match dynamic workDir path
+    const dockerStep = config.steps.find((s: any) =>
+        s.name === 'gcr.io/cloud-builders/docker' &&
+        s.args[1].includes('cat >') &&
+        s.args[1].includes('/Dockerfile')
+    );
 
     if (!dockerStep) {
         console.error('Could not find Dockerfile generation step');
+        // Debug output
+        console.log('Steps found:', config.steps.map((s: any) => s.name + ' ' + (s.args ? s.args.join(' ') : '')));
         process.exit(1);
     }
 

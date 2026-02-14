@@ -116,30 +116,38 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildEnvSection = '# Placeholder DATABASE_URL for Prisma generate during build (not used at runtime)\nENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"';
     }
 
-    // Generate the Dockerfile content
-    const dockerfileContent = getDockerfile({
-        framework,
-        buildEnvSection,
-        outputDirectory,
-        buildCommand,
-        installCommand,
-        restoreCache: true,
-        rootDirectory,
-    });
+    // Generate the Dockerfile content (only if not 'docker' framework)
+    let dockerfileContent = '';
+    if (framework !== 'docker') {
+        dockerfileContent = getDockerfile({
+            framework,
+            buildEnvSection,
+            outputDirectory,
+            buildCommand,
+            installCommand,
+            restoreCache: true,
+            rootDirectory,
+        });
+    }
 
     // Define common steps shared between both deployment methods
-    const commonSteps = [
-        // Restore cache from GCS
-        {
+    const commonSteps: any[] = [];
+
+    // 1. Restore cache from GCS (Skip for docker)
+    if (framework !== 'docker') {
+        commonSteps.push({
             name: 'gcr.io/cloud-builders/gsutil',
             entrypoint: 'bash',
             args: [
                 '-c',
                 `mkdir -p ${workDir}/restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C ${workDir}/restore_cache || echo "No cache found or restore failed")`,
             ],
-        },
-        // Create a Dockerfile for Next.js if it doesn't exist
-        {
+        });
+    }
+
+    // 2. Create a Dockerfile for Next.js if it doesn't exist (Skip for docker)
+    if (framework !== 'docker') {
+        commonSteps.push({
             name: 'gcr.io/cloud-builders/docker',
             entrypoint: 'bash',
             args: [
@@ -149,9 +157,12 @@ ${dockerfileContent}
 EOFMARKER
 fi`,
             ],
-        },
-        // Check if next.config has output: 'standalone'
-        {
+        });
+    }
+
+    // 3. Check if next.config has output: 'standalone' (Next.js only)
+    if (framework === 'nextjs') {
+        commonSteps.push({
             name: 'node:20-alpine',
             entrypoint: 'sh',
             args: [
@@ -167,38 +178,45 @@ fi`,
         fi
       fi`,
             ],
-        },
-        // Pull the latest image for caching
-        {
-            name: 'gcr.io/cloud-builders/docker',
-            entrypoint: 'bash',
-            args: ['-c', `docker pull ${latestImageName} || exit 0`],
-        },
-        // Build the Docker image with build-time env vars and caching
-        {
-            name: 'gcr.io/cloud-builders/docker',
-            args: [
-                'build',
-                '-t', imageName,
-                '-t', latestImageName,
-                '--cache-from', latestImageName,
-                ...dockerBuildArgs,
-                '.'
-            ],
-            dir: workDir,
-        },
-        // Push to Artifact Registry (commit SHA tag)
-        {
-            name: 'gcr.io/cloud-builders/docker',
-            args: ['push', imageName],
-        },
-        // Push to Artifact Registry (latest tag)
-        {
-            name: 'gcr.io/cloud-builders/docker',
-            args: ['push', latestImageName],
-        },
-        // Build 'builder' target to extract cache
-        {
+        });
+    }
+
+    // 4. Pull the latest image for caching
+    commonSteps.push({
+        name: 'gcr.io/cloud-builders/docker',
+        entrypoint: 'bash',
+        args: ['-c', `docker pull ${latestImageName} || exit 0`],
+    });
+
+    // 5. Build the Docker image with build-time env vars and caching
+    commonSteps.push({
+        name: 'gcr.io/cloud-builders/docker',
+        args: [
+            'build',
+            '-t', imageName,
+            '-t', latestImageName,
+            '--cache-from', latestImageName,
+            ...dockerBuildArgs,
+            '.'
+        ],
+        dir: workDir,
+    });
+
+    // 6. Push to Artifact Registry (commit SHA tag)
+    commonSteps.push({
+        name: 'gcr.io/cloud-builders/docker',
+        args: ['push', imageName],
+    });
+
+    // 7. Push to Artifact Registry (latest tag)
+    commonSteps.push({
+        name: 'gcr.io/cloud-builders/docker',
+        args: ['push', latestImageName],
+    });
+
+    // 8. Build 'builder' target to extract cache (Skip for docker)
+    if (framework !== 'docker') {
+        commonSteps.push({
             name: 'gcr.io/cloud-builders/docker',
             args: [
                 'build',
@@ -208,10 +226,11 @@ fi`,
                 '.'
             ],
             dir: workDir,
-        },
-        // Extract and Save Cache to GCS (Non-blocking)
+        });
+
+        // 9. Extract and Save Cache to GCS (Non-blocking)
         // Note: Running in dir: workDir, so relative paths work as expected
-        {
+        commonSteps.push({
             name: 'gcr.io/cloud-builders/docker',
             entrypoint: 'bash',
             dir: workDir,
@@ -231,58 +250,59 @@ fi`,
   fi
 } || echo "Cache save failed, ignoring..."`
             ],
-        },
-        // Deploy to Cloud Run
-        {
-            name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
-            entrypoint: 'gcloud',
-            args: [
-                'run', 'deploy', serviceName,
-                '--image', imageName,
-                '--region', region,
-                '--platform', 'managed',
-                '--allow-unauthenticated',
-                '--memory', resources?.memory || config.cloudRun.memory,
-                '--cpu', (resources?.cpu || config.cloudRun.cpu).toString(),
-                '--min-instances', (resources?.minInstances !== undefined ? resources.minInstances : config.cloudRun.minInstances).toString(),
-                '--max-instances', (resources?.maxInstances !== undefined ? resources.maxInstances : config.cloudRun.maxInstances).toString(),
-                '--port', config.cloudRun.port.toString(),
-                '--timeout', `${config.cloudRun.timeout}s`,
-                ...(healthCheckPath ? ['--startup-probe-path', healthCheckPath, '--liveness-probe-path', healthCheckPath] : []),
-                ...envArgs,
-            ],
-        },
-        // Route 100% traffic to the latest revision
-        // This is critical - without this, traffic may stay on old revisions
-        {
-            name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
-            entrypoint: 'gcloud',
-            args: [
-                'run', 'services', 'update-traffic', serviceName,
-                '--region', region,
-                '--to-latest',
-            ],
-        },
-        // Explicitly set IAM policy to allow unauthenticated access
-        // Using longer delays and multiple retries for reliability
-        {
-            name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
-            entrypoint: 'bash',
-            args: [
-                '-c',
-                `echo "Waiting for service to be ready..." && sleep 15 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet || (echo "Retry 1..." && sleep 10 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet) || (echo "Retry 2..." && sleep 10 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet) || echo "Warning: Could not set IAM policy - you may need to set it manually"`,
-            ],
-        },
-        // Get the service URL
-        {
-            name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
-            entrypoint: 'bash',
-            args: [
-                '-c',
-                `gcloud run services describe ${serviceName} --region=${region} --format='value(status.url)' > /workspace/service_url.txt && echo "Deployed to: $(cat /workspace/service_url.txt)"`,
-            ],
-        },
-    ];
+        });
+    }
+    // 10. Deploy to Cloud Run
+    commonSteps.push({
+        name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+        entrypoint: 'gcloud',
+        args: [
+            'run', 'deploy', serviceName,
+            '--image', imageName,
+            '--region', region,
+            '--platform', 'managed',
+            '--allow-unauthenticated',
+            '--memory', resources?.memory || config.cloudRun.memory,
+            '--cpu', (resources?.cpu || config.cloudRun.cpu).toString(),
+            '--min-instances', (resources?.minInstances !== undefined ? resources.minInstances : config.cloudRun.minInstances).toString(),
+            '--max-instances', (resources?.maxInstances !== undefined ? resources.maxInstances : config.cloudRun.maxInstances).toString(),
+            '--port', config.cloudRun.port.toString(),
+            '--timeout', `${config.cloudRun.timeout}s`,
+            ...(healthCheckPath ? ['--startup-probe-path', healthCheckPath, '--liveness-probe-path', healthCheckPath] : []),
+            ...envArgs,
+        ],
+    });
+
+    // 11. Route 100% traffic to the latest revision
+    commonSteps.push({
+        name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+        entrypoint: 'gcloud',
+        args: [
+            'run', 'services', 'update-traffic', serviceName,
+            '--region', region,
+            '--to-latest',
+        ],
+    });
+
+    // 12. Explicitly set IAM policy to allow unauthenticated access
+    commonSteps.push({
+        name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+        entrypoint: 'bash',
+        args: [
+            '-c',
+            `echo "Waiting for service to be ready..." && sleep 15 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet || (echo "Retry 1..." && sleep 10 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet) || (echo "Retry 2..." && sleep 10 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet) || echo "Warning: Could not set IAM policy - you may need to set it manually"`,
+        ],
+    });
+
+    // 13. Get the service URL
+    commonSteps.push({
+        name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+        entrypoint: 'bash',
+        args: [
+            '-c',
+            `gcloud run services describe ${serviceName} --region=${region} --format='value(status.url)' > /workspace/service_url.txt && echo "Deployed to: $(cat /workspace/service_url.txt)"`,
+        ],
+    });
 
     // If gitToken is provided, use manual clone step instead of connectedRepository
     if (gitToken) {

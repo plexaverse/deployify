@@ -186,6 +186,7 @@ export default function ImportProjectPage() {
                                 <option value="vite">Vite (React, Vue, Svelte)</option>
                                 <option value="astro">Astro</option>
                                 <option value="remix">Remix</option>
+                                <option value="docker">Docker</option>
                             </select>
                         </div>
                     </div>
