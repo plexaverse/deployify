@@ -256,7 +256,22 @@ Refactored the Login and New Project Wizard pages to ensure full theme compatibi
   - Updated status indicators to use theme colors (`--success`, `--error`, `--info`).
   - Preserved the dark terminal look for the logs while ensuring layout consistency.
 
-### `src/app/login/page.tsx`
-- Replaced the custom `card-glass` div with the `Card` component, adding `backdrop-blur-xl`.
-- Replaced the "Continue with GitHub" link styling with `buttonVariants({ variant: 'primary', size: 'lg' })`.
-- Ensured all text colors use `text-[var(--foreground)]` or `text-[var(--muted-foreground)]`.
+## Modal Updates (Step-by-step)
+
+### `src/components/CreateTeamModal.tsx`
+- Replaced manual `<button>` and `<input>` elements with standard `Button`, `Input`, and `Label` components from `src/components/ui/`.
+- Standardized modal header and footer actions.
+- Used `variant="ghost"` for Cancel and Close buttons.
+- Used `variant="primary"` for the Create Team button with `loading` state support.
+
+### `src/components/RollbackModal.tsx`
+- Replaced manual `<button>` elements with standard `Button` components.
+- Standardized modal header and footer actions.
+
+### `src/components/DeploymentLogsModal.tsx`
+- Replaced manual `<button>` elements with standard `Button` components.
+- Replaced manual badge span with `Badge` component using semantic variants.
+
+### `src/components/TeamSwitcher.tsx`
+- Replaced manual `<button>` elements with standard `Button` components.
+- Used `Skeleton` for loading state.

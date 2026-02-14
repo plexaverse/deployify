@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { DeploymentTimeline } from '@/components/DeploymentTimeline';
 import { BuildLogViewer } from '@/components/BuildLogViewer';
 import type { Deployment } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface DeploymentLogsModalProps {
     deployment: Deployment;
@@ -16,6 +19,11 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
     const [logs, setLogs] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const fetchLogs = useCallback(async (isPolling = false) => {
         if (!isPolling) setLoading(true);
@@ -57,25 +65,31 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
         };
     }, [isOpen, deployment.id, deployment.status, fetchLogs]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !mounted) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-4xl h-[80vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
                     <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-lg">Build Logs</h3>
-                        <span className={`badge ${deployment.status === 'ready' ? 'badge-success' :
-                                deployment.status === 'error' ? 'badge-error' :
-                                    deployment.status === 'building' ? 'badge-warning' : 'badge-info'
-                            }`}>
+                        <Badge variant={
+                            deployment.status === 'ready' ? 'success' :
+                            deployment.status === 'error' ? 'destructive' :
+                            deployment.status === 'building' ? 'warning' : 'info'
+                        }>
                             {deployment.status}
-                        </span>
+                        </Badge>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-[var(--border)] rounded-md transition-colors">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClose}
+                        className="h-8 w-8 p-0"
+                    >
                         <X className="w-5 h-5" />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Timeline */}
@@ -93,6 +107,7 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
                     />
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

@@ -1,7 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertTriangle, X } from 'lucide-react';
 import type { Deployment } from '@/types';
+import { Button } from '@/components/ui/button';
 
 interface RollbackModalProps {
     deployment: Deployment;
@@ -11,10 +14,16 @@ interface RollbackModalProps {
 }
 
 export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: RollbackModalProps) {
-    if (!isOpen) return null;
+    const [mounted, setMounted] = useState(false);
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!isOpen || !mounted) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-md rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in max-h-[85vh]">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
@@ -22,12 +31,14 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                         <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
                         Confirm Rollback
                     </h3>
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={onClose}
-                        className="p-2 hover:bg-[var(--border)] rounded-md transition-colors"
+                        className="h-8 w-8 p-0"
                     >
                         <X className="w-5 h-5" />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Content */}
@@ -62,20 +73,21 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
 
                 {/* Footer */}
                 <div className="p-4 border-t border-[var(--border)] bg-[var(--background)] flex justify-end gap-3 shrink-0">
-                    <button
+                    <Button
+                        variant="ghost"
                         onClick={onClose}
-                        className="px-4 py-2 rounded-md hover:bg-[var(--border)] transition-colors"
                     >
                         Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        variant="primary"
                         onClick={onConfirm}
-                        className="px-4 py-2 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity font-medium"
                     >
                         Confirm Rollback
-                    </button>
+                    </Button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
