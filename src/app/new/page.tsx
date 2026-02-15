@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
     ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X,
-    Settings, Terminal, Plus, Trash2, CheckCircle2, AlertCircle, ChevronRight
+    Settings, Terminal, Plus, Trash2, CheckCircle2, AlertCircle, ChevronRight, Github
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -33,25 +33,25 @@ const GCP_REGIONS = [
 
 export default function NewProjectPage() {
     const router = useRouter();
-    const [step, setStep] = useState<1 | 2 | 3>(1);
+    const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
     const [selectedRepo, setSelectedRepo] = useState<GitHubRepo | null>(null);
     const [project, setProject] = useState<Project | null>(null);
     const [deployment, setDeployment] = useState<Deployment | null>(null);
 
-    // Step 2 State (lifted up to persist between step switches if needed, mostly for Step 3 access)
-    // Actually better to keep Step 2 state inside Step 2, but we need project/deployment for Step 3.
-    // So project and deployment are lifted.
+    const handleProviderSelect = () => {
+        setStep(2);
+    };
 
     const handleRepoSelect = (repo: GitHubRepo) => {
         setSelectedRepo(repo);
-        setStep(2);
+        setStep(3);
         toast.success(`Selected ${repo.full_name}`);
     };
 
     const handleDeploymentStarted = (proj: Project, deploy: Deployment) => {
         setProject(proj);
         setDeployment(deploy);
-        setStep(3);
+        setStep(4);
     };
 
     return (
@@ -75,11 +75,13 @@ export default function NewProjectPage() {
 
                     {/* Stepper Indicator */}
                     <div className="flex items-center gap-2 text-sm">
-                        <StepIndicator current={step} number={1} label="Select" />
-                        <div className="w-8 h-[1px] bg-[var(--border)]" />
-                        <StepIndicator current={step} number={2} label="Configure" />
-                        <div className="w-8 h-[1px] bg-[var(--border)]" />
-                        <StepIndicator current={step} number={3} label="Deploy" />
+                        <StepIndicator current={step} number={1} label="Provider" />
+                        <div className="w-4 sm:w-8 h-[1px] bg-[var(--border)]" />
+                        <StepIndicator current={step} number={2} label="Repository" />
+                        <div className="w-4 sm:w-8 h-[1px] bg-[var(--border)]" />
+                        <StepIndicator current={step} number={3} label="Configure" />
+                        <div className="w-4 sm:w-8 h-[1px] bg-[var(--border)]" />
+                        <StepIndicator current={step} number={4} label="Deploy" />
                     </div>
                 </div>
 
@@ -87,19 +89,26 @@ export default function NewProjectPage() {
                 <div className="flex-1 overflow-y-auto">
                     <AnimatePresence mode="wait">
                         {step === 1 && (
-                            <Step1SelectRepo key="step1" onSelect={handleRepoSelect} />
+                            <Step1SelectProvider key="step1" onSelect={handleProviderSelect} />
                         )}
-                        {step === 2 && selectedRepo && (
-                            <Step2Configure
+                        {step === 2 && (
+                            <Step2SelectRepo
                                 key="step2"
-                                repo={selectedRepo}
+                                onSelect={handleRepoSelect}
                                 onBack={() => setStep(1)}
+                            />
+                        )}
+                        {step === 3 && selectedRepo && (
+                            <Step3Configure
+                                key="step3"
+                                repo={selectedRepo}
+                                onBack={() => setStep(2)}
                                 onDeploy={handleDeploymentStarted}
                             />
                         )}
-                        {step === 3 && project && deployment && (
-                            <Step3Deploy
-                                key="step3"
+                        {step === 4 && project && deployment && (
+                            <Step4Deploy
+                                key="step4"
                                 project={project}
                                 initialDeployment={deployment}
                             />
@@ -118,7 +127,7 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
     return (
         <div className={`flex items-center gap-2 ${active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'}`}>
             <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border transition-colors",
+                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border transition-colors flex-shrink-0",
                 active
                     ? 'bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]'
                     : 'bg-transparent border-[var(--border)]',
@@ -126,16 +135,89 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
             )}>
                 {active && current > number ? <CheckCircle2 className="w-3.5 h-3.5" /> : number}
             </div>
-            <span>{label}</span>
+            <span className="hidden sm:inline">{label}</span>
         </div>
     );
 }
 
 // ----------------------------------------------------------------------
-// Step 1: Select Repository
+// Step 1: Select Provider
 // ----------------------------------------------------------------------
 
-function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void }) {
+function Step1SelectProvider({ onSelect }: { onSelect: () => void }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-2xl mx-auto space-y-8 py-12"
+        >
+            <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold">Import Git Repository</h2>
+                <p className="text-[var(--muted-foreground)]">Select a Git provider to import your project from</p>
+            </div>
+
+            <div className="grid gap-4">
+                <button
+                    onClick={onSelect}
+                    className="group flex items-center gap-5 p-6 rounded-xl border border-[var(--border)] hover:border-[var(--primary)] bg-[var(--card)] hover:bg-[var(--card-hover)] transition-all text-left"
+                >
+                    <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-neutral-900 text-white border border-neutral-800">
+                        <Github className="w-7 h-7" />
+                    </div>
+                    <div>
+                        <div className="font-semibold text-lg flex items-center gap-2">
+                            GitHub
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--success-bg)] text-[var(--success)] border border-[var(--success)]/20">
+                                Connected
+                            </span>
+                        </div>
+                        <p className="text-sm text-[var(--muted-foreground)]">Import repositories from your GitHub account</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 ml-auto text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors" />
+                </button>
+
+                <button
+                    disabled
+                    className="flex items-center gap-5 p-6 rounded-xl border border-[var(--border)] bg-[var(--muted)]/10 opacity-60 cursor-not-allowed text-left"
+                >
+                    <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-[#FC6D26] text-white">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7"><path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.15-.94l.4-1.14h20.8l.4 1.14a.84.84 0 0 1-.15.94Z"></path><path d="m6.3 11.73-1.6-4.13a.56.56 0 0 0-1.07 0L2.1 11.73a.84.84 0 0 0 .15.94l9.75 7.14L6.3 11.73Z"></path><path d="m17.7 11.73 1.6-4.13a.56.56 0 0 1 1.07 0l1.53 4.13a.84.84 0 0 1 .15.94l-9.75 7.14 6.4-8.08Z"></path><path d="m6.3 11.73 5.7 8.13 5.7-8.13h-11.4Z"></path></svg>
+                    </div>
+                    <div>
+                        <div className="font-semibold text-lg flex items-center gap-2">
+                            GitLab
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)]">Coming Soon</span>
+                        </div>
+                        <p className="text-sm text-[var(--muted-foreground)]">Import from GitLab repositories</p>
+                    </div>
+                </button>
+
+                <button
+                    disabled
+                    className="flex items-center gap-5 p-6 rounded-xl border border-[var(--border)] bg-[var(--muted)]/10 opacity-60 cursor-not-allowed text-left"
+                >
+                    <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-[#0052CC] text-white">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7"><path d="M1.64 8.76 11.23 21h10.9L13.8 3.03c-.22-.55-.99-.54-1.2.02L8.6 13.97l-5.69-5.18c-.46-.42-1.18-.11-1.27.57ZM14.6 2.6l9.16 17.18c.24.45-.16.98-.63.85l-7.2-2.03L14.6 2.6Z" /></svg>
+                    </div>
+                    <div>
+                        <div className="font-semibold text-lg flex items-center gap-2">
+                            Bitbucket
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)]">Coming Soon</span>
+                        </div>
+                        <p className="text-sm text-[var(--muted-foreground)]">Import from Bitbucket repositories</p>
+                    </div>
+                </button>
+            </div>
+        </motion.div>
+    );
+}
+
+// ----------------------------------------------------------------------
+// Step 2: Select Repository
+// ----------------------------------------------------------------------
+
+function Step2SelectRepo({ onSelect, onBack }: { onSelect: (repo: GitHubRepo) => void, onBack: () => void }) {
     const [repos, setRepos] = useState<GitHubRepo[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
@@ -177,11 +259,18 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
             className="w-full max-w-3xl mx-auto space-y-6"
         >
+             <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 pl-0 hover:bg-transparent hover:text-[var(--foreground)] text-[var(--muted-foreground)]">
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Providers
+                </Button>
+            </div>
+
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
                 <Input
@@ -271,10 +360,10 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
 }
 
 // ----------------------------------------------------------------------
-// Step 2: Configure Project
+// Step 3: Configure Project
 // ----------------------------------------------------------------------
 
-function Step2Configure({ repo, onBack, onDeploy }: {
+function Step3Configure({ repo, onBack, onDeploy }: {
     repo: GitHubRepo,
     onBack: () => void,
     onDeploy: (project: Project, deployment: Deployment) => void
@@ -513,10 +602,10 @@ function Step2Configure({ repo, onBack, onDeploy }: {
 }
 
 // ----------------------------------------------------------------------
-// Step 3: Deployment Logs
+// Step 4: Deployment Logs
 // ----------------------------------------------------------------------
 
-function Step3Deploy({ project, initialDeployment }: { project: Project, initialDeployment: Deployment }) {
+function Step4Deploy({ project, initialDeployment }: { project: Project, initialDeployment: Deployment }) {
     const router = useRouter();
     const [status, setStatus] = useState<string>(initialDeployment.status);
     const [logs, setLogs] = useState<string>('Initializing build environment...');

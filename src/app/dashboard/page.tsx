@@ -6,6 +6,7 @@ import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { EmptyState } from '@/components/EmptyState';
+import { NoProjectsIllustration } from '@/components/ui/illustrations';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -170,7 +171,7 @@ export default function DashboardPage() {
                 <EmptyState
                     title="No projects found"
                     description={`No projects match "${searchQuery}"`}
-                    icon={Search}
+                    illustration={<NoProjectsIllustration className="w-full h-full text-[var(--muted)]" />}
                     action={
                         <Button
                             variant="ghost"

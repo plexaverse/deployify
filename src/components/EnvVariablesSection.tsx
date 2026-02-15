@@ -17,6 +17,7 @@ import type { EnvVariableTarget } from '@/types';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
+import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -263,7 +264,15 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 <EmptyState
                     title="No environment variables yet"
                     description="Add keys like API_KEY, DATABASE_URL, etc. to configure your app at build and runtime."
-                    icon={Plus}
+                    illustration={<NoEnvVarsIllustration className="w-full h-full text-[var(--muted)]" />}
+                    action={
+                        <Button
+                            onClick={() => setIsAdding(true)}
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Variable
+                        </Button>
+                    }
                 />
             ) : (
                 <div className="overflow-x-auto rounded-md border border-[var(--border)]">
