@@ -3,9 +3,13 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Plus, Trash2, MapPin, Terminal, Settings } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/moving-border';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { useStore } from '@/store';
 
 // Common GCP regions (matching those in new/page.tsx)
@@ -147,135 +151,128 @@ export default function ImportProjectPage() {
         <div className="p-8 max-w-4xl mx-auto">
             <Link
                 href="/dashboard/new"
-                className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-6"
+                className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-6 transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Git Repositories
             </Link>
 
-            <h1 className="text-2xl font-bold mb-2">Configure Project</h1>
+            <h1 className="text-2xl font-bold mb-2 text-[var(--foreground)]">Configure Project</h1>
             <p className="text-[var(--muted-foreground)] mb-8">
-                Deploying <strong>{repoFullName}</strong>
+                Deploying <strong className="text-[var(--foreground)]">{repoFullName}</strong>
             </p>
 
             <div className="grid grid-cols-1 gap-6">
                 {/* General Settings */}
-                <div className="card">
-                    <h2 className="text-lg font-semibold mb-4">Project Settings</h2>
+                <Card>
+                    <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)]">Project Settings</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Project Name</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>Project Name</Label>
+                            <Input
                                 type="text"
                                 value={projectName}
                                 onChange={(e) => setProjectName(e.target.value)}
-                                className="input w-full"
                                 placeholder="my-project"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Framework Preset</label>
-                            <select
+                        <div className="space-y-2">
+                            <Label>Framework Preset</Label>
+                            <NativeSelect
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
-                                className="input w-full"
                             >
                                 <option value="auto">Auto-detect</option>
                                 <option value="nextjs">Next.js</option>
                                 <option value="vite">Vite (React, Vue, Svelte)</option>
                                 <option value="astro">Astro</option>
                                 <option value="remix">Remix</option>
-                            </select>
+                            </NativeSelect>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Root Directory</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>Root Directory</Label>
+                            <Input
                                 type="text"
                                 value={rootDirectory}
                                 onChange={(e) => setRootDirectory(e.target.value)}
-                                className="input w-full"
                                 placeholder="./"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Region</label>
-                            <select
+                        <div className="space-y-2">
+                            <Label>Region</Label>
+                            <NativeSelect
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
-                                className="input w-full"
                             >
                                 {GCP_REGIONS.map((r) => (
                                     <option key={r.value} value={r.value}>
                                         {r.label}
                                     </option>
                                 ))}
-                            </select>
+                            </NativeSelect>
                         </div>
                     </div>
-                </div>
+                </Card>
 
                 {/* Build Settings */}
-                <div className="card">
+                <Card>
                     <div className="flex items-center gap-2 mb-4">
                         <Settings className="w-5 h-5 text-[var(--muted-foreground)]" />
-                        <h2 className="text-lg font-semibold">Build Settings</h2>
+                        <h2 className="text-lg font-semibold text-[var(--foreground)]">Build Settings</h2>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Build Command</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>Build Command</Label>
+                            <Input
                                 type="text"
                                 value={buildCommand}
                                 onChange={(e) => setBuildCommand(e.target.value)}
-                                className="input w-full"
                                 placeholder="npm run build"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Output Directory</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label>Output Directory</Label>
+                            <Input
                                 type="text"
                                 value={outputDirectory}
                                 onChange={(e) => setOutputDirectory(e.target.value)}
-                                className="input w-full"
                                 placeholder=".next"
                             />
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Install Command</label>
-                        <input
+                    <div className="space-y-2">
+                        <Label>Install Command</Label>
+                        <Input
                             type="text"
                             value={installCommand}
                             onChange={(e) => setInstallCommand(e.target.value)}
-                            className="input w-full"
                             placeholder="npm install"
                         />
                     </div>
-                </div>
+                </Card>
 
                 {/* Environment Variables */}
-                <div className="card">
+                <Card>
                     <div className="flex items-center gap-2 mb-4">
                         <Terminal className="w-5 h-5 text-[var(--muted-foreground)]" />
-                        <h2 className="text-lg font-semibold">Environment Variables</h2>
+                        <h2 className="text-lg font-semibold text-[var(--foreground)]">Environment Variables</h2>
                     </div>
 
                     <div className="mb-4 space-y-2">
                         {envVars.map((env) => (
                             <div key={env.key} className="flex items-center gap-2 p-2 rounded bg-[var(--background)] border border-[var(--border)]">
                                 <div className="flex-1 grid grid-cols-3 gap-2">
-                                    <div className="font-mono text-sm truncate" title={env.key}>{env.key}</div>
-                                    <div className="font-mono text-sm truncate" title={env.value}>{env.value}</div>
+                                    <div className="font-mono text-sm truncate text-[var(--foreground)]" title={env.key}>{env.key}</div>
+                                    <div className="font-mono text-sm truncate text-[var(--muted-foreground)]" title={env.value}>{env.value}</div>
                                     <div className="text-xs text-[var(--muted-foreground)] flex items-center">{env.target}</div>
                                 </div>
-                                <button onClick={() => handleRemoveEnv(env.key)} className="text-[var(--muted-foreground)] hover:text-red-500">
+                                <button onClick={() => handleRemoveEnv(env.key)} className="text-[var(--muted-foreground)] hover:text-red-500 transition-colors">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
@@ -283,45 +280,44 @@ export default function ImportProjectPage() {
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-2">
-                        <input
+                        <Input
                             type="text"
                             value={newEnvKey}
                             onChange={(e) => setNewEnvKey(e.target.value)}
                             placeholder="KEY"
-                            className="input flex-1 font-mono text-sm"
+                            className="flex-1 font-mono text-sm"
                         />
-                        <input
+                        <Input
                             type="text"
                             value={newEnvValue}
                             onChange={(e) => setNewEnvValue(e.target.value)}
                             placeholder="Value"
-                            className="input flex-1 font-mono text-sm"
+                            className="flex-1 font-mono text-sm"
                         />
-                        <select
+                        <NativeSelect
                             value={newEnvTarget}
                             onChange={(e) => setNewEnvTarget(e.target.value as any)}
-                            className="input w-32 text-sm"
+                            className="w-32 text-sm"
                         >
                             <option value="both">Both</option>
                             <option value="build">Build</option>
                             <option value="runtime">Runtime</option>
-                        </select>
-                        <button
+                        </NativeSelect>
+                        <Button
+                            variant="secondary"
                             onClick={handleAddEnv}
-                            className="btn btn-secondary whitespace-nowrap"
                             disabled={!newEnvKey || !newEnvValue}
                         >
-                            <Plus className="w-4 h-4" /> Add
-                        </button>
+                            <Plus className="w-4 h-4 mr-2" /> Add
+                        </Button>
                     </div>
-                </div>
+                </Card>
 
                 <div className="flex justify-end pt-4">
                     <Button
                         onClick={handleDeploy}
                         disabled={isDeploying || !projectName}
-                        containerClassName="h-12 w-full md:w-auto"
-                        className="bg-black text-white dark:bg-slate-900 font-semibold text-base"
+                        className="h-12 w-full md:w-auto text-base"
                     >
                         {isDeploying ? (
                             <>

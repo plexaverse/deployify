@@ -260,3 +260,25 @@ Refactored the Login and New Project Wizard pages to ensure full theme compatibi
 - Replaced the custom `card-glass` div with the `Card` component, adding `backdrop-blur-xl`.
 - Replaced the "Continue with GitHub" link styling with `buttonVariants({ variant: 'primary', size: 'lg' })`.
 - Ensured all text colors use `text-[var(--foreground)]` or `text-[var(--muted-foreground)]`.
+
+## Project Dashboard & Import Refactor
+
+Refactored the specific project dashboard and the fallback import page to use standard UI components.
+
+### `src/app/dashboard/[id]/page.tsx`
+- Replaced manual `div` cards with the `Card` component.
+- Replaced manual `btn` classes with the `Button` component.
+- Replaced manual status badges with the `Badge` component.
+- Ensured consistent usage of theme variables for colors.
+- Improved robustness of `WebVitals` component against partial data.
+
+### `src/components/ui/native-select.tsx`
+- Created a new `NativeSelect` component that mirrors the styling of the `Input` component but for `<select>` elements.
+- Provides a consistent look for native dropdowns without requiring complex third-party libraries.
+
+### `src/app/dashboard/new/import/page.tsx`
+- Replaced manual `div` cards with the `Card` component.
+- Replaced manual `className="input ..."` inputs with the `Input` component.
+- Replaced manual `select` elements with the new `NativeSelect` component.
+- Replaced manual labels with the `Label` component.
+- Replaced manual buttons with the `Button` component.

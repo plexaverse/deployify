@@ -39,7 +39,11 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
         return null;
     }
 
-    const { lcp, fid, cls, performanceScore } = metrics;
+    // Default to 0 or null to prevent crashes on incomplete data
+    const lcp = metrics.lcp ?? 0;
+    const fid = metrics.fid ?? null;
+    const cls = metrics.cls ?? 0;
+    const performanceScore = metrics.performanceScore ?? 0;
 
     const stats = [
         {
