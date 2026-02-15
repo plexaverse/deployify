@@ -6,6 +6,7 @@ import type { Domain } from '@/types';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
+import { NoDomainsIllustration } from '@/components/ui/illustrations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -385,6 +386,7 @@ export function DomainsSection({
                     title="No domains configured"
                     description="Connect a custom domain to give your project a professional look. We handle the SSL certificates automatically."
                     icon={Globe}
+                    illustration={<NoDomainsIllustration className="w-48 text-[var(--muted-foreground)]" />}
                     action={
                         <Button
                             variant="secondary"

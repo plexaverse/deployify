@@ -1,0 +1,431 @@
+
+> deployify@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1632ms
+○ Compiling /dashboard/[id]/settings ...
+ GET /dashboard/p1/settings 200 in 12.5s (compile: 11.6s, proxy.ts: 115ms, render: 744ms)
+ GET /login 200 in 2.9s (compile: 2.6s, proxy.ts: 24ms, render: 251ms)
+ GET /login 200 in 127ms (compile: 33ms, proxy.ts: 10ms, render: 84ms)
+ GET /dashboard 200 in 1214ms (compile: 1008ms, proxy.ts: 4ms, render: 203ms)
+ GET /login 200 in 170ms (compile: 7ms, proxy.ts: 5ms, render: 158ms)
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 8.2s (compile: 1889ms, proxy.ts: 6ms, render: 6.3s)
+ POST /api/v1/collect 200 in 5.9s (compile: 4ms, proxy.ts: 5ms, render: 5.9s)
+ POST /api/v1/collect 200 in 2.2s (compile: 4ms, proxy.ts: 9ms, render: 2.2s)
+Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET'
+}
+⨯ uncaughtException: Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET'
+}
+⨯ uncaughtException:  Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET'
+}
+⨯ Error: aborted
+    at ignore-listed frames
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /dashboard/p1/settings 200 in 198ms (compile: 61ms, proxy.ts: 5ms, render: 132ms)
+ GET /api/teams 200 in 2.1s (compile: 446ms, proxy.ts: 7ms, render: 1670ms)
+ GET /dashboard/p1/settings 200 in 199ms (compile: 50ms, proxy.ts: 4ms, render: 145ms)
+ GET /api/teams 200 in 2.0s (compile: 6ms, proxy.ts: 6ms, render: 2.0s)
+ GET /dashboard 200 in 89ms (compile: 5ms, proxy.ts: 3ms, render: 81ms)
+ POST /api/v1/collect 200 in 1989ms (compile: 12ms, proxy.ts: 5ms, render: 1972ms)
+ GET /api/teams 200 in 1994ms (compile: 8ms, proxy.ts: 4ms, render: 1982ms)
+ POST /api/v1/collect 200 in 4.4s (compile: 5ms, proxy.ts: 7ms, render: 4.4s)
+ POST /api/v1/collect 200 in 7.1s (compile: 4ms, proxy.ts: 9ms, render: 7.1s)
+ POST /api/v1/collect 200 in 5.0s (compile: 4ms, proxy.ts: 5ms, render: 5.0s)
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /dashboard/p1/settings 200 in 182ms (compile: 47ms, proxy.ts: 5ms, render: 130ms)
+ GET /api/teams 200 in 2.3s (compile: 10ms, proxy.ts: 6ms, render: 2.2s)
+ GET /dashboard/p1/settings 200 in 234ms (compile: 40ms, proxy.ts: 3ms, render: 190ms)
+ GET /api/teams 200 in 2.2s (compile: 12ms, proxy.ts: 5ms, render: 2.1s)
+ GET /dashboard 200 in 98ms (compile: 5ms, proxy.ts: 3ms, render: 89ms)
+ POST /api/v1/collect 200 in 2.0s (compile: 8ms, proxy.ts: 4ms, render: 2.0s)
+ GET /api/teams 200 in 2.0s (compile: 7ms, proxy.ts: 3ms, render: 2.0s)
+ POST /api/v1/collect 200 in 2.4s (compile: 4ms, proxy.ts: 4ms, render: 2.4s)
+ POST /api/v1/collect 200 in 4.6s (compile: 19ms, proxy.ts: 5ms, render: 4.6s)
+ POST /api/v1/collect 200 in 7.3s (compile: 18ms, proxy.ts: 7ms, render: 7.3s)
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+ HEAD / 200 in 3.1s (compile: 2.9s, proxy.ts: 5ms, render: 273ms)
+ GET /dashboard/p1/settings 200 in 161ms (compile: 55ms, proxy.ts: 4ms, render: 102ms)
+ GET /api/teams 200 in 5.1s (compile: 6ms, proxy.ts: 4ms, render: 5.1s)
+ GET /api/projects/p1/logs/stats 200 in 5.2s (compile: 1720ms, proxy.ts: 4ms, render: 3.4s)
+ GET /dashboard/p1/settings 200 in 194ms (compile: 58ms, proxy.ts: 4ms, render: 131ms)
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 6.4s (compile: 3ms, proxy.ts: 6ms, render: 6.4s)
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+ GET /api/teams 200 in 5.5s (compile: 15ms, proxy.ts: 13ms, render: 5.4s)
+ GET /api/projects/p1/logs/stats 200 in 5.5s (compile: 133ms, proxy.ts: 9ms, render: 5.3s)
+ GET /dashboard 200 in 515ms (compile: 204ms, proxy.ts: 4ms, render: 307ms)
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 7.2s (compile: 4ms, proxy.ts: 5ms, render: 7.2s)
+Error checking project access: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectById (src/lib/db.ts:469:67)
+    at checkProjectAccess (src/middleware/rbac.ts:10:45)
+    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
+  467 | export async function getProjectById(id: string): Promise<Project | null> {
+  468 |     const db = getDb();
+> 469 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
+      |                                                                   ^
+  470 |
+  471 |     if (!doc.exists) {
+  472 |         return null;
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 8.2s (compile: 19ms, proxy.ts: 12ms, render: 8.1s)
+Error checking project access: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectById (src/lib/db.ts:469:67)
+    at checkProjectAccess (src/middleware/rbac.ts:10:45)
+    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
+  467 | export async function getProjectById(id: string): Promise<Project | null> {
+  468 |     const db = getDb();
+> 469 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
+      |                                                                   ^
+  470 |
+  471 |     if (!doc.exists) {
+  472 |         return null;
+ POST /api/v1/collect 200 in 5.0s (compile: 11ms, proxy.ts: 7ms, render: 5.0s)
+ GET /api/teams 200 in 5.0s (compile: 11ms, proxy.ts: 3ms, render: 5.0s)
+⨯ Error: aborted
+    at ignore-listed frames
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ GET /dashboard/p1/settings 200 in 197ms (compile: 61ms, proxy.ts: 5ms, render: 131ms)
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 6.7s (compile: 66ms, proxy.ts: 8ms, render: 6.6s)
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+ GET /api/teams 500 in 7.0s (compile: 8ms, proxy.ts: 6ms, render: 7.0s)
+Error checking project access: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectById (src/lib/db.ts:469:67)
+    at checkProjectAccess (src/middleware/rbac.ts:10:45)
+    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
+  467 | export async function getProjectById(id: string): Promise<Project | null> {
+  468 |     const db = getDb();
+> 469 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
+      |                                                                   ^
+  470 |
+  471 |     if (!doc.exists) {
+  472 |         return null;
+ GET /api/projects/p1/logs/stats 500 in 7.2s (compile: 78ms, proxy.ts: 5ms, render: 7.1s)
+ GET /dashboard/p1/settings 200 in 164ms (compile: 50ms, proxy.ts: 4ms, render: 110ms)
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;
+ POST /api/v1/collect 500 in 6.4s (compile: 17ms, proxy.ts: 7ms, render: 6.4s)
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+ GET /api/teams 500 in 8.6s (compile: 16ms, proxy.ts: 7ms, render: 8.6s)
+Error checking project access: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectById (src/lib/db.ts:469:67)
+    at checkProjectAccess (src/middleware/rbac.ts:10:45)
+    at GET (src/app/api/projects/[id]/logs/stats/route.ts:24:48)
+  467 | export async function getProjectById(id: string): Promise<Project | null> {
+  468 |     const db = getDb();
+> 469 |     const doc = await db.collection(Collections.PROJECTS).doc(id).get();
+      |                                                                   ^
+  470 |
+  471 |     if (!doc.exists) {
+  472 |         return null;
+ GET /api/projects/p1/logs/stats 500 in 9.0s (compile: 85ms, proxy.ts: 4ms, render: 8.9s)
+ GET /dashboard 200 in 91ms (compile: 5ms, proxy.ts: 4ms, render: 82ms)
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:404:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  402 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  403 |         .where('userId', '==', userId)
+> 404 |         .get();
+      |          ^
+  405 |
+  406 |     if (membershipsSnapshot.empty) {
+  407 |         return [];
+ GET /api/teams 500 in 7.7s (compile: 8ms, proxy.ts: 3ms, render: 7.7s)
+ POST /api/v1/collect 200 in 7.9s (compile: 8ms, proxy.ts: 4ms, render: 7.9s)
+In-house collector error: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at getProjectByApiKey (src/lib/db.ts:166:10)
+    at POST (src/app/api/v1/collect/route.ts:53:49)
+  164 |         .where('analyticsApiKey', '==', apiKey)
+  165 |         .limit(1)
+> 166 |         .get();
+      |          ^
+  167 |
+  168 |     if (snapshot.empty) {
+  169 |         return null;

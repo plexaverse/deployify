@@ -51,6 +51,7 @@
 - **Current**: Basic empty state with icon
 - **Improvement**: Custom illustrations for empty states (no projects, no deployments, no domains)
 - **Benefit**: More engaging, professional feel
+- **Status**: ✅ Implemented (`src/components/ui/illustrations.tsx`)
 
 ### Low Priority (Polish)
 
@@ -144,6 +145,7 @@
 
 #### 16. **Environment Variable Groups**
 - **Improvement**: Group env vars (e.g., "Database", "API Keys") for organization
+- **Status**: ✅ Implemented (`EnvVariablesSection.tsx`)
 
 #### 17. **Secrets Encryption**
 - **Current**: EnvVars reference Secret Manager but unclear encryption

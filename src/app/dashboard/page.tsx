@@ -6,6 +6,7 @@ import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { EmptyState } from '@/components/EmptyState';
+import { NoProjectsIllustration } from '@/components/ui/illustrations';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -162,7 +163,17 @@ export default function DashboardPage() {
 
             {/* Empty state - No projects at all */}
             {!loading && projects.length === 0 && (
-                <OnboardingGuide />
+                <EmptyState
+                    title="No Projects Yet"
+                    description="Get started by deploying your first project."
+                    illustration={<NoProjectsIllustration />}
+                    action={
+                        <Link href="/new" className={buttonVariants({ variant: 'default' })}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Project
+                        </Link>
+                    }
+                />
             )}
 
             {/* Empty state - No search results */}
@@ -171,6 +182,7 @@ export default function DashboardPage() {
                     title="No projects found"
                     description={`No projects match "${searchQuery}"`}
                     icon={Search}
+                    illustration={<NoProjectsIllustration className="w-48 text-[var(--muted-foreground)]" />}
                     action={
                         <Button
                             variant="ghost"

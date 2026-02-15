@@ -87,7 +87,7 @@ deployify/
 User          // GitHub OAuth user
 Project       // Deployment project config (repo, build commands, region, emailNotifications, etc.)
 Deployment    // Individual deployment record (status, commit, URLs)
-EnvVar        // Environment variable (key, value, target: production/preview/all)
+EnvVar        // Environment variable (key, value, target, group: string)
 Domain        // Custom domain (status: pending/active/error)
 ```
 
@@ -229,6 +229,7 @@ Domain        // Custom domain (status: pending/active/error)
 | Change styles | `src/app/globals.css` |
 | Add type | `src/types/index.ts` |
 | Add animated component | `src/components/ui/` |
+| Add illustration | `src/components/ui/illustrations.tsx` |
 
 ### Running Commands
 ```bash

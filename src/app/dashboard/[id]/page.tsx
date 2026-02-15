@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/EmptyState';
+import { NoDeploymentsIllustration } from '@/components/ui/illustrations';
 import { Button } from '@/components/ui/moving-border';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
@@ -321,6 +322,7 @@ export default function ProjectDetailPage() {
                     <EmptyState
                         title="Ready to deploy"
                         icon={GitBranch}
+                        illustration={<NoDeploymentsIllustration className="w-48 text-[var(--muted-foreground)]" />}
                         description={
                             <span>
                                 Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-xs">{project.defaultBranch}</code> to trigger your first deployment.
