@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useSpring } from 'framer-motion';
-import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check, Play } from 'lucide-react';
+import { motion, useScroll, useSpring, AnimatePresence, useMotionValueEvent } from 'framer-motion';
+import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check, Play, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Spotlight } from '@/components/ui/spotlight';
@@ -17,9 +17,18 @@ export default function LandingPage() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [os, setOs] = useState<'mac' | 'other' | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { scrollYProgress } = useScroll();
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setShowBackToTop(latest > 0.05);
+  });
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
@@ -169,6 +178,23 @@ export default function LandingPage() {
                 Watch Demo
                 <span className="text-xs font-medium text-neutral-500 ml-1">2 min</span>
               </motion.button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 1 }}
+              className="mt-16 flex flex-col items-center gap-2"
+              aria-hidden="true"
+            >
+              <span className="text-[10px] uppercase tracking-[0.2em] text-neutral-500 font-bold">Scroll to explore</span>
+              <div className="w-5 h-8 border-2 border-white/10 rounded-full flex justify-center p-1.5">
+                <motion.div
+                  animate={{ y: [0, 8, 0] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                  className="w-1 h-1 bg-neutral-400 rounded-full"
+                />
+              </div>
             </motion.div>
 
             {/* Micro-UX: Quick Copy Command */}
@@ -534,6 +560,23 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            whileHover={{ y: -4, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+            whileTap={{ scale: 0.9 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 z-[100] p-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl text-white shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-colors"
+            aria-label="Back to top"
+          >
+            <ChevronUp className="w-6 h-6" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -45,3 +45,7 @@
 ## 2026-03-05 - [Visual Progress and State Synchronization]
 **Learning:** For long, content-rich landing pages, a horizontal reading progress bar provides subtle but helpful orientation for the user. Additionally, in search-driven interfaces, synchronizing the 'selected' index with the mouse hover state prevents confusing visual conflicts where a keyboard selection and a mouse hover both appear active, ensuring a smoother, more premium interaction.
 **Action:** Implement scroll progress indicators for long pages and always sync `selectedIndex` on `onMouseEnter` for list-based navigation.
+
+## 2026-03-10 - [Delightful Orientation and Direct Navigation]
+**Learning:** For extensive landing pages, providing clear visual cues for both initial exploration (Scroll Hint) and quick return (Back to Top) significantly reduces cognitive load and improves the 'premium' feel. A monochromatic glass-morphism style for these controls maintains the scripe.io aesthetic without distracting from the main content.
+**Action:** Add an animated 'Scroll to explore' hint in hero sections and a scroll-triggered 'Back to Top' button using AnimatePresence for long pages.
