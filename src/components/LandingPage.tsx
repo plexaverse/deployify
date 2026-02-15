@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { Rocket, Github, Zap, Shield, Globe, ArrowRight, Search, X, Cpu, Copy, Check, Play } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,14 @@ export default function LandingPage() {
   const [os, setOs] = useState<'mac' | 'other' | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   const MOCK_REPOS = ['nextjs-dashboard', 'deployify-cli', 'awesome-gcp-templates', 'react-portfolio'];
   const filteredRepos = searchQuery.trim() ? MOCK_REPOS.filter(r => r.toLowerCase().includes(searchQuery.toLowerCase())) : [];
 
@@ -53,6 +61,10 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-black/[0.96] antialiased relative overflow-hidden">
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-neutral-500 via-white to-neutral-500 origin-left z-[100]"
+        style={{ scaleX }}
+      />
       <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
 
       {/* Navigation */}
@@ -464,6 +476,7 @@ export default function LandingPage() {
                         id={`repo-option-${i}`}
                         role="option"
                         aria-selected={selectedIndex === i}
+                        onMouseEnter={() => setSelectedIndex(i)}
                         onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
                         className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-sm transition-colors", selectedIndex === i ? "bg-white/10 text-white" : "text-neutral-400 hover:bg-white/5 hover:text-white")}
                       >
