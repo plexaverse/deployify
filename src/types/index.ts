@@ -147,6 +147,7 @@ export interface EnvVariable {
     isSecret: boolean; // If true, value is masked in UI
     target: EnvVariableTarget; // Where the variable is used
     environment?: 'production' | 'preview' | 'both'; // Scope of the variable
+    group?: string; // Group/Category for organization
 }
 
 // Custom domain for a project
