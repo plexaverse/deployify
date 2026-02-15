@@ -80,7 +80,7 @@ export async function POST(
         const { project } = access;
 
         const body = await request.json();
-        const { key, value, isSecret = false, target = 'both', environment = 'both' } = body;
+        const { key, value, isSecret = false, target = 'both', environment = 'both', group } = body;
 
         if (!key || typeof key !== 'string') {
             return NextResponse.json({ error: 'Key is required' }, { status: 400 });
@@ -115,6 +115,7 @@ export async function POST(
             isSecret: Boolean(isSecret),
             target: target as EnvVariableTarget,
             environment: environment as 'production' | 'preview' | 'both',
+            group,
         };
 
         envVariables.push(newEnvVar);
@@ -179,7 +180,7 @@ export async function PUT(
         const { project } = access;
 
         const body = await request.json();
-        const { envId, key, value, isSecret, target, environment } = body;
+        const { envId, key, value, isSecret, target, environment, group } = body;
 
         if (!envId) {
             return NextResponse.json({ error: 'Environment variable ID is required' }, { status: 400 });
@@ -199,6 +200,7 @@ export async function PUT(
         if (isSecret !== undefined) updatedEnv.isSecret = Boolean(isSecret);
         if (target !== undefined) updatedEnv.target = target as EnvVariableTarget;
         if (environment !== undefined) updatedEnv.environment = environment as 'production' | 'preview' | 'both';
+        if (group !== undefined) updatedEnv.group = group;
 
         envVariables[envIndex] = updatedEnv;
 
