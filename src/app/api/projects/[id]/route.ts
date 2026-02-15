@@ -90,6 +90,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'autodeployBranches',
             'branchEnvironments',
             'emailNotifications',
+            'framework',
         ];
 
         const updates: Record<string, unknown> = {};

@@ -116,16 +116,21 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildEnvSection = '# Placeholder DATABASE_URL for Prisma generate during build (not used at runtime)\nENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"';
     }
 
+    const isDockerFramework = framework === 'docker';
+
     // Generate the Dockerfile content
-    const dockerfileContent = getDockerfile({
-        framework,
-        buildEnvSection,
-        outputDirectory,
-        buildCommand,
-        installCommand,
-        restoreCache: true,
-        rootDirectory,
-    });
+    let dockerfileContent = '';
+    if (!isDockerFramework) {
+        dockerfileContent = getDockerfile({
+            framework,
+            buildEnvSection,
+            outputDirectory,
+            buildCommand,
+            installCommand,
+            restoreCache: true,
+            rootDirectory,
+        });
+    }
 
     // Define common steps shared between both deployment methods
     const commonSteps = [
@@ -138,20 +143,22 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
                 `mkdir -p ${workDir}/restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C ${workDir}/restore_cache || echo "No cache found or restore failed")`,
             ],
         },
-        // Create a Dockerfile for Next.js if it doesn't exist
+        // Create a Dockerfile if it doesn't exist (only if not using custom Dockerfile)
         {
             name: 'gcr.io/cloud-builders/docker',
             entrypoint: 'bash',
             args: [
                 '-c',
-                `if [ ! -f ${workDir}/Dockerfile ]; then cat > ${workDir}/Dockerfile << 'EOFMARKER'
+                isDockerFramework
+                    ? 'echo "Using existing Dockerfile..."'
+                    : `if [ ! -f ${workDir}/Dockerfile ]; then cat > ${workDir}/Dockerfile << 'EOFMARKER'
 ${dockerfileContent}
 EOFMARKER
 fi`,
             ],
         },
-        // Check if next.config has output: 'standalone'
-        {
+        // Check if next.config has output: 'standalone' (only for Next.js/default)
+        ...(isDockerFramework ? [] : [{
             name: 'node:20-alpine',
             entrypoint: 'sh',
             args: [
@@ -167,7 +174,7 @@ fi`,
         fi
       fi`,
             ],
-        },
+        }]),
         // Pull the latest image for caching
         {
             name: 'gcr.io/cloud-builders/docker',
@@ -197,8 +204,8 @@ fi`,
             name: 'gcr.io/cloud-builders/docker',
             args: ['push', latestImageName],
         },
-        // Build 'builder' target to extract cache
-        {
+        // Build 'builder' target to extract cache (Skip for Docker framework)
+        ...(isDockerFramework ? [] : [{
             name: 'gcr.io/cloud-builders/docker',
             args: [
                 'build',
@@ -208,10 +215,10 @@ fi`,
                 '.'
             ],
             dir: workDir,
-        },
+        }]),
         // Extract and Save Cache to GCS (Non-blocking)
         // Note: Running in dir: workDir, so relative paths work as expected
-        {
+        ...(isDockerFramework ? [] : [{
             name: 'gcr.io/cloud-builders/docker',
             entrypoint: 'bash',
             dir: workDir,
@@ -231,7 +238,7 @@ fi`,
   fi
 } || echo "Cache save failed, ignoring..."`
             ],
-        },
+        }]),
         // Deploy to Cloud Run
         {
             name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',

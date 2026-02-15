@@ -230,11 +230,16 @@ export async function detectFramework(
     owner: string,
     repo: string,
     rootDir: string = ''
-): Promise<'nextjs' | 'vite' | 'astro' | 'remix' | null> {
+): Promise<'nextjs' | 'vite' | 'astro' | 'remix' | 'docker' | null> {
     const contents = await getRepoContents(accessToken, owner, repo, rootDir);
 
     // Helper to check file existence
     const hasFile = (pattern: RegExp) => contents.some(item => pattern.test(item.name));
+
+    // Docker
+    if (hasFile(/^Dockerfile$/)) {
+        return 'docker';
+    }
 
     // Try to read package.json for dependencies
     let dependencies: Record<string, string> = {};
