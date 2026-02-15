@@ -4,11 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
-    ArrowLeft,
     ExternalLink,
     GitBranch,
     Github,
-    Settings,
     RotateCcw,
     Clock,
     CheckCircle2,
@@ -23,11 +21,13 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/EmptyState';
-import { Button } from '@/components/ui/moving-border';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
 import { WebVitals } from '@/components/WebVitals';
 import { useStore } from '@/store';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
@@ -198,10 +198,12 @@ export default function ProjectDetailPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button
+                    <Button
                         onClick={handleRedeploy}
                         disabled={deploying}
-                        className="btn btn-secondary h-9 text-sm"
+                        variant="secondary"
+                        size="sm"
+                        className="h-9"
                     >
                         {deploying ? (
                             <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -209,19 +211,25 @@ export default function ProjectDetailPage() {
                             <RotateCcw className="w-4 h-4 mr-2" />
                         )}
                         Redeploy
-                    </button>
+                    </Button>
                     <a
                         href={project.productionUrl || '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={cn(
-                            "btn btn-primary h-9 text-sm",
-                            !project.productionUrl && "opacity-50 cursor-not-allowed"
+                            !project.productionUrl && "pointer-events-none"
                         )}
                         onClick={(e) => !project.productionUrl && e.preventDefault()}
                     >
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Visit
+                        <Button
+                            variant="primary"
+                            size="sm"
+                            className="h-9"
+                            disabled={!project.productionUrl}
+                        >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Visit
+                        </Button>
                     </a>
                 </div>
             </div>
@@ -231,7 +239,7 @@ export default function ProjectDetailPage() {
                 {/* Left Column: Production Deployment & Stats */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Production Card */}
-                    <div className="border border-[var(--border)] rounded-xl bg-[var(--card)] overflow-hidden shadow-sm">
+                    <Card className="overflow-hidden shadow-sm">
                         <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
                             <h2 className="text-sm font-medium uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
                             <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-500">
@@ -282,14 +290,14 @@ export default function ProjectDetailPage() {
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </Card>
                 </div>
 
                 {/* Right Column: Quick Stats / Alerts */}
                 <div className="space-y-8">
                     {/* Compact Error Rate */}
                     {errorCount !== null && (
-                        <div className="border border-[var(--border)] rounded-xl p-6 bg-[var(--card)] shadow-sm">
+                        <Card className="p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">Errors (24h)</span>
                                 <AlertCircle className={cn(
@@ -301,7 +309,7 @@ export default function ProjectDetailPage() {
                                 <span className="text-3xl font-bold">{errorCount}</span>
                                 <span className="text-xs text-[var(--muted-foreground)]">vitals tracked</span>
                             </div>
-                        </div>
+                        </Card>
                     )}
                 </div>
             </div>
@@ -346,7 +354,7 @@ export default function ProjectDetailPage() {
                         </div>
                     </EmptyState>
                 ) : (
-                    <div className="border border-[var(--border)] rounded-xl bg-[var(--card)] overflow-hidden shadow-sm">
+                    <Card className="overflow-hidden shadow-sm">
                         <div className="divide-y divide-[var(--border)]">
                             {deployments.slice(0, 5).map((deployment) => (
                                 <div key={deployment.id} className="p-4 md:p-6 hover:bg-[var(--card-hover)] transition-colors group">
@@ -360,14 +368,12 @@ export default function ProjectDetailPage() {
                                                     <p className="font-medium text-sm truncate max-w-md">
                                                         {deployment.gitCommitMessage}
                                                     </p>
-                                                    <span className={cn(
-                                                        "text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
-                                                        deployment.type === 'production'
-                                                            ? "bg-emerald-500/10 text-emerald-500"
-                                                            : "bg-blue-500/10 text-blue-500"
-                                                    )}>
+                                                    <Badge
+                                                        variant={deployment.type === 'production' ? 'success' : 'info'}
+                                                        className="px-1.5 py-0.5 text-[10px] uppercase tracking-wider"
+                                                    >
                                                         {deployment.type}
-                                                    </span>
+                                                    </Badge>
                                                 </div>
                                                 <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
                                                     <div className="flex items-center gap-1 font-mono">
@@ -399,38 +405,45 @@ export default function ProjectDetailPage() {
                                                     href={deployment.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="btn btn-ghost h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
                                                 >
-                                                    <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
-                                                    View
+                                                    <Button variant="ghost" size="sm" className="h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]">
+                                                        <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
+                                                        View
+                                                    </Button>
                                                 </a>
                                             )}
 
-                                            <button
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
                                                 onClick={() => setSelectedLogsId(deployment.id)}
-                                                className="btn btn-ghost h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
+                                                className="h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
                                             >
                                                 <FileText className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                                                 Logs
-                                            </button>
+                                            </Button>
 
                                             {deployment.status === 'ready' && deployment.type === 'production' && deployment.cloudRunRevision && (
-                                                <button
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
                                                     onClick={() => handleRollback(deployment.id)}
-                                                    className="btn btn-ghost h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10"
+                                                    className="h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10 hover:text-red-600"
                                                 >
                                                     <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                                                     Rollback
-                                                </button>
+                                                </Button>
                                             )}
 
                                             {(deployment.status === 'queued' || deployment.status === 'building') && (
-                                                <button
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
                                                     onClick={() => handleCancel(deployment.id)}
-                                                    className="btn btn-ghost h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10"
+                                                    className="h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10 hover:text-red-600"
                                                 >
                                                     Cancel
-                                                </button>
+                                                </Button>
                                             )}
                                         </div>
                                     </div>
@@ -447,7 +460,7 @@ export default function ProjectDetailPage() {
                                 </Link>
                             </div>
                         )}
-                    </div>
+                    </Card>
                 )}
             </div>
 
