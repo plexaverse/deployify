@@ -2,7 +2,6 @@
 
 import { AlertTriangle, X } from 'lucide-react';
 import type { Deployment } from '@/types';
-import { Button } from '@/components/ui/button';
 
 interface RollbackModalProps {
     deployment: Deployment;
@@ -23,14 +22,12 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                         <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
                         Confirm Rollback
                     </h3>
-                    <Button
-                        variant="ghost"
-                        size="sm"
+                    <button
                         onClick={onClose}
-                        className="p-2 h-auto hover:bg-[var(--border)] rounded-md transition-colors"
+                        className="p-2 hover:bg-[var(--border)] rounded-md transition-colors"
                     >
                         <X className="w-5 h-5" />
-                    </Button>
+                    </button>
                 </div>
 
                 {/* Content */}
@@ -65,18 +62,18 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
 
                 {/* Footer */}
                 <div className="p-4 border-t border-[var(--border)] bg-[var(--background)] flex justify-end gap-3 shrink-0">
-                    <Button
-                        variant="secondary"
+                    <button
                         onClick={onClose}
+                        className="px-4 py-2 rounded-md hover:bg-[var(--border)] transition-colors"
                     >
                         Cancel
-                    </Button>
-                    <Button
-                        variant="primary"
+                    </button>
+                    <button
                         onClick={onConfirm}
+                        className="px-4 py-2 rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 transition-opacity font-medium"
                     >
                         Confirm Rollback
-                    </Button>
+                    </button>
                 </div>
             </div>
         </div>
