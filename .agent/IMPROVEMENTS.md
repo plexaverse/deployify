@@ -48,9 +48,8 @@
 - **Benefit**: Better first-time user experience
 
 #### 10. **Empty States with Illustrations**
-- **Current**: Basic empty state with icon
-- **Improvement**: Custom illustrations for empty states (no projects, no deployments, no domains)
-- **Benefit**: More engaging, professional feel
+- **Current**: Custom SVG illustrations implemented
+- **Status**: ✅ Implemented
 
 ### Low Priority (Polish)
 
@@ -143,11 +142,12 @@
 - **Improvement**: Detect and use repo's Dockerfile if present
 
 #### 16. **Environment Variable Groups**
-- **Improvement**: Group env vars (e.g., "Database", "API Keys") for organization
+- **Current**: Env vars are grouped by the `group` property in the UI
+- **Status**: ✅ Implemented
 
 #### 17. **Secrets Encryption**
-- **Current**: EnvVars reference Secret Manager but unclear encryption
-- **Improvement**: End-to-end encryption for environment variable values
+- **Current**: Application-level encryption (AES-256-GCM) for secrets at rest and in transit to Cloud Build
+- **Status**: ✅ Implemented (Webhook decryption fixed)
 
 #### 18. **Audit Log**
 - **Improvement**: Track all actions (deploys, config changes, user logins)

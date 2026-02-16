@@ -137,7 +137,7 @@ Domain        // Custom domain (status: pending/active/error)
 5. Layout verifies JWT validity server-side
 
 ### 3. Deployment Flow
-1. GitHub webhook → `/api/webhooks/github`
+1. GitHub webhook → `/api/webhooks/github` (Decrypts secret env vars here)
 2. Create deployment record in Firestore
 3. Submit Cloud Build with generated config (using `src/lib/dockerfiles.ts`)
 4. Cloud Build: clone → install → build → Docker → push → deploy Cloud Run
@@ -229,6 +229,7 @@ Domain        // Custom domain (status: pending/active/error)
 | Change styles | `src/app/globals.css` |
 | Add type | `src/types/index.ts` |
 | Add animated component | `src/components/ui/` |
+| Add illustration | `src/components/ui/illustrations.tsx` |
 
 ### Running Commands
 ```bash

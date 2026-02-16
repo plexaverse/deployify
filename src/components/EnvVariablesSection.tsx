@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
 
 interface EnvVariablesSectionProps {
     projectId: string;
@@ -310,7 +311,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 <EmptyState
                     title="No environment variables yet"
                     description="Add keys like API_KEY, DATABASE_URL, etc. to configure your app at build and runtime."
-                    icon={Plus}
+                    illustration={NoEnvVarsIllustration}
                 />
             ) : (
                 <div className="space-y-6">
