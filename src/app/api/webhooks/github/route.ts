@@ -14,7 +14,8 @@ import {
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 // import { getPreviewServiceName } from '@/lib/gcp/cloudrun';
 import { parseBranchFromRef, shouldAutoDeploy, slugify } from '@/lib/utils';
-import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
+import type { GitHubPushEvent, GitHubPullRequestEvent, EnvVariable } from '@/types';
+import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus } from '@/lib/deployment';
 import { logAuditEvent } from '@/lib/audit';
 
@@ -152,11 +153,24 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
                 continue;
             }
 
+            let value = env.value;
+
+            // Decrypt secret values if needed
+            if (env.isSecret && env.isEncrypted) {
+                try {
+                    value = decrypt(env.value);
+                } catch (e) {
+                    console.error(`Failed to decrypt env var ${env.key}`, e);
+                    // We throw here to fail the deployment safely rather than deploying with invalid secrets
+                    throw new Error(`Failed to decrypt secret: ${env.key}`);
+                }
+            }
+
             if (env.target === 'build' || env.target === 'both') {
-                buildEnvVars[env.key] = env.value;
+                buildEnvVars[env.key] = value;
             }
             if (env.target === 'runtime' || env.target === 'both') {
-                runtimeEnvVars[env.key] = env.value;
+                runtimeEnvVars[env.key] = value;
             }
         }
 
@@ -285,11 +299,24 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                     continue;
                 }
 
+                let value = env.value;
+
+                // Decrypt secret values if needed
+                if (env.isSecret && env.isEncrypted) {
+                    try {
+                        value = decrypt(env.value);
+                    } catch (e) {
+                        console.error(`Failed to decrypt env var ${env.key}`, e);
+                        // We throw here to fail the deployment safely rather than deploying with invalid secrets
+                        throw new Error(`Failed to decrypt secret: ${env.key}`);
+                    }
+                }
+
                 if (env.target === 'build' || env.target === 'both') {
-                    buildEnvVars[env.key] = env.value;
+                    buildEnvVars[env.key] = value;
                 }
                 if (env.target === 'runtime' || env.target === 'both') {
-                    runtimeEnvVars[env.key] = env.value;
+                    runtimeEnvVars[env.key] = value;
                 }
             }
 

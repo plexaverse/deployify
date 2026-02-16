@@ -20,6 +20,8 @@ import { useStore } from '@/store';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { EmptyState } from '@/components/EmptyState';
+import { NoDeploymentsIllustration } from '@/components/ui/illustrations';
 
 export default function DeploymentsPage() {
     const params = useParams();
@@ -160,9 +162,11 @@ export default function DeploymentsPage() {
             </div>
 
             {deployments.length === 0 ? (
-                <div className="border border-dashed border-[var(--border)] rounded-xl p-12 text-center">
-                    <p className="text-[var(--muted-foreground)] text-sm">No deployments found</p>
-                </div>
+                <EmptyState
+                    title="No deployments yet"
+                    description="Deployments will appear here once you push code to your repository."
+                    illustration={NoDeploymentsIllustration}
+                />
             ) : (
                 <Card className="overflow-hidden p-0">
                     <div className="divide-y divide-[var(--border)]">
