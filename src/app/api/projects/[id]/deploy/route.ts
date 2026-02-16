@@ -11,6 +11,7 @@ import { config } from '@/lib/config';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { logAuditEvent } from '@/lib/audit';
 import type { EnvVariable } from '@/types';
+import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
 import { sendWebhookNotification } from '@/lib/webhooks';
 
@@ -138,11 +139,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 const runtimeEnvVars: Record<string, string> = {};
 
                 envVars.forEach((env: EnvVariable) => {
+                    let value = env.value;
+
+                    // Decrypt secret values if needed
+                    if (env.isSecret && env.isEncrypted) {
+                        try {
+                            value = decrypt(env.value);
+                        } catch (e) {
+                            console.error(`Failed to decrypt env var ${env.key}`, e);
+                            // We throw here to fail the deployment safely rather than deploying with invalid secrets
+                            throw new Error(`Failed to decrypt secret: ${env.key}`);
+                        }
+                    }
+
                     if (env.target === 'build' || env.target === 'both') {
-                        buildEnvVars[env.key] = env.value;
+                        buildEnvVars[env.key] = value;
                     }
                     if (env.target === 'runtime' || env.target === 'both') {
-                        runtimeEnvVars[env.key] = env.value;
+                        runtimeEnvVars[env.key] = value;
                     }
                 });
 
