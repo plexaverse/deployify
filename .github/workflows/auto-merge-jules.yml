@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     
     # Only run for Jules PRs
-    if: github.event.pull_request.user.login == 'jules-google[bot]' || github.event.pull_request.user.login == 'jules[bot]' || contains(github.event.pull_request.user.login, 'jules')
+    if: github.event.pull_request.user.login == 'jules-google[bot]' || github.event.pull_request.user.login == 'jules[bot]' || contains(github.event.pull_request.user.login, 'jules') || github.event.pull_request.user.login == 'asangzz'
     
     permissions:
       contents: write
