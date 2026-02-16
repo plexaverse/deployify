@@ -11,7 +11,8 @@ import {
     Loader2,
     AlertCircle,
     Info,
-    Shield
+    Shield,
+    Folder
 } from 'lucide-react';
 import type { EnvVariableTarget } from '@/types';
 import { useStore } from '@/store';
@@ -42,6 +43,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     const [newIsSecret, setNewIsSecret] = useState(false);
     const [newTarget, setNewTarget] = useState<EnvVariableTarget>('both');
     const [newEnvironment, setNewEnvironment] = useState<'production' | 'preview' | 'both'>('both');
+    const [newGroup, setNewGroup] = useState('General');
 
     const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -88,6 +90,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 isSecret: newIsSecret,
                 target: newTarget,
                 environment: newEnvironment,
+                group: newGroup || 'General',
             });
 
             if (success) {
@@ -96,6 +99,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 setNewValue('');
                 setNewIsSecret(false);
                 setIsAdding(false);
+                // Keep the group selection for convenience
                 if (onUpdate) onUpdate();
             }
         } catch (err) {
@@ -130,6 +134,15 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 return target;
         }
     };
+
+    // Extract unique groups
+    const uniqueGroups = Array.from(new Set(envVariables.map(e => e.group || 'General'))).sort();
+
+    // Group variables
+    const groupedVars = uniqueGroups.reduce((acc, group) => {
+        acc[group] = envVariables.filter(e => (e.group || 'General') === group);
+        return acc;
+    }, {} as Record<string, typeof envVariables>);
 
     return (
         <Card>
@@ -177,6 +190,28 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 placeholder="secret-value"
                                 className="font-mono text-sm"
                             />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <Label>Group (Optional)</Label>
+                            <div className="relative">
+                                <Input
+                                    type="text"
+                                    list="existing-groups"
+                                    value={newGroup}
+                                    onChange={(e) => setNewGroup(e.target.value)}
+                                    placeholder="e.g. Database, Auth, General"
+                                />
+                                <datalist id="existing-groups">
+                                    {uniqueGroups.map(group => (
+                                        <option key={group} value={group} />
+                                    ))}
+                                    {!uniqueGroups.includes('General') && <option value="General" />}
+                                    {!uniqueGroups.includes('Database') && <option value="Database" />}
+                                    {!uniqueGroups.includes('Auth') && <option value="Auth" />}
+                                    {!uniqueGroups.includes('API') && <option value="API" />}
+                                </datalist>
+                                <Folder className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
+                            </div>
                         </div>
                     </div>
 
@@ -266,81 +301,92 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     icon={Plus}
                 />
             ) : (
-                <div className="overflow-x-auto rounded-md border border-[var(--border)]">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-[var(--border)] bg-[var(--muted)]/20">
-                                <th className="py-3 px-4 font-semibold text-sm">Key</th>
-                                <th className="py-3 px-4 font-semibold text-sm">Value</th>
-                                <th className="py-3 px-4 font-semibold text-sm">Type</th>
-                                <th className="py-3 px-4 font-semibold text-sm">Scope</th>
-                                <th className="py-3 px-4 font-semibold text-sm text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {envVariables.map((env) => (
-                                <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--muted)]/10 transition-colors last:border-0">
-                                    <td className="py-3 px-4 text-sm font-mono">
-                                        <div className="flex items-center gap-2">
-                                            {env.key}
-                                            {env.isSecret && (
-                                                <span title="Secret">
-                                                    <Shield className="w-3 h-3 text-blue-400" />
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="py-3 px-4 text-sm font-mono">
-                                        <div className="flex items-center gap-2 bg-[var(--muted)]/50 px-2 py-1 rounded w-fit">
-                                            {revealedIds.has(env.id) ? (
-                                                <span className="text-[var(--foreground)]">{env.value}</span>
-                                            ) : (
-                                                <span className="text-[var(--muted-foreground)]">••••••••••••••••</span>
-                                            )}
+                <div className="space-y-6">
+                    {uniqueGroups.map((group) => (
+                        <div key={group} className="space-y-2">
+                             <div className="flex items-center gap-2 px-1">
+                                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">{group}</span>
+                                <div className="h-[1px] flex-1 bg-[var(--border)]" />
+                            </div>
 
-                                            <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => toggleReveal(env.id)}
-                                                    className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
-                                                    title={revealedIds.has(env.id) ? "Hide value" : "Show value"}
-                                                >
-                                                    {revealedIds.has(env.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                                </button>
-                                                <button
-                                                    onClick={() => copyToClipboard(env.id, env.value)}
-                                                    className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
-                                                    title="Copy to clipboard"
-                                                >
-                                                    {copiedId === env.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize text-[var(--muted-foreground)]">
-                                            {getTargetLabel(env.target)}
-                                        </span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize">
-                                            {env.environment === 'both' || !env.environment ? 'All Envs' : env.environment}
-                                        </span>
-                                    </td>
-                                    <td className="py-3 px-4 text-right">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDelete(env.id, env.key)}
-                                            className="text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] h-8 w-8 p-0"
-                                            title="Delete environment variable"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            <div className="overflow-x-auto rounded-md border border-[var(--border)]">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-[var(--border)] bg-[var(--muted)]/20">
+                                            <th className="py-3 px-4 font-semibold text-sm w-[30%]">Key</th>
+                                            <th className="py-3 px-4 font-semibold text-sm w-[30%]">Value</th>
+                                            <th className="py-3 px-4 font-semibold text-sm">Type</th>
+                                            <th className="py-3 px-4 font-semibold text-sm">Scope</th>
+                                            <th className="py-3 px-4 font-semibold text-sm text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {groupedVars[group].map((env) => (
+                                            <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--muted)]/10 transition-colors last:border-0">
+                                                <td className="py-3 px-4 text-sm font-mono">
+                                                    <div className="flex items-center gap-2">
+                                                        {env.key}
+                                                        {env.isSecret && (
+                                                            <span title="Secret">
+                                                                <Shield className="w-3 h-3 text-blue-400" />
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4 text-sm font-mono">
+                                                    <div className="flex items-center gap-2 bg-[var(--muted)]/50 px-2 py-1 rounded w-fit max-w-full overflow-hidden">
+                                                        {revealedIds.has(env.id) ? (
+                                                            <span className="text-[var(--foreground)] truncate">{env.value}</span>
+                                                        ) : (
+                                                            <span className="text-[var(--muted-foreground)]">••••••••••••••••</span>
+                                                        )}
+
+                                                        <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                                            <button
+                                                                onClick={() => toggleReveal(env.id)}
+                                                                className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
+                                                                title={revealedIds.has(env.id) ? "Hide value" : "Show value"}
+                                                            >
+                                                                {revealedIds.has(env.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => copyToClipboard(env.id, env.value)}
+                                                                className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
+                                                                title="Copy to clipboard"
+                                                            >
+                                                                {copiedId === env.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize text-[var(--muted-foreground)]">
+                                                        {getTargetLabel(env.target)}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize">
+                                                        {env.environment === 'both' || !env.environment ? 'All Envs' : env.environment}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 px-4 text-right">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleDelete(env.id, env.key)}
+                                                        className="text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] h-8 w-8 p-0"
+                                                        title="Delete environment variable"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 
