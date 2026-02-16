@@ -5,6 +5,8 @@ import { X } from 'lucide-react';
 import { DeploymentTimeline } from '@/components/DeploymentTimeline';
 import { BuildLogViewer } from '@/components/BuildLogViewer';
 import type { Deployment } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface DeploymentLogsModalProps {
     deployment: Deployment;
@@ -59,6 +61,15 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
 
     if (!isOpen) return null;
 
+    const getBadgeVariant = (status: string) => {
+        switch (status) {
+            case 'ready': return 'success';
+            case 'error': return 'error';
+            case 'building': return 'warning';
+            default: return 'info';
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-4xl h-[80vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
@@ -66,16 +77,18 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
                     <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-lg">Build Logs</h3>
-                        <span className={`badge ${deployment.status === 'ready' ? 'badge-success' :
-                                deployment.status === 'error' ? 'badge-error' :
-                                    deployment.status === 'building' ? 'badge-warning' : 'badge-info'
-                            }`}>
+                        <Badge variant={getBadgeVariant(deployment.status)}>
                             {deployment.status}
-                        </span>
+                        </Badge>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-[var(--border)] rounded-md transition-colors">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClose}
+                        className="p-2 h-auto hover:bg-[var(--border)] rounded-md transition-colors"
+                    >
                         <X className="w-5 h-5" />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Timeline */}

@@ -282,3 +282,36 @@ Refactored the specific project dashboard and the fallback import page to use st
 - Replaced manual `select` elements with the new `NativeSelect` component.
 - Replaced manual labels with the `Label` component.
 - Replaced manual buttons with the `Button` component.
+
+## Modal & Landing Page Refactor
+
+Refactored modals, team switcher, and landing page to use standard UI components and theme variables.
+
+### `src/components/TeamSwitcher.tsx`
+- Replaced manual `button` elements with the `Button` component (`variant="outline"` and `variant="ghost"`).
+- Replaced hardcoded colors (e.g., `text-blue-500`) with theme variables (`text-[var(--primary)]`).
+- Improved accessibility and consistency with the design system.
+
+### `src/components/CreateTeamModal.tsx`
+- Replaced `input` element with the `Input` component.
+- Replaced manual buttons with the `Button` component.
+- Used `Label` component for form labels.
+- Standardized backdrop and layout.
+
+### `src/components/RollbackModal.tsx`
+- Replaced manual buttons with the `Button` component.
+- Ensured consistent modal styling.
+
+### `src/components/DeploymentLogsModal.tsx`
+- Replaced manual buttons with the `Button` component.
+- Replaced manual badge spans with the `Badge` component.
+- Added `error` variant to `Badge` component to support error states consistent with the design system.
+
+### `src/components/ui/badge.tsx`
+- Added `error` variant using `--error-bg` and `--error` variables.
+
+### `src/components/LandingPage.tsx`
+- Replaced hardcoded colors (e.g., `bg-black`, `text-neutral-500`) with theme variables (`bg-[var(--background)]`, `text-[var(--muted-foreground)]`, etc.).
+- Replaced hardcoded gradients with theme gradient variables where applicable.
+- Updated interactive elements to use theme variables for hover states.
+- Ensured the landing page respects the theme (light/dark mode) while maintaining its design integrity.
