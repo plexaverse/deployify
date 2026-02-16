@@ -49,3 +49,7 @@
 ## 2026-03-10 - [Delightful Orientation and Direct Navigation]
 **Learning:** For extensive landing pages, providing clear visual cues for both initial exploration (Scroll Hint) and quick return (Back to Top) significantly reduces cognitive load and improves the 'premium' feel. A monochromatic glass-morphism style for these controls maintains the scripe.io aesthetic without distracting from the main content.
 **Action:** Add an animated 'Scroll to explore' hint in hero sections and a scroll-triggered 'Back to Top' button using AnimatePresence for long pages.
+
+## 2026-03-12 - [Redundant Accessibility Labels]
+**Learning:** Adding `aria-label` to elements that already contain clear, visible text (e.g., a "Deployify" link) is redundant and can be distracting for screen reader users. Accessibility should enhance, not duplicate, existing semantic information.
+**Action:** Only add `aria-label` to icon-only buttons or elements where the visible text is insufficient or non-existent.

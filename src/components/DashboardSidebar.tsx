@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { usePathname, useParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
@@ -101,17 +102,18 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
         <>
             {/* Mobile Header */}
             <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 bg-[var(--card)] border-b border-[var(--border)] h-16">
-                <Link href="/dashboard" className="flex items-center gap-2">
-                    <Rocket className="w-6 h-6 text-[var(--primary)]" />
+                <Link href="/dashboard" className="flex items-center gap-2 group">
+                    <Rocket className="w-6 h-6 text-[var(--primary)] group-hover:rotate-12 transition-transform" />
                     <span className="text-xl font-bold gradient-text">Deployify</span>
                 </Link>
-                <button
+                <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={toggleSidebar}
                     className="p-2 text-[var(--foreground)]"
                     aria-label="Toggle menu"
                 >
                     {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                </button>
+                </motion.button>
             </div>
 
             {/* Sidebar Overlay for Mobile */}
@@ -145,17 +147,19 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                     const isActive = pathname === item.href;
                                     return (
                                         <li key={item.name}>
-                                            <Link
-                                                href={item.href}
-                                                className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-colors ${isActive
-                                                    ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
-                                                    : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
-                                                    }`}
-                                                onClick={() => setSidebarOpen(false)}
-                                            >
-                                                <item.icon className="w-4 h-4" />
-                                                {item.name}
-                                            </Link>
+                                            <motion.div whileTap={{ scale: 0.98 }}>
+                                                <Link
+                                                    href={item.href}
+                                                    className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-colors ${isActive
+                                                        ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
+                                                        : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
+                                                        }`}
+                                                    onClick={() => setSidebarOpen(false)}
+                                                >
+                                                    <item.icon className="w-4 h-4" />
+                                                    {item.name}
+                                                </Link>
+                                            </motion.div>
                                         </li>
                                     );
                                 })}
@@ -166,15 +170,17 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
 
                 {/* User / Footer */}
                 <div className="p-4 border-t border-[var(--border)]">
-                    <div
-                        className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-[var(--background)] cursor-pointer text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-2"
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-[var(--background)] cursor-pointer text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-2"
                         onClick={toggleTheme}
+                        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
                     >
                         <span className="flex items-center gap-2">
                             {isMounted && theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             Theme
                         </span>
-                    </div>
+                    </motion.button>
 
                     <div className="flex items-center gap-3 px-3 py-2">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -197,13 +203,14 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                             </p>
                         </div>
                     </div>
-                    <a
+                    <motion.a
+                        whileTap={{ scale: 0.98 }}
                         href="/api/auth/logout"
                         className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
                     >
                         <LogOut className="w-4 h-4" />
                         Sign out
-                    </a>
+                    </motion.a>
                 </div>
             </aside>
         </>
