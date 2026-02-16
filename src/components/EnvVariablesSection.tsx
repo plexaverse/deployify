@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import {
     Plus,
     Trash2,
@@ -35,8 +36,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         isLoadingEnv: isLoading,
         fetchProjectEnvVariables,
         addEnvVariable,
-        deleteEnvVariable,
-        revealEnvVariable
+        deleteEnvVariable
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -57,33 +57,68 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         fetchProjectEnvVariables(projectId);
     }, [projectId, fetchProjectEnvVariables]);
 
-    const toggleReveal = async (env: typeof envVariables[0]) => {
+    const toggleReveal = async (id: string, isSecret: boolean) => {
         const newRevealed = new Set(revealedIds);
-        if (newRevealed.has(env.id)) {
-            newRevealed.delete(env.id);
-            setRevealedIds(newRevealed);
-            return;
-        }
-
-        // If secret and we don't have the value (or it's masked), fetch it
-        if (env.isSecret && !revealedValues[env.id]) {
-            const value = await revealEnvVariable(projectId, env.id);
-            if (value) {
-                setRevealedValues(prev => ({ ...prev, [env.id]: value }));
+        if (newRevealed.has(id)) {
+            newRevealed.delete(id);
+        } else {
+            newRevealed.add(id);
+            // Fetch secret value if needed
+            if (isSecret && !revealedValues[id]) {
+                try {
+                    const res = await fetch(`/api/projects/${projectId}/env/${id}/reveal`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setRevealedValues(prev => ({ ...prev, [id]: data.value }));
+                    } else {
+                        toast.error('Failed to reveal secret');
+                        return; // Don't reveal if failed
+                    }
+                } catch (e) {
+                    console.error('Failed to reveal:', e);
+                    toast.error('Failed to reveal secret');
+                    return;
+                }
             }
         }
-
-        newRevealed.add(env.id);
         setRevealedIds(newRevealed);
     };
 
-    const copyToClipboard = async (id: string, text: string) => {
+    const copyToClipboard = async (id: string, text: string, isSecret: boolean) => {
+        let textToCopy = text;
+
+        if (isSecret) {
+            // Check if we already have the revealed value
+            if (revealedValues[id]) {
+                textToCopy = revealedValues[id];
+            } else {
+                // Fetch it on demand
+                try {
+                    const res = await fetch(`/api/projects/${projectId}/env/${id}/reveal`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        textToCopy = data.value;
+                        setRevealedValues(prev => ({ ...prev, [id]: data.value }));
+                    } else {
+                        toast.error('Failed to copy secret');
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch secret for copy:', e);
+                    toast.error('Failed to copy secret');
+                    return;
+                }
+            }
+        }
+
         try {
-            await navigator.clipboard.writeText(text);
+            await navigator.clipboard.writeText(textToCopy);
             setCopiedId(id);
             setTimeout(() => setCopiedId(null), 2000);
+            toast.success('Copied to clipboard');
         } catch (err) {
             console.error('Failed to copy!', err);
+            toast.error('Failed to copy to clipboard');
         }
     };
 
@@ -350,7 +385,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                     <div className="flex items-center gap-2 bg-[var(--muted)]/50 px-2 py-1 rounded w-fit max-w-full overflow-hidden">
                                                         {revealedIds.has(env.id) ? (
                                                             <span className="text-[var(--foreground)] truncate">
-                                                                {env.isSecret ? (revealedValues[env.id] || 'Loading...') : env.value}
+                                                                {env.isSecret && revealedValues[env.id] ? revealedValues[env.id] : (revealedIds.has(env.id) && !env.isSecret ? env.value : (revealedIds.has(env.id) ? 'Loading...' : '••••••••••••••••'))}
                                                             </span>
                                                         ) : (
                                                             <span className="text-[var(--muted-foreground)]">••••••••••••••••</span>
@@ -358,14 +393,14 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
 
                                                         <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                                                             <button
-                                                                onClick={() => toggleReveal(env)}
+                                                                onClick={() => toggleReveal(env.id, env.isSecret)}
                                                                 className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
                                                                 title={revealedIds.has(env.id) ? "Hide value" : "Show value"}
                                                             >
                                                                 {revealedIds.has(env.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                                                             </button>
                                                             <button
-                                                                onClick={() => copyToClipboard(env.id, env.isSecret && revealedValues[env.id] ? revealedValues[env.id] : env.value)}
+                                                                onClick={() => copyToClipboard(env.id, env.value, env.isSecret)}
                                                                 className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
                                                                 title="Copy to clipboard"
                                                             >

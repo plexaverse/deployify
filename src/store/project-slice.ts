@@ -61,7 +61,6 @@ export interface ProjectSlice {
     fetchProjectEnvVariables: (projectId: string) => Promise<void>;
     addEnvVariable: (projectId: string, variable: Partial<EnvVariable>) => Promise<boolean>;
     deleteEnvVariable: (projectId: string, envId: string) => Promise<boolean>;
-    revealEnvVariable: (projectId: string, envId: string) => Promise<string | null>;
 
     // Domain Actions
     fetchProjectDomains: (projectId: string) => Promise<void>;
@@ -347,20 +346,6 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to add environment variable');
             return false;
-        }
-    },
-
-    revealEnvVariable: async (projectId, envId) => {
-        try {
-            const response = await fetch(`/api/projects/${projectId}/env/${envId}/reveal`);
-            if (response.ok) {
-                const data = await response.json();
-                return data.value;
-            }
-            return null;
-        } catch (error) {
-            console.error('Failed to reveal env variable:', error);
-            return null;
         }
     },
 

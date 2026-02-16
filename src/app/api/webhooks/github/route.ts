@@ -15,7 +15,7 @@ import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudb
 // import { getPreviewServiceName } from '@/lib/gcp/cloudrun';
 import { parseBranchFromRef, shouldAutoDeploy, slugify } from '@/lib/utils';
 import type { GitHubPushEvent, GitHubPullRequestEvent, EnvVariable } from '@/types';
-import { decrypt } from '@/lib/crypto';
+import { decrypt } from '@/lib/encryption';
 import { pollBuildStatus } from '@/lib/deployment';
 import { logAuditEvent } from '@/lib/audit';
 

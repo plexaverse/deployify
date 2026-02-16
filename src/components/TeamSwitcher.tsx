@@ -3,6 +3,8 @@ import { useTeam } from '@/contexts/TeamContext';
 import { Check, ChevronsUpDown, User, Users, Plus } from 'lucide-react';
 import { useStore } from '@/store';
 import { CreateTeamModal } from '@/components/CreateTeamModal';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function TeamSwitcher() {
     const { activeTeam, setActiveTeam, teams, isLoading } = useTeam();
@@ -28,13 +30,14 @@ export function TeamSwitcher() {
     return (
         <>
             <div className="relative mb-4" ref={containerRef}>
-                <button
+                <Button
+                    variant="outline"
                     onClick={toggleTeamSwitcher}
-                    className="flex items-center justify-between w-full p-2 text-sm border border-[var(--border)] rounded-lg hover:bg-[var(--background)] transition-colors"
+                    className="w-full justify-between px-2 h-auto py-2 font-normal"
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
                         {activeTeam ? (
-                            <div className="flex items-center justify-center w-6 h-6 min-w-[24px] rounded bg-blue-500/10 text-blue-500">
+                            <div className="flex items-center justify-center w-6 h-6 min-w-[24px] rounded bg-[var(--primary)]/10 text-[var(--primary)]">
                                 {activeTeam.avatarUrl ? (
                                     /* eslint-disable-next-line @next/next/no-img-element */
                                     <img src={activeTeam.avatarUrl} alt={activeTeam.name} className="w-6 h-6 rounded" />
@@ -47,44 +50,46 @@ export function TeamSwitcher() {
                                 <User className="w-4 h-4" />
                             </div>
                         )}
-                        <span className="font-medium truncate">
+                        <span className="truncate">
                             {activeTeam ? activeTeam.name : 'Personal Workspace'}
                         </span>
                     </div>
                     <ChevronsUpDown className="w-4 h-4 text-[var(--muted-foreground)] ml-2 flex-shrink-0" />
-                </button>
+                </Button>
 
                 {isTeamSwitcherOpen && (
                     <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="p-1">
-                            <button
+                            <Button
+                                variant="ghost"
                                 onClick={() => {
                                     setActiveTeam(null);
                                     setTeamSwitcherOpen(false);
                                 }}
-                                className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors"
+                                className="w-full justify-start px-2 py-2 h-auto font-normal"
                             >
-                                <div className="flex items-center justify-center w-6 h-6 rounded bg-[var(--primary)]/10 text-[var(--primary)]">
+                                <div className="flex items-center justify-center w-6 h-6 rounded bg-[var(--primary)]/10 text-[var(--primary)] mr-2">
                                     <User className="w-4 h-4" />
                                 </div>
                                 <span className="flex-1 text-left">Personal Workspace</span>
                                 {!activeTeam && <Check className="w-4 h-4 text-[var(--primary)]" />}
-                            </button>
+                            </Button>
                         </div>
 
                         {teams.length > 0 && (
                             <div className="p-1 border-t border-[var(--border)]">
                                 <div className="px-2 py-1 text-xs text-[var(--muted-foreground)]">Teams</div>
                                 {teams.map((team) => (
-                                    <button
+                                    <Button
                                         key={team.id}
+                                        variant="ghost"
                                         onClick={() => {
                                             setActiveTeam(team);
                                             setTeamSwitcherOpen(false);
                                         }}
-                                        className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors"
+                                        className="w-full justify-start px-2 py-2 h-auto font-normal"
                                     >
-                                        <div className="flex items-center justify-center w-6 h-6 rounded bg-blue-500/10 text-blue-500">
+                                        <div className="flex items-center justify-center w-6 h-6 rounded bg-[var(--primary)]/10 text-[var(--primary)] mr-2">
                                             {team.avatarUrl ? (
                                                 /* eslint-disable-next-line @next/next/no-img-element */
                                                 <img src={team.avatarUrl} alt={team.name} className="w-6 h-6 rounded" />
@@ -96,24 +101,25 @@ export function TeamSwitcher() {
                                         {activeTeam?.id === team.id && (
                                             <Check className="w-4 h-4 text-[var(--primary)]" />
                                         )}
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                         )}
 
                         <div className="p-1 border-t border-[var(--border)]">
-                            <button
+                            <Button
+                                variant="ghost"
                                 onClick={() => {
                                     setIsCreateModalOpen(true);
                                     setTeamSwitcherOpen(false);
                                 }}
-                                className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                className="w-full justify-start px-2 py-2 h-auto font-normal text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                             >
-                                <div className="flex items-center justify-center w-6 h-6 rounded border border-dashed border-[var(--border)]">
+                                <div className="flex items-center justify-center w-6 h-6 rounded border border-dashed border-[var(--border)] mr-2">
                                     <Plus className="w-4 h-4" />
                                 </div>
                                 <span className="flex-1 text-left">Create Team</span>
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}
