@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { Project, Deployment, EnvVariable, Domain, EnvVariableTarget } from '@/types';
+import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats } from '@/types';
 import { toast } from 'sonner';
 
 export interface ProjectSlice {
@@ -12,7 +12,7 @@ export interface ProjectSlice {
     isRedeploying: boolean;
     selectedLogsId: string | null;
     rollbackDeployment: Deployment | null;
-    analyticsData: any | null;
+    analyticsData: AnalyticsStats | null;
 
     // Settings Form State
     buildCommand: string;
@@ -43,7 +43,7 @@ export interface ProjectSlice {
     setRollbackDeployment: (deployment: Deployment | null) => void;
 
     // Settings Setters
-    setProjectSettingsField: (field: string, value: any) => void;
+    setProjectSettingsField: (field: string, value: string | boolean | number | string[]) => void;
     setProjectEnvVariables: (vars: EnvVariable[]) => void;
     setProjectDomains: (domains: Domain[]) => void;
 
@@ -64,15 +64,15 @@ export interface ProjectSlice {
 
     // Domain Actions
     fetchProjectDomains: (projectId: string) => Promise<void>;
-    addDomain: (projectId: string, domain: string) => Promise<any>;
+    addDomain: (projectId: string, domain: string) => Promise<{ domain: Domain; dnsRecords: any[] } | null>;
     deleteDomain: (projectId: string, domainId: string) => Promise<boolean>;
 
     // Analytics Actions
     fetchProjectAnalytics: (projectId: string, period?: string) => Promise<void>;
 
     updateProjectRegion: (projectId: string, region: string | null) => Promise<boolean>;
-    updateProjectResources: (projectId: string, resources: any) => Promise<boolean>;
-    updateBranchSettings: (projectId: string, settings: { autodeployBranches: string[], branchEnvironments: any[] }) => Promise<boolean>;
+    updateProjectResources: (projectId: string, resources: NonNullable<Project['resources']>) => Promise<boolean>;
+    updateBranchSettings: (projectId: string, settings: { autodeployBranches: string[], branchEnvironments: NonNullable<Project['branchEnvironments']> }) => Promise<boolean>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -446,7 +446,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         }
     },
 
-    updateProjectResources: async (projectId: string, resources: any) => {
+    updateProjectResources: async (projectId: string, resources: NonNullable<Project['resources']>) => {
         try {
             const response = await fetch(`/api/projects/${projectId}`, {
                 method: 'PATCH',
@@ -465,7 +465,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         }
     },
 
-    updateBranchSettings: async (projectId: string, settings: { autodeployBranches: string[], branchEnvironments: any[] }) => {
+    updateBranchSettings: async (projectId: string, settings: { autodeployBranches: string[], branchEnvironments: NonNullable<Project['branchEnvironments']> }) => {
         try {
             const response = await fetch(`/api/projects/${projectId}`, {
                 method: 'PATCH',

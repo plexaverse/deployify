@@ -77,6 +77,10 @@ export default function ImportProjectPage() {
             setBuildCommand('npm run build');
             setOutputDirectory('build');
             setInstallCommand('npm install');
+        } else if (framework === 'docker') {
+            setBuildCommand('');
+            setOutputDirectory('');
+            setInstallCommand('');
         }
         // 'auto' leaves them empty for auto-detection or manual input
     }, [framework, setBuildCommand, setOutputDirectory, setInstallCommand]);
@@ -188,6 +192,7 @@ export default function ImportProjectPage() {
                                 <option value="vite">Vite (React, Vue, Svelte)</option>
                                 <option value="astro">Astro</option>
                                 <option value="remix">Remix</option>
+                                <option value="docker">Docker (Custom Dockerfile)</option>
                             </NativeSelect>
                         </div>
                     </div>

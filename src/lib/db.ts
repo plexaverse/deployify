@@ -1,6 +1,7 @@
 import { getDb, Collections } from '@/lib/firebase';
 import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
 import { generateId } from '@/lib/utils';
+import type { Firestore, QueryDocumentSnapshot, DocumentData, DocumentSnapshot } from 'firebase-admin/firestore';
 
 // ============= User Operations =============
 
@@ -396,6 +397,7 @@ export async function listTeamsForUser(userId: string): Promise<Team[]> {
 }
 
 // Allow injecting db for testing
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function listTeamsWithMembership(userId: string, dbClient?: any): Promise<TeamWithRole[]> {
     const db = dbClient || getDb();
     const membershipsSnapshot = await db
@@ -407,7 +409,7 @@ export async function listTeamsWithMembership(userId: string, dbClient?: any): P
         return [];
     }
 
-    const memberships: TeamMembership[] = membershipsSnapshot.docs.map((doc: any) => {
+    const memberships: TeamMembership[] = membershipsSnapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => {
         const data = doc.data();
         return {
             ...data,
@@ -420,7 +422,7 @@ export async function listTeamsWithMembership(userId: string, dbClient?: any): P
     const teamsSnapshot = await db.getAll(...teamRefs);
 
     return teamsSnapshot
-        .map((doc: any, index: number) => {
+        .map((doc: DocumentSnapshot<DocumentData>, index: number) => {
             if (!doc.exists) return null;
             const data = doc.data();
             const team = {

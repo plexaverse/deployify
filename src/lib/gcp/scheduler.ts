@@ -75,7 +75,7 @@ async function listProjectJobs(
     prefix: string,
     accessToken: string,
     fetchFn: typeof fetch
-): Promise<any[]> {
+): Promise<GcpSchedulerJob[]> {
     const parent = `projects/${config.gcp.projectId}/locations/${region}`;
     const url = `${CLOUD_SCHEDULER_API}/${parent}/jobs`;
 
@@ -89,10 +89,10 @@ async function listProjectJobs(
         throw new Error(`Failed to list scheduler jobs: ${await response.text()}`);
     }
 
-    const data = await response.json() as any;
+    const data = await response.json() as { jobs?: GcpSchedulerJob[] };
     const jobs = data.jobs || [];
 
-    return jobs.filter((job: any) => {
+    return jobs.filter((job) => {
         const parts = job.name.split('/');
         const jobId = parts[parts.length - 1];
         return jobId.startsWith(prefix);
@@ -258,8 +258,8 @@ export async function syncCronJobs(
     crons: CronJobConfig[],
     deps: Partial<SchedulerDependencies> = {}
 ): Promise<void> {
-    let {
-        getProjectById: _getProjectById,
+    let { getProjectById: _getProjectById } = deps;
+    const {
         getGcpAccessToken: _getGcpAccessToken = getGcpAccessToken,
         fetch: _fetch = fetch,
         getService: _getService = getService,
@@ -291,7 +291,7 @@ export async function syncCronJobs(
 
     // 1. List existing jobs
     const existingJobs = await listProjectJobs(region, jobPrefix, accessToken, _fetch);
-    const existingJobNames = new Set(existingJobs.map((j: any) => j.name));
+    const existingJobNames = new Set(existingJobs.map((j: GcpSchedulerJob) => j.name));
 
     // 2. Prepare desired jobs
     const desiredJobs = crons.map(cron => {

@@ -110,18 +110,19 @@ async function main() {
 
                         console.log('\x1b[32mPASS: Live query requiring "projects" index succeeded (or index exists).\x1b[0m');
 
-                    } catch (e: any) {
-                        if (e.code === 9 && e.details && e.details.includes('index')) {
+                    } catch (e: unknown) {
+                        const error = e as { code?: number; details?: string; message?: string };
+                        if (error.code === 9 && error.details && error.details.includes('index')) {
                              // FAILED_PRECONDITION is often code 9
                             console.error('\x1b[31mFAIL: Firestore index missing or not ready.\x1b[0m');
-                            console.error(`  Error: ${e.message}`);
+                            console.error(`  Error: ${error.message}`);
                             errors++;
-                        } else if (e.code === 7) { // PERMISSION_DENIED
+                        } else if (error.code === 7) { // PERMISSION_DENIED
                              console.warn('\x1b[33mWARN: Permission denied when checking Firestore. Check service account roles.\x1b[0m');
                              warnings++;
                         } else {
                             // Other errors might be connectivity, auth, etc.
-                             console.warn(`\x1b[33mWARN: Could not verify live index: ${e.message}\x1b[0m`);
+                             console.warn(`\x1b[33mWARN: Could not verify live index: ${error.message}\x1b[0m`);
                              warnings++;
                         }
                     }
@@ -153,7 +154,7 @@ async function main() {
 
     try {
         // Check if server is up
-        const serverUp = await fetch(baseUrl).then(res => true).catch(() => false);
+        const serverUp = await fetch(baseUrl).then(() => true).catch(() => false);
 
         if (!serverUp) {
             console.warn(`\x1b[33mWARN: Server at ${baseUrl} is not reachable. Skipping API route checks.\x1b[0m`);
@@ -182,12 +183,10 @@ async function main() {
                     if (res.status >= 500) {
                         console.error(`\x1b[31mFAIL: ${url} returned ${res.status}\x1b[0m`);
                         apiFailures++;
-                    } else {
-                        // 2xx, 3xx, 4xx are acceptable (4xx means route exists but request was bad/unauth)
-                        // console.log(`  PASS: ${url} (${res.status})`);
                     }
-                } catch (e: any) {
-                    console.error(`\x1b[31mFAIL: ${url} - ${e.message}\x1b[0m`);
+                } catch (e: unknown) {
+                    const error = e as Error;
+                    console.error(`\x1b[31mFAIL: ${url} - ${error.message}\x1b[0m`);
                     apiFailures++;
                 }
             }

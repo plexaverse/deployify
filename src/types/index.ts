@@ -39,6 +39,7 @@ export interface User {
     avatarUrl: string;
     name: string | null;
     stripeCustomerId?: string;
+    lastUsageAlertKey?: string;
     subscription?: {
         tier: 'free' | 'pro' | 'team' | 'enterprise';
         status?: 'active' | 'past_due' | 'canceled' | 'unpaid';
@@ -222,7 +223,7 @@ export interface AuditEvent {
     teamId: string | null;
     userId: string;
     action: string;
-    details: Record<string, any>;
+    details: Record<string, unknown>;
     createdAt: Date;
     user?: {
         name: string | null;

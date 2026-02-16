@@ -1,7 +1,7 @@
 import { config } from '@/lib/config';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDockerfile } from '@/lib/dockerfiles';
-import type { BuildConfig, Deployment } from '@/types';
+import type { Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
 const CACHE_BUCKET = `${config.gcp.projectId}_deployify_cache`;
