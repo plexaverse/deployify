@@ -3,7 +3,6 @@ import { getSession } from '@/lib/auth';
 import { getProjectById, updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
-import { encrypt, decrypt } from '@/lib/crypto';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
 
 // Generate unique ID for env variables
@@ -109,25 +108,11 @@ export async function POST(
             );
         }
 
-        let finalValue = value;
-        let isEncrypted = false;
-
-        if (isSecret) {
-            try {
-                finalValue = encrypt(value);
-                isEncrypted = true;
-            } catch (error) {
-                console.error('Failed to encrypt secret:', error);
-                return NextResponse.json({ error: 'Failed to encrypt secret value' }, { status: 500 });
-            }
-        }
-
         const newEnvVar: EnvVariable = {
             id: generateEnvId(),
             key,
-            value: finalValue,
+            value,
             isSecret: Boolean(isSecret),
-            isEncrypted,
             target: target as EnvVariableTarget,
             environment: environment as 'production' | 'preview' | 'both',
             group: group || 'General',
@@ -151,7 +136,7 @@ export async function POST(
         return NextResponse.json({
             envVariable: {
                 ...newEnvVar,
-                value: newEnvVar.isSecret ? '••••••••' : newEnvVar.value, // Return masked value in response too
+                value: newEnvVar.isSecret ? '••••••••' : newEnvVar.value,
             },
             message: 'Environment variable added successfully',
         });
@@ -210,56 +195,9 @@ export async function PUT(
 
         // Update the env variable
         const updatedEnv = { ...envVariables[envIndex] };
-
-        // Determine new isSecret state
-        const newIsSecret = isSecret !== undefined ? Boolean(isSecret) : updatedEnv.isSecret;
-
-        let newValue = value !== undefined ? value : updatedEnv.value;
-        let newIsEncrypted = updatedEnv.isEncrypted;
-
-        if (value !== undefined) {
-             // Value is being updated
-             if (newIsSecret) {
-                 try {
-                     newValue = encrypt(value);
-                     newIsEncrypted = true;
-                 } catch (e) {
-                     return NextResponse.json({ error: 'Failed to encrypt value' }, { status: 500 });
-                 }
-             } else {
-                 newValue = value;
-                 newIsEncrypted = false;
-             }
-        } else {
-             // Value not provided, check if encryption state needs change
-             if (newIsSecret && !updatedEnv.isSecret) {
-                 // Changed to secret -> encrypt existing value (assuming existing was plain text)
-                 if (!updatedEnv.isEncrypted) {
-                     try {
-                        newValue = encrypt(updatedEnv.value);
-                        newIsEncrypted = true;
-                     } catch (e) {
-                        return NextResponse.json({ error: 'Failed to encrypt value' }, { status: 500 });
-                     }
-                 }
-             } else if (!newIsSecret && updatedEnv.isSecret) {
-                 // Changed to public -> decrypt existing value
-                 if (updatedEnv.isEncrypted) {
-                     try {
-                        newValue = decrypt(updatedEnv.value);
-                        newIsEncrypted = false;
-                     } catch (e) {
-                         console.error('Failed to decrypt during toggle:', e);
-                         return NextResponse.json({ error: 'Failed to decrypt secret value' }, { status: 500 });
-                     }
-                 }
-             }
-        }
-
         if (key !== undefined) updatedEnv.key = key;
-        updatedEnv.value = newValue;
-        updatedEnv.isSecret = newIsSecret;
-        updatedEnv.isEncrypted = newIsEncrypted;
+        if (value !== undefined) updatedEnv.value = value;
+        if (isSecret !== undefined) updatedEnv.isSecret = Boolean(isSecret);
         if (target !== undefined) updatedEnv.target = target as EnvVariableTarget;
         if (environment !== undefined) updatedEnv.environment = environment as 'production' | 'preview' | 'both';
         if (group !== undefined) updatedEnv.group = group;

@@ -146,7 +146,6 @@ export interface EnvVariable {
     key: string;
     value: string;
     isSecret: boolean; // If true, value is masked in UI
-    isEncrypted?: boolean; // If true, value is encrypted in DB
     target: EnvVariableTarget; // Where the variable is used
     environment?: 'production' | 'preview' | 'both'; // Scope of the variable
     group?: string; // Optional group name (e.g., "Database", "Auth")
