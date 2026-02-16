@@ -34,7 +34,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         isLoadingEnv: isLoading,
         fetchProjectEnvVariables,
         addEnvVariable,
-        deleteEnvVariable
+        deleteEnvVariable,
+        revealEnvVariable
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -46,6 +47,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     const [newGroup, setNewGroup] = useState('General');
 
     const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
+    const [revealedValues, setRevealedValues] = useState<Record<string, string>>({});
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -54,13 +56,23 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         fetchProjectEnvVariables(projectId);
     }, [projectId, fetchProjectEnvVariables]);
 
-    const toggleReveal = (id: string) => {
+    const toggleReveal = async (env: typeof envVariables[0]) => {
         const newRevealed = new Set(revealedIds);
-        if (newRevealed.has(id)) {
-            newRevealed.delete(id);
-        } else {
-            newRevealed.add(id);
+        if (newRevealed.has(env.id)) {
+            newRevealed.delete(env.id);
+            setRevealedIds(newRevealed);
+            return;
         }
+
+        // If secret and we don't have the value (or it's masked), fetch it
+        if (env.isSecret && !revealedValues[env.id]) {
+            const value = await revealEnvVariable(projectId, env.id);
+            if (value) {
+                setRevealedValues(prev => ({ ...prev, [env.id]: value }));
+            }
+        }
+
+        newRevealed.add(env.id);
         setRevealedIds(newRevealed);
     };
 
@@ -336,21 +348,23 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                 <td className="py-3 px-4 text-sm font-mono">
                                                     <div className="flex items-center gap-2 bg-[var(--muted)]/50 px-2 py-1 rounded w-fit max-w-full overflow-hidden">
                                                         {revealedIds.has(env.id) ? (
-                                                            <span className="text-[var(--foreground)] truncate">{env.value}</span>
+                                                            <span className="text-[var(--foreground)] truncate">
+                                                                {env.isSecret ? (revealedValues[env.id] || 'Loading...') : env.value}
+                                                            </span>
                                                         ) : (
                                                             <span className="text-[var(--muted-foreground)]">••••••••••••••••</span>
                                                         )}
 
                                                         <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                                                             <button
-                                                                onClick={() => toggleReveal(env.id)}
+                                                                onClick={() => toggleReveal(env)}
                                                                 className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
                                                                 title={revealedIds.has(env.id) ? "Hide value" : "Show value"}
                                                             >
                                                                 {revealedIds.has(env.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                                                             </button>
                                                             <button
-                                                                onClick={() => copyToClipboard(env.id, env.value)}
+                                                                onClick={() => copyToClipboard(env.id, env.isSecret && revealedValues[env.id] ? revealedValues[env.id] : env.value)}
                                                                 className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
                                                                 title="Copy to clipboard"
                                                             >

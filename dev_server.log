@@ -1,0 +1,40 @@
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 1669ms
+○ Compiling /dashboard/[id]/settings ...
+ GET /dashboard/p1/settings 200 in 8.3s (compile: 7.4s, proxy.ts: 137ms, render: 775ms)
+In-house collector error: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at POST (src/app/api/v1/collect/route.ts:13:32)
+  11 | export async function POST(req: NextRequest) {
+  12 |     try {
+> 13 |         const body = await req.json();
+     |                                ^
+  14 |         const { id, type, path, referrer, width, metrics, apiKey } = body;
+  15 |
+  16 |         let ip = req.headers.get('x-forwarded-for')?.split(',')[0] ||
+Error listing teams: Error: Unable to detect a Project Id in the current environment.
+To learn more about authentication and Google APIs, visit:
+https://cloud.google.com/docs/authentication/getting-started
+    at <unknown> (https://cloud.google.com/docs/authentication/getting-started)
+    at listTeamsWithMembership (src/lib/db.ts:406:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  404 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  405 |         .where('userId', '==', userId)
+> 406 |         .get();
+      |          ^
+  407 |
+  408 |     if (membershipsSnapshot.empty) {
+  409 |         return [];
+[?25h
