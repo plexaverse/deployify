@@ -44,8 +44,7 @@
 
 #### 9. **Onboarding Flow**
 - **Current**: Direct jump to GitHub connection
-- **Improvement**: Guided onboarding (connect → import → configure → deploy)
-- **Benefit**: Better first-time user experience
+- **Status**: ✅ Implemented (Guided onboarding via `OnboardingGuide` and multi-step `NewProjectPage`)
 
 #### 10. **Empty States with Illustrations**
 - **Current**: Custom SVG illustrations implemented
@@ -58,10 +57,10 @@
 - **Files**: `src/app/dashboard/layout.tsx`
 
 #### 12. **Project Favicon/Avatar**
-- **Improvement**: Auto-generate project avatars from repo name or use favicon from deployed site
+- **Status**: ✅ Implemented (Using Google S2 favicon service with initials fallback in `ProjectAvatar.tsx`)
 
 #### 13. **Deployment Comparison View**
-- **Improvement**: Side-by-side comparison of two deployments (bundle size, build time, etc.)
+- **Status**: ✅ Implemented (Side-by-side comparison of build time and Core Web Vitals)
 
 ---
 
@@ -139,7 +138,7 @@
 - **Status**: ✅ Implemented (RBAC enforced in API routes)
 
 #### 15. **Custom Dockerfile Support**
-- **Improvement**: Detect and use repo's Dockerfile if present
+- **Status**: ✅ Implemented (Detection in `detectFramework` and support in `cloudbuild.ts`)
 
 #### 16. **Environment Variable Groups**
 - **Current**: Env vars are grouped by the `group` property in the UI
@@ -154,8 +153,7 @@
 - **Status**: ✅ Implemented (Project CRUD, Deploys, Auth, Domains, Rollback)
 
 #### 19. **CLI Tool**
-- **Current**: Landing page mentions `pnpm dlx deployify login`
-- **Improvement**: Actually build the CLI tool for local development integration
+- **Status**: ✅ Implemented (Basic CLI skeleton with `login` and `deploy` commands in `src/cli/index.ts`)
 
 ---
 
