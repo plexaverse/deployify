@@ -1,6 +1,7 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { getDb, Collections } from '@/lib/firebase';
 import { listProjectsByUser, listDeploymentsByProject, getUserById, updateUser } from '@/lib/db';
+import type { User } from '@/types';
 import { getTierLimits, SubscriptionTier } from './tiers';
 import { sendEmail } from '@/lib/email/client';
 import { usageAlertEmail } from '@/lib/email/templates';
@@ -169,7 +170,7 @@ export async function trackUsageAndAlert(userId: string): Promise<void> {
         if (!user) return;
 
         // Default to free tier if not specified
-        const tier: SubscriptionTier = (user as any).subscription?.tier || 'free';
+        const tier: SubscriptionTier = user.subscription?.tier || 'free';
         const limits = getTierLimits(tier);
 
         // 3. Check limits and alert
@@ -180,7 +181,7 @@ export async function trackUsageAndAlert(userId: string): Promise<void> {
     }
 }
 
-async function checkAndAlert(user: any, metric: string, usage: number, limit: number) {
+async function checkAndAlert(user: User, metric: string, usage: number, limit: number) {
     if (limit === 0 || limit === Infinity) return; // Unlimited
 
     const percentage = (usage / limit) * 100;
@@ -216,7 +217,7 @@ async function checkAndAlert(user: any, metric: string, usage: number, limit: nu
             try {
                 await updateUser(user.id, {
                     lastUsageAlertKey: alertKey
-                } as any);
+                });
             } catch (error) {
                 console.error('Failed to update user alert status:', error);
             }

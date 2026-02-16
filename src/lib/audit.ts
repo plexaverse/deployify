@@ -6,7 +6,7 @@ export interface AuditEvent {
     teamId: string | null;
     userId: string;
     action: string;
-    details: Record<string, any>;
+    details: Record<string, unknown>;
     createdAt: Date;
 }
 
@@ -14,7 +14,7 @@ export async function logAuditEvent(
     teamId: string | null,
     userId: string,
     action: string,
-    details: Record<string, any>
+    details: Record<string, unknown>
 ): Promise<void> {
     const db = getDb();
     const id = generateId('audit');

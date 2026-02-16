@@ -125,7 +125,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         // Validate resources
         if (updates.resources) {
-            const resources = updates.resources as any;
+            const resources = updates.resources as {
+                cpu?: number | string;
+                memory?: string;
+                minInstances?: number | string;
+                maxInstances?: number | string;
+            };
             const validCpus = [1, 2, 4];
             const validMemory = ['256Mi', '512Mi', '1Gi', '2Gi', '4Gi'];
 

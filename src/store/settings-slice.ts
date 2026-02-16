@@ -1,8 +1,8 @@
 import { StateCreator } from 'zustand';
-import type { TeamMembership, TeamInvite, TeamRole, AuditEvent } from '@/types';
+import type { TeamMembership, TeamInvite, TeamRole, AuditEvent, User } from '@/types';
 
 export interface SettingsSlice {
-    teamMembers: (TeamMembership & { user: any })[];
+    teamMembers: (TeamMembership & { user: User | null })[];
     teamInvites: TeamInvite[];
     auditLogs: AuditEvent[];
     isLoadingSettings: boolean;
@@ -11,7 +11,7 @@ export interface SettingsSlice {
     inviteRole: TeamRole;
     settingsError: string | null;
 
-    setTeamMembers: (members: (TeamMembership & { user: any })[]) => void;
+    setTeamMembers: (members: (TeamMembership & { user: User | null })[]) => void;
     setTeamInvites: (invites: TeamInvite[]) => void;
     setAuditLogs: (logs: AuditEvent[]) => void;
     setLoadingSettings: (isLoading: boolean) => void;
