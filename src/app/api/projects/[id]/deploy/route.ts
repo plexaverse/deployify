@@ -10,6 +10,7 @@ import { parseRepoFullName } from '@/lib/utils';
 import { config } from '@/lib/config';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { logAuditEvent } from '@/lib/audit';
+import { decrypt } from '@/lib/crypto';
 import type { EnvVariable } from '@/types';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -137,12 +138,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 const buildEnvVars: Record<string, string> = {};
                 const runtimeEnvVars: Record<string, string> = {};
 
+                const envTarget = 'production'; // Manual deploy is always production for now
                 envVars.forEach((env: EnvVariable) => {
+                    // Filter by environment (Production vs Preview)
+                    if (env.environment && env.environment !== 'both' && env.environment !== envTarget) {
+                        return;
+                    }
+
+                    let value = env.value;
+                    if (env.isSecret && env.isEncrypted) {
+                        try {
+                            value = decrypt(env.value);
+                        } catch (e) {
+                            console.error(`Failed to decrypt secret ${env.key}:`, e);
+                            // Fail deployment if decryption fails to be safe
+                            throw new Error(`Failed to decrypt secret ${env.key}. Please update the variable value.`);
+                        }
+                    }
+
                     if (env.target === 'build' || env.target === 'both') {
-                        buildEnvVars[env.key] = env.value;
+                        buildEnvVars[env.key] = value;
                     }
                     if (env.target === 'runtime' || env.target === 'both') {
-                        runtimeEnvVars[env.key] = env.value;
+                        runtimeEnvVars[env.key] = value;
                     }
                 });
 

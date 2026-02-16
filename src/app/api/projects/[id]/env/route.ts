@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getProjectById, updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
+import { encrypt } from '@/lib/crypto';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
 
 // Generate unique ID for env variables
@@ -108,11 +109,15 @@ export async function POST(
             );
         }
 
+        const isEncrypted = Boolean(isSecret);
+        const storedValue = isEncrypted ? encrypt(value) : value;
+
         const newEnvVar: EnvVariable = {
             id: generateEnvId(),
             key,
-            value,
+            value: storedValue,
             isSecret: Boolean(isSecret),
+            isEncrypted,
             target: target as EnvVariableTarget,
             environment: environment as 'production' | 'preview' | 'both',
             group: group || 'General',
@@ -195,9 +200,33 @@ export async function PUT(
 
         // Update the env variable
         const updatedEnv = { ...envVariables[envIndex] };
+        const wasEncrypted = updatedEnv.isEncrypted;
+
         if (key !== undefined) updatedEnv.key = key;
-        if (value !== undefined) updatedEnv.value = value;
-        if (isSecret !== undefined) updatedEnv.isSecret = Boolean(isSecret);
+
+        if (isSecret !== undefined) {
+            updatedEnv.isSecret = Boolean(isSecret);
+            updatedEnv.isEncrypted = updatedEnv.isSecret;
+        }
+
+        if (value !== undefined) {
+            updatedEnv.value = updatedEnv.isEncrypted ? encrypt(value) : value;
+        } else {
+            // If no new value is provided, but encryption state changed
+            if (!wasEncrypted && updatedEnv.isEncrypted) {
+                // Enabled encryption: encrypt current value if not already
+                if (!updatedEnv.value.startsWith('enc:')) {
+                    updatedEnv.value = encrypt(updatedEnv.value);
+                }
+            } else if (wasEncrypted && !updatedEnv.isEncrypted) {
+                // Disabled encryption: decrypt current value if encrypted
+                if (updatedEnv.value.startsWith('enc:')) {
+                    const { decrypt } = await import('@/lib/crypto');
+                    updatedEnv.value = decrypt(updatedEnv.value);
+                }
+            }
+        }
+
         if (target !== undefined) updatedEnv.target = target as EnvVariableTarget;
         if (environment !== undefined) updatedEnv.environment = environment as 'production' | 'preview' | 'both';
         if (group !== undefined) updatedEnv.group = group;

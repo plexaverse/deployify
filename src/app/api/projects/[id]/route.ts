@@ -4,6 +4,8 @@ import { updateProject, deleteProject, listDeploymentsByProject, getProjectById 
 import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
+import { deleteService, listServices } from '@/lib/gcp/cloudrun';
+import { getGcpAccessToken } from '@/lib/gcp/auth';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -234,7 +236,30 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        // Delete project and all associated data
+        // 1. Identify and delete Cloud Run services
+        try {
+            const accessToken = await getGcpAccessToken();
+            const projectSlug = access.project.slug;
+            const region = access.project.region;
+
+            // Use a prefix that matches both production and preview services
+            const prefix = `dfy-${projectSlug.substring(0, 40)}`;
+            const services = await listServices(prefix, accessToken, region);
+
+            for (const service of services) {
+                // Extract service name from full resource name
+                // Service name is projects/{project}/locations/{location}/services/{serviceName}
+                const serviceName = service.name.split('/').pop();
+                if (serviceName) {
+                    await deleteService(serviceName, accessToken, region);
+                }
+            }
+        } catch (cleanupError) {
+            console.error('Failed to cleanup GCP resources:', cleanupError);
+            // We continue even if cleanup fails to ensure the project is deleted from DB
+        }
+
+        // 2. Delete project and all associated data from DB
         await deleteProject(id);
 
         await logAuditEvent(
@@ -246,8 +271,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
                 name: access.project.name
             }
         );
-
-        // TODO: Also delete Cloud Run services and cleanup
 
         return NextResponse.json(
             { success: true },

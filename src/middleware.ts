@@ -142,7 +142,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check authentication for protected dashboard routes
-    if (pathname.startsWith('/dashboard')) {
+    if (pathname.startsWith('/dashboard') || pathname.startsWith('/new')) {
         const sessionCookie = request.cookies.get('deployify_session');
         const token = sessionCookie ? decodeURIComponent(sessionCookie.value) : '';
 
