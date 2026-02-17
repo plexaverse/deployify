@@ -30,6 +30,7 @@ export function Header() {
                 <Link
                     href="/dashboard"
                     className="flex items-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    aria-label="Dashboard Home"
                 >
                     <Home className="w-4 h-4" />
                 </Link>
