@@ -1,5 +1,6 @@
-import { CheckCircle2, Circle, Clock, Loader2, XCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Circle, Loader2, XCircle, AlertCircle } from 'lucide-react';
 import type { Deployment } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface DeploymentTimelineProps {
     deployment: Deployment;
@@ -18,11 +19,6 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
 
         // Handle Error/Cancelled state specially
         if (status === 'error' || status === 'cancelled') {
-            // If we are past this step, it was completed
-            // This is an approximation since we don't know exactly when it failed without more history
-            // But usually:
-            // If error, it might be in building or deploying.
-            // We'll just show the final status as error.
             return 'inactive';
         }
 
@@ -38,34 +34,38 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
 
     const isError = deployment.status === 'error';
     const isCancelled = deployment.status === 'cancelled';
+    const currentIndex = steps.findIndex(s => s.id === deployment.status);
+
+    // Calculate progress width
+    let progressWidth = 0;
+    if (!isError && !isCancelled && currentIndex !== -1) {
+         progressWidth = (currentIndex / (steps.length - 1)) * 100;
+    }
 
     return (
         <div className="w-full py-4">
             <div className="relative flex items-center justify-between">
-                {/* Connecting Line */}
+                {/* Connecting Line (Background) */}
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-[var(--border)] -z-10"></div>
 
                 {/* Progress Line */}
-                {!isError && !isCancelled && (
+                {!isError && !isCancelled && currentIndex !== -1 && (
                     <div
                         className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-[var(--primary)] -z-10 transition-all duration-500"
-                        style={{
-                            width: `${(steps.findIndex(s => s.id === deployment.status) / (steps.length - 1)) * 100}%`
-                        }}
+                        style={{ width: `${progressWidth}%` }}
                     ></div>
                 )}
 
                 {steps.map((step, index) => {
                     const stepStatus = getStepStatus(step.id, index);
 
-                    // Override for error/cancelled
                     let icon;
                     let colorClass = "bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)]";
 
-                    if (isError && index === steps.findIndex(s => s.id === 'ready')) {
+                    if (isError && step.id === 'ready') {
                          icon = <XCircle className="w-5 h-5 text-[var(--error)]" />;
                          colorClass = "bg-[var(--card)] border-[var(--error)] text-[var(--error)]";
-                    } else if (isCancelled && index === steps.findIndex(s => s.id === 'ready')) {
+                    } else if (isCancelled && step.id === 'ready') {
                          icon = <XCircle className="w-5 h-5 text-[var(--muted)]" />;
                          colorClass = "bg-[var(--card)] border-[var(--muted)] text-[var(--muted)]";
                     } else if (stepStatus === 'completed') {
@@ -84,11 +84,13 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
                     }
 
                     return (
-                        <div key={step.id} className="flex flex-col items-center gap-2 bg-[var(--background)] px-2">
-                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${colorClass}`}>
+                        <div key={step.id} className="flex flex-col items-center gap-2 bg-[var(--background)] px-2 z-10">
+                            <div className={cn("w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors", colorClass)}>
                                 {icon}
                             </div>
-                            <span className={`text-xs font-medium ${stepStatus === 'current' || stepStatus === 'completed' ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'}`}>
+                            <span className={cn("text-xs font-medium transition-colors",
+                                stepStatus === 'current' || stepStatus === 'completed' ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
+                            )}>
                                 {step.label}
                             </span>
                         </div>
@@ -98,13 +100,13 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
 
              {/* Error Message Display */}
              {isError && (
-                <div className="mt-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] flex items-start gap-2 text-sm text-[var(--error)]">
+                <div className="mt-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 flex items-start gap-2 text-sm text-[var(--error)]">
                     <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                     <p>{deployment.errorMessage || 'An unknown error occurred during deployment.'}</p>
                 </div>
             )}
              {isCancelled && (
-                <div className="mt-4 p-3 rounded-lg bg-[var(--muted-bg)] border border-[var(--border)] flex items-start gap-2 text-sm text-[var(--muted-foreground)]">
+                <div className="mt-4 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)] flex items-start gap-2 text-sm text-[var(--muted-foreground)]">
                     <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                     <p>Deployment was cancelled.</p>
                 </div>

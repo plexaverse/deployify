@@ -5,6 +5,10 @@ import { X } from 'lucide-react';
 import { DeploymentTimeline } from '@/components/DeploymentTimeline';
 import { BuildLogViewer } from '@/components/BuildLogViewer';
 import type { Deployment } from '@/types';
+import { Portal } from '@/components/ui/portal';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface DeploymentLogsModalProps {
     deployment: Deployment;
@@ -60,39 +64,47 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-4xl h-[80vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)]">
-                    <div className="flex items-center gap-3">
-                        <h3 className="font-semibold text-lg">Build Logs</h3>
-                        <span className={`badge ${deployment.status === 'ready' ? 'badge-success' :
-                                deployment.status === 'error' ? 'badge-error' :
-                                    deployment.status === 'building' ? 'badge-warning' : 'badge-info'
-                            }`}>
-                            {deployment.status}
-                        </span>
+        <Portal>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <Card className="w-full max-w-4xl h-[80vh] p-0 overflow-hidden animate-fade-in shadow-2xl flex flex-col">
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
+                        <div className="flex items-center gap-3">
+                            <h3 className="font-semibold text-lg text-[var(--foreground)]">Build Logs</h3>
+                            <Badge variant={
+                                deployment.status === 'ready' ? 'success' :
+                                deployment.status === 'error' ? 'destructive' :
+                                deployment.status === 'building' ? 'warning' : 'info'
+                            }>
+                                {deployment.status}
+                            </Badge>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onClose}
+                            className="h-8 w-8"
+                        >
+                            <X className="w-5 h-5" />
+                        </Button>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-[var(--border)] rounded-md transition-colors">
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
 
-                {/* Timeline */}
-                <div className="px-6 py-2 border-b border-[var(--border)] bg-[var(--background)]">
-                    <DeploymentTimeline deployment={deployment} />
-                </div>
+                    {/* Timeline */}
+                    <div className="px-6 py-2 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
+                        <DeploymentTimeline deployment={deployment} />
+                    </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-hidden bg-[#0d1117]">
-                    <BuildLogViewer
-                        logs={logs}
-                        loading={loading && !logs}
-                        error={error}
-                        onRetry={() => fetchLogs()}
-                    />
-                </div>
+                    {/* Content */}
+                    <div className="flex-1 overflow-hidden bg-[#0d1117] relative">
+                        <BuildLogViewer
+                            logs={logs}
+                            loading={loading && !logs}
+                            error={error}
+                            onRetry={() => fetchLogs()}
+                        />
+                    </div>
+                </Card>
             </div>
-        </div>
+        </Portal>
     );
 }

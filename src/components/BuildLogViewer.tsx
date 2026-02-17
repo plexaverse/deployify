@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 interface BuildLogViewerProps {
     logs: string | null;
@@ -22,32 +24,36 @@ export function BuildLogViewer({ logs, loading, error, onRetry }: BuildLogViewer
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full text-gray-500">
-                <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                <span>Loading build logs...</span>
+            <div className="flex flex-col gap-2 p-4 h-full bg-[#0d1117]">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex gap-4">
+                        <Skeleton className="h-4 w-24 bg-white/10" />
+                        <Skeleton className="h-4 w-full bg-white/10" />
+                    </div>
+                ))}
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
-                <AlertCircle className="w-8 h-8 text-red-400" />
-                <p className="text-red-400">{error}</p>
-                <button
+            <div className="flex flex-col items-center justify-center h-full text-[var(--muted-foreground)] gap-4 bg-[#0d1117]">
+                <AlertCircle className="w-8 h-8 text-[var(--error)]" />
+                <p className="text-[var(--error)]">{error}</p>
+                <Button
                     onClick={onRetry}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg hover:opacity-90 transition-opacity"
+                    variant="primary"
                 >
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-4 h-4 mr-2" />
                     Retry
-                </button>
+                </Button>
             </div>
         );
     }
 
     if (!logs) {
         return (
-            <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="flex items-center justify-center h-full text-[var(--muted-foreground)] bg-[#0d1117]">
                 <p>No build logs available yet</p>
             </div>
         );
@@ -56,7 +62,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry }: BuildLogViewer
     return (
         <div
             ref={containerRef}
-            className="h-full overflow-y-auto p-4 font-mono text-xs leading-relaxed"
+            className="h-full overflow-y-auto p-4 font-mono text-xs leading-relaxed bg-[#0d1117]"
         >
             <pre className="whitespace-pre-wrap text-gray-300">{logs}</pre>
         </div>
