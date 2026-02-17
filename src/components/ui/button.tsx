@@ -2,13 +2,16 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
+
 export const buttonVariants = ({
     variant = 'primary',
     size = 'md',
     className
 }: {
-    variant?: 'primary' | 'secondary' | 'outline' | 'ghost',
-    size?: 'sm' | 'md' | 'lg',
+    variant?: ButtonVariant,
+    size?: ButtonSize,
     className?: string
 }) => {
     const variants = {
@@ -22,6 +25,7 @@ export const buttonVariants = ({
         sm: 'h-9 px-3 text-xs',
         md: 'h-10 px-4 py-2',
         lg: 'h-11 px-8',
+        icon: 'h-10 w-10',
     };
 
     return cn(
@@ -33,8 +37,8 @@ export const buttonVariants = ({
 };
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-    size?: 'sm' | 'md' | 'lg';
+    variant?: ButtonVariant;
+    size?: ButtonSize;
     loading?: boolean;
 }
 

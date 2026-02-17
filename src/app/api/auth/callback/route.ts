@@ -66,7 +66,28 @@ export async function GET(request: NextRequest) {
             { method: 'github' }
         );
 
-        // Create redirect response
+        // Check for CLI context
+        const cliContextCookie = cookieStore.get('deployify_cli_context');
+        if (cliContextCookie) {
+            try {
+                const context = JSON.parse(cliContextCookie.value);
+                if (context.cli && context.port) {
+                    // Redirect to CLI local server with token
+                    const redirectUrl = `http://localhost:${context.port}/callback?token=${sessionToken}`;
+                    const response = NextResponse.redirect(redirectUrl);
+
+                    // Clear CLI context and state cookies
+                    response.cookies.delete('deployify_cli_context');
+                    response.cookies.delete('oauth_state');
+
+                    return response;
+                }
+            } catch (e) {
+                console.error('Failed to parse CLI context cookie:', e);
+            }
+        }
+
+        // Create redirect response (standard browser flow)
         const response = NextResponse.redirect(new URL('/dashboard', config.appUrl));
 
         // On Cloud Run, NODE_ENV might not be 'production', so check appUrl instead
@@ -92,4 +113,3 @@ export async function GET(request: NextRequest) {
         );
     }
 }
-
