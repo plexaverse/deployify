@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createGitHubOAuthUrl, generateOAuthState } from '@/lib/auth';
+import { config } from '@/lib/config';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const searchParams = request.nextUrl.searchParams;
+        const cli = searchParams.get('cli') === 'true';
+        const port = searchParams.get('port');
+
         // Generate CSRF state token
         const state = generateOAuthState();
 
@@ -17,12 +22,23 @@ export async function GET() {
             path: '/',
         });
 
+        // Store CLI context if present
+        if (cli && port) {
+            cookieStore.set('deployify_cli_context', JSON.stringify({ cli, port }), {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 60 * 10, // 10 minutes
+                path: '/',
+            });
+        }
+
         // Redirect to GitHub OAuth
         const authUrl = createGitHubOAuthUrl(state);
 
         return NextResponse.redirect(authUrl);
     } catch (error) {
         console.error('GitHub OAuth error:', error);
-        return NextResponse.redirect(new URL('/login?error=oauth_failed', process.env.NEXT_PUBLIC_APP_URL));
+        return NextResponse.redirect(new URL('/login?error=oauth_failed', config.appUrl));
     }
 }
