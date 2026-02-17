@@ -156,6 +156,10 @@
 #### 19. **CLI Tool**
 - **Status**: ✅ Implemented (Basic CLI skeleton with `login` and `deploy` commands in `src/cli/index.ts`)
 
+#### 20. **Secrets in Import Flow**
+- **Improvement**: Support adding secret environment variables during project import
+- **Status**: ✅ Implemented (Added checkbox in UI and backend encryption)
+
 ---
 
 ## 📋 Implementation Priority Matrix
@@ -178,6 +182,7 @@
 6. Show build duration on deployment cards ✅
 7. Add "Redeploy" button on deployment detail ✅
 8. Add email notification toggle ✅
+9. Support secrets in import flow ✅
 
 ---
 

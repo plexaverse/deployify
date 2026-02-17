@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { listProjectsByUser, createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
-import { slugify, parseRepoFullName } from '@/lib/utils';
+import { slugify, parseRepoFullName, generateId } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
+import { encrypt } from '@/lib/crypto';
+import type { EnvVariable } from '@/types';
 
 // GET /api/projects - List user's projects
 export async function GET(request: NextRequest) {
@@ -138,6 +140,23 @@ export async function POST(request: NextRequest) {
                 break;
         }
 
+        // Process environment variables (generate IDs and encrypt secrets)
+        const processedEnvVars: EnvVariable[] = (envVariables || []).map((env: Partial<EnvVariable>) => {
+            const isSecret = Boolean(env.isSecret);
+            const value = isSecret && env.value ? encrypt(env.value) : env.value || '';
+
+            return {
+                id: generateId('env'),
+                key: env.key || '',
+                value,
+                isSecret,
+                isEncrypted: isSecret,
+                target: env.target || 'both',
+                environment: env.environment || 'both',
+                group: env.group || 'General',
+            } as EnvVariable;
+        });
+
         // Create the project
         const project = await createProject({
             userId: session.user.id,
@@ -155,7 +174,7 @@ export async function POST(request: NextRequest) {
             customDomain: null,
             githubToken: session.accessToken,
             region: region || null,
-            envVariables: envVariables || [],
+            envVariables: processedEnvVars,
         });
 
         await logAuditEvent(

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -43,6 +43,7 @@ export default function ImportProjectPage() {
         newEnvKey, setNewEnvKey,
         newEnvValue, setNewEnvValue,
         newEnvTarget, setNewEnvTarget,
+        newEnvIsSecret, setNewEnvIsSecret,
         isDeploying, setDeploying,
         resetImportState
     } = useStore();
@@ -96,10 +97,11 @@ export default function ImportProjectPage() {
             return;
         }
 
-        setEnvVars([...envVars, { key, value: newEnvValue, target: newEnvTarget }]);
+        setEnvVars([...envVars, { key, value: newEnvValue, target: newEnvTarget, isSecret: newEnvIsSecret }]);
         setNewEnvKey('');
         setNewEnvValue('');
         setNewEnvTarget('both');
+        setNewEnvIsSecret(false);
     };
 
     const handleRemoveEnv = (key: string) => {
@@ -129,7 +131,7 @@ export default function ImportProjectPage() {
                         key: e.key,
                         value: e.value,
                         target: e.target,
-                        isSecret: false // TODO: Support secrets in import flow
+                        isSecret: e.isSecret
                     }))
                 }),
             });
@@ -273,8 +275,13 @@ export default function ImportProjectPage() {
                         {envVars.map((env) => (
                             <div key={env.key} className="flex items-center gap-2 p-2 rounded bg-[var(--background)] border border-[var(--border)]">
                                 <div className="flex-1 grid grid-cols-3 gap-2">
-                                    <div className="font-mono text-sm truncate text-[var(--foreground)]" title={env.key}>{env.key}</div>
-                                    <div className="font-mono text-sm truncate text-[var(--muted-foreground)]" title={env.value}>{env.value}</div>
+                                    <div className="font-mono text-sm truncate text-[var(--foreground)] flex items-center gap-2" title={env.key}>
+                                        {env.key}
+                                        {env.isSecret && <Shield className="w-3 h-3 text-blue-400" />}
+                                    </div>
+                                    <div className="font-mono text-sm truncate text-[var(--muted-foreground)]" title={env.isSecret ? '••••••••' : env.value}>
+                                        {env.isSecret ? '••••••••' : env.value}
+                                    </div>
                                     <div className="text-xs text-[var(--muted-foreground)] flex items-center">{env.target}</div>
                                 </div>
                                 <button onClick={() => handleRemoveEnv(env.key)} className="text-[var(--muted-foreground)] hover:text-red-500 transition-colors">
@@ -284,37 +291,56 @@ export default function ImportProjectPage() {
                         ))}
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-2">
-                        <Input
-                            type="text"
-                            value={newEnvKey}
-                            onChange={(e) => setNewEnvKey(e.target.value)}
-                            placeholder="KEY"
-                            className="flex-1 font-mono text-sm"
-                        />
-                        <Input
-                            type="text"
-                            value={newEnvValue}
-                            onChange={(e) => setNewEnvValue(e.target.value)}
-                            placeholder="Value"
-                            className="flex-1 font-mono text-sm"
-                        />
-                        <NativeSelect
-                            value={newEnvTarget}
-                            onChange={(e) => setNewEnvTarget(e.target.value as any)}
-                            className="w-32 text-sm"
-                        >
-                            <option value="both">Both</option>
-                            <option value="build">Build</option>
-                            <option value="runtime">Runtime</option>
-                        </NativeSelect>
-                        <Button
-                            variant="secondary"
-                            onClick={handleAddEnv}
-                            disabled={!newEnvKey || !newEnvValue}
-                        >
-                            <Plus className="w-4 h-4 mr-2" /> Add
-                        </Button>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col md:flex-row gap-2">
+                            <Input
+                                type="text"
+                                value={newEnvKey}
+                                onChange={(e) => setNewEnvKey(e.target.value)}
+                                placeholder="KEY"
+                                className="flex-1 font-mono text-sm"
+                            />
+                            <Input
+                                type={newEnvIsSecret ? 'password' : 'text'}
+                                value={newEnvValue}
+                                onChange={(e) => setNewEnvValue(e.target.value)}
+                                placeholder="Value"
+                                className="flex-1 font-mono text-sm"
+                            />
+                            <NativeSelect
+                                value={newEnvTarget}
+                                onChange={(e) => setNewEnvTarget(e.target.value as any)}
+                                className="w-32 text-sm"
+                            >
+                                <option value="both">Both</option>
+                                <option value="build">Build</option>
+                                <option value="runtime">Runtime</option>
+                            </NativeSelect>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    id="is-secret"
+                                    type="checkbox"
+                                    checked={newEnvIsSecret}
+                                    onChange={(e) => setNewEnvIsSecret(e.target.checked)}
+                                    className="w-4 h-4 rounded border-gray-300 text-[var(--primary)]"
+                                />
+                                <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer">
+                                    <Shield className="w-3.5 h-3.5 text-blue-400" />
+                                    Secret (Encrypted)
+                                </Label>
+                            </div>
+
+                            <Button
+                                variant="secondary"
+                                onClick={handleAddEnv}
+                                disabled={!newEnvKey || !newEnvValue}
+                            >
+                                <Plus className="w-4 h-4 mr-2" /> Add
+                            </Button>
+                        </div>
                     </div>
                 </Card>
 
