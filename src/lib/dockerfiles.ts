@@ -25,13 +25,18 @@ export function getDockerfile(config: DockerfileConfig): string {
 function generateAstroDockerfile(config: DockerfileConfig): string {
     const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build', rootDirectory } = config;
 
+    // Helper to format path
+    const getPath = (path: string) => {
+        if (!rootDirectory || rootDirectory === '.') return path;
+        const cleanPath = path.startsWith('./') ? path.substring(2) : path;
+        return `${rootDirectory}/${cleanPath}`;
+    };
+
     const buildCmd = rootDirectory && rootDirectory !== '.'
         ? `cd ${rootDirectory} && ${buildCommand}`
         : buildCommand;
 
-    const outputPath = rootDirectory && rootDirectory !== '.'
-        ? `${rootDirectory}/${outputDirectory}`
-        : outputDirectory;
+    const outputPath = getPath(outputDirectory);
 
     return `FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
@@ -66,16 +71,16 @@ CMD ["node", "./${outputPath}/server/entry.mjs"]`;
 function generateRemixDockerfile(config: DockerfileConfig): string {
     const { buildEnvSection, buildCommand = 'npm run build', rootDirectory } = config;
 
-    const buildCmd = rootDirectory && rootDirectory !== '.'
-        ? `cd ${rootDirectory} && ${buildCommand}`
-        : buildCommand;
-
     // Helper to format path
     const getPath = (path: string) => {
         if (!rootDirectory || rootDirectory === '.') return path;
         const cleanPath = path.startsWith('./') ? path.substring(2) : path;
         return `${rootDirectory}/${cleanPath}`;
     };
+
+    const buildCmd = rootDirectory && rootDirectory !== '.'
+        ? `cd ${rootDirectory} && ${buildCommand}`
+        : buildCommand;
 
     return `FROM node:20-alpine AS deps
 WORKDIR /app
@@ -103,7 +108,7 @@ COPY --from=builder /app/${getPath('build')} ./${getPath('build')}
 COPY --from=builder /app/${getPath('public')} ./${getPath('public')}
 
 EXPOSE 8080
-CMD ["npm", "start"]`;
+CMD ["sh", "-c", "cd ${rootDirectory || '.'} && npm start"]`;
 }
 
 function generateNextjsDockerfile(config: DockerfileConfig): string {
@@ -123,7 +128,6 @@ function generateNextjsDockerfile(config: DockerfileConfig): string {
     const publicPath = getPath('public');
     const staticPath = getPath('.next/static');
     const standalonePath = getPath('.next/standalone');
-    const serverPath = getPath('server.js');
     const nextDir = getPath('.next');
 
     return `FROM node:20-alpine AS deps
@@ -143,8 +147,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ${buildEnvSection}
 # Generate Prisma client if prisma folder exists
-RUN if [ -d "prisma" ]; then npx prisma generate; fi
-${restoreCache ? '# Copy restored cache to .next/cache\nCOPY restore_cache/ .next/' : ''}
+RUN if [ -d "${getPath('prisma')}" ]; then cd ${rootDirectory || '.'} && npx prisma generate; fi
+${restoreCache ? `# Copy restored cache to .next/cache\nCOPY ${getPath('restore_cache/')} ${getPath('.next/')}` : ''}
 RUN ${buildCmd}
 
 FROM node:20-alpine AS runner
@@ -154,28 +158,33 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/${publicPath} ./${publicPath}
-RUN mkdir -p ${nextDir} && chown nextjs:nodejs ${nextDir}
+COPY --from=builder /app/${publicPath} ./public
+RUN mkdir -p .next && chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/${standalonePath} ./
-COPY --from=builder --chown=nextjs:nodejs /app/${staticPath} ./${staticPath}
+COPY --from=builder --chown=nextjs:nodejs /app/${staticPath} ./.next/static
 
 USER nextjs
 EXPOSE 8080
 ENV PORT=8080
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "${serverPath}"]`;
+CMD ["node", "server.js"]`;
 }
 
 function generateViteDockerfile(config: DockerfileConfig): string {
     const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build', rootDirectory } = config;
 
+    // Helper to format path
+    const getPath = (path: string) => {
+        if (!rootDirectory || rootDirectory === '.') return path;
+        const cleanPath = path.startsWith('./') ? path.substring(2) : path;
+        return `${rootDirectory}/${cleanPath}`;
+    };
+
     const buildCmd = rootDirectory && rootDirectory !== '.'
         ? `cd ${rootDirectory} && ${buildCommand}`
         : buildCommand;
 
-    const distPath = rootDirectory && rootDirectory !== '.'
-        ? `${rootDirectory}/${outputDirectory}`
-        : outputDirectory;
+    const distPath = getPath(outputDirectory);
 
     return `FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat

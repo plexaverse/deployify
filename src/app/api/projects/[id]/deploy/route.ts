@@ -181,6 +181,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     buildTimeout: project.buildTimeout,
                     healthCheckPath: project.healthCheckPath,
                     resources: project.resources,
+                    rootDirectory: project.rootDirectory,
                 });
 
                 // Submit to Cloud Build with project region

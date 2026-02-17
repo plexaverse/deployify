@@ -185,6 +185,10 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             runtimeEnvVars,
             gitToken: project.githubToken ?? undefined,
             projectRegion: project.region, // Use project's region
+            framework: project.framework,
+            buildCommand: project.buildCommand,
+            installCommand: project.installCommand,
+            outputDirectory: project.outputDirectory,
             buildTimeout: project.buildTimeout,
             healthCheckPath: project.healthCheckPath,
             resources: project.resources,
@@ -331,6 +335,10 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 runtimeEnvVars,
                 gitToken: project.githubToken ?? undefined,
                 projectRegion: project.region, // Use project's region
+                framework: project.framework,
+                buildCommand: project.buildCommand,
+                installCommand: project.installCommand,
+                outputDirectory: project.outputDirectory,
                 buildTimeout: project.buildTimeout,
                 healthCheckPath: project.healthCheckPath,
                 resources: project.resources,
