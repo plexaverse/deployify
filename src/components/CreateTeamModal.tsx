@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { Users, X, Loader2 } from 'lucide-react';
 import { useStore } from '@/store';
 import { toast } from 'sonner';
+import { Portal } from '@/components/ui/portal';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface CreateTeamModalProps {
     isOpen: boolean;
@@ -50,78 +55,81 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-md rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
-                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                        <Users className="w-5 h-5 text-[var(--primary)]" />
-                        Create New Team
-                    </h3>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-[var(--border)] rounded-md transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Content */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1.5">Team Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={handleNameChange}
-                            placeholder="Acme Corp"
-                            className="input w-full"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1.5">Team Slug</label>
-                        <input
-                            type="text"
-                            value={slug}
-                            onChange={(e) => setSlug(e.target.value)}
-                            placeholder="acme-corp"
-                            className="input w-full font-mono text-sm"
-                            required
-                            pattern="^[a-z0-9-]+$"
-                            title="Only lowercase letters, numbers, and hyphens allowed"
-                        />
-                        <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                            Used in URLs. Only lowercase letters, numbers, and hyphens.
-                        </p>
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-4">
-                        <button
-                            type="button"
+        <Portal>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <Card className="w-full max-w-md p-0 overflow-hidden animate-fade-in shadow-2xl">
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
+                        <h3 className="font-semibold text-lg flex items-center gap-2 text-[var(--foreground)]">
+                            <Users className="w-5 h-5 text-[var(--primary)]" />
+                            Create New Team
+                        </h3>
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={onClose}
-                            className="btn"
-                            disabled={isSubmitting}
+                            className="h-8 w-8"
                         >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="btn btn-primary"
-                            disabled={isSubmitting || !name || !slug}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                    Creating...
-                                </>
-                            ) : (
-                                'Create Team'
-                            )}
-                        </button>
+                            <X className="w-5 h-5" />
+                        </Button>
                     </div>
-                </form>
+
+                    {/* Content */}
+                    <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        <div className="space-y-2">
+                            <Label>Team Name</Label>
+                            <Input
+                                type="text"
+                                value={name}
+                                onChange={handleNameChange}
+                                placeholder="Acme Corp"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Team Slug</Label>
+                            <Input
+                                type="text"
+                                value={slug}
+                                onChange={(e) => setSlug(e.target.value)}
+                                placeholder="acme-corp"
+                                className="font-mono text-sm"
+                                required
+                                pattern="^[a-z0-9-]+$"
+                                title="Only lowercase letters, numbers, and hyphens allowed"
+                            />
+                            <p className="text-xs text-[var(--muted-foreground)]">
+                                Used in URLs. Only lowercase letters, numbers, and hyphens.
+                            </p>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={onClose}
+                                disabled={isSubmitting}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={isSubmitting || !name || !slug}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Team'
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                </Card>
             </div>
-        </div>
+        </Portal>
     );
 }

@@ -282,3 +282,49 @@ Refactored the specific project dashboard and the fallback import page to use st
 - Replaced manual `select` elements with the new `NativeSelect` component.
 - Replaced manual labels with the `Label` component.
 - Replaced manual buttons with the `Button` component.
+
+## Portal & Modals Refactor
+
+Implemented proper portal-based modal rendering and refactored modals to use the UI component system.
+
+### `src/components/ui/portal.tsx`
+- Created a `Portal` component to render content into `document.body` for better z-index management and stacking context isolation.
+
+### `src/components/CreateTeamModal.tsx`
+- Wrapped modal content in `<Portal>`.
+- Replaced custom backdrop and container styles with `Portal` and `Card`.
+- Replaced native inputs and buttons with `Input`, `Label`, and `Button` components.
+- Added `size="icon"` support to `Button` component to handle the close button correctly.
+
+### `src/components/RollbackModal.tsx`
+- Wrapped modal content in `<Portal>`.
+- Replaced internal elements with `Card`, `Button` and standard typography.
+- Updated colors to use theme variables (`bg-[var(--background)]`, `text-[var(--foreground)]`).
+
+### `src/components/DeploymentLogsModal.tsx`
+- Wrapped modal content in `<Portal>`.
+- Replaced header and layout with `Card`, `Button`, and `Badge`.
+- Fixed `Badge` variant usage (mapped `error` status to `destructive` variant).
+
+## Edge Debug & Landing Page Refactor
+
+### `src/app/edge-debug/page.tsx`
+- Completely refactored the page to use `Card`, `Button`, `Input`, `NativeSelect`, and `Label`.
+- Replaced hardcoded colors with theme variables (`text-[var(--foreground)]`, `bg-[var(--card)]`).
+- Maintained functionality while improving visual consistency.
+
+### `src/components/LandingPage.tsx`
+- Updated color usage to rely on CSS variables (`var(--background)`, `var(--foreground)`, `var(--muted-foreground)`) instead of hardcoded dark mode values.
+- This ensures better compatibility with potential light mode or theme adjustments while preserving the intended aesthetic.
+
+### `src/components/BuildLogViewer.tsx`
+- Refactored to use `Skeleton` for loading states.
+- Updated error and empty states to use `Button` and theme colors.
+- Preserved the dark terminal aesthetic for the logs themselves but cleaned up the surrounding UI.
+
+### `src/components/DeploymentTimeline.tsx`
+- Refactored to use theme variables for colors (`--primary`, `--success`, `--error`).
+- Improved code readability and standard class usage (`cn` utility).
+
+### `src/components/ui/button.tsx`
+- Added `size="icon"` variant to support square icon-only buttons.
