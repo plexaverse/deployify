@@ -80,14 +80,18 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.1] bg-black/50 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2 group" aria-label="Deployify Home">
-              <Rocket className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">Deployify</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
-                Sign In
+            <motion.div whileTap={{ scale: 0.95 }}>
+              <Link href="/" className="flex items-center gap-2 group" aria-label="Deployify Home">
+                <Rocket className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
+                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">Deployify</span>
               </Link>
+            </motion.div>
+            <div className="flex items-center gap-4">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link href="/login" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+                  Sign In
+                </Link>
+              </motion.div>
               <motion.div whileTap={{ scale: 0.95 }}>
                 <Link
                   href="/api/auth/github"
@@ -570,10 +574,31 @@ export default function LandingPage() {
             whileHover={{ y: -4, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
             whileTap={{ scale: 0.9 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-[100] p-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl text-white shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-colors"
+            className="fixed bottom-8 right-8 z-[100] p-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl text-white shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-colors group"
             aria-label="Back to top"
           >
-            <ChevronUp className="w-6 h-6" />
+            <svg className="absolute inset-0 w-full h-full -rotate-90" aria-hidden="true">
+              <circle
+                cx="50%"
+                cy="50%"
+                r="48%"
+                stroke="currentColor"
+                strokeWidth="2"
+                fill="none"
+                className="opacity-20"
+              />
+              <motion.circle
+                cx="50%"
+                cy="50%"
+                r="48%"
+                stroke="currentColor"
+                strokeWidth="2"
+                fill="none"
+                style={{ pathLength: scrollYProgress }}
+                className="opacity-100"
+              />
+            </svg>
+            <ChevronUp className="w-6 h-6 relative z-10 group-hover:-translate-y-1 transition-transform" />
           </motion.button>
         )}
       </AnimatePresence>
