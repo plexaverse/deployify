@@ -190,9 +190,10 @@ fi`,
                 '-t', latestImageName,
                 '--cache-from', latestImageName,
                 ...dockerBuildArgs,
+                '-f', `${workDir}/Dockerfile`,
                 '.'
             ],
-            dir: workDir,
+            dir: '/workspace',
         },
         // Push to Artifact Registry (commit SHA tag)
         {
@@ -212,9 +213,10 @@ fi`,
                 '--target', 'builder',
                 '-t', `${imageName}-builder`,
                 ...dockerBuildArgs,
+                '-f', `${workDir}/Dockerfile`,
                 '.'
             ],
-            dir: workDir,
+            dir: '/workspace',
         }]),
         // Extract and Save Cache to GCS (Non-blocking)
         // Note: Running in dir: workDir, so relative paths work as expected

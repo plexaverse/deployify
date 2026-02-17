@@ -56,7 +56,9 @@ try {
     // Check steps have correct dir
     const dockerStep = config.steps.find((s: any) => s.name === 'gcr.io/cloud-builders/docker' && s.args[0] === 'build');
     assert.ok(dockerStep, 'Docker build step found');
-    assert.strictEqual(dockerStep.dir, `/workspace/${rootDir}`, `Dir should be /workspace/${rootDir}`);
+    assert.strictEqual(dockerStep.dir, '/workspace', 'Context dir should be /workspace (repo root)');
+    assert.ok(dockerStep.args.includes('-f'), 'Should include -f flag for Dockerfile');
+    assert.ok(dockerStep.args.includes(`/workspace/${rootDir}/Dockerfile`), 'Should point to Dockerfile in subdirectory');
 
     // Check Dockerfile creation step checks correctly
     // It should check /workspace/apps/web/Dockerfile
