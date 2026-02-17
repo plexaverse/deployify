@@ -153,6 +153,12 @@ Domain        // Custom domain (status: pending/active/error)
 - Console logging for debugging
 - User-facing error states in UI components
 
+### 6. Secrets Handling
+- Use `isSecret: true` for sensitive values in environment variables.
+- Encrypt values using `encrypt()` from `@/lib/crypto` before saving to DB (in `POST/PUT` handlers).
+- Decrypt values using `decrypt()` only when needed (e.g. build config generation).
+- Mask secrets in UI (`••••••••`) unless explicitly revealed.
+
 ---
 
 ## 🛡️ Security Features
