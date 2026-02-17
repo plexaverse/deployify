@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { PageTransition } from '@/components/PageTransition';
 import { config } from "@/lib/config";
 import Script from 'next/script';
 import "./globals.css";
@@ -45,9 +44,7 @@ export default function RootLayout({
           >
             Skip to content
           </a>
-          <PageTransition>
-            {children}
-          </PageTransition>
+          {children}
           <Toaster position="bottom-right" />
           <Script
             src="/deployify-insights.js"
