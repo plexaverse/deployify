@@ -2,13 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Rocket, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, Rocket, X, Loader2, CornerDownLeft } from 'lucide-react';
 import { Project } from '@/types';
+import { Spotlight } from '@/components/ui/spotlight';
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,16 +33,27 @@ export function CommandPalette() {
 
   // Fetch projects when opened
   useEffect(() => {
-    if (isOpen) {
-      // In a real app we might cache this or use a context
-      fetch('/api/projects')
-        .then(res => res.json())
-        .then(data => setProjects(data.projects || []))
-        .catch(err => console.error(err));
+    if (!isOpen) return;
 
-      // Focus input
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    // Defer state update to appease strict linter (pattern from .Jules/palette.md)
+    const rafId = requestAnimationFrame(() => {
+      setIsLoading(true);
+    });
+
+    // In a real app we might cache this or use a context
+    fetch('/api/projects')
+      .then(res => res.json())
+      .then(data => setProjects(data.projects || []))
+      .catch(err => console.error(err))
+      .finally(() => setIsLoading(false));
+
+    // Focus input
+    const focusTimeoutId = setTimeout(() => inputRef.current?.focus(), 100);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(focusTimeoutId);
+    };
   }, [isOpen]);
 
   const filtered = projects.filter(p =>
@@ -52,12 +66,15 @@ export function CommandPalette() {
   return (
     <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-start justify-center pt-[20vh] px-4" onClick={() => setIsOpen(false)}>
        <div
-         className="w-full max-w-xl bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+         className="w-full max-w-xl bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 relative"
          onClick={e => e.stopPropagation()}
        >
-          <div className="flex items-center border-b border-[var(--border)] px-4 group">
+          <Spotlight className="-top-40 left-0" fill="var(--primary)" />
+          <div className="flex items-center border-b border-[var(--border)] px-4 group relative z-10">
+            <label htmlFor="command-search" className="sr-only">Search projects</label>
             <Search className="w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors" />
             <input
+               id="command-search"
                ref={inputRef}
                role="combobox"
                aria-expanded={isOpen}
@@ -97,20 +114,25 @@ export function CommandPalette() {
                    <X className="w-4 h-4" />
                  </button>
                )}
-               <span className="text-xs text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5">ESC</span>
+               <span className="text-xs text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5" aria-hidden="true">ESC</span>
             </div>
           </div>
-          <div className="max-h-[60vh] overflow-y-auto p-2">
-             {!isOpen ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-sm">Loading...</div>
+          <div className="max-h-[60vh] overflow-y-auto p-2 relative z-10">
+             {isLoading ? (
+               <div className="p-8 text-center flex flex-col items-center gap-3">
+                 <Loader2 className="w-6 h-6 animate-spin text-[var(--muted-foreground)]" />
+                 <span className="text-sm text-[var(--muted-foreground)]">Loading projects...</span>
+               </div>
              ) : filtered.length === 0 && projects.length > 0 ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-sm">No results found.</div>
-             ) : projects.length === 0 ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-sm">Loading projects...</div>
+               <div className="p-8 text-center text-[var(--muted-foreground)] text-sm">No results found for &quot;{query}&quot;</div>
+             ) : projects.length === 0 && !isLoading ? (
+                <div className="p-8 text-center text-[var(--muted-foreground)] text-sm">No projects found.</div>
              ) : (
                <div className="space-y-1" role="listbox" id="command-results">
                  {filtered.map((project, index) => (
-                   <button
+                   <motion.button
+                     whileTap={{ scale: 0.98 }}
+                     onMouseEnter={() => setSelectedIndex(index)}
                      id={`project-${project.id}`}
                      key={project.id}
                      role="option"
@@ -123,20 +145,23 @@ export function CommandPalette() {
                        selectedIndex === index ? 'bg-[var(--card-hover)]' : 'hover:bg-[var(--card-hover)]'
                      }`}
                    >
-                     <Rocket className={`w-4 h-4 ${selectedIndex === index ? 'text-[var(--primary)]' : 'text-[var(--muted-foreground)] group-hover:text-[var(--primary)]'}`} />
+                     <Rocket className={`w-4 h-4 transition-colors ${selectedIndex === index ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'}`} />
                      <div className="flex-1">
-                        <div className="text-sm font-medium text-[var(--foreground)]">{project.name}</div>
-                        <div className="text-xs text-[var(--muted-foreground)]">{project.repoFullName}</div>
+                        <div className={`text-sm font-medium transition-colors ${selectedIndex === index ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'}`}>{project.name}</div>
+                        <div className="text-xs text-[var(--muted-foreground)] opacity-70">{project.repoFullName}</div>
                      </div>
-                     <span className="text-xs text-[var(--muted-foreground)] group-hover:text-[var(--muted)]">Jump to</span>
-                   </button>
+                     <div className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider transition-opacity ${selectedIndex === index ? 'opacity-100' : 'opacity-0'}`}>
+                        <span className="text-[var(--muted-foreground)]">Select</span>
+                        <CornerDownLeft className="w-3 h-3 text-[var(--muted-foreground)]" />
+                     </div>
+                   </motion.button>
                  ))}
                </div>
              )}
           </div>
-          <div className="p-2 border-t border-[var(--border)] bg-[var(--background)] text-xs text-[var(--muted-foreground)] flex justify-between px-4">
-             <span>Deployify Command</span>
-             <span>{projects.length} projects</span>
+          <div className="p-2 border-t border-[var(--border)] bg-[var(--background)] text-xs text-[var(--muted-foreground)] flex justify-between px-4 relative z-10">
+             <span className="font-medium">Deployify Search</span>
+             <span className="opacity-70">{projects.length} projects loaded</span>
           </div>
        </div>
     </div>
