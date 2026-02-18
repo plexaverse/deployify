@@ -11,6 +11,8 @@ import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { TracingBeam } from '@/components/ui/tracing-beam';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,7 +98,10 @@ export default function LandingPage() {
                 <Link
                   href="/api/auth/github"
                   prefetch={false}
-                  className="bg-[var(--foreground)] text-[var(--background)] px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2"
+                  className={cn(
+                    buttonVariants({ variant: 'primary', size: 'sm' }),
+                    "flex items-center gap-2"
+                  )}
                   aria-label="Sign in with GitHub"
                 >
                   <Github className="w-4 h-4" />
@@ -169,10 +174,11 @@ export default function LandingPage() {
                   <ArrowRight className="w-5 h-5" />
                 </MovingBorderButton>
               </motion.div>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
+              <Button
+                variant="outline"
+                size="lg"
                 onClick={() => toast.info('Demo video coming soon!', { description: 'We are currently polishing our walkthrough.' })}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold border border-[var(--border)] hover:bg-[var(--card)] transition-all text-center flex items-center justify-center gap-2 group text-[var(--foreground)]"
+                className="w-full sm:w-auto text-lg font-bold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
                 aria-label="Watch 2-minute demo video"
               >
                 <div className="relative">
@@ -181,7 +187,7 @@ export default function LandingPage() {
                 </div>
                 Watch Demo
                 <span className="text-xs font-medium text-[var(--muted-foreground)] ml-1">2 min</span>
-              </motion.button>
+              </Button>
             </motion.div>
 
             <motion.div
@@ -357,7 +363,7 @@ export default function LandingPage() {
                 className="p-6 rounded-[2rem] bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm relative overflow-hidden group"
               >
                 <div className="absolute top-0 right-0 p-4">
-                   <div className="bg-[var(--foreground)] text-[var(--background)] text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter animate-pulse">Save 80%</div>
+                   <Badge className="animate-pulse uppercase tracking-tighter font-black">Save 80%</Badge>
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>

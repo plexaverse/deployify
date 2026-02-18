@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { NativeSelect } from '@/components/ui/native-select';
 import type { Deployment, LighthouseMetrics } from '@/types';
 
 export default function CompareDeploymentsPage() {
@@ -73,9 +75,9 @@ export default function CompareDeploymentsPage() {
     };
 
     const getScoreColor = (score: number) => {
-        if (score >= 0.9) return 'text-emerald-500';
-        if (score >= 0.5) return 'text-yellow-500';
-        return 'text-red-500';
+        if (score >= 0.9) return 'text-[var(--success)]';
+        if (score >= 0.5) return 'text-[var(--warning)]';
+        return 'text-[var(--error)]';
     };
 
     const renderMetricDiff = (
@@ -94,7 +96,7 @@ export default function CompareDeploymentsPage() {
         if (isNeutral) return <span className="text-[var(--muted-foreground)] text-xs ml-2">No change</span>;
 
         return (
-            <span className={cn("text-xs ml-2 flex items-center gap-0.5", isImprovement ? "text-emerald-500" : "text-red-500")}>
+            <span className={cn("text-xs ml-2 flex items-center gap-0.5", isImprovement ? "text-[var(--success)]" : "text-[var(--error)]")}>
                 {diff > 0 ? '+' : ''}{formatter(diff)} ({diff > 0 ? '+' : ''}{percent.toFixed(1)}%)
             </span>
         );
@@ -117,24 +119,25 @@ export default function CompareDeploymentsPage() {
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-8 animate-fade-in">
             <div className="flex items-center gap-4">
-                 <button
+                 <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => router.back()}
-                    className="p-2 rounded-full hover:bg-[var(--muted)]/20 transition-colors"
+                    className="rounded-full"
                 >
                     <ArrowLeft className="w-5 h-5" />
-                </button>
+                </Button>
                 <h1 className="text-2xl font-bold tracking-tight">Compare Deployments</h1>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Base Deployment Selector */}
-                <Card className="p-6 border-[var(--border)] space-y-6">
+                <Card className="p-6 space-y-6">
                     <div>
                         <label className="text-sm font-medium text-[var(--muted-foreground)] mb-2 block">Base Deployment (Previous)</label>
-                        <select
+                        <NativeSelect
                             value={baseId}
                             onChange={(e) => handleBaseChange(e.target.value)}
-                            className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none"
                         >
                             <option value="">Select deployment</option>
                             {currentDeployments.map(d => (
@@ -142,7 +145,7 @@ export default function CompareDeploymentsPage() {
                                     {d.gitCommitMessage} ({d.gitCommitSha.substring(0, 7)})
                                 </option>
                             ))}
-                        </select>
+                        </NativeSelect>
                     </div>
 
                     {baseDeployment ? (
@@ -155,13 +158,12 @@ export default function CompareDeploymentsPage() {
                 </Card>
 
                 {/* Target Deployment Selector */}
-                <Card className="p-6 border-[var(--border)] space-y-6">
+                <Card className="p-6 space-y-6">
                     <div>
                         <label className="text-sm font-medium text-[var(--muted-foreground)] mb-2 block">Target Deployment (Current)</label>
-                        <select
+                        <NativeSelect
                             value={targetId}
                             onChange={(e) => handleTargetChange(e.target.value)}
-                            className="w-full bg-[var(--background)] border border-[var(--border)] rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none"
                         >
                             <option value="">Select deployment</option>
                             {currentDeployments.map(d => (
@@ -169,7 +171,7 @@ export default function CompareDeploymentsPage() {
                                     {d.gitCommitMessage} ({d.gitCommitSha.substring(0, 7)})
                                 </option>
                             ))}
-                        </select>
+                        </NativeSelect>
                     </div>
 
                     {targetDeployment ? (
@@ -184,7 +186,7 @@ export default function CompareDeploymentsPage() {
 
             {/* Comparison Table */}
             {baseDeployment && targetDeployment && (
-                <Card className="overflow-hidden border-[var(--border)]">
+                <Card className="overflow-hidden p-0 border-[var(--border)]">
                     <div className="bg-[var(--muted)]/20 p-4 border-b border-[var(--border)]">
                         <h3 className="font-semibold">Comparison Results</h3>
                     </div>

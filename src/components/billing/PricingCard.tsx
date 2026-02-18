@@ -35,7 +35,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
         >
             {isPopular && (
                 <div className="absolute -top-3 right-4">
-                    <Badge className="bg-blue-600 hover:bg-blue-700 text-white border-none px-3 py-1 shadow-md">
+                    <Badge variant="info" className="px-3 py-1 shadow-md">
                         Most Popular
                     </Badge>
                 </div>
