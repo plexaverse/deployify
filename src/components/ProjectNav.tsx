@@ -33,7 +33,7 @@ export function ProjectNav({ projectId }: ProjectNavProps) {
                                 className={cn(
                                     'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors',
                                     isActive
-                                        ? 'border-[var(--foreground)] text-[var(--foreground)]'
+                                        ? 'border-[var(--primary)] text-[var(--foreground)]'
                                         : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:border-[var(--border)]'
                                 )}
                                 aria-current={isActive ? 'page' : undefined}

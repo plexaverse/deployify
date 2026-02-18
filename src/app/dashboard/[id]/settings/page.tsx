@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { NativeSelect } from '@/components/ui/native-select';
 
 export default function ProjectSettingsPage() {
     const params = useParams();
@@ -138,18 +139,17 @@ export default function ProjectSettingsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="framework">Framework</Label>
-                                <select
+                                <NativeSelect
                                     id="framework"
                                     value={framework}
                                     onChange={(e) => setProjectSettingsField('framework', e.target.value)}
-                                    className="flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="nextjs">Next.js</option>
                                     <option value="vite">Vite</option>
                                     <option value="astro">Astro</option>
                                     <option value="remix">Remix</option>
                                     <option value="docker">Docker</option>
-                                </select>
+                                </NativeSelect>
                                 <p className="text-xs text-[var(--muted-foreground)]">
                                     The framework used for building. Use "Docker" to use your own Dockerfile.
                                 </p>
@@ -241,16 +241,19 @@ export default function ProjectSettingsPage() {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)]">
-                            <input
-                                id="email-notifications"
-                                type="checkbox"
-                                checked={emailNotifications}
-                                onChange={(e) => setProjectSettingsField('emailNotifications', e.target.checked)}
-                                className="mt-1 w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
-                            />
+                        <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('emailNotifications', !emailNotifications)}>
+                            <div className="flex items-center h-5">
+                                <input
+                                    id="email-notifications"
+                                    type="checkbox"
+                                    checked={emailNotifications}
+                                    onChange={(e) => setProjectSettingsField('emailNotifications', e.target.checked)}
+                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-[var(--background)]"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
                             <div>
-                                <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer">
+                                <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer group-hover:text-[var(--primary)] transition-colors">
                                     Email Notifications
                                 </Label>
                                 <p className="text-sm text-[var(--muted-foreground)] mt-1">
@@ -294,16 +297,19 @@ export default function ProjectSettingsPage() {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)]">
-                            <input
-                                id="cloud-armor"
-                                type="checkbox"
-                                checked={cloudArmorEnabled}
-                                onChange={(e) => setProjectSettingsField('cloudArmorEnabled', e.target.checked)}
-                                className="mt-1 w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
-                            />
+                        <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('cloudArmorEnabled', !cloudArmorEnabled)}>
+                            <div className="flex items-center h-5">
+                                <input
+                                    id="cloud-armor"
+                                    type="checkbox"
+                                    checked={cloudArmorEnabled}
+                                    onChange={(e) => setProjectSettingsField('cloudArmorEnabled', e.target.checked)}
+                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-[var(--background)]"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
                             <div>
-                                <Label htmlFor="cloud-armor" className="text-base font-medium cursor-pointer">
+                                <Label htmlFor="cloud-armor" className="text-base font-medium cursor-pointer group-hover:text-[var(--primary)] transition-colors">
                                     Cloud Armor WAF
                                 </Label>
                                 <p className="text-sm text-[var(--muted-foreground)] mt-1">
@@ -324,7 +330,7 @@ export default function ProjectSettingsPage() {
                 </Card>
 
                 {/* Danger Zone */}
-                <Card className="border-[var(--error)]/30 bg-[var(--error-bg)]/5">
+                <Card className="border-[var(--error)]/30 bg-[var(--error)]/5">
                     <div className="mb-4">
                         <h2 className="text-xl font-semibold mb-1 text-[var(--error)]">Danger Zone</h2>
                         <p className="text-sm text-[var(--muted-foreground)]">
@@ -342,7 +348,7 @@ export default function ProjectSettingsPage() {
                         <Button
                             variant="ghost"
                             onClick={() => setIsDeleteModalOpen(true)}
-                            className="text-[var(--error)] hover:bg-[var(--error-bg)] hover:text-[var(--error)]"
+                            className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
                         >
                             Delete Project
                         </Button>
