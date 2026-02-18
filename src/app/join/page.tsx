@@ -87,7 +87,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                 </p>
 
                 <JoinButton token={token} teamName={team.name} />
-            </div>
+            </Card>
         </div>
     );
 }
