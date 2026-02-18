@@ -84,6 +84,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        // Parse request body for branch override
+        let branch = project.defaultBranch;
+        try {
+            const body = await request.json();
+            if (body && body.branch) {
+                branch = body.branch;
+            }
+        } catch (e) {
+            // Body might be empty or not JSON, just use default branch
+        }
+
         let commitSha: string;
         let commitMessage: string;
         let commitAuthor: string;
@@ -93,7 +104,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 session.accessToken,
                 owner,
                 repo,
-                project.defaultBranch
+                branch
             );
             commitSha = latestCommit.sha;
             commitMessage = latestCommit.message;
@@ -111,7 +122,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             projectId: project.id,
             type: 'production',
             status: 'queued',
-            gitBranch: project.defaultBranch,
+            gitBranch: branch,
             gitCommitSha: commitSha,
             gitCommitMessage: commitMessage,
             gitCommitAuthor: commitAuthor,
@@ -126,7 +137,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 projectId: project.id,
                 deploymentId: deployment.id,
                 gitCommitSha: commitSha,
-                gitBranch: project.defaultBranch
+                gitBranch: branch
             }
         );
 
@@ -168,7 +179,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 const buildConfig = generateCloudRunDeployConfig({
                     projectSlug: project.slug,
                     repoFullName: project.repoFullName,
-                    branch: project.defaultBranch,
+                    branch: branch,
                     commitSha: commitSha,
                     buildEnvVars,
                     runtimeEnvVars,
