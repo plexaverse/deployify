@@ -11,7 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
-const https = require('https');
+const readline = require('readline');
 const { exec, execSync } = require('child_process');
 
 const args = process.argv.slice(2);
@@ -28,6 +28,9 @@ function main() {
     switch (command) {
         case 'login':
             handleLogin();
+            break;
+        case 'link':
+            handleLink().catch(err => console.error('Link failed:', err.message));
             break;
         case 'deploy':
             handleDeploy().catch(err => console.error('Deployment failed:', err.message));
@@ -51,6 +54,7 @@ Usage:
 
 Commands:
   login     Authenticate with your Deployify instance
+  link      Link the current directory to a Deployify project
   deploy    Deploy the current directory (must be a git repo) to Deployify
   help      Show this help message
 `);
@@ -154,50 +158,60 @@ async function handleDeploy() {
         console.warn('\n⚠️  Warning: Could not determine current git branch.');
     }
 
-    // 1. Get Git Remote URL
-    let remoteUrl;
-    try {
-        remoteUrl = execSync('git config --get remote.origin.url').toString().trim();
-    } catch (e) {
-        throw new Error('Not a git repository or no remote "origin" found. Please run this command from within a git repository connected to GitHub.');
+    let projectId;
+
+    // 1. Check for linked project
+    const localConfigPath = path.join(process.cwd(), '.deployify', 'project.json');
+    if (fs.existsSync(localConfigPath)) {
+        try {
+            const localConfig = JSON.parse(fs.readFileSync(localConfigPath, 'utf8'));
+            if (localConfig.projectId) {
+                projectId = localConfig.projectId;
+                console.log(`Using linked project: ${localConfig.name || projectId}`);
+            }
+        } catch (e) {
+            console.warn('Failed to read local project config:', e.message);
+        }
     }
 
-    // Parse owner/repo
-    // Formats:
-    // git@github.com:owner/repo.git
-    // https://github.com/owner/repo.git
-    // https://github.com/owner/repo
+    // 2. Fallback to repo matching
+    if (!projectId) {
+        // Get Git Remote URL
+        let remoteUrl;
+        try {
+            remoteUrl = execSync('git config --get remote.origin.url').toString().trim();
+        } catch (e) {
+            // Ignore error here, will be handled if no projectId found
+        }
 
-    let repoFullName;
-    try {
-        if (remoteUrl.startsWith('git@')) {
-            const match = remoteUrl.match(/:([^\/]+\/[^\.]+)(\.git)?$/);
-            if (match) repoFullName = match[1];
-        } else {
-            const url = new URL(remoteUrl);
-            const pathParts = url.pathname.split('/').filter(p => p);
-            if (pathParts.length >= 2) {
-                // Remove .git if present
-                const repo = pathParts[1].replace(/\.git$/, '');
-                repoFullName = `${pathParts[0]}/${repo}`;
+        let repoFullName;
+        if (remoteUrl) {
+            try {
+                if (remoteUrl.startsWith('git@')) {
+                    const match = remoteUrl.match(/:([^\/]+\/[^\.]+)(\.git)?$/);
+                    if (match) repoFullName = match[1];
+                } else {
+                    const url = new URL(remoteUrl);
+                    const pathParts = url.pathname.split('/').filter(p => p);
+                    if (pathParts.length >= 2) {
+                        const repo = pathParts[1].replace(/\.git$/, '');
+                        repoFullName = `${pathParts[0]}/${repo}`;
+                    }
+                }
+            } catch (e) {
+                // Fallback
             }
         }
-    } catch (e) {
-        // Fallback or error
+
+        if (repoFullName) {
+             console.log(`Deploying ${repoFullName} to ${instanceUrl}...`);
+             projectId = await findProjectByRepo(instanceUrl, token, repoFullName);
+        }
     }
-
-    if (!repoFullName) {
-        throw new Error(`Could not parse repository name from remote URL: ${remoteUrl}`);
-    }
-
-    console.log(`Deploying ${repoFullName} to ${instanceUrl}...`);
-
-    // 2. Find Project
-    const projectId = await findProjectByRepo(instanceUrl, token, repoFullName);
 
     if (!projectId) {
-        console.error(`\nError: Project for repository "${repoFullName}" not found.`);
-        console.error('Please create the project in the dashboard first.');
+        console.error(`\nError: Could not find a project to deploy.`);
+        console.error('Either link a project using `deployify link` or ensure you are in a git repo connected to a Deployify project.');
         return;
     }
 
@@ -213,6 +227,110 @@ async function handleDeploy() {
     } else {
         console.log(result.message || 'Deployment queued.');
     }
+}
+
+async function handleLink() {
+    if (!fs.existsSync(CONFIG_PATH)) {
+        throw new Error('You must login first. Run: deployify login');
+    }
+
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    const { instanceUrl, token } = config;
+
+    console.log(`Fetching projects from ${instanceUrl}...`);
+
+    let allProjects = [];
+
+    // 1. Fetch personal projects
+    try {
+        const personalProjects = await fetchJson(`${instanceUrl}/api/projects`, token);
+        if (personalProjects.projects) {
+            allProjects = allProjects.concat(personalProjects.projects.map(p => ({ ...p, type: 'Personal' })));
+        }
+    } catch (e) {
+        console.warn('Failed to fetch personal projects:', e.message);
+    }
+
+    // 2. Fetch team projects
+    try {
+        const teamsData = await fetchJson(`${instanceUrl}/api/teams`, token);
+        if (teamsData.teams) {
+            for (const team of teamsData.teams) {
+                try {
+                    const teamProjects = await fetchJson(`${instanceUrl}/api/projects?teamId=${team.id}`, token);
+                    if (teamProjects.projects) {
+                        allProjects = allProjects.concat(teamProjects.projects.map(p => ({ ...p, type: `Team: ${team.name}` })));
+                    }
+                } catch (e) {
+                    // Ignore error for specific team fetch
+                }
+            }
+        }
+    } catch (e) {
+        // Ignore team fetch error
+    }
+
+    if (allProjects.length === 0) {
+        console.log('No projects found.');
+        return;
+    }
+
+    console.log('\nSelect a project to link:');
+    allProjects.forEach((p, index) => {
+        console.log(`${index + 1}) ${p.name} (${p.repoFullName}) [${p.type}]`);
+    });
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    await new Promise((resolve) => {
+        rl.question('\nEnter the number of the project: ', (answer) => {
+            rl.close();
+            const choice = parseInt(answer) - 1;
+            if (isNaN(choice) || choice < 0 || choice >= allProjects.length) {
+                console.error('Invalid selection.');
+                resolve();
+                return;
+            }
+
+            const selectedProject = allProjects[choice];
+            const projectConfig = {
+                projectId: selectedProject.id,
+                name: selectedProject.name,
+                orgId: selectedProject.teamId
+            };
+
+            const deployifyDir = path.join(process.cwd(), '.deployify');
+            if (!fs.existsSync(deployifyDir)) {
+                fs.mkdirSync(deployifyDir, { recursive: true });
+            }
+
+            const projectConfigPath = path.join(deployifyDir, 'project.json');
+            fs.writeFileSync(projectConfigPath, JSON.stringify(projectConfig, null, 2));
+            console.log(`\nLinked to project ${selectedProject.name} (${selectedProject.id})`);
+            console.log(`Configuration saved to ${projectConfigPath}`);
+
+            // Add to .gitignore if needed
+            try {
+                const gitignorePath = path.join(process.cwd(), '.gitignore');
+                let gitignoreContent = '';
+                if (fs.existsSync(gitignorePath)) {
+                    gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
+                }
+
+                if (!gitignoreContent.includes('.deployify')) {
+                    fs.appendFileSync(gitignorePath, '\n.deployify\n');
+                    console.log('Added .deployify to .gitignore');
+                }
+            } catch (e) {
+                // Ignore
+            }
+
+            resolve();
+        });
+    });
 }
 
 async function findProjectByRepo(instanceUrl, token, repoFullName) {
@@ -256,57 +374,51 @@ async function triggerDeployment(instanceUrl, token, projectId, branch) {
     return response;
 }
 
-function fetchJson(url, token, options = {}) {
-    return new Promise((resolve, reject) => {
-        let urlObj;
-        try {
-            urlObj = new URL(url);
-        } catch (e) {
-            return reject(new Error(`Invalid URL: ${url}`));
-        }
+async function fetchJson(url, token, options = {}) {
+    const headers = {
+        'Cookie': `deployify_session=${token}`, // Send session cookie
+        'Content-Type': 'application/json',
+        ...options.headers
+    };
 
-        const lib = urlObj.protocol === 'https:' ? https : http;
+    const fetchOptions = {
+        method: options.method || 'GET',
+        headers,
+        body: options.body ? JSON.stringify(options.body) : undefined
+    };
 
-        const reqOptions = {
-            method: options.method || 'GET',
-            headers: {
-                'Cookie': `deployify_session=${token}`, // Send session cookie
-                'Content-Type': 'application/json',
-                ...options.headers
+    try {
+        const res = await fetch(url, fetchOptions);
+
+        const contentType = res.headers.get('content-type');
+        let data;
+
+        if (contentType && contentType.includes('application/json')) {
+            data = await res.json();
+        } else {
+            // If not JSON, try to read text
+            const text = await res.text();
+            if (!res.ok) {
+                 throw new Error(`Request failed with status ${res.status}: ${text.substring(0, 100)}`);
             }
-        };
-
-        const req = lib.request(url, reqOptions, (res) => {
-            let data = '';
-            res.on('data', (chunk) => data += chunk);
-            res.on('end', () => {
-                // Attempt to parse JSON regardless of status code to get error message
-                let json;
-                try {
-                    json = JSON.parse(data);
-                } catch (e) {
-                    // If not JSON, use raw text if error
-                    if (res.statusCode >= 400) {
-                        return reject(new Error(`Request failed with status ${res.statusCode}: ${data.substring(0, 100)}`));
-                    }
-                }
-
-                if (res.statusCode >= 400) {
-                    const errorMessage = json && json.error ? json.error : `Request failed with status ${res.statusCode}`;
-                    reject(new Error(errorMessage));
-                } else {
-                    resolve(json || {});
-                }
-            });
-        });
-
-        req.on('error', (e) => reject(e));
-
-        if (options.body) {
-            req.write(JSON.stringify(options.body));
+            // If success but not JSON, return empty object or text?
+            // Existing logic expected object.
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                data = {};
+            }
         }
-        req.end();
-    });
+
+        if (!res.ok) {
+            const errorMessage = (data && data.error) ? data.error : `Request failed with status ${res.status}`;
+            throw new Error(errorMessage);
+        }
+
+        return data || {};
+    } catch (e) {
+        throw e;
+    }
 }
 
 function getGitStatus() {

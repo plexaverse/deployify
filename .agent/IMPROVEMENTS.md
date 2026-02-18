@@ -154,7 +154,7 @@
 - **Status**: ✅ Implemented (Project CRUD, Deploys, Auth, Domains, Rollback)
 
 #### 19. **CLI Tool**
-- **Status**: ✅ Implemented (Basic CLI skeleton with `login` and `deploy` commands in `src/cli/index.ts`)
+- **Status**: ✅ Implemented (Supports `login`, `link` (project association), and `deploy` commands. Refactored to use native `fetch`.)
 
 #### 20. **Secrets in Import Flow**
 - **Improvement**: Support adding secret environment variables during project import
