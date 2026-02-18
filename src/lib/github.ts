@@ -230,7 +230,7 @@ export async function detectFramework(
     owner: string,
     repo: string,
     rootDir: string = ''
-): Promise<'nextjs' | 'vite' | 'astro' | 'remix' | 'docker' | null> {
+): Promise<'nextjs' | 'vite' | 'astro' | 'remix' | 'nuxt' | 'sveltekit' | 'bun' | 'docker' | null> {
     const contents = await getRepoContents(accessToken, owner, repo, rootDir);
 
     // Helper to check file existence
@@ -278,9 +278,24 @@ export async function detectFramework(
         return 'remix';
     }
 
+    // Nuxt
+    if (hasFile(/^nuxt\.config\.(js|ts|mjs)$/) || allDeps['nuxt']) {
+        return 'nuxt';
+    }
+
+    // SvelteKit
+    if (hasFile(/^svelte\.config\.(js|ts)$/) || allDeps['@sveltejs/kit']) {
+        return 'sveltekit';
+    }
+
     // Vite
     if (hasFile(/^vite\.config\.(js|ts)$/) || allDeps['vite']) {
         return 'vite';
+    }
+
+    // Bun (Fallback detection based on lockfile)
+    if (hasFile(/^bun\.lockb$/)) {
+        return 'bun';
     }
 
     return null;
