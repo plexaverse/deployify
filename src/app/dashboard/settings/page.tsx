@@ -10,7 +10,6 @@ import {
     Mail,
     Check,
     X,
-    Loader2,
     Shield,
     AlertTriangle,
     LogOut
@@ -22,6 +21,9 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { Skeleton } from '@/components/ui/skeleton';
+import { NativeSelect } from '@/components/ui/native-select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
 
 interface MemberWithUser extends TeamMembership {
@@ -57,7 +59,6 @@ export default function TeamSettingsPage() {
     useEffect(() => {
         if (!isTeamLoading && !activeTeam) {
             // Personal workspace - redirect or show message?
-            // For now, let's just show a message component or similar
         } else if (activeTeam) {
             fetchData();
         }
@@ -206,8 +207,17 @@ export default function TeamSettingsPage() {
 
     if (isTeamLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+            <div className="max-w-4xl mx-auto p-6 space-y-8">
+                <div className="space-y-2">
+                    <Skeleton className="h-8 w-64" />
+                    <Skeleton className="h-4 w-48" />
+                </div>
+                <Card className="p-6">
+                    <Skeleton className="h-32 w-full" />
+                </Card>
+                <Card className="p-6">
+                    <Skeleton className="h-64 w-full" />
+                </Card>
             </div>
         );
     }
@@ -238,7 +248,7 @@ export default function TeamSettingsPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto p-6 space-y-8">
+        <div className="max-w-4xl mx-auto p-6 space-y-8 pb-24">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold">{activeTeam.name} Settings</h1>
@@ -272,16 +282,15 @@ export default function TeamSettingsPage() {
                         </div>
                         <div className="w-full md:w-32">
                             <Label htmlFor="role" className="sr-only">Role</Label>
-                            <select
+                            <NativeSelect
                                 id="role"
                                 value={inviteRole}
                                 onChange={(e) => setInviteRole(e.target.value as TeamRole)}
-                                className="w-full h-10 px-3 bg-[var(--background)] border border-[var(--input)] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
                             >
                                 <option value="member">Member</option>
                                 <option value="admin">Admin</option>
                                 <option value="viewer">Viewer</option>
-                            </select>
+                            </NativeSelect>
                         </div>
                         <Button type="submit" loading={isInviting}>
                             Send Invite
@@ -291,7 +300,7 @@ export default function TeamSettingsPage() {
             )}
 
             {/* Members List */}
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden p-0">
                 <div className="p-6 border-b border-[var(--border)]">
                     <div className="flex items-center gap-2">
                         <Users className="w-5 h-5 text-[var(--primary)]" />
@@ -300,19 +309,33 @@ export default function TeamSettingsPage() {
                 </div>
                 <div className="divide-y divide-[var(--border)]">
                     {isLoading ? (
-                        <div className="p-8 text-center text-[var(--muted-foreground)]">Loading members...</div>
+                        <div className="p-12 space-y-4">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="flex items-center gap-4">
+                                    <Skeleton className="w-10 h-10 rounded-full" />
+                                    <div className="flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-32" />
+                                        <Skeleton className="h-3 w-48" />
+                                    </div>
+                                    <Skeleton className="h-8 w-20" />
+                                </div>
+                            ))}
+                        </div>
                     ) : members.length === 0 ? (
-                        <div className="p-8 text-center text-[var(--muted-foreground)]">No members found</div>
+                        <div className="p-12 text-center text-[var(--muted-foreground)]">No members found</div>
                     ) : (
                         members.map((member) => (
                             <div key={member.id} className="p-4 flex items-center justify-between hover:bg-[var(--muted)]/5 transition-colors">
                                 <div className="flex items-center gap-3">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={member.user?.avatarUrl || `https://github.com/${member.user?.githubUsername}.png`}
-                                        alt={member.user?.name || 'User'}
-                                        className="w-10 h-10 rounded-full bg-[var(--muted)]"
-                                    />
+                                    <Avatar className="w-10 h-10">
+                                        <AvatarImage
+                                            src={member.user?.avatarUrl || `https://github.com/${member.user?.githubUsername}.png`}
+                                            alt={member.user?.name || 'User'}
+                                        />
+                                        <AvatarFallback>
+                                            {(member.user?.name || member.user?.githubUsername || 'U').slice(0, 2).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
                                     <div>
                                         <p className="font-medium text-[var(--foreground)]">
                                             {member.user?.name || member.user?.githubUsername || 'Unknown User'}
@@ -328,13 +351,15 @@ export default function TeamSettingsPage() {
                                     </Badge>
 
                                     {canManage && member.userId !== activeTeam.membership.userId && member.role !== 'owner' && (
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
                                             onClick={() => setMemberToRemove(member.userId)}
-                                            className="text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors p-2"
+                                            className="text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors"
                                             title="Remove member"
                                         >
                                             <X className="w-4 h-4" />
-                                        </button>
+                                        </Button>
                                     )}
                                 </div>
                             </div>
@@ -345,7 +370,7 @@ export default function TeamSettingsPage() {
 
             {/* Pending Invites */}
             {canManage && invites.length > 0 && (
-                <Card className="overflow-hidden">
+                <Card className="overflow-hidden p-0">
                     <div className="p-6 border-b border-[var(--border)]">
                         <div className="flex items-center gap-2">
                             <Mail className="w-5 h-5 text-[var(--primary)]" />
@@ -366,13 +391,15 @@ export default function TeamSettingsPage() {
                                         </span>
                                     </div>
                                 </div>
-                                <button
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={() => setInviteToCancel(invite.id)}
-                                    className="text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors p-2"
+                                    className="text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors"
                                     title="Cancel invite"
                                 >
                                     <X className="w-4 h-4" />
-                                </button>
+                                </Button>
                             </div>
                         ))}
                     </div>
@@ -380,9 +407,9 @@ export default function TeamSettingsPage() {
             )}
 
             {/* Danger Zone */}
-            <Card className="border-[var(--destructive)]/20 overflow-hidden">
-                <div className="p-6 border-b border-[var(--border)] bg-[var(--destructive)]/5">
-                    <div className="flex items-center gap-2 text-[var(--destructive)]">
+            <Card className="border-[var(--error)]/20 overflow-hidden p-0">
+                <div className="p-6 border-b border-[var(--border)] bg-[var(--error)]/5">
+                    <div className="flex items-center gap-2 text-[var(--error)]">
                         <AlertTriangle className="w-5 h-5" />
                         <h2 className="text-lg font-semibold">Danger Zone</h2>
                     </div>
@@ -395,7 +422,11 @@ export default function TeamSettingsPage() {
                                 Revoke your access to this team. You will need to be re-invited to join again.
                             </p>
                         </div>
-                        <Button variant="outline" className="text-[var(--destructive)] hover:bg-[var(--destructive)]/10" onClick={() => setConfirmLeaveTeam(true)}>
+                        <Button
+                            variant="outline"
+                            className="text-[var(--error)] border-[var(--error)]/20 hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+                            onClick={() => setConfirmLeaveTeam(true)}
+                        >
                             Leave Team
                         </Button>
                     </div>
@@ -405,12 +436,16 @@ export default function TeamSettingsPage() {
                             <div className="h-px bg-[var(--border)]" />
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="font-medium text-[var(--destructive)]">Delete Team</h3>
+                                    <h3 className="font-medium text-[var(--error)]">Delete Team</h3>
                                     <p className="text-sm text-[var(--muted-foreground)]">
                                         Permanently remove this team and all of its data. This action cannot be undone.
                                     </p>
                                 </div>
-                                <Button variant="secondary" className="bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:bg-[var(--destructive)]/90" onClick={() => setConfirmDeleteTeam(true)}>
+                                <Button
+                                    variant="secondary"
+                                    className="bg-[var(--error)] text-white hover:bg-[var(--error)]/90"
+                                    onClick={() => setConfirmDeleteTeam(true)}
+                                >
                                     Delete Team
                                 </Button>
                             </div>

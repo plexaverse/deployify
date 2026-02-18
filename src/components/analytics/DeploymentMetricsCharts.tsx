@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import type { Deployment } from '@/types';
 import { formatDuration } from '@/lib/utils';
+import { Card } from '@/components/ui/card';
 
 interface DeploymentMetricsChartsProps {
     deployments: Deployment[];
@@ -21,7 +22,7 @@ interface DeploymentMetricsChartsProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 shadow-xl ring-1 ring-black/5">
+            <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 shadow-xl">
                 <p className="text-sm font-medium text-[var(--foreground)] mb-2">
                     {label}
                 </p>
@@ -61,19 +62,19 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
 
     if (data.length === 0) {
         return (
-            <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] text-center">
+            <Card className="p-12 text-center">
                  <h3 className="text-lg font-semibold mb-2">No Deployment Metrics</h3>
                  <p className="text-[var(--muted-foreground)]">
                      Once you have successful deployments, metrics will appear here.
                  </p>
-            </div>
+            </Card>
         );
     }
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Build Duration Chart */}
-            <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
+            <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-6">Build Duration History</h3>
                  <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -109,10 +110,10 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                         </BarChart>
                     </ResponsiveContainer>
                  </div>
-            </div>
+            </Card>
 
             {/* Performance Score Chart */}
-            <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
+            <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-6">Performance Score History</h3>
                  <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -152,7 +153,7 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                         </LineChart>
                     </ResponsiveContainer>
                  </div>
-            </div>
+            </Card>
         </div>
     );
 }

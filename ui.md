@@ -404,3 +404,39 @@ Refactored global components to use the new `Avatar` primitive and theme variabl
 ### Modals (`CreateTeamModal`, `RollbackModal`, `DeploymentLogsModal`)
 - Updated all modals to use `bg-background/80` with backdrop blur for the overlay, ensuring consistent appearance in light/dark modes.
 - **`DeploymentLogsModal`**: Replaced hardcoded dark background `bg-[#0d1117]` with `var(--terminal-bg)` to match `BuildLogViewer`.
+
+## Theme Consistency & Standard UI Refactor (Session 65)
+
+Conducted a final comprehensive pass to eliminate remaining hardcoded styles and consolidate the UI using standard components.
+
+### `src/components/ProjectAvatar.tsx`
+- Refactored to use the `Avatar` component primitives (`Avatar`, `AvatarImage`, `AvatarFallback`).
+- Replaced hardcoded Tailwind background colors with a consistent set of theme-aware status colors (`--info`, `--success`, `--warning`, `--error`, `--primary`, `--muted-foreground`).
+
+### `src/app/dashboard/settings/page.tsx` (Team Settings)
+- Replaced custom `Loader2` pulse state with a standardized `<Skeleton>` layout.
+- Replaced all manual `<select>` elements with the `NativeSelect` component.
+- Replaced native `<img>` elements with the `Avatar` component.
+- Standardized the "Danger Zone" section with theme-aware background colors and explicit `Button` variants.
+
+### `src/app/dashboard/[id]/settings/page.tsx` (Project Settings)
+- Replaced the framework selection `<select>` with the `NativeSelect` component.
+- Updated checkboxes to use `var(--primary)` and standardized border colors.
+- Improved hover states and layout consistency for settings cards.
+
+### `src/components/GlobalShortcuts.tsx`
+- Wrapped the shortcuts modal in the `Portal` component for proper layering.
+- Replaced manual backdrop and container styles with `bg-background/80 backdrop-blur-sm` and the `Card` component.
+- Replaced manual close button with the `Button` component using the `ghost` variant and `icon` size.
+- Updated link for project creation to point to the new wizard at `/new`.
+
+### `src/components/analytics/DeploymentMetricsCharts.tsx`
+- Wrapped chart sections in the `Card` component to align with the rest of the analytics dashboard.
+- Standardized the custom tooltip with theme-aware borders and background, eliminating hardcoded shadow/ring classes.
+- Standardized the empty state using the `Card` component.
+
+### `src/components/ProjectNav.tsx`
+- Refactored the active tab indicator to use `border-[var(--primary)]`, ensuring high visibility and consistency with other navigation elements.
+
+### `src/components/ui/PlanBadge.tsx`
+- Updated the plan-specific gradients to use theme-aware semantic variables (`--info`, `--success`, `--warning`, `--error`) instead of hardcoded Tailwind color shades.
