@@ -11,6 +11,15 @@
   --muted: #a1a1aa;
   --muted-foreground: #52525b;
 
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+
   /* Brand colors */
   --primary: #09090b;
   --primary-hover: #18181b;
@@ -58,6 +67,15 @@
   --border-hover: #3f3f46;
   --muted: #71717a;
   --muted-foreground: #a1a1aa;
+
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fafafa;
+
+  --popover: #0a0a0b;
+  --popover-foreground: #fafafa;
 
   /* Brand colors */
   --primary: #ffffff;

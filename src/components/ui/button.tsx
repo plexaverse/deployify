@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 export const buttonVariants = ({
@@ -19,6 +19,7 @@ export const buttonVariants = ({
         secondary: 'bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--card-hover)]',
         outline: 'border border-[var(--border)] bg-[var(--background)] hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]',
         ghost: 'hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]',
+        destructive: 'bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:opacity-90 shadow-sm',
     };
 
     const sizes = {

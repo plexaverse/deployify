@@ -46,7 +46,7 @@ export function UsageGauge({
                     className="transform -rotate-90"
                 >
                     <circle
-                        stroke="currentColor"
+                        stroke="var(--border)"
                         fill="transparent"
                         strokeWidth={stroke}
                         strokeDasharray={circumference + ' ' + circumference}
@@ -54,10 +54,10 @@ export function UsageGauge({
                         r={normalizedRadius}
                         cx={radius + 10}
                         cy={radius + 10}
-                        className="text-[var(--border)] opacity-20"
+                        className="opacity-20"
                     />
                     <circle
-                        stroke="currentColor"
+                        stroke={percent > 90 ? "var(--error)" : "var(--primary)"}
                         fill="transparent"
                         strokeWidth={stroke}
                         strokeDasharray={circumference + ' ' + circumference}
@@ -65,10 +65,7 @@ export function UsageGauge({
                         r={normalizedRadius}
                         cx={radius + 10}
                         cy={radius + 10}
-                        className={cn(
-                            "transition-all duration-1000 ease-out",
-                            percent > 90 ? "text-[var(--error)]" : "text-[var(--primary)]"
-                        )}
+                        className="transition-all duration-1000 ease-out"
                         strokeLinecap="round"
                     />
                 </svg>

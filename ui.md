@@ -458,3 +458,58 @@ Conducted a final comprehensive pass to eliminate remaining hardcoded styles and
 
 ### `src/components/ui/PlanBadge.tsx`
 - Updated the plan-specific gradients to use theme-aware semantic variables (`--info`, `--success`, `--warning`, `--error`) instead of hardcoded Tailwind color shades.
+
+## Progressive UI & Theme Consistency Refactor (Session 66)
+
+Conducted another comprehensive pass to finalize theme consistency across the application, focusing on the compare deployments page, billing pages, and landing page.
+
+### `src/app/globals.css`
+- Expanded the semantic theme variables to include standard UI elements:
+  - Added `--secondary`, `--secondary-foreground` for secondary actions and backgrounds.
+  - Added `--destructive`, `--destructive-foreground` for dangerous/destructive actions.
+  - Added `--popover`, `--popover-foreground` for tooltips and popover containers.
+- Updated both light and dark mode definitions to ensure contrast and consistency.
+
+### `src/components/ui/button.tsx`
+- Added a `destructive` variant that uses the new `--destructive` and `--destructive-foreground` variables.
+- Standardized hover states and shadows for consistency with other button variants.
+
+### `src/components/ui/badge.tsx`
+- Fully refactored to use semantic CSS variables (`var(...)`) for all variants instead of relying on standard Tailwind color classes.
+- This ensures that all badges automatically adapt to theme changes and custom color definitions in `globals.css`.
+
+### `src/app/dashboard/[id]/deployments/compare/page.tsx`
+- Completely refactored the comparison page:
+  - Replaced all raw `<select>` elements with the standardized `NativeSelect` component.
+  - Replaced manual `<button>` elements with the `Button` component, including the back button using `variant="ghost"` and `size="icon"`.
+  - Eliminated hardcoded status colors (`text-emerald-500`, `text-red-500`) and replaced them with semantic variables (`var(--success)`, `var(--error)`, `var(--warning)`).
+  - Improved layout consistency by using standard `Card` padding and spacing.
+
+### `src/app/billing/page.tsx`
+- Standardized the billing dashboard:
+  - Replaced manual background and text colors with theme variables.
+  - Updated `UsageGauge` icons to use semantic variables for colors.
+  - Refactored the current plan badge to use the standard `Badge` component with `variant="default"`.
+  - Refactored the invoice history table:
+    - Updated status badges to use semantic variants (`success`, `warning`, `secondary`) based on invoice status.
+    - Replaced raw download links with the `Button` component (ghost variant) for better touch targets and visual consistency.
+
+### `src/components/billing/UsageGauge.tsx`
+- Refactored the SVG progress ring to use `--primary`, `--error`, and `--border` variables for its stroke colors.
+- Removed hardcoded hex values and opacity classes in favor of semantic theming.
+
+### `src/components/billing/PricingCard.tsx`
+- Updated the "Most Popular" tag to use the `Badge` component with the `info` variant.
+- Ensured all borders and backgrounds are derived from the theme variables.
+
+### `src/components/billing/ComparePlansTable.tsx`
+- Refactored the comparison table to ensure full theme compatibility:
+  - Updated the "Current" plan badge to use the standard `Badge` component.
+  - Updated the feature info tooltips to use the new `--popover` and `--popover-foreground` variables.
+  - Standardized row hover states and sticky column backgrounds.
+
+### `src/components/LandingPage.tsx`
+- Final polish for theme consistency on the public landing page:
+  - Replaced raw "Get Started" and "Watch Demo" buttons with the `Button` component and `buttonVariants` for consistent styling.
+  - Replaced the manual "Save 80%" tag with the `Badge` component.
+  - Ensured all text and background colors are fully mapped to semantic CSS variables.

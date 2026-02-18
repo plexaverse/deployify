@@ -9,6 +9,7 @@ import { ComparePlansTable } from '@/components/billing/ComparePlansTable';
 import { UsageGauge } from '@/components/billing/UsageGauge';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { useStore } from '@/store';
 import { cn } from '@/lib/utils';
 
@@ -200,7 +201,7 @@ export default function BillingPage() {
                     </div>
                     <div className="flex items-center gap-x-2">
                         <span className="text-sm text-[var(--muted-foreground)]">Current Plan:</span>
-                        <Badge variant="secondary" className="capitalize bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/90">{tier.name}</Badge>
+                        <Badge variant="default" className="capitalize">{tier.name}</Badge>
                     </div>
                 </div>
             </div>
@@ -216,7 +217,7 @@ export default function BillingPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <UsageGauge
-                            icon={<Zap className="w-5 h-5 text-yellow-500" />}
+                            icon={<Zap className="w-5 h-5 text-[var(--warning)]" />}
                             title="Deployments"
                             used={usage.deployments}
                             limit={limits.deployments}
@@ -224,7 +225,7 @@ export default function BillingPage() {
                             percent={getPercent(usage.deployments, limits.deployments)}
                         />
                         <UsageGauge
-                            icon={<Server className="w-5 h-5 text-blue-500" />}
+                            icon={<Server className="w-5 h-5 text-[var(--info)]" />}
                             title="Build Minutes"
                             used={usage.buildMinutes}
                             limit={limits.buildMinutes}
@@ -232,7 +233,7 @@ export default function BillingPage() {
                             percent={getPercent(usage.buildMinutes, limits.buildMinutes)}
                         />
                         <UsageGauge
-                            icon={<Wifi className="w-5 h-5 text-green-500" />}
+                            icon={<Wifi className="w-5 h-5 text-[var(--success)]" />}
                             title="Bandwidth"
                             used={usage.bandwidth}
                             limit={limits.bandwidth}
@@ -306,12 +307,11 @@ export default function BillingPage() {
                                                 <td className="p-4">₹{invoice.total.toFixed(2)}</td>
                                                 <td className="p-4">
                                                     <Badge
-                                                        variant="secondary"
-                                                        className={cn(
-                                                            "bg-[var(--muted)] text-[var(--muted-foreground)]",
-                                                            invoice.status === 'paid' && "bg-green-500/10 text-green-500 hover:bg-green-500/20",
-                                                            invoice.status === 'pending' && "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20"
-                                                        )}
+                                                        variant={
+                                                            invoice.status === 'paid' ? 'success' :
+                                                            invoice.status === 'pending' ? 'warning' : 'secondary'
+                                                        }
+                                                        className="capitalize"
                                                     >
                                                         {invoice.status}
                                                     </Badge>
@@ -319,7 +319,10 @@ export default function BillingPage() {
                                                 <td className="p-4 text-right">
                                                     <a
                                                         href={`/api/billing/invoices/${invoice.id}/download`}
-                                                        className="inline-flex items-center gap-2 text-[var(--primary)] hover:underline font-medium"
+                                                        className={cn(
+                                                            buttonVariants({ variant: 'ghost', size: 'sm' }),
+                                                            "inline-flex items-center gap-2"
+                                                        )}
                                                         download
                                                     >
                                                         <FileText className="w-4 h-4" />
