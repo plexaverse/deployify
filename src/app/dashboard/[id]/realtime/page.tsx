@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { LogViewer } from '@/components/LogViewer';
+import { Card } from '@/components/ui/card';
 
 export default function RealtimeLogsPage() {
     const params = useParams();
@@ -16,9 +17,13 @@ export default function RealtimeLogsPage() {
                 </p>
             </div>
 
-            <div className="border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--card)] shadow-sm">
-                <LogViewer projectId={id} key={id} />
-            </div>
+            <Card className="overflow-hidden p-0 shadow-sm">
+                <LogViewer
+                    projectId={id}
+                    key={id}
+                    className="border-0 shadow-none rounded-none"
+                />
+            </Card>
         </div>
     );
 }

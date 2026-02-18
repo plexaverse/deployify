@@ -24,11 +24,11 @@ export function BuildLogViewer({ logs, loading, error, onRetry }: BuildLogViewer
 
     if (loading) {
         return (
-            <div className="flex flex-col gap-2 p-4 h-full bg-[#0d1117]">
+            <div className="flex flex-col gap-2 p-4 h-full bg-[var(--terminal-bg)]">
                 {[1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="flex gap-4">
-                        <Skeleton className="h-4 w-24 bg-white/10" />
-                        <Skeleton className="h-4 w-full bg-white/10" />
+                        <Skeleton className="h-4 w-24 bg-[var(--terminal-header-bg)]" />
+                        <Skeleton className="h-4 w-full bg-[var(--terminal-header-bg)]" />
                     </div>
                 ))}
             </div>
@@ -37,7 +37,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry }: BuildLogViewer
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-[var(--muted-foreground)] gap-4 bg-[#0d1117]">
+            <div className="flex flex-col items-center justify-center h-full text-[var(--muted-foreground)] gap-4 bg-[var(--terminal-bg)]">
                 <AlertCircle className="w-8 h-8 text-[var(--error)]" />
                 <p className="text-[var(--error)]">{error}</p>
                 <Button
@@ -53,7 +53,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry }: BuildLogViewer
 
     if (!logs) {
         return (
-            <div className="flex items-center justify-center h-full text-[var(--muted-foreground)] bg-[#0d1117]">
+            <div className="flex items-center justify-center h-full text-[var(--muted-foreground)] bg-[var(--terminal-bg)]">
                 <p>No build logs available yet</p>
             </div>
         );
@@ -62,9 +62,9 @@ export function BuildLogViewer({ logs, loading, error, onRetry }: BuildLogViewer
     return (
         <div
             ref={containerRef}
-            className="h-full overflow-y-auto p-4 font-mono text-xs leading-relaxed bg-[#0d1117]"
+            className="h-full overflow-y-auto p-4 font-mono text-xs leading-relaxed bg-[var(--terminal-bg)]"
         >
-            <pre className="whitespace-pre-wrap text-gray-300">{logs}</pre>
+            <pre className="whitespace-pre-wrap text-[var(--terminal-foreground)]/90">{logs}</pre>
         </div>
     );
 }

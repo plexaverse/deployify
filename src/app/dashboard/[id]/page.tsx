@@ -242,8 +242,8 @@ export default function ProjectDetailPage() {
                     <Card className="overflow-hidden shadow-sm">
                         <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
                             <h2 className="text-sm font-medium uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
-                            <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-500">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--success)]">
+                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--success)] animate-pulse" />
                                 Live
                             </span>
                         </div>
@@ -265,7 +265,7 @@ export default function ProjectDetailPage() {
                                             title="Copy Production URL"
                                         >
                                             {copiedId === 'production-url' ? (
-                                                <Check className="w-4 h-4 text-emerald-500" />
+                                                <Check className="w-4 h-4 text-[var(--success)]" />
                                             ) : (
                                                 <Copy className="w-4 h-4 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
                                             )}
@@ -302,7 +302,7 @@ export default function ProjectDetailPage() {
                                 <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">Errors (24h)</span>
                                 <AlertCircle className={cn(
                                     "w-4 h-4",
-                                    errorCount > 0 ? "text-red-500" : "text-emerald-500"
+                                    errorCount > 0 ? "text-[var(--error)]" : "text-[var(--success)]"
                                 )} />
                             </div>
                             <div className="flex items-baseline gap-2">
@@ -382,7 +382,7 @@ export default function ProjectDetailPage() {
                                                         <span className="hover:text-[var(--foreground)] cursor-pointer" onClick={() => handleCopyUrl(deployment.gitCommitSha, `sha-${deployment.id}`)}>
                                                             {deployment.gitCommitSha.substring(0, 7)}
                                                         </span>
-                                                        {copiedId === `sha-${deployment.id}` && <Check className="w-3 h-3 text-emerald-500" />}
+                                                        {copiedId === `sha-${deployment.id}` && <Check className="w-3 h-3 text-[var(--success)]" />}
                                                     </div>
                                                     <span>•</span>
                                                     <span>{formatDate(deployment.createdAt)}</span>
@@ -428,7 +428,7 @@ export default function ProjectDetailPage() {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleRollback(deployment.id)}
-                                                    className="h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10 hover:text-red-600"
+                                                    className="h-8 px-2.5 text-xs text-[var(--error)] border border-[var(--error)]/20 hover:bg-[var(--error-bg)] hover:text-[var(--error)]"
                                                 >
                                                     <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                                                     Rollback
@@ -440,7 +440,7 @@ export default function ProjectDetailPage() {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleCancel(deployment.id)}
-                                                    className="h-8 px-2.5 text-xs text-red-500 border border-red-500/20 hover:bg-red-500/10 hover:text-red-600"
+                                                    className="h-8 px-2.5 text-xs text-[var(--error)] border border-[var(--error)]/20 hover:bg-[var(--error-bg)] hover:text-[var(--error)]"
                                                 >
                                                     Cancel
                                                 </Button>

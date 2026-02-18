@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 interface JoinButtonProps {
     token: string;
@@ -46,13 +47,13 @@ export default function JoinButton({ token, teamName }: JoinButtonProps) {
                     {error}
                 </div>
             )}
-            <button
+            <Button
                 onClick={handleJoin}
-                disabled={isLoading}
-                className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                loading={isLoading}
+                className="w-full"
             >
-                {isLoading ? 'Joining...' : `Join ${teamName}`}
-            </button>
+                Join {teamName}
+            </Button>
         </div>
     );
 }

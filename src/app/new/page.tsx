@@ -14,6 +14,7 @@ import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { NativeSelect } from '@/components/ui/native-select';
 import { cn } from '@/lib/utils';
 import type { GitHubRepo, Project, Deployment } from '@/types';
 
@@ -382,10 +383,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Framework</label>
-                        <select
+                        <NativeSelect
                             value={framework}
                             onChange={(e) => setFramework(e.target.value)}
-                            className="flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <option value="auto">Auto-detect</option>
                             <option value="nextjs">Next.js</option>
@@ -393,7 +393,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             <option value="astro">Astro</option>
                             <option value="remix">Remix</option>
                             <option value="docker">Docker</option>
-                        </select>
+                        </NativeSelect>
                         {framework === 'docker' && (
                             <p className="text-xs text-[var(--info)] pt-1">
                                 Deployify will use the <code>Dockerfile</code> in your repository root.
@@ -411,15 +411,14 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Region</label>
-                        <select
+                        <NativeSelect
                             value={region}
                             onChange={(e) => setRegion(e.target.value)}
-                            className="flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {GCP_REGIONS.map((r) => (
                                 <option key={r.value} value={r.value}>{r.label}</option>
                             ))}
-                        </select>
+                        </NativeSelect>
                     </div>
                 </div>
             </Card>
@@ -470,15 +469,15 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         onChange={(e) => setNewEnvValue(e.target.value)}
                         className="font-mono"
                     />
-                    <select
+                    <NativeSelect
                         value={newEnvTarget}
                         onChange={(e) => setNewEnvTarget(e.target.value as any)}
-                        className="bg-transparent text-[var(--muted-foreground)] text-xs focus:outline-none border-b border-[var(--border)] px-2"
+                        className="w-32"
                     >
                         <option value="both">Both</option>
                         <option value="build">Build</option>
                         <option value="runtime">Runtime</option>
-                    </select>
+                    </NativeSelect>
                     <Button
                         variant="ghost"
                         size="sm"
@@ -617,22 +616,22 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                 )}
             </div>
 
-            <div className="flex-1 bg-neutral-950 rounded-xl border border-[var(--border)] overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
-                <div className="bg-white/5 p-3 flex items-center gap-2 border-b border-white/5">
+            <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
+                <div className="bg-[var(--terminal-header-bg)] p-3 flex items-center gap-2 border-b border-[var(--terminal-border)]">
                     <div className="flex gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-                        <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/50" />
-                        <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/50" />
+                        <div className="w-3 h-3 rounded-full bg-[var(--error)]/20 border border-[var(--error)]/50" />
+                        <div className="w-3 h-3 rounded-full bg-[var(--warning)]/20 border border-[var(--warning)]/50" />
+                        <div className="w-3 h-3 rounded-full bg-[var(--success)]/20 border border-[var(--success)]/50" />
                     </div>
-                    <div className="ml-4 text-xs text-white/30">build-log.txt</div>
+                    <div className="ml-4 text-[var(--terminal-foreground)]/30">build-log.txt</div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-1 text-white/70">
+                <div className="flex-1 overflow-y-auto p-4 space-y-1 text-[var(--terminal-foreground)]/70">
                     {logs.split('\n').map((line, i) => (
                          <div key={i} className="break-all whitespace-pre-wrap">{line || '\u00A0'}</div>
                     ))}
                     {isError && (
-                        <div className="text-red-400 mt-4 border-t border-red-500/20 pt-4">
+                        <div className="text-[var(--error)] mt-4 border-t border-[var(--terminal-border)] pt-4">
                             <strong>Error:</strong> {error || 'Unknown error occurred during build'}
                         </div>
                     )}
@@ -640,7 +639,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                 </div>
 
                 {!isReady && !isError && (
-                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-neutral-950 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--terminal-bg)] to-transparent pointer-events-none" />
                 )}
             </div>
         </motion.div>
