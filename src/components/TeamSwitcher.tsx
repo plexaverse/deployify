@@ -3,6 +3,7 @@ import { useTeam } from '@/contexts/TeamContext';
 import { Check, ChevronsUpDown, User, Users, Plus } from 'lucide-react';
 import { useStore } from '@/store';
 import { CreateTeamModal } from '@/components/CreateTeamModal';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export function TeamSwitcher() {
     const { activeTeam, setActiveTeam, teams, isLoading } = useTeam();
@@ -22,7 +23,7 @@ export function TeamSwitcher() {
     }, [setTeamSwitcherOpen]);
 
     if (isLoading) {
-        return <div className="h-10 animate-pulse bg-[var(--card)] rounded-md mb-4" />;
+        return <div className="h-10 animate-pulse bg-[var(--muted)]/20 rounded-md mb-4" />;
     }
 
     return (
@@ -34,14 +35,12 @@ export function TeamSwitcher() {
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
                         {activeTeam ? (
-                            <div className="flex items-center justify-center w-6 h-6 min-w-[24px] rounded bg-blue-500/10 text-blue-500">
-                                {activeTeam.avatarUrl ? (
-                                    /* eslint-disable-next-line @next/next/no-img-element */
-                                    <img src={activeTeam.avatarUrl} alt={activeTeam.name} className="w-6 h-6 rounded" />
-                                ) : (
+                            <Avatar className="h-6 w-6 rounded bg-[var(--info-bg)]">
+                                <AvatarImage src={activeTeam.avatarUrl} alt={activeTeam.name} />
+                                <AvatarFallback className="rounded bg-[var(--info-bg)] text-[var(--info)]">
                                     <Users className="w-4 h-4" />
-                                )}
-                            </div>
+                                </AvatarFallback>
+                            </Avatar>
                         ) : (
                             <div className="flex items-center justify-center w-6 h-6 min-w-[24px] rounded bg-[var(--primary)]/10 text-[var(--primary)]">
                                 <User className="w-4 h-4" />
@@ -84,14 +83,12 @@ export function TeamSwitcher() {
                                         }}
                                         className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors"
                                     >
-                                        <div className="flex items-center justify-center w-6 h-6 rounded bg-blue-500/10 text-blue-500">
-                                            {team.avatarUrl ? (
-                                                /* eslint-disable-next-line @next/next/no-img-element */
-                                                <img src={team.avatarUrl} alt={team.name} className="w-6 h-6 rounded" />
-                                            ) : (
+                                        <Avatar className="h-6 w-6 rounded bg-[var(--info-bg)]">
+                                            <AvatarImage src={team.avatarUrl} alt={team.name} />
+                                            <AvatarFallback className="rounded bg-[var(--info-bg)] text-[var(--info)]">
                                                 <Users className="w-4 h-4" />
-                                            )}
-                                        </div>
+                                            </AvatarFallback>
+                                        </Avatar>
                                         <span className="flex-1 text-left truncate">{team.name}</span>
                                         {activeTeam?.id === team.id && (
                                             <Check className="w-4 h-4 text-[var(--primary)]" />

@@ -56,7 +56,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
 
     return (
         <Portal>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
                 <Card className="w-full max-w-md p-0 overflow-hidden animate-fade-in shadow-2xl">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">

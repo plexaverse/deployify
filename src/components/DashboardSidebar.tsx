@@ -21,6 +21,7 @@ import {
 import type { Session } from '@/types';
 import { TeamSwitcher } from '@/components/TeamSwitcher';
 import { PlanBadge } from '@/components/ui/PlanBadge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useStore } from '@/store';
 
 interface DashboardSidebarProps {
@@ -119,7 +120,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
             {/* Sidebar Overlay for Mobile */}
             {isSidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden pt-16"
+                    className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden pt-16"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
@@ -183,12 +184,10 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                     </motion.button>
 
                     <div className="flex items-center gap-3 px-3 py-2">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                            src={session.user.avatarUrl}
-                            alt={session.user.githubUsername}
-                            className="w-8 h-8 rounded-full border border-[var(--border)]"
-                        />
+                        <Avatar className="h-8 w-8 border border-[var(--border)]">
+                            <AvatarImage src={session.user.avatarUrl} alt={session.user.githubUsername} />
+                            <AvatarFallback>{session.user.githubUsername.slice(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                                 <p className="text-sm font-medium truncate text-[var(--foreground)]">
