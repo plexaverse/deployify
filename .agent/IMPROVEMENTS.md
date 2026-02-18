@@ -116,7 +116,7 @@
 #### 10. **Monorepo Support**
 - **Current**: `rootDirectory` field exists but limited
 - **Improvement**: Better root directory detection, turborepo/nx awareness
-- **Status**: ✅ Implemented (Subdirectory support via `rootDirectory` setting)
+- **Status**: ✅ Implemented (Subdirectory support via `rootDirectory` setting; Next.js `CMD` path fixed)
 
 #### 11. **Custom Build Commands**
 - **Current**: Editable in Settings
@@ -131,7 +131,7 @@
 #### 13. **Preview Deployment Comments**
 - **Improvement**: Add deployment URL as comment on GitHub PRs
 - **Files**: `src/lib/github.ts` (add `createPRComment()`)
-- **Status**: ✅ Implemented
+- **Status**: ✅ Implemented (PR comments fixed by resolving token shadowing)
 
 #### 14. **Team/Organization Support**
 - **Current**: Single user projects

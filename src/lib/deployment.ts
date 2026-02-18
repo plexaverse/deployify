@@ -70,8 +70,8 @@ export async function pollBuildStatus(
                 // Fetch latest revision
                 let latestRevision: string | undefined;
                 try {
-                    const accessToken = await getGcpAccessToken();
-                    const service = await getService(serviceName, accessToken, projectRegion);
+                    const gcpAccessToken = await getGcpAccessToken();
+                    const service = await getService(serviceName, gcpAccessToken, projectRegion);
                     if (service) {
                         latestRevision = service.latestRevision;
                     }
