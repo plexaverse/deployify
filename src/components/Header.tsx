@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { useStore } from '@/store';
 
 export function Header() {
     const pathname = usePathname();
+    const { currentProject } = useStore();
 
     const getBreadcrumbs = () => {
         if (!pathname) return [];
@@ -15,7 +17,14 @@ export function Header() {
         const segments = pathname.split('/').filter(Boolean);
         const breadcrumbs = segments.map((segment, index) => {
             const href = `/${segments.slice(0, index + 1).join('/')}`;
-            const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
+
+            let label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
+
+            // If the segment matches current project ID, use its name
+            if (currentProject && segment === currentProject.id) {
+                label = currentProject.name;
+            }
+
             return { href, label };
         });
 

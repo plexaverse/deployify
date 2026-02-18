@@ -131,6 +131,55 @@ Audited and optimized UI for mobile responsiveness and performance.
 - **MovingBorder Button**: Utilized `containerClassName` to control dimensions while maintaining the Aceternity UI effect.
 - **Skeleton**: Applied for content loading states.
 
+## Progressive UI & Theme Consistency Refactor (Session 63)
+
+Conducted a comprehensive pass to eliminate remaining hardcoded colors and standardize UI components across the application.
+
+### `src/app/globals.css`
+- Defined semantic terminal theme variables to ensure consistency across all log viewing interfaces:
+  - `--terminal-bg`: Dark background for terminal-like components.
+  - `--terminal-foreground`: High-contrast text for terminal logs.
+  - `--terminal-border`: Subtle border for terminal containers.
+  - `--terminal-header-bg`: Slightly lighter background for terminal tab bars/headers.
+- Updated `.log-viewer` class to use these variables.
+
+### `src/app/new/page.tsx` (Project Creation Wizard)
+- Replaced all raw `<select>` elements with the standardized `NativeSelect` component for consistent form styling.
+- **Step 3 (Deploy)**: Refactored the live terminal log viewer:
+  - Replaced hardcoded `bg-neutral-950` and `bg-white/5` with semantic terminal variables.
+  - Replaced hardcoded status dot colors (red, amber, emerald) with theme-aware status variables (`--error`, `--warning`, `--success`).
+  - Improved contrast of terminal text by using `--terminal-foreground`.
+
+### `src/app/dashboard/[id]/realtime/page.tsx`
+- Refactored to use the `Card` component with `p-0` and `overflow-hidden` to match the standard project logs layout.
+- Standardized typography and spacing to align with the rest of the project dashboard.
+
+### `src/components/Header.tsx`
+- Enhanced breadcrumb logic to automatically resolve and display the project name instead of a UUID when a project is active in the global store. This significantly improves readability for project-specific pages.
+
+### `src/app/dashboard/[id]/page.tsx` (Project Overview)
+- Standardized status indicators:
+  - Replaced hardcoded `text-emerald-500` and `bg-emerald-500` with `var(--success)`.
+  - Replaced hardcoded `text-red-500` with `var(--error)`.
+- Updated "Rollback" and "Cancel" buttons to use standard semantic colors and theme-aware hover states (`var(--error-bg)`).
+
+### `src/components/analytics/RealtimeVisitors.tsx`
+- Standardized live status indicators to use `var(--success)` instead of hardcoded emerald shades.
+
+### `src/app/join/` (Team Invitation Flow)
+- **`page.tsx`**: Replaced manual `card` classes with the `Card` component for better layout consistency and shadow management.
+- **`JoinButton.tsx`**: Replaced the manual `.btn .btn-primary` classes with the `Button` component, utilizing its built-in `loading` state for better UX.
+
+### `src/components/BuildLogViewer.tsx`
+- Fully refactored to use semantic terminal theme variables for background, foreground, and loading skeletons.
+- Replaced hardcoded dark mode colors (`bg-[#0d1117]`) with theme variables to support future theme variations.
+
+### `src/components/LandingPage.tsx`
+- Removed remaining hardcoded colors:
+  - Rocket icon and "Deployify" logo now use `var(--foreground)` and `var(--muted-foreground)`.
+  - "Sign In" link uses theme-aware colors for better visibility in both modes.
+  - **Back to Top** button: Replaced manual white/glass styles with the `Card` component styling and theme-aware hover effects.
+
 ## Onboarding & Empty States
 
 ### `src/components/OnboardingGuide.tsx`

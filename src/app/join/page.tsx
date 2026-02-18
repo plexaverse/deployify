@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getInviteByToken, getTeamById } from '@/lib/db';
 import JoinButton from './JoinButton';
+import { Card } from '@/components/ui/card';
 
 interface JoinPageProps {
     searchParams: Promise<{ token?: string }>;
@@ -13,10 +14,10 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
     if (!token) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)]">
-                <div className="card max-w-md w-full text-center">
+                <Card className="max-w-md w-full text-center">
                     <h1 className="text-xl font-bold text-[var(--error)] mb-2">Invalid Invite</h1>
                     <p className="text-[var(--muted-foreground)]">No invite token provided.</p>
-                </div>
+                </Card>
             </div>
         );
     }
@@ -32,10 +33,10 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
     if (!invite) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)]">
-                <div className="card max-w-md w-full text-center">
+                <Card className="max-w-md w-full text-center">
                     <h1 className="text-xl font-bold text-[var(--error)] mb-2">Invalid Invite</h1>
                     <p className="text-[var(--muted-foreground)]">The invite link is invalid or has expired.</p>
-                </div>
+                </Card>
             </div>
         );
     }
@@ -43,10 +44,10 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
     if (invite.expiresAt < new Date()) {
          return (
             <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)]">
-                <div className="card max-w-md w-full text-center">
+                <Card className="max-w-md w-full text-center">
                     <h1 className="text-xl font-bold text-[var(--error)] mb-2">Invite Expired</h1>
                     <p className="text-[var(--muted-foreground)]">This invite link has expired.</p>
-                </div>
+                </Card>
             </div>
         );
     }
@@ -56,17 +57,17 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
     if (!team) {
          return (
             <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)]">
-                <div className="card max-w-md w-full text-center">
+                <Card className="max-w-md w-full text-center">
                     <h1 className="text-xl font-bold text-[var(--error)] mb-2">Team Not Found</h1>
                     <p className="text-[var(--muted-foreground)]">The team associated with this invite no longer exists.</p>
-                </div>
+                </Card>
             </div>
         );
     }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)]">
-            <div className="card max-w-md w-full text-center">
+            <Card className="max-w-md w-full text-center">
                 <div className="mb-6">
                     {team.avatarUrl ? (
                         <img
@@ -86,7 +87,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                 </p>
 
                 <JoinButton token={token} teamName={team.name} />
-            </div>
+            </Card>
         </div>
     );
 }

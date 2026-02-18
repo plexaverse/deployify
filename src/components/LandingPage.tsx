@@ -82,13 +82,13 @@ export default function LandingPage() {
           <div className="flex items-center justify-between h-16">
             <motion.div whileTap={{ scale: 0.95 }}>
               <Link href="/" className="flex items-center gap-2 group" aria-label="Deployify Home">
-                <Rocket className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">Deployify</span>
+                <Rocket className="w-6 h-6 text-[var(--foreground)] group-hover:rotate-12 transition-transform" />
+                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] bg-opacity-50">Deployify</span>
               </Link>
             </motion.div>
             <div className="flex items-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/login" className="text-sm font-medium text-neutral-300 hover:text-white transition-colors">
+                <Link href="/login" className="text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                   Sign In
                 </Link>
               </motion.div>
@@ -571,10 +571,10 @@ export default function LandingPage() {
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            whileHover={{ y: -4, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+            whileHover={{ y: -4, backgroundColor: 'var(--card-hover)' }}
             whileTap={{ scale: 0.9 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-[100] p-4 rounded-full bg-white/10 border border-white/20 backdrop-blur-xl text-white shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-colors group"
+            className="fixed bottom-8 right-8 z-[100] p-4 rounded-full bg-[var(--card)] border border-[var(--border)] backdrop-blur-xl text-[var(--foreground)] shadow-lg transition-colors group"
             aria-label="Back to top"
           >
             <svg className="absolute inset-0 w-full h-full -rotate-90" aria-hidden="true">
