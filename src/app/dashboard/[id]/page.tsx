@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
     ExternalLink,
     GitBranch,
@@ -28,11 +28,9 @@ import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Project, Deployment } from '@/types';
 
 export default function ProjectDetailPage() {
     const params = useParams();
-    const router = useRouter();
     const {
         currentProject: project,
         currentDeployments: deployments,
@@ -338,12 +336,12 @@ export default function ProjectDetailPage() {
                     >
                         <div className="flex items-center gap-4 text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)]">
                             <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                <span className="w-2 h-2 rounded-full bg-[var(--success)] shadow-[0_0_8px_var(--success)]" />
                                 Git Push
                             </span>
                             <span className="w-4 h-[1px] bg-[var(--border)]" />
                             <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                <span className="w-2 h-2 rounded-full bg-[var(--info)]" />
                                 Build
                             </span>
                             <span className="w-4 h-[1px] bg-[var(--border)]" />

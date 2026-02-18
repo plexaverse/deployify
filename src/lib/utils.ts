@@ -78,16 +78,16 @@ export function isDeploymentComplete(status: string): boolean {
 export function getStatusColor(status: string): string {
     switch (status) {
         case 'ready':
-            return 'text-green-500';
+            return 'text-[var(--success)]';
         case 'error':
         case 'cancelled':
-            return 'text-red-500';
+            return 'text-[var(--error)]';
         case 'building':
         case 'deploying':
-            return 'text-yellow-500';
+            return 'text-[var(--warning)]';
         case 'queued':
         default:
-            return 'text-gray-500';
+            return 'text-[var(--muted-foreground)]';
     }
 }
 

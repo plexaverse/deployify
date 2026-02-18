@@ -163,16 +163,33 @@ fi`,
             entrypoint: 'sh',
             args: [
                 '-c',
-                `cd ${workDir} && if ! grep -q "output.*standalone" next.config.* 2>/dev/null; then
-        echo "Adding standalone output to next.config..."
-        if [ -f next.config.ts ]; then
-          sed -i "s/const nextConfig.*=.*{/const nextConfig = { output: 'standalone',/" next.config.ts
-        elif [ -f next.config.js ]; then
-          sed -i "s/const nextConfig.*=.*{/const nextConfig = { output: 'standalone',/" next.config.js
-        elif [ -f next.config.mjs ]; then
-          sed -i "s/const nextConfig.*=.*{/const nextConfig = { output: 'standalone',/" next.config.mjs
-        fi
-      fi`,
+                `cd ${workDir} && node -e "
+const fs = require('fs');
+const files = ['next.config.ts', 'next.config.js', 'next.config.mjs'];
+for (const f of files) {
+  if (fs.existsSync(f)) {
+    let content = fs.readFileSync(f, 'utf8');
+    if (!content.includes('output: \"standalone\"') && !content.includes(\"output: 'standalone'\")) {
+      console.log('Adding standalone output to ' + f);
+      // Handle common export patterns
+      const patterns = [
+        /(const\s+\w+\s*=\s*{)/,
+        /(export\s+default\s*{)/,
+        /(module\.exports\s*=\s*{)/
+      ];
+      let replaced = false;
+      for (const p of patterns) {
+        if (p.test(content)) {
+          content = content.replace(p, '$1\\n  output: \"standalone\",');
+          replaced = true;
+          break;
+        }
+      }
+      if (replaced) fs.writeFileSync(f, content);
+    }
+  }
+}
+"`,
             ],
         }]),
         // Pull the latest image for caching
