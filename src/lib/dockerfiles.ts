@@ -38,10 +38,17 @@ function generateAstroDockerfile(config: DockerfileConfig): string {
 
     const outputPath = getPath(outputDirectory);
 
+    const isSubdir = rootDirectory && rootDirectory !== '.';
+    const copyFiles = isSubdir
+        ? `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN mkdir -p ${rootDirectory}
+COPY ${rootDirectory}/package.json ${rootDirectory}/package-lock.json* ${rootDirectory}/yarn.lock* ${rootDirectory}/pnpm-lock.yaml* ./${rootDirectory}/`
+        : `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./`;
+
     return `FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+${copyFiles}
 RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
     elif [ -f package-lock.json ]; then npm ci; \\
     elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
@@ -82,9 +89,16 @@ function generateRemixDockerfile(config: DockerfileConfig): string {
         ? `cd ${rootDirectory} && ${buildCommand}`
         : buildCommand;
 
+    const isSubdir = rootDirectory && rootDirectory !== '.';
+    const copyFiles = isSubdir
+        ? `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN mkdir -p ${rootDirectory}
+COPY ${rootDirectory}/package.json ${rootDirectory}/package-lock.json* ${rootDirectory}/yarn.lock* ${rootDirectory}/pnpm-lock.yaml* ./${rootDirectory}/`
+        : `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./`;
+
     return `FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+${copyFiles}
 RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
     elif [ -f package-lock.json ]; then npm ci; \\
     elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
@@ -128,12 +142,17 @@ function generateNextjsDockerfile(config: DockerfileConfig): string {
     const publicPath = getPath('public');
     const staticPath = getPath('.next/static');
     const standalonePath = getPath('.next/standalone');
-    const nextDir = getPath('.next');
+    const isSubdir = rootDirectory && rootDirectory !== '.';
+    const copyFiles = isSubdir
+        ? `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN mkdir -p ${rootDirectory}
+COPY ${rootDirectory}/package.json ${rootDirectory}/package-lock.json* ${rootDirectory}/yarn.lock* ${rootDirectory}/pnpm-lock.yaml* ./${rootDirectory}/`
+        : `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./`;
 
     return `FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+${copyFiles}
 RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
     elif [ -f package-lock.json ]; then npm ci; \\
     elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
@@ -186,10 +205,17 @@ function generateViteDockerfile(config: DockerfileConfig): string {
 
     const distPath = getPath(outputDirectory);
 
+    const isSubdir = rootDirectory && rootDirectory !== '.';
+    const copyFiles = isSubdir
+        ? `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN mkdir -p ${rootDirectory}
+COPY ${rootDirectory}/package.json ${rootDirectory}/package-lock.json* ${rootDirectory}/yarn.lock* ${rootDirectory}/pnpm-lock.yaml* ./${rootDirectory}/`
+        : `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./`;
+
     return `FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+${copyFiles}
 RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
     elif [ -f package-lock.json ]; then npm ci; \\
     elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\

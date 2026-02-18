@@ -14,7 +14,7 @@ function initializeFirebase(): App {
     }
 
     // Use service account credentials if available
-    if (config.firebase.clientEmail && config.firebase.privateKey) {
+    if (config.firebase.clientEmail && config.firebase.privateKey && config.firebase.privateKey.includes('BEGIN PRIVATE KEY')) {
         return initializeApp({
             credential: cert({
                 projectId: config.firebase.projectId,
