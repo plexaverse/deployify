@@ -54,6 +54,35 @@ export function validateRepoContents(contents: RepoContent[], framework?: string
         }
     }
 
+    // 4. Check for Nuxt specific config
+    if (framework === 'nuxt') {
+        const hasNuxtConfig =
+            fileNames.has('nuxt.config.js') ||
+            fileNames.has('nuxt.config.ts') ||
+            fileNames.has('nuxt.config.mjs');
+
+        if (!hasNuxtConfig) {
+            return {
+                valid: false,
+                error: 'Missing nuxt.config.js (or .ts/.mjs) for Nuxt project. Please ensure the configuration file exists in the root directory.'
+            };
+        }
+    }
+
+    // 5. Check for SvelteKit specific config
+    if (framework === 'sveltekit') {
+        const hasSvelteConfig =
+            fileNames.has('svelte.config.js') ||
+            fileNames.has('svelte.config.ts');
+
+        if (!hasSvelteConfig) {
+            return {
+                valid: false,
+                error: 'Missing svelte.config.js (or .ts) for SvelteKit project. Please ensure the configuration file exists in the root directory.'
+            };
+        }
+    }
+
     return { valid: true };
 }
 

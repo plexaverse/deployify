@@ -132,7 +132,11 @@ export async function POST(request: NextRequest) {
                 defaultOutputDirectory = 'dist';
                 break;
             case 'remix':
+            case 'sveltekit':
                 defaultOutputDirectory = 'build';
+                break;
+            case 'nuxt':
+                defaultOutputDirectory = '.output';
                 break;
             case 'nextjs':
             default:

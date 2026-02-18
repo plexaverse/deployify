@@ -131,6 +131,24 @@ Audited and optimized UI for mobile responsiveness and performance.
 - **MovingBorder Button**: Utilized `containerClassName` to control dimensions while maintaining the Aceternity UI effect.
 - **Skeleton**: Applied for content loading states.
 
+## Multi-Framework Support Expansion
+
+Expanded the platform's framework support to include Nuxt and SvelteKit, ensuring consistent detection and deployment workflows.
+
+### `src/lib/github.ts`
+- Updated `detectFramework` to support **Nuxt** and **SvelteKit** by detecting their configuration files and dependencies.
+- Added basic **Bun** detection support via `bun.lockb`.
+
+### `src/lib/dockerfiles.ts`
+- Implemented `generateNuxtDockerfile` targeting the Nitro standalone output (`.output/server/index.mjs`).
+- Implemented `generateSvelteKitDockerfile` targeting the node-adapter output (`build/index.js`).
+
+### `src/lib/github/validator.ts`
+- Added strict validation checks for Nuxt and SvelteKit projects to ensure required configuration files are present before deployment.
+
+### `src/app/api/projects/route.ts`
+- Updated the project creation flow to automatically set correct default output directories for Nuxt (`.output`) and SvelteKit (`build`).
+
 ## Progressive UI & Theme Consistency Refactor (Session 63)
 
 Conducted a comprehensive pass to eliminate remaining hardcoded colors and standardize UI components across the application.

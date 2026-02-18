@@ -16,10 +16,120 @@ export function getDockerfile(config: DockerfileConfig): string {
             return generateViteDockerfile(config);
         case 'remix':
             return generateRemixDockerfile(config);
+        case 'nuxt':
+            return generateNuxtDockerfile(config);
+        case 'sveltekit':
+            return generateSvelteKitDockerfile(config);
         case 'nextjs':
         default:
             return generateNextjsDockerfile(config);
     }
+}
+
+function generateNuxtDockerfile(config: DockerfileConfig): string {
+    const { buildEnvSection, buildCommand = 'npm run build', rootDirectory } = config;
+
+    // Helper to format path
+    const getPath = (path: string) => {
+        if (!rootDirectory || rootDirectory === '.') return path;
+        const cleanPath = path.startsWith('./') ? path.substring(2) : path;
+        return `${rootDirectory}/${cleanPath}`;
+    };
+
+    const buildCmd = rootDirectory && rootDirectory !== '.'
+        ? `cd ${rootDirectory} && ${buildCommand}`
+        : buildCommand;
+
+    const isSubdir = rootDirectory && rootDirectory !== '.';
+    const copyFiles = isSubdir
+        ? `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN mkdir -p ${rootDirectory}
+COPY ${rootDirectory}/package.json ${rootDirectory}/package-lock.json* ${rootDirectory}/yarn.lock* ${rootDirectory}/pnpm-lock.yaml* ./${rootDirectory}/`
+        : `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./`;
+
+    const outputServerPath = getPath('.output/server/index.mjs');
+    const outputPublicPath = getPath('.output/public');
+
+    return `FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+${copyFiles}
+RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
+    elif [ -f package-lock.json ]; then npm ci; \\
+    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
+    else npm install; fi
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+${buildEnvSection}
+RUN ${buildCmd}
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=8080
+
+COPY --from=builder /app/${outputServerPath} ./${outputServerPath}
+COPY --from=builder /app/${outputPublicPath} ./${outputPublicPath}
+# Copy the whole .output if needed for other nitro presets
+COPY --from=builder /app/${getPath('.output')} ./${getPath('.output')}
+
+EXPOSE 8080
+CMD ["node", "./${outputServerPath}"]`;
+}
+
+function generateSvelteKitDockerfile(config: DockerfileConfig): string {
+    const { buildEnvSection, buildCommand = 'npm run build', rootDirectory } = config;
+
+    // Helper to format path
+    const getPath = (path: string) => {
+        if (!rootDirectory || rootDirectory === '.') return path;
+        const cleanPath = path.startsWith('./') ? path.substring(2) : path;
+        return `${rootDirectory}/${cleanPath}`;
+    };
+
+    const buildCmd = rootDirectory && rootDirectory !== '.'
+        ? `cd ${rootDirectory} && ${buildCommand}`
+        : buildCommand;
+
+    const isSubdir = rootDirectory && rootDirectory !== '.';
+    const copyFiles = isSubdir
+        ? `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+RUN mkdir -p ${rootDirectory}
+COPY ${rootDirectory}/package.json ${rootDirectory}/package-lock.json* ${rootDirectory}/yarn.lock* ${rootDirectory}/pnpm-lock.yaml* ./${rootDirectory}/`
+        : `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./`;
+
+    const buildPath = getPath('build');
+
+    return `FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+${copyFiles}
+RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \\
+    elif [ -f package-lock.json ]; then npm ci; \\
+    elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \\
+    else npm install; fi
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+${buildEnvSection}
+RUN ${buildCmd}
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=8080
+
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/${buildPath} ./${buildPath}
+
+EXPOSE 8080
+CMD ["node", "./${buildPath}/index.js"]`;
 }
 
 function generateAstroDockerfile(config: DockerfileConfig): string {
