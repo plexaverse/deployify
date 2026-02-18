@@ -136,6 +136,24 @@ async function handleDeploy() {
     const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
     const { instanceUrl, token } = config;
 
+    // 0. Check Git Status
+    const gitStatus = getGitStatus();
+    if (gitStatus) {
+        console.warn('\n⚠️  Warning: You have uncommitted changes:');
+        console.warn(gitStatus.split('\n').slice(0, 5).join('\n') + (gitStatus.split('\n').length > 5 ? '\n...' : ''));
+        console.warn('These changes will NOT be deployed. Please commit and push them first.');
+    }
+
+    const currentBranch = getCurrentBranch();
+    if (currentBranch) {
+        if (isAheadOfRemote(currentBranch)) {
+             console.warn(`\n⚠️  Warning: Your local branch '${currentBranch}' is ahead of remote.`);
+             console.warn('Please push your changes to ensure they are deployed.');
+        }
+    } else {
+        console.warn('\n⚠️  Warning: Could not determine current git branch.');
+    }
+
     // 1. Get Git Remote URL
     let remoteUrl;
     try {
@@ -184,8 +202,8 @@ async function handleDeploy() {
     }
 
     // 3. Trigger Deployment
-    console.log('Triggering deployment...');
-    const result = await triggerDeployment(instanceUrl, token, projectId);
+    console.log(`Triggering deployment for branch '${currentBranch || 'default'}'...`);
+    const result = await triggerDeployment(instanceUrl, token, projectId, currentBranch);
 
     console.log('\nDeployment triggered successfully!');
     if (result.deployment) {
@@ -232,8 +250,9 @@ async function findProjectByRepo(instanceUrl, token, repoFullName) {
     return null;
 }
 
-async function triggerDeployment(instanceUrl, token, projectId) {
-    const response = await fetchJson(`${instanceUrl}/api/projects/${projectId}/deploy`, token, { method: 'POST' });
+async function triggerDeployment(instanceUrl, token, projectId, branch) {
+    const body = branch ? { branch } : {};
+    const response = await fetchJson(`${instanceUrl}/api/projects/${projectId}/deploy`, token, { method: 'POST', body });
     return response;
 }
 
@@ -288,6 +307,38 @@ function fetchJson(url, token, options = {}) {
         }
         req.end();
     });
+}
+
+function getGitStatus() {
+    try {
+        // --porcelain gives a machine-readable output. If empty, clean.
+        return execSync('git status --porcelain').toString().trim();
+    } catch (e) {
+        return null;
+    }
+}
+
+function getCurrentBranch() {
+    try {
+        return execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+    } catch (e) {
+        return null;
+    }
+}
+
+function isAheadOfRemote(branch) {
+    try {
+        // Check if local branch is ahead of origin/branch
+        // git rev-list --left-right --count origin/main...HEAD
+        // Returns "0 1" if ahead by 1. "1 0" if behind by 1.
+        // We assume 'origin' is the remote.
+        const output = execSync(`git rev-list --left-right --count origin/${branch}...HEAD`).toString().trim();
+        const [behind, ahead] = output.split(/\s+/).map(Number);
+        return ahead > 0;
+    } catch (e) {
+        // If upstream not configured or error, assume false or handle elsewhere
+        return false;
+    }
 }
 
 main();
