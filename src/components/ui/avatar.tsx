@@ -50,7 +50,7 @@ const AvatarImage = React.forwardRef<
         }
 
         const img = new Image();
-        img.src = src;
+        img.src = src as string;
 
         const handleLoad = () => onImageLoadingStatusChange('loaded');
         const handleError = () => onImageLoadingStatusChange('error');

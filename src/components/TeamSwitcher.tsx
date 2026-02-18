@@ -36,7 +36,7 @@ export function TeamSwitcher() {
                     <div className="flex items-center gap-2 overflow-hidden">
                         {activeTeam ? (
                             <Avatar className="h-6 w-6 rounded bg-[var(--info-bg)]">
-                                <AvatarImage src={activeTeam.avatarUrl} alt={activeTeam.name} />
+                                <AvatarImage src={activeTeam.avatarUrl || undefined} alt={activeTeam.name} />
                                 <AvatarFallback className="rounded bg-[var(--info-bg)] text-[var(--info)]">
                                     <Users className="w-4 h-4" />
                                 </AvatarFallback>
@@ -84,7 +84,7 @@ export function TeamSwitcher() {
                                         className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors"
                                     >
                                         <Avatar className="h-6 w-6 rounded bg-[var(--info-bg)]">
-                                            <AvatarImage src={team.avatarUrl} alt={team.name} />
+                                            <AvatarImage src={team.avatarUrl || undefined} alt={team.name} />
                                             <AvatarFallback className="rounded bg-[var(--info-bg)] text-[var(--info)]">
                                                 <Users className="w-4 h-4" />
                                             </AvatarFallback>
