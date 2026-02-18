@@ -45,55 +45,9 @@ export async function trackDeployment(projectId: string, buildDurationMs: number
  */
 export async function getUsage(userId: string): Promise<Usage> {
     try {
-        const projects = await listProjectsByUser(userId);
-        let deploymentCount = 0;
-        let totalBuildMs = 0;
-        let totalBandwidth = 0;
-
-        // Determine start of current month
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        // Fetch deployments and bandwidth in parallel
-        const deploymentPromises = projects.map(project =>
-            listDeploymentsByProject(project.id, 100)
-        );
-
-        const bandwidthPromises = projects.map(async (project) => {
-            try {
-                const serviceName = getProductionServiceName(project.slug);
-                return await getBandwidthUsage(serviceName, project.region, { startTime: startOfMonth });
-            } catch (error) {
-                // If service doesn't exist or other error, assume 0 bandwidth
-                console.warn(`Failed to fetch bandwidth for project ${project.slug}:`, error);
-                return 0;
-            }
-        });
-
-        const [deploymentResults, bandwidthResults] = await Promise.all([
-            Promise.all(deploymentPromises),
-            Promise.all(bandwidthPromises)
-        ]);
-
-        const allDeployments = deploymentResults.flat();
-
-        allDeployments.forEach(deploy => {
-            // Filter by date
-            if (deploy.createdAt >= startOfMonth) {
-                deploymentCount++;
-                if (deploy.buildDurationMs) {
-                    totalBuildMs += deploy.buildDurationMs;
-                }
-            }
-        });
-
-        totalBandwidth = bandwidthResults.reduce((acc, curr) => acc + curr, 0);
-
-        return {
-            deployments: deploymentCount,
-            buildMinutes: Math.ceil(totalBuildMs / 1000 / 60),
-            bandwidth: totalBandwidth
-        };
+        // Delegate to getMonthlyUsage for consistency and more accurate filtering
+        const usage = await getMonthlyUsage(userId);
+        return usage;
     } catch (error) {
         console.error('Error fetching usage:', error);
         return {
@@ -148,12 +102,29 @@ export async function getMonthlyUsage(userId: string) {
     });
 
     const buildMinutes = Math.ceil(totalBuildDurationMs / 1000 / 60);
-    const bandwidth = 0; // Placeholder
+
+    // Calculate bandwidth usage for each project
+    const bandwidthPromises = projectsSnapshot.docs.map(async (doc) => {
+        const project = doc.data();
+        try {
+            const serviceName = getProductionServiceName(project.slug);
+            return await getBandwidthUsage(serviceName, project.region, {
+                startTime: startOfMonth,
+                endTime: endOfMonth
+            });
+        } catch (error) {
+            console.warn(`Failed to fetch bandwidth for project ${project.slug}:`, error);
+            return 0;
+        }
+    });
+
+    const bandwidthResults = await Promise.all(bandwidthPromises);
+    const totalBandwidth = bandwidthResults.reduce((acc, curr) => acc + curr, 0);
 
     return {
         deployments: totalDeployments,
         buildMinutes,
-        bandwidth
+        bandwidth: totalBandwidth
     };
 }
 

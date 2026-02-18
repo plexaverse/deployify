@@ -40,19 +40,21 @@ export async function pollBuildStatus(
                 errorMessage: errorMessage,
             });
 
-            if (webhookUrl && projectName) {
-                const message = `🚨 **Build Timed Out** for project **${projectName}**`;
+            if (webhookUrl) {
+                const name = projectName || projectSlug;
+                const message = `🚨 **Build Timed Out** for project **${name}**`;
                 await sendWebhookNotification(webhookUrl, {
                     content: message,
                     text: message,
                 });
             }
 
-            if (emailNotifications && userEmail && projectName) {
+            if (emailNotifications && userEmail) {
+                const name = projectName || projectSlug;
                 await sendEmail({
                     to: userEmail,
-                    subject: `Deployment Failed: ${projectName}`,
-                    html: `<p>Your deployment for <strong>${projectName}</strong> timed out.</p>`,
+                    subject: `Deployment Failed: ${name}`,
+                    html: `<p>Your deployment for <strong>${name}</strong> timed out.</p>`,
                 });
             }
             return;
@@ -117,14 +119,15 @@ export async function pollBuildStatus(
                 }
 
                 // Send Email Notification
-                if (emailNotifications && userEmail && projectName) {
+                if (emailNotifications && userEmail) {
+                    const name = projectName || projectSlug;
                     await sendEmail({
                         to: userEmail,
-                        subject: `Deployment Success: ${projectName}`,
+                        subject: `Deployment Success: ${name}`,
                         html: `
                             <h2>Deployment Successful!</h2>
-                            <p>Your project <strong>${projectName}</strong> has been successfully deployed.</p>
-                            <p><a href="${serviceUrl}">Visit your app</a></p>
+                            <p>Your project <strong>${name}</strong> has been successfully deployed.</p>
+                            <p><a href="${effectiveUrl}">Visit your app</a></p>
                             <p>Duration: ${Math.round(buildDurationMs / 1000)}s</p>
                         `,
                     });
@@ -140,7 +143,7 @@ export async function pollBuildStatus(
 | :--- | :--- | :--- |
 | **${projectName || projectSlug}** | ✅ Ready | ${formatDuration(buildDurationMs)} |
 
-[**Visit Preview**](${serviceUrl})
+[**Visit Preview**](${effectiveUrl})
 
 > Built with Deployify
                     `.trim();
@@ -155,21 +158,23 @@ export async function pollBuildStatus(
                     errorMessage: errorMessage,
                 });
 
-                if (webhookUrl && projectName) {
-                    const message = `🚨 **Build ${status}** for project **${projectName}**\n\nStatus: ${status}`;
+                if (webhookUrl) {
+                    const name = projectName || projectSlug;
+                    const message = `🚨 **Build ${status}** for project **${name}**\n\nStatus: ${status}`;
                     await sendWebhookNotification(webhookUrl, {
                         content: message,
                         text: message,
                     });
                 }
 
-                if (emailNotifications && userEmail && projectName) {
+                if (emailNotifications && userEmail) {
+                    const name = projectName || projectSlug;
                     await sendEmail({
                         to: userEmail,
-                        subject: `Deployment Failed: ${projectName}`,
+                        subject: `Deployment Failed: ${name}`,
                         html: `
                             <h2>Deployment Failed</h2>
-                            <p>Your deployment for <strong>${projectName}</strong> failed with status: ${status}.</p>
+                            <p>Your deployment for <strong>${name}</strong> failed with status: ${status}.</p>
                             <p>Error: ${errorMessage}</p>
                         `,
                     });
