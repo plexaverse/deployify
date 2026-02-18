@@ -377,3 +377,30 @@ Implemented proper portal-based modal rendering and refactored modals to use the
 
 ### `src/components/ui/button.tsx`
 - Added `size="icon"` variant to support square icon-only buttons.
+
+## Global Components & Analytics Refactor
+
+Refactored global components to use the new `Avatar` primitive and theme variables, and standardized analytics alerts.
+
+### `src/components/ui/avatar.tsx`
+- Created a new `Avatar` component with `AvatarImage` and `AvatarFallback` subcomponents.
+- Handles image loading errors gracefully and displays fallback content.
+- Styled using theme variables for consistency.
+
+### `src/components/DashboardSidebar.tsx`
+- Replaced native `<img>` elements with the `Avatar` component.
+- Replaced hardcoded overlay background `bg-black/50` with `bg-background/80` for better theming support.
+- Improved the User/Footer section layout.
+
+### `src/components/TeamSwitcher.tsx`
+- Replaced native `<img>` elements with the `Avatar` component.
+- Replaced hardcoded `bg-blue-500` colors with theme-aware `var(--info)` and `var(--info-bg)`.
+- Replaced hardcoded `bg-primary/10` with proper theme variables.
+
+### `src/components/analytics/AnalyticsAlerts.tsx`
+- Replaced hardcoded status colors (`amber-500`, `rose-500`) with semantic theme variables (`--warning`, `--error`).
+- Utilized `cn` utility for class merging.
+
+### Modals (`CreateTeamModal`, `RollbackModal`, `DeploymentLogsModal`)
+- Updated all modals to use `bg-background/80` with backdrop blur for the overlay, ensuring consistent appearance in light/dark modes.
+- **`DeploymentLogsModal`**: Replaced hardcoded dark background `bg-[#0d1117]` with `var(--terminal-bg)` to match `BuildLogViewer`.

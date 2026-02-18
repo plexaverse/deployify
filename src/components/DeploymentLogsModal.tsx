@@ -65,7 +65,7 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
 
     return (
         <Portal>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
                 <Card className="w-full max-w-4xl h-[80vh] p-0 overflow-hidden animate-fade-in shadow-2xl flex flex-col">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
@@ -95,7 +95,7 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 overflow-hidden bg-[#0d1117] relative">
+                    <div className="flex-1 overflow-hidden bg-[var(--terminal-bg)] relative">
                         <BuildLogViewer
                             logs={logs}
                             loading={loading && !logs}
