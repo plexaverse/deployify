@@ -22,6 +22,8 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
     const [error, setError] = useState<string | null>(null);
 
     const fetchLogs = useCallback(async (isPolling = false) => {
+        if (!deployment.id || !deployment.projectId) return;
+
         if (!isPolling) setLoading(true);
         // Don't clear error if polling, to avoid flashing
         if (!isPolling) setError(null);
@@ -44,7 +46,7 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
     useEffect(() => {
         let interval: NodeJS.Timeout;
 
-        if (isOpen && deployment.id) {
+        if (isOpen && deployment.id && deployment.projectId) {
             fetchLogs();
 
             // Poll if building or queued

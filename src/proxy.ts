@@ -41,7 +41,7 @@ const strictRateLimitRoutes = [
     '/api/webhooks/',
 ];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const hostname = request.headers.get('host') || '';
 
@@ -93,7 +93,7 @@ export async function middleware(request: NextRequest) {
             });
         }
 
-        console.log(`[Middleware] project subdomain detected: ${subdomain}, rewriting to proxy`);
+        console.log(`[Proxy] project subdomain detected: ${subdomain}, rewriting to proxy`);
         const url = request.nextUrl.clone();
         url.pathname = `/api/v1/proxy/${subdomain}${pathname}`;
         return NextResponse.rewrite(url, {
