@@ -5,6 +5,7 @@ import { Loader2, MapPin, Check, RefreshCcw } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { cn } from '@/lib/utils';
 
 // Common GCP regions for Cloud Run
@@ -89,38 +90,30 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
             <div className="space-y-4">
                 <div className="grid gap-2">
                     <Label htmlFor="region-select">Region</Label>
-                    <div className="relative">
-                        <select
-                            id="region-select"
-                            value={selectedRegion}
-                            onChange={(e) => handleRegionChange(e.target.value)}
-                            disabled={saving}
-                            className={cn(
-                                "flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                            )}
-                        >
-                            <option value="">Use default region</option>
+                    <NativeSelect
+                        id="region-select"
+                        value={selectedRegion}
+                        onChange={(e) => handleRegionChange(e.target.value)}
+                        disabled={saving}
+                    >
+                        <option value="">Use default region</option>
 
-                            <optgroup label="Tier 1 Regions (Lower latency)">
-                                {tier1Regions.map((region) => (
-                                    <option key={region.value} value={region.value}>
-                                        {region.label}
-                                    </option>
-                                ))}
-                            </optgroup>
+                        <optgroup label="Tier 1 Regions (Lower latency)">
+                            {tier1Regions.map((region) => (
+                                <option key={region.value} value={region.value}>
+                                    {region.label}
+                                </option>
+                            ))}
+                        </optgroup>
 
-                            <optgroup label="Tier 2 Regions">
-                                {tier2Regions.map((region) => (
-                                    <option key={region.value} value={region.value}>
-                                        {region.label}
-                                    </option>
-                                ))}
-                            </optgroup>
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[var(--muted-foreground)]">
-                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
+                        <optgroup label="Tier 2 Regions">
+                            {tier2Regions.map((region) => (
+                                <option key={region.value} value={region.value}>
+                                    {region.label}
+                                </option>
+                            ))}
+                        </optgroup>
+                    </NativeSelect>
                 </div>
 
                 <div className="flex items-center gap-2 h-6">

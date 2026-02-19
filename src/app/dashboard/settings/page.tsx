@@ -24,6 +24,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
 
 interface MemberWithUser extends TeamMembership {
@@ -268,6 +269,7 @@ export default function TeamSettingsPage() {
                         <UserPlus className="w-5 h-5 text-[var(--primary)]" />
                         <h2 className="text-lg font-semibold">Invite Members</h2>
                     </div>
+                    <Separator className="mb-6" />
                     <form onSubmit={handleInvite} className="flex flex-col md:flex-row gap-4">
                         <div className="flex-1">
                             <Label htmlFor="email" className="sr-only">Email address</Label>
@@ -414,6 +416,7 @@ export default function TeamSettingsPage() {
                         <h2 className="text-lg font-semibold">Danger Zone</h2>
                     </div>
                 </div>
+                <Separator />
                 <div className="p-6 space-y-6">
                     <div className="flex items-center justify-between">
                         <div>

@@ -17,6 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 
 export default function ProjectSettingsPage() {
     const params = useParams();
@@ -135,6 +137,8 @@ export default function ProjectSettingsPage() {
                         </p>
                     </div>
 
+                    <Separator className="mb-6" />
+
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
@@ -243,18 +247,10 @@ export default function ProjectSettingsPage() {
                         </p>
                     </div>
 
+                    <Separator className="mb-6" />
+
                     <div className="space-y-6">
-                        <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('emailNotifications', !emailNotifications)}>
-                            <div className="flex items-center h-5">
-                                <input
-                                    id="email-notifications"
-                                    type="checkbox"
-                                    checked={emailNotifications}
-                                    onChange={(e) => setProjectSettingsField('emailNotifications', e.target.checked)}
-                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-[var(--background)]"
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            </div>
+                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('emailNotifications', !emailNotifications)}>
                             <div>
                                 <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer group-hover:text-[var(--primary)] transition-colors">
                                     Email Notifications
@@ -263,6 +259,12 @@ export default function ProjectSettingsPage() {
                                     Receive email notifications when a deployment succeeds or fails.
                                 </p>
                             </div>
+                            <Switch
+                                id="email-notifications"
+                                checked={emailNotifications}
+                                onCheckedChange={(checked) => setProjectSettingsField('emailNotifications', checked)}
+                                onClick={(e) => e.stopPropagation()}
+                            />
                         </div>
 
                         <div className="space-y-2">
@@ -299,18 +301,10 @@ export default function ProjectSettingsPage() {
                         </p>
                     </div>
 
+                    <Separator className="mb-6" />
+
                     <div className="space-y-6">
-                        <div className="flex items-start gap-3 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('cloudArmorEnabled', !cloudArmorEnabled)}>
-                            <div className="flex items-center h-5">
-                                <input
-                                    id="cloud-armor"
-                                    type="checkbox"
-                                    checked={cloudArmorEnabled}
-                                    onChange={(e) => setProjectSettingsField('cloudArmorEnabled', e.target.checked)}
-                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] bg-[var(--background)]"
-                                    onClick={(e) => e.stopPropagation()}
-                                />
-                            </div>
+                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('cloudArmorEnabled', !cloudArmorEnabled)}>
                             <div>
                                 <Label htmlFor="cloud-armor" className="text-base font-medium cursor-pointer group-hover:text-[var(--primary)] transition-colors">
                                     Cloud Armor WAF
@@ -319,6 +313,12 @@ export default function ProjectSettingsPage() {
                                     Enable Google Cloud Armor Web Application Firewall to protect against DDoS and web attacks.
                                 </p>
                             </div>
+                            <Switch
+                                id="cloud-armor"
+                                checked={cloudArmorEnabled}
+                                onCheckedChange={(checked) => setProjectSettingsField('cloudArmorEnabled', checked)}
+                                onClick={(e) => e.stopPropagation()}
+                            />
                         </div>
 
                         <div className="flex justify-end pt-2">
