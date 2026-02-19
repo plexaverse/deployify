@@ -8,7 +8,6 @@ import {
     FileText,
     RotateCcw,
     Check,
-    Copy,
     ArrowLeftRight
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -196,7 +195,7 @@ export default function DeploymentsPage() {
                                                     >
                                                         {deployment.gitCommitSha.substring(0, 7)}
                                                     </span>
-                                                    {copiedId === `sha-${deployment.id}` && <Check className="w-3 h-3 text-emerald-500" />}
+                                                {copiedId === `sha-${deployment.id}` && <Check className="w-3 h-3 text-[var(--success)]" />}
                                                 </div>
                                                 <span>•</span>
                                                 <span>{formatDate(deployment.createdAt)}</span>
@@ -232,7 +231,7 @@ export default function DeploymentsPage() {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => handleRollback(deployment.id)}
-                                                className="h-8 px-2.5 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200 dark:border-red-900/30"
+                                                className="h-8 px-2.5 text-xs text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
                                             >
                                                 <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                                                 Rollback
@@ -244,7 +243,7 @@ export default function DeploymentsPage() {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => handleCancel(deployment.id)}
-                                                className="h-8 px-2.5 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border border-red-200 dark:border-red-900/30"
+                                                className="h-8 px-2.5 text-xs text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
                                             >
                                                 Cancel
                                             </Button>

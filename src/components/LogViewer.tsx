@@ -6,15 +6,15 @@ import {
     Pause,
     Play,
     Trash2,
+    Copy,
+    Check,
     ArrowDown,
     Activity,
     Wifi,
     WifiOff,
     Terminal,
-    Monitor,
     Server,
     Search,
-    Filter,
     X
 } from 'lucide-react';
 import { parseLogEntry, type LogEntry } from '@/lib/logging/parser';
@@ -135,6 +135,23 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
     };
 
     const clearLogs = () => setLogs([]);
+
+    const [isCopying, setIsCopying] = useState(false);
+    const copyLogs = async () => {
+        if (logs.length === 0) return;
+        setIsCopying(true);
+        const text = filteredLogs.map(log =>
+            `[${formatTimestamp(log.timestamp)}] ${log.severity.padEnd(7)} ${log.textPayload || (log.jsonPayload ? JSON.stringify(log.jsonPayload) : '')}`
+        ).join('\n');
+
+        try {
+            await navigator.clipboard.writeText(text);
+            setTimeout(() => setIsCopying(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy logs:', err);
+            setIsCopying(false);
+        }
+    };
 
     const toggleSeverityFilter = (severity: string) => {
         const next = new Set(severityFilter);
@@ -298,6 +315,14 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
                     <div className="flex items-center gap-1">
                         <button
+                            onClick={copyLogs}
+                            disabled={logs.length === 0}
+                            className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors disabled:opacity-50"
+                            title="Copy filtered logs"
+                        >
+                            {isCopying ? <Check className="w-4 h-4 text-[var(--success)]" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                        <button
                             onClick={() => setIsPaused(!isPaused)}
                             className={`p-1.5 rounded-md transition-colors ${
                                 isPaused
@@ -331,15 +356,15 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
             <div
                 ref={containerRef}
                 onScroll={handleScroll}
-                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[#0d1117] font-mono text-[12px] leading-relaxed relative"
+                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[12px] leading-relaxed relative"
             >
                 {logs.length === 0 && isLoading ? (
                     <div className="space-y-2 p-2">
                         {[1, 2, 3, 4, 5].map((i) => (
                             <div key={i} className="flex gap-4">
-                                <Skeleton className="h-4 w-24 bg-white/5" />
-                                <Skeleton className="h-4 w-12 bg-white/5" />
-                                <Skeleton className="h-4 w-full bg-white/5" />
+                                <Skeleton className="h-4 w-24 bg-[var(--terminal-foreground)]/5" />
+                                <Skeleton className="h-4 w-12 bg-[var(--terminal-foreground)]/5" />
+                                <Skeleton className="h-4 w-full bg-[var(--terminal-foreground)]/5" />
                             </div>
                         ))}
                     </div>
@@ -357,7 +382,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                 ) : (
                     <div className="flex flex-col">
                         {filteredLogs.map((log, index) => (
-                            <div key={log.insertId || index} className="flex items-start gap-3 hover:bg-white/5 px-1 py-0.5 rounded -mx-1 group transition-colors">
+                            <div key={log.insertId || index} className="flex items-start gap-3 hover:bg-[var(--terminal-foreground)]/5 px-1 py-0.5 rounded -mx-1 group transition-colors">
                                 <span className="text-[var(--muted)] shrink-0 select-none w-[100px] opacity-70 group-hover:opacity-100 transition-opacity">
                                     {formatTimestamp(log.timestamp)}
                                 </span>

@@ -237,29 +237,32 @@ export default function ProjectDetailPage() {
                 {/* Left Column: Production Deployment & Stats */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Production Card */}
-                    <Card className="overflow-hidden shadow-sm">
-                        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
-                            <h2 className="text-sm font-medium uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
-                            <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--success)]">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--success)] animate-pulse" />
+                    <Card className="overflow-hidden shadow-lg border-[var(--primary)]/10">
+                        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/5">
+                            <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
+                            <Badge variant="success" className="animate-pulse">
+                                <div className="w-1.5 h-1.5 rounded-full bg-current mr-1.5" />
                                 Live
-                            </span>
+                            </Badge>
                         </div>
-                        <div className="p-6">
+                        <div className="p-8">
                             {project.productionUrl ? (
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     <div className="flex items-start justify-between">
-                                        <div className="space-y-1">
-                                            <p className="text-xl font-semibold truncate max-w-md">
+                                        <div className="space-y-2">
+                                            <p className="text-2xl font-bold tracking-tight text-[var(--foreground)] truncate max-w-md">
                                                 {project.productionUrl.replace(/^https?:\/\//, '')}
                                             </p>
-                                            <p className="text-sm text-[var(--muted-foreground)]">
-                                                Deployed from <span className="text-[var(--foreground)] font-mono">{project.defaultBranch}</span>
-                                            </p>
+                                            <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
+                                                <GitBranch className="w-3.5 h-3.5" />
+                                                <span>Deployed from <span className="text-[var(--foreground)] font-mono font-medium">{project.defaultBranch}</span></span>
+                                            </div>
                                         </div>
-                                        <button
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
                                             onClick={() => handleCopyUrl(project.productionUrl, 'production-url')}
-                                            className="p-2 hover:bg-[var(--card-hover)] rounded-lg transition-colors group"
+                                            className="hover:bg-[var(--card-hover)] transition-colors group"
                                             title="Copy Production URL"
                                         >
                                             {copiedId === 'production-url' ? (
@@ -267,12 +270,12 @@ export default function ProjectDetailPage() {
                                             ) : (
                                                 <Copy className="w-4 h-4 text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]" />
                                             )}
-                                        </button>
+                                        </Button>
                                     </div>
-                                    <div className="pt-4 flex items-center gap-6 border-t border-[var(--border)] text-xs text-[var(--muted-foreground)]">
+                                    <div className="pt-6 flex items-center gap-6 border-t border-[var(--border)] text-xs text-[var(--muted-foreground)]">
                                         <div className="flex items-center gap-1.5">
                                             <Clock className="w-3.5 h-3.5" />
-                                            <span>Just now</span>
+                                            <span>Active for {project.updatedAt ? formatDate(project.updatedAt) : 'N/A'}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                             <Github className="w-3.5 h-3.5" />
@@ -404,7 +407,7 @@ export default function ProjectDetailPage() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
-                                                    <Button variant="ghost" size="sm" className="h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]">
+                                            <Button variant="ghost" size="sm" className="h-8 px-2.5 text-xs border border-[var(--border)] hover:bg-[var(--background)]">
                                                         <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                                                         View
                                                     </Button>
@@ -415,7 +418,7 @@ export default function ProjectDetailPage() {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => setSelectedLogsId(deployment.id)}
-                                                className="h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
+                                        className="h-8 px-2.5 text-xs border border-[var(--border)] hover:bg-[var(--background)]"
                                             >
                                                 <FileText className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                                                 Logs
@@ -426,7 +429,7 @@ export default function ProjectDetailPage() {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleRollback(deployment.id)}
-                                                    className="h-8 px-2.5 text-xs text-[var(--error)] border border-[var(--error)]/20 hover:bg-[var(--error-bg)] hover:text-[var(--error)]"
+                                            className="h-8 px-2.5 text-xs text-[var(--error)] border border-[var(--error)]/20 hover:bg-[var(--error-bg)]"
                                                 >
                                                     <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                                                     Rollback
@@ -438,7 +441,7 @@ export default function ProjectDetailPage() {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => handleCancel(deployment.id)}
-                                                    className="h-8 px-2.5 text-xs text-[var(--error)] border border-[var(--error)]/20 hover:bg-[var(--error-bg)] hover:text-[var(--error)]"
+                                            className="h-8 px-2.5 text-xs text-[var(--error)] border border-[var(--error)]/20 hover:bg-[var(--error-bg)]"
                                                 >
                                                     Cancel
                                                 </Button>

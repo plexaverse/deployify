@@ -570,3 +570,27 @@ Implemented comprehensive error handling and "Not Found" pages with consistent U
 ### `src/app/global-error.tsx`
 - Created a root-level error boundary to catch errors in the root layout.
 - Replaces the entire HTML structure with a safe, themed error page.
+
+## Progressive UI & Developer Experience (Session 68)
+
+Conducted a targeted pass to improve theme consistency in developer-focused areas and enhance the project overview.
+
+### `src/components/LogViewer.tsx`
+- **Standardized Terminal Theme**: Replaced hardcoded `bg-[#0d1117]` and `bg-white/5` with semantic variables (`var(--terminal-bg)`, `var(--terminal-foreground)`).
+- **Improved Visibility**: Updated loading skeletons and row hover states to use theme-aware colors based on `--terminal-foreground`.
+- **New Feature: Copy Logs**: Added a "Copy Logs" button to the toolbar that extracts the current filtered view of logs with timestamps and severity levels formatted for sharing.
+- **Icon Integration**: Added `Copy` and `Check` icons from `lucide-react` for the new copy functionality.
+
+### `src/app/dashboard/[id]/deployments/page.tsx`
+- **Hardcoded Color Removal**: Eliminated remaining Tailwind-specific color classes (`text-emerald-500`, `text-red-500`, etc.).
+- **Theme-Aware Status**: Updated commit SHA copy indicator and status badges to use semantic variables (`var(--success)`, `var(--error)`).
+- **Standardized Actions**: Refactored "Rollback" and "Cancel" buttons to use `var(--error)` and `var(--error-bg)` for consistent visual cues across themes.
+
+### `src/app/dashboard/[id]/page.tsx` (Project Overview)
+- **Production Card Upgrade**: Refactored the "Production Deployment" card with `shadow-lg` and a subtle themed header background (`bg-[var(--muted)]/5`).
+- **Standardized Status**: Replaced manual "Live" indicator with the `Badge` component (success variant) and improved its animation.
+- **Layout Refinement**: Increased padding and improved typography for the production URL and branch info.
+- **Button Standardization**: Updated the URL copy button and deployment action buttons to use the UI component system (`Button` component with `icon` and `ghost` variants).
+
+### `src/components/CommandPalette.tsx`
+- **Backdrop Standardization**: Updated the modal backdrop from hardcoded `bg-black/80` to `bg-background/80 backdrop-blur-sm`, ensuring it matches the appearance of other system modals and overlays.
