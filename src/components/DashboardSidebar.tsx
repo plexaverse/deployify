@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { usePathname, useParams } from 'next/navigation';
@@ -16,7 +16,8 @@ import {
     CreditCard,
     BarChart3,
     Layers,
-    Rocket
+    Rocket,
+    FileText
 } from 'lucide-react';
 import type { Session } from '@/types';
 import { TeamSwitcher } from '@/components/TeamSwitcher';
@@ -52,52 +53,60 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
 
     // Helper to check if a route is a project route
     const isProjectRoute = !!projectId;
-    const getProjectHref = (subPath: string = '') => {
-        if (!projectId) {
-            if (subPath === 'settings') return '/dashboard/settings';
-            return '/dashboard';
-        }
 
-        // Use /dashboard/[id] for dashboard routes, or /projects/[slug]
-        const prefix = params.id ? `/dashboard/${params.id}` : `/projects/${params.slug}`;
-        return subPath ? `${prefix}/${subPath}` : prefix;
-    };
+    const navGroups = useMemo(() => {
+        const getProjectHref = (subPath: string = '') => {
+            if (!projectId) {
+                if (subPath === 'settings') return '/dashboard/settings';
+                return '/dashboard';
+            }
 
-    const navGroups = [
-        {
-            label: 'Platform',
-            items: [
-                {
-                    name: 'Overview',
-                    href: getProjectHref(),
-                    icon: LayoutDashboard
-                },
-                ...(projectId ? [
+            // Use /dashboard/[id] for dashboard routes, or /projects/[slug]
+            const prefix = params.id ? `/dashboard/${params.id}` : `/projects/${params.slug}`;
+            return subPath ? `${prefix}/${subPath}` : prefix;
+        };
+
+        return [
+            {
+                label: 'Platform',
+                items: [
                     {
-                        name: 'Deployments',
-                        href: getProjectHref('deployments'),
-                        icon: Layers
+                        name: 'Overview',
+                        href: getProjectHref(),
+                        icon: LayoutDashboard
                     },
+                    ...(projectId ? [
+                        {
+                            name: 'Deployments',
+                            href: getProjectHref('deployments'),
+                            icon: Layers
+                        },
+                        {
+                            name: 'Analytics',
+                            href: getProjectHref('analytics'),
+                            icon: BarChart3
+                        },
+                        {
+                            name: 'Logs',
+                            href: getProjectHref('logs'),
+                            icon: FileText
+                        },
+                    ] : [])
+                ]
+            },
+            {
+                label: 'Settings',
+                items: [
+                    { name: 'Billing', href: '/billing', icon: CreditCard },
                     {
-                        name: 'Analytics',
-                        href: getProjectHref('analytics'),
-                        icon: BarChart3
+                        name: 'Settings',
+                        href: getProjectHref('settings'),
+                        icon: Settings
                     },
-                ] : [])
-            ]
-        },
-        {
-            label: 'Settings',
-            items: [
-                { name: 'Billing', href: '/billing', icon: CreditCard },
-                {
-                    name: 'Settings',
-                    href: getProjectHref('settings'),
-                    icon: Settings
-                },
-            ]
-        }
-    ];
+                ]
+            }
+        ];
+    }, [projectId, params]);
 
     return (
         <>
