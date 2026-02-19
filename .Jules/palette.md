@@ -53,3 +53,7 @@
 ## 2026-03-12 - [Redundant Accessibility Labels]
 **Learning:** Adding `aria-label` to elements that already contain clear, visible text (e.g., a "Deployify" link) is redundant and can be distracting for screen reader users. Accessibility should enhance, not duplicate, existing semantic information.
 **Action:** Only add `aria-label` to icon-only buttons or elements where the visible text is insufficient or non-existent.
+
+## 2026-03-15 - [Reactive Interface Tidiness and Granular Feedback]
+**Learning:** Purely directional hints (like "Scroll to explore") become visual clutter once the user has engaged with the action. Auto-dismissing these hints using `AnimatePresence` and a scroll threshold (e.g., 0.01) significantly cleans up the interface. Additionally, applying interactive feedback (hovers) to individual social proof logos rather than the container makes the brand associations feel more deliberate and "alive".
+**Action:** Auto-dismiss scroll hints after initial scroll engagement and prioritize granular hover states for logo clouds to enhance delight.

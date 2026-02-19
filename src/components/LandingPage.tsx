@@ -20,12 +20,16 @@ export default function LandingPage() {
   const [os, setOs] = useState<'mac' | 'other' | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [showScrollHint, setShowScrollHint] = useState(true);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { scrollYProgress } = useScroll();
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     setShowBackToTop(latest > 0.05);
+    if (latest > 0.01 && showScrollHint) {
+      setShowScrollHint(false);
+    }
   });
 
   const scrollToTop = () => {
@@ -174,38 +178,45 @@ export default function LandingPage() {
                   <ArrowRight className="w-5 h-5" />
                 </MovingBorderButton>
               </motion.div>
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => toast.info('Demo video coming soon!', { description: 'We are currently polishing our walkthrough.' })}
-                className="w-full sm:w-auto text-lg font-bold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
-                aria-label="Watch 2-minute demo video"
-              >
-                <div className="relative">
-                  <div className="absolute inset-0 bg-[var(--foreground)] blur-sm rounded-full opacity-0 group-hover:opacity-50 group-hover:animate-pulse transition-opacity" aria-hidden="true" />
-                  <Play className="w-5 h-5 text-[var(--foreground)] fill-[var(--foreground)] relative z-10" aria-hidden="true" />
-                </div>
-                Watch Demo
-                <span className="text-xs font-medium text-[var(--muted-foreground)] ml-1">2 min</span>
-              </Button>
+              <motion.div whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => toast.info('Demo video coming soon!', { description: 'We are currently polishing our walkthrough.' })}
+                  className="w-full text-lg font-bold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
+                  aria-label="Watch 2-minute demo video"
+                >
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-[var(--foreground)] blur-sm rounded-full opacity-0 group-hover:opacity-50 group-hover:animate-pulse transition-opacity" aria-hidden="true" />
+                    <Play className="w-5 h-5 text-[var(--foreground)] fill-[var(--foreground)] relative z-10" aria-hidden="true" />
+                  </div>
+                  Watch Demo
+                  <span className="text-xs font-medium text-[var(--muted-foreground)] ml-1">2 min</span>
+                </Button>
+              </motion.div>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1, duration: 1 }}
-              className="mt-16 flex flex-col items-center gap-2"
-              aria-hidden="true"
-            >
-              <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)] font-bold">Scroll to explore</span>
-              <div className="w-5 h-8 border-2 border-[var(--border)] rounded-full flex justify-center p-1.5">
+            <AnimatePresence>
+              {showScrollHint && (
                 <motion.div
-                  animate={{ y: [0, 8, 0] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                  className="w-1 h-1 bg-[var(--muted-foreground)] rounded-full"
-                />
-              </div>
-            </motion.div>
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.5 }}
+                  className="mt-16 flex flex-col items-center gap-2"
+                  aria-hidden="true"
+                >
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)] font-bold">Scroll to explore</span>
+                  <div className="w-5 h-8 border-2 border-[var(--border)] rounded-full flex justify-center p-1.5">
+                    <motion.div
+                      animate={{ y: [0, 8, 0] }}
+                      transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                      className="w-1 h-1 bg-[var(--muted-foreground)] rounded-full"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Micro-UX: Quick Copy Command */}
             <motion.div
@@ -246,16 +257,17 @@ export default function LandingPage() {
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-8">
               Trusted by innovative teams
             </p>
-            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 opacity-40 grayscale hover:grayscale-0 transition-all duration-500" role="list" aria-label="Trusted companies">
+            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8" role="list" aria-label="Trusted companies">
               {['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA'].map((logo) => (
-                <span
+                <motion.span
                   key={logo}
                   role="listitem"
                   aria-label={`${logo} logo`}
-                  className="text-xl md:text-2xl font-black tracking-tighter text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors cursor-default"
+                  whileHover={{ scale: 1.1, opacity: 1, filter: 'grayscale(0%)' }}
+                  className="text-xl md:text-2xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
                 >
                   {logo}
-                </span>
+                </motion.span>
               ))}
             </div>
           </motion.div>
