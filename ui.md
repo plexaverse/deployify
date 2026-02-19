@@ -622,3 +622,25 @@ Established new UI primitives and refactored core components to improve consiste
     - Refactored the code editor and simulation logs to use semantic terminal theme variables (`var(--terminal-bg)`, `var(--terminal-foreground)`).
     - Replaced the manual `btn-primary` class with the `Button` component, ensuring consistent primary action styling.
     - Improved the simulation result card with better border and background contrast.
+
+## Progressive UI & Consistency Refactor (Session 70)
+
+Conducted a targeted pass to standardize UI components and improve visual hierarchy across key dashboard pages.
+
+### `src/app/dashboard/[id]/page.tsx` (Project Overview)
+- **Standardized Skeletons**: Replaced manual `card` classes in the loading state with the `Card` component and `Skeleton` primitives, ensuring layout consistency during data fetching.
+- **Iconography Alignment**: Updated `getStatusIcon` to use `AlertCircle` for error states, aligning with the `destructive` variant of the `Badge` component for better semantic consistency.
+- **Production Card Polish**: Ensured the "Live" indicator uses the `success` variant of the `Badge` component.
+
+### `src/app/billing/page.tsx` (Billing)
+- **Table Standardization**: Refactored the invoice history table header to use `bg-[var(--muted)]/5`, `text-xs`, and `uppercase tracking-wider` for a more professional, "dashboard-native" feel.
+- **Button Consistency**: Updated the "Download" link to use the `Button` component with `variant="ghost"` and standardized icon sizing (`w-3.5 h-3.5`).
+- **Improved Contrast**: Adjusted text colors in the invoice table to use `text-[var(--muted-foreground)]` with hover states for better readability.
+
+### `src/app/dashboard/settings/page.tsx` (Team Settings)
+- **Action Standardization**: Replaced manual background colors in the "Delete Team" button with the standard `destructive` variant of the `Button` component.
+- **Badge Hierarchy**: Updated member role badges to use semantic variants:
+    - **Owner**: `success` (Green)
+    - **Admin**: `info` (Blue)
+    - **Member/Viewer**: `secondary` (Gray)
+- **Invite UI Polish**: Standardized pending invite badges to use a compact `info` variant with `uppercase` styling to match the project dashboard.

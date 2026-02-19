@@ -348,7 +348,7 @@ export default function TeamSettingsPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <Badge variant={member.role === 'owner' ? 'default' : 'secondary'} className="capitalize">
+                                    <Badge variant={member.role === 'owner' ? 'success' : member.role === 'admin' ? 'info' : 'secondary'} className="capitalize">
                                         {member.role}
                                     </Badge>
 
@@ -385,7 +385,7 @@ export default function TeamSettingsPage() {
                                 <div>
                                     <p className="font-medium text-[var(--foreground)]">{invite.email}</p>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <Badge variant="outline" className="text-xs">
+                                        <Badge variant="info" className="text-[10px] px-1.5 py-0 uppercase">
                                             {invite.role}
                                         </Badge>
                                         <span className="text-xs text-[var(--muted-foreground)]">
@@ -445,8 +445,7 @@ export default function TeamSettingsPage() {
                                     </p>
                                 </div>
                                 <Button
-                                    variant="secondary"
-                                    className="bg-[var(--error)] text-white hover:bg-[var(--error)]/90"
+                                    variant="destructive"
                                     onClick={() => setConfirmDeleteTeam(true)}
                                 >
                                     Delete Team

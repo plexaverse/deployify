@@ -59,7 +59,7 @@ export default function ProjectDetailPage() {
             case 'ready':
                 return <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />;
             case 'error':
-                return <XCircle className="w-4 h-4 text-[var(--error)]" />;
+                return <AlertCircle className="w-4 h-4 text-[var(--error)]" />;
             case 'building':
             case 'deploying':
                 return <Loader2 className="w-4 h-4 text-[var(--warning)] animate-spin" />;
@@ -152,17 +152,21 @@ export default function ProjectDetailPage() {
 
     if (loading && !project) {
         return (
-            <div className="p-8">
-                <Skeleton className="h-8 w-1/4 mb-4" />
-                <Skeleton className="h-5 w-1/2 mb-8" />
-                <div className="card mb-8">
+            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+                <div className="space-y-2">
+                    <Skeleton className="h-10 w-1/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                </div>
+                <Card className="p-8">
                     <Skeleton className="h-32 w-full" />
-                </div>
-                <div className="card">
-                    <Skeleton className="h-6 w-48 mb-4" />
-                    <Skeleton className="h-24 w-full mb-4" />
-                    <Skeleton className="h-24 w-full" />
-                </div>
+                </Card>
+                <Card className="p-6">
+                    <Skeleton className="h-6 w-48 mb-6" />
+                    <div className="space-y-4">
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                    </div>
+                </Card>
             </div>
         );
     }
