@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getInviteByToken, getTeamById } from '@/lib/db';
 import JoinButton from './JoinButton';
 import { Card } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface JoinPageProps {
     searchParams: Promise<{ token?: string }>;
@@ -68,18 +69,13 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)]">
             <Card className="max-w-md w-full text-center">
-                <div className="mb-6">
-                    {team.avatarUrl ? (
-                        <img
-                            src={team.avatarUrl}
-                            alt={team.name}
-                            className="w-16 h-16 rounded-full mx-auto"
-                        />
-                    ) : (
-                        <div className="w-16 h-16 rounded-full bg-[var(--muted)]/20 mx-auto flex items-center justify-center text-2xl font-bold text-[var(--muted-foreground)]">
+                <div className="mb-6 flex justify-center">
+                    <Avatar className="w-16 h-16 text-2xl font-bold bg-[var(--muted)]/20 text-[var(--muted-foreground)]">
+                        <AvatarImage src={team.avatarUrl || undefined} alt={team.name} />
+                        <AvatarFallback>
                             {team.name.charAt(0).toUpperCase()}
-                        </div>
-                    )}
+                        </AvatarFallback>
+                    </Avatar>
                 </div>
                 <h1 className="text-2xl font-bold mb-2">Join {team.name}</h1>
                 <p className="text-[var(--muted-foreground)] mb-6">

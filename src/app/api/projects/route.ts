@@ -138,6 +138,9 @@ export async function POST(request: NextRequest) {
             case 'nuxt':
                 defaultOutputDirectory = '.output';
                 break;
+            case 'bun':
+                defaultOutputDirectory = 'dist';
+                break;
             case 'nextjs':
             default:
                 defaultOutputDirectory = '.next';

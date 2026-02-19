@@ -1,6 +1,7 @@
 import { getDb, Collections } from '@/lib/firebase';
 import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
 import { generateId } from '@/lib/utils';
+import { decrypt } from '@/lib/crypto';
 import type { Firestore, QueryDocumentSnapshot, DocumentData, DocumentSnapshot } from 'firebase-admin/firestore';
 
 // ============= User Operations =============
@@ -792,7 +793,19 @@ export async function getEnvVarsForDeployment(
         const env = envVar.environment || 'both';
 
         if (env === 'both' || env === target) {
-            result[envVar.key] = envVar.value;
+            let value = envVar.value;
+
+            // Decrypt if it's a secret and encrypted
+            if (envVar.isSecret && (envVar.isEncrypted || value.startsWith('enc:'))) {
+                try {
+                    value = decrypt(value);
+                } catch (e) {
+                    console.error(`Failed to decrypt secret ${envVar.key} for deployment:`, e);
+                    // We'll keep the encrypted value as fallback, but this might cause build failure
+                }
+            }
+
+            result[envVar.key] = value;
         }
     }
 

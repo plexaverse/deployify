@@ -20,14 +20,65 @@ export function getDockerfile(config: DockerfileConfig): string {
             return generateNuxtDockerfile(config);
         case 'sveltekit':
             return generateSvelteKitDockerfile(config);
+        case 'bun':
+            return generateBunDockerfile(config);
         case 'nextjs':
         default:
             return generateNextjsDockerfile(config);
     }
 }
 
+function generateBunDockerfile(config: DockerfileConfig): string {
+    const { buildEnvSection, buildCommand = 'bun run build', rootDirectory, outputDirectory = 'dist', restoreCache } = config;
+
+    // Helper to format path
+    const getPath = (path: string) => {
+        if (!rootDirectory || rootDirectory === '.') return path;
+        const cleanPath = path.startsWith('./') ? path.substring(2) : path;
+        return `${rootDirectory}/${cleanPath}`;
+    };
+
+    const buildCmd = rootDirectory && rootDirectory !== '.'
+        ? `cd ${rootDirectory} && ${buildCommand}`
+        : buildCommand;
+
+    const isSubdir = rootDirectory && rootDirectory !== '.';
+    const copyFiles = isSubdir
+        ? `COPY package.json bun.lockb* ./
+RUN mkdir -p ${rootDirectory}
+COPY ${rootDirectory}/package.json ${rootDirectory}/bun.lockb* ./${rootDirectory}/`
+        : `COPY package.json bun.lockb* ./`;
+
+    const outputPath = getPath(outputDirectory);
+
+    return `FROM oven/bun:1-alpine AS deps
+WORKDIR /app
+${copyFiles}
+RUN bun install --frozen-lockfile
+
+FROM oven/bun:1-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+${buildEnvSection}
+${restoreCache ? `# Copy restored cache\nCOPY ${getPath('restore_cache/cache')} ${getPath('node_modules/.cache')}` : ''}
+RUN ${buildCmd}
+
+FROM oven/bun:1-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=8080
+
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/${outputPath} ./${outputPath}
+
+EXPOSE 8080
+CMD ["bun", "run", "start"]`;
+}
+
 function generateNuxtDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection, buildCommand = 'npm run build', rootDirectory } = config;
+    const { buildEnvSection, buildCommand = 'npm run build', rootDirectory, restoreCache } = config;
 
     // Helper to format path
     const getPath = (path: string) => {
@@ -64,6 +115,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ${buildEnvSection}
+${restoreCache ? `# Copy restored cache to .nuxt/cache\nCOPY ${getPath('restore_cache/cache')} ${getPath('.nuxt/cache')}` : ''}
 RUN ${buildCmd}
 
 FROM node:20-alpine AS runner
@@ -81,7 +133,7 @@ CMD ["node", "./${outputServerPath}"]`;
 }
 
 function generateSvelteKitDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection, buildCommand = 'npm run build', rootDirectory } = config;
+    const { buildEnvSection, buildCommand = 'npm run build', rootDirectory, restoreCache } = config;
 
     // Helper to format path
     const getPath = (path: string) => {
@@ -117,6 +169,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ${buildEnvSection}
+${restoreCache ? `# Copy restored cache to .svelte-kit\nCOPY ${getPath('restore_cache/cache')} ${getPath('.svelte-kit')}` : ''}
 RUN ${buildCmd}
 
 FROM node:20-alpine AS runner
@@ -133,7 +186,7 @@ CMD ["node", "./${buildPath}/index.js"]`;
 }
 
 function generateAstroDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build', rootDirectory } = config;
+    const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build', rootDirectory, restoreCache } = config;
 
     // Helper to format path
     const getPath = (path: string) => {
@@ -169,6 +222,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ${buildEnvSection}
+${restoreCache ? `# Copy restored cache to .astro\nCOPY ${getPath('restore_cache/cache')} ${getPath('.astro')}` : ''}
 RUN ${buildCmd}
 
 FROM node:20-alpine AS runner
@@ -278,7 +332,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ${buildEnvSection}
 # Generate Prisma client if prisma folder exists
 RUN if [ -d "${getPath('prisma')}" ]; then cd ${rootDirectory || '.'} && npx prisma generate; fi
-${restoreCache ? `# Copy restored cache to .next/cache\nCOPY ${getPath('restore_cache/')} ${getPath('.next/')}` : ''}
+${restoreCache ? `# Copy restored cache to .next/cache\nCOPY ${getPath('restore_cache/cache')} ${getPath('.next/cache')}` : ''}
 RUN ${buildCmd}
 
 FROM node:20-alpine AS runner
@@ -301,7 +355,7 @@ CMD ["node", "${getPath('server.js')}"]`;
 }
 
 function generateViteDockerfile(config: DockerfileConfig): string {
-    const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build', rootDirectory } = config;
+    const { buildEnvSection, outputDirectory = 'dist', buildCommand = 'npm run build', rootDirectory, restoreCache } = config;
 
     // Helper to format path
     const getPath = (path: string) => {
@@ -338,6 +392,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ${buildEnvSection}
+${restoreCache ? `# Copy restored cache to node_modules/.vite\nCOPY ${getPath('restore_cache/cache')} ${getPath('node_modules/.vite')}` : ''}
 RUN ${buildCmd}
 
 FROM nginx:alpine

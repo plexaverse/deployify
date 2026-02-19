@@ -392,6 +392,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             <option value="vite">Vite</option>
                             <option value="astro">Astro</option>
                             <option value="remix">Remix</option>
+                            <option value="nuxt">Nuxt</option>
+                            <option value="sveltekit">SvelteKit</option>
+                            <option value="bun">Bun</option>
                             <option value="docker">Docker</option>
                         </NativeSelect>
                         {framework === 'docker' && (
@@ -471,7 +474,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     />
                     <NativeSelect
                         value={newEnvTarget}
-                        onChange={(e) => setNewEnvTarget(e.target.value as any)}
+                        onChange={(e) => setNewEnvTarget(e.target.value as 'both' | 'build' | 'runtime')}
                         className="w-32"
                     >
                         <option value="both">Both</option>

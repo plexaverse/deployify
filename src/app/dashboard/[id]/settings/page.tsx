@@ -148,10 +148,13 @@ export default function ProjectSettingsPage() {
                                     <option value="vite">Vite</option>
                                     <option value="astro">Astro</option>
                                     <option value="remix">Remix</option>
+                                    <option value="nuxt">Nuxt</option>
+                                    <option value="sveltekit">SvelteKit</option>
+                                    <option value="bun">Bun</option>
                                     <option value="docker">Docker</option>
                                 </NativeSelect>
                                 <p className="text-xs text-[var(--muted-foreground)]">
-                                    The framework used for building. Use "Docker" to use your own Dockerfile.
+                                    The framework used for building. Use &quot;Docker&quot; to use your own Dockerfile.
                                 </p>
                             </div>
                             <div className="space-y-2">

@@ -74,10 +74,18 @@ export default function ImportProjectPage() {
             setBuildCommand('npm run build');
             setOutputDirectory('dist');
             setInstallCommand('npm install');
-        } else if (framework === 'remix') {
+        } else if (framework === 'remix' || framework === 'sveltekit') {
             setBuildCommand('npm run build');
             setOutputDirectory('build');
             setInstallCommand('npm install');
+        } else if (framework === 'nuxt') {
+            setBuildCommand('npm run build');
+            setOutputDirectory('.output');
+            setInstallCommand('npm install');
+        } else if (framework === 'bun') {
+            setBuildCommand('bun run build');
+            setOutputDirectory('dist');
+            setInstallCommand('bun install');
         } else if (framework === 'docker') {
             setBuildCommand('');
             setOutputDirectory('');
@@ -194,6 +202,9 @@ export default function ImportProjectPage() {
                                 <option value="vite">Vite (React, Vue, Svelte)</option>
                                 <option value="astro">Astro</option>
                                 <option value="remix">Remix</option>
+                                <option value="nuxt">Nuxt</option>
+                                <option value="sveltekit">SvelteKit</option>
+                                <option value="bun">Bun</option>
                                 <option value="docker">Docker (Custom Dockerfile)</option>
                             </NativeSelect>
                         </div>
@@ -309,7 +320,7 @@ export default function ImportProjectPage() {
                             />
                             <NativeSelect
                                 value={newEnvTarget}
-                                onChange={(e) => setNewEnvTarget(e.target.value as any)}
+                                onChange={(e) => setNewEnvTarget(e.target.value as 'both' | 'build' | 'runtime')}
                                 className="w-32 text-sm"
                             >
                                 <option value="both">Both</option>
