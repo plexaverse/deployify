@@ -544,3 +544,29 @@ Expanded framework support and optimized build performance with intelligent cach
   - Enhanced `getEnvVarsForDeployment` in `src/lib/db.ts` to automatically decrypt secret environment variables before they are passed to the build pipeline, ensuring secure and reliable deployments.
 - **Join Flow Refactor**:
   - Updated `src/app/join/page.tsx` to use the standardized `Avatar` component, ensuring theme consistency and graceful fallback behavior for team invitations.
+
+## Error & 404 Pages
+
+Implemented comprehensive error handling and "Not Found" pages with consistent UI theming.
+
+### `src/app/not-found.tsx`
+- Created a global 404 page featuring `BackgroundBeams` for visual appeal.
+- Uses `Card` and `Button` components with theme variables.
+- Provides a clear path back to the home page.
+
+### `src/app/error.tsx`
+- Created a global error boundary to catch client-side errors.
+- Displays a user-friendly message and a "Try again" button.
+- Logs errors to the console.
+
+### `src/app/dashboard/not-found.tsx`
+- Created a dashboard-specific 404 page that respects the sidebar layout.
+- Uses `Card` and `Button` (outline variant) to fit within the dashboard context.
+
+### `src/app/dashboard/error.tsx`
+- Created a dashboard-specific error boundary.
+- Allows users to retry loading the dashboard view without reloading the entire application.
+
+### `src/app/global-error.tsx`
+- Created a root-level error boundary to catch errors in the root layout.
+- Replaces the entire HTML structure with a safe, themed error page.
