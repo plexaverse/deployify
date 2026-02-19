@@ -283,13 +283,13 @@ export default function BillingPage() {
                     <Card className="p-0 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-[var(--card-hover)] border-b border-[var(--border)]">
+                                <thead className="bg-[var(--muted)]/5 border-b border-[var(--border)] text-xs uppercase tracking-wider">
                                     <tr>
-                                        <th className="p-4 font-medium text-[var(--muted-foreground)]">Invoice #</th>
-                                        <th className="p-4 font-medium text-[var(--muted-foreground)]">Date</th>
-                                        <th className="p-4 font-medium text-[var(--muted-foreground)]">Amount</th>
-                                        <th className="p-4 font-medium text-[var(--muted-foreground)]">Status</th>
-                                        <th className="p-4 font-medium text-[var(--muted-foreground)] text-right">Action</th>
+                                        <th className="p-4 font-semibold text-[var(--muted-foreground)]">Invoice #</th>
+                                        <th className="p-4 font-semibold text-[var(--muted-foreground)]">Date</th>
+                                        <th className="p-4 font-semibold text-[var(--muted-foreground)]">Amount</th>
+                                        <th className="p-4 font-semibold text-[var(--muted-foreground)]">Status</th>
+                                        <th className="p-4 font-semibold text-[var(--muted-foreground)] text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--border)]">
@@ -321,11 +321,11 @@ export default function BillingPage() {
                                                         href={`/api/billing/invoices/${invoice.id}/download`}
                                                         className={cn(
                                                             buttonVariants({ variant: 'ghost', size: 'sm' }),
-                                                            "inline-flex items-center gap-2"
+                                                            "inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                                                         )}
                                                         download
                                                     >
-                                                        <FileText className="w-4 h-4" />
+                                                        <FileText className="w-3.5 h-3.5" />
                                                         Download
                                                     </a>
                                                 </td>
