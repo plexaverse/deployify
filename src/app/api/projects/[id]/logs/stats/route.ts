@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         const { project } = access;
         const serviceName = getProductionServiceName(project.slug);
-        const errorCount = await getErrorRate(serviceName, 24, project.region);
+        const errorCount = await getErrorRate(serviceName, 24);
 
         return NextResponse.json(
             { errorCount, period: '24h' },

@@ -96,8 +96,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                                         revisionName: revision || undefined,
                                         logType,
                                         buildId
-                                    },
-                                    project.region
+                                    }
                                 );
                                 const entries = response.entries;
 
@@ -151,8 +150,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                     revisionName: revision || undefined,
                     logType,
                     buildId
-                },
-                project.region
+                }
             );
             return NextResponse.json(response, { headers: securityHeaders });
         }

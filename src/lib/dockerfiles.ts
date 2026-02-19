@@ -74,7 +74,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/${outputPath} ./${outputPath}
 
 EXPOSE 8080
-CMD ["bun", "run", "start"]`;
+CMD ["sh", "-c", "cd ${rootDirectory || '.'} && bun run start"]`;
 }
 
 function generateNuxtDockerfile(config: DockerfileConfig): string {
@@ -342,10 +342,10 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/${publicPath} ./public
-RUN mkdir -p .next && chown nextjs:nodejs .next
+COPY --from=builder /app/${publicPath} ./${publicPath}
+RUN mkdir -p ${getPath('.next')} && chown nextjs:nodejs ${getPath('.next')}
 COPY --from=builder --chown=nextjs:nodejs /app/${standalonePath} ./
-COPY --from=builder --chown=nextjs:nodejs /app/${staticPath} ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/${staticPath} ./${staticPath}
 
 USER nextjs
 EXPOSE 8080

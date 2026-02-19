@@ -54,8 +54,7 @@ export interface ListLogEntriesResponse {
 
 export async function listLogEntries(
   serviceName: string,
-  options: ListLogEntriesOptions = {},
-  projectRegion?: string | null
+  options: ListLogEntriesOptions = {}
 ): Promise<ListLogEntriesResponse> {
   const { logType = 'runtime', buildId } = options;
 
@@ -200,8 +199,7 @@ export async function listLogEntries(
 
 export async function getErrorRate(
   serviceName: string,
-  hours: number = 24,
-  projectRegion?: string | null
+  hours: number = 24
 ): Promise<number> {
   // Simulation mode
   if (!isRunningOnGCP()) {

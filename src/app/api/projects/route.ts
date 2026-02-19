@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { listProjectsByUser, createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser } from '@/lib/db';
+import { createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
 import { slugify, parseRepoFullName, generateId } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
             outputDirectory: outputDirectory || defaultOutputDirectory,
             rootDirectory,
             customDomain: null,
-            githubToken: session.accessToken,
+            githubToken: encrypt(session.accessToken), // Encrypt GitHub token
             region: region || null,
             envVariables: processedEnvVars,
         });

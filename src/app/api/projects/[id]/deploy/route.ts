@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getDeploymentById, createDeployment, updateDeployment, updateProject } from '@/lib/db';
+import { getDeploymentById, createDeployment, updateDeployment } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
 import { validateRepository } from '@/lib/github/validator';
 import { parseRepoFullName } from '@/lib/utils';
-import { config } from '@/lib/config';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
@@ -91,7 +90,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             if (body && body.branch) {
                 branch = body.branch;
             }
-        } catch (e) {
+        } catch {
             // Body might be empty or not JSON, just use default branch
         }
 
@@ -175,6 +174,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     }
                 });
 
+                // Decrypt GitHub token if present
+                const projectGitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
+
                 // Generate Cloud Build config
                 const buildConfig = generateCloudRunDeployConfig({
                     projectSlug: project.slug,
@@ -183,7 +185,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     commitSha: commitSha,
                     buildEnvVars,
                     runtimeEnvVars,
-                    gitToken: session?.accessToken ?? project.githubToken ?? undefined,
+                    gitToken: session?.accessToken ?? projectGitToken ?? undefined,
                     projectRegion: project.region, // Use project's selected region
                     framework: project.framework,
                     buildCommand: project.buildCommand,
