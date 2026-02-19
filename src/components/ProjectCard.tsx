@@ -7,7 +7,7 @@ import { Line, LineChart, ResponsiveContainer } from 'recharts';
 
 // Mock data for the sparkline - in a real app this would come from analytics API
 const generateSparklineData = () => {
-  return Array.from({ length: 20 }, (_, i) => ({
+  return Array.from({ length: 20 }, () => ({
     value: Math.floor(Math.random() * 100) + 20
   }));
 };

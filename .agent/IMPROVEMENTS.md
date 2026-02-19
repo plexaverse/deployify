@@ -160,6 +160,10 @@
 - **Improvement**: Support adding secret environment variables during project import
 - **Status**: ✅ Implemented (Added checkbox in UI and backend encryption)
 
+#### 21. **Code Quality / Linting**
+- **Improvement**: Fix linting errors (unused variables, empty interfaces, unsafe types) across the codebase.
+- **Status**: ✅ Implemented (Fixed major issues in UI components, Libs, and CLI)
+
 ---
 
 ## 📋 Implementation Priority Matrix

@@ -9,13 +9,6 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import {
-    BarChart3,
-    TrendingUp,
-    Users,
-    Clock,
-    MousePointer2,
-} from 'lucide-react';
 import { AnalyticsStats } from '@/types';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -25,7 +18,7 @@ interface AnalyticsChartsProps {
     period: string;
 }
 
-export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
+export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
     const { aggregate, timeseries, sources, locations, performance } = data;
 
     // Helper for Web Vitals status

@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
  * Deployify CLI
  *
@@ -180,7 +182,7 @@ async function handleDeploy() {
         let remoteUrl;
         try {
             remoteUrl = execSync('git config --get remote.origin.url').toString().trim();
-        } catch (e) {
+        } catch {
             // Ignore error here, will be handled if no projectId found
         }
 
@@ -198,7 +200,7 @@ async function handleDeploy() {
                         repoFullName = `${pathParts[0]}/${repo}`;
                     }
                 }
-            } catch (e) {
+            } catch {
                 // Fallback
             }
         }
@@ -261,12 +263,12 @@ async function handleLink() {
                     if (teamProjects.projects) {
                         allProjects = allProjects.concat(teamProjects.projects.map(p => ({ ...p, type: `Team: ${team.name}` })));
                     }
-                } catch (e) {
+                } catch {
                     // Ignore error for specific team fetch
                 }
             }
         }
-    } catch (e) {
+    } catch {
         // Ignore team fetch error
     }
 
@@ -324,7 +326,7 @@ async function handleLink() {
                     fs.appendFileSync(gitignorePath, '\n.deployify\n');
                     console.log('Added .deployify to .gitignore');
                 }
-            } catch (e) {
+            } catch {
                 // Ignore
             }
 
@@ -356,12 +358,12 @@ async function findProjectByRepo(instanceUrl, token, repoFullName) {
                         const teamMatch = teamProjects.projects.find(p => p.repoFullName === repoFullName);
                         if (teamMatch) return teamMatch.id;
                     }
-                } catch (e) {
+                } catch {
                     // Ignore error for specific team fetch
                 }
             }
         }
-    } catch (e) {
+    } catch {
         // Ignore team fetch error
     }
 
@@ -405,7 +407,7 @@ async function fetchJson(url, token, options = {}) {
             // Existing logic expected object.
             try {
                 data = JSON.parse(text);
-            } catch (e) {
+            } catch {
                 data = {};
             }
         }
@@ -425,7 +427,7 @@ function getGitStatus() {
     try {
         // --porcelain gives a machine-readable output. If empty, clean.
         return execSync('git status --porcelain').toString().trim();
-    } catch (e) {
+    } catch {
         return null;
     }
 }
@@ -433,7 +435,7 @@ function getGitStatus() {
 function getCurrentBranch() {
     try {
         return execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
-    } catch (e) {
+    } catch {
         return null;
     }
 }
@@ -445,9 +447,9 @@ function isAheadOfRemote(branch) {
         // Returns "0 1" if ahead by 1. "1 0" if behind by 1.
         // We assume 'origin' is the remote.
         const output = execSync(`git rev-list --left-right --count origin/${branch}...HEAD`).toString().trim();
-        const [behind, ahead] = output.split(/\s+/).map(Number);
+        const [, ahead] = output.split(/\s+/).map(Number);
         return ahead > 0;
-    } catch (e) {
+    } catch {
         // If upstream not configured or error, assume false or handle elsewhere
         return false;
     }

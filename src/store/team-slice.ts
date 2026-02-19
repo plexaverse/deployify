@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { Team, TeamWithRole } from '@/types';
+import type { TeamWithRole } from '@/types';
 
 export interface TeamSlice {
     activeTeam: TeamWithRole | null;
