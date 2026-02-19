@@ -594,3 +594,31 @@ Conducted a targeted pass to improve theme consistency in developer-focused area
 
 ### `src/components/CommandPalette.tsx`
 - **Backdrop Standardization**: Updated the modal backdrop from hardcoded `bg-black/80` to `bg-background/80 backdrop-blur-sm`, ensuring it matches the appearance of other system modals and overlays.
+
+## Progressive UI & Primitive Refinement (Session 69)
+
+Established new UI primitives and refactored core components to improve consistency and accessibility.
+
+### UI Primitives (`src/components/ui/`)
+- **`Switch`**: Created a new accessible toggle component for boolean settings, featuring theme-aware colors and smooth transitions.
+- **`Separator`**: Created a horizontal divider component for visual grouping and hierarchy management.
+- **`ConfirmationModal`**:
+    - Wrapped the entire modal in the `Portal` component for reliable stacking context.
+    - Replaced custom buttons and native elements with the `Button` primitive.
+    - Standardized the overlay with `bg-background/80 backdrop-blur-sm` for consistent depth across all system modals.
+
+### Settings & Configuration
+- **Project Settings (`src/app/dashboard/[id]/settings/page.tsx`)**:
+    - Replaced native checkboxes with the new `Switch` component for a more premium look and feel.
+    - Integrated `Separator` components to clearly define sections within settings cards.
+- **Team Settings (`src/app/dashboard/settings/page.tsx`)**:
+    - Added `Separator` components to improve visual structure in the Invite and Danger Zone sections.
+- **`BranchDeploymentsSettings`**, **`RegionSettings`**, **`ResourceSettings`**:
+    - Replaced remaining raw `<select>` elements with the `NativeSelect` component.
+    - Standardized layout spacing and padding to align with the rest of the application.
+
+### Developer Experience
+- **Edge Function Simulator (`src/app/edge-debug/page.tsx`)**:
+    - Refactored the code editor and simulation logs to use semantic terminal theme variables (`var(--terminal-bg)`, `var(--terminal-foreground)`).
+    - Replaced the manual `btn-primary` class with the `Button` component, ensuring consistent primary action styling.
+    - Improved the simulation result card with better border and background contrast.

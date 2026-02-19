@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { NativeSelect } from '@/components/ui/native-select';
 
 interface BranchEnvironments {
     branch: string;
@@ -154,17 +155,15 @@ export function BranchDeploymentsSettings({
                                     <span className="font-medium font-mono text-sm">{branch}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <select
+                                    <NativeSelect
                                         value={getEnvTarget(branch)}
                                         onChange={(e) => handleEnvironmentChange(branch, e.target.value)}
                                         disabled={loading}
-                                        className={cn(
-                                            "h-9 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50"
-                                        )}
+                                        className="h-9 min-w-[140px]"
                                     >
                                         <option value="preview">Preview Env</option>
                                         <option value="production">Production Env</option>
-                                    </select>
+                                    </NativeSelect>
                                     <Button
                                         variant="ghost"
                                         size="sm"

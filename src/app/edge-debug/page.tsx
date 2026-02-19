@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
+import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
 const DEFAULT_CODE = `import { NextResponse } from 'next/server'
@@ -81,10 +82,11 @@ export default function EdgeDebugPage() {
             </div>
             <Button
                 onClick={handleRun}
-                disabled={loading}
-                className="btn-primary"
+                loading={loading}
+                variant="primary"
+                className="shadow-lg px-6"
             >
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+                {!loading && <Play className="mr-2 h-4 w-4" />}
                 Run Simulation
             </Button>
         </header>
@@ -95,11 +97,11 @@ export default function EdgeDebugPage() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-[var(--foreground)]">Middleware Code</h2>
                 </div>
-                <div className="flex-1 border border-[var(--border)] rounded-md overflow-hidden bg-[#0d1117] shadow-sm">
+                <div className="flex-1 border border-[var(--terminal-border)] rounded-md overflow-hidden bg-[var(--terminal-bg)] shadow-sm">
                      <textarea
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
-                        className="w-full h-full bg-transparent text-gray-100 font-mono text-sm p-4 focus:outline-none resize-none"
+                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-sm p-4 focus:outline-none resize-none"
                         spellCheck={false}
                     />
                 </div>
@@ -156,7 +158,7 @@ export default function EdgeDebugPage() {
                     )}
 
                     {result && (
-                        <Card className="p-0 overflow-hidden flex flex-col gap-0 shadow-sm">
+                        <Card className="p-0 overflow-hidden flex flex-col gap-0 shadow-sm border-[var(--border)]">
                             {/* Status Bar */}
                             <div className={cn("p-4 border-b border-[var(--border)] flex items-center gap-2",
                                 result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)]' : 'bg-[var(--success-bg)] text-[var(--success)]'
@@ -168,7 +170,7 @@ export default function EdgeDebugPage() {
 
                             {/* Logs */}
                             {result.logs.length > 0 && (
-                                <div className="p-4 border-b border-[var(--border)] bg-[#0d1117] text-white font-mono text-xs overflow-auto max-h-[150px]">
+                                <div className="p-4 border-b border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-xs overflow-auto max-h-[150px]">
                                     <div className="text-[var(--muted-foreground)] mb-2">Logs:</div>
                                     {result.logs.map((log: string, i: number) => (
                                         <div key={i}>{log}</div>

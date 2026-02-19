@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { cn } from '@/lib/utils';
 
 interface ResourceSettingsProps {
@@ -83,50 +84,34 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <Label htmlFor="cpu">CPU</Label>
-                        <div className="relative">
-                            <select
-                                id="cpu"
-                                value={cpu}
-                                onChange={(e) => setCpu(Number(e.target.value))}
-                                className={cn(
-                                    "flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                                )}
-                            >
-                                {CPU_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>
-                                        {option} vCPU
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[var(--muted-foreground)]">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </div>
-                        </div>
+                        <NativeSelect
+                            id="cpu"
+                            value={cpu}
+                            onChange={(e) => setCpu(Number(e.target.value))}
+                        >
+                            {CPU_OPTIONS.map((option) => (
+                                <option key={option} value={option}>
+                                    {option} vCPU
+                                </option>
+                            ))}
+                        </NativeSelect>
                         <p className="text-xs text-[var(--muted-foreground)]">
                             Allocated CPU for each instance
                         </p>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="memory">Memory</Label>
-                        <div className="relative">
-                            <select
-                                id="memory"
-                                value={memory}
-                                onChange={(e) => setMemory(e.target.value)}
-                                className={cn(
-                                    "flex h-10 w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                                )}
-                            >
-                                {MEMORY_OPTIONS.map((option) => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[var(--muted-foreground)]">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </div>
-                        </div>
+                        <NativeSelect
+                            id="memory"
+                            value={memory}
+                            onChange={(e) => setMemory(e.target.value)}
+                        >
+                            {MEMORY_OPTIONS.map((option) => (
+                                <option key={option} value={option}>
+                                    {option}
+                                </option>
+                            ))}
+                        </NativeSelect>
                         <p className="text-xs text-[var(--muted-foreground)]">
                             Allocated Memory for each instance
                         </p>
