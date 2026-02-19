@@ -183,6 +183,7 @@
 7. Add "Redeploy" button on deployment detail ✅
 8. Add email notification toggle ✅
 9. Support secrets in import flow ✅
+10. Consolidated Realtime and Logs pages, improved sidebar navigation ✅
 
 ---
 

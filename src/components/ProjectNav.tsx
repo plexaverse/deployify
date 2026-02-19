@@ -14,7 +14,6 @@ export function ProjectNav({ projectId }: ProjectNavProps) {
     const tabs = [
         { name: 'Overview', href: `/dashboard/${projectId}` },
         { name: 'Deployments', href: `/dashboard/${projectId}/deployments` },
-        { name: 'Realtime', href: `/dashboard/${projectId}/realtime` },
         { name: 'Analytics', href: `/dashboard/${projectId}/analytics` },
         { name: 'Logs', href: `/dashboard/${projectId}/logs` },
         { name: 'Settings', href: `/dashboard/${projectId}/settings` },
