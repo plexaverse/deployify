@@ -118,6 +118,30 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
 
     const isDockerFramework = framework === 'docker';
 
+    // Determine cache path based on framework
+    let cachePath = '.next/cache';
+    switch (framework) {
+        case 'nuxt':
+            cachePath = '.nuxt/cache';
+            break;
+        case 'astro':
+            cachePath = '.astro';
+            break;
+        case 'vite':
+            cachePath = 'node_modules/.vite';
+            break;
+        case 'sveltekit':
+            cachePath = '.svelte-kit';
+            break;
+        case 'bun':
+            cachePath = 'node_modules/.cache';
+            break;
+        case 'nextjs':
+        default:
+            cachePath = '.next/cache';
+            break;
+    }
+
     // Generate the Dockerfile content
     let dockerfileContent = '';
     if (!isDockerFramework) {
@@ -245,11 +269,11 @@ for (const f of files) {
                 '-c',
                 `{
   docker create --name cache_extractor ${imageName}-builder && \
-  mkdir -p .next_cache_export && \
-  (docker cp cache_extractor:/app/.next/cache .next_cache_export/cache || echo "No .next/cache found") && \
+  mkdir -p .build_cache_export && \
+  (docker cp cache_extractor:/app/${cachePath} .build_cache_export/cache || echo "No ${cachePath} found") && \
   docker rm cache_extractor && \
-  if [ -d .next_cache_export/cache ]; then \
-    tar -czf cache.tgz -C .next_cache_export cache && \
+  if [ -d .build_cache_export/cache ]; then \
+    tar -czf cache.tgz -C .build_cache_export cache && \
     (gsutil mb gs://${CACHE_BUCKET} || true) && \
     gsutil cp cache.tgz gs://${CACHE_BUCKET}/${projectSlug}.tgz; \
   else \

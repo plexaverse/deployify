@@ -513,3 +513,34 @@ Conducted another comprehensive pass to finalize theme consistency across the ap
   - Replaced raw "Get Started" and "Watch Demo" buttons with the `Button` component and `buttonVariants` for consistent styling.
   - Replaced the manual "Save 80%" tag with the `Badge` component.
   - Ensured all text and background colors are fully mapped to semantic CSS variables.
+
+## Multi-Framework & Performance Optimization (Session 67)
+
+Expanded framework support and optimized build performance with intelligent caching.
+
+### Framework Support Expansion
+- **Bun Support**:
+  - Implemented `generateBunDockerfile` using the `oven/bun` base image.
+  - Added Bun detection and automatic output directory selection (`dist`).
+  - Integrated Bun into all framework selection UI components (`/new`, Project Settings, Import).
+- **Nuxt & SvelteKit Integration**:
+  - Fully integrated Nuxt and SvelteKit into the framework selection UI and automated build pipelines.
+
+### Build Caching Optimization
+- **Dynamic Caching**:
+  - Refactored `src/lib/gcp/cloudbuild.ts` to support framework-specific cache paths:
+    - Next.js: `.next/cache`
+    - Nuxt: `.nuxt/cache`
+    - Astro: `.astro`
+    - Vite: `node_modules/.vite`
+    - SvelteKit: `.svelte-kit`
+    - Bun: `node_modules/.cache`
+  - Standardized the cache export/import process by using a consistent internal mapping.
+- **Dockerfile Cache Restoration**:
+  - Updated all framework-specific Dockerfile generators in `src/lib/dockerfiles.ts` to explicitly restore cached artifacts from the persistent GCS storage before the build phase.
+
+### Security & UX Improvements
+- **Secret Management**:
+  - Enhanced `getEnvVarsForDeployment` in `src/lib/db.ts` to automatically decrypt secret environment variables before they are passed to the build pipeline, ensuring secure and reliable deployments.
+- **Join Flow Refactor**:
+  - Updated `src/app/join/page.tsx` to use the standardized `Avatar` component, ensuring theme consistency and graceful fallback behavior for team invitations.
