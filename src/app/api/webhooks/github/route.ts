@@ -14,7 +14,7 @@ import {
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 // import { getPreviewServiceName } from '@/lib/gcp/cloudrun';
 import { parseBranchFromRef, shouldAutoDeploy, slugify } from '@/lib/utils';
-import type { GitHubPushEvent, GitHubPullRequestEvent, EnvVariable } from '@/types';
+import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus } from '@/lib/deployment';
 import { logAuditEvent } from '@/lib/audit';
@@ -174,6 +174,9 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             }
         }
 
+        // Decrypt GitHub token if present
+        const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
+
         // Generate build config with project's selected region
         const buildConfig = generateCloudRunDeployConfig({
             projectSlug: projectSlug,
@@ -183,7 +186,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             envVars: {}, // Legacy support cleared
             buildEnvVars,
             runtimeEnvVars,
-            gitToken: project.githubToken ?? undefined,
+            gitToken: gitToken,
             projectRegion: project.region, // Use project's region
             framework: project.framework,
             buildCommand: project.buildCommand,
@@ -324,6 +327,9 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 }
             }
 
+            // Decrypt GitHub token if present
+            const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
+
             // Generate build config for preview with project's selected region
             const buildConfig = generateCloudRunDeployConfig({
                 projectSlug: `${project.slug}-pr-${pull_request.number}`,
@@ -333,7 +339,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 envVars: {}, // Legacy support cleared
                 buildEnvVars,
                 runtimeEnvVars,
-                gitToken: project.githubToken ?? undefined,
+                gitToken: gitToken,
                 projectRegion: project.region, // Use project's region
                 framework: project.framework,
                 buildCommand: project.buildCommand,
@@ -368,7 +374,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 project.emailNotifications,
                 project.repoFullName,
                 pull_request.number,
-                project.githubToken
+                gitToken
             );
 
             console.log(`Started preview deployment for PR #${pull_request.number}: ${deployment.id}`);
