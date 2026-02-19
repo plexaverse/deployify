@@ -60,7 +60,7 @@ export async function proxy(request: NextRequest) {
     let baseHostname = 'localhost';
     try {
         baseHostname = new URL(appConfig.appUrl).hostname;
-    } catch (e) {
+    } catch {
         // Fallback or ignore
     }
 

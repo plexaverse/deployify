@@ -48,6 +48,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
     // Reset logs when tab changes
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLogs([]);
         setIsLoading(true);
         setError(null);

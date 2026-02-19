@@ -1,6 +1,6 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { getDb, Collections } from '@/lib/firebase';
-import { listProjectsByUser, listDeploymentsByProject, getUserById, updateUser } from '@/lib/db';
+import { getUserById, updateUser } from '@/lib/db';
 import type { User } from '@/types';
 import { getTierLimits, SubscriptionTier } from './tiers';
 import { sendEmail } from '@/lib/email/client';

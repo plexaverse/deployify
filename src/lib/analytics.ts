@@ -121,7 +121,7 @@ export async function getAnalyticsStats(
                     try {
                         const src = event.referrer ? new URL(event.referrer).hostname : 'Direct';
                         sources[src] = (sources[src] || 0) + 1;
-                    } catch (e) {
+                    } catch {
                         sources['Unknown'] = (sources['Unknown'] || 0) + 1;
                     }
 

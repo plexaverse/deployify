@@ -20,8 +20,9 @@ export function ProjectAvatar({ name, productionUrl, className }: ProjectAvatarP
                 // Ensure URL has protocol
                 const urlStr = productionUrl.startsWith('http') ? productionUrl : `https://${productionUrl}`;
                 const domain = new URL(urlStr).hostname;
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setFaviconUrl(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
-            } catch (e) {
+            } catch {
                 // Invalid URL
                 setFaviconUrl(null);
             }

@@ -65,7 +65,7 @@ export interface ProjectSlice {
 
     // Domain Actions
     fetchProjectDomains: (projectId: string) => Promise<void>;
-    addDomain: (projectId: string, domain: string) => Promise<{ domain: Domain; dnsRecords: any[] } | null>;
+    addDomain: (projectId: string, domain: string) => Promise<{ domain: Domain; dnsRecords: { type: string; name: string; value: string }[] } | null>;
     deleteDomain: (projectId: string, domainId: string) => Promise<boolean>;
 
     // Analytics Actions

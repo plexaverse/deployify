@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, ReactNode } from 'react';
-import type { Team, TeamWithRole } from '@/types';
+import type { TeamWithRole } from '@/types';
 import { useStore } from '@/store';
 
 interface TeamContextType {

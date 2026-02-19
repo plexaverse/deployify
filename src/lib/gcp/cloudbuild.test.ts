@@ -1,7 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { generateCloudRunDeployConfig } from './cloudbuild';
-import { config } from '@/lib/config';
 
 // Mock config if needed, or rely on default values since we are testing structure
 // Assuming generateCloudRunDeployConfig is pure enough or relies on config which is static

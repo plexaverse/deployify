@@ -2,7 +2,7 @@ import { getDb, Collections } from '@/lib/firebase';
 import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
 import { generateId } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
-import type { Firestore, QueryDocumentSnapshot, DocumentData, DocumentSnapshot } from 'firebase-admin/firestore';
+import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot } from 'firebase-admin/firestore';
 
 // ============= User Operations =============
 

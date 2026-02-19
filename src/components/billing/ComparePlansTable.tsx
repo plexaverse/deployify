@@ -1,6 +1,5 @@
 import React from 'react';
 import { Check, Minus, HelpCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 
@@ -99,14 +98,14 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                         </tr>
                     </thead>
                     <tbody>
-                        {features.map((section, i) => (
+                        {features.map((section) => (
                             <React.Fragment key={section.category}>
                                 <tr className="bg-[var(--muted)]/20">
                                     <td colSpan={plans.length + 1} className="p-4 py-3 font-medium text-sm text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
                                         {section.category}
                                     </td>
                                 </tr>
-                                {section.items.map((feature, j) => (
+                                {section.items.map((feature) => (
                                     <tr key={feature.name} className="group hover:bg-[var(--muted)]/5 transition-colors">
                                         <td className="p-4 border-b border-[var(--border)] bg-[var(--background)] sticky left-0 z-10 shadow-[4px_0_10px_-2px_rgba(0,0,0,0.05)]">
                                             <div className="flex items-center gap-2">
