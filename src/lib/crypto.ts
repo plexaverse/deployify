@@ -7,7 +7,6 @@ if (!ENCRYPTION_KEY) {
     console.warn('WARNING: ENCRYPTION_KEY or JWT_SECRET not set. Secrets encryption will fail.');
 }
 const IV_LENGTH = 16;
-const TAG_LENGTH = 16;
 
 /**
  * Encrypt a string using AES-256-GCM

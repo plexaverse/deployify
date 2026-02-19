@@ -1,4 +1,3 @@
-import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
 
 /**
@@ -6,11 +5,8 @@ import { config } from '@/lib/config';
  * This simulates the action as it requires setting up a Load Balancer with Cloud Armor policies
  */
 export async function enableCloudArmor(
-    serviceName: string,
-    accessToken?: string
+    serviceName: string
 ): Promise<void> {
-    const token = accessToken || (await getGcpAccessToken());
-
     // In a real implementation, this would:
     // 1. Create a global external HTTP(S) load balancer (if not exists)
     // 2. Create a backend service for the Cloud Run service
