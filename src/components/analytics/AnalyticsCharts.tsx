@@ -45,28 +45,6 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
         return `${mins}m ${secs}s`;
     };
 
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <Card className="p-3 shadow-xl ring-1 ring-black/5 bg-[var(--card)] border-[var(--border)]">
-                    <p className="text-sm font-medium text-[var(--foreground)] mb-2">
-                        {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                    <div className="space-y-1">
-                        {payload.map((entry: any, index: number) => (
-                            <div key={index} className="flex items-center gap-2 text-xs">
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
-                                <span className="font-mono font-medium text-[var(--foreground)]">{entry.value}</span>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            );
-        }
-        return null;
-    };
-
     return (
         <div className="space-y-6">
             {/* Summary Cards */}
@@ -166,7 +144,7 @@ export function AnalyticsCharts({ data, period }: AnalyticsChartsProps) {
                                     tickFormatter={(value) => `${value}`}
                                     dx={-10}
                                 />
-                                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                                <Tooltip content={<AnalyticsTooltip />} cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }} />
                                 <Area
                                     type="monotone"
                                     dataKey="visitors"
@@ -272,6 +250,28 @@ function WebVitalCard({ title, value, unit, status, description }: {
             </p>
         </Card>
     );
+}
+
+function AnalyticsTooltip({ active, payload, label }: any) {
+    if (active && payload && payload.length) {
+        return (
+            <Card className="p-3 shadow-xl ring-1 ring-black/5 bg-[var(--card)] border-[var(--border)]">
+                <p className="text-sm font-medium text-[var(--foreground)] mb-2">
+                    {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
+                <div className="space-y-1">
+                    {payload.map((entry: any, index: number) => (
+                        <div key={index} className="flex items-center gap-2 text-xs">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                            <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
+                            <span className="font-mono font-medium text-[var(--foreground)]">{entry.value}</span>
+                        </div>
+                    ))}
+                </div>
+            </Card>
+        );
+    }
+    return null;
 }
 
 function SummaryCard({ title, value }: { title: string; value: string }) {

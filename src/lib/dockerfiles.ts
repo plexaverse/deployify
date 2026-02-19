@@ -228,6 +228,7 @@ ENV PORT=8080
 
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
+${rootDirectory && rootDirectory !== '.' ? `COPY --from=builder /app/${getPath('package.json')} ./${getPath('package.json')}` : ''}
 COPY --from=builder /app/${getPath('build')} ./${getPath('build')}
 COPY --from=builder /app/${getPath('public')} ./${getPath('public')}
 
