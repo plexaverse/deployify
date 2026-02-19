@@ -187,24 +187,24 @@ fi`,
             entrypoint: 'sh',
             args: [
                 '-c',
-                `cd ${workDir} && node -e "
+                `cd ${workDir} && cat > fix-next-config.js << 'EOF'
 const fs = require('fs');
 const files = ['next.config.ts', 'next.config.js', 'next.config.mjs'];
 for (const f of files) {
   if (fs.existsSync(f)) {
     let content = fs.readFileSync(f, 'utf8');
-    if (!content.includes('output: \"standalone\"') && !content.includes(\"output: 'standalone'\")) {
+    if (!content.includes('output: "standalone"') && !content.includes("output: 'standalone'")) {
       console.log('Adding standalone output to ' + f);
       // Handle common export patterns
       const patterns = [
-        /(const\s+\w+\s*=\s*{)/,
-        /(export\s+default\s*{)/,
-        /(module\.exports\s*=\s*{)/
+        /(const\\s+\\w+\\s*=\\s*{)/,
+        /(export\\s+default\\s*{)/,
+        /(module\\.exports\\s*=\\s*{)/
       ];
       let replaced = false;
       for (const p of patterns) {
         if (p.test(content)) {
-          content = content.replace(p, '$1\\n  output: \"standalone\",');
+          content = content.replace(p, '$1\\n  output: "standalone",');
           replaced = true;
           break;
         }
@@ -213,7 +213,8 @@ for (const f of files) {
     }
   }
 }
-"`,
+EOF
+node fix-next-config.js && rm fix-next-config.js`,
             ],
         }]),
         // Pull the latest image for caching
