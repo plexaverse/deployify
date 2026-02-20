@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser } from '@/lib/db';
+import { createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser, getTeamMembership } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
 import { slugify, parseRepoFullName, generateId } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
@@ -86,6 +86,25 @@ export async function POST(request: NextRequest) {
                 { error: 'Repository is required' },
                 { status: 400, headers: securityHeaders }
             );
+        }
+
+        // Verify team membership if creating project in a team
+        if (teamId) {
+            const membership = await getTeamMembership(teamId, session.user.id);
+
+            if (!membership) {
+                return NextResponse.json(
+                    { error: 'Unauthorized access to team' },
+                    { status: 403, headers: securityHeaders }
+                );
+            }
+
+            if (membership.role === 'viewer') {
+                return NextResponse.json(
+                    { error: 'Forbidden: Viewers cannot create projects' },
+                    { status: 403, headers: securityHeaders }
+                );
+            }
         }
 
         // Parse repo owner and name

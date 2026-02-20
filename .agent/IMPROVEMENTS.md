@@ -136,7 +136,7 @@
 #### 14. **Team/Organization Support**
 - **Current**: Single user projects
 - **Improvement**: Allow team members with role-based access
-- **Status**: ✅ Implemented (RBAC enforced in API routes)
+- **Status**: ✅ Implemented (RBAC enforced in API routes, including team membership validation for project creation)
 
 #### 15. **Custom Dockerfile Support**
 - **Status**: ✅ Implemented (Detection in `detectFramework` and support in `cloudbuild.ts`)
