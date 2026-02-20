@@ -23,7 +23,7 @@ export const BackgroundBeams = ({ className }: { className?: string }) => {
       <div
         className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: `radial-gradient(circle, #333 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle, var(--muted-foreground) 1px, transparent 1px)`,
           backgroundSize: '32px 32px'
         }}
       />
