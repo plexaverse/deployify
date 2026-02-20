@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
@@ -118,11 +119,17 @@ export default function DashboardPage() {
                             aria-label="Search projects"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Escape') {
+                                    setSearchQuery('');
+                                }
+                            }}
                             className="pl-9 pr-10"
                         />
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                             {searchQuery ? (
-                                <button
+                                <motion.button
+                                    whileTap={{ scale: 0.95 }}
                                     onClick={() => {
                                         setSearchQuery('');
                                         searchInputRef.current?.focus();
@@ -131,7 +138,7 @@ export default function DashboardPage() {
                                     aria-label="Clear search"
                                 >
                                     <X className="w-3 h-3" />
-                                </button>
+                                </motion.button>
                             ) : (
                                 <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-medium border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
                                     <span>{isMac ? '⌘' : 'Ctrl'}</span>
