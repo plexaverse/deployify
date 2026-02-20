@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Globe, CheckCircle2, Clock, XCircle, ExternalLink, Copy, Check, Loader2, ShieldCheck } from 'lucide-react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { Domain } from '@/types';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';

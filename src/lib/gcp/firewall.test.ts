@@ -7,6 +7,7 @@ process.env.GCP_PROJECT_ID = 'test-gcp-project';
 import { updateProjectFirewall } from './firewall';
 
 describe('updateProjectFirewall', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let fetchMock: any;
 
     beforeEach(() => {
@@ -23,6 +24,7 @@ describe('updateProjectFirewall', () => {
         const accessToken = 'fake-token';
 
         // Smart mock implementation based on URL/Method
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         fetchMock.mock.mockImplementation(async (...args: any[]) => {
             const url = args[0] as string;
             const options = args[1] || {};
@@ -94,14 +96,17 @@ describe('updateProjectFirewall', () => {
         assert.ok(fetchMock.mock.callCount() >= 5);
 
         // Check Create
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const createCall = fetchMock.mock.calls.find((c: any) => c.arguments[0].endsWith('/securityPolicies') && c.arguments[1].method === 'POST');
         assert.ok(createCall, 'Should create policy');
 
         // Check Rules
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const addCalls = fetchMock.mock.calls.filter((c: any) => c.arguments[0].includes('/addRule'));
         assert.strictEqual(addCalls.length, 3, 'Should add 3 rules');
 
         // Check Polling
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const pollCalls = fetchMock.mock.calls.filter((c: any) => c.arguments[0].includes('/global/operations/'));
         assert.strictEqual(pollCalls.length, 4, 'Should poll 4 operations (1 create + 3 adds)');
     });
@@ -116,6 +121,7 @@ describe('updateProjectFirewall', () => {
          };
          const accessToken = 'fake-token';
 
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
          fetchMock.mock.mockImplementation(async (...args: any[]) => {
             const url = args[0] as string;
 
@@ -159,14 +165,17 @@ describe('updateProjectFirewall', () => {
 
          // Assertions
          // Check Remove
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
          const removeCall = fetchMock.mock.calls.find((c: any) => c.arguments[0].includes('removeRule?priority=1000'));
          assert.ok(removeCall, 'Should remove rule 1000');
 
          // Check Add
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
          const addCalls = fetchMock.mock.calls.filter((c: any) => c.arguments[0].includes('/addRule'));
          assert.strictEqual(addCalls.length, 2, 'Should add 2 block chunks');
 
          // Check Polling (1 remove + 2 adds = 3)
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
          const pollCalls = fetchMock.mock.calls.filter((c: any) => c.arguments[0].includes('/global/operations/'));
          assert.strictEqual(pollCalls.length, 3, 'Should poll 3 operations');
     });

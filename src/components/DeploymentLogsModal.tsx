@@ -61,7 +61,7 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [isOpen, deployment.id, deployment.status, fetchLogs]);
+    }, [isOpen, deployment.id, deployment.projectId, deployment.status, fetchLogs]);
 
     if (!isOpen) return null;
 

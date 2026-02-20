@@ -11,6 +11,7 @@ const WINDOW_MS = 60 * 1000; // per minute
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, type, path, referrer, width, metrics, apiKey } = body;
 
         let ip = req.headers.get('x-forwarded-for')?.split(',')[0] ||

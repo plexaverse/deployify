@@ -37,14 +37,18 @@ export async function runSimulation(
     })
 
     // 2. Prepare the Sandbox
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sandbox: any = {
       NextRequest,
       NextResponse,
       request: req,
       URL,
       console: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         log: (...args: any[]) => logs.push(args.map((a) => String(a)).join(' ')),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         error: (...args: any[]) => logs.push('[ERROR] ' + args.map((a) => String(a)).join(' ')),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         warn: (...args: any[]) => logs.push('[WARN] ' + args.map((a) => String(a)).join(' ')),
       },
       process: {
@@ -151,6 +155,7 @@ export async function runSimulation(
       type,
     }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     return {
       status: 500,

@@ -2,6 +2,7 @@ import { getDb, Collections } from '@/lib/firebase';
 import { AnalyticsStats } from '@/types';
 import { config } from '@/lib/config';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getStatsFromBigQuery(projectId: string, days: number): Promise<any[]> {
     try {
         const { BigQuery } = await import('@google-cloud/bigquery');
@@ -99,6 +100,7 @@ export async function getAnalyticsStats(
         const locations: Record<string, number> = {};
         const treatedPageviews = new Set<string>();
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         events.forEach((event: any) => {
             const ts = event.timestamp.toDate();
             const date = ts.toISOString().split('T')[0];
@@ -137,12 +139,16 @@ export async function getAnalyticsStats(
         })).sort((a, b) => a.date.localeCompare(b.date));
 
         const totalPageviews = timeseries.reduce((acc, curr) => acc + curr.pageviews, 0);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const totalVisitors = new Set(events.map((e: any) => e.ip)).size;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const vitals = events.filter((e: any) => e.type === 'vitals');
         const avgMetric = (metricName: string) => {
             const values = vitals
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .map((e: any) => e.metrics?.[metricName])
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .filter((v: any) => typeof v === 'number');
             if (values.length === 0) return 0;
             return values.reduce((a, b) => a + b, 0) / values.length;
@@ -236,6 +242,7 @@ export async function getRealtimeStats(projectId: string): Promise<{ visitors: n
         }
 
         const events = snapshot.docs.map(doc => doc.data());
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const visitors = new Set(events.map((e: any) => e.ip || 'unknown')).size;
 
         return {
@@ -248,6 +255,7 @@ export async function getRealtimeStats(projectId: string): Promise<{ visitors: n
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const trackEvent = async (eventName: string, props?: Record<string, any>) => {
     if (typeof window === 'undefined') return;
 

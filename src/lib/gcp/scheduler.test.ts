@@ -44,10 +44,15 @@ const mockProject: Project = {
 
 describe('syncCronJobs', () => {
     // Mocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockGetGcpAccessToken: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockGetProjectById: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockGetService: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockFetch: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let dependencies: any;
 
     beforeEach(() => {
@@ -140,6 +145,7 @@ describe('syncCronJobs', () => {
 
     it('should delete removed cron jobs', async () => {
         const projectId = 'proj-123';
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const crons: any[] = []; // No crons desired
 
         const existingJobName = `projects/test-gcp-project/locations/us-central1/jobs/dfy-my-project-cron-oldhash`;

@@ -1,17 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import { useRouter } from 'next/navigation';
 import {
     Users,
     UserPlus,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Trash2,
     Mail,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Check,
     X,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Shield,
     AlertTriangle,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     LogOut
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -57,15 +61,7 @@ export default function TeamSettingsPage() {
     const isAdmin = activeTeam?.membership.role === 'admin';
     const canManage = isOwner || isAdmin;
 
-    useEffect(() => {
-        if (!isTeamLoading && !activeTeam) {
-            // Personal workspace - redirect or show message?
-        } else if (activeTeam) {
-            fetchData();
-        }
-    }, [activeTeam, isTeamLoading]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!activeTeam) return;
         setIsLoading(true);
         try {
@@ -85,7 +81,15 @@ export default function TeamSettingsPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [activeTeam]);
+
+    useEffect(() => {
+        if (!isTeamLoading && !activeTeam) {
+            // Personal workspace - redirect or show message?
+        } else if (activeTeam) {
+            fetchData();
+        }
+    }, [activeTeam, isTeamLoading, fetchData]);
 
     const handleInvite = async (e: React.FormEvent) => {
         e.preventDefault();

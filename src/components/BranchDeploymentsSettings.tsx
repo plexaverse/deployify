@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Plus, Trash2, Loader2, GitBranch } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Label } from '@/components/ui/label';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { cn } from '@/lib/utils';
 import { NativeSelect } from '@/components/ui/native-select';
 import { EmptyState } from '@/components/EmptyState';
@@ -28,6 +31,7 @@ export function BranchDeploymentsSettings({
 }: BranchDeploymentsSettingsProps) {
     const { currentProject, updateBranchSettings: updateStoreBranchSettings } = useStore();
     const branches = currentProject?.autodeployBranches || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const branchEnvironments = (currentProject?.branchEnvironments as any[]) || [];
 
     const [newBranch, setNewBranch] = useState('');

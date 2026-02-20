@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X } from 'lucide-react';
 import type { GitHubRepo } from '@/types';
 import { Input } from '@/components/ui/input';

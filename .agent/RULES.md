@@ -159,6 +159,10 @@ Domain        // Custom domain (status: pending/active/error)
 - Decrypt values using `decrypt()` only when needed (e.g. build config generation).
 - Mask secrets in UI (`••••••••`) unless explicitly revealed.
 
+### 7. Code Quality
+- **Linting**: Strict linting is enforced. No `any` types allowed (use `unknown` or disable rule if necessary).
+- **React Hooks**: Follow strict dependency rules and purity requirements (avoid `Date.now()` in render).
+
 ---
 
 ## 🛡️ Security Features

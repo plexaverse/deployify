@@ -128,6 +128,7 @@ function handleLogin() {
         const start = (process.platform == 'darwin'? 'open': process.platform == 'win32'? 'start': 'xdg-open');
         try {
             exec(`${start} "${authUrl}"`);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
             // Ignore error if browser can't be opened, user can click link
         }

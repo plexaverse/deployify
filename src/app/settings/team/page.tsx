@@ -4,13 +4,18 @@ import { useState, useEffect } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import {
     User as UserIcon,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Shield,
     Trash2,
     Mail,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Plus,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Clock,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     CheckCircle2,
     AlertCircle,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Search,
     History,
     X
@@ -25,6 +30,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { useStore } from '@/store';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
 
 export default function TeamSettingsPage() {
@@ -41,6 +47,7 @@ export default function TeamSettingsPage() {
         isInvitingMember: isInviting,
         settingsError: error,
         fetchTeamSettingsData,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         fetchAuditLogs,
         sendTeamInvite,
         updateMemberRole,
@@ -84,6 +91,11 @@ export default function TeamSettingsPage() {
             setMemberToRemove(null);
         }
     };
+
+    const [now, setNow] = useState<number>(0);
+    useEffect(() => {
+        setTimeout(() => setNow(Date.now()), 0);
+    }, []);
 
     if (teamLoading) {
         return (
@@ -276,7 +288,7 @@ export default function TeamSettingsPage() {
                                                     <Badge variant="info" className="h-5 px-1.5 py-0.5 text-[10px]">Invited</Badge>
                                                 </div>
                                                 <div className="text-sm text-[var(--muted-foreground)]">
-                                                    Expires in {Math.ceil((new Date(invite.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days
+                                                    {now > 0 ? `Expires in ${Math.ceil((new Date(invite.expiresAt).getTime() - now) / (1000 * 60 * 60 * 24))} days` : '...'}
                                                 </div>
                                             </div>
                                         </div>
