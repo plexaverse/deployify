@@ -12,7 +12,8 @@ import {
     CheckCircle2,
     AlertCircle,
     Search,
-    History
+    History,
+    X
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
