@@ -6,6 +6,8 @@ import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
 import { deleteService, listServices } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
+import { syncCronJobs } from '@/lib/gcp/scheduler';
+import { CronJobConfig } from '@/types';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -93,6 +95,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'branchEnvironments',
             'emailNotifications',
             'framework',
+            'crons',
         ];
 
         const updates: Record<string, unknown> = {};
@@ -181,6 +184,17 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         }
 
         await updateProject(id, updates);
+
+        // Sync cron jobs if updated
+        if (updates.crons) {
+            try {
+                const crons = updates.crons as CronJobConfig[];
+                await syncCronJobs(project.id, crons);
+            } catch (cronError) {
+                console.error('Failed to sync cron jobs:', cronError);
+                // We do not fail the request, just log the error
+            }
+        }
 
         await logAuditEvent(
             project.teamId || null,

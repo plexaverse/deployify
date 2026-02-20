@@ -9,6 +9,7 @@ import { DomainsSection } from '@/components/DomainsSection';
 import { RegionSettings } from '@/components/RegionSettings';
 import { ResourceSettings } from '@/components/ResourceSettings';
 import { BranchDeploymentsSettings } from '@/components/BranchDeploymentsSettings';
+import { CronsSection } from '@/components/CronsSection';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -234,6 +235,12 @@ export default function ProjectSettingsPage() {
 
                 {/* Branch Deployments */}
                 <BranchDeploymentsSettings
+                    projectId={project.id}
+                    onUpdate={() => fetchProjectDetails(project.id)}
+                />
+
+                {/* Cron Jobs */}
+                <CronsSection
                     projectId={project.id}
                     onUpdate={() => fetchProjectDetails(project.id)}
                 />
