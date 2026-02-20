@@ -16,12 +16,15 @@ import {
 } from 'lucide-react';
 import type { EnvVariableTarget } from '@/types';
 import { useStore } from '@/store';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { Switch } from '@/components/ui/switch';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
 
 interface EnvVariablesSectionProps {
@@ -52,6 +55,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const [envToDelete, setEnvToDelete] = useState<{ id: string, key: string } | null>(null);
 
     useEffect(() => {
         fetchProjectEnvVariables(projectId);
@@ -122,16 +127,18 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         }
     };
 
-    const handleDelete = async (envId: string, key: string) => {
-        if (!confirm(`Are you sure you want to delete ${key}?`)) return;
+    const handleDelete = async () => {
+        if (!envToDelete) return;
 
         try {
-            const success = await deleteEnvVariable(projectId, envId);
+            const success = await deleteEnvVariable(projectId, envToDelete.id);
             if (success && onUpdate) {
                 onUpdate();
             }
         } catch (err) {
             console.error('Failed to delete:', err);
+        } finally {
+            setEnvToDelete(null);
         }
     };
 
@@ -228,54 +235,58 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-6 mb-6">
-                        <div className="flex items-center gap-2">
-                            <input
+                    <div className="flex flex-col md:flex-row md:items-start gap-8 mb-6">
+                        <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]/50">
+                            <Switch
                                 id="is-secret"
-                                type="checkbox"
                                 checked={newIsSecret}
-                                onChange={(e) => setNewIsSecret(e.target.checked)}
-                                className="w-4 h-4 rounded border-gray-300 text-[var(--primary)]"
+                                onCheckedChange={setNewIsSecret}
                             />
-                            <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer">
-                                <Shield className="w-3.5 h-3.5 text-blue-400" />
+                            <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer font-medium">
+                                <Shield className="w-4 h-4 text-blue-400" />
                                 Secret (Encrypted)
                             </Label>
                         </div>
 
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center gap-4">
-                                <span className="text-sm font-medium w-24">Type:</span>
-                                <div className="flex items-center gap-4">
+                        <div className="flex-1 space-y-4">
+                            <div className="space-y-2">
+                                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider block">Target Environment Type</span>
+                                <div className="flex flex-wrap gap-2">
                                     {(['both', 'build', 'runtime'] as EnvVariableTarget[]).map((t) => (
-                                        <label key={t} className="flex items-center gap-1.5 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="target"
-                                                checked={newTarget === t}
-                                                onChange={() => setNewTarget(t)}
-                                                className="w-4 h-4 border-gray-300 text-[var(--primary)]"
-                                            />
-                                            <span className="text-sm capitalize">{t === 'both' ? 'Build & Runtime' : t}</span>
-                                        </label>
+                                        <button
+                                            key={t}
+                                            type="button"
+                                            onClick={() => setNewTarget(t)}
+                                            className={cn(
+                                                "px-3 py-1.5 text-xs rounded-full border transition-all",
+                                                newTarget === t
+                                                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] shadow-sm"
+                                                    : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]"
+                                            )}
+                                        >
+                                            <span className="capitalize">{t === 'both' ? 'Build & Runtime' : t}</span>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4">
-                                <span className="text-sm font-medium w-24">Scope:</span>
-                                <div className="flex items-center gap-4">
+                            <div className="space-y-2">
+                                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider block">Scope</span>
+                                <div className="flex flex-wrap gap-2">
                                     {(['both', 'production', 'preview'] as const).map((e) => (
-                                        <label key={e} className="flex items-center gap-1.5 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="environment"
-                                                checked={newEnvironment === e}
-                                                onChange={() => setNewEnvironment(e)}
-                                                className="w-4 h-4 border-gray-300 text-[var(--primary)]"
-                                            />
-                                            <span className="text-sm capitalize">{e === 'both' ? 'All Environments' : e}</span>
-                                        </label>
+                                        <button
+                                            key={e}
+                                            type="button"
+                                            onClick={() => setNewEnvironment(e)}
+                                            className={cn(
+                                                "px-3 py-1.5 text-xs rounded-full border transition-all",
+                                                newEnvironment === e
+                                                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] shadow-sm"
+                                                    : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]"
+                                            )}
+                                        >
+                                            <span className="capitalize">{e === 'both' ? 'All Environments' : e}</span>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -388,7 +399,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => handleDelete(env.id, env.key)}
+                                                        onClick={() => setEnvToDelete({ id: env.id, key: env.key })}
                                                         className="text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] h-8 w-8 p-0"
                                                         title="Delete environment variable"
                                                     >
@@ -414,6 +425,20 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </p>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={!!envToDelete}
+                onClose={() => setEnvToDelete(null)}
+                onConfirm={handleDelete}
+                title="Delete Environment Variable"
+                description={
+                    <span>
+                        Are you sure you want to delete <strong>{envToDelete?.key}</strong>? This action cannot be undone.
+                    </span>
+                }
+                confirmText="Delete"
+                variant="destructive"
+            />
         </Card>
     );
 }

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { NoDomainsIllustration } from '@/components/ui/illustrations';
 
 interface DomainsSectionProps {
@@ -43,6 +44,7 @@ export function DomainsSection({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [domainToDelete, setDomainToDelete] = useState<{ id: string, domain: string } | null>(null);
     const [copiedValue, setCopiedValue] = useState<string | null>(null);
 
     useEffect(() => {
@@ -107,13 +109,11 @@ export function DomainsSection({
         }
     };
 
-    const handleDelete = async (domainId: string, domainName: string) => {
-        if (!confirm(`Are you sure you want to delete ${domainName}?`)) {
-            return;
-        }
+    const handleDelete = async () => {
+        if (!domainToDelete) return;
 
         try {
-            const success = await deleteDomain(projectId, domainId);
+            const success = await deleteDomain(projectId, domainToDelete.id);
             if (success) {
                 setSuccess('Domain deleted successfully');
                 setTimeout(() => setSuccess(null), 3000);
@@ -121,6 +121,8 @@ export function DomainsSection({
             }
         } catch (err) {
             console.error('Failed to delete:', err);
+        } finally {
+            setDomainToDelete(null);
         }
     };
 
@@ -437,7 +439,7 @@ export function DomainsSection({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleDelete(domain.id, domain.domain)}
+                                    onClick={() => setDomainToDelete({ id: domain.id, domain: domain.domain })}
                                     className="text-[var(--muted-foreground)] hover:text-[var(--error)] p-1 hover:bg-[var(--error-bg)]"
                                     title="Delete domain"
                                 >
@@ -454,6 +456,20 @@ export function DomainsSection({
                 <p><strong>Note:</strong> DNS changes may take up to 48 hours to propagate worldwide.</p>
                 <p className="mt-1">SSL certificates are automatically provisioned by Google Cloud.</p>
             </div>
+
+            <ConfirmationModal
+                isOpen={!!domainToDelete}
+                onClose={() => setDomainToDelete(null)}
+                onConfirm={handleDelete}
+                title="Delete Domain"
+                description={
+                    <span>
+                        Are you sure you want to delete <strong>{domainToDelete?.domain}</strong>? This will remove the custom domain mapping.
+                    </span>
+                }
+                confirmText="Delete"
+                variant="destructive"
+            />
         </Card>
     );
 }
