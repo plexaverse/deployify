@@ -4,6 +4,7 @@ import { Check, ChevronsUpDown, User, Users, Plus } from 'lucide-react';
 import { useStore } from '@/store';
 import { CreateTeamModal } from '@/components/CreateTeamModal';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function TeamSwitcher() {
     const { activeTeam, setActiveTeam, teams, isLoading } = useTeam();
@@ -23,7 +24,7 @@ export function TeamSwitcher() {
     }, [setTeamSwitcherOpen]);
 
     if (isLoading) {
-        return <div className="h-10 animate-pulse bg-[var(--muted)]/20 rounded-md mb-4" />;
+        return <Skeleton className="h-10 w-full mb-4" />;
     }
 
     return (
