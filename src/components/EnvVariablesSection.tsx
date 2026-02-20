@@ -368,20 +368,24 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                         )}
 
                                                         <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                                                            <button
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
                                                                 onClick={() => toggleReveal(env)}
-                                                                className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
+                                                                className="h-6 w-6 hover:text-[var(--foreground)] text-[var(--muted-foreground)]"
                                                                 title={revealedIds.has(env.id) ? "Hide value" : "Show value"}
                                                             >
                                                                 {revealedIds.has(env.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                                            </button>
-                                                            <button
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
                                                                 onClick={() => copyToClipboard(env.id, env.isSecret && revealedValues[env.id] ? revealedValues[env.id] : env.value)}
-                                                                className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
+                                                                className="h-6 w-6 hover:text-[var(--foreground)] text-[var(--muted-foreground)]"
                                                                 title="Copy to clipboard"
                                                             >
                                                                 {copiedId === env.id ? <Check className="w-3.5 h-3.5 text-[var(--success)]" /> : <Copy className="w-3.5 h-3.5" />}
-                                                            </button>
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                 </td>

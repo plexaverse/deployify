@@ -288,30 +288,34 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                 className="h-8 pl-8 pr-8 text-xs bg-[var(--muted)]/20"
                             />
                             {searchQuery && (
-                                <button
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={() => setSearchQuery('')}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                                 >
                                     <X className="w-3.5 h-3.5" />
-                                </button>
+                                </Button>
                             )}
                         </div>
 
                         <div className="flex items-center gap-1">
                             {['INFO', 'WARNING', 'ERROR'].map((sev) => (
-                                <button
+                                <Button
                                     key={sev}
+                                    variant="ghost"
                                     onClick={() => toggleSeverityFilter(sev)}
-                                    className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-colors ${
+                                    className={cn(
+                                        "h-7 px-2 py-0 text-[10px] font-bold border transition-all",
                                         severityFilter.has(sev)
-                                            ? sev === 'ERROR' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/30'
-                                            : sev === 'WARNING' ? 'bg-[var(--warning-bg)] text-[var(--warning)] border-[var(--warning)]/30'
-                                            : 'bg-[var(--info-bg)] text-[var(--info)] border-[var(--info)]/30'
-                                            : 'bg-[var(--muted)]/20 text-[var(--muted-foreground)] border-transparent hover:bg-[var(--muted)]/50'
-                                    }`}
+                                            ? sev === 'ERROR' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-bg)]/80'
+                                            : sev === 'WARNING' ? 'bg-[var(--warning-bg)] text-[var(--warning)] border-[var(--warning)]/30 hover:bg-[var(--warning-bg)]/80'
+                                            : 'bg-[var(--info-bg)] text-[var(--info)] border-[var(--info)]/30 hover:bg-[var(--info-bg)]/80'
+                                            : 'bg-[var(--muted)]/10 text-[var(--muted-foreground)] border-transparent hover:bg-[var(--muted)]/20'
+                                    )}
                                 >
                                     {sev}
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     </div>
@@ -410,15 +414,16 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
                 {/* Scroll to bottom button */}
                 {!shouldAutoScroll && logs.length > 0 && (
-                    <button
+                    <Button
+                        size="icon"
                         onClick={() => {
                             setShouldAutoScroll(true);
                             logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="absolute bottom-4 right-4 bg-[var(--primary)] text-[var(--primary-foreground)] p-2 rounded-full shadow-lg hover:opacity-90 transition-opacity z-10"
+                        className="absolute bottom-4 right-4 rounded-full shadow-lg z-10"
                     >
                         <ArrowDown className="w-4 h-4" />
-                    </button>
+                    </Button>
                 )}
             </div>
         </div>

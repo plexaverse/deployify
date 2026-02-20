@@ -116,7 +116,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
             get().fetchAuditLogs(teamId);
 
             set({ inviteEmail: '' });
-            alert('Invite sent successfully!');
+            // Alert removed: UI handles success feedback
         } catch (err) {
             set({ settingsError: err instanceof Error ? err.message : 'Failed to send invite' });
         } finally {
@@ -143,13 +143,11 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
             });
             get().fetchAuditLogs(teamId);
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to update role');
+            set({ settingsError: err instanceof Error ? err.message : 'Failed to update role' });
         }
     },
 
     removeTeamMember: async (teamId, userId) => {
-        if (!confirm('Are you sure you want to remove this member?')) return;
-
         try {
             const res = await fetch(`/api/teams/${teamId}/members/${userId}`, {
                 method: 'DELETE',
@@ -166,13 +164,11 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
             });
             get().fetchAuditLogs(teamId);
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to remove member');
+            set({ settingsError: err instanceof Error ? err.message : 'Failed to remove member' });
         }
     },
 
     revokeTeamInvite: async (teamId, inviteId) => {
-        if (!confirm('Are you sure you want to revoke this invite?')) return;
-
         try {
             const res = await fetch(`/api/teams/${teamId}/invites/${inviteId}`, {
                 method: 'DELETE',
@@ -189,7 +185,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
             });
             // Revoke isn't audited yet in API but if we add it, we should fetch logs here too.
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to revoke invite');
+            set({ settingsError: err instanceof Error ? err.message : 'Failed to revoke invite' });
         }
     }
 });

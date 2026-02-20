@@ -13,6 +13,7 @@ import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { TracingBeam } from '@/components/ui/tracing-beam';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -234,7 +235,10 @@ export default function LandingPage() {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleCopy('pnpm dlx deployify login', 'login-cmd')}
-                className="p-2 hover:bg-[var(--muted)]/20 rounded-xl transition-all text-[var(--muted-foreground)] hover:text-[var(--foreground)] active:scale-95"
+                className={cn(
+                  buttonVariants({ variant: 'ghost', size: 'icon' }),
+                  "rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                )}
                 aria-label={copiedId === 'login-cmd' ? "Login command copied" : "Copy login command"}
               >
                 {copiedId === 'login-cmd' ? (
@@ -425,7 +429,10 @@ export default function LandingPage() {
                         e.stopPropagation();
                         handleCopy('https://my-app-pr-123.deployify.run', 'preview-url');
                       }}
-                      className="p-1.5 rounded-lg hover:bg-[var(--muted)]/20 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all active:scale-90"
+                      className={cn(
+                        buttonVariants({ variant: 'ghost', size: 'icon' }),
+                        "h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                      )}
                       aria-label={copiedId === 'preview-url' ? "Sample preview URL copied" : "Copy sample preview URL"}
                     >
                       {copiedId === 'preview-url' ? (
@@ -466,14 +473,14 @@ export default function LandingPage() {
               <h3 className="text-xl font-bold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
               <div className="relative">
                 <label htmlFor="repo-search" className="sr-only">Search your GitHub repositories</label>
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors" />
-                <input
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors z-10" />
+                <Input
                   id="repo-search"
                   role="combobox"
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search your GitHub repositories..."
-                  className="w-full bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
+                  className="w-full h-auto bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setSelectedIndex(-1); }}
                   onKeyDown={(e) => {
@@ -494,15 +501,17 @@ export default function LandingPage() {
                   aria-autocomplete="list"
                   aria-activedescendant={selectedIndex >= 0 ? `repo-option-${selectedIndex}` : undefined}
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
                   {searchQuery ? (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => { setSearchQuery(''); setSelectedIndex(-1); }}
-                      className="p-1.5 rounded-lg hover:bg-[var(--muted)]/20 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all active:scale-95"
+                      className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                       aria-label="Clear search"
                     >
                       <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                   ) : (
                     os && (
                       <div className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity">

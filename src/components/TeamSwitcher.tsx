@@ -32,7 +32,7 @@ export function TeamSwitcher() {
             <div className="relative mb-4" ref={containerRef}>
                 <button
                     onClick={toggleTeamSwitcher}
-                    className="flex items-center justify-between w-full p-2 text-sm border border-[var(--border)] rounded-lg hover:bg-[var(--background)] transition-colors"
+                    className="flex items-center justify-between w-full p-2 text-sm border border-[var(--border)] rounded-lg hover:bg-[var(--card-hover)] transition-colors"
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
                         {activeTeam ? (
@@ -62,7 +62,7 @@ export function TeamSwitcher() {
                                     setActiveTeam(null);
                                     setTeamSwitcherOpen(false);
                                 }}
-                                className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors"
+                                className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--card-hover)] transition-colors"
                             >
                                 <div className="flex items-center justify-center w-6 h-6 rounded bg-[var(--primary)]/10 text-[var(--primary)]">
                                     <User className="w-4 h-4" />
@@ -82,7 +82,7 @@ export function TeamSwitcher() {
                                             setActiveTeam(team);
                                             setTeamSwitcherOpen(false);
                                         }}
-                                        className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors"
+                                        className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--card-hover)] transition-colors"
                                     >
                                         <Avatar className="h-6 w-6 rounded bg-[var(--info-bg)]">
                                             <AvatarImage src={team.avatarUrl || undefined} alt={team.name} />
@@ -105,7 +105,7 @@ export function TeamSwitcher() {
                                     setIsCreateModalOpen(true);
                                     setTeamSwitcherOpen(false);
                                 }}
-                                className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--background)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--card-hover)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                             >
                                 <div className="flex items-center justify-center w-6 h-6 rounded border border-dashed border-[var(--border)]">
                                     <Plus className="w-4 h-4" />

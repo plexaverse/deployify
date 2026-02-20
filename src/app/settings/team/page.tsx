@@ -12,7 +12,8 @@ import {
     CheckCircle2,
     AlertCircle,
     Search,
-    History
+    History,
+    X
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -123,6 +124,16 @@ export default function TeamSettingsPage() {
                 <p className="text-[var(--muted-foreground)]">Manage your team members, roles, and permissions.</p>
             </div>
 
+            {error && (
+                <div className="flex items-center gap-2 text-sm text-[var(--error)] bg-[var(--error-bg)] p-4 rounded-lg border border-[var(--error)]/20 animate-fade-in">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                    <div className="flex-1">{error}</div>
+                    <Button variant="ghost" size="sm" onClick={() => useStore.getState().setSettingsError(null)} className="h-auto p-1 hover:bg-[var(--error)]/10">
+                        <X className="w-4 h-4" />
+                    </Button>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content: Members & Invites */}
                 <div className="lg:col-span-2 space-y-8">
@@ -165,18 +176,12 @@ export default function TeamSettingsPage() {
                                         type="submit"
                                         disabled={isInviting || !inviteEmail}
                                         containerClassName="h-[42px] w-full sm:w-auto"
-                                        className="bg-black text-white dark:bg-slate-900 font-medium text-sm"
+                                        className="font-medium text-sm"
                                     >
                                         {isInviting ? 'Sending...' : 'Send Invite'}
                                     </MovingBorderButton>
                                 </div>
                             </div>
-                            {error && (
-                                <div className="flex items-center gap-2 text-sm text-[var(--error)] bg-[var(--error-bg)] p-3 rounded-md">
-                                    <AlertCircle className="w-4 h-4" />
-                                    {error}
-                                </div>
-                            )}
                         </form>
                     </Card>
 

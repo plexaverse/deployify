@@ -289,16 +289,21 @@ export default function ImportProjectPage() {
                                 <div className="flex-1 grid grid-cols-3 gap-2">
                                     <div className="font-mono text-sm truncate text-[var(--foreground)] flex items-center gap-2" title={env.key}>
                                         {env.key}
-                                        {env.isSecret && <Shield className="w-3 h-3 text-blue-400" />}
+                                        {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
                                     </div>
                                     <div className="font-mono text-sm truncate text-[var(--muted-foreground)]" title={env.isSecret ? '••••••••' : env.value}>
                                         {env.isSecret ? '••••••••' : env.value}
                                     </div>
                                     <div className="text-xs text-[var(--muted-foreground)] flex items-center">{env.target}</div>
                                 </div>
-                                <button onClick={() => handleRemoveEnv(env.key)} className="text-[var(--muted-foreground)] hover:text-red-500 transition-colors">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleRemoveEnv(env.key)}
+                                    className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)]"
+                                >
                                     <Trash2 className="w-4 h-4" />
-                                </button>
+                                </Button>
                             </div>
                         ))}
                     </div>
@@ -338,7 +343,7 @@ export default function ImportProjectPage() {
                                     onCheckedChange={setNewEnvIsSecret}
                                 />
                                 <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer">
-                                    <Shield className="w-3.5 h-3.5 text-blue-400" />
+                                    <Shield className="w-3.5 h-3.5 text-[var(--info)]" />
                                     Secret (Encrypted)
                                 </Label>
                             </div>

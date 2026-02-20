@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X } from 'lucide-react';
 import type { GitHubRepo } from '@/types';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function NewProjectPage() {
     const router = useRouter();
@@ -83,23 +88,25 @@ export default function NewProjectPage() {
 
             {/* Search */}
             <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted)]" />
-                <input
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] z-10" />
+                <Input
                     type="text"
                     placeholder="Search repositories..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="input pl-10 pr-10"
+                    className="pl-10 pr-10"
                     aria-label="Search repositories"
                 />
                 {search && (
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setSearch('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)] p-1 rounded-md hover:bg-[var(--card-hover)] transition-colors"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                         aria-label="Clear search"
                     >
                         <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                 )}
             </div>
 
@@ -114,13 +121,13 @@ export default function NewProjectPage() {
             {loading && (
                 <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="card animate-pulse flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-[var(--border)]"></div>
-                            <div className="flex-1">
-                                <div className="h-4 bg-[var(--border)] rounded w-1/3 mb-2"></div>
-                                <div className="h-3 bg-[var(--border)] rounded w-1/2"></div>
+                        <Card key={i} className="flex items-center gap-4">
+                            <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-1/3" />
+                                <Skeleton className="h-3 w-1/2" />
                             </div>
-                        </div>
+                        </Card>
                     ))}
                 </div>
             )}
@@ -129,12 +136,12 @@ export default function NewProjectPage() {
             {!loading && (
                 <div className="space-y-3">
                     {filteredRepos.map((repo) => (
-                        <div
+                        <Card
                             key={repo.id}
-                            className="card flex items-center gap-4 hover:border-[var(--primary)] transition-colors"
+                            className="flex items-center gap-4 hover:border-[var(--primary)] transition-colors"
                         >
                             {/* Icon */}
-                            <div className="w-10 h-10 rounded-lg bg-[var(--background)] flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-lg bg-[var(--background)] flex items-center justify-center border border-[var(--border)]">
                                 {repo.private ? (
                                     <Lock className="w-5 h-5 text-[var(--muted)]" />
                                 ) : (
@@ -147,15 +154,15 @@ export default function NewProjectPage() {
                                 <div className="flex items-center gap-2">
                                     <h3 className="font-medium truncate">{repo.full_name}</h3>
                                     {repo.private && (
-                                        <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)]">
+                                        <Badge variant="warning" className="text-[10px] px-2 py-0">
                                             Private
-                                        </span>
+                                        </Badge>
                                     )}
                                 </div>
                                 <p className="text-sm text-[var(--muted-foreground)] truncate">
                                     {repo.description || 'No description'}
                                 </p>
-                                <div className="flex items-center gap-4 mt-1 text-xs text-[var(--muted)]">
+                                <div className="flex items-center gap-4 mt-1 text-xs text-[var(--muted-foreground)]">
                                     {repo.language && (
                                         <span className="flex items-center gap-1">
                                             <span className="w-2 h-2 rounded-full bg-[var(--primary)]"></span>
@@ -171,29 +178,22 @@ export default function NewProjectPage() {
                             </div>
 
                             {/* Import button */}
-                            <button
+                            <Button
                                 onClick={() => handleImport(repo)}
+                                loading={importing === repo.full_name}
                                 disabled={importing !== null}
-                                className="btn btn-primary"
                             >
-                                {importing === repo.full_name ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Loading...
-                                    </>
-                                ) : (
-                                    'Import'
-                                )}
-                            </button>
-                        </div>
+                                Import
+                            </Button>
+                        </Card>
                     ))}
 
                     {filteredRepos.length === 0 && !loading && (
-                        <div className="card text-center py-12">
+                        <Card className="text-center py-12">
                             <p className="text-[var(--muted-foreground)]">
                                 {search ? 'No repositories match your search' : 'No repositories found'}
                             </p>
-                        </div>
+                        </Card>
                     )}
                 </div>
             )}

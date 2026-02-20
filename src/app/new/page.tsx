@@ -195,12 +195,14 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                     autoFocus
                 />
                 {search && (
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setSearch('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                     >
                         <X className="w-4 h-4" />
-                    </button>
+                    </Button>
                 )}
             </div>
 
