@@ -120,18 +120,20 @@ export default function DashboardPage() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-9 pr-10"
                         />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
                             {searchQuery ? (
-                                <button
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={() => {
                                         setSearchQuery('');
                                         searchInputRef.current?.focus();
                                     }}
-                                    className="p-1 rounded-md hover:bg-[var(--background)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                                    className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                                     aria-label="Clear search"
                                 >
-                                    <X className="w-3 h-3" />
-                                </button>
+                                    <X className="w-3.5 h-3.5" />
+                                </Button>
                             ) : (
                                 <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-medium border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
                                     <span>{isMac ? '⌘' : 'Ctrl'}</span>

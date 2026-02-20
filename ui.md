@@ -29,6 +29,7 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Replaced with Tailwind utility classes `bg-[var(--card)] text-[var(--muted)]`.
 - Replaced the basic "No projects yet" empty state with the new `<OnboardingGuide />` component.
 - Updated "Add New" button link to point to the improved wizard at `/new` instead of `/dashboard/new`.
+- Replaced the manual search clear `<button>` with the `Button` primitive.
 
 ### `src/components/DashboardHome.tsx`
 - Replaced hardcoded colors with theme variables:
@@ -97,6 +98,9 @@ Audited and optimized UI for mobile responsiveness and performance.
   - Standardized log display using `font-mono text-[12px] leading-relaxed` (JetBrains Mono).
   - Integrated `Skeleton` component for loading states.
   - Implemented client-side filtering for immediate feedback.
+- Standardized UI elements:
+    - Replaced the manual search clear `<button>`, scroll-to-bottom button, and severity filter buttons with the `Button` primitive.
+    - Ensured consistent sizing and hover states for all toolbar actions.
 
 ### `src/app/new/page.tsx`
 - Created a new full-screen Project Creation Wizard with a 3-step flow (Select, Configure, Deploy).
@@ -119,6 +123,7 @@ Audited and optimized UI for mobile responsiveness and performance.
 ### `src/app/settings/team/page.tsx`
 - Replaced the simple pulse loading state with a standardized `<Skeleton>` layout for better visual feedback.
 - Upgraded the "Send Invite" button to use the `MovingBorder` `Button` component for high-priority action emphasis.
+- Removed hardcoded background and text colors from `MovingBorderButton` to ensure full theme compatibility and allow the component's internal theming to take precedence.
 
 ### `src/app/dashboard/new/import/page.tsx`
 - Upgraded the "Deploy" button to use the `MovingBorder` `Button` component.
@@ -304,6 +309,7 @@ Refactored the main dashboard and team settings pages to use the standardized UI
 
 ### `src/components/CommandPalette.tsx`
 - Updated styles to use theme variables (`bg-[var(--card)]`, `border-[var(--border)]`) for the modal and input.
+- Replaced the manual search input and clear button with `Input` and `Button` primitives, ensuring focus and hover states are theme-consistent.
 
 ## Authentication & Onboarding Refactor
 
@@ -349,6 +355,14 @@ Refactored the specific project dashboard and the fallback import page to use st
 - Replaced manual `select` elements with the new `NativeSelect` component.
 - Replaced manual labels with the `Label` component.
 - Replaced manual buttons with the `Button` component.
+- Refactored environment variable list:
+    - Replaced the manual remove `<button>` with the `Button` component (ghost icon variant).
+    - Standardized hover and active states using `var(--error)` and `var(--error-bg)`.
+    - Replaced hardcoded `text-blue-400` for secret indicators with semantic `text-[var(--info)]`.
+
+### `src/app/dashboard/new/page.tsx`
+- Fully refactored the legacy import page to use standard UI primitives: `Card`, `Input`, `Button`, `Skeleton`, and `Badge`.
+- Standardized the search input and repository list items to match the main dashboard aesthetic.
 
 ## Portal & Modals Refactor
 
@@ -414,6 +428,17 @@ Refactored global components to use the new `Avatar` primitive and theme variabl
 - Replaced native `<img>` elements with the `Avatar` component.
 - Replaced hardcoded `bg-blue-500` colors with theme-aware `var(--info)` and `var(--info-bg)`.
 - Replaced hardcoded `bg-primary/10` with proper theme variables.
+- Standardized hover states across the switcher trigger and dropdown items using `var(--card-hover)`.
+
+## Store & Logic Refactoring
+
+### `src/store/project-slice.ts` & `src/store/settings-slice.ts`
+- Removed all native browser `confirm()` and `alert()` calls from store actions.
+- Shifted confirmation responsibility to the UI layer using the themed `ConfirmationModal` component, preventing double-confirmation dialogs.
+- Standardized error handling to use the `settingsError` state or `toast` notifications for consistent user feedback.
+
+### `src/app/settings/team/page.tsx`
+- Refactored error display to a prominent, dismissible banner at the top of the page, ensuring that errors from any action (invite, remove, update) are clearly visible to the user.
 
 ### `src/components/analytics/AnalyticsAlerts.tsx`
 - Replaced hardcoded status colors (`amber-500`, `rose-500`) with semantic theme variables (`--warning`, `--error`).

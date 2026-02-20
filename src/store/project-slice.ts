@@ -288,10 +288,6 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     },
 
     deleteProject: async (projectId) => {
-        if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-            return false;
-        }
-
         const toastId = toast.loading('Deleting project...');
         try {
             const response = await fetch(`/api/projects/${projectId}`, {

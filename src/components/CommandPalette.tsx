@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Rocket, X } from 'lucide-react';
 import { Project } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,14 +59,14 @@ export function CommandPalette() {
        >
           <div className="flex items-center border-b border-[var(--border)] px-4 group">
             <Search className="w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors" />
-            <input
+            <Input
                ref={inputRef}
                role="combobox"
                aria-expanded={isOpen}
                aria-haspopup="listbox"
                aria-controls="command-results"
                aria-activedescendant={filtered.length > 0 ? `project-${filtered[selectedIndex]?.id}` : undefined}
-               className="flex-1 bg-transparent border-0 p-4 text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:ring-0 focus:outline-none"
+               className="flex-1 bg-transparent border-0 shadow-none ring-0 p-4 text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus-visible:ring-0 focus-visible:ring-offset-0"
                placeholder="Search projects..."
                value={query}
                onChange={e => {
@@ -86,16 +88,18 @@ export function CommandPalette() {
             />
             <div className="flex items-center gap-2">
                {query && (
-                 <button
+                 <Button
+                   variant="ghost"
+                   size="icon"
                    onClick={() => {
                      setQuery('');
                      setSelectedIndex(0);
                    }}
-                   className="p-1 rounded-md hover:bg-[var(--background)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                   className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                    aria-label="Clear search"
                  >
                    <X className="w-4 h-4" />
-                 </button>
+                 </Button>
                )}
                <span className="text-xs text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5">ESC</span>
             </div>

@@ -250,9 +250,11 @@ export function DomainsSection({
                                                 <code className="font-mono text-xs bg-[var(--muted)]/50 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate" title={record.value}>
                                                     {record.value}
                                                 </code>
-                                                <button
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
                                                     onClick={() => copyToClipboard(record.value)}
-                                                    className="p-1.5 hover:bg-[var(--muted)] rounded-md transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                                    className="h-8 w-8 hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                                                     title="Copy value"
                                                 >
                                                     {copiedValue === record.value ? (
@@ -260,7 +262,7 @@ export function DomainsSection({
                                                     ) : (
                                                         <Copy className="w-3.5 h-3.5" />
                                                     )}
-                                                </button>
+                                                </Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -317,9 +319,11 @@ export function DomainsSection({
                                                     <code className="font-mono text-xs bg-[var(--card)] px-2 py-1 rounded">
                                                         {productionUrl.replace('https://', '')}
                                                     </code>
-                                                    <button
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
                                                         onClick={() => copyToClipboard(productionUrl.replace('https://', ''))}
-                                                        className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                                                         title="Copy URL"
                                                     >
                                                         {copiedValue === productionUrl.replace('https://', '') ? (
@@ -327,7 +331,7 @@ export function DomainsSection({
                                                         ) : (
                                                             <Copy className="w-4 h-4" />
                                                         )}
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             </td>
                                         </tr>
