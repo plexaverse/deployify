@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTeam } from '@/contexts/TeamContext';
 import {
     User as UserIcon,
@@ -20,6 +20,9 @@ import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { NativeSelect } from '@/components/ui/native-select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { useStore } from '@/store';
 import type { TeamMembership, TeamInvite, TeamRole } from '@/types';
 
@@ -64,15 +67,20 @@ export default function TeamSettingsPage() {
         }
     };
 
-    const handleRemoveMember = async (userId: string) => {
-        if (activeTeam) {
-            await removeTeamMember(activeTeam.id, userId);
+    const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
+    const [inviteToRevoke, setInviteToRevoke] = useState<string | null>(null);
+
+    const handleRevokeInvite = async () => {
+        if (activeTeam && inviteToRevoke) {
+            await revokeTeamInvite(activeTeam.id, inviteToRevoke);
+            setInviteToRevoke(null);
         }
     };
 
-    const handleRevokeInvite = async (inviteId: string) => {
-        if (activeTeam) {
-            await revokeTeamInvite(activeTeam.id, inviteId);
+    const handleConfirmRemoveMember = async () => {
+        if (activeTeam && memberToRemove) {
+            await removeTeamMember(activeTeam.id, memberToRemove);
+            setMemberToRemove(null);
         }
     };
 
@@ -143,18 +151,14 @@ export default function TeamSettingsPage() {
                                     <label className="text-xs font-medium text-[var(--muted-foreground)] mb-1 block">
                                         Role
                                     </label>
-                                    <div className="relative">
-                                        <select
-                                            value={inviteRole}
-                                            onChange={(e) => setInviteRole(e.target.value as TeamRole)}
-                                            className="input appearance-none cursor-pointer"
-                                        >
-                                            <option value="admin">Admin</option>
-                                            <option value="member">Member</option>
-                                            <option value="viewer">Viewer</option>
-                                        </select>
-                                        <Shield className="w-4 h-4 text-[var(--muted-foreground)] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                    </div>
+                                    <NativeSelect
+                                        value={inviteRole}
+                                        onChange={(e) => setInviteRole(e.target.value as TeamRole)}
+                                    >
+                                        <option value="admin">Admin</option>
+                                        <option value="member">Member</option>
+                                        <option value="viewer">Viewer</option>
+                                    </NativeSelect>
                                 </div>
                                 <div className="flex items-end">
                                     <MovingBorderButton
@@ -208,18 +212,12 @@ export default function TeamSettingsPage() {
                                 {members.map((membership) => (
                                     <div key={membership.id} className="p-4 flex items-center justify-between hover:bg-[var(--card-hover)] transition-colors">
                                         <div className="flex items-center gap-4">
-                                            {membership.user?.avatarUrl ? (
-                                                /* eslint-disable-next-line @next/next/no-img-element */
-                                                <img
-                                                    src={membership.user.avatarUrl}
-                                                    alt={membership.user.name || 'User'}
-                                                    className="w-10 h-10 rounded-full border border-[var(--border)]"
-                                                />
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-full bg-[var(--muted)]/20 flex items-center justify-center text-[var(--muted-foreground)]">
+                                            <Avatar className="w-10 h-10">
+                                                <AvatarImage src={membership.user?.avatarUrl || undefined} alt={membership.user?.name || 'User'} />
+                                                <AvatarFallback>
                                                     <UserIcon className="w-5 h-5" />
-                                                </div>
-                                            )}
+                                                </AvatarFallback>
+                                            </Avatar>
                                             <div>
                                                 <div className="font-medium flex items-center gap-2">
                                                     {membership.user?.name || 'Unknown User'}
@@ -234,25 +232,22 @@ export default function TeamSettingsPage() {
                                         </div>
 
                                         <div className="flex items-center gap-4">
-                                            <div className="relative">
-                                                <select
-                                                    value={membership.role}
-                                                    onChange={(e) => handleRoleUpdate(membership.userId, e.target.value as TeamRole)}
-                                                    className="appearance-none bg-transparent text-sm px-3 py-1 pr-8 rounded-full border border-[var(--border)] hover:border-[var(--muted-foreground)] transition-colors capitalize cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
-                                                >
-                                                    <option value="owner">Owner</option>
-                                                    <option value="admin">Admin</option>
-                                                    <option value="member">Member</option>
-                                                    <option value="viewer">Viewer</option>
-                                                </select>
-                                                <Shield className="w-3 h-3 text-[var(--muted-foreground)] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                                            </div>
+                                            <NativeSelect
+                                                value={membership.role}
+                                                onChange={(e) => handleRoleUpdate(membership.userId, e.target.value as TeamRole)}
+                                                className="h-8 text-xs py-0 min-w-[100px]"
+                                            >
+                                                <option value="owner">Owner</option>
+                                                <option value="admin">Admin</option>
+                                                <option value="member">Member</option>
+                                                <option value="viewer">Viewer</option>
+                                            </NativeSelect>
 
                                             {membership.role !== 'owner' && (
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    onClick={() => handleRemoveMember(membership.userId)}
+                                                    onClick={() => setMemberToRemove(membership.userId)}
                                                     className="p-2 h-auto text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)]"
                                                     title="Remove member"
                                                 >
@@ -288,7 +283,7 @@ export default function TeamSettingsPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => handleRevokeInvite(invite.id)}
+                                                onClick={() => setInviteToRevoke(invite.id)}
                                                 className="p-2 h-auto text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)]"
                                                 title="Revoke invite"
                                             >
@@ -348,6 +343,26 @@ export default function TeamSettingsPage() {
                     </Card>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={!!memberToRemove}
+                onClose={() => setMemberToRemove(null)}
+                onConfirm={handleConfirmRemoveMember}
+                title="Remove Team Member"
+                description="Are you sure you want to remove this member? They will lose all access to team projects."
+                confirmText="Remove"
+                variant="destructive"
+            />
+
+            <ConfirmationModal
+                isOpen={!!inviteToRevoke}
+                onClose={() => setInviteToRevoke(null)}
+                onConfirm={handleRevokeInvite}
+                title="Revoke Invitation"
+                description="Are you sure you want to revoke this invitation?"
+                confirmText="Revoke"
+                variant="destructive"
+            />
         </div>
     );
 }

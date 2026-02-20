@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { EmptyState } from '@/components/EmptyState';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { CronJobConfig } from '@/types';
 import { toast } from 'sonner';
 
@@ -44,6 +45,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
     const [customSchedule, setCustomSchedule] = useState('0 0 * * *');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [cronToDelete, setCronToDelete] = useState<number | null>(null);
 
     const crons = project?.crons || [];
 
@@ -87,10 +89,10 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
         }
     };
 
-    const handleDelete = async (index: number) => {
-        if (!confirm('Are you sure you want to delete this cron job?')) return;
+    const handleDelete = async () => {
+        if (cronToDelete === null) return;
 
-        const updatedCrons = crons.filter((_, i) => i !== index);
+        const updatedCrons = crons.filter((_, i) => i !== cronToDelete);
         const success = await updateProjectCrons(projectId, updatedCrons);
 
         if (success) {
@@ -99,6 +101,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
         } else {
             toast.error('Failed to delete cron job');
         }
+        setCronToDelete(null);
     };
 
     return (
@@ -221,7 +224,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                onClick={() => handleDelete(index)}
+                                                onClick={() => setCronToDelete(index)}
                                                 className="text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] h-8 w-8 p-0"
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -246,6 +249,20 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                     </p>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={cronToDelete !== null}
+                onClose={() => setCronToDelete(null)}
+                onConfirm={handleDelete}
+                title="Delete Cron Job"
+                description={
+                    <span>
+                        Are you sure you want to delete the cron job for <strong>{cronToDelete !== null ? crons[cronToDelete]?.path : ''}</strong>?
+                    </span>
+                }
+                confirmText="Delete"
+                variant="destructive"
+            />
         </Card>
     );
 }

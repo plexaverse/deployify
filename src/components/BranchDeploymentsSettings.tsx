@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { NativeSelect } from '@/components/ui/native-select';
+import { EmptyState } from '@/components/EmptyState';
 
 interface BranchEnvironments {
     branch: string;
@@ -142,10 +143,11 @@ export function BranchDeploymentsSettings({
                 </div>
 
                 {branches.length === 0 ? (
-                    <div className="text-center py-8 border border-dashed border-[var(--border)] rounded-lg text-[var(--muted-foreground)] bg-[var(--muted)]/5">
-                        <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        No additional branches configured. Only the default branch will be deployed (to Production).
-                    </div>
+                    <EmptyState
+                        title="No additional branches"
+                        description="Only the default branch will be automatically deployed to Production. Add branches like staging or develop to enable preview environments."
+                        icon={GitBranch}
+                    />
                 ) : (
                     <div className="border border-[var(--border)] rounded-md overflow-hidden divide-y divide-[var(--border)]">
                         {branches.map((branch: string) => (

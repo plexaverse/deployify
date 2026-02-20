@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Switch } from '@/components/ui/switch';
 import { useStore } from '@/store';
 
 // Common GCP regions (matching those in new/page.tsx)
@@ -330,13 +331,11 @@ export default function ImportProjectPage() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <input
+                            <div className="flex items-center gap-3">
+                                <Switch
                                     id="is-secret"
-                                    type="checkbox"
                                     checked={newEnvIsSecret}
-                                    onChange={(e) => setNewEnvIsSecret(e.target.checked)}
-                                    className="w-4 h-4 rounded border-gray-300 text-[var(--primary)]"
+                                    onCheckedChange={setNewEnvIsSecret}
                                 />
                                 <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer">
                                     <Shield className="w-3.5 h-3.5 text-blue-400" />

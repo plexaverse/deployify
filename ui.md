@@ -437,6 +437,30 @@ Conducted a final comprehensive pass to eliminate remaining hardcoded styles and
 - Replaced native `<img>` elements with the `Avatar` component.
 - Standardized the "Danger Zone" section with theme-aware background colors and explicit `Button` variants.
 
+## Standardized Confirmations & UI Polishing (Session 71)
+
+Conducted a pass to replace native browser dialogs with themed components and improve UI consistency.
+
+### `src/components/EnvVariablesSection.tsx`, `src/components/DomainsSection.tsx`, `src/components/CronsSection.tsx`
+- Replaced native `confirm()` dialogs with the `ConfirmationModal` component for all delete actions.
+- This ensures a consistent look and feel and better user experience across the project settings.
+
+### `src/components/EnvVariablesSection.tsx`
+- Replaced native checkboxes with the `Switch` component.
+- Refactored radio button groups (Target Environment Type and Scope) to use themed pill-style buttons for a more modern and consistent UI.
+- Improved layout and spacing of the environment variable creation form.
+
+### `src/components/BranchDeploymentsSettings.tsx`
+- Replaced the manual empty state with the `EmptyState` component for better visual consistency.
+
+### `src/app/dashboard/new/import/page.tsx`
+- Replaced native checkbox for environment variable secrets with the `Switch` component to match the rest of the application.
+
+### `src/app/settings/team/page.tsx`
+- Replaced native `select` elements with the `NativeSelect` component.
+- Replaced raw `img` elements with the `Avatar` component.
+- Replaced manual `confirm()` dialogs with the `ConfirmationModal` component for member removal and invitation revocation.
+
 ### `src/app/dashboard/[id]/settings/page.tsx` (Project Settings)
 - Replaced the framework selection `<select>` with the `NativeSelect` component.
 - Updated checkboxes to use `var(--primary)` and standardized border colors.
