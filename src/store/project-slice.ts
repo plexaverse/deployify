@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats } from '@/types';
+import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats, CronJobConfig } from '@/types';
 import { toast } from 'sonner';
 
 export interface ProjectSlice {
@@ -74,6 +74,7 @@ export interface ProjectSlice {
     updateProjectRegion: (projectId: string, region: string | null) => Promise<boolean>;
     updateProjectResources: (projectId: string, resources: NonNullable<Project['resources']>) => Promise<boolean>;
     updateBranchSettings: (projectId: string, settings: { autodeployBranches: string[], branchEnvironments: NonNullable<Project['branchEnvironments']> }) => Promise<boolean>;
+    updateProjectCrons: (projectId: string, crons: CronJobConfig[]) => Promise<boolean>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -495,6 +496,25 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return false;
         } catch (error) {
             console.error('Failed to update branch settings:', error);
+            return false;
+        }
+    },
+
+    updateProjectCrons: async (projectId: string, crons: CronJobConfig[]) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ crons }),
+            });
+            if (response.ok) {
+                const data = await response.json();
+                set({ currentProject: data.project });
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Failed to update project crons:', error);
             return false;
         }
     },

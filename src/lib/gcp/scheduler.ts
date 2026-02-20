@@ -1,17 +1,11 @@
 import { config } from '@/lib/config';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getProductionServiceName, getService } from '@/lib/gcp/cloudrun';
-import { Project } from '@/types';
+import { Project, CronJobConfig } from '@/types';
 import crypto from 'crypto';
 import { CronExpressionParser } from 'cron-parser';
 
 const CLOUD_SCHEDULER_API = 'https://cloudscheduler.googleapis.com/v1';
-
-// Renamed from HEAD's CronJob to avoid collision with Incoming's CronJob
-export interface CronJobConfig {
-    path: string;
-    schedule: string;
-}
 
 // From Incoming (UI representation)
 export interface CronJob {

@@ -127,6 +127,7 @@ export interface Project {
         minInstances?: number;
         maxInstances?: number;
     };
+    crons?: CronJobConfig[];
     envVariables?: EnvVariable[];
     domains?: Domain[];
     ipRules?: {
@@ -342,4 +343,10 @@ export interface Usage {
     totalDeployments: number;
     totalBuildMinutes: number;
     lastUpdated: Date;
+}
+
+// Cron Job Configuration
+export interface CronJobConfig {
+    path: string;
+    schedule: string;
 }
