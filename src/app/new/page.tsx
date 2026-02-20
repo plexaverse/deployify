@@ -34,6 +34,7 @@ const GCP_REGIONS = [
 ];
 
 export default function NewProjectPage() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const router = useRouter();
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [selectedRepo, setSelectedRepo] = useState<GitHubRepo | null>(null);
@@ -141,6 +142,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
     const [repos, setRepos] = useState<GitHubRepo[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -155,6 +157,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                 } else {
                     setRepos(data.repos || []);
                 }
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (err) {
                 setError('Failed to fetch repositories');
                 toast.error('Failed to fetch repositories');

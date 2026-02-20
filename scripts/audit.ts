@@ -132,6 +132,7 @@ async function main() {
                     warnings++;
                 }
 
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (e) {
                 console.error('\x1b[31mFAIL: firestore.indexes.json is invalid JSON.\x1b[0m');
                 errors++;

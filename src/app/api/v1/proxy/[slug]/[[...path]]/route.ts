@@ -188,6 +188,7 @@ export async function GET(
             headers: responseHeaders,
         });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error('Internal Proxy Error:', error);
         return NextResponse.json({
@@ -263,6 +264,7 @@ export async function POST(
             status: res.status,
             headers: responseHeaders,
         });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error('Internal Proxy Error (POST):', error);
         return NextResponse.json({

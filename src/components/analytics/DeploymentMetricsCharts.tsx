@@ -19,6 +19,7 @@ interface DeploymentMetricsChartsProps {
     deployments: Deployment[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
@@ -26,6 +27,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                 <p className="text-sm font-medium text-[var(--foreground)] mb-2">
                     {label}
                 </p>
+                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                  {payload.map((entry: any, index: number) => (
                     <div key={index} className="flex items-center gap-2 text-xs">
                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />

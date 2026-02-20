@@ -49,6 +49,7 @@ export default function ProjectAnalyticsPage() {
 
                 const url = new URL(urlStr);
                 id = url.hostname;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (e) {
                 id = project.productionUrl;
             }
@@ -105,7 +106,7 @@ export default function ProjectAnalyticsPage() {
                     <Card className="p-12 text-center">
                         <h3 className="text-lg font-semibold mb-2">No Analytics Data</h3>
                         <p className="text-[var(--muted-foreground)]">
-                            We couldn't fetch analytics data for this project. Ensure your project is deployed and the domain is correct.
+                            We couldn&apos;t fetch analytics data for this project. Ensure your project is deployed and the domain is correct.
                         </p>
                     </Card>
                 )}

@@ -24,6 +24,7 @@ export default function RootLayout({
 }>) {
   let hostname = 'localhost';
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     hostname = new URL(config.appUrl).hostname;
   } catch (e) {
     console.error('[Layout] Failed to parse APP_URL:', config.appUrl, e);

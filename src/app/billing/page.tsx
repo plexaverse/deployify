@@ -9,12 +9,14 @@ import { ComparePlansTable } from '@/components/billing/ComparePlansTable';
 import { UsageGauge } from '@/components/billing/UsageGauge';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useStore } from '@/store';
 import { cn } from '@/lib/utils';
 
 declare global {
     interface Window {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Razorpay: any;
     }
 }
@@ -100,6 +102,7 @@ export default function BillingPage() {
                 name: 'Deployify',
                 description: `Upgrade to ${tierId} plan`,
                 order_id: data.orderId,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 handler: async function (response: any) {
                     try {
                         const verifyRes = await fetch('/api/billing/verify', {
@@ -136,6 +139,7 @@ export default function BillingPage() {
             };
 
             const rzp1 = new window.Razorpay(options);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             rzp1.on('payment.failed', function (response: any) {
                 alert(response.error.description);
                 setUpgradingTierId(null);

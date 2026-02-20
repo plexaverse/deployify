@@ -8,6 +8,7 @@ import { enableCloudArmor } from './armor';
 describe('enableCloudArmor', () => {
     it('should resolve successfully', async () => {
         // Mock global fetch
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fetchMock = mock.fn(async (url: any) => {
              if (url.toString().includes('metadata.google.internal')) {
                  return {

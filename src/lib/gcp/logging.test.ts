@@ -11,7 +11,9 @@ describe('listLogEntries', () => {
     const originalFetch = global.fetch;
 
     it('should include revision name in filter when provided', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let requestBody: any = null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         global.fetch = mock.fn(async (url: any, options: any) => {
              if (url.toString().includes('metadata.google.internal')) {
                  return {
@@ -39,7 +41,9 @@ describe('listLogEntries', () => {
     });
 
     it('should not include revision name when not provided', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let requestBody: any = null;
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
          global.fetch = mock.fn(async (url: any, options: any) => {
              if (url.toString().includes('metadata.google.internal')) {
                  return {
@@ -67,7 +71,9 @@ describe('listLogEntries', () => {
     });
 
     it('should filter by build type and buildId', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let requestBody: any = null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         global.fetch = mock.fn(async (url: any, options: any) => {
              if (url.toString().includes('metadata.google.internal')) {
                  return {
@@ -95,7 +101,9 @@ describe('listLogEntries', () => {
     });
 
     it('should filter by system type', async () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let requestBody: any = null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         global.fetch = mock.fn(async (url: any, options: any) => {
              if (url.toString().includes('metadata.google.internal')) {
                  return {

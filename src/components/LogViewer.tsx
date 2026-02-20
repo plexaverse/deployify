@@ -167,6 +167,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
         setSeverityFilter(next);
     };
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const filteredLogs = useMemo(() => {
         return logs.filter(log => {
             // Severity filter

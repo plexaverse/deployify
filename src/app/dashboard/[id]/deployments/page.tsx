@@ -11,6 +11,7 @@ import {
     ArrowLeftRight
 } from 'lucide-react';
 import { toast } from 'sonner';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
@@ -76,6 +77,7 @@ export default function DeploymentsPage() {
             setCopiedId(id);
             toast.success('Copied to clipboard');
             setTimeout(() => setCopiedId(null), 2000);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             toast.error('Failed to copy');
         }

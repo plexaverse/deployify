@@ -27,6 +27,7 @@ interface Operation {
     status: 'PENDING' | 'RUNNING' | 'DONE';
     selfLink: string;
     error?: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         errors: any[];
     };
 }

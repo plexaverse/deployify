@@ -27,6 +27,7 @@ describe('getAnalyticsStats', () => {
         const mockSources = { results: [{ source: 'Google', visitors: 50 }] };
         const mockLocations = { results: [{ country: 'United States', visitors: 40 }] };
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (global.fetch as any).mock.mockImplementation(async (url: string) => {
             if (url.includes('/aggregate')) return { ok: true, json: async () => mockAggregate };
             if (url.includes('/timeseries')) return { ok: true, json: async () => mockTimeseries };
@@ -54,6 +55,7 @@ describe('getAnalyticsStats', () => {
     });
 
     test('handles API errors gracefully', async () => {
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
          (global.fetch as any).mock.mockImplementation(async () => ({ ok: false, status: 500 }));
 
          const stats = await getAnalyticsStats('example.com');

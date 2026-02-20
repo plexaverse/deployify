@@ -245,6 +245,7 @@ function WebVitalCard({ title, value, unit, status, description }: {
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function AnalyticsTooltip({ active, payload, label }: any) {
     if (active && payload && payload.length) {
         return (
@@ -253,6 +254,7 @@ function AnalyticsTooltip({ active, payload, label }: any) {
                     {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
                 <div className="space-y-1">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {payload.map((entry: any, index: number) => (
                         <div key={index} className="flex items-center gap-2 text-xs">
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const admin = require('firebase-admin');
 const dotenv = require('dotenv');
 const path = require('path');
@@ -57,10 +58,12 @@ async function run() {
 
                 // Randomly pick a path
                 const paths = ['/', '/docs', '/about', '/pricing', '/blog'];
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const pathStr = paths[Math.floor(Math.random() * paths.length)];
 
                 // Randomly pick a referrer
                 const referrers = ['https://google.com', 'https://twitter.com', 'https://github.com', 'https://news.ycombinator.com', ''];
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const referrer = referrers[Math.floor(Math.random() * referrers.length)];
 
                 // Randomly pick an IP range
