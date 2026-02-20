@@ -57,3 +57,7 @@
 ## 2026-03-15 - [Reactive Interface Tidiness and Granular Feedback]
 **Learning:** Purely directional hints (like "Scroll to explore") become visual clutter once the user has engaged with the action. Auto-dismissing these hints using `AnimatePresence` and a scroll threshold (e.g., 0.01) significantly cleans up the interface. Additionally, applying interactive feedback (hovers) to individual social proof logos rather than the container makes the brand associations feel more deliberate and "alive".
 **Action:** Auto-dismiss scroll hints after initial scroll engagement and prioritize granular hover states for logo clouds to enhance delight.
+
+## 2026-03-20 - [Escape to Clear and Glowing Search]
+**Learning:** Standardizing the 'Escape' key behavior to clear search input text before closing the interface improves interaction efficiency. Additionally, aligning search focus states with the scripe.io aesthetic using monochromatic glows (e.g., focus:ring-[var(--foreground)]/40) creates a more premium, cohesive feel across different application sections.
+**Action:** Always implement 'Escape' to clear search inputs and use higher-opacity monochromatic focus states for brand-aligned inputs.

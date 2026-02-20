@@ -473,7 +473,7 @@ export default function LandingPage() {
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search your GitHub repositories..."
-                  className="w-full bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
+                  className="w-full bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--foreground)]/40 focus:border-[var(--foreground)]/50 transition-all shadow-sm focus:shadow-md"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setSelectedIndex(-1); }}
                   onKeyDown={(e) => {
@@ -486,6 +486,9 @@ export default function LandingPage() {
                     } else if (e.key === 'Enter' && selectedIndex >= 0) {
                       setSearchQuery(filteredRepos[selectedIndex]);
                       setSelectedIndex(-1);
+                    } else if (e.key === 'Escape') {
+                      setSearchQuery('');
+                      setSelectedIndex(-1);
                     }
                   }}
                   aria-expanded={searchQuery.trim().length > 0}
@@ -496,13 +499,14 @@ export default function LandingPage() {
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {searchQuery ? (
-                    <button
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => { setSearchQuery(''); setSelectedIndex(-1); }}
                       className="p-1.5 rounded-lg hover:bg-[var(--muted)]/20 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all active:scale-95"
                       aria-label="Clear search"
                     >
                       <X className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                   ) : (
                     os && (
                       <div className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity">
@@ -519,17 +523,18 @@ export default function LandingPage() {
                 {searchQuery.trim() && (
                   <motion.div id="repo-results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} role="listbox" className="absolute top-full left-0 right-0 mt-2 bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden z-20 shadow-2xl p-2">
                     {filteredRepos.length > 0 ? filteredRepos.map((repo, i) => (
-                      <div
+                      <motion.div
                         key={repo}
                         id={`repo-option-${i}`}
                         role="option"
                         aria-selected={selectedIndex === i}
                         onMouseEnter={() => setSelectedIndex(i)}
                         onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
+                        whileTap={{ scale: 0.98 }}
                         className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-sm transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
                       >
                         <Github className="w-4 h-4" /> {repo}
-                      </div>
+                      </motion.div>
                     )) : <div className="px-4 py-4 text-center text-sm text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
                   </motion.div>
                 )}

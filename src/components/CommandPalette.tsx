@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Search, Rocket, X } from 'lucide-react';
 import { Project } from '@/types';
 
@@ -86,7 +87,8 @@ export function CommandPalette() {
             />
             <div className="flex items-center gap-2">
                {query && (
-                 <button
+                 <motion.button
+                   whileTap={{ scale: 0.95 }}
                    onClick={() => {
                      setQuery('');
                      setSelectedIndex(0);
@@ -95,7 +97,7 @@ export function CommandPalette() {
                    aria-label="Clear search"
                  >
                    <X className="w-4 h-4" />
-                 </button>
+                 </motion.button>
                )}
                <span className="text-xs text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5">ESC</span>
             </div>
@@ -110,7 +112,8 @@ export function CommandPalette() {
              ) : (
                <div className="space-y-1" role="listbox" id="command-results">
                  {filtered.map((project, index) => (
-                   <button
+                   <motion.button
+                     whileTap={{ scale: 0.98 }}
                      id={`project-${project.id}`}
                      key={project.id}
                      role="option"
@@ -129,7 +132,7 @@ export function CommandPalette() {
                         <div className="text-xs text-[var(--muted-foreground)]">{project.repoFullName}</div>
                      </div>
                      <span className="text-xs text-[var(--muted-foreground)] group-hover:text-[var(--muted)]">Jump to</span>
-                   </button>
+                   </motion.button>
                  ))}
                </div>
              )}
