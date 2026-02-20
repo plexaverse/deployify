@@ -668,3 +668,34 @@ Conducted a targeted pass to standardize UI components and improve visual hierar
     - **Admin**: `info` (Blue)
     - **Member/Viewer**: `secondary` (Gray)
 - **Invite UI Polish**: Standardized pending invite badges to use a compact `info` variant with `uppercase` styling to match the project dashboard.
+
+## Progressive UI & Theme Consistency Refactor (Session 72)
+
+Refactored remaining components with hardcoded colors to use the semantic theme system, ensuring consistency across light and dark modes.
+
+### `src/components/CronsSection.tsx`
+- Replaced hardcoded blue colors in the "How it works" section with semantic theme variables (`var(--info-bg)`, `var(--info)`).
+- Verified table and action button styling uses theme variables.
+
+### `src/components/DomainsSection.tsx`
+- Replaced hardcoded status colors (green, yellow, red) with semantic variables (`var(--success)`, `var(--warning)`, `var(--error)`).
+- Replaced hardcoded orange colors in the Cloudflare setup guide with `var(--warning)` for better theme integration.
+- Updated status icons and text to use the new semantic variables.
+
+### `src/components/EnvVariablesSection.tsx`
+- Replaced hardcoded blue and green colors with semantic theme variables (`var(--info)`, `var(--success)`).
+- Updated the "Secret" shield icon and copy button success state to use theme variables.
+- Replaced the info box background and border with `var(--info-bg)` and `var(--info)`.
+
+### `src/components/ui/tracing-beam.tsx`
+- Replaced hardcoded light-mode colors (`white`, `neutral-200`, `#9091A0`) with semantic theme variables (`var(--background)`, `var(--border)`, `var(--muted-foreground)`).
+- Ensured the component adapts correctly to dark mode.
+
+### `src/components/ui/background-beams.tsx`
+- Replaced the hardcoded `#333` grid color with `var(--muted-foreground)` to ensure visibility and appropriate contrast in both light and dark modes.
+
+### `src/components/ui/bento-grid.tsx`
+- Replaced the potentially undefined `shadow-input` class with `shadow-[var(--shadow-sm)]` (using the defined CSS variable) to ensure consistent shadow styling.
+
+### `src/components/LandingPage.tsx`
+- Verified that the landing page and its dependencies (`TracingBeam`, `BackgroundBeams`, `BentoGrid`) now fully adhere to the semantic theme system.

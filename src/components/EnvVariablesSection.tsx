@@ -243,7 +243,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 onCheckedChange={setNewIsSecret}
                             />
                             <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer font-medium">
-                                <Shield className="w-4 h-4 text-blue-400" />
+                                <Shield className="w-4 h-4 text-[var(--info)]" />
                                 Secret (Encrypted)
                             </Label>
                         </div>
@@ -352,7 +352,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                         {env.key}
                                                         {env.isSecret && (
                                                             <span title="Secret">
-                                                                <Shield className="w-3 h-3 text-blue-400" />
+                                                                <Shield className="w-3 h-3 text-[var(--info)]" />
                                                             </span>
                                                         )}
                                                     </div>
@@ -380,7 +380,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                                 className="p-1 hover:text-[var(--foreground)] text-[var(--muted-foreground)] transition-colors"
                                                                 title="Copy to clipboard"
                                                             >
-                                                                {copiedId === env.id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                                                                {copiedId === env.id ? <Check className="w-3.5 h-3.5 text-[var(--success)]" /> : <Copy className="w-3.5 h-3.5" />}
                                                             </button>
                                                         </div>
                                                     </div>
@@ -416,10 +416,10 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 </div>
             )}
 
-            <div className="mt-6 flex items-start gap-3 p-4 bg-blue-500/5 border border-blue-500/20 rounded-md">
-                <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
+                <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
-                    <p className="font-medium text-blue-400 mb-1 text-sm">Deployment required</p>
+                    <p className="font-medium text-[var(--info)] mb-1 text-sm">Deployment required</p>
                     <p className="text-[var(--muted-foreground)] leading-relaxed">
                         Changes to environment variables will apply to new deployments. Existing deployments will keep their current variables until redeployed.
                     </p>

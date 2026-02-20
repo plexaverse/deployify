@@ -60,13 +60,13 @@ export function DomainsSection({
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'active':
-                return <CheckCircle2 className="w-4 h-4 text-green-400" />;
+                return <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />;
             case 'pending':
-                return <Loader2 className="w-4 h-4 text-yellow-400 animate-spin" />;
+                return <Loader2 className="w-4 h-4 text-[var(--warning)] animate-spin" />;
             case 'error':
-                return <XCircle className="w-4 h-4 text-red-400" />;
+                return <XCircle className="w-4 h-4 text-[var(--error)]" />;
             default:
-                return <Clock className="w-4 h-4 text-gray-400" />;
+                return <Clock className="w-4 h-4 text-[var(--muted-foreground)]" />;
         }
     };
 
@@ -204,9 +204,9 @@ export function DomainsSection({
                             <ShieldCheck className="w-5 h-5 text-[var(--primary)]" />
                             Verification Steps
                         </h3>
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20">
-                            <span className="flex h-2 w-2 rounded-full bg-yellow-400 animate-pulse"></span>
-                            <span className="text-xs font-medium text-yellow-400">Analyzing...</span>
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--warning-bg)] border border-[var(--warning)]/20">
+                            <span className="flex h-2 w-2 rounded-full bg-[var(--warning)] animate-pulse"></span>
+                            <span className="text-xs font-medium text-[var(--warning)]">Analyzing...</span>
                         </div>
                     </div>
 
@@ -256,7 +256,7 @@ export function DomainsSection({
                                                     title="Copy value"
                                                 >
                                                     {copiedValue === record.value ? (
-                                                        <Check className="w-3.5 h-3.5 text-green-500" />
+                                                        <Check className="w-3.5 h-3.5 text-[var(--success)]" />
                                                     ) : (
                                                         <Copy className="w-3.5 h-3.5" />
                                                     )}
@@ -283,19 +283,19 @@ export function DomainsSection({
 
             {/* Cloudflare Setup Guide (Recommended) */}
             {productionUrl && (
-                <div className="mb-6 p-4 rounded-lg border border-orange-500/30 bg-orange-500/5">
+                <div className="mb-6 p-4 rounded-lg border border-[var(--warning)]/30 bg-[var(--warning)]/5">
                     <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="currentColor">
+                        <svg className="w-5 h-5 text-[var(--warning)]" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M16.5088 16.8447C16.6173 16.4322 16.5258 16.0192 16.2589 15.7124C16.0023 15.4178 15.6013 15.2598 15.1548 15.2598H8.14015C8.0463 15.2598 7.9648 15.2158 7.9193 15.1421C7.8738 15.0681 7.8705 14.9768 7.9098 14.8968L8.2618 14.1958C8.3471 14.0268 8.5218 13.9185 8.7113 13.9185H15.2883C16.1918 13.9185 17.0173 13.4905 17.5173 12.7598C18.0171 12.0291 18.1171 11.11 17.7903 10.2888L17.0843 8.5155C16.6423 7.3995 15.5803 6.6495 14.3803 6.6495H5.2883C5.0988 6.6495 4.9243 6.7578 4.8388 6.927L2.6673 11.2885C2.0503 12.5195 2.0503 13.9955 2.6673 15.2265L4.0553 18H15.4653C16.2173 18 16.3753 17.3175 16.5088 16.8447Z" />
                             <path d="M19.5813 11.2885L18.1098 8.2155C18.0213 8.0348 17.8488 7.9185 17.6573 7.9185H16.0873L17.0363 10.2168C17.4093 11.1755 17.2963 12.2588 16.7243 13.1145C16.1523 13.9702 15.2048 14.4772 14.1683 14.4772H8.0633L7.6873 15.2598H14.0343C14.0343 15.2598 14.9378 15.2598 15.5093 16.0658C15.9813 16.7355 15.7713 17.4 15.5093 18H20.5343C21.0693 18 21.5348 17.6415 21.6698 17.1255L21.9998 15.7505C22.3498 14.3755 21.8998 12.9285 20.7348 12.0885L19.5813 11.2885Z" />
                         </svg>
-                        <h3 className="font-medium text-orange-400">Cloudflare Setup (Recommended)</h3>
+                        <h3 className="font-medium text-[var(--warning)]">Cloudflare Setup (Recommended)</h3>
                     </div>
                     <p className="text-sm text-[var(--muted-foreground)] mb-3">
                         For global CDN and faster performance, use Cloudflare instead of GCP domain mapping:
                     </p>
                     <ol className="text-sm space-y-2 text-[var(--muted-foreground)] list-decimal list-inside mb-4">
-                        <li>Add your domain to <a href="https://cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Cloudflare</a> (free)</li>
+                        <li>Add your domain to <a href="https://cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] hover:underline">Cloudflare</a> (free)</li>
                         <li>Update nameservers at your registrar to Cloudflare&apos;s</li>
                         <li>
                             Add a CNAME record in Cloudflare:
@@ -323,7 +323,7 @@ export function DomainsSection({
                                                         title="Copy URL"
                                                     >
                                                         {copiedValue === productionUrl.replace('https://', '') ? (
-                                                            <Check className="w-4 h-4 text-green-400" />
+                                                            <Check className="w-4 h-4 text-[var(--success)]" />
                                                         ) : (
                                                             <Copy className="w-4 h-4" />
                                                         )}
@@ -338,7 +338,7 @@ export function DomainsSection({
                         <li>Set SSL/TLS mode to <strong>&quot;Full (strict)&quot;</strong> in Cloudflare</li>
                         <li>Enable <strong>Proxy status</strong> (orange cloud ☁️) for caching</li>
                     </ol>
-                    <p className="text-xs text-green-400">
+                    <p className="text-xs text-[var(--success)]">
                         ✓ No need to add domain here when using Cloudflare
                     </p>
                 </div>
@@ -417,9 +417,9 @@ export function DomainsSection({
                                         {domain.domain}
                                         <ExternalLink className="w-3 h-3" />
                                     </a>
-                                    <span className={`text-xs ${domain.status === 'active' ? 'text-green-400' :
-                                        domain.status === 'pending' ? 'text-yellow-400' :
-                                            'text-red-400'
+                                    <span className={`text-xs ${domain.status === 'active' ? 'text-[var(--success)]' :
+                                        domain.status === 'pending' ? 'text-[var(--warning)]' :
+                                            'text-[var(--error)]'
                                         }`}>
                                         {getStatusLabel(domain.status)}
                                     </span>
