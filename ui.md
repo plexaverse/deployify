@@ -697,5 +697,28 @@ Refactored remaining components with hardcoded colors to use the semantic theme 
 ### `src/components/ui/bento-grid.tsx`
 - Replaced the potentially undefined `shadow-input` class with `shadow-[var(--shadow-sm)]` (using the defined CSS variable) to ensure consistent shadow styling.
 
+## Progressive UI & Theme Consistency Refactor (Session 73)
+
+Conducted a pass to refine loading states and ensure consistent spacing across major wizard and dashboard flows.
+
+### `src/app/new/page.tsx` (Project Creation Wizard)
+- Replaced manual `animate-pulse` divs in the repository selection step with the standardized `Skeleton` component.
+- Increased the number of skeleton placeholders from 3 to 5 to better fill the viewport during initial load.
+- Verified that all configuration cards use standard `Card` padding (`p-6`) and spacing (`space-y-6`) for visual consistency with the main dashboard.
+
+### `src/components/TeamSwitcher.tsx`
+- Replaced the manual `animate-pulse` div in the loading state with the standardized `Skeleton` component for better theme integration.
+
+### `src/app/dashboard/page.tsx`
+- Refined the loading state to accurately reflect the project card layout.
+- Added skeletons for the project avatar, name, repo, status badge, production URL, and footer metadata.
+- Increased the number of skeleton placeholders to 6 for a more complete initial layout.
+
+### `src/components/LogViewer.tsx`
+- Refactored the connection status indicator to use the `Badge` component.
+- Refactored the search input to use the `Input` component with custom sizing and background.
+- Replaced manual toolbar buttons with the `Button` component (ghost icon variant) for consistent interaction states.
+- Standardized severity filter buttons to use `font-bold` and semantic background variables.
+
 ### `src/components/LandingPage.tsx`
 - Verified that the landing page and its dependencies (`TracingBeam`, `BackgroundBeams`, `BentoGrid`) now fully adhere to the semantic theme system.

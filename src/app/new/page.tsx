@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import type { GitHubRepo, Project, Deployment } from '@/types';
 
@@ -205,8 +206,8 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
 
             {loading ? (
                 <div className="space-y-4">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="h-24 bg-[var(--card)] rounded-xl animate-pulse" />
+                    {[1, 2, 3, 4, 5].map(i => (
+                        <Skeleton key={i} className="h-24 w-full rounded-xl" />
                     ))}
                 </div>
             ) : (
