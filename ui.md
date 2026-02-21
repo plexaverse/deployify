@@ -770,3 +770,25 @@ Conducted a targeted pass to harmonize UI primitives and improve visual consiste
 ### Theme & Code Hygiene
 - **CSS Variable Consolidation**: Introduced `--primary-glow` and `--primary-glow-hover` variables in `globals.css` to replace hardcoded indigo shadow values. These variables are now used by both the `.btn-primary` utility class and the `Button` UI primitive.
 - **Repository Cleanup**: Removed development-only artifacts (`dev_server.log` and the `verification/` screenshot directory) to maintain a clean codebase.
+
+## Final Polish & Theme Consistency (Session 75)
+
+Conducted a final comprehensive audit and refactoring of UI components to eliminate remaining hardcoded values and ensure perfect theme adaptability.
+
+### `src/components/ui/spotlight.tsx`
+- Updated the default `fill` color to use `var(--foreground)` instead of hardcoded `white`. This ensures the spotlight effect is visible and correctly themed in both light (black) and dark (white) modes if no specific fill color is provided.
+
+### `src/components/ui/background-beams.tsx`
+- Replaced the hardcoded `indigo-500` gradient color with `var(--info)`. This aligns the background beam effect with the application's semantic color system (Blue/Info) instead of introducing an arbitrary color.
+
+### `src/components/ui/tracing-beam.tsx`
+- Replaced hardcoded hex colors (`#18CCFC`, `#6344F5`, `#AE48FF`) with semantic theme variables (`var(--info)` and `var(--primary)`).
+- This ensures the tracing beam gradient automatically adapts to theme changes (e.g., switching from blue/black in light mode to blue/white in dark mode) and maintains consistency with the rest of the application's color palette.
+
+### `src/components/ui/switch.tsx`
+- Fixed a visibility issue in Dark Mode where the toggle thumb (white) would disappear against the checked track background (primary/white).
+- Added `peer-checked:after:bg-[var(--primary-foreground)]` to the thumb element.
+- **Logic**:
+  - **Light Mode**: Track is Black (`primary`), Thumb becomes White (`primary-foreground`). High contrast.
+  - **Dark Mode**: Track is White (`primary`), Thumb becomes Black (`primary-foreground`). High contrast.
+  - **Unchecked**: Thumb remains White (default) against Gray track (`border`). Standard UI pattern.
