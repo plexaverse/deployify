@@ -42,7 +42,7 @@ export const BackgroundBeams = ({ className }: { className?: string }) => {
               ease: "linear",
               delay: beam.delay,
             }}
-            className="absolute w-[1px] h-60 bg-gradient-to-b from-transparent via-indigo-500/50 to-transparent"
+            className="absolute w-[1px] h-60 bg-gradient-to-b from-transparent via-[var(--info)]/50 to-transparent"
           />
         ))}
       </div>
