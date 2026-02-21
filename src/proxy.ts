@@ -1,3 +1,9 @@
+/**
+ * Edge Proxy (Middleware Replacement for Next.js 16)
+ *
+ * This file handles request interception, rate limiting, and security headers.
+ * In Next.js 16, `proxy.ts` replaces `middleware.ts`.
+ */
 import { NextRequest, NextResponse } from 'next/server';
 import { config as appConfig } from '@/lib/config';
 

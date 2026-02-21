@@ -31,6 +31,7 @@
 | **Deployment Target** | GCP Cloud Run |
 | **Auth** | GitHub OAuth + JWT Sessions (7-day expiry) |
 | **Supported Frameworks** | Next.js, Vite (React, Vue, Svelte, etc.) |
+| **CLI** | Node.js (CommonJS) |
 
 ### Directory Structure
 ```
@@ -47,6 +48,8 @@ deployify/
 │   │   │   └── new/            # Create new project
 │   │   ├── login/              # Login page
 │   │   └── page.tsx            # Landing page (marketing)
+│   ├── cli/                    # CLI Tool implementation
+│   │   └── index.js            # Entry point
 │   ├── components/
 │   │   ├── ui/                 # Aceternity-style animated components
 │   │   ├── analytics/          # Analytics components
@@ -85,7 +88,7 @@ deployify/
 
 ```typescript
 User          // GitHub OAuth user
-Project       // Deployment project config (repo, build commands, region, emailNotifications, etc.)
+Project       // Deployment project config (repo, build commands, region, emailNotifications, branchEnvironments, etc.)
 Deployment    // Individual deployment record (status, commit, URLs)
 EnvVar        // Environment variable (key, value, target: production/preview/all)
 Domain        // Custom domain (status: pending/active/error)
@@ -98,6 +101,10 @@ Domain        // Custom domain (status: pending/active/error)
 - `build` - Available during build only
 - `runtime` - Available at runtime only
 - `both` - Available during both
+
+### Branch Environments
+- Default: `main` → Production, Pull Requests → Preview
+- Custom: Projects can map specific branches (e.g., `staging`) to Preview or Production environments.
 
 ---
 
@@ -163,6 +170,15 @@ Domain        // Custom domain (status: pending/active/error)
 - **Linting**: Strict linting is enforced. No `any` types allowed (use `unknown` or disable rule if necessary).
 - **React Hooks**: Follow strict dependency rules and purity requirements (avoid `Date.now()` in render).
 
+### 8. Middleware (Proxy) Pattern
+- Next.js 16 uses `src/proxy.ts` instead of `middleware.ts`.
+- Handles edge-compatible logic: Subdomain routing, rate limiting, and security headers.
+- Exports `async function proxy(request: NextRequest)`.
+
+### 9. Monorepo Support
+- `rootDirectory` config allows deploying apps from subdirectories.
+- Dockerfile generation logic (`src/lib/dockerfiles.ts`) automatically handles nested paths for `COPY` and `CMD` instructions.
+
 ---
 
 ## 🛡️ Security Features
@@ -203,11 +219,10 @@ Domain        // Custom domain (status: pending/active/error)
 3. Fetch data via `/api/` routes
 4. Use existing CSS classes (`.card`, `.btn`, etc.)
 
-### Adding a new UI component
-1. Create in `src/components/` or `src/components/ui/`
-2. Follow Aceternity UI patterns for animations
-3. Use Framer Motion for complex animations
-4. Export from component file directly
+### Using the CLI
+1. Run `node src/cli/index.js login` to authenticate.
+2. Run `node src/cli/index.js link` to link a local folder to a project.
+3. Run `node src/cli/index.js deploy` to trigger a deployment.
 
 ### Modifying the build pipeline
 1. Edit `src/lib/dockerfiles.ts` to modify Dockerfile templates
