@@ -2,15 +2,16 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { Plus, ExternalLink, GitBranch, Clock, Search, X } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { EmptyState } from '@/components/EmptyState';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { ProjectAvatar } from '@/components/ProjectAvatar';
+import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
+import { ProjectCard } from '@/components/ProjectCard';
+import { CommandPalette } from '@/components/CommandPalette';
 import type { Project, Deployment } from '@/types';
 import { useTeam } from '@/contexts/TeamContext';
 
@@ -70,34 +71,9 @@ export default function DashboardPage() {
         );
     });
 
-    const getStatusBadge = (status?: string) => {
-        switch (status) {
-            case 'ready':
-                return <Badge variant="success" className="gap-1">● Ready</Badge>;
-            case 'building':
-            case 'deploying':
-                return <Badge variant="warning" className="gap-1">● Building</Badge>;
-            case 'error':
-                return <Badge variant="destructive" className="gap-1">● Error</Badge>;
-            case 'queued':
-                return <Badge variant="info" className="gap-1">● Queued</Badge>;
-            default:
-                return <Badge variant="secondary" className="gap-1 text-[var(--muted)] bg-[var(--card)]">● No deployments</Badge>;
-        }
-    };
-
-    const formatDate = (date?: Date) => {
-        if (!date) return 'Never';
-        return new Date(date).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
     return (
         <div className="p-8">
+            <CommandPalette />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
@@ -151,27 +127,17 @@ export default function DashboardPage() {
 
             {/* Loading state */}
             {loading && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <BentoGrid>
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <Card key={i} className="h-full">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex flex-1 items-center gap-3 min-w-0">
-                                    <Skeleton className="w-10 h-10 rounded-full shrink-0" />
-                                    <div className="min-w-0 flex-1 space-y-2">
-                                        <Skeleton className="h-5 w-3/4" />
-                                        <Skeleton className="h-4 w-1/2" />
-                                    </div>
-                                </div>
-                                <Skeleton className="h-6 w-16 rounded-full" />
-                            </div>
-                            <Skeleton className="h-4 w-full mb-6" />
-                            <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
-                                <Skeleton className="h-3 w-20" />
-                                <Skeleton className="h-3 w-20" />
-                            </div>
-                        </Card>
+                        <BentoGridItem
+                            key={i}
+                            title={<Skeleton className="h-4 w-1/2 mb-2" />}
+                            description={<Skeleton className="h-3 w-3/4" />}
+                            header={<Skeleton className="h-32 w-full rounded-xl" />}
+                            className="min-h-[12rem]"
+                        />
                     ))}
-                </div>
+                </BentoGrid>
             )}
 
             {/* Empty state - No projects at all */}
@@ -198,55 +164,22 @@ export default function DashboardPage() {
 
             {/* Projects grid */}
             {!loading && filteredProjects.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <BentoGrid>
                     {filteredProjects.map((project) => (
                         <Link
                             key={project.id}
                             href={`/dashboard/${project.id}`}
-                            className="block group"
+                            className="block h-full group"
                         >
-                            <Card className="h-full hover:border-[var(--primary)] transition-colors">
-                                {/* Project header */}
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex flex-1 items-center gap-3 min-w-0">
-                                        <ProjectAvatar name={project.name} productionUrl={project.productionUrl} />
-                                        <div className="min-w-0 flex-1">
-                                            <h3 className="font-semibold truncate group-hover:text-[var(--primary)] transition-colors">
-                                                {project.name}
-                                            </h3>
-                                            <p className="text-sm text-[var(--muted-foreground)] truncate">
-                                                {project.repoFullName}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex-shrink-0 ml-2">
-                                        {getStatusBadge(project.latestDeployment?.status)}
-                                    </div>
-                                </div>
-
-                                {/* Production URL */}
-                                {project.productionUrl && (
-                                    <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] mb-4 ml-1">
-                                        <ExternalLink className="w-4 h-4" />
-                                        <span className="truncate">{project.productionUrl}</span>
-                                    </div>
-                                )}
-
-                                {/* Footer */}
-                                <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
-                                    <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
-                                        <GitBranch className="w-3.5 h-3.5" />
-                                        {project.defaultBranch}
-                                    </div>
-                                    <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
-                                        <Clock className="w-3.5 h-3.5" />
-                                        {formatDate(project.updatedAt)}
-                                    </div>
-                                </div>
-                            </Card>
+                            <BentoGridItem
+                                title={null}
+                                description={null}
+                                header={<ProjectCard project={project} />}
+                                className="h-full min-h-[12rem] cursor-pointer hover:border-[var(--primary)] transition-colors"
+                            />
                         </Link>
                     ))}
-                </div>
+                </BentoGrid>
             )}
         </div>
     );

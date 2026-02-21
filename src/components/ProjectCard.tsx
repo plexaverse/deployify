@@ -2,23 +2,40 @@
 
 import { useState, useEffect } from 'react';
 import { Project } from '@/types';
-import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer } from 'recharts';
+import { Badge } from '@/components/ui/badge';
+import { ProjectAvatar } from '@/components/ProjectAvatar';
 
-// Mock data for the sparkline - in a real app this would come from analytics API
-const generateSparklineData = () => {
-  return Array.from({ length: 20 }, () => ({
-    value: Math.floor(Math.random() * 100) + 20
+// Mock data for the sparkline - reflects status
+const generateSparklineData = (status: string) => {
+  const length = 20;
+  let base = 50;
+  let volatility = 20;
+
+  if (status === 'error') {
+    base = 10;
+    volatility = 50;
+  } else if (status === 'building' || status === 'deploying') {
+    base = 30;
+    volatility = 40;
+  } else if (status === 'ready') {
+    base = 70;
+    volatility = 10;
+  }
+
+  return Array.from({ length }, () => ({
+    value: Math.max(0, Math.floor(Math.random() * volatility) + base)
   }));
 };
 
 const statusConfig = {
-  ready: { icon: CheckCircle2, color: 'text-[var(--success)]', bg: 'bg-[var(--success-bg)]', label: 'Healthy', stroke: 'var(--success)' },
-  building: { icon: Loader2, color: 'text-[var(--warning)]', bg: 'bg-[var(--warning-bg)]', label: 'Building', stroke: 'var(--warning)' },
-  deploying: { icon: Loader2, color: 'text-[var(--info)]', bg: 'bg-[var(--info-bg)]', label: 'Deploying', stroke: 'var(--info)' },
-  error: { icon: XCircle, color: 'text-[var(--error)]', bg: 'bg-[var(--error-bg)]', label: 'Error', stroke: 'var(--error)' },
-  queued: { icon: AlertCircle, color: 'text-[var(--muted-foreground)]', bg: 'bg-[var(--muted)]/10', label: 'Queued', stroke: 'var(--muted)' },
-  cancelled: { icon: XCircle, color: 'text-[var(--muted-foreground)]', bg: 'bg-[var(--muted)]/10', label: 'Cancelled', stroke: 'var(--muted)' },
+  ready: { variant: 'success' as const, icon: CheckCircle2, label: 'Ready', stroke: 'var(--success)' },
+  building: { variant: 'warning' as const, icon: Loader2, label: 'Building', stroke: 'var(--warning)' },
+  deploying: { variant: 'info' as const, icon: Loader2, label: 'Deploying', stroke: 'var(--info)' },
+  error: { variant: 'error' as const, icon: AlertCircle, label: 'Error', stroke: 'var(--error)' },
+  queued: { variant: 'secondary' as const, icon: Clock, label: 'Queued', stroke: 'var(--muted)' },
+  cancelled: { variant: 'secondary' as const, icon: XCircle, label: 'Cancelled', stroke: 'var(--muted)' },
 };
 
 export function ProjectCard({ project }: { project: Project }) {
@@ -29,32 +46,43 @@ export function ProjectCard({ project }: { project: Project }) {
   const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSparklineData(generateSparklineData());
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
+    setSparklineData(generateSparklineData(status));
+  }, [status]);
 
   return (
     <div className="flex flex-col h-full justify-between">
-      {/* Header: Name and Status */}
-      <div className="flex items-start justify-between mb-2">
-        <div>
-           {/* We don't render title here as BentoGridItem does it, but we can render extra meta */}
-           <div className="flex items-center gap-2 mb-1">
-             <div className={`relative flex items-center justify-center w-2 h-2 rounded-full ${config.color.replace('text-', 'bg-')}`}>
-                {(status === 'building' || status === 'deploying') && (
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${config.color.replace('text-', 'bg-')}`}></span>
+      {/* Header: Project Identity and Sparkline */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <ProjectAvatar name={project.name} productionUrl={project.productionUrl} className="w-8 h-8" />
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors">
+              {project.name}
+            </h3>
+            <div className="flex items-center gap-1.5">
+              <Badge variant={config.variant} className="h-4 text-[9px] px-1.5 gap-1 uppercase tracking-tighter font-black">
+                {status === 'building' || status === 'deploying' ? (
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                ) : (
+                  <config.icon className="w-2.5 h-2.5" />
                 )}
-             </div>
-             <span className={`text-xs font-medium ${config.color}`}>{config.label}</span>
-           </div>
+                {config.label}
+              </Badge>
+            </div>
+          </div>
         </div>
-        <div className="h-8 w-24 opacity-50">
+        <div className="h-10 w-20 opacity-40 group-hover:opacity-100 transition-opacity">
            {sparklineData.length > 0 && (
              <ResponsiveContainer width="100%" height="100%">
                <LineChart data={sparklineData}>
-                 <Line type="monotone" dataKey="value" stroke={config.stroke} strokeWidth={2} dot={false} />
+                 <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={config.stroke}
+                    strokeWidth={2}
+                    dot={false}
+                    isAnimationActive={true}
+                  />
                </LineChart>
              </ResponsiveContainer>
            )}
@@ -62,15 +90,22 @@ export function ProjectCard({ project }: { project: Project }) {
       </div>
 
       {/* Deployment Info */}
-      <div className="mt-auto space-y-2">
+      <div className="mt-auto space-y-3">
+        {project.productionUrl && (
+          <div className="flex items-center gap-2 text-[11px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span className="truncate">{project.productionUrl.replace(/^https?:\/\//, '')}</span>
+          </div>
+        )}
+
         {latestDeployment ? (
-          <>
-            <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] font-mono bg-[var(--card)] p-2 rounded-lg border border-[var(--border)]">
-              <GitCommit className="w-3 h-3" />
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-[10px] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/50 p-2 rounded-md border border-[var(--border)] group-hover:border-[var(--border-hover)] transition-colors">
+              <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
-              <span className="opacity-50">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
+              <span className="opacity-40">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-[var(--muted-foreground)]">
+            <div className="flex items-center justify-between text-[10px] text-[var(--muted-foreground)] px-1">
                <div className="flex items-center gap-1.5">
                  <GitBranch className="w-3 h-3" />
                  <span>{latestDeployment.gitBranch}</span>
@@ -80,9 +115,9 @@ export function ProjectCard({ project }: { project: Project }) {
                  <span>{new Date(latestDeployment.updatedAt).toLocaleDateString()}</span>
                </div>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="text-xs text-[var(--muted-foreground)] italic p-2">
+          <div className="text-[10px] text-[var(--muted-foreground)] italic bg-[var(--card-hover)]/30 p-2 rounded-md border border-dashed border-[var(--border)] text-center">
             No deployments yet
           </div>
         )}
