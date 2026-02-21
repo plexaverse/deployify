@@ -626,18 +626,26 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
             </div>
 
             <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
-                <div className="bg-[var(--terminal-header-bg)] p-3 flex items-center gap-2 border-b border-[var(--terminal-border)]">
-                    <div className="flex gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-[var(--error)]/20 border border-[var(--error)]/50" />
-                        <div className="w-3 h-3 rounded-full bg-[var(--warning)]/20 border border-[var(--warning)]/50" />
-                        <div className="w-3 h-3 rounded-full bg-[var(--success)]/20 border border-[var(--success)]/50" />
+                <div className="bg-[var(--terminal-header-bg)] p-3 flex items-center justify-between border-b border-[var(--terminal-border)]">
+                    <div className="flex items-center gap-4">
+                        <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-[var(--error)]/20 border border-[var(--error)]/50" />
+                            <div className="w-3 h-3 rounded-full bg-[var(--warning)]/20 border border-[var(--warning)]/50" />
+                            <div className="w-3 h-3 rounded-full bg-[var(--success)]/20 border border-[var(--success)]/50" />
+                        </div>
+                        <div className="flex items-center gap-2 text-[var(--terminal-foreground)]/40">
+                            <Terminal className="w-3.5 h-3.5" />
+                            <span className="text-xs font-medium">Build Logs</span>
+                        </div>
                     </div>
-                    <div className="ml-4 text-[var(--terminal-foreground)]/30">build-log.txt</div>
+                    <div className="text-[var(--terminal-foreground)]/20 text-[10px] uppercase tracking-widest font-bold">build-log.txt</div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-1 text-[var(--terminal-foreground)]/70">
+                <div className="flex-1 overflow-y-auto p-4 space-y-0.5 text-[var(--terminal-foreground)]/70">
                     {logs.split('\n').map((line, i) => (
-                         <div key={i} className="break-all whitespace-pre-wrap">{line || '\u00A0'}</div>
+                         <div key={i} className="break-all whitespace-pre-wrap hover:bg-[var(--terminal-foreground)]/5 transition-colors duration-200 px-1 rounded -mx-1 group">
+                            {line || '\u00A0'}
+                         </div>
                     ))}
                     {isError && (
                         <div className="text-[var(--error)] mt-4 border-t border-[var(--terminal-border)] pt-4">

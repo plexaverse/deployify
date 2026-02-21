@@ -15,7 +15,7 @@ export const buttonVariants = ({
     className?: string
 }) => {
     const variants = {
-        primary: 'bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 shadow-sm',
+        primary: 'bg-[var(--gradient-primary)] text-[var(--primary-foreground)] hover:opacity-90 shadow-[var(--shadow-md),var(--primary-glow)] hover:shadow-[var(--shadow-lg),var(--primary-glow-hover)] hover:-translate-y-px transition-all duration-200',
         secondary: 'bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--card-hover)]',
         outline: 'border border-[var(--border)] bg-[var(--background)] hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]',
         ghost: 'hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]',

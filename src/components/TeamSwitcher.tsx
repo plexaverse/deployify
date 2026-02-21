@@ -5,6 +5,7 @@ import { useStore } from '@/store';
 import { CreateTeamModal } from '@/components/CreateTeamModal';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 export function TeamSwitcher() {
     const { activeTeam, setActiveTeam, teams, isLoading } = useTeam();
@@ -35,18 +36,20 @@ export function TeamSwitcher() {
                     className="flex items-center justify-between w-full p-2 text-sm border border-[var(--border)] rounded-lg hover:bg-[var(--card-hover)] transition-colors"
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
-                        {activeTeam ? (
-                            <Avatar className="h-6 w-6 rounded bg-[var(--info-bg)]">
-                                <AvatarImage src={activeTeam.avatarUrl || undefined} alt={activeTeam.name} />
-                                <AvatarFallback className="rounded bg-[var(--info-bg)] text-[var(--info)]">
-                                    <Users className="w-4 h-4" />
+                        <Avatar className={cn("h-6 w-6 rounded", activeTeam ? "bg-[var(--info-bg)]" : "bg-[var(--primary)]/10")}>
+                            {activeTeam ? (
+                                <>
+                                    <AvatarImage src={activeTeam.avatarUrl || undefined} alt={activeTeam.name} />
+                                    <AvatarFallback className="rounded bg-[var(--info-bg)] text-[var(--info)]">
+                                        <Users className="w-4 h-4" />
+                                    </AvatarFallback>
+                                </>
+                            ) : (
+                                <AvatarFallback className="rounded bg-[var(--primary)]/10 text-[var(--primary)]">
+                                    <User className="w-4 h-4" />
                                 </AvatarFallback>
-                            </Avatar>
-                        ) : (
-                            <div className="flex items-center justify-center w-6 h-6 min-w-[24px] rounded bg-[var(--primary)]/10 text-[var(--primary)]">
-                                <User className="w-4 h-4" />
-                            </div>
-                        )}
+                            )}
+                        </Avatar>
                         <span className="font-medium truncate">
                             {activeTeam ? activeTeam.name : 'Personal Workspace'}
                         </span>
@@ -64,9 +67,11 @@ export function TeamSwitcher() {
                                 }}
                                 className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--card-hover)] transition-colors"
                             >
-                                <div className="flex items-center justify-center w-6 h-6 rounded bg-[var(--primary)]/10 text-[var(--primary)]">
-                                    <User className="w-4 h-4" />
-                                </div>
+                                <Avatar className="h-6 w-6 rounded bg-[var(--primary)]/10">
+                                    <AvatarFallback className="rounded bg-[var(--primary)]/10 text-[var(--primary)]">
+                                        <User className="w-4 h-4" />
+                                    </AvatarFallback>
+                                </Avatar>
                                 <span className="flex-1 text-left">Personal Workspace</span>
                                 {!activeTeam && <Check className="w-4 h-4 text-[var(--primary)]" />}
                             </button>
