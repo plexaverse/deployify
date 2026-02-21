@@ -491,6 +491,30 @@ Conducted a pass to replace native browser dialogs with themed components and im
 - Updated checkboxes to use `var(--primary)` and standardized border colors.
 - Improved hover states and layout consistency for settings cards.
 
+## Dashboard Layout & Navigation Refactor (Session 76)
+
+Modernized the main dashboard with a data-rich layout and enhanced navigation.
+
+### `src/app/dashboard/page.tsx`
+- Refactored the project list to use the `BentoGrid` and `ProjectCard` components, providing a more professional, "Command Center" feel.
+- Enhanced the loading state with `BentoGridItem` skeletons that accurately mirror the new layout.
+- Integrated the `CommandPalette` component directly into the dashboard for quick access to navigation and search.
+- Standardized all interactive elements, including search inputs and action buttons, using the established `Button`, `Input`, and `Badge` UI primitives.
+
+### `src/components/ProjectCard.tsx`
+- Refactored to use the `Badge` component for status indicators, ensuring consistency with the rest of the application.
+- Integrated `ProjectAvatar` for better visual identification of projects.
+- Enhanced the sparkline visualization to dynamically reflect the project's current status (e.g., higher volatility for errors or builds).
+- Improved the deployment metadata layout with a more compact, mono-spaced font and theme-consistent borders.
+- Added a direct link to the production URL within the card for quicker access.
+
+### `src/app/dashboard/[id]/page.tsx` (Project Overview)
+- Upgraded the "Production Deployment" card with enhanced metadata, including framework tags, region info, and formatted last-push timestamps.
+- Refined the production URL display with an integrated `ExternalLink` icon and improved hover states.
+- Refactored the deployment history list for better readability on all screen sizes, utilizing compact `Badge` variants and standardized action buttons.
+- Integrated the `MovingBorderButton` for the high-priority "Redeploy" action to provide a premium, interactive feel.
+- Standardized status indicators (Healthy, Error, Building) using semantic theme colors and icons.
+
 ### `src/components/GlobalShortcuts.tsx`
 - Wrapped the shortcuts modal in the `Portal` component for proper layering.
 - Replaced manual backdrop and container styles with `bg-background/80 backdrop-blur-sm` and the `Card` component.
