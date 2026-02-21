@@ -99,6 +99,10 @@
 - **Improvement**: Scope to Environment (Production/Preview)
 - **Status**: ✅ Implemented
 
+#### 8. **Middleware Configuration**
+- **Issue**: verify middleware configuration for Next.js 16.
+- **Status**: ✅ Verified (`src/proxy.ts` is the correct convention for Next.js 16; updated `RULES.md`)
+
 ### Medium Priority
 
 #### 7. **Build Caching**

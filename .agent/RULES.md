@@ -70,7 +70,7 @@ deployify/
 │   │   │   └── domains.ts      # Custom domain management
 │   │   └── security/           # Security utilities
 │   ├── types/                  # TypeScript interfaces
-│   └── middleware.ts           # Edge middleware (auth, rate limiting, security headers)
+│   └── proxy.ts                # Edge proxy/middleware (auth, rate limiting, security headers)
 ├── templates/
 │   └── Dockerfile.nextjs       # Template for user app deployments
 └── .Jules/
