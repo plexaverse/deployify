@@ -7,6 +7,7 @@ import { logAuditEvent } from '@/lib/audit';
 import { deleteService, listServices } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { syncCronJobs } from '@/lib/gcp/scheduler';
+import { deleteDomainMapping } from '@/lib/gcp/domains';
 import { CronJobConfig } from '@/types';
 
 interface RouteParams {
@@ -273,7 +274,26 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             // We continue even if cleanup fails to ensure the project is deleted from DB
         }
 
-        // 2. Delete project and all associated data from DB
+        // 2. Cleanup Cron Jobs
+        try {
+            // Sync with empty list to delete all jobs
+            await syncCronJobs(access.project.id, []);
+        } catch (cronError) {
+            console.error('Failed to cleanup cron jobs:', cronError);
+        }
+
+        // 3. Cleanup Domains
+        if (access.project.domains && access.project.domains.length > 0) {
+            try {
+                await Promise.all(
+                    access.project.domains.map((d) => deleteDomainMapping(d.domain))
+                );
+            } catch (domainError) {
+                console.error('Failed to cleanup domains:', domainError);
+            }
+        }
+
+        // 4. Delete project and all associated data from DB
         await deleteProject(id);
 
         await logAuditEvent(
