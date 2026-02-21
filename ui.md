@@ -747,3 +747,26 @@ Conducted a pass to refine loading states and ensure consistent spacing across m
 
 ### `src/components/LandingPage.tsx`
 - Verified that the landing page and its dependencies (`TracingBeam`, `BackgroundBeams`, `BentoGrid`) now fully adhere to the semantic theme system.
+
+## UI & Theme Consistency Refinement (Session 74)
+
+Conducted a targeted pass to harmonize UI primitives and improve visual consistency across the dashboard and deployment flows.
+
+### UI Primitives (`src/components/ui/`)
+- **`Button`**: Updated the `primary` variant to use `bg-[var(--gradient-primary)]` and added a complex shadow (`var(--shadow-md)` with a custom blue glow) and hover translation effects. This ensures that the `Button` component exactly matches the branding defined in the global CSS.
+- **`Badge`**: Added an `error` variant using `var(--error)` and `var(--error-bg)` for semantic consistency with existing `success`, `warning`, and `info` badges.
+
+### Project Dashboard & Cards
+- **`ProjectCard`**: Refactored the sparkline sparkline to use CSS variables (`var(--success)`, `var(--info)`, etc.) for its stroke color, ensuring the visualization automatically adapts to theme changes and matches status indicators.
+- **Project Detail Page**: Refactored the deployment status display to use the `Badge` component instead of manual icons and text. This provides a more consistent and professional look across the deployment history.
+
+### Deployment Wizard
+- **Step 3 (Deploy)**: Refined the terminal log viewer to match the main `LogViewer` aesthetic. Added a "Build Logs" label with a `Terminal` icon to the header, and implemented hover effects and transitions for individual log lines, improving the overall interactive feel.
+
+### Global Navigation & Layout
+- **`TeamSwitcher`**: Standardized the "Personal Workspace" icon by refactoring it to use the `Avatar` and `AvatarFallback` components. This ensures consistent sizing, rounding, and styling across all workspace and team selectors.
+- **`DashboardSidebar`**: Updated navigation item hover and active states to use `var(--card-hover)` instead of `var(--background)`. This provides better visual contrast and a more consistent "layered" feel on the sidebar's card-like background.
+
+### Theme & Code Hygiene
+- **CSS Variable Consolidation**: Introduced `--primary-glow` and `--primary-glow-hover` variables in `globals.css` to replace hardcoded indigo shadow values. These variables are now used by both the `.btn-primary` utility class and the `Button` UI primitive.
+- **Repository Cleanup**: Removed development-only artifacts (`dev_server.log` and the `verification/` screenshot directory) to maintain a clean codebase.

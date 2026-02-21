@@ -13,12 +13,12 @@ const generateSparklineData = () => {
 };
 
 const statusConfig = {
-  ready: { icon: CheckCircle2, color: 'text-[var(--success)]', bg: 'bg-[var(--success-bg)]', label: 'Healthy', hex: '#22c55e' },
-  building: { icon: Loader2, color: 'text-[var(--warning)]', bg: 'bg-[var(--warning-bg)]', label: 'Building', hex: '#eab308' },
-  deploying: { icon: Loader2, color: 'text-[var(--info)]', bg: 'bg-[var(--info-bg)]', label: 'Deploying', hex: '#3b82f6' },
-  error: { icon: XCircle, color: 'text-[var(--error)]', bg: 'bg-[var(--error-bg)]', label: 'Error', hex: '#ef4444' },
-  queued: { icon: AlertCircle, color: 'text-[var(--muted-foreground)]', bg: 'bg-[var(--muted)]/10', label: 'Queued', hex: '#71717a' },
-  cancelled: { icon: XCircle, color: 'text-[var(--muted-foreground)]', bg: 'bg-[var(--muted)]/10', label: 'Cancelled', hex: '#71717a' },
+  ready: { icon: CheckCircle2, color: 'text-[var(--success)]', bg: 'bg-[var(--success-bg)]', label: 'Healthy', stroke: 'var(--success)' },
+  building: { icon: Loader2, color: 'text-[var(--warning)]', bg: 'bg-[var(--warning-bg)]', label: 'Building', stroke: 'var(--warning)' },
+  deploying: { icon: Loader2, color: 'text-[var(--info)]', bg: 'bg-[var(--info-bg)]', label: 'Deploying', stroke: 'var(--info)' },
+  error: { icon: XCircle, color: 'text-[var(--error)]', bg: 'bg-[var(--error-bg)]', label: 'Error', stroke: 'var(--error)' },
+  queued: { icon: AlertCircle, color: 'text-[var(--muted-foreground)]', bg: 'bg-[var(--muted)]/10', label: 'Queued', stroke: 'var(--muted)' },
+  cancelled: { icon: XCircle, color: 'text-[var(--muted-foreground)]', bg: 'bg-[var(--muted)]/10', label: 'Cancelled', stroke: 'var(--muted)' },
 };
 
 export function ProjectCard({ project }: { project: Project }) {
@@ -54,7 +54,7 @@ export function ProjectCard({ project }: { project: Project }) {
            {sparklineData.length > 0 && (
              <ResponsiveContainer width="100%" height="100%">
                <LineChart data={sparklineData}>
-                 <Line type="monotone" dataKey="value" stroke={config.hex} strokeWidth={2} dot={false} />
+                 <Line type="monotone" dataKey="value" stroke={config.stroke} strokeWidth={2} dot={false} />
                </LineChart>
              </ResponsiveContainer>
            )}

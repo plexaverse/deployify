@@ -55,19 +55,19 @@ export default function ProjectDetailPage() {
         }
     }, [params.id, fetchProjectDetails]);
 
-    const getStatusIcon = (status: string) => {
+    const getStatusBadge = (status: string) => {
         switch (status) {
             case 'ready':
-                return <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />;
+                return <Badge variant="success" className="gap-1.5"><CheckCircle2 className="w-3 h-3" /> Healthy</Badge>;
             case 'error':
-                return <AlertCircle className="w-4 h-4 text-[var(--error)]" />;
+                return <Badge variant="error" className="gap-1.5"><AlertCircle className="w-3 h-3" /> Error</Badge>;
             case 'building':
             case 'deploying':
-                return <Loader2 className="w-4 h-4 text-[var(--warning)] animate-spin" />;
+                return <Badge variant="warning" className="gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
             case 'queued':
-                return <Clock className="w-4 h-4 text-[var(--info)]" />;
+                return <Badge variant="info" className="gap-1.5"><Clock className="w-3 h-3" /> Queued</Badge>;
             default:
-                return <AlertCircle className="w-4 h-4 text-[var(--muted)]" />;
+                return <Badge variant="secondary">{status}</Badge>;
         }
     };
 
@@ -366,8 +366,8 @@ export default function ProjectDetailPage() {
                                 <div key={deployment.id} className="p-4 md:p-6 hover:bg-[var(--card-hover)] transition-colors group">
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                         <div className="flex items-start gap-4">
-                                            <div className="mt-1">
-                                                {getStatusIcon(deployment.status)}
+                                            <div className="mt-0.5">
+                                                {getStatusBadge(deployment.status)}
                                             </div>
                                             <div className="space-y-1 min-w-0">
                                                 <div className="flex items-center gap-2">

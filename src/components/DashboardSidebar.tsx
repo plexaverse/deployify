@@ -162,8 +162,8 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                                 <Link
                                                     href={item.href}
                                                     className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-colors ${isActive
-                                                        ? 'bg-[var(--background)] text-[var(--foreground)] font-medium'
-                                                        : 'text-[var(--muted-foreground)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
+                                                        ? 'bg-[var(--card-hover)] text-[var(--foreground)] font-medium shadow-sm ring-1 ring-[var(--border)]'
+                                                        : 'text-[var(--muted-foreground)] hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]'
                                                         }`}
                                                     onClick={() => setSidebarOpen(false)}
                                                 >
@@ -183,7 +183,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                 <div className="p-4 border-t border-[var(--border)]">
                     <motion.button
                         whileTap={{ scale: 0.95 }}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-[var(--background)] cursor-pointer text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-2"
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-[var(--card-hover)] cursor-pointer text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-2"
                         onClick={toggleTheme}
                         aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
                     >
