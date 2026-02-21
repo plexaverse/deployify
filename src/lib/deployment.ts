@@ -7,7 +7,7 @@ import { sendWebhookNotification } from '@/lib/webhooks';
 import { trackDeployment } from '@/lib/billing/tracker';
 import { sendEmail } from '@/lib/email/client';
 import { runLighthouseAudit } from '@/lib/performance/lighthouse';
-import { createPRComment } from '@/lib/github';
+import { createPRComment, createDeploymentStatus } from '@/lib/github';
 import { parseRepoFullName, formatDuration } from '@/lib/utils';
 
 // Poll Cloud Build status and update deployment
@@ -16,6 +16,7 @@ export async function pollBuildStatus(
     projectId: string,
     projectSlug: string,
     buildId: string,
+    commitSha: string,
     projectRegion?: string | null,
     webhookUrl?: string | null,
     projectName?: string,
@@ -99,6 +100,20 @@ export async function pollBuildStatus(
                     buildDurationMs,
                 });
 
+                // Update GitHub deployment status
+                if (accessToken && repoFullName && commitSha) {
+                    const { owner, repo } = parseRepoFullName(repoFullName);
+                    createDeploymentStatus(
+                        accessToken,
+                        owner,
+                        repo,
+                        commitSha,
+                        'success',
+                        effectiveUrl,
+                        'Deployment successful'
+                    ).catch(console.error);
+                }
+
                 // Track deployment usage
                 await trackDeployment(projectId, buildDurationMs);
 
@@ -158,6 +173,20 @@ export async function pollBuildStatus(
                     errorMessage: errorMessage,
                 });
 
+                // Update GitHub deployment status
+                if (accessToken && repoFullName && commitSha) {
+                    const { owner, repo } = parseRepoFullName(repoFullName);
+                    createDeploymentStatus(
+                        accessToken,
+                        owner,
+                        repo,
+                        commitSha,
+                        'failure',
+                        undefined,
+                        `Deployment failed: ${errorMessage}`
+                    ).catch(console.error);
+                }
+
                 if (webhookUrl) {
                     const name = projectName || projectSlug;
                     const message = `🚨 **Build ${status}** for project **${name}**\n\nStatus: ${status}`;
@@ -194,6 +223,12 @@ export async function pollBuildStatus(
             setTimeout(poll, 30000);
         }
     };
+
+    // Initial status update to GitHub if possible
+    if (accessToken && repoFullName && commitSha) {
+        const { owner, repo } = parseRepoFullName(repoFullName);
+        createDeploymentStatus(accessToken, owner, repo, commitSha, 'pending', undefined, 'Deployment started').catch(console.error);
+    }
 
     // Start polling after 10 seconds
     setTimeout(poll, 10000);

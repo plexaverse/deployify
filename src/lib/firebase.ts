@@ -34,6 +34,9 @@ function initializeFirebase(): App {
  * Get Firestore database instance
  */
 export function getDb(): Firestore {
+    if (process.env.MOCK_DB === 'true') {
+        return createMockFirestore();
+    }
     if (!db) {
         if (!app) {
             app = initializeFirebase();
@@ -41,6 +44,64 @@ export function getDb(): Firestore {
         db = getFirestore(app);
     }
     return db;
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * Create a minimal mock Firestore for local development/audit
+ */
+function createMockFirestore(): any {
+    const mockDoc = (id?: string) => ({
+        id: id || 'mock-id',
+        exists: true,
+        data: () => ({
+            id: id || 'mock-id',
+            name: 'Mock Project',
+            slug: 'mock-slug',
+            userId: 'audit-test',
+            githubUsername: 'plexaverse',
+            repoFullName: 'owner/repo',
+            defaultBranch: 'main',
+            createdAt: { toDate: () => new Date() },
+            updatedAt: { toDate: () => new Date() },
+            joinedAt: { toDate: () => new Date() },
+            expiresAt: { toDate: () => new Date() },
+        }),
+        get: async () => mockDoc(id),
+        set: async () => ({}),
+        update: async () => ({}),
+        delete: async () => ({}),
+    });
+
+    const mockCollection = (name: string) => ({
+        doc: (id: string) => mockDoc(id),
+        where: () => mockCollection(name),
+        orderBy: () => mockCollection(name),
+        limit: () => mockCollection(name),
+        get: async () => ({
+            empty: false,
+            docs: [mockDoc('mock-id-1'), mockDoc('mock-id-2')],
+        }),
+        add: async () => mockDoc('new-id'),
+    });
+
+    return {
+        collection: (name: string) => mockCollection(name),
+        doc: (path: string) => mockDoc(path.split('/').pop()),
+        batch: () => ({
+            set: () => { },
+            update: () => { },
+            delete: () => { },
+            commit: async () => { },
+        }),
+        runTransaction: async (cb: any) => cb({
+            get: async () => mockDoc(),
+            set: () => { },
+            update: () => { },
+            delete: () => { },
+        }),
+        getAll: async (...refs: any[]) => refs.map(ref => mockDoc(ref._path?.segments?.pop())),
+    };
 }
 
 // Collection names
