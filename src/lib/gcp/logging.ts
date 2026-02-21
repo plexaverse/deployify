@@ -62,6 +62,8 @@ export async function listLogEntries(
   if (!isRunningOnGCP()) {
     console.log(`[Simulation] Fetching ${logType} logs for ${serviceName}`);
 
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+
     if (logType === 'build') {
       return {
         entries: [
@@ -70,7 +72,7 @@ export async function listLogEntries(
             severity: 'INFO',
             textPayload: `[Simulation] Building image for ${serviceName}...`,
             resource: { type: 'build', labels: { build_id: 'sim-build' } },
-            logName: `projects/${config.gcp.projectId}/logs/cloudbuild`,
+            logName: `projects/${gcpProjectId}/logs/cloudbuild`,
             insertId: 'sim-b-1',
           },
           {
@@ -78,7 +80,7 @@ export async function listLogEntries(
             severity: 'INFO',
             textPayload: `[Simulation] Step 1/5 : FROM node:20-alpine`,
             resource: { type: 'build', labels: { build_id: 'sim-build' } },
-            logName: `projects/${config.gcp.projectId}/logs/cloudbuild`,
+            logName: `projects/${gcpProjectId}/logs/cloudbuild`,
             insertId: 'sim-b-2',
           },
         ]
@@ -96,7 +98,7 @@ export async function listLogEntries(
               type: 'cloud_run_revision',
               labels: { service_name: serviceName },
             },
-            logName: `projects/${config.gcp.projectId}/logs/run.googleapis.com%2Fvar.log%2Fsystem`,
+            logName: `projects/${gcpProjectId}/logs/run.googleapis.com%2Fvar.log%2Fsystem`,
             insertId: 'sim-s-1',
           }
         ]
@@ -114,7 +116,7 @@ export async function listLogEntries(
             type: 'cloud_run_revision',
             labels: { service_name: serviceName },
           },
-          logName: `projects/${config.gcp.projectId}/logs/run.googleapis.com%2Fstdout`,
+          logName: `projects/${gcpProjectId}/logs/run.googleapis.com%2Fstdout`,
           insertId: 'sim-1',
         },
         {
@@ -125,7 +127,7 @@ export async function listLogEntries(
             type: 'cloud_run_revision',
             labels: { service_name: serviceName },
           },
-          logName: `projects/${config.gcp.projectId}/logs/run.googleapis.com%2Fstdout`,
+          logName: `projects/${gcpProjectId}/logs/run.googleapis.com%2Fstdout`,
           insertId: 'sim-2',
         },
       ],
@@ -158,6 +160,8 @@ export async function listLogEntries(
     filter += ` AND resource.labels.revision_name="${options.revisionName}"`;
   }
 
+  const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+
   const body: {
     resourceNames: string[];
     filter: string;
@@ -165,7 +169,7 @@ export async function listLogEntries(
     pageSize: number;
     pageToken?: string;
   } = {
-    resourceNames: [`projects/${config.gcp.projectId}`],
+    resourceNames: [`projects/${gcpProjectId}`],
     filter,
     orderBy: 'timestamp desc',
     pageSize: options.pageSize || 50,
@@ -216,13 +220,15 @@ export async function getErrorRate(
   let pageToken: string | undefined;
 
   do {
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+
     const body: {
       resourceNames: string[];
       filter: string;
       pageSize: number;
       pageToken?: string;
     } = {
-      resourceNames: [`projects/${config.gcp.projectId}`],
+      resourceNames: [`projects/${gcpProjectId}`],
       filter,
       pageSize: 1000, // Max page size to minimize requests
     };

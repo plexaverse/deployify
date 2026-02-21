@@ -111,8 +111,9 @@ export async function updateProjectFirewall(
 }
 
 async function getSecurityPolicy(name: string, accessToken: string): Promise<SecurityPolicy | null> {
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const response = await fetch(
-        `${COMPUTE_API}/projects/${config.gcp.projectId}/global/securityPolicies/${name}`,
+        `${COMPUTE_API}/projects/${gcpProjectId}/global/securityPolicies/${name}`,
         {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -132,8 +133,9 @@ async function getSecurityPolicy(name: string, accessToken: string): Promise<Sec
 }
 
 async function createSecurityPolicy(name: string, description: string, accessToken: string): Promise<SecurityPolicy> {
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const response = await fetch(
-        `${COMPUTE_API}/projects/${config.gcp.projectId}/global/securityPolicies`,
+        `${COMPUTE_API}/projects/${gcpProjectId}/global/securityPolicies`,
         {
             method: 'POST',
             headers: {
@@ -164,8 +166,9 @@ async function createSecurityPolicy(name: string, description: string, accessTok
 }
 
 async function removeRule(policyName: string, priority: number, accessToken: string): Promise<void> {
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const response = await fetch(
-        `${COMPUTE_API}/projects/${config.gcp.projectId}/global/securityPolicies/${policyName}/removeRule?priority=${priority}`,
+        `${COMPUTE_API}/projects/${gcpProjectId}/global/securityPolicies/${policyName}/removeRule?priority=${priority}`,
         {
             method: 'POST',
             headers: {
@@ -184,8 +187,9 @@ async function removeRule(policyName: string, priority: number, accessToken: str
 }
 
 async function addRule(policyName: string, rule: SecurityPolicyRule, accessToken: string): Promise<void> {
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const response = await fetch(
-        `${COMPUTE_API}/projects/${config.gcp.projectId}/global/securityPolicies/${policyName}/addRule`,
+        `${COMPUTE_API}/projects/${gcpProjectId}/global/securityPolicies/${policyName}/addRule`,
         {
             method: 'POST',
             headers: {

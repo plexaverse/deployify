@@ -1,9 +1,13 @@
 
-import { describe, it } from 'node:test'
+import { describe, it, before } from 'node:test'
 import assert from 'node:assert'
 import { runSimulation } from './actions'
 
 describe('runSimulation', () => {
+  before(() => {
+    process.env.NODE_ENV = 'test';
+  });
+
   it('should simulate a simple middleware response', async () => {
     const code = `
       import { NextResponse } from 'next/server'

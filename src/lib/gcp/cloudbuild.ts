@@ -4,7 +4,8 @@ import { getDockerfile } from '@/lib/dockerfiles';
 import type { Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
-const CACHE_BUCKET = `${config.gcp.projectId}_deployify_cache`;
+const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+const CACHE_BUCKET = `${gcpProjectId}_deployify_cache`;
 
 interface BuildSubmissionConfig {
     projectSlug: string;
@@ -69,11 +70,12 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
     const workDir = safeRootDirectory ? `/workspace/${safeRootDirectory}` : '/workspace';
 
     // Use project-specific region if set, otherwise fall back to global config
-    const region = projectRegion || config.gcp.region;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
     const serviceName = `dfy-${projectSlug}`.substring(0, 63); // Cloud Run name limit
-    const imageName = `${region}-docker.pkg.dev/${config.gcp.projectId}/${config.gcp.artifactRegistry}/${serviceName}:${commitSha.substring(0, 7)}`;
-    const latestImageName = `${region}-docker.pkg.dev/${config.gcp.projectId}/${config.gcp.artifactRegistry}/${serviceName}:latest`;
+    const imageName = `${region}-docker.pkg.dev/${gcpProjectId}/${config.gcp.artifactRegistry}/${serviceName}:${commitSha.substring(0, 7)}`;
+    const latestImageName = `${region}-docker.pkg.dev/${gcpProjectId}/${config.gcp.artifactRegistry}/${serviceName}:latest`;
 
     // Get repository name from full name (owner/repo -> repo)
     const repoName = repoFullName.split('/')[1] || repoFullName;
@@ -321,7 +323,7 @@ node fix-next-config.js && rm fix-next-config.js`,
             entrypoint: 'bash',
             args: [
                 '-c',
-                `echo "Waiting for service to be ready..." && sleep 15 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet || (echo "Retry 1..." && sleep 10 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet) || (echo "Retry 2..." && sleep 10 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${config.gcp.projectId} --member="allUsers" --role="roles/run.invoker" --quiet) || echo "Warning: Could not set IAM policy - you may need to set it manually"`,
+                `echo "Waiting for service to be ready..." && sleep 15 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${gcpProjectId} --member="allUsers" --role="roles/run.invoker" --quiet || (echo "Retry 1..." && sleep 10 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${gcpProjectId} --member="allUsers" --role="roles/run.invoker" --quiet) || (echo "Retry 2..." && sleep 10 && gcloud run services add-iam-policy-binding ${serviceName} --region=${region} --project=${gcpProjectId} --member="allUsers" --role="roles/run.invoker" --quiet) || echo "Warning: Could not set IAM policy - you may need to set it manually"`,
             ],
         },
         // Get the service URL
@@ -365,7 +367,7 @@ node fix-next-config.js && rm fix-next-config.js`,
         source: {
             connectedRepository: {
                 // Format: projects/{project}/locations/{location}/connections/{connection}/repositories/{repo}
-                repository: `projects/${config.gcp.projectId}/locations/${region}/connections/deployify-github/repositories/${repoName}`,
+                repository: `projects/${gcpProjectId}/locations/${region}/connections/deployify-github/repositories/${repoName}`,
                 revision: commitSha,
             },
         },
@@ -396,12 +398,13 @@ export async function submitCloudBuild(
     }
 
     // Use project-specific region or fall back to global config
-    const region = projectRegion || config.gcp.region;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
     // Use regional endpoint for connected repositories
     // Format: /projects/{project}/locations/{location}/builds
     const response = await fetch(
-        `${CLOUD_BUILD_API}/projects/${config.gcp.projectId}/locations/${region}/builds`,
+        `${CLOUD_BUILD_API}/projects/${gcpProjectId}/locations/${region}/builds`,
         {
             method: 'POST',
             headers: {
@@ -422,7 +425,7 @@ export async function submitCloudBuild(
 
     return {
         buildId: data.metadata?.build?.id || data.name?.split('/').pop() || 'unknown',
-        logUrl: data.metadata?.build?.logUrl || `https://console.cloud.google.com/cloud-build/builds?project=${config.gcp.projectId}`,
+        logUrl: data.metadata?.build?.logUrl || `https://console.cloud.google.com/cloud-build/builds?project=${gcpProjectId}`,
         operationName: data.name,
     };
 }
@@ -444,11 +447,12 @@ export async function getBuildStatus(
     const accessToken = await getGcpAccessToken();
 
     // Use project-specific region or fall back to global config
-    const region = projectRegion || config.gcp.region;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
     // Use regional endpoint for builds in a specific region
     const response = await fetch(
-        `${CLOUD_BUILD_API}/projects/${config.gcp.projectId}/locations/${region}/builds/${buildId}`,
+        `${CLOUD_BUILD_API}/projects/${gcpProjectId}/locations/${region}/builds/${buildId}`,
         {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -503,11 +507,12 @@ export async function cancelBuild(buildId: string, projectRegion?: string | null
     const accessToken = await getGcpAccessToken();
 
     // Use project-specific region or fall back to global config
-    const region = projectRegion || config.gcp.region;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
     // Use regional endpoint
     const response = await fetch(
-        `${CLOUD_BUILD_API}/projects/${config.gcp.projectId}/locations/${region}/builds/${buildId}:cancel`,
+        `${CLOUD_BUILD_API}/projects/${gcpProjectId}/locations/${region}/builds/${buildId}:cancel`,
         {
             method: 'POST',
             headers: {
@@ -533,10 +538,11 @@ export async function getCloudRunServiceUrl(serviceName: string, projectRegion?:
     }
 
     // Use project-specific region or fall back to global config
-    const region = projectRegion || config.gcp.region;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
     const response = await fetch(
-        `https://run.googleapis.com/v2/projects/${config.gcp.projectId}/locations/${region}/services/${serviceName}`,
+        `https://run.googleapis.com/v2/projects/${gcpProjectId}/locations/${region}/services/${serviceName}`,
         {
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -558,11 +564,12 @@ export async function getCloudRunServiceUrl(serviceName: string, projectRegion?:
 export async function getBuildLogsContent(buildId: string, projectRegion?: string | null): Promise<string | null> {
     try {
         const accessToken = await getGcpAccessToken();
-        const region = projectRegion || config.gcp.region;
+        const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+        const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
         // 1. Get Build details to find logsBucket
         const buildResponse = await fetch(
-            `${CLOUD_BUILD_API}/projects/${config.gcp.projectId}/locations/${region}/builds/${buildId}`,
+            `${CLOUD_BUILD_API}/projects/${gcpProjectId}/locations/${region}/builds/${buildId}`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
         );
 

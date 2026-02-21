@@ -70,7 +70,8 @@ async function listProjectJobs(
     accessToken: string,
     fetchFn: typeof fetch
 ): Promise<GcpSchedulerJob[]> {
-    const parent = `projects/${config.gcp.projectId}/locations/${region}`;
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const parent = `projects/${gcpProjectId}/locations/${region}`;
     const url = `${CLOUD_SCHEDULER_API}/${parent}/jobs`;
 
     const response = await fetchFn(url, {
@@ -97,7 +98,9 @@ async function listProjectJobs(
  * List Cron Jobs for UI (From Incoming)
  */
 export async function listCronJobs(slug: string, accessToken: string): Promise<CronJob[]> {
-    const parent = `projects/${config.gcp.projectId}/locations/${config.gcp.region}`;
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const gcpRegion = config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const parent = `projects/${gcpProjectId}/locations/${gcpRegion}`;
 
     const response = await fetch(`${CLOUD_SCHEDULER_API}/${parent}/jobs`, {
         headers: {
@@ -180,7 +183,8 @@ async function createSchedulerJob(
     accessToken: string,
     fetchFn: typeof fetch
 ): Promise<void> {
-    const parent = `projects/${config.gcp.projectId}/locations/${region}`;
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const parent = `projects/${gcpProjectId}/locations/${region}`;
     const url = `${CLOUD_SCHEDULER_API}/${parent}/jobs`;
 
     const response = await fetchFn(url, {
@@ -281,7 +285,8 @@ export async function syncCronJobs(
     const serviceUrl = service.uri;
 
     const jobPrefix = `dfy-${project.slug}-cron-`;
-    const locationParent = `projects/${config.gcp.projectId}/locations/${region}/jobs`;
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const locationParent = `projects/${gcpProjectId}/locations/${region}/jobs`;
 
     // 1. List existing jobs
     const existingJobs = await listProjectJobs(region, jobPrefix, accessToken, _fetch);

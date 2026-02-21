@@ -24,8 +24,9 @@ export async function getService(
     accessToken: string,
     projectRegion?: string | null
 ): Promise<CloudRunService | null> {
-    const region = projectRegion || config.gcp.region;
-    const fullName = `projects/${config.gcp.projectId}/locations/${region}/services/${serviceName}`;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const fullName = `projects/${gcpProjectId}/locations/${region}/services/${serviceName}`;
 
     const response = await fetch(
         `${CLOUD_RUN_API}/${fullName}`,
@@ -62,8 +63,9 @@ export async function deleteService(
     accessToken: string,
     projectRegion?: string | null
 ): Promise<void> {
-    const region = projectRegion || config.gcp.region;
-    const fullName = `projects/${config.gcp.projectId}/locations/${region}/services/${serviceName}`;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const fullName = `projects/${gcpProjectId}/locations/${region}/services/${serviceName}`;
 
     const response = await fetch(
         `${CLOUD_RUN_API}/${fullName}`,
@@ -88,8 +90,9 @@ export async function listServices(
     accessToken: string,
     projectRegion?: string | null
 ): Promise<CloudRunService[]> {
-    const region = projectRegion || config.gcp.region;
-    const parent = `projects/${config.gcp.projectId}/locations/${region}`;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const parent = `projects/${gcpProjectId}/locations/${region}`;
 
     const response = await fetch(
         `${CLOUD_RUN_API}/${parent}/services?filter=metadata.name:${prefix}*`,
@@ -172,8 +175,9 @@ export async function updateTrafficTag(
     const currentTraffic = service.traffic || [];
     const newTraffic = calculateNewTraffic(currentTraffic, tag, revision, expectedRevision);
 
-    const region = projectRegion || config.gcp.region;
-    const fullName = `projects/${config.gcp.projectId}/locations/${region}/services/${serviceName}`;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const fullName = `projects/${gcpProjectId}/locations/${region}/services/${serviceName}`;
 
     const response = await fetch(
         `${CLOUD_RUN_API}/${fullName}`,
@@ -203,8 +207,9 @@ export async function updateTraffic(
     accessToken: string,
     projectRegion?: string | null
 ): Promise<void> {
-    const region = projectRegion || config.gcp.region;
-    const fullName = `projects/${config.gcp.projectId}/locations/${region}/services/${serviceName}`;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const fullName = `projects/${gcpProjectId}/locations/${region}/services/${serviceName}`;
 
     const response = await fetch(
         `${CLOUD_RUN_API}/${fullName}`,
@@ -235,8 +240,9 @@ export async function updateTraffic(
  * Get service URL for a project
  */
 export function getServiceUrl(serviceName: string, projectRegion?: string | null): string {
-    const region = projectRegion || config.gcp.region;
-    return `https://${serviceName}-${config.gcp.projectId}.${region}.run.app`;
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    return `https://${serviceName}-${gcpProjectId}.${region}.run.app`;
 }
 
 /**

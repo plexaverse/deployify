@@ -46,7 +46,8 @@ async function getMetricSum(
     return Math.floor(Math.random() * 9900) + 100;
   }
 
-  const region = projectRegion || config.gcp.region;
+  const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+  const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
   const accessToken = await getGcpAccessToken();
 
   const filter = `metric.type="${metricType}" AND resource.labels.service_name="${serviceName}" AND resource.labels.location="${region}"`;
@@ -67,7 +68,7 @@ async function getMetricSum(
     'aggregation.crossSeriesReducer': 'REDUCE_SUM',
   });
 
-  const url = `https://monitoring.googleapis.com/v3/projects/${config.gcp.projectId}/timeSeries?${queryParams.toString()}`;
+  const url = `https://monitoring.googleapis.com/v3/projects/${gcpProjectId}/timeSeries?${queryParams.toString()}`;
 
   const response = await fetch(url, {
     headers: {
