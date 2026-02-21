@@ -38,6 +38,8 @@ function main() {
             handleDeploy().catch(err => console.error('Deployment failed:', err.message));
             break;
         case 'help':
+        case '--help':
+        case '-h':
             showHelp();
             break;
         default:
