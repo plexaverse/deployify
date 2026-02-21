@@ -214,14 +214,15 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             project.id,
             projectSlug,
             buildId,
+            head_commit.id,
             project.region,
             project.webhookUrl,
             project.name,
             user.email,
             project.emailNotifications,
+            project.repoFullName,
             undefined,
-            undefined,
-            undefined
+            gitToken
         );
 
         console.log(`Started ${deploymentType} deployment for ${project.name}: ${deployment.id}`);
@@ -367,6 +368,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 project.id,
                 `${project.slug}-pr-${pull_request.number}`,
                 buildId,
+                pull_request.head.sha,
                 project.region,
                 project.webhookUrl,
                 project.name,

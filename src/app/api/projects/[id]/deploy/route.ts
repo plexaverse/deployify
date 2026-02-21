@@ -213,14 +213,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     project.id,
                     project.slug,
                     buildId,
+                    commitSha,
                     project.region,
                     project.webhookUrl,
                     project.name,
                     session.user.email,
                     project.emailNotifications,
+                    project.repoFullName,
                     undefined,
-                    undefined,
-                    undefined
+                    session.accessToken
                 );
 
                 return NextResponse.json(

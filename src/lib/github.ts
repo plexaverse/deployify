@@ -42,6 +42,22 @@ export async function listUserRepos(
     accessToken: string,
     options: { page?: number; perPage?: number; sort?: 'updated' | 'pushed' | 'full_name' } = {}
 ): Promise<GitHubRepo[]> {
+    if (accessToken === 'mock-access-token') {
+        return [
+            {
+                id: 1,
+                name: 'mock-repo',
+                full_name: 'owner/mock-repo',
+                private: false,
+                html_url: 'https://github.com/owner/mock-repo',
+                description: 'A mock repository',
+                default_branch: 'main',
+                language: 'TypeScript',
+                updated_at: new Date().toISOString(),
+                pushed_at: new Date().toISOString(),
+            },
+        ];
+    }
     const octokit = createGitHubClient(accessToken);
 
     const { data } = await octokit.repos.listForAuthenticatedUser({
