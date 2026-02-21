@@ -14,7 +14,8 @@ export async function enableCloudArmor(
     // 4. Attach the policy to the backend service
 
     // For now, we simulate the API call with a log
-    console.log(`[Cloud Armor] Enabling security policy for service: ${serviceName} in project ${config.gcp.projectId}`);
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    console.log(`[Cloud Armor] Enabling security policy for service: ${serviceName} in project ${gcpProjectId}`);
 
     // Simulate API latency
     await new Promise(resolve => setTimeout(resolve, 500));

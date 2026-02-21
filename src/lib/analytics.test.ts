@@ -1,64 +1,108 @@
 
-import { getAnalyticsStats } from './analytics';
-import { strict as assert } from 'node:assert';
-import { test, mock, describe, beforeEach, afterEach } from 'node:test';
+import assert from 'node:assert';
+import { test, mock, describe, beforeEach } from 'node:test';
+
+// Set up mocks before importing the module under test
+const mockDb = {
+    collection: mock.fn(() => ({
+        where: mock.fn(() => ({
+            where: mock.fn(() => ({
+                orderBy: mock.fn(() => ({
+                    get: mock.fn(async () => ({
+                        empty: false,
+                        docs: [
+                            {
+                                id: 'event_1',
+                                data: () => ({
+                                    type: 'pageview',
+                                    projectId: 'proj_123',
+                                    path: '/',
+                                    ip: '1.2.3.4',
+                                    timestamp: { toDate: () => new Date() }
+                                })
+                            }
+                        ]
+                    }))
+                }))
+            }))
+        }))
+    }))
+};
+
+const mockBigQueryInstance = {
+    query: mock.fn(async () => [
+        [
+            { date: '2023-01-01', visitors: 10, pageviews: 20 }
+        ]
+    ])
+};
+
+mock.module('@/lib/firebase', {
+    namedExports: {
+        getDb: () => mockDb,
+        Collections: { ANALYTICS_EVENTS: 'analytics_events' }
+    }
+});
+
+mock.module('@google-cloud/bigquery', {
+    namedExports: {
+        BigQuery: class {
+            constructor() { return mockBigQueryInstance as any; }
+            query = mockBigQueryInstance.query;
+        }
+    }
+});
 
 describe('getAnalyticsStats', () => {
-    let originalFetch: typeof global.fetch;
-    let originalEnv: NodeJS.ProcessEnv;
-
     beforeEach(() => {
-        originalFetch = global.fetch;
-        originalEnv = { ...process.env };
-        process.env.PLAUSIBLE_API_KEY = 'test-key';
-
-        // Mock fetch
-        global.fetch = mock.fn();
+        mockDb.collection.mock.resetCalls();
+        mockBigQueryInstance.query.mock.resetCalls();
     });
 
-    afterEach(() => {
-        global.fetch = originalFetch;
-        process.env = originalEnv;
-    });
+    test('prefers BigQuery data when available', async () => {
+        // Dynamic import after mocking
+        const { getAnalyticsStats } = await import('./analytics');
 
-    test('fetches analytics data correctly', async () => {
-        const mockAggregate = { results: { visitors: { value: 100 }, pageviews: { value: 200 }, bounce_rate: { value: 50 }, visit_duration: { value: 60 } } };
-        const mockTimeseries = { results: [{ date: '2023-01-01', visitors: 10, pageviews: 20 }] };
-        const mockSources = { results: [{ source: 'Google', visitors: 50 }] };
-        const mockLocations = { results: [{ country: 'United States', visitors: 40 }] };
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (global.fetch as any).mock.mockImplementation(async (url: string) => {
-            if (url.includes('/aggregate')) return { ok: true, json: async () => mockAggregate };
-            if (url.includes('/timeseries')) return { ok: true, json: async () => mockTimeseries };
-            if (url.includes('property=visit:source')) return { ok: true, json: async () => mockSources };
-            if (url.includes('property=visit:country')) return { ok: true, json: async () => mockLocations };
-            return { ok: false };
-        });
-
-        const stats = await getAnalyticsStats('example.com');
-
-        assert.deepEqual(stats?.aggregate, mockAggregate.results);
-        assert.deepEqual(stats?.timeseries, mockTimeseries.results);
-        assert.deepEqual(stats?.sources, mockSources.results);
-        assert.deepEqual(stats?.locations, mockLocations.results);
-    });
-
-    test('returns mock data when API key is missing', async () => {
-        delete process.env.PLAUSIBLE_API_KEY;
-        const stats = await getAnalyticsStats('example.com', '30d', undefined);
+        const stats = await getAnalyticsStats('proj_123', '30d');
 
         assert.ok(stats);
-        assert.ok(stats?.aggregate.visitors.value > 0);
-        assert.ok(stats?.timeseries.length > 0);
-        assert.ok(stats?.locations.length > 0);
+        assert.strictEqual(stats?.timeseries.length, 1);
+        assert.strictEqual(stats?.timeseries[0].visitors, 10);
+        assert.strictEqual(mockBigQueryInstance.query.mock.callCount(), 1);
     });
 
-    test('handles API errors gracefully', async () => {
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-         (global.fetch as any).mock.mockImplementation(async () => ({ ok: false, status: 500 }));
+    test('falls back to Firestore when BigQuery is empty', async () => {
+        const { getAnalyticsStats } = await import('./analytics');
 
-         const stats = await getAnalyticsStats('example.com');
-         assert.equal(stats, null);
+        // Mock BigQuery to return empty
+        mockBigQueryInstance.query.mock.mockImplementationOnce(async () => [[]]);
+
+        const stats = await getAnalyticsStats('proj_123', '30d');
+
+        assert.ok(stats);
+        assert.strictEqual(mockDb.collection.mock.callCount(), 1);
+        assert.strictEqual(stats?.aggregate.pageviews.value, 1);
+    });
+
+    test('returns mock data when both BQ and Firestore are empty', async () => {
+        const { getAnalyticsStats } = await import('./analytics');
+
+        mockBigQueryInstance.query.mock.mockImplementationOnce(async () => [[]]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockDb.collection.mock.mockImplementationOnce(() => ({
+            where: () => ({
+                where: () => ({
+                    orderBy: () => ({
+                        get: async () => ({ empty: true, docs: [] })
+                    })
+                })
+            })
+        }) as any);
+
+        const stats = await getAnalyticsStats('proj_123', '30d');
+
+        assert.ok(stats);
+        // Mock data usually has many days
+        assert.ok(stats?.timeseries.length > 1);
     });
 });

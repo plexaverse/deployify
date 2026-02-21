@@ -22,14 +22,16 @@ export async function createDomainMapping(
         const { access_token } = await tokenResponse.json();
 
         // Create domain mapping using Cloud Run Admin API
-        const apiUrl = `https://run.googleapis.com/v1/projects/${config.gcp.projectId}/locations/${config.gcp.region}/domainmappings`;
+        const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+        const gcpRegion = config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+        const apiUrl = `https://run.googleapis.com/v1/projects/${gcpProjectId}/locations/${gcpRegion}/domainmappings`;
 
         const domainMapping = {
             apiVersion: 'run.googleapis.com/v1',
             kind: 'DomainMapping',
             metadata: {
                 name: domain,
-                namespace: config.gcp.projectId,
+                namespace: gcpProjectId,
             },
             spec: {
                 routeName: serviceName,
@@ -82,7 +84,9 @@ export async function deleteDomainMapping(
         const { access_token } = await tokenResponse.json();
 
         // Delete domain mapping
-        const apiUrl = `https://run.googleapis.com/v1/projects/${config.gcp.projectId}/locations/${config.gcp.region}/domainmappings/${domain}`;
+        const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+        const gcpRegion = config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+        const apiUrl = `https://run.googleapis.com/v1/projects/${gcpProjectId}/locations/${gcpRegion}/domainmappings/${domain}`;
 
         const response = await fetch(apiUrl, {
             method: 'DELETE',
@@ -127,7 +131,9 @@ export async function getDomainMappingStatus(
         const { access_token } = await tokenResponse.json();
 
         // Get domain mapping status
-        const apiUrl = `https://run.googleapis.com/v1/projects/${config.gcp.projectId}/locations/${config.gcp.region}/domainmappings/${domain}`;
+        const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+        const gcpRegion = config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+        const apiUrl = `https://run.googleapis.com/v1/projects/${gcpProjectId}/locations/${gcpRegion}/domainmappings/${domain}`;
 
         const response = await fetch(apiUrl, {
             method: 'GET',

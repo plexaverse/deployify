@@ -5,9 +5,10 @@ import { config } from '@/lib/config';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getStatsFromBigQuery(projectId: string, days: number): Promise<any[]> {
     try {
+        const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
         const { BigQuery } = await import('@google-cloud/bigquery');
         const bq = new BigQuery({
-            projectId: config.gcp.projectId,
+            projectId: gcpProjectId,
             credentials: {
                 client_email: config.firebase.clientEmail,
                 private_key: config.firebase.privateKey,
@@ -19,7 +20,7 @@ async function getStatsFromBigQuery(projectId: string, days: number): Promise<an
                 FORMAT_TIMESTAMP('%Y-%m-%d', timestamp) as date,
                 COUNT(DISTINCT ip) as visitors,
                 COUNT(*) as pageviews
-            FROM \`${config.gcp.projectId}.${config.bigquery.dataset}.${config.bigquery.table}\`
+            FROM \`${gcpProjectId}.${config.bigquery.dataset}.${config.bigquery.table}\`
             WHERE projectId = @projectId
             AND timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL @days DAY)
             AND type = 'pageview'
