@@ -47,6 +47,7 @@ mock.module('@/lib/firebase', {
 mock.module('@google-cloud/bigquery', {
     namedExports: {
         BigQuery: class {
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
             constructor() { return mockBigQueryInstance as any; }
             query = mockBigQueryInstance.query;
         }
@@ -88,7 +89,7 @@ describe('getAnalyticsStats', () => {
         const { getAnalyticsStats } = await import('./analytics');
 
         mockBigQueryInstance.query.mock.mockImplementationOnce(async () => [[]]);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         mockDb.collection.mock.mockImplementationOnce(() => ({
             where: () => ({
                 where: () => ({
@@ -97,6 +98,7 @@ describe('getAnalyticsStats', () => {
                     })
                 })
             })
+            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         }) as any);
 
         const stats = await getAnalyticsStats('proj_123', '30d');

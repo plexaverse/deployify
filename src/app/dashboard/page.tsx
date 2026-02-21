@@ -7,7 +7,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { EmptyState } from '@/components/EmptyState';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { ProjectCard } from '@/components/ProjectCard';
