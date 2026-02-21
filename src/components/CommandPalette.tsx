@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Search, Rocket, X } from 'lucide-react';
 import { Project } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -54,12 +55,14 @@ export function CommandPalette() {
   return (
     <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-start justify-center pt-[20vh] px-4" onClick={() => setIsOpen(false)}>
        <div
-         className="w-full max-w-xl bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+         className="w-full max-w-xl bg-[var(--card)] border border-[var(--border)] rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 backdrop-blur-xl"
          onClick={e => e.stopPropagation()}
        >
-          <div className="flex items-center border-b border-[var(--border)] px-4 group">
+          <div className="flex items-center border-b border-[var(--border)] px-4 group focus-within:bg-[var(--muted)]/10 transition-colors">
             <Search className="w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors" />
+            <label htmlFor="command-search" className="sr-only">Search projects</label>
             <Input
+               id="command-search"
                ref={inputRef}
                role="combobox"
                aria-expanded={isOpen}
@@ -74,7 +77,14 @@ export function CommandPalette() {
                  setSelectedIndex(0);
                }}
                onKeyDown={(e) => {
-                 if (e.key === 'ArrowDown') {
+                 if (e.key === 'Escape') {
+                   if (query) {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     setQuery('');
+                     setSelectedIndex(0);
+                   }
+                 } else if (e.key === 'ArrowDown') {
                    e.preventDefault();
                    setSelectedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : prev));
                  } else if (e.key === 'ArrowUp') {
@@ -114,11 +124,13 @@ export function CommandPalette() {
              ) : (
                <div className="space-y-1" role="listbox" id="command-results">
                  {filtered.map((project, index) => (
-                   <button
+                   <motion.button
+                     whileTap={{ scale: 0.98 }}
                      id={`project-${project.id}`}
                      key={project.id}
                      role="option"
                      aria-selected={selectedIndex === index}
+                     onMouseEnter={() => setSelectedIndex(index)}
                      onClick={() => {
                        router.push(`/dashboard/${project.id}`);
                        setIsOpen(false);
@@ -132,8 +144,8 @@ export function CommandPalette() {
                         <div className="text-sm font-medium text-[var(--foreground)]">{project.name}</div>
                         <div className="text-xs text-[var(--muted-foreground)]">{project.repoFullName}</div>
                      </div>
-                     <span className="text-xs text-[var(--muted-foreground)] group-hover:text-[var(--muted)]">Jump to</span>
-                   </button>
+                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] opacity-0 group-hover:opacity-100 transition-all duration-300">Jump to</span>
+                   </motion.button>
                  ))}
                </div>
              )}

@@ -469,7 +469,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 max-w-2xl mx-auto"
           >
-            <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm relative group">
+            <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-xl relative group shadow-2xl shadow-black/50">
               <h3 className="text-xl font-bold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
               <div className="relative">
                 <label htmlFor="repo-search" className="sr-only">Search your GitHub repositories</label>
@@ -480,11 +480,16 @@ export default function LandingPage() {
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search your GitHub repositories..."
-                  className="w-full h-auto bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
+                  className="w-full h-auto bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] focus:ring-2 focus:ring-[var(--foreground)]/40 focus:border-[var(--foreground)]/50 transition-all"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setSelectedIndex(-1); }}
                   onKeyDown={(e) => {
-                    if (e.key === 'ArrowDown') {
+                    if (e.key === 'Escape') {
+                      if (searchQuery) {
+                        setSearchQuery('');
+                        setSelectedIndex(-1);
+                      }
+                    } else if (e.key === 'ArrowDown') {
                       e.preventDefault();
                       setSelectedIndex(prev => (prev < filteredRepos.length - 1 ? prev + 1 : prev));
                     } else if (e.key === 'ArrowUp') {
