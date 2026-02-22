@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
             }
             projects = await listProjectsByTeam(teamId);
         } else {
-             // Default to personal projects if no teamId specified
-             projects = await listPersonalProjects(session.user.id);
+            // Default to personal projects if no teamId specified
+            projects = await listPersonalProjects(session.user.id);
         }
 
         return NextResponse.json(
@@ -201,6 +201,7 @@ export async function POST(request: NextRequest) {
             githubToken: encrypt(session.accessToken), // Encrypt GitHub token
             region: region || null,
             envVariables: processedEnvVars,
+            autoDeployPrs: true,
         });
 
         await logAuditEvent(

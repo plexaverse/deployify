@@ -95,6 +95,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             'autodeployBranches',
             'branchEnvironments',
             'emailNotifications',
+            'autoDeployPrs',
             'framework',
             'crons',
         ];

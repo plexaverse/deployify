@@ -34,6 +34,7 @@ export default function ProjectSettingsPage() {
         framework,
         webhookUrl,
         emailNotifications,
+        autoDeployPrs,
         cloudArmorEnabled,
         isSavingProjectSettings: saving,
         isSavingWebhook: savingWebhook,
@@ -69,13 +70,13 @@ export default function ProjectSettingsPage() {
     if (loading) {
         return (
             <div className="p-8 max-w-4xl mx-auto space-y-8">
-                 <div className="space-y-2">
+                <div className="space-y-2">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-8 w-64" />
                     <Skeleton className="h-4 w-48" />
-                 </div>
-                 <Skeleton className="h-[200px] w-full rounded-xl" />
-                 <Skeleton className="h-[200px] w-full rounded-xl" />
+                </div>
+                <Skeleton className="h-[200px] w-full rounded-xl" />
+                <Skeleton className="h-[200px] w-full rounded-xl" />
             </div>
         );
     }
@@ -222,6 +223,25 @@ export default function ProjectSettingsPage() {
                             </div>
                         </div>
 
+                        <Separator className="my-4" />
+
+                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('autoDeployPrs', !autoDeployPrs)}>
+                            <div className="flex-1 pr-4">
+                                <Label htmlFor="auto-deploy-prs" className="text-base font-medium cursor-pointer group-hover:text-[var(--primary)] transition-colors">
+                                    Automatic PR Deployments
+                                </Label>
+                                <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                                    If enabled, every Pull Request will automatically trigger a new preview deployment. Disable this to save on server costs.
+                                </p>
+                            </div>
+                            <Switch
+                                id="auto-deploy-prs"
+                                checked={autoDeployPrs}
+                                onCheckedChange={(checked) => setProjectSettingsField('autoDeployPrs', checked)}
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </div>
+
                         <div className="flex justify-end pt-2">
                             <Button
                                 onClick={() => saveProjectSettings(project.id)}
@@ -304,7 +324,7 @@ export default function ProjectSettingsPage() {
                     <div className="mb-6">
                         <h2 className="text-xl font-semibold mb-1">Security</h2>
                         <p className="text-sm text-[var(--muted-foreground)]">
-                             Configure security features for your deployments.
+                            Configure security features for your deployments.
                         </p>
                     </div>
 

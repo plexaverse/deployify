@@ -127,18 +127,18 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         gitCommitAuthor: head_commit.author.username || head_commit.author.name,
     });
 
-        await logAuditEvent(
-            project.teamId || null,
-            project.userId,
-            'deployment.created',
-            {
-                projectId: project.id,
-                deploymentId: deployment.id,
-                trigger: 'webhook',
-                branch,
-                commitSha: head_commit.id
-            }
-        );
+    await logAuditEvent(
+        project.teamId || null,
+        project.userId,
+        'deployment.created',
+        {
+            projectId: project.id,
+            deploymentId: deployment.id,
+            trigger: 'webhook',
+            branch,
+            commitSha: head_commit.id
+        }
+    );
 
     try {
         // Get environment variables directly from project and split by target
@@ -269,6 +269,12 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
     // Handle PR opened or synchronized - create/update preview deployment
     if (action === 'opened' || action === 'synchronize' || action === 'reopened') {
+        // Check if automatic PR deployments are enabled
+        if (project.autoDeployPrs === false) {
+            console.log(`Auto-deploy for PRs is disabled for project ${project.name}. Skipping...`);
+            return;
+        }
+
         // Create deployment record
         const deployment = await createDeployment({
             projectId: project.id,
