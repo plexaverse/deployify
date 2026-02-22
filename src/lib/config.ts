@@ -90,13 +90,19 @@ export function validateConfig(): void {
         'GITHUB_WEBHOOK_SECRET',
         'GCP_PROJECT_ID',
         'JWT_SECRET',
+        'ENCRYPTION_KEY',
     ];
 
     const missing = required.filter(key => !process.env[key]);
 
     if (missing.length > 0) {
-        console.warn(`[Config] Missing environment variables: ${missing.join(', ')}`);
-        // We don't throw here anymore to prevent hard crashes in some environments
-        // but it will likely fail later if those features are used.
+        console.warn('╔═══════════════════════════════════════════════════════════════════╗');
+        console.warn('║ [Config] WARNING: Missing required environment variables          ║');
+        console.warn('╠═══════════════════════════════════════════════════════════════════╣');
+        missing.forEach(key => {
+            console.warn(`║  - ${key.padEnd(62)} ║`);
+        });
+        console.warn('╚═══════════════════════════════════════════════════════════════════╝');
+        console.warn('[Config] Some features may not work correctly until these are set.');
     }
 }

@@ -297,6 +297,38 @@ export interface GitHubPullRequestEvent {
     };
 }
 
+// Analytics event structure
+export interface AnalyticsEvent {
+    projectId: string;
+    type: 'pageview' | 'vitals' | string;
+    path: string;
+    referrer: string;
+    width?: number;
+    metrics?: {
+        lcp?: number;
+        cls?: number;
+        fid?: number;
+        fcp?: number;
+        ttfb?: number;
+        [key: string]: number | undefined;
+    } | null;
+    ip: string;
+    userAgent: string;
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    timestamp: any; // Firestore Timestamp or ISO String
+    source?: 'client' | 'edge';
+}
+
+// Tooltip entry for Recharts
+export interface TooltipEntry {
+    name: string;
+    value: number | string;
+    color: string;
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    payload: any;
+    dataKey: string;
+}
+
 // API Response types
 export interface ApiResponse<T = unknown> {
     success: boolean;

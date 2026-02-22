@@ -1,9 +1,14 @@
 import { getDb, Collections } from '@/lib/firebase';
-import { AnalyticsStats } from '@/types';
+import { AnalyticsStats, AnalyticsEvent } from '@/types';
 import { config } from '@/lib/config';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getStatsFromBigQuery(projectId: string, days: number): Promise<any[]> {
+interface BQRow {
+    date: string;
+    visitors: number;
+    pageviews: number;
+}
+
+async function getStatsFromBigQuery(projectId: string, days: number): Promise<BQRow[]> {
     try {
         const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
         const { BigQuery } = await import('@google-cloud/bigquery');
@@ -34,7 +39,7 @@ async function getStatsFromBigQuery(projectId: string, days: number): Promise<an
         };
 
         const [rows] = await bq.query(options);
-        return rows;
+        return rows as BQRow[];
     } catch (error) {
         console.error('[BigQuery Aggregation Error]:', error);
         return [];
@@ -93,7 +98,7 @@ export async function getAnalyticsStats(
             return getMockData(period);
         }
 
-        const events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const events = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as AnalyticsEvent) }));
 
         // Process data (Group by day)
         const dailyData: Record<string, { visitors: Set<string>, pageviews: number }> = {};
@@ -101,9 +106,8 @@ export async function getAnalyticsStats(
         const locations: Record<string, number> = {};
         const treatedPageviews = new Set<string>();
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        events.forEach((event: any) => {
-            const ts = event.timestamp.toDate();
+        events.forEach((event) => {
+            const ts = typeof event.timestamp.toDate === 'function' ? event.timestamp.toDate() : new Date(event.timestamp);
             const date = ts.toISOString().split('T')[0];
             const ip = event.ip || 'unknown';
             const path = event.path || '/';
@@ -140,17 +144,13 @@ export async function getAnalyticsStats(
         })).sort((a, b) => a.date.localeCompare(b.date));
 
         const totalPageviews = timeseries.reduce((acc, curr) => acc + curr.pageviews, 0);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const totalVisitors = new Set(events.map((e: any) => e.ip)).size;
+        const totalVisitors = new Set(events.map((e) => e.ip)).size;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const vitals = events.filter((e: any) => e.type === 'vitals');
-        const avgMetric = (metricName: string) => {
+        const vitals = events.filter((e) => e.type === 'vitals');
+        const avgMetric = (metricName: keyof NonNullable<AnalyticsEvent['metrics']>) => {
             const values = vitals
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .map((e: any) => e.metrics?.[metricName])
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .filter((v: any) => typeof v === 'number');
+                .map((e) => e.metrics?.[metricName])
+                .filter((v): v is number => typeof v === 'number');
             if (values.length === 0) return 0;
             return values.reduce((a, b) => a + b, 0) / values.length;
         };
@@ -242,9 +242,8 @@ export async function getRealtimeStats(projectId: string): Promise<{ visitors: n
             return { visitors: 0, pageviews: 0 };
         }
 
-        const events = snapshot.docs.map(doc => doc.data());
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const visitors = new Set(events.map((e: any) => e.ip || 'unknown')).size;
+        const events = snapshot.docs.map(doc => doc.data() as AnalyticsEvent);
+        const visitors = new Set(events.map((e) => e.ip || 'unknown')).size;
 
         return {
             visitors,
@@ -256,8 +255,7 @@ export async function getRealtimeStats(projectId: string): Promise<{ visitors: n
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const trackEvent = async (eventName: string, props?: Record<string, any>) => {
+export const trackEvent = async (eventName: string, props?: Record<string, unknown>) => {
     if (typeof window === 'undefined') return;
 
     try {

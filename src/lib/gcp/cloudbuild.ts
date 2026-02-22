@@ -144,6 +144,8 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
             break;
     }
 
+    const isNextjs = framework === 'nextjs' || !framework;
+
     // Generate the Dockerfile content
     let dockerfileContent = '';
     if (!isDockerFramework) {
@@ -184,7 +186,7 @@ fi`,
             ],
         },
         // Check if next.config has output: 'standalone' (only for Next.js/default)
-        ...(isDockerFramework ? [] : [{
+        ...(isNextjs ? [{
             name: 'node:20-alpine',
             entrypoint: 'sh',
             args: [
@@ -218,7 +220,7 @@ for (const f of files) {
 EOF
 node fix-next-config.js && rm fix-next-config.js`,
             ],
-        }]),
+        }] : []),
         // Pull the latest image for caching
         {
             name: 'gcr.io/cloud-builders/docker',
