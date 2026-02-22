@@ -30,6 +30,7 @@ export default function DeploymentsPage() {
         currentDeployments: deployments,
         isLoadingProject: loading,
         fetchProjectDetails,
+        fetchDeployments,
         selectedLogsId,
         setSelectedLogsId,
         rollbackDeployment,
@@ -44,6 +45,25 @@ export default function DeploymentsPage() {
             fetchProjectDetails(params.id as string);
         }
     }, [params.id, fetchProjectDetails]);
+
+    // Poll for deployment updates if any are active
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+
+        const hasActiveDeployments = deployments.some(d =>
+            d.status === 'building' || d.status === 'queued' || d.status === 'deploying'
+        );
+
+        if (project && hasActiveDeployments) {
+            interval = setInterval(() => {
+                fetchDeployments(project.id);
+            }, 5000);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [deployments, project, fetchDeployments]);
 
     const getStatusBadge = (status: string) => {
         switch (status) {

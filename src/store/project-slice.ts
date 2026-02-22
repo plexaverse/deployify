@@ -48,6 +48,7 @@ export interface ProjectSlice {
     setProjectDomains: (domains: Domain[]) => void;
 
     fetchProjectDetails: (projectId: string) => Promise<void>;
+    fetchDeployments: (projectId: string) => Promise<void>;
     redeployProject: (projectId: string) => Promise<void>;
     cancelDeployment: (projectId: string, deploymentId: string) => Promise<void>;
 
@@ -168,6 +169,18 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         }
     },
 
+    fetchDeployments: async (projectId) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/deployments`);
+            if (response.ok) {
+                const data = await response.json();
+                set({ currentDeployments: data.deployments || [] });
+            }
+        } catch (error) {
+            console.error('Failed to fetch deployments:', error);
+        }
+    },
+
     redeployProject: async (projectId) => {
         set({ isRedeploying: true });
         try {
@@ -176,9 +189,8 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             });
 
             if (response.ok) {
-                const deploymentsResponse = await fetch(`/api/projects/${projectId}/deployments`);
-                const data = await deploymentsResponse.json();
-                set({ currentDeployments: data.deployments || [] });
+                // Re-fetch using the new action
+                await get().fetchDeployments(projectId);
             }
         } catch (error) {
             console.error('Failed to trigger deployment:', error);
@@ -194,9 +206,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             });
 
             if (response.ok) {
-                const deploymentsResponse = await fetch(`/api/projects/${projectId}/deployments`);
-                const data = await deploymentsResponse.json();
-                set({ currentDeployments: data.deployments || [] });
+                await get().fetchDeployments(projectId);
             }
         } catch (error) {
             console.error('Failed to cancel deployment:', error);

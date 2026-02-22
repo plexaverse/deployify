@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { getProjectById, listDeploymentsByProject } from '@/lib/db';
 import { securityHeaders } from '@/lib/security';
+import { syncDeploymentStatus } from '@/lib/deployment';
+import { slugify } from '@/lib/utils';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -41,6 +43,53 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         const limit = limitParam ? parseInt(limitParam, 10) : 100;
 
         const deployments = await listDeploymentsByProject(id, limit);
+
+        // Sync status for active deployments to ensure data freshness
+        // This handles cases where Cloud Run CPU throttling might pause background polling
+        const activeDeployments = deployments.filter(d =>
+            d.status === 'queued' || d.status === 'building' || d.status === 'deploying'
+        );
+
+        if (activeDeployments.length > 0) {
+            const updatedDeployments = await Promise.all(activeDeployments.map(async (d) => {
+                if (!d.cloudBuildId) return d;
+
+                // Determine project slug based on deployment type
+                let projectSlug = project.slug;
+                if (d.type === 'preview' && d.pullRequestNumber) {
+                    projectSlug = `${project.slug}-pr-${d.pullRequestNumber}`;
+                } else if (d.type === 'branch') {
+                    projectSlug = `${project.slug}-${slugify(d.gitBranch)}`;
+                }
+
+                // Call sync logic
+                const updated = await syncDeploymentStatus(
+                    d.id,
+                    project.id,
+                    projectSlug,
+                    d.cloudBuildId,
+                    d.gitCommitSha,
+                    project.region,
+                    project.webhookUrl,
+                    project.name,
+                    session.user.email,
+                    project.emailNotifications,
+                    project.repoFullName,
+                    d.pullRequestNumber,
+                    session.accessToken
+                );
+
+                return updated || d;
+            }));
+
+            // Update the deployments list with fresh data
+            updatedDeployments.forEach(updated => {
+                 const index = deployments.findIndex(d => d.id === updated.id);
+                 if (index !== -1) {
+                     deployments[index] = updated;
+                 }
+            });
+        }
 
         return NextResponse.json(
             { deployments },
