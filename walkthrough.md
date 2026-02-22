@@ -13,7 +13,7 @@ This document outlines the end-to-end verification of Day 1 features for Deployi
 - **Implementation:** Uses `EventSource` to connect to `/api/projects/[id]/logs?stream=true`.
 
 **Test Results:**
-- `scripts/verification/test-log-parser.ts` executed successfully.
+- Verified via unit tests (`npm run test`).
 - Verified correct parsing of standard log entries, server errors, and handling of malformed JSON.
 
 ## 2. Vite/Astro Project Creation
@@ -27,7 +27,7 @@ This document outlines the end-to-end verification of Day 1 features for Deployi
   - **Astro:** Uses Node.js runner (`node ./dist/server/entry.mjs`).
 
 **Test Results:**
-- `scripts/verification/test-frameworks.ts` executed successfully.
+- Verified via unit tests (`npm run test`).
 - Verified Dockerfile output contains correct build commands and start commands for Next.js, Vite, Astro, and Remix.
 
 ## 3. Billing Dashboard & Usage Tracking
@@ -40,7 +40,7 @@ This document outlines the end-to-end verification of Day 1 features for Deployi
 - **API:** `/api/billing/usage` returns usage, limits, and tier info.
 
 **Test Results:**
-- `scripts/verification/test-billing-logic.ts` executed successfully.
+- Verified via unit tests (`npm run test`).
 - Verified `getTierLimits` returns correct values for Free and Pro tiers.
 - Verified `getProductionServiceName` and `getPreviewServiceName` generate correct Cloud Run service names.
 
@@ -53,7 +53,7 @@ This document outlines the end-to-end verification of Day 1 features for Deployi
   - `calculateLimitStatus`: Pure function determining if usage is within tier limits.
 
 **Test Results:**
-- `scripts/verification/test-billing-logic.ts` executed successfully.
+- Verified via unit tests (`npm run test`).
 - Verified `calculateLimitStatus` logic against various usage scenarios using actual project types.
 
 # Day 2 Verification Walkthrough
@@ -68,7 +68,7 @@ This section details the verification of features implemented in Day 2, includin
 - **RBAC:** Verified that team creation sets the creator as 'owner' and invites work correctly.
 
 **Test Results:**
-- `verification/sprint_50_review.test.ts` executed successfully.
+- Verified via unit tests (`npm run test`).
 - Verified `createTeam` creates both a team document and a membership document for the owner.
 - Verified `createInvite` stores invitation data correctly.
 - Verified `acceptInvite` converts an invite into a team membership.
@@ -81,7 +81,7 @@ This section details the verification of features implemented in Day 2, includin
 - **Implementation:** Sends a PATCH request to Cloud Run API to set 100% traffic to the specified revision.
 
 **Test Results:**
-- `verification/sprint_50_review.test.ts` executed successfully.
+- Verified via unit tests (`npm run test`).
 - Verified that `updateTraffic` sends the correct payload (`TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION`, `percent: 100`) to the Google Cloud Run API.
 
 ## 7. Analytics Dashboard
@@ -92,7 +92,7 @@ This section details the verification of features implemented in Day 2, includin
 - **Implementation:** Fetches data from Plausible Analytics API, with a fallback to mock data for development.
 
 **Test Results:**
-- `src/lib/analytics.test.ts` executed successfully.
+- Verified via unit tests (`npm run test`).
 - Verified that the function returns structured analytics data (aggregate, timeseries, sources).
 - Verified correct fallback behavior when `PLAUSIBLE_API_KEY` is missing.
 - Verified correct API calls when key is present.
