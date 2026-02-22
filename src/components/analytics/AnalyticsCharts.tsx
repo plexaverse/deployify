@@ -9,7 +9,7 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import { AnalyticsStats } from '@/types';
+import { AnalyticsStats, TooltipEntry } from '@/types';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -245,17 +245,15 @@ function WebVitalCard({ title, value, unit, status, description }: {
     );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function AnalyticsTooltip({ active, payload, label }: any) {
-    if (active && payload && payload.length) {
+function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) {
+    if (active && payload && payload.length && label) {
         return (
             <Card className="p-3 shadow-xl ring-1 ring-black/5 bg-[var(--card)] border-[var(--border)]">
                 <p className="text-sm font-medium text-[var(--foreground)] mb-2">
                     {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
                 <div className="space-y-1">
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {payload.map((entry: any, index: number) => (
+                    {payload.map((entry: TooltipEntry, index: number) => (
                         <div key={index} className="flex items-center gap-2 text-xs">
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                             <span className="text-[var(--muted-foreground)]">{entry.name}:</span>

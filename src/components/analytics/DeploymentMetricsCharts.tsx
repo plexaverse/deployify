@@ -11,7 +11,7 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import type { Deployment } from '@/types';
+import type { Deployment, TooltipEntry } from '@/types';
 import { formatDuration } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 
@@ -19,21 +19,19 @@ interface DeploymentMetricsChartsProps {
     deployments: Deployment[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 shadow-xl">
                 <p className="text-sm font-medium text-[var(--foreground)] mb-2">
                     {label}
                 </p>
-                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                 {payload.map((entry: any, index: number) => (
+                 {payload.map((entry: TooltipEntry, index: number) => (
                     <div key={index} className="flex items-center gap-2 text-xs">
                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                         <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
                         <span className="font-mono font-medium text-[var(--foreground)]">
-                            {entry.name === 'Duration' ? formatDuration(entry.value * 1000) : entry.value}
+                            {entry.name === 'Duration' ? formatDuration(Number(entry.value) * 1000) : entry.value}
                         </span>
                     </div>
                 ))}

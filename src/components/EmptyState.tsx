@@ -6,8 +6,7 @@ interface EmptyStateProps {
     title: string;
     description?: React.ReactNode;
     icon?: LucideIcon;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    illustration?: React.ComponentType<any>;
+    illustration?: React.ComponentType<{ className?: string }>;
     action?: React.ReactNode;
     children?: React.ReactNode;
     className?: string;
