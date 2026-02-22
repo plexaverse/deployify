@@ -11,8 +11,6 @@ import {
     RotateCcw,
     Clock,
     CheckCircle2,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    XCircle,
     Loader2,
     AlertCircle,
     Copy,
