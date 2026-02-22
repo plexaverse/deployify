@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BuildLogViewer } from '@/components/BuildLogViewer';
 import { cn } from '@/lib/utils';
 import type { GitHubRepo, Project, Deployment } from '@/types';
 
@@ -529,7 +530,6 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
     const [status, setStatus] = useState<string>(initialDeployment.status);
     const [logs, setLogs] = useState<string>('Initializing build environment...');
     const [error, setError] = useState<string | null>(null);
-    const logsEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         // Poll status and logs
@@ -568,13 +568,6 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
 
         return () => clearInterval(interval);
     }, [project.id, initialDeployment.id, status]);
-
-    useEffect(() => {
-        // Auto-scroll to bottom of logs
-        if (logsEndRef.current) {
-            logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [logs]);
 
     const isReady = status === 'ready';
     const isError = status === 'error' || status === 'cancelled';
@@ -641,18 +634,12 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                     <div className="text-[var(--terminal-foreground)]/20 text-[10px] uppercase tracking-widest font-bold">build-log.txt</div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-0.5 text-[var(--terminal-foreground)]/70">
-                    {logs.split('\n').map((line, i) => (
-                         <div key={i} className="break-all whitespace-pre-wrap hover:bg-[var(--terminal-foreground)]/5 transition-colors duration-200 px-1 rounded -mx-1 group">
-                            {line || '\u00A0'}
-                         </div>
-                    ))}
-                    {isError && (
-                        <div className="text-[var(--error)] mt-4 border-t border-[var(--terminal-border)] pt-4">
-                            <strong>Error:</strong> {error || 'Unknown error occurred during build'}
-                        </div>
-                    )}
-                    <div ref={logsEndRef} />
+                <div className="flex-1 overflow-hidden relative">
+                    <BuildLogViewer
+                        logs={logs}
+                        loading={!isReady && !isError && !logs}
+                        error={error}
+                    />
                 </div>
 
                 {!isReady && !isError && (

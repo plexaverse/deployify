@@ -816,3 +816,20 @@ Conducted a final comprehensive audit and refactoring of UI components to elimin
   - **Light Mode**: Track is Black (`primary`), Thumb becomes White (`primary-foreground`). High contrast.
   - **Dark Mode**: Track is White (`primary`), Thumb becomes Black (`primary-foreground`). High contrast.
   - **Unchecked**: Thumb remains White (default) against Gray track (`border`). Standard UI pattern.
+
+## Unified Log Viewing & Consistency (Session 77)
+
+Unified the build log viewing experience and improved loading state consistency.
+
+### `src/components/BuildLogViewer.tsx`
+- Refactored to support line-by-line rendering with hover effects, matching the "terminal" aesthetic.
+- Updated `loading` state to only show skeletons when no logs are present, allowing immediate feedback during streaming.
+- Improved `error` display to appear at the bottom of the logs instead of replacing them, preserving context.
+
+### `src/app/new/page.tsx` (Project Creation Wizard)
+- **Step 3 (Deploy)**: Replaced the manual log rendering implementation with the updated `BuildLogViewer` component.
+- This ensures a consistent log viewing experience between the wizard and the dashboard modals.
+
+### `src/components/ui/skeleton.tsx`
+- Updated the default background color from `bg-[var(--border)]` to `bg-[var(--muted)]/20`.
+- This provides a more subtle and refined loading state that works better across light and dark modes without requiring manual overrides.
