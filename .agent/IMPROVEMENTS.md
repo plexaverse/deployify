@@ -158,7 +158,7 @@
 - **Status**: ✅ Implemented (Project CRUD, Deploys, Auth, Domains, Rollback)
 
 #### 19. **CLI Tool**
-- **Status**: ✅ Implemented (Supports `login`, `link` (project association), and `deploy` commands. Refactored to use native `fetch`.)
+- **Status**: ✅ Implemented (Supports `login`, `link` (project association), and `deploy` commands. Refactored to use native `fetch`. Fixed potential header spreading crash.)
 
 #### 20. **Secrets in Import Flow**
 - **Improvement**: Support adding secret environment variables during project import
@@ -178,7 +178,7 @@
 
 ## ✅ Verification Status
 
-- **Linting**: Fixed all linting errors (no-explicit-any, react-hooks, etc.) to ensure code quality. Verified with `npm run lint`.
+- **Linting**: Fixed all linting errors (no-explicit-any, react-hooks, etc.) to ensure code quality. Verified with `npm run lint`. (Resolved unused useRef warning in NewProjectPage)
 - **Build**: Verified production build (`npm run build`) passes with Next.js 16.1.6.
 - **Tests**: Verified all unit tests pass (`npx tsx --test ...`).
 - **Features**: Verified existence of Team Settings, Analytics, and Compare Deployments pages in the codebase.
