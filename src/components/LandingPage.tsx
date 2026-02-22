@@ -493,6 +493,9 @@ export default function LandingPage() {
                     } else if (e.key === 'Enter' && selectedIndex >= 0) {
                       setSearchQuery(filteredRepos[selectedIndex]);
                       setSelectedIndex(-1);
+                    } else if (e.key === 'Escape') {
+                      setSearchQuery('');
+                      setSelectedIndex(-1);
                     }
                   }}
                   aria-expanded={searchQuery.trim().length > 0}

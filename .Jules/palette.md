@@ -57,3 +57,7 @@
 ## 2026-03-15 - [Reactive Interface Tidiness and Granular Feedback]
 **Learning:** Purely directional hints (like "Scroll to explore") become visual clutter once the user has engaged with the action. Auto-dismissing these hints using `AnimatePresence` and a scroll threshold (e.g., 0.01) significantly cleans up the interface. Additionally, applying interactive feedback (hovers) to individual social proof logos rather than the container makes the brand associations feel more deliberate and "alive".
 **Action:** Auto-dismiss scroll hints after initial scroll engagement and prioritize granular hover states for logo clouds to enhance delight.
+
+## 2026-03-20 - [Escape to Clear and Keyboard Bubble Suppression]
+**Learning:** Standardizing "Escape" as a global shortcut for clearing search inputs across the application (Landing Page, Dashboard, Palette) provides a consistent and predictable UX. However, in overlay components that also close on "Escape" (like Command Palettes), it is crucial to use `e.stopPropagation()` in the input handler to ensure that clearing the text doesn't accidentally dismiss the entire overlay, which can be frustrating.
+**Action:** Always implement Escape-to-clear for search inputs and use stopPropagation when an overlay parent also listens for Escape.

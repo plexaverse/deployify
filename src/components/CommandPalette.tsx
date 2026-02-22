@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Rocket, X } from 'lucide-react';
 import { Project } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Spotlight } from '@/components/ui/spotlight';
 
 export function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,10 +56,11 @@ export function CommandPalette() {
   return (
     <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-start justify-center pt-[20vh] px-4" onClick={() => setIsOpen(false)}>
        <div
-         className="w-full max-w-xl bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+         className="w-full max-w-xl bg-[var(--card)]/80 border border-[var(--border)] rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 backdrop-blur-xl relative"
          onClick={e => e.stopPropagation()}
        >
-          <div className="flex items-center border-b border-[var(--border)] px-4 group">
+          <Spotlight className="-top-40 left-0 md:left-60" fill="var(--foreground)" />
+          <div className="flex items-center border-b border-[var(--border)] px-4 group relative z-10">
             <Search className="w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors" />
             <Input
                ref={inputRef}
@@ -83,6 +86,11 @@ export function CommandPalette() {
                  } else if (e.key === 'Enter' && filtered[selectedIndex]) {
                    router.push(`/dashboard/${filtered[selectedIndex].id}`);
                    setIsOpen(false);
+                 } else if (e.key === 'Escape' && query) {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   setQuery('');
+                   setSelectedIndex(0);
                  }
                }}
             />
@@ -104,7 +112,7 @@ export function CommandPalette() {
                <span className="text-xs text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5">ESC</span>
             </div>
           </div>
-          <div className="max-h-[60vh] overflow-y-auto p-2">
+          <div className="max-h-[60vh] overflow-y-auto p-2 relative z-10">
              {!isOpen ? (
                <div className="p-4 text-center text-[var(--muted-foreground)] text-sm">Loading...</div>
              ) : filtered.length === 0 && projects.length > 0 ? (
@@ -113,32 +121,38 @@ export function CommandPalette() {
                <div className="p-4 text-center text-[var(--muted-foreground)] text-sm">Loading projects...</div>
              ) : (
                <div className="space-y-1" role="listbox" id="command-results">
-                 {filtered.map((project, index) => (
-                   <button
-                     id={`project-${project.id}`}
-                     key={project.id}
-                     role="option"
-                     aria-selected={selectedIndex === index}
-                     onClick={() => {
-                       router.push(`/dashboard/${project.id}`);
-                       setIsOpen(false);
-                     }}
-                     className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors group ${
-                       selectedIndex === index ? 'bg-[var(--card-hover)]' : 'hover:bg-[var(--card-hover)]'
-                     }`}
-                   >
-                     <Rocket className={`w-4 h-4 ${selectedIndex === index ? 'text-[var(--primary)]' : 'text-[var(--muted-foreground)] group-hover:text-[var(--primary)]'}`} />
-                     <div className="flex-1">
-                        <div className="text-sm font-medium text-[var(--foreground)]">{project.name}</div>
-                        <div className="text-xs text-[var(--muted-foreground)]">{project.repoFullName}</div>
-                     </div>
-                     <span className="text-xs text-[var(--muted-foreground)] group-hover:text-[var(--muted)]">Jump to</span>
-                   </button>
-                 ))}
+                 <AnimatePresence>
+                   {filtered.map((project, index) => (
+                     <motion.button
+                       initial={{ opacity: 0, y: 5 }}
+                       animate={{ opacity: 1, y: 0 }}
+                       whileTap={{ scale: 0.98 }}
+                       id={`project-${project.id}`}
+                       key={project.id}
+                       role="option"
+                       aria-selected={selectedIndex === index}
+                       onMouseEnter={() => setSelectedIndex(index)}
+                       onClick={() => {
+                         router.push(`/dashboard/${project.id}`);
+                         setIsOpen(false);
+                       }}
+                       className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors group ${
+                         selectedIndex === index ? 'bg-[var(--card-hover)]' : 'hover:bg-[var(--card-hover)]'
+                       }`}
+                     >
+                       <Rocket className={`w-4 h-4 transition-colors ${selectedIndex === index ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'}`} />
+                       <div className="flex-1">
+                          <div className="text-sm font-bold text-[var(--foreground)]">{project.name}</div>
+                          <div className="text-xs text-[var(--muted-foreground)] font-medium">{project.repoFullName}</div>
+                       </div>
+                       <span className="text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-all">Jump to</span>
+                     </motion.button>
+                   ))}
+                 </AnimatePresence>
                </div>
              )}
           </div>
-          <div className="p-2 border-t border-[var(--border)] bg-[var(--background)] text-xs text-[var(--muted-foreground)] flex justify-between px-4">
+          <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/50 text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] flex justify-between px-4 relative z-10">
              <span>Deployify Command</span>
              <span>{projects.length} projects</span>
           </div>

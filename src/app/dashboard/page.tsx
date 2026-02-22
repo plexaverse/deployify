@@ -93,6 +93,11 @@ export default function DashboardPage() {
                             aria-label="Search projects"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Escape') {
+                                    setSearchQuery('');
+                                }
+                            }}
                             className="pl-9 pr-10"
                         />
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
