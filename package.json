@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test --experimental-test-module-mocks $(find src -name '*.test.ts')",
     "audit": "npx tsx scripts/audit.ts"
   },
   "dependencies": {
@@ -46,6 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   },
   "overrides": {

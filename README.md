@@ -130,7 +130,7 @@ deployify/
 │   │   ├── gcp/              # GCP integrations
 │   │   └── security/         # Security utilities
 │   ├── types/                # TypeScript types
-│   └── middleware.ts         # Edge middleware
+│   └── proxy.ts              # Edge proxy (Middleware replacement)
 ├── templates/
 │   └── Dockerfile.nextjs     # Template for user apps
 ├── Dockerfile                # For deploying Deployify
