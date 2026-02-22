@@ -168,6 +168,12 @@
 - **Improvement**: Fix linting errors (unused variables, empty interfaces, unsafe types) across the codebase.
 - **Status**: ✅ Implemented (Fixed major issues in UI components, Libs, and CLI)
 
+### Reliability Improvements
+
+#### 22. **Robust Deployment Status Sync**
+- **Improvement**: Ensure deployment status updates reliably even if background polling is throttled by Cloud Run CPU policies.
+- **Status**: ✅ Implemented (`syncDeploymentStatus` logic + Frontend polling in `DeploymentsPage`)
+
 ---
 
 ## ✅ Verification Status
