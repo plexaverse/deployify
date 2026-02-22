@@ -383,7 +383,7 @@ async function fetchJson(url, token, options = {}) {
     const headers = {
         'Cookie': `deployify_session=${token}`, // Send session cookie
         'Content-Type': 'application/json',
-        ...options.headers
+        ...(options.headers || {})
     };
 
     const fetchOptions = {
