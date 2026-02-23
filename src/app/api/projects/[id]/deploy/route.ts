@@ -85,10 +85,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
         // Parse request body for branch override
         let branch = project.defaultBranch;
+        let force = false;
         try {
             const body = await request.json();
             if (body && body.branch) {
                 branch = body.branch;
+            }
+            if (body && body.force) {
+                force = !!body.force;
             }
         } catch {
             // Body might be empty or not JSON, just use default branch
@@ -195,6 +199,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     healthCheckPath: project.healthCheckPath,
                     resources: project.resources,
                     rootDirectory: project.rootDirectory,
+                    force,
                 });
 
                 // Submit to Cloud Build with project region

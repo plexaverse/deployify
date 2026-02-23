@@ -30,6 +30,7 @@ interface BuildSubmissionConfig {
         minInstances?: number;
         maxInstances?: number;
     };
+    force?: boolean;
 }
 
 /**
@@ -55,6 +56,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildTimeout,
         healthCheckPath,
         resources,
+        force = false,
     } = buildConfig;
 
     // Validate rootDirectory to prevent command injection
@@ -155,7 +157,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
             outputDirectory,
             buildCommand,
             installCommand,
-            restoreCache: true,
+            restoreCache: !force,
             rootDirectory,
         });
     }
@@ -163,14 +165,14 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
     // Define common steps shared between both deployment methods
     const commonSteps = [
         // Restore cache from GCS
-        {
+        ...(!force ? [{
             name: 'gcr.io/cloud-builders/gsutil',
             entrypoint: 'bash',
             args: [
                 '-c',
                 `mkdir -p ${workDir}/restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C ${workDir}/restore_cache || echo "No cache found or restore failed")`,
             ],
-        },
+        }] : []),
         // Create a Dockerfile if it doesn't exist (only if not using custom Dockerfile)
         {
             name: 'gcr.io/cloud-builders/docker',

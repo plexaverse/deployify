@@ -116,9 +116,12 @@ describe('syncCronJobs', () => {
         const projectId = 'proj-123';
         const crons = [{ path: '/api/cron1', schedule: '5 * * * *' }];
 
+        const { config } = await import('@/lib/config');
+        const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID || 'test-gcp-project';
+
         const crypto = await import('crypto');
         const hash = crypto.createHash('sha256').update('/api/cron1').digest('hex').substring(0, 8);
-        const expectedName = `projects/test-gcp-project/locations/us-central1/jobs/dfy-my-project-cron-${hash}`;
+        const expectedName = `projects/${gcpProjectId}/locations/us-central1/jobs/dfy-my-project-cron-${hash}`;
 
         // Mock list jobs (one exists)
         mockFetch.mock.mockImplementationOnce(async () => ({
@@ -147,7 +150,10 @@ describe('syncCronJobs', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const crons: any[] = []; // No crons desired
 
-        const existingJobName = `projects/test-gcp-project/locations/us-central1/jobs/dfy-my-project-cron-oldhash`;
+        const { config } = await import('@/lib/config');
+        const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID || 'test-gcp-project';
+
+        const existingJobName = `projects/${gcpProjectId}/locations/us-central1/jobs/dfy-my-project-cron-oldhash`;
 
         mockFetch.mock.mockImplementationOnce(async () => ({
             ok: true,
