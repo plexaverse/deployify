@@ -304,9 +304,10 @@ function generateNextjsDockerfile(config: DockerfileConfig): string {
         ? `cd ${rootDirectory} && ${buildCommand}`
         : buildCommand;
 
-    const publicPath = getPath('public');
-    const staticPath = getPath('.next/static');
-    const standalonePath = getPath('.next/standalone');
+    const builderPublicPath = getPath('public');
+    const builderStaticPath = getPath('.next/static');
+    const builderStandalonePath = getPath('.next/standalone');
+
     const isSubdir = rootDirectory && rootDirectory !== '.';
     const copyFiles = isSubdir
         ? `COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
@@ -342,16 +343,16 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/${publicPath} ./${publicPath}
-RUN mkdir -p ${getPath('.next')} && chown nextjs:nodejs ${getPath('.next')}
-COPY --from=builder --chown=nextjs:nodejs /app/${standalonePath} ./
-COPY --from=builder --chown=nextjs:nodejs /app/${staticPath} ./${staticPath}
+COPY --from=builder /app/${builderPublicPath} ./public
+RUN mkdir -p .next && chown nextjs:nodejs .next
+COPY --from=builder --chown=nextjs:nodejs /app/${builderStandalonePath} ./
+COPY --from=builder --chown=nextjs:nodejs /app/${builderStaticPath} ./.next/static
 
 USER nextjs
 EXPOSE 8080
 ENV PORT=8080
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "${getPath('server.js')}"]`;
+CMD ["node", "server.js"]`;
 }
 
 function generateViteDockerfile(config: DockerfileConfig): string {

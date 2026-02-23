@@ -178,6 +178,10 @@
 - **Improvement**: Reduce excessive logging in proxy routes and disable caching for proxied requests to ensure data freshness.
 - **Status**: ✅ Implemented (Logs cleaned up, `cache: 'no-store'` added)
 
+#### 24. **Next.js Standalone Build Robustness**
+- **Improvement**: Support `defineNextConfig` in `next.config.js` patching and flatten Dockerfile structure for `rootDirectory` deployments to fix `server.js` path issues.
+- **Status**: ✅ Implemented (Updated `cloudbuild.ts` and `dockerfiles.ts`, verified with tests)
+
 ---
 
 ## ✅ Verification Status
