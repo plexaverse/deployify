@@ -201,7 +201,7 @@ for (const f of files) {
       console.log('Adding standalone output to ' + f);
       // Handle common export patterns
       const patterns = [
-        /(const\\s+\\w+\\s*=\\s*{)/,
+        /(const\\s+\\w+(?:\\s*:\\s*[^=]+)?\\s*=\\s*{)/,
         /(export\\s+default\\s*{)/,
         /(module\\.exports\\s*=\\s*{)/
       ];
