@@ -1,24 +1,6 @@
-import { describe, it, mock, beforeEach, test } from 'node:test';
+import { describe, it, mock, beforeEach, test, before } from 'node:test';
 import assert from 'node:assert';
 import { Project } from '@/types';
-
-// Set env vars before importing module under test (for shared config)
-process.env.GCP_PROJECT_ID = 'test-gcp-project';
-process.env.GCP_REGION = 'us-central1';
-process.env.GITHUB_CLIENT_ID = 'mock';
-process.env.GITHUB_CLIENT_SECRET = 'mock';
-process.env.GITHUB_WEBHOOK_SECRET = 'mock';
-process.env.JWT_SECRET = 'mock';
-process.env.STRIPE_SECRET_KEY = 'mock';
-process.env.RESEND_API_KEY = 'mock';
-
-// Import the module under test
-// Note: We need dynamic import or require to ensure re-import if env changed, 
-// but since we set env once at top, we can use top level import if we want, 
-// but sticking to require/import inside before if needed or just top.
-// For mixed content, better to use what we had.
-
-import { listCronJobs, syncCronJobs } from './scheduler';
 
 // Mock data
 const mockProject: Project = {
@@ -54,6 +36,23 @@ describe('syncCronJobs', () => {
     let mockFetch: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let dependencies: any;
+
+    let syncCronJobs: any;
+
+    before(async () => {
+        // Set env vars before importing module under test
+        process.env.GCP_PROJECT_ID = 'test-gcp-project';
+        process.env.GCP_REGION = 'us-central1';
+        process.env.GITHUB_CLIENT_ID = 'mock';
+        process.env.GITHUB_CLIENT_SECRET = 'mock';
+        process.env.GITHUB_WEBHOOK_SECRET = 'mock';
+        process.env.JWT_SECRET = 'mock';
+        process.env.STRIPE_SECRET_KEY = 'mock';
+        process.env.RESEND_API_KEY = 'mock';
+
+        const module = await import('./scheduler');
+        syncCronJobs = module.syncCronJobs;
+    });
 
     beforeEach(() => {
         mockGetGcpAccessToken = mock.fn(async () => 'mock-token');
@@ -183,11 +182,12 @@ describe('syncCronJobs', () => {
 });
 
 test('listCronJobs', async (t) => {
-    // Mock global fetch for listCronJobs which uses global fetch or import from scheduler
-    // Since listCronJobs uses `fetch` from global or imported, we should mock global.fetch here if it uses generic fetch
-    // inspect scheduler.ts: it uses `fetch` directly globally or from simple import?
-    // In our merged file, listCronJobs uses `fetch`. If it's not injected, it uses global `fetch`.
-    
+    // Load module dynamically
+    process.env.GCP_PROJECT_ID = 'test-gcp-project';
+    process.env.GCP_REGION = 'us-central1';
+    const module = await import('./scheduler');
+    const listCronJobs = module.listCronJobs;
+
     // We can mock global.fetch
     const fetchMock = mock.fn();
     global.fetch = fetchMock;

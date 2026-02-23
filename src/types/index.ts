@@ -209,18 +209,6 @@ export interface Deployment {
     readyAt?: Date;
 }
 
-// Environment variable
-export interface EnvVar {
-    id: string;
-    projectId: string;
-    key: string;
-    value: string; // Encrypted reference
-    secretName: string; // Secret Manager reference
-    target: 'production' | 'preview' | 'all';
-    createdAt: Date;
-    updatedAt: Date;
-}
-
 export interface AuditEvent {
     id: string;
     teamId: string | null;
