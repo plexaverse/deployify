@@ -42,7 +42,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         const deployments = await listDeploymentsByProject(id, 5);
 
         return NextResponse.json(
-            { project, deployments },
+            { success: true, project, deployments },
             { headers: securityHeaders }
         );
     } catch (error) {
@@ -211,7 +211,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         const updatedProject = await getProjectById(id);
 
         return NextResponse.json(
-            { project: updatedProject },
+            { success: true, project: updatedProject },
             { headers: securityHeaders }
         );
     } catch (error) {

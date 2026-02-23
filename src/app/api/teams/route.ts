@@ -18,7 +18,7 @@ export async function GET() {
         const teams = await listTeamsWithMembership(session.user.id);
 
         return NextResponse.json(
-            { teams },
+            { success: true, teams },
             { headers: securityHeaders }
         );
     } catch (error) {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         };
 
         return NextResponse.json(
-            { team: teamWithRole },
+            { success: true, team: teamWithRole },
             { status: 201, headers: securityHeaders }
         );
     } catch (error) {

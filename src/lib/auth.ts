@@ -62,7 +62,7 @@ export async function verifySessionToken(token: string): Promise<Session | null>
 }
 
 const MOCK_USER: User = {
-    id: '233623958',
+    id: 'audit-test',
     githubId: 233623958,
     githubUsername: 'plexaverse',
     email: 'plexaverse@gmail.com',
