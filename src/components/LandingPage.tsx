@@ -261,18 +261,32 @@ export default function LandingPage() {
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-8">
               Trusted by innovative teams
             </p>
-            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8" role="list" aria-label="Trusted companies">
-              {['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA'].map((logo) => (
-                <motion.span
-                  key={logo}
-                  role="listitem"
-                  aria-label={`${logo} logo`}
-                  whileHover={{ scale: 1.1, opacity: 1, filter: 'grayscale(0%)' }}
-                  className="text-xl md:text-2xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
-                >
-                  {logo}
-                </motion.span>
-              ))}
+            <div
+              className="relative overflow-hidden w-full max-w-4xl mx-auto py-10"
+              style={{
+                maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
+              }}
+              role="list"
+              aria-label="Trusted companies"
+            >
+              <motion.div
+                className="flex gap-x-16 items-center whitespace-nowrap"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              >
+                {[...['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA'], ...['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA']].map((logo, i) => (
+                  <motion.span
+                    key={`${logo}-${i}`}
+                    role="listitem"
+                    aria-label={`${logo} logo`}
+                    whileHover={{ scale: 1.1, opacity: 1, filter: 'grayscale(0%)' }}
+                    className="text-xl md:text-2xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
+                  >
+                    {logo}
+                  </motion.span>
+                ))}
+              </motion.div>
             </div>
           </motion.div>
 
