@@ -61,3 +61,7 @@
 ## 2026-03-20 - [Escape to Clear and Keyboard Bubble Suppression]
 **Learning:** Standardizing "Escape" as a global shortcut for clearing search inputs across the application (Landing Page, Dashboard, Palette) provides a consistent and predictable UX. However, in overlay components that also close on "Escape" (like Command Palettes), it is crucial to use `e.stopPropagation()` in the input handler to ensure that clearing the text doesn't accidentally dismiss the entire overlay, which can be frustrating.
 **Action:** Always implement Escape-to-clear for search inputs and use stopPropagation when an overlay parent also listens for Escape.
+
+## 2026-03-22 - [Interactive Accessibility and Aesthetic Motion]
+**Learning:** Redesigning static sections into animated ones (like infinite logo scrolls) significantly elevates the "premium" feel of a landing page, provided they include edge-fading masks for a smooth appearance. However, when adding micro-UX features like "Copy to SHA" buttons that are hidden by default, it is critical to ensure they are visible on keyboard focus (`focus-visible:opacity-100`) to maintain accessibility.
+**Action:** Pair `group-hover` visibility with `focus-visible` for all hidden interactive elements.

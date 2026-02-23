@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Project } from '@/types';
-import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink } from 'lucide-react';
+import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer } from 'recharts';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { ProjectAvatar } from '@/components/ProjectAvatar';
 
@@ -44,10 +45,20 @@ export function ProjectCard({ project }: { project: Project }) {
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
 
   const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
+  const [copiedSha, setCopiedSha] = useState(false);
 
   useEffect(() => {
     setSparklineData(generateSparklineData(status));
   }, [status]);
+
+  const handleCopySha = (e: React.MouseEvent, sha: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(sha);
+    setCopiedSha(true);
+    toast.success('Commit SHA copied to clipboard');
+    setTimeout(() => setCopiedSha(false), 2000);
+  };
 
   return (
     <div className="flex flex-col h-full justify-between">
@@ -100,10 +111,17 @@ export function ProjectCard({ project }: { project: Project }) {
 
         {latestDeployment ? (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[10px] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/50 p-2 rounded-md border border-[var(--border)] group-hover:border-[var(--border-hover)] transition-colors">
+            <div className="flex items-center gap-2 text-[10px] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/50 p-2 rounded-md border border-[var(--border)] group-hover:border-[var(--border-hover)] transition-colors relative group/sha">
               <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
               <span className="opacity-40">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
+              <button
+                onClick={(e) => handleCopySha(e, latestDeployment.gitCommitSha)}
+                className="opacity-0 group-hover/sha:opacity-100 focus-visible:opacity-100 p-1 hover:bg-[var(--border)] rounded transition-all outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
+                aria-label={copiedSha ? "SHA copied" : "Copy full commit SHA"}
+              >
+                {copiedSha ? <Check className="w-3 h-3 text-[var(--success)]" /> : <Copy className="w-3 h-3" />}
+              </button>
             </div>
             <div className="flex items-center justify-between text-[10px] text-[var(--muted-foreground)] px-1">
                <div className="flex items-center gap-1.5">
