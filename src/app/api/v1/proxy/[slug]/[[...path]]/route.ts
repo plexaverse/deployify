@@ -83,13 +83,9 @@ export async function GET(
     const awaitedParams = await params;
     const { slug, path } = awaitedParams;
 
-    console.log(`[Proxy Trace] Incoming request: slug=${slug}, path=${JSON.stringify(path)}`);
-
     const pathStr = path ? `/${path.join('/')}` : '/';
     const searchParams = req.nextUrl.searchParams.toString();
     const fullPath = searchParams ? `${pathStr}?${searchParams}` : pathStr;
-
-    console.log(`[Proxy Trace] Resolved fullPath: ${fullPath}`);
 
     // 1. Resolve Project
     const project = await resolveProject(slug);
@@ -122,8 +118,6 @@ export async function GET(
         }, { status: 400 });
     }
 
-    console.log(`[Proxy] Forwarding to: ${targetUrl}`);
-
     try {
         const targetResponse = await fetch(targetUrl, {
             method: 'GET',
@@ -137,9 +131,8 @@ export async function GET(
                 'Cookie': req.headers.get('cookie') || '',
                 'Referer': req.headers.get('referer') || '',
             },
+            cache: 'no-store',
         });
-
-        console.log(`[Proxy] Target Response: ${targetResponse.status} ${targetResponse.statusText} (${targetResponse.headers.get('content-type')})`);
 
         const contentType = targetResponse.headers.get('content-type') || '';
         const responseHeaders = new Headers();
@@ -234,8 +227,6 @@ export async function POST(
         }, { status: 400 });
     }
 
-    console.log(`[Proxy POST] Forwarding to: ${targetUrl}`);
-
     try {
         const res = await fetch(targetUrl, {
             method: 'POST',
@@ -249,6 +240,7 @@ export async function POST(
                 'Referer': req.headers.get('referer') || '',
             },
             body: await req.text(),
+            cache: 'no-store',
         });
 
         const responseHeaders = new Headers();

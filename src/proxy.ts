@@ -99,7 +99,6 @@ export async function proxy(request: NextRequest) {
             });
         }
 
-        console.log(`[Proxy] project subdomain detected: ${subdomain}, rewriting to proxy`);
         const url = request.nextUrl.clone();
         url.pathname = `/api/v1/proxy/${subdomain}${pathname}`;
         return NextResponse.rewrite(url, {
