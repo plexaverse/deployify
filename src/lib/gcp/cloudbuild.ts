@@ -205,7 +205,9 @@ for (const f of files) {
       const patterns = [
         /(const\\s+\\w+(?:\\s*:\\s*[^=]+)?\\s*=\\s*{)/,
         /(export\\s+default\\s*{)/,
-        /(module\\.exports\\s*=\\s*{)/
+        /(module\\.exports\\s*=\\s*{)/,
+        /(export\\s+default\\s+defineNextConfig\\s*\\(\\s*{)/,
+        /(module\\.exports\\s*=\\s*defineNextConfig\\s*\\(\\s*{)/
       ];
       let replaced = false;
       for (const p of patterns) {

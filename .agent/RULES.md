@@ -177,7 +177,8 @@ Domain        // Custom domain (status: pending/active/error)
 
 ### 9. Monorepo Support
 - `rootDirectory` config allows deploying apps from subdirectories.
-- Dockerfile generation logic (`src/lib/dockerfiles.ts`) automatically handles nested paths for `COPY` and `CMD` instructions.
+- Dockerfile generation logic (`src/lib/dockerfiles.ts`) automatically handles nested paths by flattening the structure in the final container, ensuring `standalone` output works correctly regardless of directory depth.
+- `fix-next-config.js` script in Cloud Build supports `defineNextConfig` and other common export patterns.
 
 ---
 
