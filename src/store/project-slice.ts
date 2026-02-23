@@ -50,7 +50,7 @@ export interface ProjectSlice {
 
     fetchProjectDetails: (projectId: string) => Promise<void>;
     fetchDeployments: (projectId: string) => Promise<void>;
-    redeployProject: (projectId: string) => Promise<void>;
+    redeployProject: (projectId: string, force?: boolean) => Promise<void>;
     cancelDeployment: (projectId: string, deploymentId: string) => Promise<void>;
 
     // Settings Actions
@@ -184,11 +184,13 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         }
     },
 
-    redeployProject: async (projectId) => {
+    redeployProject: async (projectId, force = false) => {
         set({ isRedeploying: true });
         try {
             const response = await fetch(`/api/projects/${projectId}/deploy`, {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ force }),
             });
 
             if (response.ok) {

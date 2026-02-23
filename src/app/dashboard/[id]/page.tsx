@@ -93,10 +93,10 @@ export default function ProjectDetailPage() {
         }
     };
 
-    const handleRedeploy = async () => {
+    const handleRedeploy = async (force = false) => {
         if (!project) return;
-        const toastId = toast.loading('Triggering deployment...');
-        await redeployProject(project.id);
+        const toastId = toast.loading(force ? 'Triggering force redeploy (ignoring cache)...' : 'Triggering deployment...');
+        await redeployProject(project.id, force);
         toast.success('Deployment triggered', { id: toastId });
     };
 
@@ -202,7 +202,7 @@ export default function ProjectDetailPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     <MovingBorderButton
-                        onClick={handleRedeploy}
+                        onClick={() => handleRedeploy(false)}
                         disabled={deploying}
                         containerClassName="h-9 w-32"
                         className="text-xs font-bold"
@@ -214,6 +214,16 @@ export default function ProjectDetailPage() {
                         )}
                         Redeploy
                     </MovingBorderButton>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRedeploy(true)}
+                        disabled={deploying}
+                        className="h-9 w-9 border border-[var(--border)]"
+                        title="Force Redeploy (Ignore Cache)"
+                    >
+                        <AlertCircle className="w-4 h-4" />
+                    </Button>
                     <a
                         href={project.productionUrl || '#'}
                         target="_blank"
