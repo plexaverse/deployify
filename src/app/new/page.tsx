@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { BuildLogViewer } from '@/components/BuildLogViewer';
 import { cn } from '@/lib/utils';
 import type { GitHubRepo, Project, Deployment } from '@/types';
@@ -188,7 +189,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-3xl mx-auto space-y-6"
+            className="w-full max-w-3xl mx-auto space-y-8 pb-24"
         >
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
@@ -224,7 +225,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                         <Card
                             key={repo.id}
                             onClick={() => onSelect(repo)}
-                            className="group relative hover:border-[var(--primary)] transition-all cursor-pointer p-4"
+                            className="group relative hover:border-[var(--primary)] transition-all cursor-pointer p-6"
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex items-start gap-4">
@@ -395,9 +396,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="max-w-3xl mx-auto space-y-6 pb-20"
+            className="max-w-3xl mx-auto space-y-8 pb-24"
         >
-            <Card className="space-y-6">
+            <Card className="p-6 space-y-6">
                 <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
                     <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
                         <Settings className="w-6 h-6" />
@@ -518,7 +519,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 </div>
             </Card>
 
-            <Card className="space-y-6">
+            <Card className="p-6 space-y-6">
                 <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
                     <div className="w-12 h-12 rounded-lg bg-[var(--success-bg)] text-[var(--success)] flex items-center justify-center border border-[var(--success)]/30">
                         <Terminal className="w-6 h-6" />
@@ -587,44 +588,69 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         </Button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-6 pt-2">
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
+                    <div className="flex flex-col md:flex-row md:items-start gap-8 pt-4">
+                        <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]/50">
+                            <Switch
                                 id="isSecret"
                                 checked={newEnvIsSecret}
-                                onChange={(e) => setNewEnvIsSecret(e.target.checked)}
-                                className="w-4 h-4 accent-[var(--primary)]"
+                                onCheckedChange={setNewEnvIsSecret}
                             />
-                            <label htmlFor="isSecret" className="text-xs font-medium cursor-pointer flex items-center gap-1">
-                                <Shield className="w-3 h-3" /> Secret
+                            <label htmlFor="isSecret" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                                <Shield className="w-4 h-4 text-[var(--info)]" />
+                                Secret (Encrypted)
                             </label>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)]">Target:</span>
-                            <NativeSelect
-                                value={newEnvTarget}
-                                onChange={(e) => setNewEnvTarget(e.target.value as 'both' | 'build' | 'runtime')}
-                                className="h-8 text-[10px] w-32 py-0"
-                            >
-                                <option value="both">Build & Runtime</option>
-                                <option value="build">Build Only</option>
-                                <option value="runtime">Runtime Only</option>
-                            </NativeSelect>
-                        </div>
+                        <div className="flex-1 space-y-4">
+                            <div className="space-y-2">
+                                <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block">Target Environment Type</span>
+                                <div className="flex flex-wrap gap-2">
+                                    {([
+                                        { value: 'both', label: 'Build & Runtime' },
+                                        { value: 'build', label: 'Build Only' },
+                                        { value: 'runtime', label: 'Runtime Only' }
+                                    ] as const).map((t) => (
+                                        <button
+                                            key={t.value}
+                                            type="button"
+                                            onClick={() => setNewEnvTarget(t.value)}
+                                            className={cn(
+                                                "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all",
+                                                newEnvTarget === t.value
+                                                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] shadow-sm"
+                                                    : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]"
+                                            )}
+                                        >
+                                            {t.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
 
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)]">Scope:</span>
-                            <NativeSelect
-                                value={newEnvEnvironment}
-                                onChange={(e) => setNewEnvEnvironment(e.target.value as 'both' | 'production' | 'preview')}
-                                className="h-8 text-[10px] w-32 py-0"
-                            >
-                                <option value="both">All Envs</option>
-                                <option value="production">Production Only</option>
-                                <option value="preview">Preview Only</option>
-                            </NativeSelect>
+                            <div className="space-y-2">
+                                <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block">Scope</span>
+                                <div className="flex flex-wrap gap-2">
+                                    {([
+                                        { value: 'both', label: 'All Envs' },
+                                        { value: 'production', label: 'Production Only' },
+                                        { value: 'preview', label: 'Preview Only' }
+                                    ] as const).map((e) => (
+                                        <button
+                                            key={e.value}
+                                            type="button"
+                                            onClick={() => setNewEnvEnvironment(e.value)}
+                                            className={cn(
+                                                "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all",
+                                                newEnvEnvironment === e.value
+                                                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] shadow-sm"
+                                                    : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]"
+                                            )}
+                                        >
+                                            {e.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -707,7 +733,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-4xl mx-auto h-[600px] flex flex-col gap-6"
+            className="max-w-4xl mx-auto h-[600px] flex flex-col gap-8 pb-24"
         >
             <div className="flex items-center justify-between">
                 <div>
