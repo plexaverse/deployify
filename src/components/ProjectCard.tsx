@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Project } from '@/types';
+import { cn } from '@/lib/utils';
 import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer } from 'recharts';
 import { Badge } from '@/components/ui/badge';
@@ -30,12 +31,12 @@ const generateSparklineData = (status: string) => {
 };
 
 const statusConfig = {
-  ready: { variant: 'success' as const, icon: CheckCircle2, label: 'Ready', stroke: 'var(--success)' },
-  building: { variant: 'warning' as const, icon: Loader2, label: 'Building', stroke: 'var(--warning)' },
-  deploying: { variant: 'info' as const, icon: Loader2, label: 'Deploying', stroke: 'var(--info)' },
-  error: { variant: 'error' as const, icon: AlertCircle, label: 'Error', stroke: 'var(--error)' },
-  queued: { variant: 'secondary' as const, icon: Clock, label: 'Queued', stroke: 'var(--muted)' },
-  cancelled: { variant: 'secondary' as const, icon: XCircle, label: 'Cancelled', stroke: 'var(--muted)' },
+  ready: { variant: 'success' as const, icon: CheckCircle2, label: 'Ready', stroke: 'var(--success)', glow: 'hover:shadow-[0_0_20px_var(--success-bg)]' },
+  building: { variant: 'warning' as const, icon: Loader2, label: 'Building', stroke: 'var(--warning)', glow: 'hover:shadow-[0_0_20px_var(--warning-bg)]' },
+  deploying: { variant: 'info' as const, icon: Loader2, label: 'Deploying', stroke: 'var(--info)', glow: 'hover:shadow-[0_0_20px_var(--info-bg)]' },
+  error: { variant: 'error' as const, icon: AlertCircle, label: 'Error', stroke: 'var(--error)', glow: 'hover:shadow-[0_0_20px_var(--error-bg)]' },
+  queued: { variant: 'secondary' as const, icon: Clock, label: 'Queued', stroke: 'var(--muted)', glow: 'hover:shadow-md' },
+  cancelled: { variant: 'secondary' as const, icon: XCircle, label: 'Cancelled', stroke: 'var(--muted)', glow: 'hover:shadow-md' },
 };
 
 export function ProjectCard({ project }: { project: Project }) {
@@ -50,7 +51,10 @@ export function ProjectCard({ project }: { project: Project }) {
   }, [status]);
 
   return (
-    <div className="flex flex-col h-full justify-between">
+    <div className={cn(
+      "flex flex-col h-full justify-between transition-all duration-300 rounded-xl",
+      config.glow
+    )}>
       {/* Header: Project Identity and Sparkline */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">

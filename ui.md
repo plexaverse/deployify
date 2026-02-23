@@ -843,3 +843,27 @@ Conducted a consistency pass to ensure high-priority deployment actions use the 
 
 ### `src/app/dashboard/new/import/page.tsx` (Legacy Import)
 - Upgraded the "Deploy" button to use the `MovingBorderButton` component, replacing the standard `Button`. This aligns the legacy import flow with the new wizard and dashboard aesthetics.
+
+## Progressive UI & Micro-interactions Refinement (Session 79)
+
+Conducted a targeted pass to harmonize UI components and introduce subtle micro-interactions across the platform.
+
+### `src/app/new/page.tsx` (Project Creation Wizard)
+- **Environment Variables**:
+    - Replaced the native checkbox for secrets with the `Switch` component, providing a more modern and accessible toggle.
+    - Replaced `NativeSelect` elements for Target and Scope with themed pill-style buttons, matching the aesthetic of the main project settings and improving touch targets.
+- **Visual Hierarchy**:
+    - Standardized container spacing to `space-y-8` and ensured all `Card` components use consistent `p-6` padding.
+    - Updated repository list items in Step 1 to use `p-6` padding for better readability.
+
+### `src/app/dashboard/settings/page.tsx` (Team Settings)
+- **Danger Zone Polish**: Updated the "Danger Zone" card to use a consistent `border-[var(--error)]/30` and `bg-[var(--error)]/5` styling, mirroring the project-level settings.
+- **Visual Structure**: Integrated the `Separator` component to clearly define sections within cards, replacing manual border lines for better maintainability.
+
+### `src/components/ProjectCard.tsx`
+- **Dynamic Glow**: Introduced a status-aware hover effect. The card now emits a subtle glow matching the project's current status (e.g., `var(--success-bg)` for healthy projects, `var(--error-bg)` for projects with issues) when hovered.
+- **Layout Consistency**: Ensured perfectly rounded corners and smooth transitions for all interactive states.
+
+### `src/components/OnboardingGuide.tsx`
+- **Button Consistency**: Updated the `MovingBorderButton` to use standard primary colors (`var(--primary)`, `var(--primary-foreground)`) and a custom primary glow shadow, ensuring it stands out as the primary call-to-action while maintaining theme consistency.
+- **Layout Refinement**: Increased the button width for better balance and visual impact.

@@ -102,8 +102,8 @@ export function OnboardingGuide() {
                     <Link href="/new">
                         <Button
                             borderRadius="1.75rem"
-                            className="bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--border)] text-base font-semibold"
-                            containerClassName="h-14 w-48"
+                            className="bg-[var(--primary)] text-[var(--primary-foreground)] border-transparent text-base font-bold shadow-[var(--primary-glow)]"
+                            containerClassName="h-14 w-52"
                         >
                             <span className="flex items-center gap-2">
                                 Import Project
