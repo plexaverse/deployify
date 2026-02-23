@@ -15,6 +15,7 @@ import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BuildLogViewer } from '@/components/BuildLogViewer';
@@ -637,14 +638,15 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 >
                     Back to Select
                 </Button>
-                <Button
+                <MovingBorderButton
                     onClick={handleDeploy}
                     disabled={deploying || !projectName}
-                    className="rounded-full px-8 py-6"
+                    containerClassName="h-16 w-48"
+                    className="font-bold text-base"
                 >
                     {deploying ? <Loader2 className="mr-2 w-5 h-5 animate-spin" /> : null}
                     {deploying ? 'Deploying...' : 'Deploy Project'}
-                </Button>
+                </MovingBorderButton>
             </div>
         </motion.div>
     );
