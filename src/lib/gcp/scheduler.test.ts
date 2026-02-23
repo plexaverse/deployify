@@ -26,18 +26,13 @@ const mockProject: Project = {
 
 describe('syncCronJobs', () => {
     // Mocks
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockGetGcpAccessToken: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockGetProjectById: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockGetService: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockFetch: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let dependencies: any;
+    let mockGetGcpAccessToken: ReturnType<typeof mock.fn>;
+    let mockGetProjectById: ReturnType<typeof mock.fn>;
+    let mockGetService: ReturnType<typeof mock.fn>;
+    let mockFetch: ReturnType<typeof mock.fn>;
+    let dependencies: Record<string, unknown>;
 
-    let syncCronJobs: any;
+    let syncCronJobs: typeof import('./scheduler').syncCronJobs;
 
     before(async () => {
         // Set env vars before importing module under test
@@ -50,8 +45,8 @@ describe('syncCronJobs', () => {
         process.env.STRIPE_SECRET_KEY = 'mock';
         process.env.RESEND_API_KEY = 'mock';
 
-        const module = await import('./scheduler');
-        syncCronJobs = module.syncCronJobs;
+        const schedulerModule = await import('./scheduler');
+        syncCronJobs = schedulerModule.syncCronJobs;
     });
 
     beforeEach(() => {
@@ -147,8 +142,7 @@ describe('syncCronJobs', () => {
 
     it('should delete removed cron jobs', async () => {
         const projectId = 'proj-123';
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const crons: any[] = []; // No crons desired
+        const crons: { path: string, schedule: string }[] = []; // No crons desired
 
         const { config } = await import('@/lib/config');
         const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID || 'test-gcp-project';
@@ -191,8 +185,8 @@ test('listCronJobs', async (t) => {
     // Load module dynamically
     process.env.GCP_PROJECT_ID = 'test-gcp-project';
     process.env.GCP_REGION = 'us-central1';
-    const module = await import('./scheduler');
-    const listCronJobs = module.listCronJobs;
+    const schedulerModule = await import('./scheduler');
+    const listCronJobs = schedulerModule.listCronJobs;
 
     // We can mock global.fetch
     const fetchMock = mock.fn();

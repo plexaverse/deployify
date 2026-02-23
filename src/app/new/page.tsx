@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
     ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X,
-    Settings, Terminal, Plus, Trash2, CheckCircle2, AlertCircle, ChevronRight
+    Settings, Terminal, Plus, Trash2, CheckCircle2, AlertCircle, ChevronRight,
+    Shield, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -292,12 +293,26 @@ function Step2Configure({ repo, onBack, onDeploy }: {
     const [rootDirectory, setRootDirectory] = useState('');
     const [region, setRegion] = useState('');
     const [deploying, setDeploying] = useState(false);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
+    // Advanced Settings
+    const [buildCommand, setBuildCommand] = useState('');
+    const [installCommand, setInstallCommand] = useState('');
+    const [outputDirectory, setOutputDirectory] = useState('');
 
     // Env Vars
-    const [envVars, setEnvVars] = useState<{ key: string; value: string; target: 'both' | 'build' | 'runtime' }[]>([]);
+    const [envVars, setEnvVars] = useState<{
+        key: string;
+        value: string;
+        target: 'both' | 'build' | 'runtime';
+        isSecret: boolean;
+        environment: 'both' | 'production' | 'preview';
+    }[]>([]);
     const [newEnvKey, setNewEnvKey] = useState('');
     const [newEnvValue, setNewEnvValue] = useState('');
     const [newEnvTarget, setNewEnvTarget] = useState<'both' | 'build' | 'runtime'>('both');
+    const [newEnvIsSecret, setNewEnvIsSecret] = useState(false);
+    const [newEnvEnvironment, setNewEnvEnvironment] = useState<'both' | 'production' | 'preview'>('both');
 
     const handleAddEnv = () => {
         if (!newEnvKey.trim() || !newEnvValue.trim()) return;
@@ -306,9 +321,18 @@ function Step2Configure({ repo, onBack, onDeploy }: {
             toast.error('Variable already exists');
             return;
         }
-        setEnvVars([...envVars, { key, value: newEnvValue, target: newEnvTarget }]);
+        setEnvVars([...envVars, {
+            key,
+            value: newEnvValue,
+            target: newEnvTarget,
+            isSecret: newEnvIsSecret,
+            environment: newEnvEnvironment
+        }]);
         setNewEnvKey('');
         setNewEnvValue('');
+        setNewEnvIsSecret(false);
+        setNewEnvTarget('both');
+        setNewEnvEnvironment('both');
     };
 
     const handleDeploy = async () => {
@@ -327,11 +351,15 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     framework,
                     rootDirectory,
                     region: region || undefined,
+                    buildCommand: buildCommand || undefined,
+                    installCommand: installCommand || undefined,
+                    outputDirectory: outputDirectory || undefined,
                     envVariables: envVars.map(e => ({
                         key: e.key,
                         value: e.value,
                         target: e.target,
-                        isSecret: false
+                        isSecret: e.isSecret,
+                        environment: e.environment
                     }))
                 }),
             });
@@ -381,8 +409,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Project Name</label>
+                        <label htmlFor="projectName" className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Project Name</label>
                         <Input
+                            id="projectName"
                             type="text"
                             value={projectName}
                             onChange={(e) => setProjectName(e.target.value)}
@@ -431,6 +460,61 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         </NativeSelect>
                     </div>
                 </div>
+
+                <div className="pt-4 border-t border-[var(--border)]">
+                    <button
+                        type="button"
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className="flex items-center gap-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                        {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        Advanced Build Settings
+                    </button>
+
+                    <AnimatePresence>
+                        {showAdvanced && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden"
+                            >
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+                                    <div className="space-y-2">
+                                        <label htmlFor="buildCommand" className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Build Command</label>
+                                        <Input
+                                            id="buildCommand"
+                                            type="text"
+                                            value={buildCommand}
+                                            onChange={(e) => setBuildCommand(e.target.value)}
+                                            placeholder="npm run build"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="installCommand" className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Install Command</label>
+                                        <Input
+                                            id="installCommand"
+                                            type="text"
+                                            value={installCommand}
+                                            onChange={(e) => setInstallCommand(e.target.value)}
+                                            placeholder="npm install"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label htmlFor="outputDirectory" className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Output Directory</label>
+                                        <Input
+                                            id="outputDirectory"
+                                            type="text"
+                                            value={outputDirectory}
+                                            onChange={(e) => setOutputDirectory(e.target.value)}
+                                            placeholder=".next"
+                                        />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </Card>
 
             <Card className="space-y-6">
@@ -447,14 +531,24 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <div className="space-y-3">
                     {envVars.map((env) => (
                         <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
-                            <div className="flex-1 grid grid-cols-3 gap-4">
-                                <span className="font-mono text-sm text-[var(--primary)]">{env.key}</span>
-                                <span className="font-mono text-sm text-[var(--foreground)] truncate">{env.value}</span>
-                                <span className="text-xs text-[var(--muted-foreground)] uppercase">{env.target}</span>
+                            <div className="flex-1 grid grid-cols-5 gap-4 items-center">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono text-sm text-[var(--primary)]">{env.key}</span>
+                                    {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
+                                </div>
+                                <span className="font-mono text-sm text-[var(--foreground)] truncate">
+                                    {env.isSecret ? '••••••••' : env.value}
+                                </span>
+                                <span className="text-[10px] text-[var(--muted-foreground)] uppercase px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                    {env.target === 'both' ? 'Build & Runtime' : env.target}
+                                </span>
+                                <span className="text-[10px] text-[var(--muted-foreground)] uppercase px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                    {env.environment === 'both' ? 'All Envs' : env.environment}
+                                </span>
                             </div>
                             <Button
                                 variant="ghost"
-                                size="sm"
+                                size="icon"
                                 onClick={() => setEnvVars(envVars.filter(e => e.key !== env.key))}
                                 className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
                             >
@@ -464,39 +558,74 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     ))}
                 </div>
 
-                <div className="flex gap-2 p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)]">
-                    <Input
-                        type="text"
-                        placeholder="KEY"
-                        value={newEnvKey}
-                        onChange={(e) => setNewEnvKey(e.target.value)}
-                        className="font-mono"
-                    />
-                    <Input
-                        type="text"
-                        placeholder="VALUE"
-                        value={newEnvValue}
-                        onChange={(e) => setNewEnvValue(e.target.value)}
-                        className="font-mono"
-                    />
-                    <NativeSelect
-                        value={newEnvTarget}
-                        onChange={(e) => setNewEnvTarget(e.target.value as 'both' | 'build' | 'runtime')}
-                        className="w-32"
-                    >
-                        <option value="both">Both</option>
-                        <option value="build">Build</option>
-                        <option value="runtime">Runtime</option>
-                    </NativeSelect>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleAddEnv}
-                        disabled={!newEnvKey || !newEnvValue}
-                        className="text-[var(--primary)]"
-                    >
-                        <Plus className="w-5 h-5" />
-                    </Button>
+                <div className="space-y-4 p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)]">
+                    <div className="flex gap-2">
+                        <Input
+                            type="text"
+                            placeholder="KEY"
+                            value={newEnvKey}
+                            onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
+                            className="font-mono"
+                        />
+                        <Input
+                            type={newEnvIsSecret ? "password" : "text"}
+                            placeholder="VALUE"
+                            value={newEnvValue}
+                            onChange={(e) => setNewEnvValue(e.target.value)}
+                            className="font-mono"
+                        />
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleAddEnv}
+                            disabled={!newEnvKey || !newEnvValue}
+                            className="text-[var(--primary)] px-4"
+                        >
+                            <Plus className="w-5 h-5 mr-2" />
+                            Add
+                        </Button>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-6 pt-2">
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="isSecret"
+                                checked={newEnvIsSecret}
+                                onChange={(e) => setNewEnvIsSecret(e.target.checked)}
+                                className="w-4 h-4 accent-[var(--primary)]"
+                            />
+                            <label htmlFor="isSecret" className="text-xs font-medium cursor-pointer flex items-center gap-1">
+                                <Shield className="w-3 h-3" /> Secret
+                            </label>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)]">Target:</span>
+                            <NativeSelect
+                                value={newEnvTarget}
+                                onChange={(e) => setNewEnvTarget(e.target.value as 'both' | 'build' | 'runtime')}
+                                className="h-8 text-[10px] w-32 py-0"
+                            >
+                                <option value="both">Build & Runtime</option>
+                                <option value="build">Build Only</option>
+                                <option value="runtime">Runtime Only</option>
+                            </NativeSelect>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)]">Scope:</span>
+                            <NativeSelect
+                                value={newEnvEnvironment}
+                                onChange={(e) => setNewEnvEnvironment(e.target.value as 'both' | 'production' | 'preview')}
+                                className="h-8 text-[10px] w-32 py-0"
+                            >
+                                <option value="both">All Envs</option>
+                                <option value="production">Production Only</option>
+                                <option value="preview">Preview Only</option>
+                            </NativeSelect>
+                        </div>
+                    </div>
                 </div>
             </Card>
 
