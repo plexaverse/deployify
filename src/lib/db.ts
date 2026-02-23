@@ -1,7 +1,6 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, EnvVar, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
+import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
 import { generateId } from '@/lib/utils';
-import { decrypt } from '@/lib/crypto';
 import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot } from 'firebase-admin/firestore';
 
 // ============= User Operations =============
@@ -735,91 +734,6 @@ export async function getLatestDeployment(
 export async function updateDeployment(id: string, data: Partial<Deployment>): Promise<void> {
     const db = getDb();
     await db.collection(Collections.DEPLOYMENTS).doc(id).update({
-        ...data,
-        updatedAt: new Date(),
-    });
-}
-
-// ============= Environment Variable Operations =============
-
-export async function createEnvVar(
-    envVarData: Omit<EnvVar, 'id' | 'createdAt' | 'updatedAt'>
-): Promise<EnvVar> {
-    const db = getDb();
-    const id = generateId('env');
-    const now = new Date();
-
-    const envVar: EnvVar = {
-        ...envVarData,
-        id,
-        createdAt: now,
-        updatedAt: now,
-    };
-
-    await db.collection(Collections.ENV_VARS).doc(id).set(envVar);
-    return envVar;
-}
-
-export async function listEnvVarsByProject(projectId: string): Promise<EnvVar[]> {
-    const db = getDb();
-    const snapshot = await db
-        .collection(Collections.ENV_VARS)
-        .where('projectId', '==', projectId)
-        .orderBy('key')
-        .get();
-
-    return snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-            ...data,
-            createdAt: data?.createdAt?.toDate(),
-            updatedAt: data?.updatedAt?.toDate(),
-        } as EnvVar;
-    });
-}
-
-export async function getEnvVarsForDeployment(
-    projectId: string,
-    target: 'production' | 'preview'
-): Promise<Record<string, string>> {
-    // Read from Project.envVariables (source of truth from UI)
-    const project = await getProjectById(projectId);
-    const envVars = project?.envVariables || [];
-
-    const result: Record<string, string> = {};
-
-    for (const envVar of envVars) {
-        // Filter by environment (production/preview/both)
-        const env = envVar.environment || 'both';
-
-        if (env === 'both' || env === target) {
-            let value = envVar.value;
-
-            // Decrypt if it's a secret and encrypted
-            if (envVar.isSecret && (envVar.isEncrypted || value.startsWith('enc:'))) {
-                try {
-                    value = decrypt(value);
-                } catch (e) {
-                    console.error(`Failed to decrypt secret ${envVar.key} for deployment:`, e);
-                    // We'll keep the encrypted value as fallback, but this might cause build failure
-                }
-            }
-
-            result[envVar.key] = value;
-        }
-    }
-
-    return result;
-}
-
-export async function deleteEnvVar(id: string): Promise<void> {
-    const db = getDb();
-    await db.collection(Collections.ENV_VARS).doc(id).delete();
-}
-
-export async function updateEnvVar(id: string, data: Partial<EnvVar>): Promise<void> {
-    const db = getDb();
-    await db.collection(Collections.ENV_VARS).doc(id).update({
         ...data,
         updatedAt: new Date(),
     });
