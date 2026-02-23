@@ -12,7 +12,8 @@ import {
     getUserById
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
-// import { getPreviewServiceName } from '@/lib/gcp/cloudrun';
+import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
+import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { parseBranchFromRef, shouldAutoDeploy, slugify } from '@/lib/utils';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 import { decrypt } from '@/lib/crypto';
@@ -254,13 +255,14 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         return;
     }
 
-    // const previewServiceName = getPreviewServiceName(project.slug, pull_request.number);
+    const previewServiceName = getPreviewServiceName(project.slug, pull_request.number);
 
     // Handle PR closed - cleanup preview deployment
     if (action === 'closed') {
         try {
-            // await deleteService(previewServiceName, accessToken);
-            console.log(`Cleaned up preview deployment for PR #${pull_request.number}`);
+            const gcpAccessToken = await getGcpAccessToken();
+            await deleteService(previewServiceName, gcpAccessToken, project.region);
+            console.log(`Cleaned up preview deployment for PR #${pull_request.number}: ${previewServiceName}`);
         } catch (error) {
             console.error('Failed to cleanup preview deployment:', error);
         }

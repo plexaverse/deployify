@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json(
-            { projects },
+            { success: true, projects },
             { headers: securityHeaders }
         );
     } catch (error) {
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(
-            { project },
+            { success: true, project },
             { status: 201, headers: securityHeaders }
         );
     } catch (error) {
