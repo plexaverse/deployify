@@ -174,6 +174,10 @@
 - **Improvement**: Ensure deployment status updates reliably even if background polling is throttled by Cloud Run CPU policies.
 - **Status**: ✅ Implemented (`syncDeploymentStatus` logic + Frontend polling in `DeploymentsPage`)
 
+#### 23. **Proxy Reliability and Hygiene**
+- **Improvement**: Reduce excessive logging in proxy routes and disable caching for proxied requests to ensure data freshness.
+- **Status**: ✅ Implemented (Logs cleaned up, `cache: 'no-store'` added)
+
 ---
 
 ## ✅ Verification Status
