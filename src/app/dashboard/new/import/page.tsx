@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -360,10 +361,11 @@ export default function ImportProjectPage() {
                 </Card>
 
                 <div className="flex justify-end pt-4">
-                    <Button
+                    <MovingBorderButton
                         onClick={handleDeploy}
                         disabled={isDeploying || !projectName}
-                        className="h-12 w-full md:w-auto text-base"
+                        containerClassName="h-12 w-full md:w-auto"
+                        className="text-base font-bold"
                     >
                         {isDeploying ? (
                             <>
@@ -373,7 +375,7 @@ export default function ImportProjectPage() {
                         ) : (
                             'Deploy'
                         )}
-                    </Button>
+                    </MovingBorderButton>
                 </div>
             </div>
         </div>

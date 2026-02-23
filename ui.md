@@ -833,3 +833,13 @@ Unified the build log viewing experience and improved loading state consistency.
 ### `src/components/ui/skeleton.tsx`
 - Updated the default background color from `bg-[var(--border)]` to `bg-[var(--muted)]/20`.
 - This provides a more subtle and refined loading state that works better across light and dark modes without requiring manual overrides.
+
+## Progressive UI & Theme Consistency Refactor (Session 78)
+
+Conducted a consistency pass to ensure high-priority deployment actions use the premium `MovingBorderButton` component.
+
+### `src/app/new/page.tsx` (Project Creation Wizard)
+- **Step 2 (Configure)**: Upgraded the "Deploy Project" button to use the `MovingBorderButton` component, replacing the standard `Button` with a `rounded-full` override. This ensures a consistent "premium" feel for the primary call-to-action in the wizard.
+
+### `src/app/dashboard/new/import/page.tsx` (Legacy Import)
+- Upgraded the "Deploy" button to use the `MovingBorderButton` component, replacing the standard `Button`. This aligns the legacy import flow with the new wizard and dashboard aesthetics.
