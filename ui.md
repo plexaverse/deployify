@@ -867,3 +867,27 @@ Conducted a targeted pass to harmonize UI components and introduce subtle micro-
 ### `src/components/OnboardingGuide.tsx`
 - **Button Consistency**: Updated the `MovingBorderButton` to use standard primary colors (`var(--primary)`, `var(--primary-foreground)`) and a custom primary glow shadow, ensuring it stands out as the primary call-to-action while maintaining theme consistency.
 - **Layout Refinement**: Increased the button width for better balance and visual impact.
+
+## Progressive UI & Micro-interactions Refinement (Session 80)
+
+Conducted a targeted pass to harmonize UI components and introduce subtle micro-interactions across the platform.
+
+### `src/components/ui/segmented-control.tsx`
+- Created a new reusable `SegmentedControl` component for pill-style selections.
+- Features smooth `framer-motion` transitions for the active state indicator using `layoutId`.
+- Styled with theme variables for consistent appearance across light and dark modes.
+
+### `src/app/new/page.tsx` (Project Creation Wizard)
+- **StepIndicator**: Refactored to use `framer-motion` for smoother state transitions. Added animations for completed steps (checkmark scale-in) and active steps (subtle pulse).
+- **Repository Search**: Added a keyboard shortcut hint (⌘K / Ctrl+K) and implemented the focus logic.
+- **Repository Cards**: Added `whileHover` and `whileTap` animations using `framer-motion`. Included a subtle background gradient effect on hover for a more premium feel.
+- **Configuration**: Replaced manual pill-style buttons for Target and Scope with the new `SegmentedControl` component.
+
+### `src/components/EnvVariablesSection.tsx`
+- Refactored the environment variable creation form to use the `SegmentedControl` component for Target and Scope selections, ensuring consistency with the creation wizard.
+
+### `src/app/dashboard/[id]/page.tsx` (Project Overview)
+- **Production Card Polish**:
+    - Replaced the manual framework tag with the `Badge` component (outline variant).
+    - Enhanced the "Live" status indicator with a CSS `animate-ping` effect for better visibility.
+    - Improved the hover interaction on the production URL with a transition-aware color shift and an animated external link icon.

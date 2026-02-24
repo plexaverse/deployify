@@ -255,14 +255,19 @@ export default function ProjectDetailPage() {
                         <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/5">
                             <div className="flex items-center gap-2">
                                 <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
-                                <div className="px-2 py-0.5 rounded-md bg-[var(--primary)]/5 border border-[var(--border)] text-[10px] font-mono text-[var(--muted-foreground)]">
-                                    {project.framework?.toUpperCase()}
-                                </div>
+                                <Badge variant="outline" className="text-[10px] font-mono font-normal uppercase tracking-tight py-0 px-1.5 bg-[var(--background)]">
+                                    {project.framework || 'Web App'}
+                                </Badge>
                             </div>
-                            <Badge variant="success" className="animate-pulse">
-                                <div className="w-1.5 h-1.5 rounded-full bg-current mr-1.5" />
-                                Live
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                                <div className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
+                                </div>
+                                <Badge variant="success" className="text-[10px] py-0 px-2 font-bold tracking-wide uppercase">
+                                    Live
+                                </Badge>
+                            </div>
                         </div>
                         <div className="p-8">
                             {project.productionUrl ? (
@@ -270,9 +275,9 @@ export default function ProjectDetailPage() {
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-3">
                                             <div className="space-y-1">
-                                                <p className="text-2xl font-bold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer" onClick={() => window.open(project.productionUrl!, '_blank')}>
+                                                <p className="text-2xl font-bold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
                                                     {project.productionUrl.replace(/^https?:\/\//, '')}
-                                                    <ExternalLink className="inline-block w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <ExternalLink className="inline-block w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                                                 </p>
                                             </div>
                                             <div className="flex flex-wrap items-center gap-2">

@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { Switch } from '@/components/ui/switch';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
 
 interface EnvVariablesSectionProps {
@@ -252,44 +253,28 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                         <div className="flex-1 space-y-4">
                             <div className="space-y-2">
                                 <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider block">Target Environment Type</span>
-                                <div className="flex flex-wrap gap-2">
-                                    {(['both', 'build', 'runtime'] as EnvVariableTarget[]).map((t) => (
-                                        <button
-                                            key={t}
-                                            type="button"
-                                            onClick={() => setNewTarget(t)}
-                                            className={cn(
-                                                "px-3 py-1.5 text-xs rounded-full border transition-all",
-                                                newTarget === t
-                                                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] shadow-sm"
-                                                    : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]"
-                                            )}
-                                        >
-                                            <span className="capitalize">{t === 'both' ? 'Build & Runtime' : t}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                                <SegmentedControl
+                                    options={[
+                                        { value: 'both', label: 'Build & Runtime' },
+                                        { value: 'build', label: 'Build Only' },
+                                        { value: 'runtime', label: 'Runtime Only' }
+                                    ]}
+                                    value={newTarget}
+                                    onChange={(v) => setNewTarget(v as EnvVariableTarget)}
+                                />
                             </div>
 
                             <div className="space-y-2">
                                 <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider block">Scope</span>
-                                <div className="flex flex-wrap gap-2">
-                                    {(['both', 'production', 'preview'] as const).map((e) => (
-                                        <button
-                                            key={e}
-                                            type="button"
-                                            onClick={() => setNewEnvironment(e)}
-                                            className={cn(
-                                                "px-3 py-1.5 text-xs rounded-full border transition-all",
-                                                newEnvironment === e
-                                                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] shadow-sm"
-                                                    : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]"
-                                            )}
-                                        >
-                                            <span className="capitalize">{e === 'both' ? 'All Environments' : e}</span>
-                                        </button>
-                                    ))}
-                                </div>
+                                <SegmentedControl
+                                    options={[
+                                        { value: 'both', label: 'All Environments' },
+                                        { value: 'production', label: 'Production Only' },
+                                        { value: 'preview', label: 'Preview Only' }
+                                    ]}
+                                    value={newEnvironment}
+                                    onChange={(v) => setNewEnvironment(v as any)}
+                                />
                             </div>
                         </div>
                     </div>
