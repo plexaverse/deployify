@@ -2,7 +2,7 @@ import { config } from '@/lib/config';
 import { updateDeployment, updateProject, getDeploymentById } from '@/lib/db';
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
-import { getGcpAccessToken } from '@/lib/gcp/auth';
+import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { sendWebhookNotification } from '@/lib/webhooks';
 import { trackDeployment } from '@/lib/billing/tracker';
 import { sendEmail } from '@/lib/email/client';
@@ -80,6 +80,9 @@ export async function syncDeploymentStatus(
             const serviceName = `dfy-${projectSlug}`.substring(0, 63);
             const serviceUrl = await getCloudRunServiceUrl(serviceName, projectRegion);
 
+            // Get project number for fallback URL
+            const projectNumber = config.gcp.projectNumber || (await getGcpProjectNumber(config.gcp.projectId)) || 'unknown';
+
             // Fetch latest revision
             let latestRevision: string | undefined;
             try {
@@ -100,7 +103,7 @@ export async function syncDeploymentStatus(
                 buildDurationMs = end - start;
             }
 
-            const effectiveUrl = serviceUrl || `https://${serviceName}-${config.gcp.projectNumber}.${region}.run.app`;
+            const effectiveUrl = serviceUrl || `https://${serviceName}-${projectNumber}.${region || config.gcp.region}.run.app`;
             const now = new Date();
 
             await updateDeployment(deploymentId, {
@@ -335,7 +338,8 @@ export async function simulateDeployment(
     setTimeout(async () => {
         try {
             // Use project region or fall back to default
-            const mockUrl = `https://dfy-${projectSlug}-${config.gcp.projectNumber}.${config.gcp.region}.run.app`;
+            const projectNumber = config.gcp.projectNumber || (await getGcpProjectNumber(config.gcp.projectId)) || '000000000000';
+            const mockUrl = `https://dfy-${projectSlug}-${projectNumber}.${config.gcp.region}.run.app`;
 
             await updateDeployment(deploymentId, {
                 status: 'ready',

@@ -352,7 +352,7 @@ USER nextjs
 EXPOSE 8080
 ENV PORT=8080
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]`;
+CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; elif [ -f \\\"${rootDirectory || '.'}/server.js\\\" ]; then node \\\"${rootDirectory || '.'}/server.js\\\"; else echo 'Error: server.js not found' && exit 1; fi"]`;
 }
 
 function generateViteDockerfile(config: DockerfileConfig): string {
