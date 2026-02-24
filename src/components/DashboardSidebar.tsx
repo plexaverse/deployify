@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { usePathname, useParams } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 import {
     LayoutDashboard,
     Settings,
@@ -157,17 +158,26 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                 {group.items.map((item) => {
                                     const isActive = pathname === item.href;
                                     return (
-                                        <li key={item.name}>
+                                        <li key={item.name} className="relative">
+                                            {isActive && (
+                                                <motion.span
+                                                    layoutId="active-nav-indicator"
+                                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[var(--primary)] rounded-r-full z-10"
+                                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                                />
+                                            )}
                                             <motion.div whileTap={{ scale: 0.98 }}>
                                                 <Link
                                                     href={item.href}
-                                                    className={`flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-colors ${isActive
-                                                        ? 'bg-[var(--card-hover)] text-[var(--foreground)] font-medium shadow-sm ring-1 ring-[var(--border)]'
-                                                        : 'text-[var(--muted-foreground)] hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]'
-                                                        }`}
+                                                    className={cn(
+                                                        "flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-all duration-200",
+                                                        isActive
+                                                            ? 'bg-[var(--primary)]/5 text-[var(--foreground)] font-semibold shadow-sm border border-[var(--primary)]/10'
+                                                            : 'text-[var(--muted-foreground)] hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]'
+                                                    )}
                                                     onClick={() => setSidebarOpen(false)}
                                                 >
-                                                    <item.icon className="w-4 h-4" />
+                                                    <item.icon className={cn("w-4 h-4", isActive && "text-[var(--primary)]")} />
                                                     {item.name}
                                                 </Link>
                                             </motion.div>
@@ -180,18 +190,31 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                 </nav>
 
                 {/* User / Footer */}
-                <div className="p-4 border-t border-[var(--border)]">
-                    <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-[var(--card-hover)] cursor-pointer text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-2"
-                        onClick={toggleTheme}
-                        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-                    >
-                        <span className="flex items-center gap-2">
-                            {isMounted && theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                            Theme
-                        </span>
-                    </motion.button>
+                <div className="p-4 border-t border-[var(--border)] space-y-4">
+                    <div className="px-3">
+                        <div className="flex items-center justify-between p-1 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
+                            <button
+                                onClick={() => setTheme('light')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-2 py-1.5 rounded-md text-xs font-medium transition-all",
+                                    theme === 'light' ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                )}
+                            >
+                                <Sun className="w-3.5 h-3.5" />
+                                Light
+                            </button>
+                            <button
+                                onClick={() => setTheme('dark')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-2 py-1.5 rounded-md text-xs font-medium transition-all",
+                                    theme === 'dark' ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                )}
+                            >
+                                <Moon className="w-3.5 h-3.5" />
+                                Dark
+                            </button>
+                        </div>
+                    </div>
 
                     <div className="flex items-center gap-3 px-3 py-2">
                         <Avatar className="h-8 w-8 border border-[var(--border)]">

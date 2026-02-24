@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X,
     Settings, Terminal, Plus, Trash2, CheckCircle2, AlertCircle, ChevronRight,
-    Shield, ChevronDown, ChevronUp
+    Shield, ChevronDown, ChevronUp, Rocket
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -779,49 +779,122 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-4xl mx-auto h-[600px] flex flex-col gap-8 pb-24"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto h-full flex flex-col gap-8 pb-24"
         >
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                    <motion.div
+                        initial={false}
+                        animate={{
+                            color: isReady ? 'var(--success)' : isError ? 'var(--error)' : 'var(--info)'
+                        }}
+                        className="text-2xl font-bold flex items-center gap-3"
+                    >
                         {isReady ? (
-                            <span className="text-[var(--success)] flex items-center gap-2">
-                                <CheckCircle2 className="w-6 h-6" /> Deployed Successfully
-                            </span>
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: 'spring', damping: 12 }}
+                            >
+                                <CheckCircle2 className="w-8 h-8" />
+                            </motion.div>
                         ) : isError ? (
-                            <span className="text-[var(--error)] flex items-center gap-2">
-                                <AlertCircle className="w-6 h-6" /> Deployment Failed
-                            </span>
+                            <AlertCircle className="w-8 h-8" />
                         ) : (
-                            <span className="text-[var(--info)] flex items-center gap-2">
-                                <Loader2 className="w-6 h-6 animate-spin" /> Building & Deploying...
-                            </span>
+                            <Loader2 className="w-8 h-8 animate-spin" />
                         )}
-                    </h2>
-                    <p className="text-[var(--muted-foreground)] mt-1">
-                        {project.name} • {initialDeployment.gitBranch} • {initialDeployment.gitCommitSha.substring(0, 7)}
+                        <span>
+                            {isReady ? 'Deployed Successfully' : isError ? 'Deployment Failed' : 'Building & Deploying...'}
+                        </span>
+                    </motion.div>
+                    <p className="text-[var(--muted-foreground)] flex items-center gap-2">
+                        <GitBranch className="w-4 h-4" />
+                        <span className="font-medium text-[var(--foreground)]">{project.name}</span>
+                        <span className="opacity-50">•</span>
+                        <span>{initialDeployment.gitBranch}</span>
+                        <span className="opacity-50">•</span>
+                        <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-xs font-mono">{initialDeployment.gitCommitSha.substring(0, 7)}</code>
                     </p>
                 </div>
-                {isReady && (
-                    <Button
-                        onClick={() => router.push(`/dashboard/${project.id}`)}
-                        className="rounded-full px-6"
-                    >
-                        Go to Dashboard
-                    </Button>
-                )}
-                 {isError && (
-                    <Button
-                        variant="secondary"
-                        onClick={() => window.location.reload()}
-                        className="rounded-full px-6"
-                    >
-                        Try Again
-                    </Button>
-                )}
+
+                <div className="flex items-center gap-3">
+                    {isReady && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                <a
+                                    href={project.productionUrl || '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <MovingBorderButton
+                                        containerClassName="h-11 w-40"
+                                        className="font-bold text-sm"
+                                    >
+                                        <Globe className="w-4 h-4 mr-2" />
+                                        Visit App
+                                    </MovingBorderButton>
+                                </a>
+                            </motion.div>
+                            <Button
+                                variant="secondary"
+                                onClick={() => router.push(`/dashboard/${project.id}`)}
+                                className="h-11 px-6 rounded-xl font-medium"
+                            >
+                                Dashboard
+                            </Button>
+                        </>
+                    )}
+                    {isError && (
+                        <Button
+                            variant="primary"
+                            onClick={() => window.location.reload()}
+                            className="h-11 px-8 rounded-xl font-bold"
+                        >
+                            Try Again
+                        </Button>
+                    )}
+                </div>
             </div>
+
+            {isReady && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
+                >
+                    <Card className="p-6 bg-[var(--success-bg)]/30 border-[var(--success)]/20 shadow-lg shadow-[var(--success-bg)]">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="space-y-4 flex-1">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 rounded-2xl bg-[var(--success)] text-[var(--primary-foreground)] shadow-lg shadow-[var(--success)]/20">
+                                        <Rocket className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-lg">Your project is live!</h3>
+                                        <p className="text-sm text-[var(--muted-foreground)]">Everything is configured and running on Cloud Run.</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
+                                        <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] block mb-1">Production URL</span>
+                                        <p className="text-sm font-mono truncate">{project.productionUrl?.replace(/^https?:\/\//, '')}</p>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
+                                        <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] block mb-1">Environment</span>
+                                        <p className="text-sm font-medium">Production</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                </motion.div>
+            )}
 
             <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
                 <div className="bg-[var(--terminal-header-bg)] p-3 flex items-center justify-between border-b border-[var(--terminal-border)]">

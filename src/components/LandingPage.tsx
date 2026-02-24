@@ -320,35 +320,40 @@ export default function LandingPage() {
                     badge: "Production Ready"
                   }
                 ].map((step, i) => (
-                  <div key={i} className="mb-20 relative group">
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                    className="mb-24 relative group"
+                  >
                     <motion.div
                       initial={{ opacity: 0.1, x: -20 }}
-                      whileInView={{ opacity: 1, scale: 1.1, x: 0 }}
+                      whileInView={{ opacity: 0.3, scale: 1.2, x: 0 }}
                       viewport={{ margin: "-100px" }}
-                      transition={{ duration: 0.8 }}
-                      className="absolute -left-12 md:-left-16 top-0 text-4xl font-black text-[var(--muted)]/30 tabular-nums transition-colors group-hover:text-[var(--foreground)]/30 group-hover:opacity-100"
+                      transition={{ duration: 1 }}
+                      className="absolute -left-12 md:-left-16 -top-2 text-5xl font-black text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
                       aria-hidden="true"
                     >
                       0{i + 1}
                     </motion.div>
-                    <div className="flex items-center gap-4 mb-4">
+                    <div className="flex items-center gap-4 mb-6">
                        <motion.div
-                         initial={{ scale: 0.8, opacity: 0.5 }}
-                         whileInView={{ scale: 1, opacity: 1 }}
-                         viewport={{ margin: "-100px" }}
-                         className="p-3 rounded-2xl bg-[var(--card)] border border-[var(--border)] group-hover:border-[var(--muted)] transition-colors shadow-sm group-hover:shadow-md"
+                         whileHover={{ scale: 1.1, rotate: 5 }}
+                         className="p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] group-hover:border-[var(--primary)]/50 transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:shadow-[var(--primary)]/10"
                        >
                          {step.icon}
                        </motion.div>
-                       <h3 className="text-2xl font-bold group-hover:text-[var(--foreground)] transition-colors">{step.title}</h3>
+                       <h3 className="text-2xl font-bold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
                     </div>
-                    <div className="text-lg text-[var(--muted-foreground)] leading-relaxed mb-4">
+                    <div className="text-lg text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}
                     </div>
-                    <div className="p-1 rounded-2xl bg-[var(--card)] w-fit px-4 py-1 text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest border border-[var(--border)]">
+                    <div className="p-1 rounded-full bg-[var(--primary)]/5 w-fit px-5 py-1.5 text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.15em] border border-[var(--primary)]/10">
                       {step.badge}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </TracingBeam>
@@ -361,8 +366,8 @@ export default function LandingPage() {
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="p-6 rounded-[2rem] bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm"
+                whileHover={{ scale: 1.02, translateY: -4 }}
+                className="p-8 rounded-[2.5rem] bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-white/5"
               >
                 <div className="flex justify-between items-start mb-8">
                   <div>
@@ -386,8 +391,8 @@ export default function LandingPage() {
                 </div>
               </motion.div>
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="p-6 rounded-[2rem] bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm relative overflow-hidden group"
+                whileHover={{ scale: 1.02, translateY: -4 }}
+                className="p-8 rounded-[2.5rem] bg-[var(--card)] border border-[var(--primary)]/20 backdrop-blur-sm relative overflow-hidden group transition-all duration-300 shadow-lg hover:shadow-[0_0_40px_rgba(99,102,241,0.1)]"
               >
                 <div className="absolute top-0 right-0 p-4">
                    <Badge className="animate-pulse uppercase tracking-tighter font-black">Save 80%</Badge>

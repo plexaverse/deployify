@@ -916,3 +916,31 @@ Conducted a targeted pass to refactor deployment lists and settings toggles into
 ### `src/app/dashboard/[id]/settings/page.tsx`
 - Refactored "Automatic PR Deployments", "Email Notifications", and "Cloud Armor" sections to use `SettingsToggle`.
 - Improved code maintainability by removing repetitive markup.
+
+## Progressive UI & Refactoring (Session 82)
+
+Conducted a targeted pass to refactor Core Web Vitals and improve navigation consistency.
+
+### `src/components/WebVitals.tsx`
+- Refactored to use the `Card` and `Badge` components, eliminating manual `card` classes and custom status colors.
+- Standardized status mapping to semantic `Badge` variants (`success`, `warning`, `error`).
+- Improved layout with `rounded-xl` and `bg-[var(--muted)]/5` for a more modern, layered feel.
+- Added hover transitions to individual metric cards for better interactivity.
+
+### `src/components/DashboardSidebar.tsx`
+- Upgraded the theme switcher to a modern, split-button design with `Sun` and `Moon` icons.
+- Added a dynamic active navigation indicator using `framer-motion` (`layoutId`) that smoothly slides between active routes.
+- Refined navigation item styling with a subtle primary-tinted background and bold font for the active state.
+- Integrated `cn` utility for cleaner conditional class management.
+
+### `src/app/new/page.tsx`
+- Refined the deployment status view (Step 3) with larger, animated icons and semantic status-aware colors.
+- Added a celebratory "Project Summary" card that appears upon successful deployment, featuring a `Rocket` icon and prominent project metadata.
+- Integrated the `MovingBorderButton` for the "Visit App" action to provide a high-priority call-to-action on success.
+- Improved the layout responsiveness for different screen sizes during the deployment phase.
+
+### `src/components/LandingPage.tsx`
+- Refined "The Method" section with staggered entry animations for each step using `framer-motion`.
+- Improved step indicators with larger, more prominent numbering and hover effects.
+- Enhanced pricing comparison cards with `translate-y` transitions and a subtle primary glow for the Deployify plan.
+- Increased padding and border-radius for pricing cards to create a more premium, modern aesthetic.
