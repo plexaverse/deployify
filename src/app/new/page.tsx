@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { NativeSelect } from '@/components/ui/native-select';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { BuildLogViewer } from '@/components/BuildLogViewer';
@@ -120,20 +121,55 @@ export default function NewProjectPage() {
 
 function StepIndicator({ current, number, label }: { current: number, number: number, label: string }) {
     const active = current >= number;
+    const completed = current > number;
     const currentStep = current === number;
 
     return (
-        <div className={`flex items-center gap-2 ${active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'}`}>
-            <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border transition-colors",
-                active
-                    ? 'bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]'
-                    : 'bg-transparent border-[var(--border)]',
-                currentStep && 'ring-2 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--background)]'
+        <div className={cn(
+            "flex items-center gap-2 transition-colors duration-300",
+            active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
+        )}>
+            <motion.div
+                initial={false}
+                animate={{
+                    backgroundColor: active ? 'var(--primary)' : 'transparent',
+                    borderColor: active ? 'var(--primary)' : 'var(--border)',
+                    scale: currentStep ? 1.1 : 1,
+                }}
+                className={cn(
+                    "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border relative",
+                    currentStep && 'ring-2 ring-[var(--primary)]/30 ring-offset-2 ring-offset-[var(--background)]'
+                )}
+            >
+                <AnimatePresence mode="wait">
+                    {completed ? (
+                        <motion.div
+                            key="check"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                        >
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[var(--primary-foreground)]" />
+                        </motion.div>
+                    ) : (
+                        <motion.span
+                            key="number"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className={active ? 'text-[var(--primary-foreground)]' : 'text-[var(--muted-foreground)]'}
+                        >
+                            {number}
+                        </motion.span>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+            <span className={cn(
+                "font-medium transition-all duration-300",
+                currentStep ? "text-[var(--foreground)] scale-105" : "text-[var(--muted-foreground)]"
             )}>
-                {active && current > number ? <CheckCircle2 className="w-3.5 h-3.5" /> : number}
-            </div>
-            <span>{label}</span>
+                {label}
+            </span>
         </div>
     );
 }
@@ -148,6 +184,21 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
     const [loading, setLoading] = useState(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [error, setError] = useState<string | null>(null);
+    const searchRef = useRef<HTMLInputElement>(null);
+    const [isMac, setIsMac] = useState(false);
+
+    useEffect(() => {
+        setIsMac(navigator.userAgent.indexOf('Mac') !== -1);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') {
+                e.preventDefault();
+                searchRef.current?.focus();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     useEffect(() => {
         async function fetchRepos() {
@@ -194,19 +245,31 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
                 <Input
+                    ref={searchRef}
                     type="text"
                     placeholder="Search your repositories..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-12 pr-12 h-14"
+                    className="pl-12 pr-16 h-14"
                     autoFocus
                 />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                    {search ? null : (
+                        <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-medium border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                            <span>{isMac ? '⌘' : 'Ctrl'}</span>
+                            <span>K</span>
+                        </div>
+                    )}
+                </div>
                 {search && (
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setSearch('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        onClick={() => {
+                            setSearch('');
+                            searchRef.current?.focus();
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)] z-10"
                     >
                         <X className="w-4 h-4" />
                     </Button>
@@ -222,13 +285,21 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
             ) : (
                 <div className="grid gap-4">
                     {filteredRepos.map((repo) => (
-                        <Card
+                        <motion.div
                             key={repo.id}
-                            onClick={() => onSelect(repo)}
-                            className="group relative hover:border-[var(--primary)] transition-all cursor-pointer p-6"
+                            whileHover={{ y: -2, scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-start gap-4">
+                            <Card
+                                onClick={() => onSelect(repo)}
+                                className="group relative hover:border-[var(--primary)] transition-all cursor-pointer p-6 overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="relative z-10 flex items-start justify-between">
+                                    <div className="flex items-start gap-4">
                                     <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)]">
                                         {repo.private ? (
                                             <Lock className="w-5 h-5 text-[var(--warning)]" />
@@ -262,12 +333,13 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                             <span>Updated {formatDate(repo.updated_at)}</span>
                                         </div>
                                     </div>
+                                    </div>
+                                    <div className="opacity-0 group-hover:opacity-100 transition-all self-center pr-2 translate-x-4 group-hover:translate-x-0">
+                                        <ChevronRight className="w-5 h-5 text-[var(--primary)]" />
+                                    </div>
                                 </div>
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center pr-2">
-                                    <ChevronRight className="w-5 h-5 text-[var(--muted-foreground)]" />
-                                </div>
-                            </div>
-                        </Card>
+                            </Card>
+                        </motion.div>
                     ))}
 
                     {filteredRepos.length === 0 && (
@@ -604,52 +676,28 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         <div className="flex-1 space-y-4">
                             <div className="space-y-2">
                                 <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block">Target Environment Type</span>
-                                <div className="flex flex-wrap gap-2">
-                                    {([
+                                <SegmentedControl
+                                    options={[
                                         { value: 'both', label: 'Build & Runtime' },
                                         { value: 'build', label: 'Build Only' },
                                         { value: 'runtime', label: 'Runtime Only' }
-                                    ] as const).map((t) => (
-                                        <button
-                                            key={t.value}
-                                            type="button"
-                                            onClick={() => setNewEnvTarget(t.value)}
-                                            className={cn(
-                                                "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all",
-                                                newEnvTarget === t.value
-                                                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] shadow-sm"
-                                                    : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]"
-                                            )}
-                                        >
-                                            {t.label}
-                                        </button>
-                                    ))}
-                                </div>
+                                    ]}
+                                    value={newEnvTarget}
+                                    onChange={(v) => setNewEnvTarget(v as any)}
+                                />
                             </div>
 
                             <div className="space-y-2">
                                 <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block">Scope</span>
-                                <div className="flex flex-wrap gap-2">
-                                    {([
+                                <SegmentedControl
+                                    options={[
                                         { value: 'both', label: 'All Envs' },
                                         { value: 'production', label: 'Production Only' },
                                         { value: 'preview', label: 'Preview Only' }
-                                    ] as const).map((e) => (
-                                        <button
-                                            key={e.value}
-                                            type="button"
-                                            onClick={() => setNewEnvEnvironment(e.value)}
-                                            className={cn(
-                                                "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all",
-                                                newEnvEnvironment === e.value
-                                                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)] shadow-sm"
-                                                    : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--muted-foreground)]"
-                                            )}
-                                        >
-                                            {e.label}
-                                        </button>
-                                    ))}
-                                </div>
+                                    ]}
+                                    value={newEnvEnvironment}
+                                    onChange={(v) => setNewEnvEnvironment(v as any)}
+                                />
                             </div>
                         </div>
                     </div>
