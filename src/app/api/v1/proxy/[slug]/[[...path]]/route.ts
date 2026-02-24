@@ -42,7 +42,7 @@ async function logEdgeEvent(projectId: string, req: NextRequest, path: string) {
     try {
         const db = getDb();
         await db.collection(Collections.ANALYTICS_EVENTS).add(eventData);
-        console.log(`[Edge Analytics] Logged visit for ${projectId} at ${eventData.path}`);
+        // console.log(`[Edge Analytics] Logged visit for ${projectId} at ${eventData.path}`);
 
         // BigQuery DUAL-WRITE
         const { streamEventToBigQuery } = await import('@/lib/gcp/bigquery');
@@ -75,11 +75,10 @@ async function resolveProject(slug: string) {
     return project;
 }
 
-export async function GET(
+async function handleProxyRequest(
     req: NextRequest,
     { params }: { params: Promise<{ slug: string; path?: string[] }> }
 ) {
-    // Next.js 15/16: params is a promise
     const awaitedParams = await params;
     const { slug, path } = awaitedParams;
 
@@ -119,20 +118,32 @@ export async function GET(
     }
 
     try {
-        const targetResponse = await fetch(targetUrl, {
-            method: 'GET',
-            headers: {
-                'User-Agent': req.headers.get('User-Agent') || '',
-                'Accept': req.headers.get('Accept') || '',
-                'Accept-Language': req.headers.get('Accept-Language') || '',
-                'X-Forwarded-For': req.headers.get('x-forwarded-for') || '',
-                'X-Forwarded-Host': req.headers.get('host') || '',
-                'X-Forwarded-Proto': req.headers.get('x-forwarded-proto') || 'https',
-                'Cookie': req.headers.get('cookie') || '',
-                'Referer': req.headers.get('referer') || '',
-            },
-            cache: 'no-store',
+        const method = req.method;
+        const headers = new Headers();
+
+        // Forward relevant headers
+        req.headers.forEach((value, key) => {
+            if (!['host', 'connection'].includes(key.toLowerCase())) {
+                headers.set(key, value);
+            }
         });
+
+        // Ensure proper forwarded headers
+        headers.set('X-Forwarded-Host', req.headers.get('host') || '');
+        headers.set('X-Forwarded-Proto', req.headers.get('x-forwarded-proto') || 'https');
+
+        const fetchOptions: RequestInit = {
+            method,
+            headers,
+            cache: 'no-store',
+        };
+
+        // Add body for non-GET/HEAD methods
+        if (method !== 'GET' && method !== 'HEAD') {
+            fetchOptions.body = await req.arrayBuffer();
+        }
+
+        const targetResponse = await fetch(targetUrl, fetchOptions);
 
         const contentType = targetResponse.headers.get('content-type') || '';
         const responseHeaders = new Headers();
@@ -145,8 +156,8 @@ export async function GET(
             }
         });
 
-        // 3. Inject SDK and Log Edge Event if HTML
-        if (contentType.includes('text/html')) {
+        // 3. Inject SDK and Log Edge Event if HTML (only for GET)
+        if (method === 'GET' && contentType.includes('text/html')) {
             // Log analytics at the edge (server-side)
             logEdgeEvent(project.id, req, pathStr).catch(() => { });
 
@@ -183,82 +194,7 @@ export async function GET(
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-        console.error('Internal Proxy Error:', error);
-        return NextResponse.json({
-            error: 'Internal Proxy Error',
-            message: error.message || 'Unknown error occurred during proxying',
-            targetUrl
-        }, { status: 502 }); // Bad Gateway is more appropriate than 500
-    }
-}
-
-export async function POST(
-    req: NextRequest,
-    { params }: { params: Promise<{ slug: string; path?: string[] }> }
-) {
-    const { slug, path } = await params;
-    const project = await resolveProject(slug);
-
-    if (!project || !project.productionUrl) {
-        console.error(`[Proxy POST] Project not found or not deployed: ${slug}`);
-        return NextResponse.json({
-            error: 'Project not found or not deployed',
-            slug,
-            details: 'If you just deployed, wait 30-60 seconds for Cloud Run to propagate.'
-        }, { status: 404 });
-    }
-
-    const pathStr = path ? `/${path.join('/')}` : '/';
-    const baseUrl = project.productionUrl.endsWith('/')
-        ? project.productionUrl.slice(0, -1)
-        : project.productionUrl;
-    const targetUrl = `${baseUrl}${pathStr}`;
-
-    // Security/Safety: Avoid fetching localhost/127.0.0.1 from a production server
-    const isProduction = process.env.NODE_ENV === 'production';
-    const isLocalTarget = targetUrl.includes('localhost') || targetUrl.includes('127.0.0.1');
-
-    if (isProduction && isLocalTarget) {
-        console.error(`[Proxy Security] Blocking localhost target in production: ${targetUrl}`);
-        return NextResponse.json({
-            error: 'Invalid Target URL',
-            message: 'A production server cannot proxy to a local address. Please update the project\'s Production URL in the dashboard.',
-            targetUrl
-        }, { status: 400 });
-    }
-
-    try {
-        const res = await fetch(targetUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': req.headers.get('content-type') || 'application/json',
-                'User-Agent': req.headers.get('user-agent') || '',
-                'X-Forwarded-For': req.headers.get('x-forwarded-for') || '',
-                'X-Forwarded-Host': req.headers.get('host') || '',
-                'X-Forwarded-Proto': req.headers.get('x-forwarded-proto') || 'https',
-                'Cookie': req.headers.get('cookie') || '',
-                'Referer': req.headers.get('referer') || '',
-            },
-            body: await req.text(),
-            cache: 'no-store',
-        });
-
-        const responseHeaders = new Headers();
-        const skipHeaders = ['content-encoding', 'content-length', 'transfer-encoding', 'connection'];
-        res.headers.forEach((value, key) => {
-            if (!skipHeaders.includes(key.toLowerCase())) {
-                responseHeaders.set(key, value);
-            }
-        });
-
-        const data = await res.arrayBuffer();
-        return new NextResponse(data, {
-            status: res.status,
-            headers: responseHeaders,
-        });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-        console.error('Internal Proxy Error (POST):', error);
+        console.error(`Internal Proxy Error (${req.method}):`, error);
         return NextResponse.json({
             error: 'Internal Proxy Error',
             message: error.message || 'Unknown error occurred during proxying',
@@ -266,3 +202,13 @@ export async function POST(
         }, { status: 502 });
     }
 }
+
+export {
+    handleProxyRequest as GET,
+    handleProxyRequest as POST,
+    handleProxyRequest as PUT,
+    handleProxyRequest as DELETE,
+    handleProxyRequest as PATCH,
+    handleProxyRequest as HEAD,
+    handleProxyRequest as OPTIONS
+};
