@@ -10,12 +10,10 @@ import {
     Globe,
     RotateCcw,
     Clock,
-    CheckCircle2,
     Loader2,
     AlertCircle,
     Copy,
-    Check,
-    FileText
+    Check
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -23,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/EmptyState';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
+import { DeploymentListItem } from '@/components/DeploymentListItem';
 import { WebVitals } from '@/components/WebVitals';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -55,23 +54,7 @@ export default function ProjectDetailPage() {
         }
     }, [params.id, fetchProjectDetails]);
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'ready':
-                return <Badge variant="success" className="gap-1.5"><CheckCircle2 className="w-3 h-3" /> Healthy</Badge>;
-            case 'error':
-                return <Badge variant="error" className="gap-1.5"><AlertCircle className="w-3 h-3" /> Error</Badge>;
-            case 'building':
-            case 'deploying':
-                return <Badge variant="warning" className="gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> {status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
-            case 'queued':
-                return <Badge variant="info" className="gap-1.5"><Clock className="w-3 h-3" /> Queued</Badge>;
-            default:
-                return <Badge variant="secondary">{status}</Badge>;
-        }
-    };
-
-    const formatDate = (date: Date) => {
+    const formatDate = (date: Date | string | number) => {
         return new Date(date).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -140,15 +123,6 @@ export default function ProjectDetailPage() {
             console.error('Failed to rollback:', error);
             toast.error('Failed to rollback', { id: toastId });
         }
-    };
-
-    const formatDuration = (ms?: number) => {
-        if (!ms) return null;
-        const seconds = Math.floor(ms / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        if (minutes === 0) return `${remainingSeconds}s`;
-        return `${minutes}m ${remainingSeconds}s`;
     };
 
     if (loading && !project) {
@@ -400,96 +374,15 @@ export default function ProjectDetailPage() {
                     <Card className="overflow-hidden shadow-sm">
                         <div className="divide-y divide-[var(--border)]">
                             {deployments.slice(0, 5).map((deployment) => (
-                                <div key={deployment.id} className="p-4 md:px-6 hover:bg-[var(--card-hover)] transition-colors group">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                        <div className="flex items-start gap-4 flex-1 min-w-0">
-                                            <div className="mt-1 shrink-0">
-                                                {getStatusBadge(deployment.status)}
-                                            </div>
-                                            <div className="space-y-1 min-w-0 flex-1">
-                                                <div className="flex items-center gap-2 flex-wrap">
-                                                    <p className="font-semibold text-sm truncate max-w-[200px] md:max-w-md text-[var(--foreground)]">
-                                                        {deployment.gitCommitMessage}
-                                                    </p>
-                                                    <Badge
-                                                        variant={deployment.type === 'production' ? 'success' : 'info'}
-                                                        className="px-1.5 py-0 text-[9px] uppercase tracking-wider font-black h-4"
-                                                    >
-                                                        {deployment.type}
-                                                    </Badge>
-                                                </div>
-                                                <div className="flex flex-wrap items-center gap-y-1 gap-x-3 text-[11px] text-[var(--muted-foreground)]">
-                                                    <div className="flex items-center gap-1.5 font-mono bg-[var(--muted)]/5 px-1.5 py-0.5 rounded border border-[var(--border)]/50 group-hover:border-[var(--border)] transition-colors">
-                                                        <GitBranch className="w-3 h-3" />
-                                                        <span>{deployment.gitBranch}</span>
-                                                        <span className="opacity-30">@</span>
-                                                        <span className="hover:text-[var(--primary)] cursor-pointer transition-colors" onClick={() => handleCopyUrl(deployment.gitCommitSha, `sha-${deployment.id}`)}>
-                                                            {deployment.gitCommitSha.substring(0, 7)}
-                                                        </span>
-                                                        {copiedId === `sha-${deployment.id}` && <Check className="w-3 h-3 text-[var(--success)]" />}
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Clock className="w-3 h-3" />
-                                                        <span>{formatDate(deployment.createdAt)}</span>
-                                                    </div>
-                                                    {deployment.buildDurationMs && (
-                                                        <div className="flex items-center gap-1.5 px-2 border-l border-[var(--border)]">
-                                                            <Loader2 className="w-3 h-3 text-[var(--muted-foreground)]/50" />
-                                                            <span>{formatDuration(deployment.buildDurationMs)}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 pl-12 md:pl-0 shrink-0">
-                                            {deployment.url && (
-                                                <a
-                                                    href={deployment.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                >
-                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 border border-[var(--border)] hover:bg-[var(--background)] hover:text-[var(--primary)]" title="View Deployment">
-                                                        <ExternalLink className="w-4 h-4" />
-                                                    </Button>
-                                                </a>
-                                            )}
-
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setSelectedLogsId(deployment.id)}
-                                                className="h-8 px-3 text-xs border border-[var(--border)] hover:bg-[var(--background)]"
-                                            >
-                                                <FileText className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
-                                                Logs
-                                            </Button>
-
-                                            {deployment.status === 'ready' && deployment.type === 'production' && deployment.cloudRunRevision && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleRollback(deployment.id)}
-                                                    className="h-8 px-3 text-xs text-[var(--error)] border border-[var(--error)]/20 hover:bg-[var(--error-bg)]"
-                                                >
-                                                    <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-                                                    Rollback
-                                                </Button>
-                                            )}
-
-                                            {(deployment.status === 'queued' || deployment.status === 'building') && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleCancel(deployment.id)}
-                                                    className="h-8 px-3 text-xs text-[var(--error)] border border-[var(--error)]/20 hover:bg-[var(--error-bg)]"
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                                <DeploymentListItem
+                                    key={deployment.id}
+                                    deployment={deployment}
+                                    onCopy={handleCopyUrl}
+                                    onRollback={handleRollback}
+                                    onCancel={handleCancel}
+                                    onViewLogs={setSelectedLogsId}
+                                    copiedId={copiedId}
+                                />
                             ))}
                         </div>
                         {deployments.length > 5 && (
