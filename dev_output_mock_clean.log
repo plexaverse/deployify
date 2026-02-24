@@ -1,0 +1,167 @@
+
+> deployify@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by an unknown process, using available port 3002 instead.
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://192.168.0.2:3002
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+✓ Ready in 2.5s
+○ Compiling /dashboard ...
+╔═══════════════════════════════════════════════════════════════════╗
+║ [Config] WARNING: Missing required environment variables          ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  - GITHUB_CLIENT_ID                                               ║
+║  - GITHUB_CLIENT_SECRET                                           ║
+║  - GITHUB_WEBHOOK_SECRET                                          ║
+║  - GCP_PROJECT_ID                                                 ║
+║  - JWT_SECRET                                                     ║
+║  - ENCRYPTION_KEY                                                 ║
+╚═══════════════════════════════════════════════════════════════════╝
+[Config] Some features may not work correctly until these are set.
+ GET /dashboard 200 in 13.7s (compile: 12.3s, proxy.ts: 339ms, render: 1016ms)
+○ Compiling /api/teams ...
+ GET /api/teams 200 in 3.5s (compile: 3.5s, proxy.ts: 9ms, render: 42ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /dashboard
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/dashboard',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-24T10:12:15.831Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 3.4s (compile: 3.3s, proxy.ts: 40ms, render: 132ms)
+WARNING: ENCRYPTION_KEY or JWT_SECRET not set. Secrets encryption will fail.
+ GET /api/projects 200 in 518ms (compile: 501ms, proxy.ts: 5ms, render: 11ms)
+ GET /dashboard/settings 200 in 1186ms (compile: 1117ms, proxy.ts: 9ms, render: 61ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /dashboard/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/dashboard/settings',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-24T10:12:18.354Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 19ms (compile: 4ms, proxy.ts: 9ms, render: 7ms)
+╔═══════════════════════════════════════════════════════════════════╗
+║ [Config] WARNING: Missing required environment variables          ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  - GITHUB_CLIENT_ID                                               ║
+║  - GITHUB_CLIENT_SECRET                                           ║
+║  - GITHUB_WEBHOOK_SECRET                                          ║
+║  - GCP_PROJECT_ID                                                 ║
+║  - JWT_SECRET                                                     ║
+║  - ENCRYPTION_KEY                                                 ║
+╚═══════════════════════════════════════════════════════════════════╝
+[Config] Some features may not work correctly until these are set.
+[Collector] Authorized vitals for project Mock Project (mock-id-1) at /dashboard/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'vitals',
+  path: '/dashboard/settings',
+  referrer: '',
+  width: 1280,
+  metrics: {
+    lcp: 15776,
+    cls: 0,
+    fid: 2.199999999953434,
+    fcp: 14472,
+    ttfb: 13632.600000000093
+  },
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-24T10:12:21.027Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 37ms (compile: 16ms, proxy.ts: 13ms, render: 8ms)
+ GET /dashboard/settings/deployments 200 in 1803ms (compile: 1592ms, proxy.ts: 5ms, render: 206ms)
+ GET /api/teams 200 in 45ms (compile: 14ms, proxy.ts: 23ms, render: 8ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /dashboard/settings/deployments
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/dashboard/settings/deployments',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-24T10:12:21.588Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 30ms (compile: 6ms, proxy.ts: 9ms, render: 14ms)
+[Simulation] Fetching error rate for dfy-mock-slug
+ GET /api/projects/settings/logs/stats 200 in 3.1s (compile: 3.0s, proxy.ts: 22ms, render: 15ms)
+ GET /api/projects/settings 200 in 3.2s (compile: 3.1s, proxy.ts: 22ms, render: 9ms)
+ GET /api/projects/settings/deployments 200 in 3.7s (compile: 3.6s, proxy.ts: 22ms, render: 13ms)
+╔═══════════════════════════════════════════════════════════════════╗
+║ [Config] WARNING: Missing required environment variables          ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  - GITHUB_CLIENT_ID                                               ║
+║  - GITHUB_CLIENT_SECRET                                           ║
+║  - GITHUB_WEBHOOK_SECRET                                          ║
+║  - GCP_PROJECT_ID                                                 ║
+║  - JWT_SECRET                                                     ║
+║  - ENCRYPTION_KEY                                                 ║
+╚═══════════════════════════════════════════════════════════════════╝
+[Config] Some features may not work correctly until these are set.
+[Collector] Authorized vitals for project Mock Project (mock-id-1) at /dashboard/settings/deployments
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'vitals',
+  path: '/dashboard/settings/deployments',
+  referrer: '',
+  width: 1280,
+  metrics: {
+    lcp: 6076,
+    cls: 0.00007174099816216363,
+    fid: null,
+    fcp: 1840,
+    ttfb: 1735.5
+  },
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-24T10:12:30.358Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 41ms (compile: 16ms, proxy.ts: 18ms, render: 7ms)
+ GET /dashboard/settings/settings 200 in 2.6s (compile: 2.3s, proxy.ts: 5ms, render: 309ms)
+ GET /api/teams 200 in 119ms (compile: 8ms, proxy.ts: 10ms, render: 102ms)
+ GET /api/projects/settings 200 in 137ms (compile: 115ms, proxy.ts: 14ms, render: 8ms)
+ GET /api/projects/settings/deployments 200 in 227ms (compile: 188ms, proxy.ts: 14ms, render: 26ms)
+[Simulation] Fetching error rate for dfy-mock-slug
+ GET /api/projects/settings/logs/stats 200 in 306ms (compile: 283ms, proxy.ts: 13ms, render: 10ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /dashboard/settings/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/dashboard/settings/settings',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-24T10:12:31.296Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 96ms (compile: 5ms, proxy.ts: 85ms, render: 7ms)
+ GET /api/projects/settings/domains 200 in 1623ms (compile: 1601ms, proxy.ts: 15ms, render: 7ms)
+WARNING: ENCRYPTION_KEY or JWT_SECRET not set. Secrets encryption will fail.
+ GET /api/projects/settings/domains 200 in 74ms (compile: 59ms, proxy.ts: 9ms, render: 5ms)
+ GET /api/projects/settings/env 200 in 1971ms (compile: 1948ms, proxy.ts: 10ms, render: 13ms)
+ GET /api/projects/settings/env 200 in 71ms (compile: 61ms, proxy.ts: 5ms, render: 5ms)
+WARNING: ENCRYPTION_KEY or JWT_SECRET not set. Secrets encryption will fail.
