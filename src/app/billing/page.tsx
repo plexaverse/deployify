@@ -3,7 +3,9 @@
 import { useEffect } from 'react';
 import { ArrowLeft, Zap, Server, Wifi, FileText, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Script from 'next/script';
+import { toast } from 'sonner';
 import { PricingCard } from '@/components/billing/PricingCard';
 import { ComparePlansTable } from '@/components/billing/ComparePlansTable';
 import { UsageGauge } from '@/components/billing/UsageGauge';
@@ -53,6 +55,7 @@ const PLANS = [
 ];
 
 export default function BillingPage() {
+    const router = useRouter();
     const {
         usageData,
         invoices,
@@ -119,15 +122,15 @@ export default function BillingPage() {
                         const verifyData = await verifyRes.json();
 
                         if (verifyRes.ok) {
-                            alert('Payment Successful & Verified! Upgrading your plan...');
+                            toast.success('Payment Successful & Verified! Upgrading your plan...');
                             setUpgradingTierId(null);
-                            window.location.reload();
+                            router.refresh();
                         } else {
                             throw new Error(verifyData.error || 'Payment verification failed');
                         }
                     } catch (err) {
                         console.error('Verification error:', err);
-                        alert('Payment successful but verification failed. Please contact support.');
+                        toast.error('Payment successful but verification failed. Please contact support.');
                         setUpgradingTierId(null);
                     }
                 },
@@ -141,14 +144,14 @@ export default function BillingPage() {
             const rzp1 = new window.Razorpay(options);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             rzp1.on('payment.failed', function (response: any) {
-                alert(response.error.description);
+                toast.error(response.error.description);
                 setUpgradingTierId(null);
             });
             rzp1.open();
 
         } catch (err) {
             console.error(err);
-            alert(err instanceof Error ? err.message : 'Failed to initiate upgrade');
+            toast.error(err instanceof Error ? err.message : 'Failed to initiate upgrade');
             setUpgradingTierId(null);
         }
     };

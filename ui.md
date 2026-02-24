@@ -944,3 +944,21 @@ Conducted a targeted pass to refactor Core Web Vitals and improve navigation con
 - Improved step indicators with larger, more prominent numbering and hover effects.
 - Enhanced pricing comparison cards with `translate-y` transitions and a subtle primary glow for the Deployify plan.
 - Increased padding and border-radius for pricing cards to create a more premium, modern aesthetic.
+
+## Progressive UI & Consistency Refactor (Session 83)
+
+Conducted a pass to standardize the Team Settings and Billing pages, and improve the legacy import flow.
+
+### `src/app/dashboard/settings/page.tsx` (Team Settings)
+- **Standardized Danger Zone**: Updated the "Danger Zone" card to use a consistent `border-[var(--error)]/30` and `bg-[var(--error)]/5` styling, matching the project-level settings.
+- **Section Polish**: Added `Separator` components and improved descriptions for the "Invite Members" and "Danger Zone" sections.
+- **Button Consistency**: Replaced manual button styles with standard `variant="ghost"` and `variant="destructive"` where appropriate, ensuring consistent hover and active states.
+- **Code Hygiene**: Removed unused Lucide icons and ESLint disable comments.
+
+### `src/app/billing/page.tsx` (Billing)
+- **Standardized Feedback**: Replaced all native browser `alert()` calls with the themed `toast` notifications for a more integrated and professional user experience.
+- **Header Refinement**: Ensured the 'Current Plan' section uses consistent spacing and typography within the sticky header.
+
+### `src/app/dashboard/new/import/page.tsx` (Legacy Import)
+- **Modern Controls**: Replaced the environment variable target dropdown with the reusable `SegmentedControl` component, providing a more modern and consistent UI.
+- **Visual Emphasis**: Applied the `shadow-[var(--primary-glow)]` to the main "Deploy" button to align with high-priority action standards across the platform.
