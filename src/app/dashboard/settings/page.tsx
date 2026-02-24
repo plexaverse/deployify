@@ -6,17 +6,9 @@ import { useRouter } from 'next/navigation';
 import {
     Users,
     UserPlus,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Trash2,
     Mail,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Check,
     X,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Shield,
-    AlertTriangle,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    LogOut
+    AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -269,9 +261,14 @@ export default function TeamSettingsPage() {
             {/* Invite Members */}
             {canManage && (
                 <Card className="p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <UserPlus className="w-5 h-5 text-[var(--primary)]" />
-                        <h2 className="text-lg font-semibold">Invite Members</h2>
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-1">
+                            <UserPlus className="w-5 h-5 text-[var(--primary)]" />
+                            <h2 className="text-lg font-semibold">Invite Members</h2>
+                        </div>
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                            Add new members to your team by email.
+                        </p>
                     </div>
                     <Separator className="mb-6" />
                     <form onSubmit={handleInvite} className="flex flex-col md:flex-row gap-4">
@@ -414,15 +411,18 @@ export default function TeamSettingsPage() {
 
             {/* Danger Zone */}
             <Card className="border-[var(--error)]/30 bg-[var(--error)]/5 overflow-hidden p-0">
-                <div className="p-6 border-b border-[var(--border)]">
-                    <div className="flex items-center gap-2 text-[var(--error)]">
+                <div className="p-6">
+                    <div className="flex items-center gap-2 text-[var(--error)] mb-1">
                         <AlertTriangle className="w-5 h-5" />
                         <h2 className="text-lg font-semibold">Danger Zone</h2>
                     </div>
+                    <p className="text-sm text-[var(--muted-foreground)]">
+                        Irreversible and destructive actions.
+                    </p>
                 </div>
-                <Separator />
+                <Separator className="bg-[var(--error)]/20" />
                 <div className="p-6 space-y-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                         <div>
                             <h3 className="font-medium">Leave Team</h3>
                             <p className="text-sm text-[var(--muted-foreground)]">
@@ -430,9 +430,9 @@ export default function TeamSettingsPage() {
                             </p>
                         </div>
                         <Button
-                            variant="outline"
-                            className="text-[var(--error)] border-[var(--error)]/20 hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+                            variant="ghost"
                             onClick={() => setConfirmLeaveTeam(true)}
+                            className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
                         >
                             Leave Team
                         </Button>
@@ -440,8 +440,8 @@ export default function TeamSettingsPage() {
 
                     {isOwner && (
                         <>
-                            <Separator />
-                            <div className="flex items-center justify-between">
+                            <Separator className="bg-[var(--error)]/20" />
+                            <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                 <div>
                                     <h3 className="font-medium text-[var(--error)]">Delete Team</h3>
                                     <p className="text-sm text-[var(--muted-foreground)]">

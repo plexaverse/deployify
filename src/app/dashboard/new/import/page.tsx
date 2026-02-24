@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { useStore } from '@/store';
 
 // Common GCP regions (matching those in new/page.tsx)
@@ -325,15 +326,15 @@ export default function ImportProjectPage() {
                                 placeholder="Value"
                                 className="flex-1 font-mono text-sm"
                             />
-                            <NativeSelect
+                            <SegmentedControl
                                 value={newEnvTarget}
-                                onChange={(e) => setNewEnvTarget(e.target.value as 'both' | 'build' | 'runtime')}
-                                className="w-32 text-sm"
-                            >
-                                <option value="both">Both</option>
-                                <option value="build">Build</option>
-                                <option value="runtime">Runtime</option>
-                            </NativeSelect>
+                                onChange={(val) => setNewEnvTarget(val as 'both' | 'build' | 'runtime')}
+                                options={[
+                                    { value: 'both', label: 'Both' },
+                                    { value: 'build', label: 'Build' },
+                                    { value: 'runtime', label: 'Runtime' },
+                                ]}
+                            />
                         </div>
 
                         <div className="flex items-center justify-between">
@@ -365,7 +366,7 @@ export default function ImportProjectPage() {
                         onClick={handleDeploy}
                         disabled={isDeploying || !projectName}
                         containerClassName="h-12 w-full md:w-auto"
-                        className="text-base font-bold"
+                        className="text-base font-bold shadow-[var(--primary-glow)]"
                     >
                         {isDeploying ? (
                             <>

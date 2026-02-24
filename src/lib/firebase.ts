@@ -51,27 +51,44 @@ export function getDb(): Firestore {
  * Create a minimal mock Firestore for local development/audit
  */
 function createMockFirestore(): any {
-    const mockDoc = (id?: string) => ({
+    const mockDoc = (id?: string, collection?: string) => ({
         id: id || 'mock-id',
         exists: true,
-        data: () => ({
-            id: id || 'mock-id',
-            name: 'Mock Project',
-            slug: 'mock-slug',
-            userId: 'audit-test',
-            githubUsername: 'plexaverse',
-            repoFullName: 'owner/repo',
-            defaultBranch: 'main',
-            gitBranch: 'main',
-            gitCommitSha: 'abcdef1234567890',
-            gitCommitMessage: 'Initial commit',
-            status: 'ready',
-            type: 'production',
-            createdAt: { toDate: () => new Date() },
-            updatedAt: { toDate: () => new Date() },
-            joinedAt: { toDate: () => new Date() },
-            expiresAt: { toDate: () => new Date() },
-        }),
+        data: () => {
+            const base = {
+                id: id || 'mock-id',
+                createdAt: { toDate: () => new Date() },
+                updatedAt: { toDate: () => new Date() },
+            };
+
+            if (collection === Collections.INVOICES) {
+                return {
+                    ...base,
+                    invoiceNumber: 'INV-2026-001',
+                    date: { toDate: () => new Date() },
+                    total: 1500.00,
+                    status: 'paid',
+                    userId: 'audit-test',
+                };
+            }
+
+            return {
+                ...base,
+                name: 'Mock Project',
+                slug: 'mock-slug',
+                userId: 'audit-test',
+                githubUsername: 'plexaverse',
+                repoFullName: 'owner/repo',
+                defaultBranch: 'main',
+                gitBranch: 'main',
+                gitCommitSha: 'abcdef1234567890',
+                gitCommitMessage: 'Initial commit',
+                status: 'ready',
+                type: 'production',
+                joinedAt: { toDate: () => new Date() },
+                expiresAt: { toDate: () => new Date() },
+            };
+        },
         get: async () => mockDoc(id),
         set: async () => ({}),
         update: async () => ({}),
@@ -79,20 +96,24 @@ function createMockFirestore(): any {
     });
 
     const mockCollection = (name: string) => ({
-        doc: (id: string) => mockDoc(id),
+        doc: (id: string) => mockDoc(id, name),
         where: () => mockCollection(name),
         orderBy: () => mockCollection(name),
         limit: () => mockCollection(name),
         get: async () => ({
             empty: false,
-            docs: [mockDoc('mock-id-1'), mockDoc('mock-id-2')],
+            docs: [mockDoc('mock-id-1', name), mockDoc('mock-id-2', name)],
         }),
-        add: async () => mockDoc('new-id'),
+        add: async () => mockDoc('new-id', name),
     });
 
     return {
         collection: (name: string) => mockCollection(name),
-        doc: (path: string) => mockDoc(path.split('/').pop()),
+        doc: (path: string) => {
+            const segments = path.split('/');
+            const collection = segments.length > 1 ? segments[segments.length - 2] : undefined;
+            return mockDoc(segments.pop(), collection);
+        },
         batch: () => ({
             set: () => { },
             update: () => { },
