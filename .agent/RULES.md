@@ -262,6 +262,7 @@ Domain        // Custom domain (status: pending/active/error)
 npm run dev      # Development server (http://localhost:3000)
 npm run build    # Production build
 npm run lint     # ESLint
+npm run test     # Run unit tests
 ```
 
 ---

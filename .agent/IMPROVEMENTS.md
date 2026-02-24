@@ -186,7 +186,7 @@
 
 ## ✅ Verification Status
 
-- **Linting**: Fixed all linting errors (no-explicit-any, react-hooks, etc.) to ensure code quality. Verified with `npm run lint`. (Resolved unused useRef warning in NewProjectPage)
+- **Linting**: Fixed all linting errors (no-explicit-any, react-hooks, etc.) to ensure code quality. Verified with `npm run lint`. (Resolved unused vars in DashboardSidebar and WebVitals)
 - **Build**: Verified production build (`npm run build`) passes with Next.js 16.1.6.
 - **Tests**: Verified all unit tests pass (`npx tsx --test ...`).
 - **Features**: Verified existence of Team Settings, Analytics, and Compare Deployments pages in the codebase.
