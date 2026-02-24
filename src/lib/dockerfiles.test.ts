@@ -23,8 +23,8 @@ describe('Dockerfile Generation', () => {
         // 3. Copy standalone to ./ (at root)
         assert.ok(dockerfile.includes('COPY --from=builder --chown=nextjs:nodejs /app/web/.next/standalone ./'), 'Should copy standalone to root ./');
 
-        // 4. CMD should run server.js from root
-        assert.ok(dockerfile.includes('CMD ["node", "server.js"]'), 'Should run server.js from root');
+        // 4. CMD should run server.js from root or web
+        assert.ok(dockerfile.includes('CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; elif [ -f \\\"web/server.js\\\" ]; then node \\\"web/server.js\\\";'), 'Should run server.js from root or web');
     });
 
     it('should generate correct Dockerfile for Next.js without rootDirectory', () => {
@@ -38,6 +38,6 @@ describe('Dockerfile Generation', () => {
         assert.ok(dockerfile.includes('COPY --from=builder /app/public ./public'));
         assert.ok(dockerfile.includes('COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static'));
         assert.ok(dockerfile.includes('COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./'));
-        assert.ok(dockerfile.includes('CMD ["node", "server.js"]'));
+        assert.ok(dockerfile.includes('CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; elif [ -f \\\"./server.js\\\" ]; then node \\\"./server.js\\\";'));
     });
 });

@@ -43,6 +43,7 @@ async function main() {
             if (missingVars.length > 0) {
                 console.error('\x1b[31mFAIL: Missing environment variables:\x1b[0m');
                 missingVars.forEach(v => console.error(`  - ${v}`));
+                console.log('\x1b[33m  (Hint: Copy env.example to .env.local and fill in the values)\x1b[0m');
                 errors++;
             } else {
                 console.log('\x1b[32mPASS: All required environment variables are set.\x1b[0m');
@@ -159,7 +160,7 @@ async function main() {
 
         if (!serverUp) {
             console.warn(`\x1b[33mWARN: Server at ${baseUrl} is not reachable. Skipping API route checks.\x1b[0m`);
-            console.warn('  (Hint: Run "npm run dev" or "npm start" in another terminal)');
+            console.warn('  (Hint: Run "npm run dev" or "npm start" in another terminal before running audit)');
             warnings++;
         } else {
             const routes = findRoutes(apiDir);

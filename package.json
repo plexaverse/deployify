@@ -2,6 +2,9 @@
   "name": "deployify",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "bin": {
     "deployify": "src/cli/index.js"
   },
