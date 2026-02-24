@@ -172,7 +172,7 @@ export async function listLogEntries(
     resourceNames: [`projects/${gcpProjectId}`],
     filter,
     orderBy: 'timestamp desc',
-    pageSize: options.pageSize || 50,
+    pageSize: options.pageSize || 100,
   };
 
   if (options.pageToken) {

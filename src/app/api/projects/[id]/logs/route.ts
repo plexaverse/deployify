@@ -92,7 +92,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                                 const response = await listLogEntries(
                                     serviceName,
                                     {
-                                        pageSize: 50,
+                                        pageSize: 100,
                                         revisionName: revision || undefined,
                                         logType,
                                         buildId
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             const response = await listLogEntries(
                 serviceName,
                 {
-                    pageSize: 50,
+                    pageSize: 100,
                     revisionName: revision || undefined,
                     logType,
                     buildId
