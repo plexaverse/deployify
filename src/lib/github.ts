@@ -364,34 +364,27 @@ export async function createDeploymentStatus(
     sha: string,
     state: 'pending' | 'success' | 'failure',
     targetUrl?: string,
-    description?: string
+    description?: string,
+    context: string = 'Deployify'
 ): Promise<void> {
     const octokit = createGitHubClient(accessToken);
 
     try {
-        // First create a deployment
-        const { data: deployment } = await octokit.repos.createDeployment({
+        // Use Commit Status API instead of Deployments API to avoid creating duplicate deployments
+        // Map 'failure' to 'failure' (or 'error' if needed, but 'failure' is standard for CI)
+        const githubState = state === 'failure' ? 'failure' : state;
+
+        await octokit.repos.createCommitStatus({
             owner,
             repo,
-            ref: sha,
-            environment: 'production',
-            auto_merge: false,
-            required_contexts: [],
+            sha,
+            state: githubState,
+            target_url: targetUrl,
+            description: description || `Deployment ${state}`,
+            context
         });
-
-        if ('id' in deployment) {
-            // Then create the status
-            await octokit.repos.createDeploymentStatus({
-                owner,
-                repo,
-                deployment_id: deployment.id,
-                state,
-                target_url: targetUrl,
-                description: description || `Deployment ${state}`,
-            });
-        }
     } catch (error) {
-        console.error('Failed to create deployment status:', error);
+        console.error('Failed to create commit status:', error);
     }
 }
 

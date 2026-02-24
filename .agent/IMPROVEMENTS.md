@@ -172,11 +172,11 @@
 
 #### 22. **Robust Deployment Status Sync**
 - **Improvement**: Ensure deployment status updates reliably even if background polling is throttled by Cloud Run CPU policies.
-- **Status**: ✅ Implemented (`syncDeploymentStatus` logic + Frontend polling in `DeploymentsPage`)
+- **Status**: ✅ Implemented (`syncDeploymentStatus` logic + Frontend polling in `DeploymentsPage` + Optimized GitHub Commit Status API usage to prevent duplicate deployments)
 
 #### 23. **Proxy Reliability and Hygiene**
 - **Improvement**: Reduce excessive logging in proxy routes and disable caching for proxied requests to ensure data freshness.
-- **Status**: ✅ Implemented (Logs cleaned up, `cache: 'no-store'` added)
+- **Status**: ✅ Implemented (Logs cleaned up, `cache: 'no-store'` added, Full HTTP method support GET/POST/PUT/DELETE/PATCH/HEAD/OPTIONS implemented)
 
 #### 24. **Next.js Standalone Build Robustness**
 - **Improvement**: Support `defineNextConfig` in `next.config.js` patching and flatten Dockerfile structure for `rootDirectory` deployments to fix `server.js` path issues.
