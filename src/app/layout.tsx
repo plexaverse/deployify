@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { config } from "@/lib/config";
+import { config, validateConfig } from "@/lib/config";
 import Script from 'next/script';
 import "./globals.css";
+
+// Validate required environment variables on startup (module level)
+validateConfig();
 
 const geist = Geist({
   subsets: ["latin"],

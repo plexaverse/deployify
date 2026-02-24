@@ -22,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { BuildLogViewer } from '@/components/BuildLogViewer';
 import { cn } from '@/lib/utils';
-import type { GitHubRepo, Project, Deployment } from '@/types';
+import type { GitHubRepo, Project, Deployment, EnvVariableTarget } from '@/types';
 
 // Common GCP regions
 const GCP_REGIONS = [
@@ -683,7 +683,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                         { value: 'runtime', label: 'Runtime Only' }
                                     ]}
                                     value={newEnvTarget}
-                                    onChange={(v) => setNewEnvTarget(v as any)}
+                                    onChange={(v) => setNewEnvTarget(v as EnvVariableTarget)}
                                 />
                             </div>
 
@@ -696,7 +696,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                         { value: 'preview', label: 'Preview Only' }
                                     ]}
                                     value={newEnvEnvironment}
-                                    onChange={(v) => setNewEnvEnvironment(v as any)}
+                                    onChange={(v) => setNewEnvEnvironment(v as 'both' | 'production' | 'preview')}
                                 />
                             </div>
                         </div>

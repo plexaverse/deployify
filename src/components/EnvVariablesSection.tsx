@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import type { EnvVariableTarget } from '@/types';
 import { useStore } from '@/store';
-import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
@@ -273,7 +272,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                         { value: 'preview', label: 'Preview Only' }
                                     ]}
                                     value={newEnvironment}
-                                    onChange={(v) => setNewEnvironment(v as any)}
+                                    onChange={(v) => setNewEnvironment(v as 'production' | 'preview' | 'both')}
                                 />
                             </div>
                         </div>
