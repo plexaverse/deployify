@@ -258,21 +258,32 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-24 text-center"
           >
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-8">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-12">
               Trusted by innovative teams
             </p>
-            <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-8" role="list" aria-label="Trusted companies">
-              {['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA'].map((logo) => (
-                <motion.span
-                  key={logo}
-                  role="listitem"
-                  aria-label={`${logo} logo`}
-                  whileHover={{ scale: 1.1, opacity: 1, filter: 'grayscale(0%)' }}
-                  className="text-xl md:text-2xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
-                >
-                  {logo}
-                </motion.span>
-              ))}
+            <div
+              className="relative overflow-hidden w-full py-4 group"
+              style={{ maskImage: 'linear-gradient(to right, transparent, white 20%, white 80%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, white 20%, white 80%, transparent)' }}
+            >
+              <motion.div
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                className="flex w-fit gap-16 items-center whitespace-nowrap px-8"
+                role="list"
+                aria-label="Trusted companies"
+              >
+                {[...['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA', 'CYBERDYNE', 'STARK', 'WAYNE'], ...['ACME', 'GLOBEX', 'SOYLENT', 'INITECH', 'UMBRELLA', 'CYBERDYNE', 'STARK', 'WAYNE']].map((logo, idx) => (
+                  <motion.span
+                    key={`${logo}-${idx}`}
+                    role="listitem"
+                    aria-label={`${logo} logo`}
+                    whileHover={{ scale: 1.1, opacity: 1, filter: 'grayscale(0%)' }}
+                    className="text-2xl md:text-3xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-50 grayscale cursor-default transition-all duration-300"
+                  >
+                    {logo}
+                  </motion.span>
+                ))}
+              </motion.div>
             </div>
           </motion.div>
 
