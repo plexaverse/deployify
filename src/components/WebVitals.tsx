@@ -1,7 +1,7 @@
 import React from 'react';
 import { LighthouseMetrics } from '@/types';
 import { Zap, MousePointerClick, Layout, Activity } from 'lucide-react';
-import { getLCPStatus, getFIDStatus, getCLSStatus, getScoreStatus, MetricStatus } from '@/lib/performance/thresholds';
+import { getLCPStatus, getFIDStatus, getCLSStatus, getScoreStatus } from '@/lib/performance/thresholds';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';

@@ -31,7 +31,7 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ session }: DashboardSidebarProps) {
-    const { isSidebarOpen, setSidebarOpen, toggleSidebar, isMounted, setMounted } = useStore();
+    const { isSidebarOpen, setSidebarOpen, toggleSidebar, setMounted } = useStore();
     const pathname = usePathname();
     const params = useParams();
     const { theme, setTheme } = useTheme();
@@ -47,10 +47,6 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
     useEffect(() => {
         setSidebarOpen(false);
     }, [pathname, setSidebarOpen]);
-
-    const toggleTheme = () => {
-        setTheme(theme === 'dark' ? 'light' : 'dark');
-    };
 
     // Helper to check if a route is a project route
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
