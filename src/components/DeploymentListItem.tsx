@@ -8,7 +8,6 @@ import type { Deployment } from '@/types';
 
 interface DeploymentListItemProps {
     deployment: Deployment;
-    projectId: string;
     onCopy: (text: string, id: string) => void;
     onRollback?: (id: string) => void;
     onCancel?: (id: string) => void;
@@ -18,7 +17,6 @@ interface DeploymentListItemProps {
 
 export function DeploymentListItem({
     deployment,
-    projectId,
     onCopy,
     onRollback,
     onCancel,

@@ -164,7 +164,6 @@ export default function DeploymentsPage() {
                             <DeploymentListItem
                                 key={deployment.id}
                                 deployment={deployment}
-                                projectId={project.id}
                                 onCopy={handleCopyUrl}
                                 onRollback={handleRollback}
                                 onCancel={handleCancel}
