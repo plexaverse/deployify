@@ -891,3 +891,28 @@ Conducted a targeted pass to harmonize UI components and introduce subtle micro-
     - Replaced the manual framework tag with the `Badge` component (outline variant).
     - Enhanced the "Live" status indicator with a CSS `animate-ping` effect for better visibility.
     - Improved the hover interaction on the production URL with a transition-aware color shift and an animated external link icon.
+
+## Progressive UI & Refactoring (Session 81)
+
+Conducted a targeted pass to refactor deployment lists and settings toggles into reusable components.
+
+### `src/components/StatusBadge.tsx`
+- Created a reusable `StatusBadge` component that maps deployment statuses (ready, error, building, queued, cancelled) to standard `Badge` variants.
+- Encapsulates icon selection and animation logic (e.g., spinning loader for building states).
+
+### `src/components/DeploymentListItem.tsx`
+- Extracted the deployment row rendering logic from `DeploymentsPage` into a reusable component.
+- Encapsulates actions (View, Logs, Rollback, Cancel) and copy-to-clipboard functionality.
+- Uses `StatusBadge` for consistent status display.
+
+### `src/app/dashboard/[id]/deployments/page.tsx`
+- Refactored to use `DeploymentListItem`, significantly reducing code duplication and improving readability.
+- Removed local helper functions that are now handled by the child component.
+
+### `src/components/SettingsToggle.tsx`
+- Created a reusable component for the "Label + Description + Switch" pattern used in settings pages.
+- Standardizes layout, spacing, and interaction states (hover, pointer cursor).
+
+### `src/app/dashboard/[id]/settings/page.tsx`
+- Refactored "Automatic PR Deployments", "Email Notifications", and "Cloud Armor" sections to use `SettingsToggle`.
+- Improved code maintainability by removing repetitive markup.

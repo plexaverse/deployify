@@ -18,8 +18,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { NativeSelect } from '@/components/ui/native-select';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { SettingsToggle } from '@/components/SettingsToggle';
 
 export default function ProjectSettingsPage() {
     const params = useParams();
@@ -225,22 +225,13 @@ export default function ProjectSettingsPage() {
 
                         <Separator className="my-4" />
 
-                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('autoDeployPrs', !autoDeployPrs)}>
-                            <div className="flex-1 pr-4">
-                                <Label htmlFor="auto-deploy-prs" className="text-base font-medium cursor-pointer group-hover:text-[var(--primary)] transition-colors">
-                                    Automatic PR Deployments
-                                </Label>
-                                <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                                    If enabled, every Pull Request will automatically trigger a new preview deployment. Disable this to save on server costs.
-                                </p>
-                            </div>
-                            <Switch
-                                id="auto-deploy-prs"
-                                checked={autoDeployPrs}
-                                onCheckedChange={(checked) => setProjectSettingsField('autoDeployPrs', checked)}
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                        </div>
+                        <SettingsToggle
+                            id="auto-deploy-prs"
+                            title="Automatic PR Deployments"
+                            description="If enabled, every Pull Request will automatically trigger a new preview deployment. Disable this to save on server costs."
+                            checked={autoDeployPrs}
+                            onCheckedChange={(checked) => setProjectSettingsField('autoDeployPrs', checked)}
+                        />
 
                         <div className="flex justify-end pt-2">
                             <Button
@@ -277,22 +268,13 @@ export default function ProjectSettingsPage() {
                     <Separator className="mb-6" />
 
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('emailNotifications', !emailNotifications)}>
-                            <div>
-                                <Label htmlFor="email-notifications" className="text-base font-medium cursor-pointer group-hover:text-[var(--primary)] transition-colors">
-                                    Email Notifications
-                                </Label>
-                                <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                                    Receive email notifications when a deployment succeeds or fails.
-                                </p>
-                            </div>
-                            <Switch
-                                id="email-notifications"
-                                checked={emailNotifications}
-                                onCheckedChange={(checked) => setProjectSettingsField('emailNotifications', checked)}
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                        </div>
+                        <SettingsToggle
+                            id="email-notifications"
+                            title="Email Notifications"
+                            description="Receive email notifications when a deployment succeeds or fails."
+                            checked={emailNotifications}
+                            onCheckedChange={(checked) => setProjectSettingsField('emailNotifications', checked)}
+                        />
 
                         <div className="space-y-2">
                             <Label htmlFor="webhook-url">Webhook URL</Label>
@@ -331,22 +313,13 @@ export default function ProjectSettingsPage() {
                     <Separator className="mb-6" />
 
                     <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-md bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors cursor-pointer group" onClick={() => setProjectSettingsField('cloudArmorEnabled', !cloudArmorEnabled)}>
-                            <div>
-                                <Label htmlFor="cloud-armor" className="text-base font-medium cursor-pointer group-hover:text-[var(--primary)] transition-colors">
-                                    Cloud Armor WAF
-                                </Label>
-                                <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                                    Enable Google Cloud Armor Web Application Firewall to protect against DDoS and web attacks.
-                                </p>
-                            </div>
-                            <Switch
-                                id="cloud-armor"
-                                checked={cloudArmorEnabled}
-                                onCheckedChange={(checked) => setProjectSettingsField('cloudArmorEnabled', checked)}
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                        </div>
+                        <SettingsToggle
+                            id="cloud-armor"
+                            title="Cloud Armor WAF"
+                            description="Enable Google Cloud Armor Web Application Firewall to protect against DDoS and web attacks."
+                            checked={cloudArmorEnabled}
+                            onCheckedChange={(checked) => setProjectSettingsField('cloudArmorEnabled', checked)}
+                        />
 
                         <div className="flex justify-end pt-2">
                             <Button

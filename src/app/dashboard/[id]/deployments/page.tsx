@@ -3,13 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import {
-    ExternalLink,
-    FileText,
-    RotateCcw,
-    Check,
-    ArrowLeftRight
-} from 'lucide-react';
+import { ArrowLeftRight } from 'lucide-react';
 import { toast } from 'sonner';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { cn } from '@/lib/utils';
@@ -17,11 +11,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
 import { useStore } from '@/store';
-import { Badge } from '@/components/ui/badge';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
 import { NoDeploymentsIllustration } from '@/components/ui/illustrations';
+import { DeploymentListItem } from '@/components/DeploymentListItem';
 
 export default function DeploymentsPage() {
     const params = useParams();
@@ -65,40 +59,15 @@ export default function DeploymentsPage() {
         };
     }, [deployments, project, fetchDeployments]);
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'ready':
-                return <Badge variant="success">Ready</Badge>;
-            case 'error':
-                return <Badge variant="destructive">Error</Badge>;
-            case 'building':
-            case 'deploying':
-                return <Badge variant="warning" className="animate-pulse">Building</Badge>;
-            case 'queued':
-                return <Badge variant="secondary">Queued</Badge>;
-            default:
-                return <Badge variant="secondary">{status}</Badge>;
-        }
-    };
-
-    const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
-    const handleCopyUrl = async (url: string | undefined | null, id: string) => {
-        if (!url) return;
+    const handleCopyUrl = async (text: string, id: string) => {
+        if (!text) return;
         try {
-            await navigator.clipboard.writeText(url);
+            await navigator.clipboard.writeText(text);
             setCopiedId(id);
             toast.success('Copied to clipboard');
             setTimeout(() => setCopiedId(null), 2000);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
+            console.error('Failed to copy:', err);
             toast.error('Failed to copy');
         }
     };
@@ -192,87 +161,16 @@ export default function DeploymentsPage() {
                 <Card className="overflow-hidden p-0">
                     <div className="divide-y divide-[var(--border)]">
                         {deployments.map((deployment) => (
-                            <div key={deployment.id} className="p-4 md:p-6 hover:bg-[var(--card-hover)] transition-colors group">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div className="flex items-start gap-4">
-                                        <div className="mt-1">
-                                            {getStatusBadge(deployment.status)}
-                                        </div>
-                                        <div className="space-y-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-medium text-sm truncate max-w-md">
-                                                    {deployment.gitCommitMessage}
-                                                </p>
-                                                <Badge variant={deployment.type === 'production' ? 'success' : 'info'} className="text-[10px] px-1.5 py-0">
-                                                    {deployment.type}
-                                                </Badge>
-                                            </div>
-                                            <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
-                                                <div className="flex items-center gap-1 font-mono">
-                                                    <span>{deployment.gitBranch}</span>
-                                                    <span>@</span>
-                                                    <span
-                                                        className="hover:text-[var(--foreground)] cursor-pointer"
-                                                        onClick={() => handleCopyUrl(deployment.gitCommitSha, `sha-${deployment.id}`)}
-                                                    >
-                                                        {deployment.gitCommitSha.substring(0, 7)}
-                                                    </span>
-                                                {copiedId === `sha-${deployment.id}` && <Check className="w-3 h-3 text-[var(--success)]" />}
-                                                </div>
-                                                <span>•</span>
-                                                <span>{formatDate(deployment.createdAt)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 pl-11 md:pl-0">
-                                        {deployment.url && (
-                                            <a
-                                                href={deployment.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]' })}
-                                            >
-                                                <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
-                                                View
-                                            </a>
-                                        )}
-
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setSelectedLogsId(deployment.id)}
-                                            className="h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
-                                        >
-                                            <FileText className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
-                                            Logs
-                                        </Button>
-
-                                        {deployment.status === 'ready' && deployment.type === 'production' && deployment.cloudRunRevision && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleRollback(deployment.id)}
-                                                className="h-8 px-2.5 text-xs text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
-                                            >
-                                                <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-                                                Rollback
-                                            </Button>
-                                        )}
-
-                                        {(deployment.status === 'queued' || deployment.status === 'building') && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleCancel(deployment.id)}
-                                                className="h-8 px-2.5 text-xs text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
-                                            >
-                                                Cancel
-                                            </Button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                            <DeploymentListItem
+                                key={deployment.id}
+                                deployment={deployment}
+                                projectId={project.id}
+                                onCopy={handleCopyUrl}
+                                onRollback={handleRollback}
+                                onCancel={handleCancel}
+                                onViewLogs={setSelectedLogsId}
+                                copiedId={copiedId}
+                            />
                         ))}
                     </div>
                 </Card>
