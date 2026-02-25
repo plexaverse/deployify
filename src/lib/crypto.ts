@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
+import { config } from './config';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || process.env.JWT_SECRET;
+const ENCRYPTION_KEY = config.security.encryptionKey;
 const ALGORITHM = 'aes-256-gcm';
 
 if (!ENCRYPTION_KEY) {
