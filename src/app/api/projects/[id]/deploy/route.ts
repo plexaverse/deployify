@@ -11,7 +11,6 @@ import { isRunningOnGCP } from '@/lib/gcp/auth';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
-import type { EnvVariable } from '@/types';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
 import { sendWebhookNotification } from '@/lib/webhooks';
 

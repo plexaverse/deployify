@@ -93,7 +93,7 @@ export function validateConfig(): void {
         'JWT_SECRET',
     ];
 
-    let missing = required.filter(key => !process.env[key]);
+    const missing = required.filter(key => !process.env[key]);
 
     if (!process.env.ENCRYPTION_KEY && !process.env.JWT_SECRET) {
         missing.push('ENCRYPTION_KEY (or JWT_SECRET)');
