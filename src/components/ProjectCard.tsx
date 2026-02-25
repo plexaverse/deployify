@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Project } from '@/types';
 import { cn } from '@/lib/utils';
-import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink } from 'lucide-react';
+import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { ProjectAvatar } from '@/components/ProjectAvatar';
+import { toast } from 'sonner';
 
 // Mock data for the sparkline - reflects status
 const generateSparklineData = (status: string) => {
@@ -43,18 +44,13 @@ export function ProjectCard({ project }: { project: Project }) {
   const latestDeployment = project.latestDeployment;
   const status = latestDeployment?.status || 'queued';
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
-
   const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setSparklineData(generateSparklineData(status));
-  }, [status]);
+  useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
 
   return (
-    <div className={cn(
-      "flex flex-col h-full justify-between transition-all duration-300 rounded-xl",
-      config.glow
-    )}>
+    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
       {/* Header: Project Identity and Sparkline */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -64,12 +60,8 @@ export function ProjectCard({ project }: { project: Project }) {
               {project.name}
             </h3>
             <div className="flex items-center gap-1.5">
-              <Badge variant={config.variant} className="h-4 text-[9px] px-1.5 gap-1 uppercase tracking-tighter font-black">
-                {status === 'building' || status === 'deploying' ? (
-                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                ) : (
-                  <config.icon className="w-2.5 h-2.5" />
-                )}
+              <Badge variant={config.variant} className="h-4 text-[8px] px-2 gap-1.5 uppercase tracking-[0.2em] font-bold">
+                {status === 'building' || status === 'deploying' ? <Loader2 className="w-2 h-2 animate-spin" /> : <config.icon className="w-2 h-2" />}
                 {config.label}
               </Badge>
             </div>
@@ -104,12 +96,19 @@ export function ProjectCard({ project }: { project: Project }) {
 
         {latestDeployment ? (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[10px] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/50 p-2 rounded-md border border-[var(--border)] group-hover:border-[var(--border-hover)] transition-colors">
+            <div className="flex items-center gap-2 text-[10px] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/30 p-2 rounded-lg border border-[var(--border)] group-hover:border-[var(--foreground)]/10 transition-all group/sha">
               <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
-              <span className="opacity-40">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(latestDeployment.gitCommitSha); setCopiedId(project.id); toast.success('Copied SHA'); setTimeout(() => setCopiedId(null), 2000); }}
+                className="opacity-40 hover:opacity-100 flex items-center gap-1 transition-opacity"
+                aria-label="Copy SHA"
+              >
+                {latestDeployment.gitCommitSha.substring(0, 7)}
+                {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
+              </button>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-[var(--muted-foreground)] px-1">
+            <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.1em] font-bold text-[var(--muted-foreground)] px-1">
                <div className="flex items-center gap-1.5">
                  <GitBranch className="w-3 h-3" />
                  <span>{latestDeployment.gitBranch}</span>

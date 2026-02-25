@@ -61,3 +61,7 @@
 ## 2026-03-20 - [Escape to Clear and Keyboard Bubble Suppression]
 **Learning:** Standardizing "Escape" as a global shortcut for clearing search inputs across the application (Landing Page, Dashboard, Palette) provides a consistent and predictable UX. However, in overlay components that also close on "Escape" (like Command Palettes), it is crucial to use `e.stopPropagation()` in the input handler to ensure that clearing the text doesn't accidentally dismiss the entire overlay, which can be frustrating.
 **Action:** Always implement Escape-to-clear for search inputs and use stopPropagation when an overlay parent also listens for Escape.
+
+## 2026-03-22 - [Scripe.io Aesthetic and Compact Interactivity]
+**Learning:** Achieving a "premium" scripe.io aesthetic requires attention to micro-typography (e.g., `tracking-[0.2em]`) and glass-morphism (`backdrop-blur`). When implementing interactive elements (like copy buttons) within a parent navigation link, the `e.stopPropagation()` and `e.preventDefault()` patterns are essential. Additionally, avoiding `useEffect` for deterministic UI state (like mock sparklines) prevents cascading render warnings in strict environments.
+**Action:** Use wider tracking for metadata labels and prefer `useMemo` for deterministic visual data to satisfy strict linter rules.
