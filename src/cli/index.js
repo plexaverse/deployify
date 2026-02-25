@@ -37,6 +37,9 @@ function main() {
         case 'deploy':
             handleDeploy().catch(err => console.error('Deployment failed:', err.message));
             break;
+        case 'status':
+            handleStatus().catch(err => console.error('Status check failed:', err.message));
+            break;
         case 'help':
         case '--help':
         case '-h':
@@ -60,6 +63,7 @@ Commands:
   login     Authenticate with your Deployify instance
   link      Link the current directory to a Deployify project
   deploy    Deploy the current directory (must be a git repo) to Deployify
+  status    Check the status of the latest deployment
   help      Show this help message
 `);
 }
@@ -137,6 +141,59 @@ function handleLogin() {
     });
 }
 
+async function getProjectId(instanceUrl, token) {
+    let projectId;
+
+    // 1. Check for linked project
+    const localConfigPath = path.join(process.cwd(), '.deployify', 'project.json');
+    if (fs.existsSync(localConfigPath)) {
+        try {
+            const localConfig = JSON.parse(fs.readFileSync(localConfigPath, 'utf8'));
+            if (localConfig.projectId) {
+                projectId = localConfig.projectId;
+            }
+        } catch (e) {
+            console.warn('Failed to read local project config:', e.message);
+        }
+    }
+
+    // 2. Fallback to repo matching
+    if (!projectId) {
+        // Get Git Remote URL
+        let remoteUrl;
+        try {
+            remoteUrl = execSync('git config --get remote.origin.url').toString().trim();
+        } catch {
+            // Ignore error
+        }
+
+        let repoFullName;
+        if (remoteUrl) {
+            try {
+                if (remoteUrl.startsWith('git@')) {
+                    const match = remoteUrl.match(/:([^\/]+\/[^\.]+)(\.git)?$/);
+                    if (match) repoFullName = match[1];
+                } else {
+                    const url = new URL(remoteUrl);
+                    const pathParts = url.pathname.split('/').filter(p => p);
+                    if (pathParts.length >= 2) {
+                        const repo = pathParts[1].replace(/\.git$/, '');
+                        repoFullName = `${pathParts[0]}/${repo}`;
+                    }
+                }
+            } catch {
+                // Fallback
+            }
+        }
+
+        if (repoFullName) {
+             projectId = await findProjectByRepo(instanceUrl, token, repoFullName);
+        }
+    }
+
+    return projectId;
+}
+
 async function handleDeploy() {
     if (!fs.existsSync(CONFIG_PATH)) {
         throw new Error('You must login first. Run: deployify login');
@@ -163,62 +220,15 @@ async function handleDeploy() {
         console.warn('\n⚠️  Warning: Could not determine current git branch.');
     }
 
-    let projectId;
-
-    // 1. Check for linked project
-    const localConfigPath = path.join(process.cwd(), '.deployify', 'project.json');
-    if (fs.existsSync(localConfigPath)) {
-        try {
-            const localConfig = JSON.parse(fs.readFileSync(localConfigPath, 'utf8'));
-            if (localConfig.projectId) {
-                projectId = localConfig.projectId;
-                console.log(`Using linked project: ${localConfig.name || projectId}`);
-            }
-        } catch (e) {
-            console.warn('Failed to read local project config:', e.message);
-        }
-    }
-
-    // 2. Fallback to repo matching
-    if (!projectId) {
-        // Get Git Remote URL
-        let remoteUrl;
-        try {
-            remoteUrl = execSync('git config --get remote.origin.url').toString().trim();
-        } catch {
-            // Ignore error here, will be handled if no projectId found
-        }
-
-        let repoFullName;
-        if (remoteUrl) {
-            try {
-                if (remoteUrl.startsWith('git@')) {
-                    const match = remoteUrl.match(/:([^\/]+\/[^\.]+)(\.git)?$/);
-                    if (match) repoFullName = match[1];
-                } else {
-                    const url = new URL(remoteUrl);
-                    const pathParts = url.pathname.split('/').filter(p => p);
-                    if (pathParts.length >= 2) {
-                        const repo = pathParts[1].replace(/\.git$/, '');
-                        repoFullName = `${pathParts[0]}/${repo}`;
-                    }
-                }
-            } catch {
-                // Fallback
-            }
-        }
-
-        if (repoFullName) {
-             console.log(`Deploying ${repoFullName} to ${instanceUrl}...`);
-             projectId = await findProjectByRepo(instanceUrl, token, repoFullName);
-        }
-    }
+    const projectId = await getProjectId(instanceUrl, token);
 
     if (!projectId) {
         console.error(`\nError: Could not find a project to deploy.`);
         console.error('Either link a project using `deployify link` or ensure you are in a git repo connected to a Deployify project.');
         return;
     }
+
+    console.log(`Using project: ${projectId}`);
 
     // 3. Trigger Deployment
     console.log(`Triggering deployment for branch '${currentBranch || 'default'}'...`);
@@ -231,6 +241,41 @@ async function handleDeploy() {
         console.log(`\nView logs and progress at: ${instanceUrl}/dashboard/${projectId}/deployments/${result.deployment.id}`);
     } else {
         console.log(result.message || 'Deployment queued.');
+    }
+}
+
+async function handleStatus() {
+    if (!fs.existsSync(CONFIG_PATH)) {
+        throw new Error('You must login first. Run: deployify login');
+    }
+
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    const { instanceUrl, token } = config;
+
+    const projectId = await getProjectId(instanceUrl, token);
+
+    if (!projectId) {
+        console.error('Error: Project not linked. Run: deployify link');
+        return;
+    }
+
+    console.log(`Checking status for project: ${projectId}...`);
+    const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/deployments?limit=1`, token);
+
+    if (data.deployments && data.deployments.length > 0) {
+        const d = data.deployments[0];
+        console.log('\nLatest Deployment:');
+        console.log(`ID:      ${d.id}`);
+        console.log(`Status:  ${d.status.toUpperCase()}`);
+        console.log(`Branch:  ${d.gitBranch}`);
+        console.log(`Commit:  ${d.gitCommitMessage.trim()}`);
+        console.log(`Author:  ${d.gitCommitAuthor}`);
+        console.log(`Created: ${new Date(d.createdAt).toLocaleString()}`);
+        if (d.status === 'ready' && d.url) {
+            console.log(`URL:     ${d.url}`);
+        }
+    } else {
+        console.log('No deployments found for this project.');
     }
 }
 
@@ -458,4 +503,14 @@ function isAheadOfRemote(branch) {
     }
 }
 
-main();
+if (require.main === module) {
+    main();
+}
+
+module.exports = {
+    getProjectId,
+    fetchJson,
+    getCurrentBranch,
+    getGitStatus,
+    isAheadOfRemote
+};

@@ -1,6 +1,7 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
+import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole, EnvVariable } from '@/types';
 import { generateId } from '@/lib/utils';
+import { decrypt } from '@/lib/crypto';
 import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot } from 'firebase-admin/firestore';
 
 // ============= User Operations =============
@@ -52,6 +53,45 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
         ...data,
         updatedAt: new Date(),
     });
+}
+
+/**
+ * Get environment variables for a deployment, handled filtering by environment/target and decryption
+ */
+export function getEnvVarsForDeployment(
+    project: Project,
+    envTarget: 'production' | 'preview'
+): { buildEnvVars: Record<string, string>; runtimeEnvVars: Record<string, string> } {
+    const envVars = project.envVariables || [];
+    const buildEnvVars: Record<string, string> = {};
+    const runtimeEnvVars: Record<string, string> = {};
+
+    envVars.forEach((env: EnvVariable) => {
+        // Filter by environment (Production vs Preview)
+        if (env.environment && env.environment !== 'both' && env.environment !== envTarget) {
+            return;
+        }
+
+        let value = env.value;
+        if (env.isSecret && env.isEncrypted) {
+            try {
+                value = decrypt(env.value);
+            } catch (e) {
+                console.error(`Failed to decrypt secret ${env.key}:`, e);
+                // We throw here to fail the deployment safely rather than deploying with invalid secrets
+                throw new Error(`Failed to decrypt secret ${env.key}. Please update the variable value.`);
+            }
+        }
+
+        if (env.target === 'build' || env.target === 'both') {
+            buildEnvVars[env.key] = value;
+        }
+        if (env.target === 'runtime' || env.target === 'both') {
+            runtimeEnvVars[env.key] = value;
+        }
+    });
+
+    return { buildEnvVars, runtimeEnvVars };
 }
 
 // ============= Invite Operations =============
