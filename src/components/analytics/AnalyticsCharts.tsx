@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { AnalyticsStats, TooltipEntry } from '@/types';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface AnalyticsChartsProps {
@@ -216,8 +217,10 @@ function WebVitalCard({ title, value, unit, status, description }: {
     status: 'good' | 'needs-improvement' | 'poor';
     description: string;
 }) {
+    const variant = status === 'good' ? 'success' : status === 'needs-improvement' ? 'warning' : 'error';
+
     return (
-        <Card className="p-4 hover:border-[var(--primary)] transition-all duration-200 group">
+        <Card className="p-4 hover:border-[var(--primary)] hover:shadow-md transition-all duration-200 group">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">{title}</span>
                 <div className={cn("w-2 h-2 rounded-full animate-pulse",
@@ -231,12 +234,10 @@ function WebVitalCard({ title, value, unit, status, description }: {
                 </span>
                 <span className="text-[10px] text-[var(--muted-foreground)] font-medium uppercase">{unit}</span>
             </div>
-            <div className={cn("mt-2 text-[9px] px-1.5 py-0.5 rounded border inline-block font-semibold uppercase",
-                    status === 'good' ? 'text-[var(--success)] bg-[var(--success-bg)] border-[var(--success)]/20' :
-                    status === 'needs-improvement' ? 'text-[var(--warning)] bg-[var(--warning-bg)] border-[var(--warning)]/20' :
-                    'text-[var(--error)] bg-[var(--error-bg)] border-[var(--error)]/20'
-                )}>
-                {status.replace('-', ' ')}
+            <div className="mt-2">
+                <Badge variant={variant} className="text-[9px] px-1.5 py-0 font-bold uppercase tracking-wide">
+                    {status.replace('-', ' ')}
+                </Badge>
             </div>
             <p className="mt-3 text-[10px] text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
                 {description}
@@ -248,7 +249,7 @@ function WebVitalCard({ title, value, unit, status, description }: {
 function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) {
     if (active && payload && payload.length && label) {
         return (
-            <Card className="p-3 shadow-xl ring-1 ring-black/5 bg-[var(--card)] border-[var(--border)]">
+            <Card className="p-3 shadow-2xl bg-[var(--card)] border-[var(--border)]">
                 <p className="text-sm font-medium text-[var(--foreground)] mb-2">
                     {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
@@ -269,9 +270,13 @@ function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payloa
 
 function SummaryCard({ title, value }: { title: string; value: string }) {
     return (
-        <Card className="p-6 hover:border-[var(--primary)] transition-colors duration-200">
-            <h3 className="text-sm font-medium text-[var(--muted-foreground)]">{title}</h3>
-            <div className="mt-2 text-2xl font-bold font-mono tracking-tight">{value}</div>
+        <Card className="p-6 hover:border-[var(--primary)] hover:shadow-md transition-all duration-300 group">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
+                {title}
+            </h3>
+            <div className="mt-3 text-3xl font-bold font-mono tracking-tighter text-[var(--foreground)]">
+                {value}
+            </div>
         </Card>
     );
 }

@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Search, Lock, Globe, GitBranch, X, ChevronRight } from 'lucide-react';
 import type { GitHubRepo } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,21 @@ export default function NewProjectPage() {
     const [loading, setLoading] = useState(true);
     const [importing, setImporting] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const searchRef = useRef<HTMLInputElement>(null);
+    const [isMac, setIsMac] = useState(false);
+
+    useEffect(() => {
+        setIsMac(navigator.userAgent.indexOf('Mac') !== -1);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') {
+                e.preventDefault();
+                searchRef.current?.focus();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     useEffect(() => {
         async function fetchRepos() {
@@ -89,21 +104,33 @@ export default function NewProjectPage() {
 
             {/* Search */}
             <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] z-10" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] z-10" />
                 <Input
+                    ref={searchRef}
                     type="text"
                     placeholder="Search repositories..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10 pr-10"
+                    className="pl-12 pr-16 h-12"
                     aria-label="Search repositories"
                 />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                    {search ? null : (
+                        <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-medium border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                            <span>{isMac ? '⌘' : 'Ctrl'}</span>
+                            <span>K</span>
+                        </div>
+                    )}
+                </div>
                 {search && (
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setSearch('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        onClick={() => {
+                            setSearch('');
+                            searchRef.current?.focus();
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)] z-10"
                         aria-label="Clear search"
                     >
                         <X className="w-4 h-4" />
@@ -136,58 +163,84 @@ export default function NewProjectPage() {
             {/* Repository list */}
             {!loading && (
                 <div className="space-y-3">
-                    {filteredRepos.map((repo) => (
-                        <Card
-                            key={repo.id}
-                            className="flex items-center gap-4 hover:border-[var(--primary)] transition-colors"
-                        >
-                            {/* Icon */}
-                            <div className="w-10 h-10 rounded-lg bg-[var(--background)] flex items-center justify-center border border-[var(--border)]">
-                                {repo.private ? (
-                                    <Lock className="w-5 h-5 text-[var(--muted)]" />
-                                ) : (
-                                    <Globe className="w-5 h-5 text-[var(--muted)]" />
-                                )}
-                            </div>
-
-                            {/* Repo info */}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="font-medium truncate">{repo.full_name}</h3>
-                                    {repo.private && (
-                                        <Badge variant="warning" className="text-[10px] px-2 py-0">
-                                            Private
-                                        </Badge>
-                                    )}
-                                </div>
-                                <p className="text-sm text-[var(--muted-foreground)] truncate">
-                                    {repo.description || 'No description'}
-                                </p>
-                                <div className="flex items-center gap-4 mt-1 text-xs text-[var(--muted-foreground)]">
-                                    {repo.language && (
-                                        <span className="flex items-center gap-1">
-                                            <span className="w-2 h-2 rounded-full bg-[var(--primary)]"></span>
-                                            {repo.language}
-                                        </span>
-                                    )}
-                                    <span className="flex items-center gap-1">
-                                        <GitBranch className="w-3 h-3" />
-                                        {repo.default_branch}
-                                    </span>
-                                    <span>Updated {formatDate(repo.pushed_at)}</span>
-                                </div>
-                            </div>
-
-                            {/* Import button */}
-                            <Button
-                                onClick={() => handleImport(repo)}
-                                loading={importing === repo.full_name}
-                                disabled={importing !== null}
+                    <AnimatePresence mode="popLayout">
+                        {filteredRepos.map((repo) => (
+                            <motion.div
+                                key={repo.id}
+                                layout
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                whileHover={{ y: -2, scale: 1.005 }}
+                                whileTap={{ scale: 0.995 }}
                             >
-                                Import
-                            </Button>
-                        </Card>
-                    ))}
+                                <Card
+                                    className="group relative flex items-center gap-4 hover:border-[var(--primary)] transition-all cursor-pointer overflow-hidden p-6"
+                                    onClick={() => handleImport(repo)}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                    {/* Icon */}
+                                    <div className="relative z-10 w-12 h-12 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)] group-hover:border-[var(--primary)]/30 transition-colors">
+                                        {repo.private ? (
+                                            <Lock className="w-5 h-5 text-[var(--warning)]" />
+                                        ) : (
+                                            <Globe className="w-5 h-5 text-[var(--success)]" />
+                                        )}
+                                    </div>
+
+                                    {/* Repo info */}
+                                    <div className="relative z-10 flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
+                                                {repo.full_name}
+                                            </h3>
+                                            {repo.private && (
+                                                <Badge variant="warning" className="text-[10px] px-2 py-0 uppercase font-bold tracking-wider">
+                                                    Private
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-[var(--muted-foreground)] truncate mt-0.5">
+                                            {repo.description || 'No description'}
+                                        </p>
+                                        <div className="flex items-center gap-4 mt-2 text-xs text-[var(--muted-foreground)]">
+                                            {repo.language && (
+                                                <span className="flex items-center gap-1.5">
+                                                    <span className="w-2 h-2 rounded-full bg-[var(--info)]"></span>
+                                                    {repo.language}
+                                                </span>
+                                            )}
+                                            <span className="flex items-center gap-1.5">
+                                                <GitBranch className="w-3.5 h-3.5" />
+                                                {repo.default_branch}
+                                            </span>
+                                            <span>Updated {formatDate(repo.pushed_at)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action indicator */}
+                                    <div className="relative z-10 flex items-center gap-3">
+                                        <Button
+                                            size="sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleImport(repo);
+                                            }}
+                                            loading={importing === repo.full_name}
+                                            disabled={importing !== null}
+                                            className="hidden sm:flex"
+                                        >
+                                            Import
+                                        </Button>
+                                        <div className="opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                            <ChevronRight className="w-5 h-5 text-[var(--primary)]" />
+                                        </div>
+                                    </div>
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
 
                     {filteredRepos.length === 0 && !loading && (
                         <Card className="text-center py-12">
