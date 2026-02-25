@@ -1,11 +1,8 @@
-import { test, describe, before, after } from 'node:test';
+import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import fs from 'node:fs';
-import path from 'node:path';
-import { execSync } from 'node:child_process';
 
 // Mock some globals and modules before requiring the CLI
-const mockFetch = async (url: string, options: any) => {
+const mockFetch = async (url: string, _options: unknown) => {
   if (url.includes('/api/projects')) {
     return {
       ok: true,
@@ -18,11 +15,12 @@ const mockFetch = async (url: string, options: any) => {
   return { ok: false };
 };
 
-// @ts-ignore
+// @ts-expect-error - mocking global fetch for test environment
 global.fetch = mockFetch;
 
 // Import the CLI module (CommonJS)
-// @ts-ignore
+// @ts-expect-error - testing a CommonJS module in TS environment
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const cli = require('./index.js');
 
 describe('CLI Utilities', () => {
