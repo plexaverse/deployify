@@ -182,6 +182,10 @@
 - **Improvement**: Support `defineNextConfig` in `next.config.js` patching and flatten Dockerfile structure for `rootDirectory` deployments to fix `server.js` path issues.
 - **Status**: ✅ Implemented (Updated `cloudbuild.ts` and `dockerfiles.ts`, verified with tests)
 
+#### 25. **Audit Script Environment Loading**
+- **Improvement**: Ensure `scripts/audit.ts` loads local environment variables (`.env`, `.env.local`) correctly without requiring `dotenv` or pre-loading.
+- **Status**: ✅ Implemented (Added manual environment variable loading to `scripts/audit.ts`)
+
 ---
 
 ## ✅ Verification Status
