@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 
 interface ResourceSettingsProps {
     projectId: string;
@@ -81,35 +81,23 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label htmlFor="cpu">CPU</Label>
-                        <NativeSelect
-                            id="cpu"
-                            value={cpu}
-                            onChange={(e) => setCpu(Number(e.target.value))}
-                        >
-                            {CPU_OPTIONS.map((option) => (
-                                <option key={option} value={option}>
-                                    {option} vCPU
-                                </option>
-                            ))}
-                        </NativeSelect>
+                        <Label>CPU</Label>
+                        <SegmentedControl
+                            options={CPU_OPTIONS.map(opt => ({ value: String(opt), label: `${opt} vCPU` }))}
+                            value={String(cpu)}
+                            onChange={(v) => setCpu(Number(v))}
+                        />
                         <p className="text-xs text-[var(--muted-foreground)]">
                             Allocated CPU for each instance
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="memory">Memory</Label>
-                        <NativeSelect
-                            id="memory"
+                        <Label>Memory</Label>
+                        <SegmentedControl
+                            options={MEMORY_OPTIONS.map(opt => ({ value: opt, label: opt }))}
                             value={memory}
-                            onChange={(e) => setMemory(e.target.value)}
-                        >
-                            {MEMORY_OPTIONS.map((option) => (
-                                <option key={option} value={option}>
-                                    {option}
-                                </option>
-                            ))}
-                        </NativeSelect>
+                            onChange={setMemory}
+                        />
                         <p className="text-xs text-[var(--muted-foreground)]">
                             Allocated Memory for each instance
                         </p>

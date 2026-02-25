@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Portal } from '@/components/ui/portal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -112,20 +113,15 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                             >
                                 Cancel
                             </Button>
-                            <Button
+                            <MovingBorderButton
                                 type="submit"
-                                variant="primary"
                                 disabled={isSubmitting || !name || !slug}
+                                containerClassName="h-10 w-32"
+                                className="font-bold text-sm"
                             >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                        Creating...
-                                    </>
-                                ) : (
-                                    'Create Team'
-                                )}
-                            </Button>
+                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                {isSubmitting ? 'Creating...' : 'Create Team'}
+                            </MovingBorderButton>
                         </div>
                     </form>
                 </Card>

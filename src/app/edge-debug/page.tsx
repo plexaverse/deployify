@@ -9,7 +9,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { NativeSelect } from '@/components/ui/native-select'
+import { SegmentedControl } from '@/components/ui/segmented-control'
+import { Button as MovingBorderButton } from '@/components/ui/moving-border'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
@@ -84,15 +85,15 @@ export default function EdgeDebugPage() {
                 <p className="text-[var(--muted-foreground)] mt-2">Test middleware logic and edge functions in a sandboxed environment.</p>
                 <p className="text-xs text-[var(--muted-foreground)] mt-1">Note: Only JavaScript is supported. TypeScript types are not transpiled.</p>
             </div>
-            <Button
+            <MovingBorderButton
                 onClick={handleRun}
-                loading={loading}
-                variant="primary"
-                className="shadow-lg px-6"
+                disabled={loading}
+                containerClassName="h-12 w-48"
+                className="font-bold text-sm"
             >
                 {!loading && <Play className="mr-2 h-4 w-4" />}
-                Run Simulation
-            </Button>
+                {loading ? 'Running...' : 'Run Simulation'}
+            </MovingBorderButton>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
@@ -115,32 +116,45 @@ export default function EdgeDebugPage() {
             <div className="flex flex-col gap-6 overflow-y-auto pr-2 pb-4">
 
                 {/* Request Config */}
-                <Card className="space-y-4">
+                <Card className="space-y-6">
                     <h2 className="text-lg font-semibold text-[var(--foreground)]">Request Configuration</h2>
-                    <div className="grid grid-cols-[100px_1fr] gap-4">
-                        <NativeSelect
+
+                    <div className="space-y-2">
+                        <Label>HTTP Method</Label>
+                        <SegmentedControl
+                            options={[
+                                { value: 'GET', label: 'GET' },
+                                { value: 'POST', label: 'POST' },
+                                { value: 'PUT', label: 'PUT' },
+                                { value: 'DELETE', label: 'DELETE' },
+                                { value: 'PATCH', label: 'PATCH' },
+                            ]}
                             value={method}
-                            onChange={(e) => setMethod(e.target.value)}
-                        >
-                            <option>GET</option>
-                            <option>POST</option>
-                            <option>PUT</option>
-                            <option>DELETE</option>
-                            <option>PATCH</option>
-                        </NativeSelect>
-                        <Input
+                            onChange={setMethod}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                         <Label>Target URL</Label>
+                         <Input
                             type="text"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="https://example.com/path"
                         />
                     </div>
-                    <div>
+
+                    <div className="space-y-2">
                         <Label className="mb-2 block">Headers (JSON)</Label>
                         <textarea
                             value={headers}
                             onChange={(e) => setHeaders(e.target.value)}
-                            className="flex min-h-[80px] w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm ring-offset-[var(--background)] placeholder:text-[var(--muted-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono text-[var(--foreground)]"
+                            className={cn(
+                                "flex min-h-[100px] w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm",
+                                "ring-offset-[var(--background)] placeholder:text-[var(--muted-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                                "font-mono text-[var(--foreground)] resize-none"
+                            )}
+                            spellCheck={false}
                         />
                     </div>
                 </Card>
