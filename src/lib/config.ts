@@ -56,6 +56,7 @@ export const config = {
     security: {
         rateLimitRequests: parseInt(process.env.RATE_LIMIT_REQUESTS || '100'),
         rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'),
+        encryptionKey: process.env.ENCRYPTION_KEY || process.env.JWT_SECRET,
     },
 
     // Billing
@@ -90,10 +91,13 @@ export function validateConfig(): void {
         'GITHUB_WEBHOOK_SECRET',
         'GCP_PROJECT_ID',
         'JWT_SECRET',
-        'ENCRYPTION_KEY',
     ];
 
-    const missing = required.filter(key => !process.env[key]);
+    let missing = required.filter(key => !process.env[key]);
+
+    if (!process.env.ENCRYPTION_KEY && !process.env.JWT_SECRET) {
+        missing.push('ENCRYPTION_KEY (or JWT_SECRET)');
+    }
 
     if (missing.length > 0) {
         console.warn('╔═══════════════════════════════════════════════════════════════════╗');
