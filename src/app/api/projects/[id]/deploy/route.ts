@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getDeploymentById, createDeployment, updateDeployment } from '@/lib/db';
+import { getDeploymentById, createDeployment, updateDeployment, getEnvVarsForDeployment } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
 import { validateRepository } from '@/lib/github/validator';
 import { parseRepoFullName } from '@/lib/utils';
+import { isRunningOnGCP } from '@/lib/gcp/auth';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
@@ -16,11 +17,6 @@ import { sendWebhookNotification } from '@/lib/webhooks';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
-}
-
-// Check if we're running on GCP
-function isRunningOnGCP(): boolean {
-    return process.env.K_SERVICE !== undefined || process.env.GOOGLE_CLOUD_PROJECT !== undefined;
 }
 
 // POST /api/projects/[id]/deploy - Trigger manual deployment
@@ -148,35 +144,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         if (isRunningOnGCP()) {
             try {
                 // Extract environment variables by target
-                const envVars = project.envVariables || [];
-                const buildEnvVars: Record<string, string> = {};
-                const runtimeEnvVars: Record<string, string> = {};
-
                 const envTarget = 'production'; // Manual deploy is always production for now
-                envVars.forEach((env: EnvVariable) => {
-                    // Filter by environment (Production vs Preview)
-                    if (env.environment && env.environment !== 'both' && env.environment !== envTarget) {
-                        return;
-                    }
-
-                    let value = env.value;
-                    if (env.isSecret && env.isEncrypted) {
-                        try {
-                            value = decrypt(env.value);
-                        } catch (e) {
-                            console.error(`Failed to decrypt secret ${env.key}:`, e);
-                            // Fail deployment if decryption fails to be safe
-                            throw new Error(`Failed to decrypt secret ${env.key}. Please update the variable value.`);
-                        }
-                    }
-
-                    if (env.target === 'build' || env.target === 'both') {
-                        buildEnvVars[env.key] = value;
-                    }
-                    if (env.target === 'runtime' || env.target === 'both') {
-                        runtimeEnvVars[env.key] = value;
-                    }
-                });
+                const { buildEnvVars, runtimeEnvVars } = getEnvVarsForDeployment(project, envTarget);
 
                 // Decrypt GitHub token if present
                 const projectGitToken = project.githubToken ? decrypt(project.githubToken) : undefined;

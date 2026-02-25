@@ -9,7 +9,8 @@ import {
     getProjectByRepoFullName,
     createDeployment,
     updateDeployment,
-    getUserById
+    getUserById,
+    getEnvVarsForDeployment
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
@@ -143,37 +144,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
 
     try {
         // Get environment variables directly from project and split by target
-        const allEnvVars = project.envVariables || [];
-        const buildEnvVars: Record<string, string> = {};
-        const runtimeEnvVars: Record<string, string> = {};
-
-        for (const env of allEnvVars) {
-            // Respect Build vs Runtime settings
-            // Filter by environment (Production vs Preview)
-            if (env.environment && env.environment !== 'both' && env.environment !== envTarget) {
-                continue;
-            }
-
-            let value = env.value;
-
-            // Decrypt secret values if needed
-            if (env.isSecret && env.isEncrypted) {
-                try {
-                    value = decrypt(env.value);
-                } catch (e) {
-                    console.error(`Failed to decrypt env var ${env.key}`, e);
-                    // We throw here to fail the deployment safely rather than deploying with invalid secrets
-                    throw new Error(`Failed to decrypt secret: ${env.key}`);
-                }
-            }
-
-            if (env.target === 'build' || env.target === 'both') {
-                buildEnvVars[env.key] = value;
-            }
-            if (env.target === 'runtime' || env.target === 'both') {
-                runtimeEnvVars[env.key] = value;
-            }
-        }
+        const { buildEnvVars, runtimeEnvVars } = getEnvVarsForDeployment(project, envTarget);
 
         // Decrypt GitHub token if present
         const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
@@ -304,37 +275,8 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
         try {
             // Get environment variables directly from project and split by target
-            const allEnvVars = project.envVariables || [];
-            const buildEnvVars: Record<string, string> = {};
-            const runtimeEnvVars: Record<string, string> = {};
             const envTarget = 'preview';
-
-            for (const env of allEnvVars) {
-                // Filter by environment (Production vs Preview)
-                if (env.environment && env.environment !== 'both' && env.environment !== envTarget) {
-                    continue;
-                }
-
-                let value = env.value;
-
-                // Decrypt secret values if needed
-                if (env.isSecret && env.isEncrypted) {
-                    try {
-                        value = decrypt(env.value);
-                    } catch (e) {
-                        console.error(`Failed to decrypt env var ${env.key}`, e);
-                        // We throw here to fail the deployment safely rather than deploying with invalid secrets
-                        throw new Error(`Failed to decrypt secret: ${env.key}`);
-                    }
-                }
-
-                if (env.target === 'build' || env.target === 'both') {
-                    buildEnvVars[env.key] = value;
-                }
-                if (env.target === 'runtime' || env.target === 'both') {
-                    runtimeEnvVars[env.key] = value;
-                }
-            }
+            const { buildEnvVars, runtimeEnvVars } = getEnvVarsForDeployment(project, envTarget);
 
             // Decrypt GitHub token if present
             const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
