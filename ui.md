@@ -983,3 +983,29 @@ Conducted a targeted pass to harmonize UI components across the platform, focusi
 
 ### `src/components/ResourceSettings.tsx`
 - **Improved UX**: Replaced `NativeSelect` dropdowns for CPU and Memory selection with `SegmentedControl` components. Since the options are few (1/2/4 vCPU, 5 memory sizes), this provides faster selection and better visibility of available choices.
+
+## Progressive UI & Consistency Refactor (Session 85)
+
+Continued the push for a unified UI across all pages, focusing on analytics consistency and legacy page modernization.
+
+### `src/components/analytics/AnalyticsCharts.tsx`
+- **Standardized Summary Cards**: Refactored `SummaryCard` to use the standard `Card` component with consistent padding, typography, and hover-driven visual feedback (border/shadow).
+- **Web Vital Badge Integration**: Replaced manual status indicators in `WebVitalCard` with the `Badge` component, utilizing semantic variants (`success`, `warning`, `error`) for better consistency.
+- **Tooltip Polish**: Refined the `AnalyticsTooltip` by replacing hardcoded shadow and ring classes with theme-consistent variables and shadows.
+
+### `src/app/dashboard/new/page.tsx`
+- **Modernized Repository List**: Refactored the legacy repository import page to match the premium aesthetic of the new creation wizard.
+- **Micro-interactions**: Added `framer-motion` animations (`whileHover`, `whileTap`, `layout`) and entry transitions for a more dynamic feel.
+- **Enhanced Search**: Integrated a keyboard shortcut hint (⌘K / Ctrl+K) and auto-focus logic for the search input.
+- **Visual Polish**: Standardized repository icons with status-aware colors and added a gradient hover effect for a "layered" visual depth.
+
+### `src/app/dashboard/new/import/page.tsx`
+- **Standardized Section Headers**: Added icons and descriptions to project configuration sections, aligning with the new wizard's visual hierarchy.
+- **Improved Spacing**: Updated layout to use `space-y-8` and standardized card padding (`p-6`) for better visual consistency.
+- **Enhanced Typography**: Standardized form labels to use `text-xs font-bold uppercase tracking-wider` for a more professional dashboard look.
+- **Modern Controls**: Integrated `Switch` and `SegmentedControl` components for environment variable management, replacing legacy form elements.
+
+### `src/app/dashboard/[id]/analytics/page.tsx`
+- **Period Selector**: Added a modern period selection control (1h, 24h, 7d, 30d) using the `SegmentedControl` component, providing a better UX for switching timeframes.
+- **Layout Alignment**: Standardized page padding (`px-6 md:px-8 py-8`) and spacing (`space-y-10`) to align with the Project Overview and other dashboard pages.
+- **Refined Header**: Improved the typography and layout of the analytics header, including site identification and real-time visitor integration.

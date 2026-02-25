@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useStore } from '@/store';
 import { AnalyticsCharts } from '@/components/analytics/AnalyticsCharts';
 import { DeploymentMetricsCharts } from '@/components/analytics/DeploymentMetricsCharts';
@@ -10,9 +10,11 @@ import { AnalyticsAlerts } from '@/components/analytics/AnalyticsAlerts';
 import { evaluatePerformance } from '@/lib/analytics/alerts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 
 export default function ProjectAnalyticsPage() {
     const params = useParams();
+    const router = useRouter();
     const searchParams = useSearchParams();
     const projectId = params.id as string;
     const period = searchParams.get('period') || '30d';
@@ -35,6 +37,12 @@ export default function ProjectAnalyticsPage() {
     }, [projectId, period, fetchProjectDetails, fetchProjectAnalytics]);
 
     const project = currentProject;
+
+    const handlePeriodChange = (newPeriod: string) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('period', newPeriod);
+        router.push(url.pathname + url.search);
+    };
 
     // Site ID logic
     const siteId = useMemo(() => {
@@ -75,24 +83,37 @@ export default function ProjectAnalyticsPage() {
     if (!project) return null;
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
-                    <p className="text-[var(--muted-foreground)]">
-                        Traffic and performance insights for <span className="font-mono text-[var(--foreground)]">{siteId}</span>
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+                    <p className="text-[var(--muted-foreground)] text-sm">
+                        Traffic and performance insights for <span className="font-mono text-[var(--foreground)] font-medium">{siteId}</span>
                     </p>
                 </div>
-                <RealtimeVisitors projectId={project.id} />
+                <div className="flex items-center gap-4">
+                    <RealtimeVisitors projectId={project.id} />
+                    <div className="h-8 w-[1px] bg-[var(--border)] hidden md:block" />
+                    <SegmentedControl
+                        value={period}
+                        onChange={handlePeriodChange}
+                        options={[
+                            { value: '1h', label: '1h' },
+                            { value: '24h', label: '24h' },
+                            { value: '7d', label: '7d' },
+                            { value: '30d', label: '30d' },
+                        ]}
+                    />
+                </div>
             </div>
 
-            <div>
-                <h2 className="text-xl font-semibold mb-4">Deployment Performance</h2>
+            <div className="space-y-6">
+                <h2 className="text-xl font-semibold tracking-tight">Deployment Performance</h2>
                 <DeploymentMetricsCharts deployments={deployments} />
             </div>
 
-            <div className="pt-6 border-t border-[var(--border)]">
-                <h2 className="text-xl font-semibold mb-4">Traffic Analytics</h2>
+            <div className="pt-10 border-t border-[var(--border)] space-y-6">
+                <h2 className="text-xl font-semibold tracking-tight">Traffic Analytics</h2>
 
                 {stats && <div className="mb-6"><AnalyticsAlerts alerts={evaluatePerformance(stats)} /></div>}
 

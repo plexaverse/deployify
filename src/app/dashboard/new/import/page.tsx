@@ -165,28 +165,38 @@ export default function ImportProjectPage() {
     if (!repoFullName) return null;
 
     return (
-        <div className="p-8 max-w-4xl mx-auto">
+        <div className="p-8 max-w-4xl mx-auto pb-24">
             <Link
                 href="/dashboard/new"
-                className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-6 transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-8 transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Git Repositories
             </Link>
 
-            <h1 className="text-2xl font-bold mb-2 text-[var(--foreground)]">Configure Project</h1>
-            <p className="text-[var(--muted-foreground)] mb-8">
-                Deploying <strong className="text-[var(--foreground)]">{repoFullName}</strong>
-            </p>
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-2 text-[var(--foreground)]">Configure Project</h1>
+                <p className="text-[var(--muted-foreground)]">
+                    Deploying <strong className="text-[var(--foreground)]">{repoFullName}</strong>
+                </p>
+            </div>
 
-            <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-8">
                 {/* General Settings */}
-                <Card>
-                    <h2 className="text-lg font-semibold mb-4 text-[var(--foreground)]">Project Settings</h2>
+                <Card className="p-6 space-y-6">
+                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
+                        <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
+                            <Settings className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Project Settings</h2>
+                            <p className="text-[var(--muted-foreground)] text-sm">Configure your deployment environment</p>
+                        </div>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label>Project Name</Label>
+                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Name</Label>
                             <Input
                                 type="text"
                                 value={projectName}
@@ -195,7 +205,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Framework Preset</Label>
+                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Framework Preset</Label>
                             <NativeSelect
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
@@ -213,9 +223,9 @@ export default function ImportProjectPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label>Root Directory</Label>
+                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Root Directory</Label>
                             <Input
                                 type="text"
                                 value={rootDirectory}
@@ -224,7 +234,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Region</Label>
+                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Region</Label>
                             <NativeSelect
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
@@ -240,15 +250,20 @@ export default function ImportProjectPage() {
                 </Card>
 
                 {/* Build Settings */}
-                <Card>
-                    <div className="flex items-center gap-2 mb-4">
-                        <Settings className="w-5 h-5 text-[var(--muted-foreground)]" />
-                        <h2 className="text-lg font-semibold text-[var(--foreground)]">Build Settings</h2>
+                <Card className="p-6 space-y-6">
+                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
+                        <div className="w-12 h-12 rounded-lg bg-[var(--primary-bg)]/10 text-[var(--primary)] flex items-center justify-center border border-[var(--primary)]/30">
+                            <Settings className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Build Settings</h2>
+                            <p className="text-[var(--muted-foreground)] text-sm">Customize your build pipeline</p>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label>Build Command</Label>
+                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Command</Label>
                             <Input
                                 type="text"
                                 value={buildCommand}
@@ -257,7 +272,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Output Directory</Label>
+                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Output Directory</Label>
                             <Input
                                 type="text"
                                 value={outputDirectory}
@@ -268,7 +283,7 @@ export default function ImportProjectPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Install Command</Label>
+                        <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Install Command</Label>
                         <Input
                             type="text"
                             value={installCommand}
@@ -279,30 +294,37 @@ export default function ImportProjectPage() {
                 </Card>
 
                 {/* Environment Variables */}
-                <Card>
-                    <div className="flex items-center gap-2 mb-4">
-                        <Terminal className="w-5 h-5 text-[var(--muted-foreground)]" />
-                        <h2 className="text-lg font-semibold text-[var(--foreground)]">Environment Variables</h2>
+                <Card className="p-6 space-y-6">
+                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
+                        <div className="w-12 h-12 rounded-lg bg-[var(--success-bg)] text-[var(--success)] flex items-center justify-center border border-[var(--success)]/30">
+                            <Terminal className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Environment Variables</h2>
+                            <p className="text-[var(--muted-foreground)] text-sm">Add build and runtime variables</p>
+                        </div>
                     </div>
 
-                    <div className="mb-4 space-y-2">
+                    <div className="space-y-3">
                         {envVars.map((env) => (
-                            <div key={env.key} className="flex items-center gap-2 p-2 rounded bg-[var(--background)] border border-[var(--border)]">
-                                <div className="flex-1 grid grid-cols-3 gap-2">
-                                    <div className="font-mono text-sm truncate text-[var(--foreground)] flex items-center gap-2" title={env.key}>
-                                        {env.key}
+                            <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
+                                <div className="flex-1 grid grid-cols-3 gap-4 items-center">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-mono text-sm text-[var(--primary)]">{env.key}</span>
                                         {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
                                     </div>
-                                    <div className="font-mono text-sm truncate text-[var(--muted-foreground)]" title={env.isSecret ? '••••••••' : env.value}>
+                                    <span className="font-mono text-sm text-[var(--foreground)] truncate">
                                         {env.isSecret ? '••••••••' : env.value}
-                                    </div>
-                                    <div className="text-xs text-[var(--muted-foreground)] flex items-center">{env.target}</div>
+                                    </span>
+                                    <span className="text-[10px] text-[var(--muted-foreground)] uppercase px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                        {env.target === 'both' ? 'Build & Runtime' : env.target}
+                                    </span>
                                 </div>
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => handleRemoveEnv(env.key)}
-                                    className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)]"
+                                    className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
@@ -310,53 +332,58 @@ export default function ImportProjectPage() {
                         ))}
                     </div>
 
-                    <div className="flex flex-col gap-4">
-                        <div className="flex flex-col md:flex-row gap-2">
+                    <div className="space-y-4 p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)]">
+                        <div className="flex gap-2">
                             <Input
                                 type="text"
                                 value={newEnvKey}
-                                onChange={(e) => setNewEnvKey(e.target.value)}
+                                onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="KEY"
-                                className="flex-1 font-mono text-sm"
+                                className="font-mono"
                             />
                             <Input
                                 type={newEnvIsSecret ? 'password' : 'text'}
                                 value={newEnvValue}
                                 onChange={(e) => setNewEnvValue(e.target.value)}
-                                placeholder="Value"
-                                className="flex-1 font-mono text-sm"
+                                placeholder="VALUE"
+                                className="font-mono"
                             />
-                            <SegmentedControl
-                                value={newEnvTarget}
-                                onChange={(val) => setNewEnvTarget(val as 'both' | 'build' | 'runtime')}
-                                options={[
-                                    { value: 'both', label: 'Both' },
-                                    { value: 'build', label: 'Build' },
-                                    { value: 'runtime', label: 'Runtime' },
-                                ]}
-                            />
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleAddEnv}
+                                disabled={!newEnvKey || !newEnvValue}
+                                className="text-[var(--primary)] px-4"
+                            >
+                                <Plus className="w-5 h-5 mr-2" /> Add
+                            </Button>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]/50">
                                 <Switch
                                     id="is-secret"
                                     checked={newEnvIsSecret}
                                     onCheckedChange={setNewEnvIsSecret}
                                 />
-                                <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer">
+                                <Label htmlFor="is-secret" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
                                     <Shield className="w-3.5 h-3.5 text-[var(--info)]" />
                                     Secret (Encrypted)
                                 </Label>
                             </div>
 
-                            <Button
-                                variant="secondary"
-                                onClick={handleAddEnv}
-                                disabled={!newEnvKey || !newEnvValue}
-                            >
-                                <Plus className="w-4 h-4 mr-2" /> Add
-                            </Button>
+                            <div className="space-y-2 flex-1 max-w-xs">
+                                <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block">Target Environment</span>
+                                <SegmentedControl
+                                    value={newEnvTarget}
+                                    onChange={(val) => setNewEnvTarget(val as 'both' | 'build' | 'runtime')}
+                                    options={[
+                                        { value: 'both', label: 'Both' },
+                                        { value: 'build', label: 'Build' },
+                                        { value: 'runtime', label: 'Runtime' },
+                                    ]}
+                                />
+                            </div>
                         </div>
                     </div>
                 </Card>
@@ -365,7 +392,7 @@ export default function ImportProjectPage() {
                     <MovingBorderButton
                         onClick={handleDeploy}
                         disabled={isDeploying || !projectName}
-                        containerClassName="h-12 w-full md:w-auto"
+                        containerClassName="h-14 w-full md:w-48"
                         className="text-base font-bold shadow-[var(--primary-glow)]"
                     >
                         {isDeploying ? (
