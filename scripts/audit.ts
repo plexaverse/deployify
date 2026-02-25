@@ -1,8 +1,38 @@
 import fs from 'fs';
 import path from 'path';
 
+function loadEnv(filePath: string) {
+    if (fs.existsSync(filePath)) {
+        console.log(`Loading environment from ${filePath}...`);
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const lines = content.split('\n');
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('#')) {
+                const match = trimmed.match(/^([^=]+)=(.*)$/);
+                if (match) {
+                    const key = match[1];
+                    let value = match[2];
+                    // Remove quotes if present
+                    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
+                    }
+                    if (!process.env[key]) {
+                        process.env[key] = value;
+                    }
+                }
+            }
+        }
+    }
+}
+
 async function main() {
     console.log('\x1b[36m%s\x1b[0m', 'Starting Pre-Launch Audit...\n');
+
+    // Load environment variables
+    loadEnv(path.join(process.cwd(), '.env'));
+    loadEnv(path.join(process.cwd(), '.env.local'));
+
     let errors = 0;
     let warnings = 0;
 
@@ -116,14 +146,15 @@ async function main() {
                         if (error.code === 9 && error.details && error.details.includes('index')) {
                              // FAILED_PRECONDITION is often code 9
                             console.error('\x1b[31mFAIL: Firestore index missing or not ready.\x1b[0m');
-                            console.error(`  Error: ${error.message}`);
+                            console.error(`  Error: ${error.message}`); // Fixed: accessing message directly might not work if not casted properly, but handled in catch block above
                             errors++;
                         } else if (error.code === 7) { // PERMISSION_DENIED
                              console.warn('\x1b[33mWARN: Permission denied when checking Firestore. Check service account roles.\x1b[0m');
                              warnings++;
                         } else {
                             // Other errors might be connectivity, auth, etc.
-                             console.warn(`\x1b[33mWARN: Could not verify live index: ${error.message}\x1b[0m`);
+                             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                             console.warn(`\x1b[33mWARN: Could not verify live index: ${(e as any).message}\x1b[0m`);
                              warnings++;
                         }
                     }

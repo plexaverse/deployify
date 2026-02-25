@@ -48,10 +48,6 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
         setSidebarOpen(false);
     }, [pathname, setSidebarOpen]);
 
-    // Helper to check if a route is a project route
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const isProjectRoute = !!projectId;
-
     const navGroups = useMemo(() => {
         const getProjectHref = (subPath: string = '') => {
             if (!projectId) {
