@@ -962,3 +962,24 @@ Conducted a pass to standardize the Team Settings and Billing pages, and improve
 ### `src/app/dashboard/new/import/page.tsx` (Legacy Import)
 - **Modern Controls**: Replaced the environment variable target dropdown with the reusable `SegmentedControl` component, providing a more modern and consistent UI.
 - **Visual Emphasis**: Applied the `shadow-[var(--primary-glow)]` to the main "Deploy" button to align with high-priority action standards across the platform.
+
+## Progressive UI & Refactoring (Session 84)
+
+Conducted a targeted pass to harmonize UI components across the platform, focusing on replacing `NativeSelect` with `SegmentedControl` and using `MovingBorderButton` for high-priority actions.
+
+### `src/app/edge-debug/page.tsx`
+- **Modern Controls**: Replaced the HTTP method `NativeSelect` with the `SegmentedControl` component for a more modern, pill-style selection.
+- **Visual Emphasis**: Upgraded the "Run Simulation" button to use the `MovingBorderButton` component, highlighting it as the primary action on the page.
+- **Styling Consistency**: Refactored the headers `textarea` to use standard `Input` styling via `cn` for better visual consistency with other form elements.
+
+### `src/components/LogViewer.tsx`
+- **Tab Navigation**: Replaced manual tab buttons with the `SegmentedControl` component for switching between Runtime, System, and Build logs. This provides smoother animations and a more cohesive look.
+
+### `src/components/RollbackModal.tsx`
+- **High-Priority Action**: Upgraded the "Confirm Rollback" button to use the `MovingBorderButton` component, emphasizing the significance of the rollback operation.
+
+### `src/components/CreateTeamModal.tsx`
+- **Primary Action**: Upgraded the "Create Team" button to use the `MovingBorderButton` component, aligning it with other creation flows in the application.
+
+### `src/components/ResourceSettings.tsx`
+- **Improved UX**: Replaced `NativeSelect` dropdowns for CPU and Memory selection with `SegmentedControl` components. Since the options are few (1/2/4 vCPU, 5 memory sizes), this provides faster selection and better visibility of available choices.

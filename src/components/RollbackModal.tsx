@@ -5,6 +5,7 @@ import type { Deployment } from '@/types';
 import { Portal } from '@/components/ui/portal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 
 interface RollbackModalProps {
     deployment: Deployment;
@@ -74,12 +75,13 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                         >
                             Cancel
                         </Button>
-                        <Button
-                            variant="primary"
+                        <MovingBorderButton
                             onClick={onConfirm}
+                            containerClassName="h-10 w-40"
+                            className="font-bold text-sm"
                         >
                             Confirm Rollback
-                        </Button>
+                        </MovingBorderButton>
                     </div>
                 </Card>
             </div>
