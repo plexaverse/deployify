@@ -40,4 +40,83 @@ describe('Dockerfile Generation', () => {
         assert.ok(dockerfile.includes('COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./'));
         assert.ok(dockerfile.includes('CMD ["sh", "-c", "if [ -f server.js ]; then node server.js; elif [ -f \\\"./server.js\\\" ]; then node \\\"./server.js\\\";'));
     });
+
+    it('should generate correct Dockerfile for Astro', () => {
+        const config = {
+            framework: 'astro',
+            buildEnvSection: '',
+            rootDirectory: 'docs',
+        };
+        const dockerfile = getDockerfile(config);
+        assert.ok(dockerfile.includes('RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs --ingroup nodejs'));
+        assert.ok(dockerfile.includes('COPY --from=builder --chown=nodejs:nodejs /app/docs/dist ./docs/dist'));
+        assert.ok(dockerfile.includes('USER nodejs'));
+        assert.ok(dockerfile.includes('CMD ["node", "./docs/dist/server/entry.mjs"]'));
+    });
+
+    it('should generate correct Dockerfile for Bun', () => {
+        const config = {
+            framework: 'bun',
+            buildEnvSection: '',
+            rootDirectory: 'api',
+        };
+        const dockerfile = getDockerfile(config);
+        assert.ok(dockerfile.includes('RUN addgroup --system --gid 1001 bunjs && adduser --system --uid 1001 bunjs --ingroup bunjs'));
+        assert.ok(dockerfile.includes('COPY --from=builder --chown=bunjs:bunjs /app/api/dist ./api/dist'));
+        assert.ok(dockerfile.includes('USER bunjs'));
+        assert.ok(dockerfile.includes('WORKDIR /app/api'));
+        assert.ok(dockerfile.includes('CMD ["bun", "run", "start"]'));
+    });
+
+    it('should generate correct Dockerfile for SvelteKit', () => {
+        const config = {
+            framework: 'sveltekit',
+            buildEnvSection: '',
+            rootDirectory: 'app',
+        };
+        const dockerfile = getDockerfile(config);
+        assert.ok(dockerfile.includes('RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs --ingroup nodejs'));
+        assert.ok(dockerfile.includes('COPY --from=builder --chown=nodejs:nodejs /app/app/build ./app/build'));
+        assert.ok(dockerfile.includes('USER nodejs'));
+        assert.ok(dockerfile.includes('CMD ["node", "./app/build/index.js"]'));
+    });
+
+    it('should generate correct Dockerfile for Nuxt', () => {
+        const config = {
+            framework: 'nuxt',
+            buildEnvSection: '',
+            rootDirectory: 'web',
+        };
+        const dockerfile = getDockerfile(config);
+        assert.ok(dockerfile.includes('RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs --ingroup nodejs'));
+        assert.ok(dockerfile.includes('COPY --from=builder --chown=nodejs:nodejs /app/web/.output ./web/.output'));
+        assert.ok(dockerfile.includes('USER nodejs'));
+        assert.ok(dockerfile.includes('CMD ["node", "./web/.output/server/index.mjs"]'));
+    });
+
+    it('should generate correct Dockerfile for Remix', () => {
+        const config = {
+            framework: 'remix',
+            buildEnvSection: '',
+            rootDirectory: 'server',
+        };
+        const dockerfile = getDockerfile(config);
+        assert.ok(dockerfile.includes('RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs --ingroup nodejs'));
+        assert.ok(dockerfile.includes('COPY --from=builder --chown=nodejs:nodejs /app/server/build ./server/build'));
+        assert.ok(dockerfile.includes('USER nodejs'));
+        assert.ok(dockerfile.includes('WORKDIR /app/server'));
+        assert.ok(dockerfile.includes('CMD ["npm", "start"]'));
+    });
+
+    it('should generate correct Dockerfile for Vite', () => {
+        const config = {
+            framework: 'vite',
+            buildEnvSection: '',
+        };
+        const dockerfile = getDockerfile(config);
+        assert.ok(dockerfile.includes('FROM nginx:alpine'));
+        assert.ok(dockerfile.includes('COPY --from=builder /app/dist /usr/share/nginx/html'));
+        assert.ok(dockerfile.includes('USER nginx'));
+        assert.ok(dockerfile.includes('CMD ["nginx", "-g", "daemon off;"]'));
+    });
 });
