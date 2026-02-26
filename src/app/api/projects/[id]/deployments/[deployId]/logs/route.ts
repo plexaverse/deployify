@@ -5,6 +5,8 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 import { getBuildLogsContent } from '@/lib/gcp/cloudbuild';
 import { isRunningOnGCP } from '@/lib/gcp/auth';
+import { syncDeploymentStatus } from '@/lib/deployment';
+import { getProjectSlugForDeployment } from '@/lib/utils';
 
 interface RouteParams {
     params: Promise<{ id: string; deployId: string }>;
@@ -27,9 +29,36 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         const { project } = access;
 
-        const deployment = await getDeploymentById(deployId);
+        let deployment = await getDeploymentById(deployId);
         if (!deployment || deployment.projectId !== id) {
              return NextResponse.json({ error: 'Deployment not found' }, { status: 404, headers: securityHeaders });
+        }
+
+        // Sync status for active deployment to ensure logs are fresh and status is updated
+        if (deployment.status === 'queued' || deployment.status === 'building' || deployment.status === 'deploying') {
+            if (deployment.cloudBuildId) {
+                const projectSlug = getProjectSlugForDeployment(project, deployment);
+
+                const updated = await syncDeploymentStatus(
+                    deployment.id,
+                    project.id,
+                    projectSlug,
+                    deployment.cloudBuildId,
+                    deployment.gitCommitSha,
+                    project.region,
+                    project.webhookUrl,
+                    project.name,
+                    session.user.email,
+                    project.emailNotifications,
+                    project.repoFullName,
+                    deployment.pullRequestNumber,
+                    session.accessToken
+                );
+
+                if (updated) {
+                    deployment = updated;
+                }
+            }
         }
 
         if (!deployment.cloudBuildId) {

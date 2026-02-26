@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getProjectById, listDeploymentsByProject } from '@/lib/db';
 import { securityHeaders } from '@/lib/security';
 import { syncDeploymentStatus } from '@/lib/deployment';
-import { slugify } from '@/lib/utils';
+import { getProjectSlugForDeployment } from '@/lib/utils';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -54,13 +54,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             const updatedDeployments = await Promise.all(activeDeployments.map(async (d) => {
                 if (!d.cloudBuildId) return d;
 
-                // Determine project slug based on deployment type
-                let projectSlug = project.slug;
-                if (d.type === 'preview' && d.pullRequestNumber) {
-                    projectSlug = `${project.slug}-pr-${d.pullRequestNumber}`;
-                } else if (d.type === 'branch') {
-                    projectSlug = `${project.slug}-${slugify(d.gitBranch)}`;
-                }
+                const projectSlug = getProjectSlugForDeployment(project, d);
 
                 // Call sync logic
                 const updated = await syncDeploymentStatus(

@@ -74,6 +74,16 @@ export function isDeploymentComplete(status: string): boolean {
     return ['ready', 'error', 'cancelled'].includes(status);
 }
 
+// Get the project slug used for GCP resources for a given deployment
+export function getProjectSlugForDeployment(project: { slug: string }, deployment: { type: string; pullRequestNumber?: number; gitBranch: string }): string {
+    if (deployment.type === 'preview' && deployment.pullRequestNumber) {
+        return `${project.slug}-pr-${deployment.pullRequestNumber}`;
+    } else if (deployment.type === 'branch') {
+        return `${project.slug}-${slugify(deployment.gitBranch)}`;
+    }
+    return project.slug;
+}
+
 // Get status color for UI
 export function getStatusColor(status: string): string {
     switch (status) {
