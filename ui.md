@@ -1029,3 +1029,10 @@ Conducted a comprehensive pass to unify settings management and polish the team 
 ### Code Hygiene & Cleanup
 - **Orphaned Page Removal**: Successfully removed the redundant `src/app/settings/` directory, consolidating all team and account settings into the dashboard structure.
 - **Global Error Handling**: Integrated standardized error toast notifications into the settings store logic for more reliable user feedback.
+
+## Standardized Icons & Join Flow Polish (Session 87)
+
+Conducted a final consistency pass to replace local SVG icons with standard Lucide icons in the invitation flow.
+
+### `src/app/join/page.tsx`
+- **Icon Standardization**: Replaced locally defined SVG icons (`X`, `AlertTriangle`, `Clock`, `Users`) with imports from `lucide-react`. This ensures that all error and status states (Invalid, Expired, Team Not Found) match the visual style of the rest of the application.
