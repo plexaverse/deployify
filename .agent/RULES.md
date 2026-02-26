@@ -240,6 +240,7 @@ Domain        // Custom domain (status: pending/active/error)
 3. **OS Detection**: Defer `setState` in `useEffect` using `setTimeout(0)`
 4. **Tab Interfaces**: Use proper ARIA roles (`tablist`, `tab`, `tabpanel`)
 5. **Vertical Flow**: Use TracingBeam for narrative sections on landing pages
+6. **Icon Naming**: Alias `User` icon from `lucide-react` as `UserIcon` to avoid conflict with the `User` type.
 
 ---
 
