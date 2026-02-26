@@ -69,12 +69,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/${outputPath} ./${outputPath}
+# Create non-root user
+RUN addgroup --system --gid 1001 bunjs && adduser --system --uid 1001 bunjs --ingroup bunjs
 
+COPY --from=builder --chown=bunjs:bunjs /app/package.json ./package.json
+COPY --from=builder --chown=bunjs:bunjs /app/node_modules ./node_modules
+COPY --from=builder --chown=bunjs:bunjs /app/${outputPath} ./${outputPath}
+
+USER bunjs
 EXPOSE 8080
-CMD ["sh", "-c", "cd ${rootDirectory || '.'} && bun run start"]`;
+WORKDIR /app/${rootDirectory || '.'}
+CMD ["bun", "run", "start"]`;
 }
 
 function generateNuxtDockerfile(config: DockerfileConfig): string {
@@ -123,11 +128,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY --from=builder /app/${outputServerPath} ./${outputServerPath}
-COPY --from=builder /app/${outputPublicPath} ./${outputPublicPath}
-# Copy the whole .output if needed for other nitro presets
-COPY --from=builder /app/${getPath('.output')} ./${getPath('.output')}
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs --ingroup nodejs
 
+COPY --from=builder --chown=nodejs:nodejs /app/${outputServerPath} ./${outputServerPath}
+COPY --from=builder --chown=nodejs:nodejs /app/${outputPublicPath} ./${outputPublicPath}
+# Copy the whole .output if needed for other nitro presets
+COPY --from=builder --chown=nodejs:nodejs /app/${getPath('.output')} ./${getPath('.output')}
+
+USER nodejs
 EXPOSE 8080
 CMD ["node", "./${outputServerPath}"]`;
 }
@@ -177,10 +185,13 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/${buildPath} ./${buildPath}
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs --ingroup nodejs
 
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/${buildPath} ./${buildPath}
+
+USER nodejs
 EXPOSE 8080
 CMD ["node", "./${buildPath}/index.js"]`;
 }
@@ -231,10 +242,13 @@ ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=8080
 
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/${outputPath} ./${outputPath}
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs --ingroup nodejs
 
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/${outputPath} ./${outputPath}
+
+USER nodejs
 EXPOSE 8080
 CMD ["node", "./${outputPath}/server/entry.mjs"]`;
 }
@@ -280,14 +294,18 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-${rootDirectory && rootDirectory !== '.' ? `COPY --from=builder /app/${getPath('package.json')} ./${getPath('package.json')}` : ''}
-COPY --from=builder /app/${getPath('build')} ./${getPath('build')}
-COPY --from=builder /app/${getPath('public')} ./${getPath('public')}
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs --ingroup nodejs
 
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+${rootDirectory && rootDirectory !== '.' ? `COPY --from=builder --chown=nodejs:nodejs /app/${getPath('package.json')} ./${getPath('package.json')}` : ''}
+COPY --from=builder --chown=nodejs:nodejs /app/${getPath('build')} ./${getPath('build')}
+COPY --from=builder --chown=nodejs:nodejs /app/${getPath('public')} ./${getPath('public')}
+
+USER nodejs
 EXPOSE 8080
-CMD ["sh", "-c", "cd ${rootDirectory || '.'} && npm start"]`;
+WORKDIR /app/${rootDirectory || '.'}
+CMD ["npm", "start"]`;
 }
 
 function generateNextjsDockerfile(config: DockerfileConfig): string {
@@ -397,8 +415,10 @@ ${restoreCache ? `# Copy restored cache to node_modules/.vite\nCOPY ${getPath('r
 RUN ${buildCmd}
 
 FROM nginx:alpine
+# Copy build artifacts with proper ownership
 COPY --from=builder /app/${distPath} /usr/share/nginx/html
-# Add custom nginx config for SPA
+
+# Add custom nginx config for SPA (standardize on port 8080 for Cloud Run)
 RUN echo 'server { \\
     listen 8080; \\
     server_name localhost; \\
@@ -408,6 +428,9 @@ RUN echo 'server { \\
         try_files $uri $uri/ /index.html; \\
     } \\
 }' > /etc/nginx/conf.d/default.conf
+
+# Standard nginx:alpine uses 'nginx' user, but run it explicitly
+USER nginx
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]`;
 }

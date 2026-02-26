@@ -86,8 +86,8 @@
 - **Status**: ✅ Implemented (Resend integration + Webhook)
 
 #### 5. **Multi-Framework Support**
-- **Current**: Next.js and Vite support
-- **Status**: ✅ Implemented (Basic support)
+- **Current**: Production-ready support for Next.js, Vite, Nuxt, SvelteKit, Astro, Bun, and Remix.
+- **Status**: ✅ Implemented (Security-hardened with non-root users and optimized runtimes)
 
 #### 6. **Branch-based Environments**
 - **Current**: `main` = production, PRs = preview
