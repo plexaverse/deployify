@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Project } from '@/types';
 import { cn } from '@/lib/utils';
-import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink } from 'lucide-react';
+import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
 import { Line, LineChart, ResponsiveContainer } from 'recharts';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { ProjectAvatar } from '@/components/ProjectAvatar';
 
@@ -45,14 +46,24 @@ export function ProjectCard({ project }: { project: Project }) {
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
 
   const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setSparklineData(generateSparklineData(status));
   }, [status]);
 
+  const handleCopySha = (e: React.MouseEvent, sha: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(sha);
+    setCopied(true);
+    toast.success('Commit SHA copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className={cn(
-      "flex flex-col h-full justify-between transition-all duration-300 rounded-xl",
+      "flex flex-col h-full justify-between transition-all duration-300 rounded-2xl",
       config.glow
     )}>
       {/* Header: Project Identity and Sparkline */}
@@ -104,10 +115,21 @@ export function ProjectCard({ project }: { project: Project }) {
 
         {latestDeployment ? (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[10px] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/50 p-2 rounded-md border border-[var(--border)] group-hover:border-[var(--border-hover)] transition-colors">
+            <div className="flex items-center gap-2 text-[10px] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/30 backdrop-blur-md p-2 rounded-xl border border-[var(--border)] group-hover:border-[var(--border-hover)] transition-all">
               <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
-              <span className="opacity-40">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
+              <button
+                onClick={(e) => handleCopySha(e, latestDeployment.gitCommitSha)}
+                className="flex items-center gap-1 hover:text-[var(--foreground)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--foreground)] rounded px-1"
+                aria-label={copied ? "Commit SHA copied" : "Copy commit SHA"}
+              >
+                <span className="opacity-40">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
+                {copied ? (
+                  <Check className="w-2.5 h-2.5 text-[var(--success)]" />
+                ) : (
+                  <Copy className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                )}
+              </button>
             </div>
             <div className="flex items-center justify-between text-[10px] text-[var(--muted-foreground)] px-1">
                <div className="flex items-center gap-1.5">

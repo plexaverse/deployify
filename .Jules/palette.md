@@ -61,3 +61,6 @@
 ## 2026-03-20 - [Escape to Clear and Keyboard Bubble Suppression]
 **Learning:** Standardizing "Escape" as a global shortcut for clearing search inputs across the application (Landing Page, Dashboard, Palette) provides a consistent and predictable UX. However, in overlay components that also close on "Escape" (like Command Palettes), it is crucial to use `e.stopPropagation()` in the input handler to ensure that clearing the text doesn't accidentally dismiss the entire overlay, which can be frustrating.
 **Action:** Always implement Escape-to-clear for search inputs and use stopPropagation when an overlay parent also listens for Escape.
+## 2025-05-14 - [Copy to Clipboard Micro-UX]
+**Learning:** For interactive elements inside parent Link components (like a Copy button on a dashboard card), it's essential to use `e.preventDefault()` and `e.stopPropagation()` to avoid unwanted navigation.
+**Action:** Always wrap small interactive controls in parent links with these handlers and provide immediate visual feedback (e.g., icon toggle and toast).
