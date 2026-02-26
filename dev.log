@@ -1,0 +1,144 @@
+
+> deployify@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+✓ Ready in 1596ms
+○ Compiling /dashboard/settings ...
+ GET /dashboard/settings 200 in 8.7s (compile: 7.5s, proxy.ts: 374ms, render: 872ms)
+ GET /api/teams 200 in 2.7s (compile: 2.6s, proxy.ts: 9ms, render: 35ms)
+○ Compiling /api/teams ...
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /dashboard/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/dashboard/settings',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-26T09:37:10.128Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 3.7s (compile: 3.6s, proxy.ts: 17ms, render: 97ms)
+ GET /dashboard/settings 200 in 214ms (compile: 9ms, proxy.ts: 6ms, render: 199ms)
+ GET /api/teams 200 in 17ms (compile: 4ms, proxy.ts: 5ms, render: 7ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /dashboard/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/dashboard/settings',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-26T09:38:06.364Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 16ms (compile: 4ms, proxy.ts: 5ms, render: 8ms)
+[Collector] Authorized vitals for project Mock Project (mock-id-1) at /dashboard/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'vitals',
+  path: '/dashboard/settings',
+  referrer: '',
+  width: 1280,
+  metrics: { lcp: 984, cls: 0, fid: null, fcp: 256, ttfb: 107.5 },
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-26T09:38:12.621Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 40ms (compile: 12ms, proxy.ts: 21ms, render: 7ms)
+ GET /join?token=dummy-token 200 in 1324ms (compile: 1065ms, proxy.ts: 5ms, render: 253ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /join
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/join',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-26T09:38:13.317Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 20ms (compile: 5ms, proxy.ts: 7ms, render: 8ms)
+ GET /dashboard/settings 200 in 725ms (compile: 192ms, proxy.ts: 6ms, render: 527ms)
+ GET /api/teams 200 in 14ms (compile: 3ms, proxy.ts: 4ms, render: 7ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /dashboard/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/dashboard/settings',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-26T09:38:47.725Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 14ms (compile: 3ms, proxy.ts: 4ms, render: 6ms)
+[Collector] Authorized vitals for project Mock Project (mock-id-1) at /dashboard/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'vitals',
+  path: '/dashboard/settings',
+  referrer: '',
+  width: 1280,
+  metrics: { lcp: 1424, cls: 0, fid: null, fcp: 800, ttfb: 617.5 },
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-26T09:38:52.734Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 30ms (compile: 14ms, proxy.ts: 9ms, render: 8ms)
+ GET /join?token=dummy-token 200 in 181ms (compile: 5ms, proxy.ts: 4ms, render: 172ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /join
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/join',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-26T09:38:53.415Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 18ms (compile: 5ms, proxy.ts: 5ms, render: 8ms)
+ GET /dashboard/settings 200 in 208ms (compile: 7ms, proxy.ts: 5ms, render: 196ms)
+ GET /api/teams 200 in 14ms (compile: 3ms, proxy.ts: 4ms, render: 7ms)
+[Collector] Authorized pageview for project Mock Project (mock-id-1) at /dashboard/settings
+[BigQuery] [Mock] Streaming event: {
+  projectId: 'mock-id-1',
+  type: 'pageview',
+  path: '/dashboard/settings',
+  referrer: '',
+  width: 1280,
+  metrics: null,
+  ip: '::0000',
+  userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.4 Safari/537.36',
+  timestamp: '2026-02-26T09:39:22.471Z',
+  source: 'client'
+}
+ POST /api/v1/collect 201 in 14ms (compile: 3ms, proxy.ts: 5ms, render: 6ms)
+ GET /api/teams/mock-id/audit 200 in 1728ms (compile: 1706ms, proxy.ts: 8ms, render: 14ms)
+ GET /api/teams/mock-id/invites 200 in 1793ms (compile: 1773ms, proxy.ts: 11ms, render: 9ms)
+ GET /api/teams/mock-id/members 200 in 1948ms (compile: 1931ms, proxy.ts: 8ms, render: 8ms)

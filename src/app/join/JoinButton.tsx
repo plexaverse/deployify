@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
+import { Loader2, UserPlus, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface JoinButtonProps {
     token: string;
@@ -42,18 +44,33 @@ export default function JoinButton({ token, teamName }: JoinButtonProps) {
 
     return (
         <div className="flex flex-col items-center w-full">
-            {error && (
-                <div className="bg-[var(--error-bg)] text-[var(--error)] p-3 rounded-lg mb-4 text-sm w-full">
-                    {error}
-                </div>
-            )}
-            <Button
+            <AnimatePresence>
+                {error && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="bg-[var(--error-bg)] text-[var(--error)] p-4 rounded-xl mb-6 text-sm w-full flex items-center gap-3 border border-[var(--error)]/20 shadow-sm"
+                    >
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <p>{error}</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <MovingBorderButton
                 onClick={handleJoin}
-                loading={isLoading}
-                className="w-full"
+                disabled={isLoading}
+                containerClassName="w-full h-14"
+                className="font-bold text-base flex items-center justify-center gap-2"
             >
-                Join {teamName}
-            </Button>
+                {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                    <UserPlus className="w-5 h-5" />
+                )}
+                {isLoading ? 'Joining...' : `Join ${teamName}`}
+            </MovingBorderButton>
         </div>
     );
 }

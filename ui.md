@@ -49,7 +49,7 @@ Refactored components and pages to strictly adhere to the CSS variable-based the
 - Updated `Spotlight` fill to `var(--foreground)` for visibility in both themes.
 - Replaced hardcoded gradient text with `gradient-text` class.
 - Updated "Continue with GitHub" button to use `.btn` and `.btn-primary` classes.
-- Updated divider background and text colors to use `border-[var(--border)]` and `bg-[var(--card)]`.
+- Updated divider background and text colors to use `border-[var(--border)] and `bg-[var(--card)]`.
 
 ### `src/app/settings/team/page.tsx`
 - Created new Team Settings page with the following sections:
@@ -761,7 +761,7 @@ Conducted a pass to refine loading states and ensure consistent spacing across m
 ### `src/app/dashboard/page.tsx`
 - Refined the loading state to accurately reflect the project card layout.
 - Added skeletons for the project avatar, name, repo, status badge, production URL, and footer metadata.
-- Increased the number of skeleton placeholders to 6 for a more complete initial layout.
+- Increased the number of skeleton placeholders to 6 for a more complete initial load experience.
 
 ### `src/components/LogViewer.tsx`
 - Refactored the connection status indicator to use the `Badge` component.
@@ -950,7 +950,7 @@ Conducted a targeted pass to refactor Core Web Vitals and improve navigation con
 Conducted a pass to standardize the Team Settings and Billing pages, and improve the legacy import flow.
 
 ### `src/app/dashboard/settings/page.tsx` (Team Settings)
-- **Standardized Danger Zone**: Updated the "Danger Zone" card to use a consistent `border-[var(--error)]/30` and `bg-[var(--error)]/5` styling, matching the project-level settings.
+- **Standardized Danger Zone**: Updated the "Danger Zone" card to use a consistent `border-[var(--error)]/30` and `bg-[var(--error)]/5` styling, mirroring the project-level settings.
 - **Section Polish**: Added `Separator` components and improved descriptions for the "Invite Members" and "Danger Zone" sections.
 - **Button Consistency**: Replaced manual button styles with standard `variant="ghost"` and `variant="destructive"` where appropriate, ensuring consistent hover and active states.
 - **Code Hygiene**: Removed unused Lucide icons and ESLint disable comments.
@@ -1009,3 +1009,23 @@ Continued the push for a unified UI across all pages, focusing on analytics cons
 - **Period Selector**: Added a modern period selection control (1h, 24h, 7d, 30d) using the `SegmentedControl` component, providing a better UX for switching timeframes.
 - **Layout Alignment**: Standardized page padding (`px-6 md:px-8 py-8`) and spacing (`space-y-10`) to align with the Project Overview and other dashboard pages.
 - **Refined Header**: Improved the typography and layout of the analytics header, including site identification and real-time visitor integration.
+
+## Unified Settings & Join Flow Polish (Session 86)
+
+Conducted a comprehensive pass to unify settings management and polish the team invitation experience.
+
+### `src/app/dashboard/settings/page.tsx` (Team/Account Settings)
+- **Unified Logic**: Completely refactored the page to use the centralized `useStore` (Zustand) for data management, replacing local state and manual fetch calls for better consistency across the application.
+- **Audit Log Integration**: Integrated the professional **Audit Log** sidebar (previously only in an orphaned page) to track all team activities directly within the main settings view.
+- **Enhanced Account Settings**: Added a dedicated view for personal workspaces, featuring a **Personal Profile** card and a **Danger Zone** with a "Delete Account" action.
+- **Role Management**: Implemented real-time role updates for team members using a themed `NativeSelect` component.
+- **Layout Optimization**: Upgraded the page layout to `max-w-6xl` to support a multi-column design with the audit log sidebar, improving information density.
+- **UI Standardization**: Ensured all buttons, cards, and interactive elements strictly follow the established design system (standardized padding, theme-aware colors, and consistent hover states).
+
+### `src/app/join/` (Team Invitation Flow)
+- **`page.tsx`**: Enhanced the invitation landing page with `BackgroundBeams` for a premium look. Refined error states (Invalid, Expired, Team Not Found) with custom icons and improved typography. Added a pulse-glow effect to the team avatar.
+- **`JoinButton.tsx`**: Upgraded the primary join action to use the `MovingBorderButton` component. Added smooth entry/exit animations for error messages using `framer-motion`.
+
+### Code Hygiene & Cleanup
+- **Orphaned Page Removal**: Successfully removed the redundant `src/app/settings/` directory, consolidating all team and account settings into the dashboard structure.
+- **Global Error Handling**: Integrated standardized error toast notifications into the settings store logic for more reliable user feedback.
