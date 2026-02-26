@@ -8,6 +8,8 @@ import { deleteService, listServices } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { syncCronJobs } from '@/lib/gcp/scheduler';
 import { deleteDomainMapping } from '@/lib/gcp/domains';
+import { syncDeploymentStatus } from '@/lib/deployment';
+import { getProjectSlugForDeployment } from '@/lib/utils';
 import { CronJobConfig } from '@/types';
 
 interface RouteParams {
@@ -40,6 +42,46 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         // Get recent deployments
         const deployments = await listDeploymentsByProject(id, 5);
+
+        // Sync status for active deployments to ensure data freshness in project overview
+        const activeDeployments = deployments.filter(d =>
+            d.status === 'queued' || d.status === 'building' || d.status === 'deploying'
+        );
+
+        if (activeDeployments.length > 0) {
+            const updatedDeployments = await Promise.all(activeDeployments.map(async (d) => {
+                if (!d.cloudBuildId) return d;
+
+                const projectSlug = getProjectSlugForDeployment(project, d);
+
+                // Call sync logic
+                const updated = await syncDeploymentStatus(
+                    d.id,
+                    project.id,
+                    projectSlug,
+                    d.cloudBuildId,
+                    d.gitCommitSha,
+                    project.region,
+                    project.webhookUrl,
+                    project.name,
+                    session.user.email,
+                    project.emailNotifications,
+                    project.repoFullName,
+                    d.pullRequestNumber,
+                    session.accessToken
+                );
+
+                return updated || d;
+            }));
+
+            // Update the deployments list with fresh data
+            updatedDeployments.forEach(updated => {
+                 const index = deployments.findIndex(d => d.id === updated.id);
+                 if (index !== -1) {
+                     deployments[index] = updated;
+                 }
+            });
+        }
 
         return NextResponse.json(
             { success: true, project, deployments },
