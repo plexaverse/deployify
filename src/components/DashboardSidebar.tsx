@@ -24,6 +24,7 @@ import type { Session } from '@/types';
 import { TeamSwitcher } from '@/components/TeamSwitcher';
 import { PlanBadge } from '@/components/ui/PlanBadge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { useStore } from '@/store';
 
 interface DashboardSidebarProps {
@@ -184,28 +185,31 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                 {/* User / Footer */}
                 <div className="p-4 border-t border-[var(--border)] space-y-4">
                     <div className="px-3">
-                        <div className="flex items-center justify-between p-1 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
-                            <button
-                                onClick={() => setTheme('light')}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-1.5 rounded-md text-xs font-medium transition-all",
-                                    theme === 'light' ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                                )}
-                            >
-                                <Sun className="w-3.5 h-3.5" />
-                                Light
-                            </button>
-                            <button
-                                onClick={() => setTheme('dark')}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-1.5 rounded-md text-xs font-medium transition-all",
-                                    theme === 'dark' ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm border border-[var(--border)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                                )}
-                            >
-                                <Moon className="w-3.5 h-3.5" />
-                                Dark
-                            </button>
-                        </div>
+                        <SegmentedControl
+                            options={[
+                                {
+                                    value: 'light',
+                                    label: (
+                                        <div className="flex items-center gap-2">
+                                            <Sun className="w-3.5 h-3.5" />
+                                            <span>Light</span>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    value: 'dark',
+                                    label: (
+                                        <div className="flex items-center gap-2">
+                                            <Moon className="w-3.5 h-3.5" />
+                                            <span>Dark</span>
+                                        </div>
+                                    )
+                                }
+                            ]}
+                            value={theme || 'light'}
+                            onChange={(v) => setTheme(v)}
+                            className="w-full flex"
+                        />
                     </div>
 
                     <div className="flex items-center gap-3 px-3 py-2">

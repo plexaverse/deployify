@@ -1036,3 +1036,28 @@ Conducted a final consistency pass to replace local SVG icons with standard Luci
 
 ### `src/app/join/page.tsx`
 - **Icon Standardization**: Replaced locally defined SVG icons (`X`, `AlertTriangle`, `Clock`, `Users`) with imports from `lucide-react`. This ensures that all error and status states (Invalid, Expired, Team Not Found) match the visual style of the rest of the application.
+
+## Progressive UI & API Support Refactor (Session 88)
+
+Conducted a pass to harmonize selection controls across the platform and implemented backend support for personalized account settings.
+
+### `src/components/ui/segmented-control.tsx`
+- **Component Enhancement**: Updated the `SegmentedControl` component to support `ReactNode` labels. This allows passing icons along with text or custom markup into the selection pills.
+- **Layout Flexibility**: Added `flex-1` support to the individual option buttons when the container is set to `w-full`, ensuring equal-width tabs in full-width layouts.
+
+### `src/components/DashboardSidebar.tsx`
+- **Theme Switcher Upgrade**: Refactored the custom theme switcher to use the `SegmentedControl` component. Integrated `Sun` and `Moon` icons into the labels, providing a smoother, `framer-motion` powered transition between light and dark modes.
+
+### `src/app/dashboard/settings/page.tsx` (Team/Account Settings)
+- **Role Selection Modernization**: Replaced the `NativeSelect` dropdown in the "Invite New Member" form with the `SegmentedControl` component.
+- **Member List Polish**: Refactored member role updates to use a compact `SegmentedControl` instead of a dropdown, making role management a single-tap operation.
+- **Personalized Profile View**: Integrated data from the new `/api/user` endpoint. When no team is active, the "Personal Profile" card now displays the user's actual GitHub avatar, full name, and email address, replacing generic placeholders.
+
+### `src/components/BranchDeploymentsSettings.tsx`
+- **Modern Environment Selection**: Replaced the `NativeSelect` for choosing the branch target environment (Production vs Preview) with the `SegmentedControl` component.
+
+### Backend & API
+- **New User Endpoint (`src/app/api/user/route.ts`)**:
+    - **GET**: Implemented a route to return the current user session data, facilitating personalized UI rendering on the client side.
+    - **DELETE**: Implemented a route for account deletion, ensuring that the frontend "Delete Account" action has a corresponding backend implementation that cleans up the user document and clears session cookies.
+- **Code Quality**: Verified all changes with unit tests and confirmed no regressions in core deployment or billing logic.

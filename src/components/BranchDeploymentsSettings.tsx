@@ -7,7 +7,7 @@ import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 
 interface BranchEnvironments {
@@ -154,16 +154,18 @@ export function BranchDeploymentsSettings({
                                     <GitBranch className="w-4 h-4 text-[var(--muted-foreground)]" />
                                     <span className="font-medium font-mono text-sm">{branch}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <NativeSelect
-                                        value={getEnvTarget(branch)}
-                                        onChange={(e) => handleEnvironmentChange(branch, e.target.value)}
-                                        disabled={loading}
-                                        className="h-9 min-w-[140px]"
-                                    >
-                                        <option value="preview">Preview Env</option>
-                                        <option value="production">Production Env</option>
-                                    </NativeSelect>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[9px] uppercase font-bold text-[var(--muted-foreground)] tracking-tight px-1">Target Environment</span>
+                                        <SegmentedControl
+                                            options={[
+                                                { value: 'preview', label: 'Preview' },
+                                                { value: 'production', label: 'Production' },
+                                            ]}
+                                            value={getEnvTarget(branch)}
+                                            onChange={(v) => handleEnvironmentChange(branch, v)}
+                                        />
+                                    </div>
                                     <Button
                                         variant="ghost"
                                         size="sm"

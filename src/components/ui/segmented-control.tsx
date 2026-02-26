@@ -4,20 +4,21 @@ import React, { useId } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-interface Option {
-    value: string;
-    label: string;
+interface Option<T extends string = string> {
+    value: T;
+    label: React.ReactNode;
 }
 
-interface SegmentedControlProps {
-    options: Option[];
-    value: string;
-    onChange: (value: string) => void;
+interface SegmentedControlProps<T extends string = string> {
+    options: Option<T>[];
+    value: T;
+    onChange: (value: T) => void;
     className?: string;
 }
 
-export function SegmentedControl({ options, value, onChange, className }: SegmentedControlProps) {
+export function SegmentedControl<T extends string = string>({ options, value, onChange, className }: SegmentedControlProps<T>) {
     const layoutId = useId();
+    const isFullWidth = className?.includes('w-full');
 
     return (
         <div className={cn(
@@ -33,6 +34,7 @@ export function SegmentedControl({ options, value, onChange, className }: Segmen
                         onClick={() => onChange(option.value)}
                         className={cn(
                             "relative px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors duration-200 focus:outline-none",
+                            isFullWidth && "flex-1 flex items-center justify-center",
                             isActive ? "text-[var(--primary-foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                         )}
                     >

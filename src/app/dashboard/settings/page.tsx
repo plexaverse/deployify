@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NativeSelect } from '@/components/ui/native-select';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useStore } from '@/store';
@@ -32,6 +33,7 @@ import type { TeamRole } from '@/types';
 export default function TeamSettingsPage() {
     const { activeTeam, isLoading: isTeamLoading, setActiveTeam, fetchTeams } = useTeam();
     const router = useRouter();
+    const [user, setUser] = useState<any>(null);
 
     const {
         teamMembers: members,
@@ -54,6 +56,13 @@ export default function TeamSettingsPage() {
     useEffect(() => {
         if (activeTeam) {
             fetchTeamSettingsData(activeTeam.id);
+        } else {
+            fetch('/api/user')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.user) setUser(data.user);
+                })
+                .catch(err => console.error('Failed to fetch user:', err));
         }
     }, [activeTeam, fetchTeamSettingsData]);
 
@@ -193,14 +202,17 @@ export default function TeamSettingsPage() {
                     */}
                     <div className="flex items-center gap-6">
                         <Avatar className="w-20 h-20 border-2 border-[var(--border)]">
+                            <AvatarImage src={user?.avatarUrl} alt={user?.name || user?.githubUsername} />
                             <AvatarFallback>
                                 <UserIcon className="w-10 h-10" />
                             </AvatarFallback>
                         </Avatar>
                         <div className="space-y-1">
-                            <h3 className="text-xl font-bold text-[var(--foreground)]">Personal Workspace</h3>
+                            <h3 className="text-xl font-bold text-[var(--foreground)]">
+                                {user?.name || user?.githubUsername || 'Personal Workspace'}
+                            </h3>
                             <p className="text-[var(--muted-foreground)]">
-                                You are using your individual workspace for hobby projects.
+                                {user?.email || 'You are using your individual workspace for hobby projects.'}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
                                 <Button onClick={() => router.push('/billing')} variant="outline" size="sm">
@@ -298,17 +310,17 @@ export default function TeamSettingsPage() {
                                         required
                                     />
                                 </div>
-                                <div className="w-full sm:w-32">
-                                    <Label htmlFor="role" className="sr-only">Role</Label>
-                                    <NativeSelect
-                                        id="role"
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="role" className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider px-1">Role</Label>
+                                    <SegmentedControl
+                                        options={[
+                                            { value: 'admin', label: 'Admin' },
+                                            { value: 'member', label: 'Member' },
+                                            { value: 'viewer', label: 'Viewer' },
+                                        ]}
                                         value={inviteRole}
-                                        onChange={(e) => setInviteRole(e.target.value as TeamRole)}
-                                    >
-                                        <option value="member">Member</option>
-                                        <option value="admin">Admin</option>
-                                        <option value="viewer">Viewer</option>
-                                    </NativeSelect>
+                                        onChange={(v) => setInviteRole(v as TeamRole)}
+                                    />
                                 </div>
                                 <MovingBorderButton
                                     type="submit"
@@ -373,16 +385,15 @@ export default function TeamSettingsPage() {
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 {canManage && member.role !== 'owner' && member.userId !== activeTeam.membership.userId ? (
-                                                    <NativeSelect
+                                                    <SegmentedControl
+                                                        options={[
+                                                            { value: 'admin', label: 'Admin' },
+                                                            { value: 'member', label: 'Member' },
+                                                            { value: 'viewer', label: 'Viewer' },
+                                                        ]}
                                                         value={member.role}
-                                                        onChange={(e) => handleRoleUpdate(member.userId, e.target.value as TeamRole)}
-                                                        className="h-8 text-xs py-0 min-w-[100px]"
-                                                    >
-                                                        <option value="owner">Owner</option>
-                                                        <option value="admin">Admin</option>
-                                                        <option value="member">Member</option>
-                                                        <option value="viewer">Viewer</option>
-                                                    </NativeSelect>
+                                                        onChange={(v) => handleRoleUpdate(member.userId, v as TeamRole)}
+                                                    />
                                                 ) : (
                                                     <Badge variant={member.role === 'owner' ? 'success' : member.role === 'admin' ? 'info' : 'secondary'} className="capitalize">
                                                         {member.role}
