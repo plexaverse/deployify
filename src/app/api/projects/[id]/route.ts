@@ -236,7 +236,28 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 await syncCronJobs(project.id, crons);
             } catch (cronError) {
                 console.error('Failed to sync cron jobs:', cronError);
-                // We do not fail the request, just log the error
+
+                // Revert DB changes to ensure consistency between DB and GCP
+                // We revert all fields that were updated in this request
+                const revertUpdates: Record<string, unknown> = {};
+                // access.project contains the original state before updateProject was called
+                for (const key in updates) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    revertUpdates[key] = (project as any)[key];
+                }
+
+                try {
+                    await updateProject(id, revertUpdates);
+                    console.log(`Reverted project ${id} updates due to cron sync failure`);
+                } catch (revertError) {
+                    console.error('CRITICAL: Failed to revert project updates:', revertError);
+                    // At this point we are in an inconsistent state, but we must still inform the user
+                }
+
+                return NextResponse.json(
+                    { error: `Failed to sync cron jobs: ${cronError instanceof Error ? cronError.message : 'Unknown error'}` },
+                    { status: 500, headers: securityHeaders }
+                );
             }
         }
 
