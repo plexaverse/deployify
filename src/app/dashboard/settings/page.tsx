@@ -23,17 +23,16 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { NativeSelect } from '@/components/ui/native-select';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useStore } from '@/store';
-import type { TeamRole } from '@/types';
+import type { TeamRole, User } from '@/types';
 
 export default function TeamSettingsPage() {
     const { activeTeam, isLoading: isTeamLoading, setActiveTeam, fetchTeams } = useTeam();
     const router = useRouter();
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
 
     const {
         teamMembers: members,
