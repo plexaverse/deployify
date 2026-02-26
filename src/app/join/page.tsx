@@ -5,7 +5,7 @@ import JoinButton from './JoinButton';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BackgroundBeams } from '@/components/ui/background-beams';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, X, AlertTriangle, Clock, Users } from 'lucide-react';
 
 interface JoinPageProps {
     searchParams: Promise<{ token?: string }>;
@@ -111,18 +111,4 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
             </Card>
         </div>
     );
-}
-
-// Helper icons for error states
-function X({ className }: { className?: string }) {
-    return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>;
-}
-function AlertTriangle({ className }: { className?: string }) {
-    return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>;
-}
-function Clock({ className }: { className?: string }) {
-    return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-}
-function Users({ className }: { className?: string }) {
-    return <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>;
 }
