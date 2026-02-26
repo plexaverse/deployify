@@ -1,6 +1,7 @@
 import { config } from '@/lib/config';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDockerfile } from '@/lib/dockerfiles';
+import { generateServiceName } from '@/lib/utils';
 import type { Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
@@ -75,7 +76,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
     const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
-    const serviceName = `dfy-${projectSlug}`.substring(0, 63); // Cloud Run name limit
+    const serviceName = generateServiceName(projectSlug);
     const imageName = `${region}-docker.pkg.dev/${gcpProjectId}/${config.gcp.artifactRegistry}/${serviceName}:${commitSha.substring(0, 7)}`;
     const latestImageName = `${region}-docker.pkg.dev/${gcpProjectId}/${config.gcp.artifactRegistry}/${serviceName}:latest`;
 

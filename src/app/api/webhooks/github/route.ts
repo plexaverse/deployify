@@ -15,7 +15,7 @@ import {
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
-import { parseBranchFromRef, shouldAutoDeploy, slugify } from '@/lib/utils';
+import { parseBranchFromRef, shouldAutoDeploy, getProjectSlugForDeployment } from '@/lib/utils';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus } from '@/lib/deployment';
@@ -99,7 +99,10 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     // Determine deployment type and details
     const isDefaultBranch = branch === project.defaultBranch;
     const deploymentType = isDefaultBranch ? 'production' : 'branch';
-    const projectSlug = isDefaultBranch ? project.slug : `${project.slug}-${slugify(branch)}`;
+    const projectSlug = getProjectSlugForDeployment(project, {
+        type: deploymentType,
+        gitBranch: branch
+    });
 
     // Use preview env vars for non-default branches, unless overridden by branchEnvironments
     let envTarget: 'production' | 'preview' = isDefaultBranch ? 'production' : 'preview';
@@ -282,8 +285,9 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
 
             // Generate build config for preview with project's selected region
+            const projectSlug = getProjectSlugForDeployment(project, deployment);
             const buildConfig = generateCloudRunDeployConfig({
-                projectSlug: `${project.slug}-pr-${pull_request.number}`,
+                projectSlug: projectSlug,
                 repoFullName: project.repoFullName,
                 branch: pull_request.head.ref,
                 commitSha: pull_request.head.sha,
@@ -316,7 +320,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             pollBuildStatus(
                 deployment.id,
                 project.id,
-                `${project.slug}-pr-${pull_request.number}`,
+                projectSlug,
                 buildId,
                 pull_request.head.sha,
                 project.region,
