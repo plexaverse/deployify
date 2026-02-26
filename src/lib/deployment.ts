@@ -8,7 +8,7 @@ import { trackDeployment } from '@/lib/billing/tracker';
 import { sendEmail } from '@/lib/email/client';
 import { runLighthouseAudit } from '@/lib/performance/lighthouse';
 import { createPRComment, createDeploymentStatus } from '@/lib/github';
-import { parseRepoFullName, formatDuration } from '@/lib/utils';
+import { parseRepoFullName, formatDuration, generateServiceName } from '@/lib/utils';
 import type { Deployment } from '@/types';
 
 /**
@@ -77,7 +77,7 @@ export async function syncDeploymentStatus(
 
         if (status === 'SUCCESS') {
             // Build succeeded - get the service URL
-            const serviceName = `dfy-${projectSlug}`.substring(0, 63);
+            const serviceName = generateServiceName(projectSlug);
             const serviceUrl = await getCloudRunServiceUrl(serviceName, projectRegion);
 
             // Get project number for fallback URL

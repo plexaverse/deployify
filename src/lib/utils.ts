@@ -49,13 +49,11 @@ export function parseRepoFullName(fullName: string): { owner: string; repo: stri
     return { owner, repo };
 }
 
-// Generate Cloud Run service name from project
-export function generateServiceName(projectSlug: string, type: 'production' | 'preview', prNumber?: number): string {
-    const baseName = projectSlug.substring(0, 40); // Cloud Run has 63 char limit
-    if (type === 'production') {
-        return `dfy-${baseName}`;
-    }
-    return `dfy-${baseName}-pr-${prNumber}`;
+// Generate Cloud Run service name from a resource slug
+export function generateServiceName(resourceSlug: string): string {
+    // Cloud Run has 63 char limit. Prefix 'dfy-' is 4 chars. Max resourceSlug = 59.
+    const baseName = resourceSlug.substring(0, 59);
+    return `dfy-${baseName}`.replace(/-+$/, '');
 }
 
 // Truncate string with ellipsis
@@ -76,12 +74,20 @@ export function isDeploymentComplete(status: string): boolean {
 
 // Get the project slug used for GCP resources for a given deployment
 export function getProjectSlugForDeployment(project: { slug: string }, deployment: { type: string; pullRequestNumber?: number; gitBranch: string }): string {
+    let result = project.slug;
     if (deployment.type === 'preview' && deployment.pullRequestNumber) {
-        return `${project.slug}-pr-${deployment.pullRequestNumber}`;
+        result = `${project.slug}-pr-${deployment.pullRequestNumber}`;
     } else if (deployment.type === 'branch') {
-        return `${project.slug}-${slugify(deployment.gitBranch)}`;
+        result = `${project.slug}-${slugify(deployment.gitBranch)}`;
+    } else if (deployment.type === 'production') {
+        result = project.slug;
     }
-    return project.slug;
+
+    // Cloud Run limit is 63. Prefix 'dfy-' is 4. Max slug length = 59.
+    if (result.length > 59) {
+        return result.substring(0, 59).replace(/-+$/, '');
+    }
+    return result;
 }
 
 // Get status color for UI

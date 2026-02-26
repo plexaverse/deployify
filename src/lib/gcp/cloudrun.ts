@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { generateServiceName } from '@/lib/utils';
 
 const CLOUD_RUN_API = 'https://run.googleapis.com/v2';
 
@@ -249,12 +250,12 @@ export function getServiceUrl(serviceName: string, projectRegion?: string | null
  * Generate preview service name for a PR
  */
 export function getPreviewServiceName(projectSlug: string, prNumber: number): string {
-    return `dfy-${projectSlug.substring(0, 40)}-pr-${prNumber}`;
+    return generateServiceName(`${projectSlug}-pr-${prNumber}`);
 }
 
 /**
  * Generate production service name
  */
 export function getProductionServiceName(projectSlug: string): string {
-    return `dfy-${projectSlug.substring(0, 50)}`;
+    return generateServiceName(projectSlug);
 }

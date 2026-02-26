@@ -6,7 +6,7 @@ import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
 import { validateRepository } from '@/lib/github/validator';
-import { parseRepoFullName } from '@/lib/utils';
+import { parseRepoFullName, getProjectSlugForDeployment } from '@/lib/utils';
 import { isRunningOnGCP } from '@/lib/gcp/auth';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { logAuditEvent } from '@/lib/audit';
@@ -115,10 +115,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        // Determine deployment type
+        const isDefaultBranch = branch === project.defaultBranch;
+        const deploymentType = isDefaultBranch ? 'production' : 'branch';
+
         // Create deployment record
         const deployment = await createDeployment({
             projectId: project.id,
-            type: 'production',
+            type: deploymentType,
             status: 'queued',
             gitBranch: branch,
             gitCommitSha: commitSha,
@@ -142,16 +146,27 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Check if running on GCP - use real Cloud Build
         if (isRunningOnGCP()) {
             try {
+                // Determine env target based on branch
+                let envTarget: 'production' | 'preview' = isDefaultBranch ? 'production' : 'preview';
+                if (project.branchEnvironments) {
+                    const branchEnv = project.branchEnvironments.find(be => be.branch === branch);
+                    if (branchEnv) {
+                        envTarget = branchEnv.envTarget;
+                    }
+                }
+
                 // Extract environment variables by target
-                const envTarget = 'production'; // Manual deploy is always production for now
                 const { buildEnvVars, runtimeEnvVars } = getEnvVarsForDeployment(project, envTarget);
 
                 // Decrypt GitHub token if present
                 const projectGitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
 
+                // Determine project slug for deployment
+                const projectSlug = getProjectSlugForDeployment(project, deployment);
+
                 // Generate Cloud Build config
                 const buildConfig = generateCloudRunDeployConfig({
-                    projectSlug: project.slug,
+                    projectSlug: projectSlug,
                     repoFullName: project.repoFullName,
                     branch: branch,
                     commitSha: commitSha,
@@ -184,7 +199,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 pollBuildStatus(
                     deployment.id,
                     project.id,
-                    project.slug,
+                    projectSlug,
                     buildId,
                     commitSha,
                     project.region,
@@ -230,11 +245,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 );
             }
         } else {
+            // Determine project slug for simulation
+            const projectSlug = getProjectSlugForDeployment(project, deployment);
+
             // Local development - use simulation
             simulateDeployment(
                 deployment.id,
                 project.id,
-                project.slug,
+                projectSlug,
                 project.name,
                 session.user.email,
                 project.emailNotifications
