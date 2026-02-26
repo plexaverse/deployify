@@ -186,6 +186,10 @@
 - **Improvement**: Ensure `scripts/audit.ts` loads local environment variables (`.env`, `.env.local`) correctly without requiring `dotenv` or pre-loading.
 - **Status**: ✅ Implemented (Added manual environment variable loading to `scripts/audit.ts`)
 
+#### 26. **Transactional Cron Job Sync**
+- **Improvement**: Ensure database and Cloud Scheduler stay in sync by reverting database changes if the Cloud Scheduler API call fails during project updates. This prevents "silent failures" where the UI shows updated settings but the backend is not updated.
+- **Status**: ✅ Implemented (Added transactional revert logic to `src/app/api/projects/[id]/route.ts`)
+
 ---
 
 ## ✅ Verification Status
