@@ -35,7 +35,7 @@ jobs:
         continue-on-error: false
 
       - name: Approve PR
-        run: gh pr review --approve "$PR_URL"
+        run: gh pr review --approve "$PR_URL" || echo "PR could not be approved via Actions. Please ensure 'Allow GitHub Actions to create and approve pull requests' is enabled in repository settings."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
