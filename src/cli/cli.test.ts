@@ -2,7 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert';
 
 // Mock some globals and modules before requiring the CLI
-const mockFetch = async (url: string, _options: unknown) => {
+const mockFetch = async (url: string) => {
   if (url.includes('/api/projects')) {
     return {
       ok: true,
