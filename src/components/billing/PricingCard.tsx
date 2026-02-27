@@ -28,8 +28,9 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
             className={cn(
                 'relative flex flex-col p-6 transition-all duration-300',
                 'bg-[var(--card)] border-[var(--border)]',
-                'hover:border-[var(--border-hover)] hover:shadow-lg',
-                isCurrent && 'border-[var(--primary)] ring-1 ring-[var(--primary)] shadow-md shadow-[var(--primary)]/10'
+                'hover:border-[var(--border-hover)] hover:shadow-xl',
+                isCurrent && 'border-[var(--primary)] ring-1 ring-[var(--primary)] shadow-md shadow-[var(--primary)]/10',
+                isPopular && 'shadow-lg shadow-[var(--info-bg)] border-[var(--info)]/20'
             )}
         >
             {isPopular && (

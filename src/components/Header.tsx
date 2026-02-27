@@ -2,8 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { ChevronRight, Home } from 'lucide-react';
-import React from 'react';
+import { ChevronRight, Home, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 
@@ -32,10 +32,24 @@ export function Header() {
     };
 
     const breadcrumbs = getBreadcrumbs();
+    const [isMac, setIsMac] = useState(false);
+
+    useEffect(() => {
+        const isMacDevice = typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Mac') !== -1;
+        if (isMacDevice) {
+            // Delay to next tick to avoid cascading render lint error
+            const timeoutId = setTimeout(() => setIsMac(true), 0);
+            return () => clearTimeout(timeoutId);
+        }
+    }, []);
+
+    const triggerCommandPalette = () => {
+        window.dispatchEvent(new CustomEvent('open-command-palette'));
+    };
 
     return (
-        <header className="sticky top-0 z-30 flex items-center w-full h-14 px-6 bg-[var(--background)] border-b border-[var(--border)] overflow-x-auto no-scrollbar">
-            <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-sm">
+        <header className="sticky top-0 z-30 flex items-center justify-between w-full h-14 px-6 bg-[var(--background)] border-b border-[var(--border)]">
+            <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-sm overflow-x-auto no-scrollbar">
                 <Link
                     href="/dashboard"
                     className="flex items-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
@@ -61,6 +75,20 @@ export function Header() {
                     </React.Fragment>
                 ))}
             </nav>
+
+            <div className="flex items-center gap-4 ml-4">
+                <button
+                    onClick={triggerCommandPalette}
+                    className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--card)] border border-[var(--border)] hover:border-[var(--border-hover)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all group min-w-[180px]"
+                >
+                    <Search className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-medium flex-1 text-left">Search projects...</span>
+                    <div className="flex items-center gap-0.5 text-[10px] font-mono opacity-50">
+                        <span>{isMac ? '⌘' : 'Ctrl'}</span>
+                        <span>K</span>
+                    </div>
+                </button>
+            </div>
         </header>
     );
 }

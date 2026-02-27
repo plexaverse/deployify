@@ -24,13 +24,20 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const searchInputRef = useRef<HTMLInputElement>(null);
-    const [isMac, setIsMac] = useState(false);
     const { activeTeam, isLoading: isTeamLoading } = useTeam();
 
     useEffect(() => {
-        setIsMac(navigator.userAgent.indexOf('Mac') !== -1);
         const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') {
+            const target = e.target as HTMLElement;
+            if (
+                target.tagName === 'INPUT' ||
+                target.tagName === 'TEXTAREA' ||
+                target.isContentEditable
+            ) {
+                return;
+            }
+
+            if (e.key === '/') {
                 e.preventDefault();
                 searchInputRef.current?.focus();
             }
@@ -117,8 +124,7 @@ export default function DashboardPage() {
                                 </Button>
                             ) : (
                                 <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-medium border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
-                                    <span>{isMac ? '⌘' : 'Ctrl'}</span>
-                                    <span>K</span>
+                                    <span>/</span>
                                 </div>
                             )}
                         </div>
