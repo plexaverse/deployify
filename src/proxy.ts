@@ -92,7 +92,7 @@ export async function proxy(request: NextRequest) {
         }
 
         // If it's a project subdomain, rewrite to the proxy
-        if (subdomain && !['www', 'api', 'dashboard'].includes(subdomain)) {
+        if (subdomain && !['www', 'api', 'dashboard', 'new'].includes(subdomain)) {
             // Check if we are trying to access the collector API or insights script - allow it to pass through
             if (pathname.startsWith('/api/v1/collect') || pathname.startsWith('/deployify-insights.js')) {
                 return NextResponse.next({
