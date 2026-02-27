@@ -29,7 +29,6 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                 'relative flex flex-col p-6 transition-all duration-300',
                 'bg-[var(--card)] border-[var(--border)]',
                 'hover:border-[var(--border-hover)] hover:shadow-lg',
-                // 'before:absolute before:inset-0 before:rounded-xl before:bg-[var(--gradient-card)] before:opacity-50 before:-z-10', // Removed complex before pseudo for now
                 isCurrent && 'border-[var(--primary)] ring-1 ring-[var(--primary)] shadow-md shadow-[var(--primary)]/10'
             )}
         >

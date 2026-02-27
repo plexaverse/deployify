@@ -88,7 +88,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                     <div className="flex flex-col items-center gap-1">
                                         <span className="font-semibold">{plan.name}</span>
                                         {plan.id === currentPlanId && (
-                                            <Badge variant="default" className="text-[10px] px-1.5 h-5">
+                                            <Badge variant="secondary" className="text-[10px] px-1.5 h-5">
                                                 Current
                                             </Badge>
                                         )}
