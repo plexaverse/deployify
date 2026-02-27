@@ -181,10 +181,10 @@ export default function TeamSettingsPage() {
 
     if (!activeTeam) {
         return (
-            <div className="max-w-4xl mx-auto p-6 space-y-8">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Account Settings</h1>
-                    <p className="text-[var(--muted-foreground)]">Manage your personal account settings and workspace.</p>
+            <div className="max-w-4xl mx-auto p-6 space-y-10 pb-24">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+                    <p className="text-[var(--muted-foreground)] text-lg">Manage your personal account settings and workspace.</p>
                 </div>
 
                 <Card className="p-6">
@@ -269,11 +269,11 @@ export default function TeamSettingsPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto p-6 space-y-8 pb-24">
+        <div className="max-w-6xl mx-auto p-6 space-y-10 pb-24">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{activeTeam.name} Settings</h1>
-                    <p className="text-[var(--muted-foreground)]">Manage team members, roles, and permissions.</p>
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">{activeTeam.name} Settings</h1>
+                    <p className="text-[var(--muted-foreground)] text-lg">Manage team members, roles, and permissions.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="capitalize">

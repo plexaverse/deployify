@@ -234,10 +234,10 @@ export default function ProjectDetailPage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="relative flex h-2.5 w-2.5">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-40"></span>
-                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--success)] shadow-[0_0_8px_var(--success)]"></span>
+                                    <span className="animate-pulse-glow absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-40"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--success)] shadow-[0_0_10px_var(--success)]"></span>
                                 </div>
-                                <Badge variant="success" className="text-[10px] py-0 px-2 font-bold tracking-wide uppercase">
+                                <Badge variant="success" className="text-[10px] py-0 px-2 font-bold tracking-wide uppercase shadow-[0_0_10px_var(--success-bg)]">
                                     Live
                                 </Badge>
                             </div>

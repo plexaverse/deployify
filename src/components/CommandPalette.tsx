@@ -17,7 +17,7 @@ export function CommandPalette() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Toggle with Cmd+K
+  // Toggle with Cmd+K and custom event
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -28,8 +28,16 @@ export function CommandPalette() {
         setIsOpen(false);
       }
     };
+
+    const handleOpen = () => setIsOpen(true);
+
     document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
+    window.addEventListener('open-command-palette', handleOpen);
+
+    return () => {
+      document.removeEventListener('keydown', down);
+      window.removeEventListener('open-command-palette', handleOpen);
+    };
   }, []);
 
   // Fetch projects when opened

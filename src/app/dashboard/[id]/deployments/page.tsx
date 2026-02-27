@@ -132,11 +132,11 @@ export default function DeploymentsPage() {
     const selectedDeployment = deployments.find(d => d.id === selectedLogsId);
 
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-6">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-2xl font-bold tracking-tight">Deployments</h1>
-                    <p className="text-[var(--muted-foreground)] text-sm">
+                    <h1 className="text-3xl font-bold tracking-tight">Deployments</h1>
+                    <p className="text-[var(--muted-foreground)] text-lg">
                         A history of all deployments for this project.
                     </p>
                 </div>

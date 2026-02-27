@@ -86,19 +86,19 @@ export default function ProjectSettingsPage() {
     }
 
     return (
-        <div className="p-8 max-w-4xl mx-auto pb-24">
+        <div className="max-w-4xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
             {/* Breadcrumb */}
             <Link
                 href={`/dashboard/${project.id}`}
-                className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-6 transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to {project.name}
             </Link>
 
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2 tracking-tight">Project Settings</h1>
+            <div className="space-y-1">
+                <h1 className="text-3xl font-bold tracking-tight">Project Settings</h1>
                 <p className="text-[var(--muted-foreground)] text-lg">
                     Configure settings for <span className="font-semibold text-[var(--foreground)]">{project.name}</span>
                 </p>

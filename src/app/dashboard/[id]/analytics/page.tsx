@@ -87,7 +87,7 @@ export default function ProjectAnalyticsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
-                    <p className="text-[var(--muted-foreground)] text-sm">
+                    <p className="text-[var(--muted-foreground)] text-lg">
                         Traffic and performance insights for <span className="font-mono text-[var(--foreground)] font-medium">{siteId}</span>
                     </p>
                 </div>
