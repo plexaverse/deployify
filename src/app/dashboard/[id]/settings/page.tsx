@@ -133,7 +133,8 @@ export default function ProjectSettingsPage() {
                 {/* Build Settings */}
                 <Card>
                     <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-1">Build Settings</h2>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Build Settings</h2>
+                        <h3 className="text-xl font-semibold mb-1">Configuration</h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Configure how your project is built and deployed.
                         </p>
@@ -259,7 +260,8 @@ export default function ProjectSettingsPage() {
                 {/* Notifications */}
                 <Card>
                     <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-1">Notifications</h2>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Notifications</h2>
+                        <h3 className="text-xl font-semibold mb-1">Alert Preferences</h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Manage how you receive alerts about your deployments.
                         </p>
@@ -304,7 +306,8 @@ export default function ProjectSettingsPage() {
                 {/* Security */}
                 <Card>
                     <div className="mb-6">
-                        <h2 className="text-xl font-semibold mb-1">Security</h2>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Security</h2>
+                        <h3 className="text-xl font-semibold mb-1">Safety & Protection</h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Configure security features for your deployments.
                         </p>
@@ -335,7 +338,8 @@ export default function ProjectSettingsPage() {
                 {/* Danger Zone */}
                 <Card className="border-[var(--error)]/30 bg-[var(--error)]/5">
                     <div className="mb-4">
-                        <h2 className="text-xl font-semibold mb-1 text-[var(--error)]">Danger Zone</h2>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--error)] mb-2">Danger Zone</h2>
+                        <h3 className="text-xl font-semibold mb-1 text-[var(--error)]">Critical Actions</h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Irreversible and destructive actions.
                         </p>

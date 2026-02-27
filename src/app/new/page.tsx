@@ -798,12 +798,19 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                 animate={{ scale: 1 }}
                                 transition={{ type: 'spring', damping: 12 }}
                             >
-                                <CheckCircle2 className="w-8 h-8" />
+                                <CheckCircle2 className="w-10 h-10" />
                             </motion.div>
                         ) : isError ? (
-                            <AlertCircle className="w-8 h-8" />
+                            <AlertCircle className="w-10 h-10" />
                         ) : (
-                            <Loader2 className="w-8 h-8 animate-spin" />
+                            <div className="relative">
+                                <Loader2 className="w-10 h-10 animate-spin" />
+                                <motion.div
+                                    animate={{ opacity: [0.2, 0.5, 0.2] }}
+                                    transition={{ duration: 2, repeat: Infinity }}
+                                    className="absolute inset-0 bg-[var(--info)] rounded-full blur-xl"
+                                />
+                            </div>
                         )}
                         <span>
                             {isReady ? 'Deployed Successfully' : isError ? 'Deployment Failed' : 'Building & Deploying...'}
@@ -864,11 +871,11 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
 
             {isReady && (
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 }}
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: 0.1, type: 'spring', damping: 15 }}
                 >
-                    <Card className="p-6 bg-[var(--success-bg)]/30 border-[var(--success)]/20 shadow-lg shadow-[var(--success-bg)]">
+                    <Card className="p-8 bg-gradient-to-br from-[var(--success-bg)]/30 to-[var(--background)] border-[var(--success)]/20 shadow-xl shadow-[var(--success-bg)]/20">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="space-y-4 flex-1">
                                 <div className="flex items-center gap-3">

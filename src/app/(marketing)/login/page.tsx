@@ -24,9 +24,9 @@ export default async function LoginPage() {
                     <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">Deployify</span>
                 </div>
 
-                <Card className="w-full p-8 rounded-3xl backdrop-blur-xl bg-[var(--card)]/80 border-[var(--border)] shadow-2xl">
-                    <h1 className="text-2xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">Welcome back</h1>
-                    <p className="text-[var(--muted-foreground)] text-center mb-8">Sign in to manage your deployments</p>
+                <Card className="w-full p-10 rounded-[2.5rem] backdrop-blur-xl bg-[var(--card)]/80 border-[var(--border)] shadow-2xl">
+                    <h1 className="text-3xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] tracking-tight">Welcome back</h1>
+                    <p className="text-[var(--muted-foreground)] text-center mb-10 text-lg">Sign in to manage your deployments</p>
 
                     <MovingBorderButton
                         as={Link}

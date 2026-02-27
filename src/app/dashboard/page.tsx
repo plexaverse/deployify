@@ -99,7 +99,7 @@ export default function DashboardPage() {
                                     setSearchQuery('');
                                 }
                             }}
-                            className="pl-9 pr-10"
+                            className="pl-9 pr-10 shadow-sm transition-all duration-200 focus:shadow-md"
                         />
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
                             {searchQuery ? (
@@ -152,19 +152,22 @@ export default function DashboardPage() {
 
             {/* Empty state - No search results */}
             {!loading && projects.length > 0 && filteredProjects.length === 0 && (
-                <EmptyState
-                    title="No projects found"
-                    description={`No projects match "${searchQuery}"`}
-                    icon={Search}
-                    action={
-                        <Button
-                            variant="ghost"
-                            onClick={() => setSearchQuery('')}
-                        >
-                            Clear search
-                        </Button>
-                    }
-                />
+                <div className="max-w-2xl mx-auto">
+                    <EmptyState
+                        title="No projects found"
+                        description={`We couldn't find any projects matching "${searchQuery}"`}
+                        icon={Search}
+                        action={
+                            <Button
+                                variant="ghost"
+                                onClick={() => setSearchQuery('')}
+                                className="hover:bg-[var(--card-hover)]"
+                            >
+                                Clear search
+                            </Button>
+                        }
+                    />
+                </div>
             )}
 
             {/* Projects grid */}
