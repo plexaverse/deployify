@@ -1,0 +1,37 @@
+
+> deployify@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Environments: .env.local
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+✓ Ready in 4.1s
+○ Compiling /login ...
+ GET /login 307 in 8.2s (compile: 7.0s, proxy.ts: 351ms, render: 816ms)
+○ Compiling /dashboard ...
+ GET /dashboard 200 in 4.7s (compile: 4.1s, proxy.ts: 10ms, render: 635ms)
+In-house collector error: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at POST (src/app/api/v1/collect/route.ts:13:32)
+  11 | export async function POST(req: NextRequest) {
+  12 |     try {
+> 13 |         const body = await req.json();
+     |                                ^
+  14 |         // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  15 |         const { id, type, path, referrer, width, metrics, apiKey } = body;
+  16 |
+Error listing teams: Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at listTeamsWithMembership (src/lib/db.ts:446:10)
+    at GET (src/app/api/teams/route.ts:18:52)
+  444 |         .collection(Collections.TEAM_MEMBERSHIPS)
+  445 |         .where('userId', '==', userId)
+> 446 |         .get();
+      |          ^
+  447 |
+  448 |     if (membershipsSnapshot.empty) {
+  449 |         return [];

@@ -25,7 +25,7 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
         if (!deployment.id || !deployment.projectId) return;
 
         if (!isPolling) setLoading(true);
-        // Don't clear error if polling, to avoid flashing
+        // Always clear error when manually fetching or retrying to ensure UI updates
         if (!isPolling) setError(null);
 
         try {
