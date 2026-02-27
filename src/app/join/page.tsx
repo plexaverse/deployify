@@ -5,7 +5,7 @@ import JoinButton from './JoinButton';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BackgroundBeams } from '@/components/ui/background-beams';
-import { UserPlus, X, AlertTriangle, Clock, Users } from 'lucide-react';
+import { UserPlus, AlertTriangle, Clock, Users } from 'lucide-react';
 
 interface JoinPageProps {
     searchParams: Promise<{ token?: string }>;

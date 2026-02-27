@@ -6,7 +6,6 @@ import { Spotlight } from '@/components/ui/spotlight';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Card } from '@/components/ui/card';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
-import { cn } from '@/lib/utils';
 
 export default async function LoginPage() {
     // Redirect if already logged in
