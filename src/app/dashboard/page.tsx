@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { Plus, Search, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { EmptyState } from '@/components/EmptyState';
@@ -168,22 +169,28 @@ export default function DashboardPage() {
 
             {/* Projects grid */}
             {!loading && filteredProjects.length > 0 && (
-                <BentoGrid>
-                    {filteredProjects.map((project) => (
-                        <Link
-                            key={project.id}
-                            href={`/dashboard/${project.id}`}
-                            className="block h-full group"
-                        >
-                            <BentoGridItem
-                                title={null}
-                                description={null}
-                                header={<ProjectCard project={project} />}
-                                className="h-full min-h-[12rem] cursor-pointer hover:border-[var(--primary)] transition-colors"
-                            />
-                        </Link>
-                    ))}
-                </BentoGrid>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <BentoGrid>
+                        {filteredProjects.map((project) => (
+                            <Link
+                                key={project.id}
+                                href={`/dashboard/${project.id}`}
+                                className="block h-full group"
+                            >
+                                <BentoGridItem
+                                    title={null}
+                                    description={null}
+                                    header={<ProjectCard project={project} />}
+                                    className="h-full min-h-[12rem] cursor-pointer hover:border-[var(--primary)] transition-colors"
+                                />
+                            </Link>
+                        ))}
+                    </BentoGrid>
+                </motion.div>
             )}
         </div>
     );

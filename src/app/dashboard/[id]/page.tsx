@@ -207,15 +207,14 @@ export default function ProjectDetailPage() {
                         )}
                         onClick={(e) => !project.productionUrl && e.preventDefault()}
                     >
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            className="h-9"
+                        <MovingBorderButton
+                            containerClassName="h-9 w-24"
+                            className="font-bold text-xs"
                             disabled={!project.productionUrl}
                         >
-                            <ExternalLink className="w-4 h-4 mr-2" />
+                            <ExternalLink className="w-3.5 h-3.5 mr-2" />
                             Visit
-                        </Button>
+                        </MovingBorderButton>
                     </a>
                 </div>
             </div>

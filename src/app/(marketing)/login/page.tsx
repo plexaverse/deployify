@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth';
 import { Spotlight } from '@/components/ui/spotlight';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Card } from '@/components/ui/card';
-import { buttonVariants } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { cn } from '@/lib/utils';
 
 export default async function LoginPage() {
@@ -18,25 +18,26 @@ export default async function LoginPage() {
     return (
         <div className="min-h-screen bg-[var(--background)] antialiased relative overflow-hidden flex items-center justify-center p-4">
             <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--foreground)" />
-            <main id="main-content" className="w-full max-w-md relative z-10">
+            <main id="main-content" className="w-full max-w-md relative z-10 flex flex-col items-center">
                 <div className="flex items-center justify-center gap-2 mb-8">
                     <Rocket className="w-10 h-10 text-[var(--foreground)]" />
-                    <span className="text-3xl font-bold gradient-text">Deployify</span>
+                    <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">Deployify</span>
                 </div>
 
-                <Card className="p-8 rounded-3xl backdrop-blur-xl bg-[var(--card)]/80">
-                    <h1 className="text-2xl font-bold text-center mb-2 text-[var(--foreground)]">Welcome back</h1>
+                <Card className="w-full p-8 rounded-3xl backdrop-blur-xl bg-[var(--card)]/80 border-[var(--border)] shadow-2xl">
+                    <h1 className="text-2xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">Welcome back</h1>
                     <p className="text-[var(--muted-foreground)] text-center mb-8">Sign in to manage your deployments</p>
 
-                    <Link
+                    <MovingBorderButton
+                        as={Link}
                         href="/api/auth/github"
                         prefetch={false}
-                        className={cn(buttonVariants({ variant: 'primary', size: 'lg' }), "w-full py-6 text-base gap-2")}
-                        aria-label="Sign in with GitHub"
+                        containerClassName="w-full h-14"
+                        className="bg-[var(--foreground)] text-[var(--background)] font-bold text-base flex items-center justify-center gap-2"
                     >
                         <Github className="w-5 h-5" />
                         Continue with GitHub
-                    </Link>
+                    </MovingBorderButton>
 
                     <div className="relative my-8">
                         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[var(--border)]"></div></div>
