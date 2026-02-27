@@ -224,8 +224,8 @@ export default function ProjectDetailPage() {
                 {/* Left Column: Production Deployment & Stats */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Production Card */}
-                    <Card className="overflow-hidden shadow-lg border-[var(--primary)]/10">
-                        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/5">
+                    <Card className="overflow-hidden shadow-lg border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5">
+                        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/10">
                             <div className="flex items-center gap-2">
                                 <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
                                 <Badge variant="outline" className="text-[10px] font-mono font-normal uppercase tracking-tight py-0 px-1.5 bg-[var(--background)]">
@@ -233,9 +233,9 @@ export default function ProjectDetailPage() {
                                 </Badge>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
+                                <div className="relative flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-40"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--success)] shadow-[0_0_8px_var(--success)]"></span>
                                 </div>
                                 <Badge variant="success" className="text-[10px] py-0 px-2 font-bold tracking-wide uppercase">
                                     Live
