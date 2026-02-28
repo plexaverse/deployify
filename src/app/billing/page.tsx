@@ -290,13 +290,13 @@ export default function BillingPage() {
                     <Card className="p-0 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
-                                <thead className="bg-[var(--muted)]/5 border-b border-[var(--border)] text-xs uppercase tracking-wider">
+                                <thead className="bg-[var(--muted)]/10 border-b border-[var(--border)]">
                                     <tr>
-                                        <th className="p-4 font-semibold text-[var(--muted-foreground)]">Invoice #</th>
-                                        <th className="p-4 font-semibold text-[var(--muted-foreground)]">Date</th>
-                                        <th className="p-4 font-semibold text-[var(--muted-foreground)]">Amount</th>
-                                        <th className="p-4 font-semibold text-[var(--muted-foreground)]">Status</th>
-                                        <th className="p-4 font-semibold text-[var(--muted-foreground)] text-right">Action</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Invoice #</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Date</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Amount</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--border)]">
