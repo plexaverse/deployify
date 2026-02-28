@@ -27,16 +27,16 @@ export default async function LoginPage() {
                     <h1 className="text-3xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] tracking-tight">Welcome back</h1>
                     <p className="text-[var(--muted-foreground)] text-center mb-10 text-lg">Sign in to manage your deployments</p>
 
-                    <MovingBorderButton
-                        as={Link}
-                        href="/api/auth/github"
-                        prefetch={false}
-                        containerClassName="w-full h-14"
-                        className="bg-[var(--foreground)] text-[var(--background)] font-bold text-base flex items-center justify-center gap-2"
-                    >
-                        <Github className="w-5 h-5" />
-                        Continue with GitHub
-                    </MovingBorderButton>
+                    <Link href="/api/auth/github" prefetch={false} className="w-full">
+                        <MovingBorderButton
+                            as="div"
+                            containerClassName="w-full h-14"
+                            className="bg-[var(--foreground)] text-[var(--background)] font-bold text-base flex items-center justify-center gap-2"
+                        >
+                            <Github className="w-5 h-5" />
+                            Continue with GitHub
+                        </MovingBorderButton>
+                    </Link>
 
                     <div className="relative my-8">
                         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[var(--border)]"></div></div>

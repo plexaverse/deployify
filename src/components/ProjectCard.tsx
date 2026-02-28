@@ -88,7 +88,7 @@ export function ProjectCard({ project }: { project: Project }) {
       {/* Deployment Info */}
       <div className="mt-auto space-y-3">
         {project.productionUrl && (
-          <div className="flex items-center gap-2 text-[11px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors px-1">
             <ExternalLink className="w-3.5 h-3.5" />
             <span className="truncate">{project.productionUrl.replace(/^https?:\/\//, '')}</span>
           </div>
@@ -108,7 +108,7 @@ export function ProjectCard({ project }: { project: Project }) {
                 {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
               </button>
             </div>
-            <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.1em] font-bold text-[var(--muted-foreground)] px-1">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-1">
                <div className="flex items-center gap-1.5">
                  <GitBranch className="w-3 h-3" />
                  <span>{latestDeployment.gitBranch}</span>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, GitCommit } from 'lucide-react';
 import { toast } from 'sonner';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { cn } from '@/lib/utils';
@@ -135,7 +135,10 @@ export default function DeploymentsPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Deployments</h1>
+                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                        <GitCommit className="w-8 h-8 text-[var(--primary)]" />
+                        Deployments
+                    </h1>
                     <p className="text-[var(--muted-foreground)] text-lg">
                         A history of all deployments for this project.
                     </p>

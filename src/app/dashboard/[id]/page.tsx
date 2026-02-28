@@ -8,6 +8,7 @@ import {
     GitBranch,
     Github,
     Globe,
+    History,
     RotateCcw,
     Clock,
     Loader2,
@@ -227,6 +228,7 @@ export default function ProjectDetailPage() {
                     <Card className="overflow-hidden shadow-lg border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5">
                         <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/10">
                             <div className="flex items-center gap-2">
+                                <Globe className="w-4 h-4 text-[var(--muted-foreground)]" />
                                 <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
                                 <Badge variant="outline" className="text-[10px] font-mono font-normal uppercase tracking-tight py-0 px-1.5 bg-[var(--background)]">
                                     {project.framework || 'Web App'}
@@ -335,7 +337,10 @@ export default function ProjectDetailPage() {
             {/* Deployment History */}
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold tracking-tight">Deployment History</h2>
+                    <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+                        <History className="w-5 h-5 text-[var(--primary)]" />
+                        Deployment History
+                    </h2>
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-[var(--muted-foreground)]">Showing {deployments.length} deployments</span>
                     </div>
