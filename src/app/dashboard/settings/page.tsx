@@ -533,10 +533,10 @@ export default function TeamSettingsPage() {
                                                 {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
                                             </span>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-medium">
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider">
                                                     {log.user?.email || 'Unknown User'}
                                                 </span>
-                                                <span className="text-[10px] text-[var(--muted-foreground)]">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                     {new Date(log.createdAt).toLocaleDateString()}
                                                 </span>
                                             </div>

@@ -80,10 +80,10 @@ export default function DashboardPage() {
     });
 
     return (
-        <div className="p-8">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             <CommandPalette />
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight">
                         {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
                 >
                     <BentoGrid>
                         {filteredProjects.map((project) => (

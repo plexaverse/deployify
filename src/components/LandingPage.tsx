@@ -278,8 +278,8 @@ export default function LandingPage() {
                     key={`${logo}-${idx}`}
                     role="listitem"
                     aria-label={`${logo} logo`}
-                    whileHover={{ scale: 1.1, opacity: 1, filter: 'grayscale(0%)' }}
-                    className="text-2xl md:text-3xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-50 grayscale cursor-default transition-all duration-300"
+                    whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%)' }}
+                    className="text-2xl md:text-3xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
                   >
                     {logo}
                   </motion.span>
@@ -368,7 +368,7 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
               <motion.div
                 whileHover={{ scale: 1.02, translateY: -4 }}
-                className="p-8 rounded-[2.5rem] bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-white/5"
+                className="p-8 rounded-[2.5rem] bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm transition-all duration-300 shadow-[var(--shadow-lg)] hover:shadow-2xl hover:shadow-black/5 dark:hover:shadow-white/5"
               >
                 <div className="flex justify-between items-start mb-8">
                   <div>
@@ -393,7 +393,7 @@ export default function LandingPage() {
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.02, translateY: -4 }}
-                className="p-8 rounded-[2.5rem] bg-[var(--card)] border border-[var(--primary)]/20 backdrop-blur-sm relative overflow-hidden group transition-all duration-300 shadow-lg hover:shadow-[0_0_40px_rgba(99,102,241,0.1)]"
+                className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5 border border-[var(--primary)]/20 backdrop-blur-sm relative overflow-hidden group transition-all duration-300 shadow-[var(--shadow-lg)] hover:shadow-[var(--primary-glow)]"
               >
                 <div className="absolute top-0 right-0 p-4">
                    <Badge className="animate-pulse uppercase tracking-tighter font-black">Save 80%</Badge>
@@ -497,7 +497,7 @@ export default function LandingPage() {
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search your GitHub repositories..."
-                  className="w-full h-auto bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
+                  className="w-full h-auto bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] shadow-sm focus:shadow-[var(--primary-glow)] focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setSelectedIndex(-1); }}
                   onKeyDown={(e) => {
