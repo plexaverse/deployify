@@ -115,3 +115,30 @@ export function shouldAutoDeploy(project: Project, branch: string): boolean {
     }
     return false;
 }
+
+/**
+ * Validate connection strings for common databases
+ */
+export function validateConnectionString(url: string): { valid: boolean; type?: string; error?: string } {
+    if (!url) return { valid: false, error: 'Connection string is empty' };
+
+    // Postgres
+    if (url.startsWith('postgres://') || url.startsWith('postgresql://')) {
+        const regex = /^postgres(ql)?:\/\/([^:]+(:[^@]+)?@)?[^:/]+(:\d+)?\/[^?]+(\?.*)?$/;
+        return { valid: regex.test(url), type: 'PostgreSQL', error: regex.test(url) ? undefined : 'Invalid PostgreSQL connection string format' };
+    }
+
+    // Redis
+    if (url.startsWith('redis://') || url.startsWith('rediss://')) {
+        const regex = /^rediss?:\/\/([^:]+(:[^@]+)?@)?[^:/]+(:\d+)?(\/\d+)?(\?.*)?$/;
+        return { valid: regex.test(url), type: 'Redis', error: regex.test(url) ? undefined : 'Invalid Redis connection string format' };
+    }
+
+    // MongoDB
+    if (url.startsWith('mongodb://') || url.startsWith('mongodb+srv://')) {
+        const regex = /^mongodb(\+srv)?:\/\/([^:]+(:[^@]+)?@)?[^:/]+(:\d+)?(\/[^?]+)?(\?.*)?$/;
+        return { valid: regex.test(url), type: 'MongoDB', error: regex.test(url) ? undefined : 'Invalid MongoDB connection string format' };
+    }
+
+    return { valid: true }; // Unknown type, skip validation
+}

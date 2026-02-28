@@ -5,6 +5,7 @@ import { getProjectById, updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { encrypt } from '@/lib/crypto';
+import { validateConnectionString } from '@/lib/utils';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
 
 // Generate unique ID for env variables
@@ -100,6 +101,15 @@ export async function POST(
             );
         }
 
+        // Connection string validation for common keys
+        let warning: string | undefined;
+        if (key.includes('URL') || key.includes('CONNECTION') || key.includes('DSN') || key.includes('DATABASE')) {
+            const validation = validateConnectionString(value);
+            if (!validation.valid) {
+                warning = validation.error;
+            }
+        }
+
         const envVariables = project.envVariables || [];
 
         // Check for duplicate key
@@ -144,7 +154,8 @@ export async function POST(
                 ...newEnvVar,
                 value: newEnvVar.isSecret ? '••••••••' : newEnvVar.value,
             },
-            message: 'Environment variable added successfully',
+            message: warning ? `Added with warning: ${warning}` : 'Environment variable added successfully',
+            warning
         });
     } catch (error) {
         console.error('Failed to add env variable:', error);
