@@ -91,8 +91,11 @@ export async function proxy(request: NextRequest) {
             }
         }
 
+        // Reserved subdomains that should never be proxied to a project
+        const reservedSubdomains = ['www', 'api', 'dashboard', 'new', 'login', 'join', 'settings'];
+
         // If it's a project subdomain, rewrite to the proxy
-        if (subdomain && !['www', 'api', 'dashboard', 'new'].includes(subdomain)) {
+        if (subdomain && !reservedSubdomains.includes(subdomain)) {
             // Check if we are trying to access the collector API or insights script - allow it to pass through
             if (pathname.startsWith('/api/v1/collect') || pathname.startsWith('/deployify-insights.js')) {
                 return NextResponse.next({
@@ -175,9 +178,15 @@ export async function proxy(request: NextRequest) {
 
         return response;
     } catch (error) {
-        console.error('Edge Proxy Error:', error);
+        // Log detailed error internally
+        console.error('Edge Proxy Internal Error:', error);
+
+        // Return generic error to user to avoid leaking system information
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            {
+                error: 'Internal Server Error',
+                message: 'An unexpected error occurred while processing your request.'
+            },
             { status: 500, headers: securityHeaders }
         );
     }
