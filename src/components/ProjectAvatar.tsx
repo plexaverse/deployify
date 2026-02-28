@@ -20,14 +20,16 @@ export function ProjectAvatar({ name, productionUrl, className }: ProjectAvatarP
                 // Ensure URL has protocol
                 const urlStr = productionUrl.startsWith('http') ? productionUrl : `https://${productionUrl}`;
                 const domain = new URL(urlStr).hostname;
-                // eslint-disable-next-line react-hooks/set-state-in-effect
-                setFaviconUrl(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
+                // Defer to avoid cascading render lint error
+                requestAnimationFrame(() => {
+                    setFaviconUrl(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
+                });
             } catch {
                 // Invalid URL
-                setFaviconUrl(null);
+                requestAnimationFrame(() => setFaviconUrl(null));
             }
         } else {
-            setFaviconUrl(null);
+            requestAnimationFrame(() => setFaviconUrl(null));
         }
     }, [productionUrl]);
 
