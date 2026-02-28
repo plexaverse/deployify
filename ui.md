@@ -1116,3 +1116,19 @@ Conducted a targeted pass to unify the search experience and standardize project
 ### Project Overview & Billing Polish
 - **`src/app/dashboard/[id]/page.tsx`**: Enhanced the "Live" status indicator in the Production Deployment card with an `animate-pulse-glow` effect and improved shadow depth for a more premium "real-time" feel.
 - **`src/components/billing/PricingCard.tsx`**: Introduced a high-contrast highlight for the "Most Popular" plan using `shadow-[var(--info-bg)]` and a subtle border tint. Improved hover states to `shadow-xl` for better interactivity.
+
+## Progressive UI & Refactoring (Session 91)
+
+Conducted a targeted pass to refactor deployment comparison and cron jobs management.
+
+### `src/app/dashboard/[id]/deployments/compare/page.tsx`
+- **Standardized Header**: Refactored the page header to use a 3-step structure: a themed "Back" button, a `text-3xl font-bold` title, and a `text-lg` description.
+- **Visual Hierarchy**: Upgraded all section headers and table labels to the `text-xs font-bold uppercase tracking-wider` standard for improved professional aesthetic.
+- **Deployment Summaries**: Refined the summary cards with better typography, increased padding, and theme-consistent background gradients (`bg-[var(--muted)]/5`).
+- **Comparison Table**: Standardized the comparison results table with hover transitions and subtle status-aware typography.
+- **Loading State**: Enhanced the skeleton layout to accurately mirror the new page structure.
+
+### `src/components/CronsSection.tsx`
+- **Modern Controls**: Replaced the predefined schedule `NativeSelect` with the `SegmentedControl` component for a more fluid, interactive selection experience.
+- **Table Standardization**: Upgraded the cron jobs list headers to use the `text-xs font-bold uppercase tracking-wider` styling, ensuring consistency with the rest of the project settings.
+- **Visual Polish**: Refined the "Add Cron Job" form with standardized spacing and border-radius.

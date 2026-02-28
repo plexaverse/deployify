@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { CronJobConfig } from '@/types';
@@ -149,14 +149,12 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                         </div>
                         <div className="space-y-2">
                             <Label>Schedule</Label>
-                            <NativeSelect
+                            <SegmentedControl
+                                options={PREDEFINED_SCHEDULES.map(s => ({ value: s.value, label: s.label }))}
                                 value={scheduleType}
-                                onChange={(e) => setScheduleType(e.target.value)}
-                            >
-                                {PREDEFINED_SCHEDULES.map((s) => (
-                                    <option key={s.value} value={s.value}>{s.label}</option>
-                                ))}
-                            </NativeSelect>
+                                onChange={setScheduleType}
+                                className="w-full sm:w-auto"
+                            />
                         </div>
                         {scheduleType === 'custom' && (
                             <div className="space-y-2 md:col-span-2">
@@ -202,13 +200,13 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                 />
             ) : (
                 <div className="space-y-4">
-                    <div className="overflow-x-auto rounded-md border border-[var(--border)]">
+                    <div className="overflow-x-auto rounded-xl border border-[var(--border)] shadow-sm">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-[var(--border)] bg-[var(--muted)]/20">
-                                    <th className="py-3 px-4 font-semibold text-sm w-[40%]">Path</th>
-                                    <th className="py-3 px-4 font-semibold text-sm w-[40%]">Schedule</th>
-                                    <th className="py-3 px-4 font-semibold text-sm text-right">Actions</th>
+                                <tr className="border-b border-[var(--border)] bg-[var(--muted)]/5">
+                                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Path</th>
+                                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Schedule</th>
+                                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
