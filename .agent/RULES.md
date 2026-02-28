@@ -167,7 +167,7 @@ Domain        // Custom domain (status: pending/active/error)
 - Mask secrets in UI (`••••••••`) unless explicitly revealed.
 
 ### 7. Code Quality
-- **Linting**: Strict linting is enforced. No `any` types allowed (use `unknown` or disable rule if necessary).
+- **Linting**: Strict linting is enforced. Zero-warning policy. No `any` types allowed (use `unknown` or disable rule if absolutely necessary). Explicitly type all variables to avoid `@typescript-eslint/no-explicit-any` errors.
 - **React Hooks**: Follow strict dependency rules and purity requirements (avoid `Date.now()` in render).
 
 ### 8. Middleware (Proxy) Pattern

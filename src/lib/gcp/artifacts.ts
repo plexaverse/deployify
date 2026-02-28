@@ -75,7 +75,7 @@ export async function pruneProjectImages(
         }
 
         // 2. Sort versions by createTime descending
-        versions.sort((a: any, b: any) => {
+        versions.sort((a: { createTime: string }, b: { createTime: string }) => {
             return new Date(b.createTime).getTime() - new Date(a.createTime).getTime();
         });
 
