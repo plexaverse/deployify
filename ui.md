@@ -535,6 +535,22 @@ Modernized the main dashboard with a data-rich layout and enhanced navigation.
 ### `src/components/ProjectNav.tsx`
 - Refactored the active tab indicator to use `border-[var(--primary)]`, ensuring high visibility and consistency with other navigation elements.
 
+## Developer Experience & Backend Reliability (Session 94)
+
+### Artifact Registry Management
+- Implemented `src/lib/gcp/artifacts.ts` to handle Docker image lifecycle.
+- Integrated `deleteProjectImages` into the project deletion flow to ensure full cleanup of GCP resources and prevent storage costs for deleted projects.
+
+### Deployment Cancellation
+- Refined the cancellation API in `src/app/api/projects/[id]/deploy/route.ts` to update the database status before calling the GCP API, ensuring a more responsive UI and stopping polling loops immediately.
+
+### Environment Variable Validation
+- Added smart validation for database connection strings (PostgreSQL, Redis, MongoDB) in `src/lib/utils.ts`.
+- The environment variable API now returns descriptive warnings for malformed connection strings, helping developers catch configuration errors early.
+
+### CLI Versioning
+- Added a dedicated `version` command and flag support (`-v`, `--version`) to the Deployify CLI for better version tracking.
+
 ### `src/components/ui/PlanBadge.tsx`
 - Updated the plan-specific gradients to use theme-aware semantic variables (`--info`, `--success`, `--warning`, `--error`) instead of hardcoded Tailwind color shades.
 

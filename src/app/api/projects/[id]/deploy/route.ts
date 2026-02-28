@@ -329,22 +329,36 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        // Update status in DB first to stop polling loops
+        await updateDeployment(deploymentId, {
+            status: 'cancelled',
+            errorMessage: 'Cancelled by user',
+            updatedAt: new Date()
+        });
+
         if (isRunningOnGCP() && deployment.cloudBuildId) {
             try {
+                console.log(`[Cancellation] Cancelling Cloud Build ${deployment.cloudBuildId} for project ${id}`);
                 await cancelBuild(deployment.cloudBuildId, project.region);
             } catch (e) {
-                console.error('Failed to cancel Cloud Build:', e);
-                // Continue to update DB status even if Cloud Build cancel fails
+                console.error(`[Cancellation] Failed to cancel Cloud Build ${deployment.cloudBuildId}:`, e);
+                // We already updated the DB status to cancelled, which is the most important for the UI
             }
         }
 
-        await updateDeployment(deploymentId, {
-            status: 'cancelled',
-            errorMessage: 'Cancelled by user'
-        });
+        await logAuditEvent(
+            project.teamId || null,
+            session.user.id,
+            'deployment.cancelled',
+            {
+                projectId: project.id,
+                deploymentId: deployment.id,
+                cloudBuildId: deployment.cloudBuildId
+            }
+        );
 
         return NextResponse.json(
-            { success: true },
+            { success: true, message: 'Deployment cancelled successfully' },
             { status: 200, headers: securityHeaders }
         );
 

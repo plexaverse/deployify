@@ -4,9 +4,10 @@ import { updateProject, deleteProject, listDeploymentsByProject, getProjectById 
 import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
-import { deleteService, listServices } from '@/lib/gcp/cloudrun';
+import { deleteService, listServices, getProductionServiceName } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { syncCronJobs } from '@/lib/gcp/scheduler';
+import { deleteProjectImages } from '@/lib/gcp/artifacts';
 import { deleteDomainMapping } from '@/lib/gcp/domains';
 import { syncDeploymentStatus } from '@/lib/deployment';
 import { getProjectSlugForDeployment } from '@/lib/utils';
@@ -315,11 +316,15 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        // 1. Identify and delete Cloud Run services
+        // 1. Identify and delete Cloud Run services and Artifact Registry images
         try {
             const accessToken = await getGcpAccessToken();
             const projectSlug = access.project.slug;
             const region = access.project.region;
+
+            // Delete Artifact Registry images (all versions)
+            const serviceName = getProductionServiceName(projectSlug);
+            await deleteProjectImages(serviceName, region);
 
             // Use a prefix that matches both production and preview services
             const prefix = `dfy-${projectSlug.substring(0, 40)}`;

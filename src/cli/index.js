@@ -16,6 +16,7 @@ const http = require('http');
 const readline = require('readline');
 const { exec, execSync } = require('child_process');
 
+const VERSION = '0.1.0';
 const args = process.argv.slice(2);
 const command = args[0];
 
@@ -28,6 +29,11 @@ function main() {
     }
 
     switch (command) {
+        case 'version':
+        case '--version':
+        case '-v':
+            console.log(`deployify v${VERSION}`);
+            break;
         case 'login':
             handleLogin();
             break;
