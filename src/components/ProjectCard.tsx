@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Project } from '@/types';
 import { cn } from '@/lib/utils';
 import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
@@ -44,10 +45,9 @@ export function ProjectCard({ project }: { project: Project }) {
   const latestDeployment = project.latestDeployment;
   const status = latestDeployment?.status || 'queued';
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
-  const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
+  const sparklineData = useMemo(() => generateSparklineData(status), [status]);
 
   return (
     <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
@@ -88,9 +88,30 @@ export function ProjectCard({ project }: { project: Project }) {
       {/* Deployment Info */}
       <div className="mt-auto space-y-3">
         {project.productionUrl && (
-          <div className="flex items-center gap-2 text-[11px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span className="truncate">{project.productionUrl.replace(/^https?:\/\//, '')}</span>
+          <div className="flex items-center justify-between group/url">
+            <div className="flex items-center gap-2 text-[11px] text-[var(--muted-foreground)] group-hover/url:text-[var(--foreground)] transition-colors min-w-0">
+              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{project.productionUrl.replace(/^https?:\/\//, '')}</span>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigator.clipboard.writeText(project.productionUrl!);
+                setCopiedId(project.id + '-url');
+                toast.success('URL copied');
+                setTimeout(() => setCopiedId(null), 2000);
+              }}
+              className="opacity-0 group-hover/url:opacity-100 transition-opacity p-1 hover:bg-[var(--card-hover)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--primary)] outline-none"
+              aria-label={copiedId === project.id + '-url' ? "URL copied" : "Copy URL"}
+            >
+              {copiedId === project.id + '-url' ? (
+                <Check className="w-3 h-3 text-[var(--success)]" />
+              ) : (
+                <Copy className="w-3 h-3" />
+              )}
+            </motion.button>
           </div>
         )}
 
@@ -101,7 +122,7 @@ export function ProjectCard({ project }: { project: Project }) {
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(latestDeployment.gitCommitSha); setCopiedId(project.id); toast.success('Copied SHA'); setTimeout(() => setCopiedId(null), 2000); }}
-                className="opacity-40 hover:opacity-100 flex items-center gap-1 transition-opacity"
+                className="opacity-40 hover:opacity-100 flex items-center gap-1 transition-opacity focus-visible:ring-2 focus-visible:ring-[var(--primary)] outline-none rounded"
                 aria-label="Copy SHA"
               >
                 {latestDeployment.gitCommitSha.substring(0, 7)}
