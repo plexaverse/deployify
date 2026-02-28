@@ -1219,3 +1219,13 @@ Conducted a final comprehensive polish pass to standardize typography, layouts, 
 ### Billing & Team Settings
 - **Table Standardization (`src/app/billing/page.tsx`)**: Upgraded the invoice history table header to use `text-[10px] font-bold uppercase tracking-wider` and a `bg-[var(--muted)]/10` background for improved information hierarchy.
 - **Audit Log Polish (`src/app/dashboard/settings/page.tsx`)**: Updated date and user labels in the Audit Log sidebar to the `text-[10px] uppercase font-bold` standard, ensuring a consistent look and feel across all system logs and activities.
+
+## Platform Hardening & Security (Session 100)
+
+### `src/app/api/user/route.ts`
+- Refined the account deletion logic to ensure that `clearSessionCookie()` is always executed, even if the database deletion is skipped (e.g., for mock users in development). This guarantees a consistent local logout state.
+- Added structured logging for account deletion events to improve auditability.
+
+### `src/proxy.ts` (Edge Proxy)
+- **Subdomain Protection**: Expanded the `reservedSubdomains` list to include `login`, `join`, and `settings`. This prevents the wildcard routing logic from accidentally proxying these critical platform routes to project containers.
+- **Error Sanitization**: Updated the global `catch` block to log detailed internal errors while returning generic, safe error messages to the client, preventing information leakage about the platform's internal architecture.
