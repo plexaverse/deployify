@@ -168,16 +168,17 @@ export default function LandingPage() {
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <motion.div whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
-                <MovingBorderButton
-                  as={Link}
-                  href="/api/auth/github"
-                  containerClassName="w-full h-auto"
-                  className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-base font-bold flex items-center justify-center gap-2"
-                >
-                  <Github className="w-5 h-5" />
-                  Connect GitHub
-                  <ArrowRight className="w-5 h-5" />
-                </MovingBorderButton>
+                <Link href="/api/auth/github">
+                  <MovingBorderButton
+                    as="div"
+                    containerClassName="w-full h-auto"
+                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-base font-bold flex items-center justify-center gap-2"
+                  >
+                    <Github className="w-5 h-5" />
+                    Connect GitHub
+                    <ArrowRight className="w-5 h-5" />
+                  </MovingBorderButton>
+                </Link>
               </motion.div>
               <motion.div whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
                 <Button

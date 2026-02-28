@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface ProjectNavProps {
@@ -30,14 +31,21 @@ export function ProjectNav({ projectId }: ProjectNavProps) {
                                 key={tab.name}
                                 href={tab.href}
                                 className={cn(
-                                    'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors',
+                                    'relative whitespace-nowrap py-4 px-1 font-medium text-sm transition-colors',
                                     isActive
-                                        ? 'border-[var(--primary)] text-[var(--foreground)]'
-                                        : 'border-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:border-[var(--border)]'
+                                        ? 'text-[var(--foreground)]'
+                                        : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
                                 )}
                                 aria-current={isActive ? 'page' : undefined}
                             >
                                 {tab.name}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="active-tab-indicator"
+                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--primary)]"
+                                        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                                    />
+                                )}
                             </Link>
                         );
                     })}

@@ -98,7 +98,10 @@ export default function ProjectSettingsPage() {
 
             {/* Header */}
             <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight">Project Settings</h1>
+                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                    <Settings className="w-8 h-8 text-[var(--primary)]" />
+                    Project Settings
+                </h1>
                 <p className="text-[var(--muted-foreground)] text-lg">
                     Configure settings for <span className="font-semibold text-[var(--foreground)]">{project.name}</span>
                 </p>

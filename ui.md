@@ -778,6 +778,38 @@ Conducted a pass to refine loading states and ensure consistent spacing across m
 ### `src/components/LandingPage.tsx`
 - Verified that the landing page and its dependencies (`TracingBeam`, `BackgroundBeams`, `BentoGrid`) now fully adhere to the semantic theme system.
 
+## Dashboard & Navigation Polish (Session 93)
+
+Conducted a targeted pass to standardize the dashboard overview and enhance the project navigation experience.
+
+### `src/app/dashboard/page.tsx` (Dashboard Overview)
+- **Standardized Header**: Updated the page header to use `text-3xl font-bold tracking-tight` for titles and `text-lg` for descriptions, ensuring consistency with project-specific dashboards.
+- **Visual Emphasis**: Upgraded the "Add New" button to use the `MovingBorderButton` component, highlighting it as the primary call-to-action on the main dashboard.
+- **Layout Consistency**: Wrapped the title and description in a `space-y-1` container for better vertical rhythm.
+
+### `src/app/dashboard/[id]/page.tsx` (Project Overview)
+- **Icon Integration**: Added the `Globe` icon to the "Production Deployment" card header and the `History` icon to the "Deployment History" section header, enhancing the visual hierarchy and alignment with the platform's standard UI patterns.
+
+### `src/app/dashboard/[id]/deployments/page.tsx` (Deployments)
+- **Header Standardization**: Added the `GitCommit` icon to the page header, providing a clearer visual anchor and consistent branding across sub-pages.
+
+### `src/app/dashboard/[id]/analytics/page.tsx` (Analytics)
+- **Header Standardization**: Added the `BarChart3` icon to the page header, aligning the analytics view with the standardized icon-based header system.
+
+### `src/app/dashboard/[id]/logs/page.tsx` (Logs)
+- **Header Standardization**: Added the `Terminal` icon to the page header, consistent with the build log viewer branding.
+
+### `src/app/dashboard/[id]/settings/page.tsx` (Settings)
+- **Header Standardization**: Added the `Settings` icon to the page header, following the icon-led hierarchy for all primary project views.
+
+### `src/components/ProjectNav.tsx`
+- **Interactive Navigation**: Implemented a smooth, sliding active tab indicator using `framer-motion`'s `layoutId`. This provides better visual continuity when switching between different project views.
+- **Visual Polish**: Refined the tab styling to focus on the content while the animated indicator handles the active state branding.
+
+### `src/components/ProjectCard.tsx`
+- **Typography Refinement**: Standardized project metadata (Branch, Date, Production URL) to use `text-[10px] font-bold uppercase tracking-wider`, aligning with the platform's professional dashboard aesthetic.
+- **Visual Consistency**: Improved vertical rhythm and spacing for deployment information within the card.
+
 ## UI & Theme Consistency Refinement (Session 74)
 
 Conducted a targeted pass to harmonize UI primitives and improve visual consistency across the dashboard and deployment flows.

@@ -8,7 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { EmptyState } from '@/components/EmptyState';
 import { Input } from '@/components/ui/input';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { ProjectCard } from '@/components/ProjectCard';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -83,11 +84,11 @@ export default function DashboardPage() {
             <CommandPalette />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">
                         {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
                     </h1>
-                    <p className="text-[var(--muted-foreground)] mt-1">
+                    <p className="text-[var(--muted-foreground)] text-lg">
                         Manage your Next.js deployments
                     </p>
                 </div>
@@ -129,9 +130,15 @@ export default function DashboardPage() {
                             )}
                         </div>
                     </div>
-                    <Link href="/new" className={buttonVariants({ variant: 'primary', className: 'whitespace-nowrap' })}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add New
+                    <Link href="/new">
+                        <MovingBorderButton
+                            as="div"
+                            containerClassName="h-10 w-32"
+                            className="font-bold text-xs"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add New
+                        </MovingBorderButton>
                     </Link>
                 </div>
             </div>
