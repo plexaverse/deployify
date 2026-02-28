@@ -7,6 +7,7 @@ import { AnalyticsCharts } from '@/components/analytics/AnalyticsCharts';
 import { DeploymentMetricsCharts } from '@/components/analytics/DeploymentMetricsCharts';
 import { RealtimeVisitors } from '@/components/analytics/RealtimeVisitors';
 import { AnalyticsAlerts } from '@/components/analytics/AnalyticsAlerts';
+import { Activity } from 'lucide-react';
 import { evaluatePerformance } from '@/lib/analytics/alerts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
@@ -108,12 +109,18 @@ export default function ProjectAnalyticsPage() {
             </div>
 
             <div className="space-y-6">
-                <h2 className="text-xl font-semibold tracking-tight">Deployment Performance</h2>
+                <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-[var(--primary)]" />
+                    Deployment Performance
+                </h2>
                 <DeploymentMetricsCharts deployments={deployments} />
             </div>
 
             <div className="pt-10 border-t border-[var(--border)] space-y-6">
-                <h2 className="text-xl font-semibold tracking-tight">Traffic Analytics</h2>
+                <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-[var(--primary)]" />
+                    Traffic Analytics
+                </h2>
 
                 {stats && <div className="mb-6"><AnalyticsAlerts alerts={evaluatePerformance(stats)} /></div>}
 

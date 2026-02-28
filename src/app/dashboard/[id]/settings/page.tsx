@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Settings, Bell, Shield, AlertTriangle } from 'lucide-react';
 import { EnvVariablesSection } from '@/components/EnvVariablesSection';
 import { DomainsSection } from '@/components/DomainsSection';
 import { RegionSettings } from '@/components/RegionSettings';
@@ -134,7 +134,10 @@ export default function ProjectSettingsPage() {
                 <Card>
                     <div className="mb-6">
                         <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Build Settings</h2>
-                        <h3 className="text-xl font-semibold mb-1">Configuration</h3>
+                        <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                            <Settings className="w-5 h-5 text-[var(--primary)]" />
+                            Configuration
+                        </h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Configure how your project is built and deployed.
                         </p>
@@ -261,7 +264,10 @@ export default function ProjectSettingsPage() {
                 <Card>
                     <div className="mb-6">
                         <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Notifications</h2>
-                        <h3 className="text-xl font-semibold mb-1">Alert Preferences</h3>
+                        <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                            <Bell className="w-5 h-5 text-[var(--primary)]" />
+                            Alert Preferences
+                        </h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Manage how you receive alerts about your deployments.
                         </p>
@@ -307,7 +313,10 @@ export default function ProjectSettingsPage() {
                 <Card>
                     <div className="mb-6">
                         <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Security</h2>
-                        <h3 className="text-xl font-semibold mb-1">Safety & Protection</h3>
+                        <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                            <Shield className="w-5 h-5 text-[var(--primary)]" />
+                            Safety & Protection
+                        </h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Configure security features for your deployments.
                         </p>
@@ -339,7 +348,10 @@ export default function ProjectSettingsPage() {
                 <Card className="border-[var(--error)]/30 bg-[var(--error)]/5">
                     <div className="mb-4">
                         <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--error)] mb-2">Danger Zone</h2>
-                        <h3 className="text-xl font-semibold mb-1 text-[var(--error)]">Critical Actions</h3>
+                        <h3 className="text-xl font-semibold mb-1 text-[var(--error)] flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5" />
+                            Critical Actions
+                        </h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Irreversible and destructive actions.
                         </p>
