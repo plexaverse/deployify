@@ -157,7 +157,7 @@ export default function TeamSettingsPage() {
 
     if (isTeamLoading) {
         return (
-            <div className="max-w-6xl mx-auto p-6 space-y-8">
+            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
                 <div className="space-y-2">
                     <Skeleton className="h-8 w-64" />
                     <Skeleton className="h-4 w-48" />
@@ -181,7 +181,7 @@ export default function TeamSettingsPage() {
 
     if (!activeTeam) {
         return (
-            <div className="max-w-4xl mx-auto p-6 space-y-10 pb-24">
+            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
                     <p className="text-[var(--muted-foreground)] text-lg">Manage your personal account settings and workspace.</p>
@@ -269,7 +269,7 @@ export default function TeamSettingsPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto p-6 space-y-10 pb-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight">{activeTeam.name} Settings</h1>

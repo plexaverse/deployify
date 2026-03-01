@@ -1120,6 +1120,18 @@ Conducted a pass to harmonize selection controls across the platform and impleme
     - **DELETE**: Implemented a route for account deletion, ensuring that the frontend "Delete Account" action has a corresponding backend implementation that cleans up the user document and clears session cookies.
 - **Code Quality**: Verified all changes with unit tests and confirmed no regressions in core deployment or billing logic.
 
+## Layout & Component Standardization
+
+Conducted a targeted pass to standardize page layouts and improve component accessibility.
+
+### Dashboard Layout Standardization
+- Standardized the primary container classes across all dashboard pages to use `max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10`.
+- Applied this standard to `src/app/dashboard/settings/page.tsx` and `src/app/dashboard/[id]/settings/page.tsx`, ensuring consistent horizontal bounds and vertical rhythm with the main project overview pages.
+
+### Component Theme Consistency
+- **`ProjectAvatar`**: Updated the hardcoded `text-white` class for dynamic hash-based background colors to `text-[var(--primary-foreground)]`. This ensures optimal contrast and proper semantic theming, especially when switching between light and dark modes.
+- **`PlanBadge`**: Updated the hardcoded `text-white` class to `text-[var(--primary-foreground)]` to maintain consistency with the application's overall design system.
+
 ## Progressive UI & Final Polish (Session 89)
 
 Conducted a comprehensive UI refinement pass across Login, Dashboard, and Billing pages to elevate the visual quality and consistency.
