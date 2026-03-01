@@ -42,11 +42,11 @@ export function ProjectAvatar({ name, productionUrl, className }: ProjectAvatarP
 
     // Generate a consistent color based on the name hash using theme variables
     const colors = [
-        'bg-[var(--info)] text-white',
-        'bg-[var(--success)] text-white',
-        'bg-[var(--warning)] text-white',
-        'bg-[var(--error)] text-white',
-        'bg-[var(--muted-foreground)] text-white',
+        'bg-[var(--info)] text-[var(--primary-foreground)]',
+        'bg-[var(--success)] text-[var(--primary-foreground)]',
+        'bg-[var(--warning)] text-[var(--primary-foreground)]',
+        'bg-[var(--error)] text-[var(--primary-foreground)]',
+        'bg-[var(--muted-foreground)] text-[var(--primary-foreground)]',
         'bg-[var(--primary)] text-[var(--primary-foreground)]',
     ];
 

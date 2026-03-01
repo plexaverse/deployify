@@ -69,7 +69,7 @@ export default function ProjectSettingsPage() {
 
     if (loading) {
         return (
-            <div className="p-8 max-w-4xl mx-auto space-y-8">
+            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
                 <div className="space-y-2">
                     <Skeleton className="h-4 w-32" />
                     <Skeleton className="h-8 w-64" />
@@ -86,7 +86,7 @@ export default function ProjectSettingsPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
             {/* Breadcrumb */}
             <Link
                 href={`/dashboard/${project.id}`}
