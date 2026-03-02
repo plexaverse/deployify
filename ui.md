@@ -1082,6 +1082,20 @@ Conducted a comprehensive pass to unify settings management and polish the team 
 
 ### Code Hygiene & Cleanup
 - **Orphaned Page Removal**: Successfully removed the redundant `src/app/settings/` directory, consolidating all team and account settings into the dashboard structure.
+
+## Progressive UI & Minor Fixes
+### `src/app/dashboard/page.tsx`
+- Kept `z-10` utility for search input clear button positioning.
+
+### `src/app/dashboard/new/import/page.tsx`
+- Modernized the "Back to Git Repositories" link using `buttonVariants` with `ghost` variant.
+- Standardized `<Label>` components by applying `text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2` classes for all form labels to maintain semantic HTML and match the new UI pattern.
+
+### `src/app/dashboard/settings/page.tsx`
+- Standardized the `<Label>` components in the "Invite New Member" form to use the same `text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2` utility classes.
+
+### `src/app/billing/page.tsx`
+- Upgraded the "Back to Dashboard" link on error state to use `buttonVariants` with `ghost` variant for consistency.
 - **Global Error Handling**: Integrated standardized error toast notifications into the settings store logic for more reliable user feedback.
 
 ## Standardized Icons & Join Flow Polish (Session 87)
