@@ -169,7 +169,13 @@ export default function BillingPage() {
             <div className="min-h-screen bg-[var(--background)] p-8 flex flex-col items-center justify-center text-center">
                 <h1 className="text-2xl font-bold mb-4">Error</h1>
                 <p className="text-[var(--muted-foreground)] mb-6">{billingError || 'Something went wrong'}</p>
-                <Link href="/dashboard" className="text-[var(--primary)] hover:underline">
+                <Link
+                    href="/dashboard"
+                    className={cn(
+                        buttonVariants({ variant: 'ghost' }),
+                        "mt-4"
+                    )}
+                >
                     Back to Dashboard
                 </Link>
             </div>

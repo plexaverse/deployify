@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal, Shield } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -168,7 +169,10 @@ export default function ImportProjectPage() {
         <div className="p-8 max-w-4xl mx-auto pb-24">
             <Link
                 href="/dashboard/new"
-                className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-8 transition-colors"
+                className={cn(
+                    buttonVariants({ variant: 'ghost' }),
+                    "inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-8 px-0 h-auto hover:bg-transparent"
+                )}
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Git Repositories
@@ -196,7 +200,7 @@ export default function ImportProjectPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Name</Label>
+                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Project Name</Label>
                             <Input
                                 type="text"
                                 value={projectName}
@@ -205,7 +209,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Framework Preset</Label>
+                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Framework Preset</Label>
                             <NativeSelect
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
@@ -225,7 +229,7 @@ export default function ImportProjectPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Root Directory</Label>
+                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Root Directory</Label>
                             <Input
                                 type="text"
                                 value={rootDirectory}
@@ -234,7 +238,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Region</Label>
+                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Region</Label>
                             <NativeSelect
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
@@ -263,7 +267,7 @@ export default function ImportProjectPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Command</Label>
+                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Build Command</Label>
                             <Input
                                 type="text"
                                 value={buildCommand}
@@ -272,7 +276,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Output Directory</Label>
+                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Output Directory</Label>
                             <Input
                                 type="text"
                                 value={outputDirectory}
@@ -283,7 +287,7 @@ export default function ImportProjectPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Install Command</Label>
+                        <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Install Command</Label>
                         <Input
                             type="text"
                             value={installCommand}
