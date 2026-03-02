@@ -194,6 +194,10 @@
 - **Improvement**: Fix issue where deployment logs error state persists even after retry or manual fetch.
 - **Status**: ✅ Implemented (Fixed `DeploymentLogsModal.tsx` to clear error state on retry)
 
+#### 28. **Security & API Hardening**
+- **Improvement**: Remove security-sensitive debug routes, unify RBAC across all project APIs, and reduce log pollution in high-traffic routes.
+- **Status**: ✅ Implemented (Removed `/api/auth/debug`, refactored `/deployments` and `/crons` to use `checkProjectAccess`, and cleaned up `console.log` in collector and webhooks)
+
 ---
 
 ## ✅ Verification Status
