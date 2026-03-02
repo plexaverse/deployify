@@ -42,7 +42,7 @@ export async function GET(
             value: env.isSecret ? '••••••••' : env.value,
         }));
 
-        return NextResponse.json({ envVariables });
+        return NextResponse.json({ success: true, envVariables });
     } catch (error) {
         console.error('Failed to get env variables:', error);
         return NextResponse.json(
@@ -150,6 +150,7 @@ export async function POST(
         );
 
         return NextResponse.json({
+            success: true,
             envVariable: {
                 ...newEnvVar,
                 value: newEnvVar.isSecret ? '••••••••' : newEnvVar.value,
@@ -259,6 +260,7 @@ export async function PUT(
         );
 
         return NextResponse.json({
+            success: true,
             envVariable: {
                 ...updatedEnv,
                 value: updatedEnv.isSecret ? '••••••••' : updatedEnv.value,
@@ -324,6 +326,7 @@ export async function DELETE(
         );
 
         return NextResponse.json({
+            success: true,
             message: 'Environment variable deleted successfully',
         });
     } catch (error) {

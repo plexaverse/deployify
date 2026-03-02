@@ -1246,6 +1246,14 @@ Conducted a final comprehensive polish pass to standardize typography, layouts, 
 - **Table Standardization (`src/app/billing/page.tsx`)**: Upgraded the invoice history table header to use `text-[10px] font-bold uppercase tracking-wider` and a `bg-[var(--muted)]/10` background for improved information hierarchy.
 - **Audit Log Polish (`src/app/dashboard/settings/page.tsx`)**: Updated date and user labels in the Audit Log sidebar to the `text-[10px] uppercase font-bold` standard, ensuring a consistent look and feel across all system logs and activities.
 
+## SSE & Analytics Hardening
+
+### Log Streaming Optimization
+- Refined the SSE log streaming backend to use a 2s polling interval (down from 3s) with frequent abortion checks, significantly improving responsiveness and resource cleanup when clients disconnect.
+
+### BigQuery Integration
+- Implemented automated BigQuery schema initialization in the analytics collection route, ensuring the data pipeline is resilient to infrastructure provisioning delays.
+
 ## Platform Hardening & Security (Session 100)
 
 ### `src/app/api/user/route.ts`

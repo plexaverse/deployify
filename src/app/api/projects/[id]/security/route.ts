@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         const updatedProject = await getProjectById(id);
 
         return NextResponse.json(
-            { project: updatedProject },
+            { success: true, project: updatedProject },
             { headers: securityHeaders }
         );
 
