@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb, Collections } from '@/lib/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getProjectByApiKey } from '@/lib/db';
+import { ensureBigQuerySchema } from '@/lib/gcp/bigquery';
+
+// Flag to ensure BigQuery schema is initialized once
+let isBigQueryInitialized = false;
 
 // Simple in-memory rate limiting for development
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
@@ -10,6 +14,14 @@ const WINDOW_MS = 60 * 1000; // per minute
 
 export async function POST(req: NextRequest) {
     try {
+        // Ensure BigQuery schema is ready
+        if (!isBigQueryInitialized && process.env.NODE_ENV !== 'development') {
+            await ensureBigQuerySchema().catch(err =>
+                console.error('[BigQuery Schema Error]:', err)
+            );
+            isBigQueryInitialized = true;
+        }
+
         const body = await req.json();
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id, type, path, referrer, width, metrics, apiKey } = body;

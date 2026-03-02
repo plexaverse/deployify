@@ -37,7 +37,7 @@ export async function GET(
 
         const jobs = await listCronJobs(project.slug, accessToken);
 
-        return NextResponse.json({ jobs });
+        return NextResponse.json({ success: true, jobs });
     } catch (error) {
         console.error('Error fetching cron jobs:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

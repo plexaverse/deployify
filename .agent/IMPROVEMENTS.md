@@ -208,6 +208,8 @@
 - **Audit**: Verified audit script (`npm run audit`) passes with `.env.local` configuration.
 - **Features**: Verified existence of Team Settings, Analytics, and Compare Deployments pages in the codebase.
 - **CLI**: Verified CLI tool runs and displays help (`node src/cli/index.js --help`).
+- **BigQuery**: Verified automated schema initialization in analytics collector.
+- **SSE Logs**: Optimized SSE log streaming backend for better responsiveness and termination.
 
 ---
 

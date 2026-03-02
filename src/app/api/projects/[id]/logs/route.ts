@@ -122,8 +122,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                                 controller.enqueue(encoder.encode(`event: error\ndata: ${errorData}\n\n`));
                             }
 
-                            // Wait for 3 seconds before next poll
-                            await new Promise(resolve => setTimeout(resolve, 3000));
+                            // Wait for 2 seconds before next poll, checking for abortion periodically
+                            const pollInterval = 2000;
+                            const checkInterval = 500;
+                            for (let elapsed = 0; elapsed < pollInterval; elapsed += checkInterval) {
+                                if (request.signal.aborted) break;
+                                await new Promise(resolve => setTimeout(resolve, checkInterval));
+                            }
                         }
                     } catch (err) {
                          console.error('Stream error:', err);
