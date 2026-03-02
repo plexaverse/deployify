@@ -56,8 +56,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid apiKey' }, { status: 401 });
         }
 
-        console.log(`[Collector] Authorized ${type} for project ${project.name} (${project.id}) at ${path}`);
-
         const userAgent = req.headers.get('user-agent') || 'unknown';
 
         const eventData = {

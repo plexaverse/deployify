@@ -199,8 +199,6 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             undefined,
             gitToken
         );
-
-        console.log(`Started ${deploymentType} deployment for ${project.name}: ${deployment.id}`);
     } catch (error) {
         console.error('Failed to start build:', error);
         await updateDeployment(deployment.id, {
@@ -332,8 +330,6 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 pull_request.number,
                 gitToken
             );
-
-            console.log(`Started preview deployment for PR #${pull_request.number}: ${deployment.id}`);
         } catch (error) {
             console.error('Failed to start preview build:', error);
             await updateDeployment(deployment.id, {
