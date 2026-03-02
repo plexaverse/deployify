@@ -65,3 +65,7 @@
 ## 2026-03-22 - [Scripe.io Aesthetic and Compact Interactivity]
 **Learning:** Achieving a "premium" scripe.io aesthetic requires attention to micro-typography (e.g., `tracking-[0.2em]`) and glass-morphism (`backdrop-blur`). When implementing interactive elements (like copy buttons) within a parent navigation link, the `e.stopPropagation()` and `e.preventDefault()` patterns are essential. Additionally, avoiding `useEffect` for deterministic UI state (like mock sparklines) prevents cascading render warnings in strict environments.
 **Action:** Use wider tracking for metadata labels and prefer `useMemo` for deterministic visual data to satisfy strict linter rules.
+
+## 2026-03-25 - [Grid Redundancy and Component Encapsulation]
+**Learning:** To avoid visual redundancy in dashboard grids, apply `p-0 overflow-hidden border-0 bg-transparent shadow-none` to `BentoGridItem` when it wraps a custom component (like `ProjectCard`) that already manages its own borders and padding. This ensures that the component's internal design system (e.g., scripe.io blurs and rounded corners) is not compromised by the container's styles.
+**Action:** Always strip container styles from BentoGrid items when wrapping complex, self-contained UI components.
