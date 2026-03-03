@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Cpu } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SegmentedControl } from '@/components/ui/segmented-control';
@@ -72,7 +74,11 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
     return (
         <Card>
             <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-1">Resource Settings</h2>
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Resources</h2>
+                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                    <Cpu className="w-5 h-5 text-[var(--primary)]" />
+                    Compute Configuration
+                </h3>
                 <p className="text-sm text-[var(--muted-foreground)]">
                     Configure CPU, memory, and scaling limits for your application.
                 </p>
@@ -134,12 +140,14 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                 </div>
 
                 <div className="flex justify-end pt-2">
-                    <Button
+                    <MovingBorderButton
                         onClick={handleSave}
                         loading={saving}
+                        containerClassName="h-10 w-32"
+                        className="text-xs font-bold"
                     >
                         Save Changes
-                    </Button>
+                    </MovingBorderButton>
                 </div>
             </div>
         </Card>

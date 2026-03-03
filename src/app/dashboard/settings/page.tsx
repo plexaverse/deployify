@@ -188,9 +188,15 @@ export default function TeamSettingsPage() {
                 </div>
 
                 <Card className="p-6">
-                    <div className="flex items-center gap-2 mb-6">
-                        <UserIcon className="w-5 h-5 text-[var(--primary)]" />
-                        <h2 className="text-lg font-semibold">Personal Profile</h2>
+                    <div className="mb-6">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Profile</h2>
+                        <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                            <UserIcon className="w-5 h-5 text-[var(--primary)]" />
+                            Personal Profile
+                        </h3>
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                            Manage your personal account information and workspace.
+                        </p>
                     </div>
                     <Separator className="mb-6" />
 
@@ -228,10 +234,11 @@ export default function TeamSettingsPage() {
 
                 <Card className="border-[var(--error)]/30 bg-[var(--error)]/5 overflow-hidden p-0">
                     <div className="p-6">
-                        <div className="flex items-center gap-2 text-[var(--error)] mb-1">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--error)] mb-2">Danger Zone</h2>
+                        <h3 className="text-xl font-semibold mb-1 text-[var(--error)] flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5" />
-                            <h2 className="text-lg font-semibold">Danger Zone</h2>
-                        </div>
+                            Account Deletion
+                        </h3>
                         <p className="text-sm text-[var(--muted-foreground)]">
                             Irreversible and destructive actions.
                         </p>
@@ -288,10 +295,11 @@ export default function TeamSettingsPage() {
                     {canManage && (
                         <Card className="p-6">
                             <div className="mb-6">
-                                <div className="flex items-center gap-2 mb-1">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Collaboration</h2>
+                                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
                                     <UserPlus className="w-5 h-5 text-[var(--primary)]" />
-                                    <h2 className="text-lg font-semibold">Invite New Member</h2>
-                                </div>
+                                    Invite New Member
+                                </h3>
                                 <p className="text-sm text-[var(--muted-foreground)]">
                                     Add new members to your team by email.
                                 </p>
@@ -336,11 +344,17 @@ export default function TeamSettingsPage() {
                     {/* Members List */}
                     <Card className="overflow-hidden p-0">
                         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Users className="w-5 h-5 text-[var(--primary)]" />
-                                <h2 className="text-lg font-semibold">Team Members</h2>
+                            <div>
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Team</h2>
+                                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-[var(--primary)]" />
+                                    Team Members
+                                </h3>
+                                <p className="text-sm text-[var(--muted-foreground)]">
+                                    Manage existing members and their roles.
+                                </p>
                             </div>
-                            <div className="text-sm text-[var(--muted-foreground)]">
+                            <div className="text-sm font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full">
                                 {members.length} {members.length === 1 ? 'member' : 'members'}
                             </div>
                         </div>
@@ -459,10 +473,11 @@ export default function TeamSettingsPage() {
                     {/* Danger Zone */}
                     <Card className="border-[var(--error)]/30 bg-[var(--error)]/5 overflow-hidden p-0">
                         <div className="p-6">
-                            <div className="flex items-center gap-2 text-[var(--error)] mb-1">
+                            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--error)] mb-2">Danger Zone</h2>
+                            <h3 className="text-xl font-semibold mb-1 text-[var(--error)] flex items-center gap-2">
                                 <AlertTriangle className="w-5 h-5" />
-                                <h2 className="text-lg font-semibold">Danger Zone</h2>
-                            </div>
+                                Critical Actions
+                            </h3>
                             <p className="text-sm text-[var(--muted-foreground)]">
                                 Irreversible and destructive actions.
                             </p>

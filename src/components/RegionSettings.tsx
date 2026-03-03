@@ -69,10 +69,16 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
     const tier2Regions = GCP_REGIONS.filter(r => r.tier === 'Tier 2');
 
     return (
-        <Card className="mt-8">
-            <div className="flex items-center gap-2 mb-4">
-                <MapPin className="w-5 h-5 text-[var(--primary)]" />
-                <h2 className="text-lg font-semibold">Deployment Region</h2>
+        <Card>
+            <div className="mb-6">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Region</h2>
+                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-[var(--primary)]" />
+                    Deployment Region
+                </h3>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                    Select the Google Cloud region where your application will be deployed.
+                </p>
             </div>
 
             <p className="text-sm text-[var(--muted-foreground)] mb-6">
@@ -131,7 +137,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 </div>
             </div>
 
-            <div className="mt-6 p-4 rounded-lg bg-[var(--background)] border border-[var(--border)]">
+            <div className="mt-6 p-4 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
                 <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
                     <div className="text-sm">

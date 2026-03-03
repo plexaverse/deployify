@@ -102,10 +102,11 @@ export function BranchDeploymentsSettings({
     return (
         <Card>
             <div className="mb-6">
-                <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Branches</h2>
+                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
                     <GitBranch className="w-5 h-5 text-[var(--primary)]" />
-                    <h2 className="text-xl font-semibold">Branch Deployments</h2>
-                </div>
+                    Branch Deployments
+                </h3>
                 <div className="text-sm text-[var(--muted-foreground)]">
                     <p>Configure which branches should trigger automatic deployments.</p>
                     <p className="mt-1">

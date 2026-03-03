@@ -233,6 +233,7 @@ Established a robust UI component system and refactored key pages to use it.
 
 ### `src/app/dashboard/[id]/settings/page.tsx`
 - Refactored entire page to use new UI primitives (`Card`, `Input`, `Label`, `Button`).
+  - **High-Priority Actions**: Upgraded "Save Changes", "Save Preferences", and "Save Security Settings" buttons to `MovingBorderButton` for better visual emphasis.
 - Replaced custom `Loader2` loading states with `Skeleton`.
 - Implemented `ConfirmationModal` for the "Delete Project" action, providing a safer and better UX.
 - Improved layout spacing and typography.
@@ -241,10 +242,21 @@ Established a robust UI component system and refactored key pages to use it.
 ### Settings Components
 Refactored all project settings components to use the new UI system:
 - **`DomainsSection`**: Updated to use `Card`, `Button`, `Input`. Added `Skeleton` loading state.
+  - **Standardization**: Modernized headers to use `text-xs font-bold uppercase tracking-wider` and added `Globe` icon for visual alignment.
+  - **High-Priority Action**: Upgraded "Add Domain" to use `MovingBorderButton` for better call-to-action emphasis.
 - **`EnvVariablesSection`**: Updated layout and inputs.
+  - **Standardization**: Modernized headers with icons and uppercase tracking-wider labels.
+  - **High-Priority Action**: Upgraded "Add Variable" to use `MovingBorderButton` for better visual emphasis.
 - **`RegionSettings`**: Standardized region selection with `Card` and styled select.
+  - **Standardization**: Updated headers with uppercase labels and icons, ensuring consistent visual hierarchy across settings.
 - **`ResourceSettings`**: Updated sliders/inputs to use standard components.
+  - **Standardization**: Modernized headers with icons and uppercase tracking-wider labels.
+  - **High-Priority Action**: Upgraded "Save Changes" to use `MovingBorderButton` to emphasize core configuration updates.
 - **`BranchDeploymentsSettings`**: Updated branch management UI.
+  - **Standardization**: Modernized headers with icons and uppercase tracking-wider labels.
+- **`CronsSection`**: Updated layout and scheduling controls.
+  - **Standardization**: Modernized headers with icons and uppercase tracking-wider labels.
+  - **High-Priority Action**: Upgraded "Add Cron Job" to use `MovingBorderButton` for better visual emphasis.
 
 ### `src/app/billing/page.tsx`
 - Refactored page structure to use `Card` and standard typography.
@@ -1074,6 +1086,7 @@ Conducted a comprehensive pass to unify settings management and polish the team 
 - **Enhanced Account Settings**: Added a dedicated view for personal workspaces, featuring a **Personal Profile** card and a **Danger Zone** with a "Delete Account" action.
 - **Role Management**: Implemented real-time role updates for team members using a themed `NativeSelect` component.
 - **Layout Optimization**: Upgraded the page layout to `max-w-6xl` to support a multi-column design with the audit log sidebar, improving information density.
+- **Standardization**: Modernized all section headers with icons and uppercase tracking-wider labels, ensuring perfect parity with project-specific settings.
 - **UI Standardization**: Ensured all buttons, cards, and interactive elements strictly follow the established design system (standardized padding, theme-aware colors, and consistent hover states).
 
 ### `src/app/join/` (Team Invitation Flow)
