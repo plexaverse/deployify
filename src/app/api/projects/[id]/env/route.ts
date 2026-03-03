@@ -222,7 +222,16 @@ export async function PUT(
             updatedEnv.isEncrypted = updatedEnv.isSecret;
         }
 
+        let warning: string | undefined;
         if (value !== undefined) {
+            // Connection string validation for common keys
+            const keyToValidate = updatedEnv.key || '';
+            if (keyToValidate.includes('URL') || keyToValidate.includes('CONNECTION') || keyToValidate.includes('DSN') || keyToValidate.includes('DATABASE')) {
+                const validation = validateConnectionString(value);
+                if (!validation.valid) {
+                    warning = validation.error;
+                }
+            }
             updatedEnv.value = updatedEnv.isEncrypted ? encrypt(value) : value;
         } else {
             // If no new value is provided, but encryption state changed
@@ -265,7 +274,8 @@ export async function PUT(
                 ...updatedEnv,
                 value: updatedEnv.isSecret ? '••••••••' : updatedEnv.value,
             },
-            message: 'Environment variable updated successfully',
+            message: warning ? `Updated with warning: ${warning}` : 'Environment variable updated successfully',
+            warning
         });
     } catch (error) {
         console.error('Failed to update env variable:', error);

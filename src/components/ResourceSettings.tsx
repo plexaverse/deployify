@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { Cpu } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
