@@ -11,7 +11,7 @@ import { deleteProjectImages } from '@/lib/gcp/artifacts';
 import { deleteDomainMapping } from '@/lib/gcp/domains';
 import { syncDeploymentStatus } from '@/lib/deployment';
 import { getProjectSlugForDeployment } from '@/lib/utils';
-import { CronJobConfig } from '@/types';
+import { Project, CronJobConfig } from '@/types';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
