@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import vm from 'vm'
 
-type SimulationResult = {
+export type SimulationResult = {
   status: number
   headers: Record<string, string>
   body: string
