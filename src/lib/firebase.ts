@@ -46,11 +46,10 @@ export function getDb(): Firestore {
     return db;
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Create a minimal mock Firestore for local development/audit
  */
-function createMockFirestore(): any {
+function createMockFirestore(): Firestore {
     const mockDoc = (id?: string, collection?: string) => ({
         id: id || 'mock-id',
         exists: true,
@@ -120,14 +119,14 @@ function createMockFirestore(): any {
             delete: () => { },
             commit: async () => { },
         }),
-        runTransaction: async (cb: any) => cb({
+        runTransaction: async (cb: (txn: unknown) => Promise<unknown>) => cb({
             get: async () => mockDoc(),
             set: () => { },
             update: () => { },
             delete: () => { },
         }),
-        getAll: async (...refs: any[]) => refs.map(ref => mockDoc(ref._path?.segments?.pop())),
-    };
+        getAll: async (...refs: unknown[]) => refs.map(ref => mockDoc((ref as { _path?: { segments?: string[] } })._path?.segments?.pop())),
+    } as unknown as Firestore;
 }
 
 // Collection names

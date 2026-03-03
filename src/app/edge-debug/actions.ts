@@ -12,6 +12,25 @@ type SimulationResult = {
   error?: string
 }
 
+interface SandboxContext {
+  NextRequest: typeof NextRequest;
+  NextResponse: typeof NextResponse;
+  request: NextRequest;
+  URL: typeof URL;
+  console: {
+    log: (...args: unknown[]) => void;
+    error: (...args: unknown[]) => void;
+    warn: (...args: unknown[]) => void;
+  };
+  process: {
+    env: Record<string, string | undefined>;
+  };
+  exports: Record<string, unknown>;
+  module: { exports: Record<string, unknown> };
+  middleware?: (req: NextRequest) => Promise<NextResponse> | NextResponse;
+  Error: typeof Error;
+}
+
 export async function runSimulation(
   code: string,
   requestDetails: { url: string; method: string; headers: Record<string, string> }
@@ -37,31 +56,28 @@ export async function runSimulation(
     })
 
     // 2. Prepare the Sandbox
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sandbox: any = {
+    const sandbox: SandboxContext = {
       NextRequest,
       NextResponse,
       request: req,
       URL,
       console: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        log: (...args: any[]) => logs.push(args.map((a) => String(a)).join(' ')),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        error: (...args: any[]) => logs.push('[ERROR] ' + args.map((a) => String(a)).join(' ')),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        warn: (...args: any[]) => logs.push('[WARN] ' + args.map((a) => String(a)).join(' ')),
+        log: (...args: unknown[]) => logs.push(args.map((a) => String(a)).join(' ')),
+        error: (...args: unknown[]) => logs.push('[ERROR] ' + args.map((a) => String(a)).join(' ')),
+        warn: (...args: unknown[]) => logs.push('[WARN] ' + args.map((a) => String(a)).join(' ')),
       },
       process: {
         env: {},
       },
       exports: {},
       module: { exports: {} },
+      Error,
     }
 
     // Link exports
     sandbox.exports = sandbox.module.exports
 
-    const context = vm.createContext(sandbox)
+    const context = vm.createContext(sandbox as unknown as vm.Context)
 
     // 3. Prepare Code
     // Strip imports: basic heuristic to avoid syntax errors in VM
@@ -155,15 +171,21 @@ export async function runSimulation(
       type,
     }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
+  } catch (err) {
+    let errorMessage = 'An unknown error occurred';
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else {
+      errorMessage = String(err);
+    }
+
     return {
       status: 500,
       headers: {},
       body: '',
       logs,
       type: 'error',
-      error: err.message,
+      error: errorMessage,
     }
   }
 }

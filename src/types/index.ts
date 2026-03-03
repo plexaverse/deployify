@@ -303,8 +303,7 @@ export interface AnalyticsEvent {
     } | null;
     ip: string;
     userAgent: string;
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    timestamp: any; // Firestore Timestamp or ISO String
+    timestamp: { toDate?: () => Date } | string | Date; // Firestore Timestamp or ISO String
     source?: 'client' | 'edge';
 }
 
@@ -313,8 +312,7 @@ export interface TooltipEntry {
     name: string;
     value: number | string;
     color: string;
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    payload: any;
+    payload: Record<string, unknown>;
     dataKey: string;
 }
 
