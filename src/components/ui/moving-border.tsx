@@ -8,6 +8,7 @@ import {
   useTransform,
 } from "framer-motion";
 import { useRef } from "react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Button({
@@ -18,6 +19,8 @@ export function Button({
   borderClassName,
   duration = 2000,
   className,
+  loading,
+  disabled,
   ...otherProps
 }: {
   borderRadius?: string;
@@ -27,17 +30,20 @@ export function Button({
   borderClassName?: string;
   duration?: number;
   className?: string;
+  loading?: boolean;
+  disabled?: boolean;
   [key: string]: unknown;
 }) {
   return (
     <Component
       className={cn(
-        "bg-transparent relative h-16 w-40 p-[1px] overflow-hidden ",
+        "bg-transparent relative h-16 w-40 p-[1px] overflow-hidden disabled:opacity-50 disabled:pointer-events-none",
         containerClassName
       )}
       style={{
         borderRadius: borderRadius,
       }}
+      disabled={disabled || loading}
       {...otherProps}
     >
       <div
@@ -63,6 +69,7 @@ export function Button({
           borderRadius: `calc(${borderRadius} * 0.96)`,
         }}
       >
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {children}
       </div>
     </Component>

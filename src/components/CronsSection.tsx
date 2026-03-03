@@ -11,6 +11,7 @@ import {
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SegmentedControl } from '@/components/ui/segmented-control';
@@ -108,20 +109,25 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
         <Card>
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Scheduling</h2>
+                    <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
                         <Clock className="w-5 h-5 text-[var(--primary)]" />
                         Cron Jobs
-                    </h2>
+                    </h3>
                     <p className="text-sm text-[var(--muted-foreground)]">
                         Schedule recurring tasks to call your API endpoints.
                     </p>
                 </div>
-                <Button
-                    onClick={() => setIsAdding(!isAdding)}
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Cron Job
-                </Button>
+                {!isAdding && (
+                    <MovingBorderButton
+                        onClick={() => setIsAdding(true)}
+                        containerClassName="h-9 w-36"
+                        className="text-xs font-bold"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Cron Job
+                    </MovingBorderButton>
+                )}
             </div>
 
             {error && (
@@ -181,13 +187,15 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                         >
                             Cancel
                         </Button>
-                        <Button
+                        <MovingBorderButton
                             onClick={handleAdd}
                             disabled={isSubmitting}
                             loading={isSubmitting}
+                            containerClassName="h-10 w-36"
+                            className="text-xs font-bold"
                         >
                             Add Cron Job
-                        </Button>
+                        </MovingBorderButton>
                     </div>
                 </div>
             )}

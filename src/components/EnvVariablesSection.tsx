@@ -20,6 +20,7 @@ import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -169,17 +170,25 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         <Card>
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-xl font-semibold mb-1">Environment Variables</h2>
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Environment</h2>
+                    <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-[var(--primary)]" />
+                        Environment Variables
+                    </h3>
                     <p className="text-sm text-[var(--muted-foreground)]">
                         Variables that are available to your build and runtime environments
                     </p>
                 </div>
-                <Button
-                    onClick={() => setIsAdding(!isAdding)}
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Variable
-                </Button>
+                {!isAdding && (
+                    <MovingBorderButton
+                        onClick={() => setIsAdding(true)}
+                        containerClassName="h-9 w-36"
+                        className="text-xs font-bold"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Variable
+                    </MovingBorderButton>
+                )}
             </div>
 
             {error && (
@@ -286,13 +295,15 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                         >
                             Cancel
                         </Button>
-                        <Button
+                        <MovingBorderButton
                             onClick={handleAdd}
                             disabled={isSubmitting}
                             loading={isSubmitting}
+                            containerClassName="h-10 w-36"
+                            className="text-xs font-bold"
                         >
                             Add Variable
-                        </Button>
+                        </MovingBorderButton>
                     </div>
                 </div>
             )}

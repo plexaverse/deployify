@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -241,12 +242,14 @@ export default function ProjectSettingsPage() {
                         />
 
                         <div className="flex justify-end pt-2">
-                            <Button
+                            <MovingBorderButton
                                 onClick={() => saveProjectSettings(project.id)}
                                 loading={saving}
+                                containerClassName="h-10 w-32"
+                                className="text-xs font-bold"
                             >
                                 Save Changes
-                            </Button>
+                            </MovingBorderButton>
                         </div>
                     </div>
                 </Card>
@@ -302,12 +305,14 @@ export default function ProjectSettingsPage() {
                         </div>
 
                         <div className="flex justify-end pt-2">
-                            <Button
+                            <MovingBorderButton
                                 onClick={() => saveNotificationSettings(project.id)}
                                 loading={savingWebhook}
+                                containerClassName="h-10 w-36"
+                                className="text-xs font-bold"
                             >
                                 Save Preferences
-                            </Button>
+                            </MovingBorderButton>
                         </div>
                     </div>
                 </Card>
@@ -337,12 +342,14 @@ export default function ProjectSettingsPage() {
                         />
 
                         <div className="flex justify-end pt-2">
-                            <Button
+                            <MovingBorderButton
                                 onClick={() => saveSecuritySettings(project.id)}
                                 loading={savingSecurity}
+                                containerClassName="h-10 w-44"
+                                className="text-xs font-bold"
                             >
                                 Save Security Settings
-                            </Button>
+                            </MovingBorderButton>
                         </div>
                     </div>
                 </Card>
