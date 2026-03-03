@@ -198,6 +198,22 @@
 - **Improvement**: Remove security-sensitive debug routes, unify RBAC across all project APIs, and reduce log pollution in high-traffic routes.
 - **Status**: ✅ Implemented (Removed `/api/auth/debug`, refactored `/deployments` and `/crons` to use `checkProjectAccess`, and cleaned up `console.log` in collector and webhooks)
 
+#### 29. **Expanded Reserved Subdomains**
+- **Improvement**: Prevent project subdomains from conflicting with system routes.
+- **Status**: ✅ Implemented (Added `billing`, `invites`, `teams`, `user`, and `edge-debug` to `reservedSubdomains` in `src/proxy.ts`)
+
+#### 30. **Consistent Logout on Deletion**
+- **Improvement**: Ensure user is logged out even if account deletion fails.
+- **Status**: ✅ Implemented (Used `finally` block for `clearSessionCookie()` in `src/app/api/user/route.ts`)
+
+#### 31. **Production-Ready Start Script**
+- **Improvement**: Optimize production startup and image size.
+- **Status**: ✅ Implemented (Updated `package.json` to use `node .next/standalone/server.js`)
+
+#### 32. **GitHub Webhook Log Hygiene**
+- **Improvement**: Further reduce production log noise.
+- **Status**: ✅ Implemented (Removed remaining verbose logs from `src/app/api/webhooks/github/route.ts`)
+
 ---
 
 ## ✅ Verification Status
