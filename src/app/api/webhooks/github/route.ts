@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
                 );
 
             default:
-                console.log(`Ignoring event: ${event}`);
+                // Ignore unknown events
+                break;
         }
 
         return NextResponse.json(
@@ -86,13 +87,11 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     const project = await getProjectByRepoFullName(repository.full_name);
 
     if (!project) {
-        console.log(`No project found for repo: ${repository.full_name}`);
         return;
     }
 
     // Check if we should deploy this branch
     if (!shouldAutoDeploy(project, branch)) {
-        console.log(`Ignoring push to branch ${branch} for project ${project.name}`);
         return;
     }
 
@@ -215,7 +214,6 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
     const project = await getProjectByRepoFullName(repository.full_name);
 
     if (!project) {
-        console.log(`No project found for repo: ${repository.full_name}`);
         return;
     }
 
@@ -234,7 +232,6 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         try {
             const gcpAccessToken = await getGcpAccessToken();
             await deleteService(previewServiceName, gcpAccessToken, project.region);
-            console.log(`Cleaned up preview deployment for PR #${pull_request.number}: ${previewServiceName}`);
         } catch (error) {
             console.error('Failed to cleanup preview deployment:', error);
         }
@@ -245,7 +242,6 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
     if (action === 'opened' || action === 'synchronize' || action === 'reopened') {
         // Check if automatic PR deployments are enabled
         if (project.autoDeployPrs === false) {
-            console.log(`Auto-deploy for PRs is disabled for project ${project.name}. Skipping...`);
             return;
         }
 

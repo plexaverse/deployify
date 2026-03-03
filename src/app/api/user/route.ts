@@ -29,9 +29,6 @@ export async function DELETE() {
             console.log(`[Account] Skipping DB deletion for mock user ${session.user.id} in dev mode`);
         }
 
-        // Always clear the session cookie to ensure the user is logged out locally
-        await clearSessionCookie();
-
         return NextResponse.json({
             success: true,
             message: 'Account deleted successfully'
@@ -39,5 +36,9 @@ export async function DELETE() {
     } catch (error) {
         console.error('Failed to delete account:', error);
         return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 });
+    } finally {
+        // Always clear the session cookie to ensure the user is logged out locally
+        // even if the database deletion fails.
+        await clearSessionCookie();
     }
 }
