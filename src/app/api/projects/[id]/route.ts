@@ -11,7 +11,7 @@ import { deleteProjectImages } from '@/lib/gcp/artifacts';
 import { deleteDomainMapping } from '@/lib/gcp/domains';
 import { syncDeploymentStatus } from '@/lib/deployment';
 import { getProjectSlugForDeployment } from '@/lib/utils';
-import { CronJobConfig } from '@/types';
+import { Project, CronJobConfig } from '@/types';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -243,8 +243,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 const revertUpdates: Record<string, unknown> = {};
                 // access.project contains the original state before updateProject was called
                 for (const key in updates) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    revertUpdates[key] = (project as any)[key];
+                    const projectKey = key as keyof Project;
+                    revertUpdates[key] = project[projectKey];
                 }
 
                 try {

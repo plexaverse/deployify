@@ -187,7 +187,7 @@ export async function syncDeploymentStatus(
                 buildDurationMs
             };
 
-        } else if (status === 'FAILURE' || status === 'TIMEOUT' || status === 'CANCELLED') {
+        } else if (status === 'FAILURE' || status === 'TIMEOUT' || status === 'CANCELLED' || status === 'INTERNAL_ERROR') {
             const errorMessage = `Build ${status.toLowerCase()}`;
             await updateDeployment(deploymentId, {
                 status: deploymentStatus,

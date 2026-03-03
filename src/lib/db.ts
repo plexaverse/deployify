@@ -437,8 +437,7 @@ export async function listTeamsForUser(userId: string): Promise<Team[]> {
 }
 
 // Allow injecting db for testing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function listTeamsWithMembership(userId: string, dbClient?: any): Promise<TeamWithRole[]> {
+export async function listTeamsWithMembership(userId: string, dbClient?: ReturnType<typeof getDb>): Promise<TeamWithRole[]> {
     const db = dbClient || getDb();
     const membershipsSnapshot = await db
         .collection(Collections.TEAM_MEMBERSHIPS)

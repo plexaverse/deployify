@@ -444,7 +444,7 @@ export async function getBuildStatus(
     buildId: string,
     projectRegion?: string | null
 ): Promise<{
-    status: 'QUEUED' | 'WORKING' | 'SUCCESS' | 'FAILURE' | 'TIMEOUT' | 'CANCELLED' | 'STATUS_UNKNOWN';
+    status: 'QUEUED' | 'WORKING' | 'SUCCESS' | 'FAILURE' | 'TIMEOUT' | 'CANCELLED' | 'INTERNAL_ERROR' | 'STATUS_UNKNOWN';
     logUrl: string;
     startTime?: string;
     finishTime?: string;

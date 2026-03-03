@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { notFound } from 'next/navigation'
-import { runSimulation } from './actions'
+import { runSimulation, type SimulationResult } from './actions'
 import { toast } from 'sonner'
 import { Loader2, Play, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
@@ -39,8 +39,7 @@ export default function EdgeDebugPage() {
   const [method, setMethod] = useState('GET')
   const [headers, setHeaders] = useState(DEFAULT_HEADERS)
   const [loading, setLoading] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<SimulationResult | null>(null)
 
   const handleRun = async () => {
     setLoading(true)
@@ -211,8 +210,7 @@ export default function EdgeDebugPage() {
                                             <summary className="cursor-pointer font-medium mb-2 select-none">Response Headers</summary>
                                             <div className="bg-[var(--muted)]/20 p-2 rounded-md font-mono text-xs overflow-auto border border-[var(--border)]">
                                                 {Object.entries(result.headers).map(([k, v]) => (
-                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                    <div key={k}><span className="text-[var(--info)]">{k}:</span> {v as any}</div>
+                                                    <div key={k}><span className="text-[var(--info)]">{k}:</span> {String(v)}</div>
                                                 ))}
                                             </div>
                                         </details>
