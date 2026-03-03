@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Input } from '@/components/ui/input';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
@@ -131,14 +132,16 @@ export function BranchDeploymentsSettings({
                             }
                         }}
                     />
-                    <Button
+                    <MovingBorderButton
                         onClick={handleAddBranch}
                         disabled={loading || !newBranch.trim()}
                         loading={loading}
+                        containerClassName="h-10 w-36"
+                        className="text-xs font-bold"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Branch
-                    </Button>
+                    </MovingBorderButton>
                 </div>
 
                 {branches.length === 0 ? (

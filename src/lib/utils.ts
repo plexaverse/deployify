@@ -136,8 +136,14 @@ export function validateConnectionString(url: string): { valid: boolean; type?: 
 
     // MongoDB
     if (url.startsWith('mongodb://') || url.startsWith('mongodb+srv://')) {
-        const regex = /^mongodb(\+srv)?:\/\/([^:]+(:[^@]+)?@)?[^:/]+(:\d+)?(\/[^?]+)?(\?.*)?$/;
+        const regex = /^mongodb(\+srv)?:\/\/([^:]+(:[^@]+)?@)?[^:/]+(:\d+)?(\/[^?#]+)?(\?[^#]*)?(#.*)?$/;
         return { valid: regex.test(url), type: 'MongoDB', error: regex.test(url) ? undefined : 'Invalid MongoDB connection string format' };
+    }
+
+    // MySQL
+    if (url.startsWith('mysql://')) {
+        const regex = /^mysql:\/\/([^:]+(:[^@]+)?@)?[^:/]+(:\d+)?\/[^?]+(\?.*)?$/;
+        return { valid: regex.test(url), type: 'MySQL', error: regex.test(url) ? undefined : 'Invalid MySQL connection string format' };
     }
 
     return { valid: true }; // Unknown type, skip validation

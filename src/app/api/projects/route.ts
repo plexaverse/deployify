@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser, getTeamMembership } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
-import { slugify, parseRepoFullName, generateId } from '@/lib/utils';
+import { slugify, parseRepoFullName, generateId, validateConnectionString } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
 import { encrypt } from '@/lib/crypto';
@@ -167,9 +167,17 @@ export async function POST(request: NextRequest) {
         }
 
         // Process environment variables (generate IDs and encrypt secrets)
+        const warnings: string[] = [];
         const processedEnvVars: EnvVariable[] = (envVariables || []).map((env: Partial<EnvVariable>) => {
             const isSecret = Boolean(env.isSecret);
             const value = isSecret && env.value ? encrypt(env.value) : env.value || '';
+
+            if (env.key && (env.key.includes('URL') || env.key.includes('CONNECTION') || env.key.includes('DSN') || env.key.includes('DATABASE')) && env.value) {
+                const validation = validateConnectionString(env.value);
+                if (!validation.valid) {
+                    warnings.push(`${env.key}: ${validation.error}`);
+                }
+            }
 
             return {
                 id: generateId('env'),
@@ -216,7 +224,11 @@ export async function POST(request: NextRequest) {
         );
 
         return NextResponse.json(
-            { success: true, project },
+            {
+                success: true,
+                project,
+                warning: warnings.length > 0 ? warnings.join(', ') : undefined
+            },
             { status: 201, headers: securityHeaders }
         );
     } catch (error) {
