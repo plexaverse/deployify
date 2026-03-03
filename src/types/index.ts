@@ -312,7 +312,7 @@ export interface TooltipEntry {
     name: string;
     value: number | string;
     color: string;
-    payload: Record<string, unknown>;
+    payload: Record<string, string | number | boolean | null | undefined>;
     dataKey: string;
 }
 
