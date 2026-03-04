@@ -20,7 +20,11 @@
 - **Current**: Responsive sidebar and grid layouts
 - **Status**: ✅ Implemented
 
-#### 4. **Toast/Notification System**
+#### 4. **Error Tracking & Observability**
+- **Improvement**: Implement a central error tracking system to log server-side and proxy errors to Firestore.
+- **Status**: ✅ Implemented (`src/lib/logging/tracker.ts`)
+
+#### 5. **Toast/Notification System**
 - **Current**: `sonner` integrated
 - **Status**: ✅ Implemented
 
@@ -222,6 +226,7 @@
 - **Build**: Verified production build (`npm run build`) passes with Next.js 16.1.6.
 - **Tests**: Verified all unit tests pass (`npx tsx --test ...`).
 - **Audit**: Verified audit script (`npm run audit`) passes with `.env.local` configuration.
+- **Analytics Fix**: Fixed a runtime `TypeError` in `src/lib/analytics.ts` where `event.timestamp` was accessed without a null check.
 - **Features**: Verified existence of Team Settings, Analytics, and Compare Deployments pages in the codebase.
 - **CLI**: Verified CLI tool runs and displays help (`node src/cli/index.js --help`).
 - **BigQuery**: Verified automated schema initialization in analytics collector.
