@@ -14,6 +14,10 @@ export function isRunningOnGCP(): boolean {
  * Attempts metadata server first (GCP), then falls back to google-auth-library (Local)
  */
 export async function getGcpAccessToken(): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return 'mock-gcp-token';
+    }
+
     // 1. Try Metadata Server (GCP Environment)
     try {
         const tokenResponse = await fetch(

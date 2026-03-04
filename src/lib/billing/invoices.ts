@@ -34,6 +34,10 @@ export interface Invoice {
  * Returns a Promise that resolves to a Buffer containing the PDF data.
  */
 export async function generateInvoicePDF(invoice: Invoice): Promise<Buffer> {
+    if (process.env.MOCK_DB === 'true') {
+        return Buffer.from('%PDF-1.4 mock pdf content');
+    }
+
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument({ margin: 50 });
         const buffers: Buffer[] = [];

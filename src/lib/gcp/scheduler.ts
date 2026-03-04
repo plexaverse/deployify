@@ -98,6 +98,21 @@ async function listProjectJobs(
  * List Cron Jobs for UI (From Incoming)
  */
 export async function listCronJobs(slug: string, accessToken: string): Promise<CronJob[]> {
+    if (process.env.MOCK_DB === 'true') {
+        return [
+            {
+                name: `dfy-${slug}-cron-mock`,
+                schedule: '0 0 * * *',
+                timeZone: 'UTC',
+                path: '/api/cron/test',
+                lastRunStatus: 'success',
+                lastRunTime: new Date(),
+                nextRunTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+                state: 'ENABLED',
+            }
+        ];
+    }
+
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const gcpRegion = config.gcp.region || process.env.GCP_REGION || 'asia-south1';
     const parent = `projects/${gcpProjectId}/locations/${gcpRegion}`;
@@ -256,6 +271,10 @@ export async function syncCronJobs(
     crons: CronJobConfig[],
     deps: Partial<SchedulerDependencies> = {}
 ): Promise<void> {
+    if (process.env.MOCK_DB === 'true') {
+        return;
+    }
+
     let { getProjectById: _getProjectById } = deps;
     const {
         getGcpAccessToken: _getGcpAccessToken = getGcpAccessToken,

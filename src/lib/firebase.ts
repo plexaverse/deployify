@@ -13,6 +13,13 @@ function initializeFirebase(): App {
         return getApps()[0];
     }
 
+    // Skip real initialization if mock mode is on
+    if (process.env.MOCK_DB === 'true') {
+        return initializeApp({
+            projectId: config.firebase.projectId || 'mock-project',
+        });
+    }
+
     // Use service account credentials if available
     if (config.firebase.clientEmail && config.firebase.privateKey && config.firebase.privateKey.includes('BEGIN PRIVATE KEY')) {
         return initializeApp({
