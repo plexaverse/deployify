@@ -107,6 +107,7 @@ export async function getAnalyticsStats(
         const treatedPageviews = new Set<string>();
 
         events.forEach((event) => {
+            if (!event.timestamp) return;
             const ts = typeof event.timestamp.toDate === 'function' ? event.timestamp.toDate() : new Date(event.timestamp);
             const date = ts.toISOString().split('T')[0];
             const ip = event.ip || 'unknown';

@@ -6,6 +6,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { config as appConfig } from '@/lib/config';
+import { trackError } from '@/lib/logging/tracker';
 
 // Security headers to apply
 const securityHeaders = {
@@ -178,8 +179,17 @@ export async function proxy(request: NextRequest) {
 
         return response;
     } catch (error) {
-        // Log detailed error internally
-        console.error('Edge Proxy Internal Error:', error);
+        // Log to central error tracker
+        await trackError({
+            message: 'Edge Proxy Internal Error',
+            error,
+            path: request.nextUrl.pathname,
+            method: request.method,
+            metadata: {
+                hostname: request.headers.get('host'),
+                userAgent: request.headers.get('user-agent'),
+            }
+        });
 
         // Return generic error to user to avoid leaking system information
         return NextResponse.json(
