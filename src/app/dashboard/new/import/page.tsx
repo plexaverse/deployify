@@ -166,23 +166,28 @@ export default function ImportProjectPage() {
     if (!repoFullName) return null;
 
     return (
-        <div className="p-8 max-w-4xl mx-auto pb-24">
-            <Link
-                href="/dashboard/new"
-                className={cn(
-                    buttonVariants({ variant: 'ghost' }),
-                    "inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-8 px-0 h-auto hover:bg-transparent"
-                )}
-            >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Git Repositories
-            </Link>
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
+            <div className="space-y-4">
+                <Link
+                    href="/dashboard/new"
+                    className={cn(
+                        buttonVariants({ variant: 'ghost' }),
+                        "inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] px-0 h-auto hover:bg-transparent transition-colors"
+                    )}
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Git Repositories
+                </Link>
 
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2 text-[var(--foreground)]">Configure Project</h1>
-                <p className="text-[var(--muted-foreground)]">
-                    Deploying <strong className="text-[var(--foreground)]">{repoFullName}</strong>
-                </p>
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                        <Settings className="w-8 h-8 text-[var(--primary)]" />
+                        Configure Project
+                    </h1>
+                    <p className="text-[var(--muted-foreground)] text-lg">
+                        Deploying <strong className="text-[var(--foreground)]">{repoFullName}</strong>
+                    </p>
+                </div>
             </div>
 
             <div className="space-y-8">
@@ -256,7 +261,7 @@ export default function ImportProjectPage() {
                 {/* Build Settings */}
                 <Card className="p-6 space-y-6">
                     <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--primary-bg)]/10 text-[var(--primary)] flex items-center justify-center border border-[var(--primary)]/30">
+                        <div className="w-12 h-12 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center border border-[var(--primary)]/30">
                             <Settings className="w-6 h-6" />
                         </div>
                         <div>

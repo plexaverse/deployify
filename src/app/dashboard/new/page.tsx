@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, Lock, Globe, GitBranch, X, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Search, Lock, Globe, GitBranch, X, ChevronRight, Github } from 'lucide-react';
 import type { GitHubRepo } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -86,20 +86,25 @@ export default function NewProjectPage() {
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
             {/* Header */}
-            <div className="mb-8">
+            <div className="space-y-4">
                 <Link
                     href="/dashboard"
-                    className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-4"
+                    className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to projects
                 </Link>
-                <h1 className="text-2xl font-bold">Import Git Repository</h1>
-                <p className="text-[var(--muted-foreground)] mt-1">
-                    Select a repository to import and deploy
-                </p>
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                        <Github className="w-8 h-8 text-[var(--primary)]" />
+                        Import Git Repository
+                    </h1>
+                    <p className="text-[var(--muted-foreground)] text-lg">
+                        Select a repository to import and deploy
+                    </p>
+                </div>
             </div>
 
             {/* Search */}
