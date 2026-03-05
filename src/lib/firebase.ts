@@ -150,4 +150,5 @@ export const Collections = {
     AUDIT_LOGS: 'auditLogs',
     INVITES: 'invites',
     ANALYTICS_EVENTS: 'analytics_events',
+    ERRORS: 'errors',
 } as const;

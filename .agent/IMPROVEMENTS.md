@@ -231,6 +231,7 @@
 - **CLI**: Verified CLI tool runs and displays help (`node src/cli/index.js --help`).
 - **BigQuery**: Verified automated schema initialization in analytics collector.
 - **SSE Logs**: Optimized SSE log streaming backend for better responsiveness and termination.
+- **Collection Standardization**: Centralized the `errors` collection name in `src/lib/firebase.ts` and updated the error tracker to use it, ensuring consistency and resolving linting warnings.
 
 ---
 
