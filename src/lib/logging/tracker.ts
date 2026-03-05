@@ -48,7 +48,7 @@ export async function trackError(params: {
             projectId: event.projectId
         });
 
-        await db.collection('errors').doc(id).set(event);
+        await db.collection(Collections.ERRORS).doc(id).set(event);
         return id;
     } catch (e) {
         // Fallback to console if Firestore fails
