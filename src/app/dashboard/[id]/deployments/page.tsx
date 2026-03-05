@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeftRight, GitCommit } from 'lucide-react';
 import { toast } from 'sonner';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';

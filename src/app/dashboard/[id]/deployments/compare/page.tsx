@@ -4,17 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import {
     ArrowLeft,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Clock,
     GitBranch,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    CheckCircle2,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    XCircle,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Loader2,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    AlertCircle,
     ArrowRight
 } from 'lucide-react';
 import { useStore } from '@/store';
@@ -24,8 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { Deployment, LighthouseMetrics } from '@/types';
+import type { Deployment } from '@/types';
 
 export default function CompareDeploymentsPage() {
     const params = useParams();
