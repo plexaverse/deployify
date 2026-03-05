@@ -268,4 +268,18 @@
 
 ---
 
+## 🎨 UI Standardization (Progressive Updates)
+
+### 1. **Global Layout & Header Consistency**
+- **Improvement**: Standardize root container classes and header structures across all main pages.
+- **Details**: Applied `max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10` layout and `h-14` sticky header height.
+- **Pages Updated**: Edge Function Simulator, Billing, Repository Selection, Project Import.
+- **Status**: ✅ Implemented
+
+### 2. **Iconography & Typography**
+- **Improvement**: Standardize use of Lucide icons in page and section headers with consistent sizing and typography (`text-xs font-bold uppercase tracking-wider`).
+- **Status**: ✅ Implemented
+
+---
+
 *Last updated: March 05, 2026*

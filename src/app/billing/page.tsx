@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ArrowLeft, Zap, Server, Wifi, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, Zap, Server, Wifi, FileText, Loader2, CreditCard, BarChart3, Layers, History } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
@@ -205,10 +205,10 @@ export default function BillingPage() {
 
             {/* Header */}
             <div className="border-b border-[var(--border)] bg-[var(--background)]/50 backdrop-blur-md sticky top-0 z-30">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-6 md:px-8 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link href="/dashboard" className="p-2 -ml-2 hover:bg-[var(--card-hover)] rounded-full transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft className="w-4 h-4" />
                         </Link>
                         <h1 className="text-lg font-semibold gradient-text">Billing & Usage</h1>
                     </div>
@@ -219,12 +219,16 @@ export default function BillingPage() {
                 </div>
             </div>
 
-            <main className="max-w-7xl mx-auto px-6 py-12 space-y-20">
+            <main className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-16">
 
                 {/* Usage Section */}
                 <section>
                     <div className="mb-8">
-                        <h2 className="text-2xl font-bold mb-2 text-[var(--foreground)]">Usage</h2>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Resource Monitoring</h2>
+                        <h3 className="text-2xl font-bold mb-1 text-[var(--foreground)] flex items-center gap-2">
+                            <BarChart3 className="w-6 h-6 text-[var(--primary)]" />
+                            Usage
+                        </h3>
                         <p className="text-[var(--muted-foreground)]">Monitor your resource consumption for the current billing cycle.</p>
                     </div>
 
@@ -258,8 +262,12 @@ export default function BillingPage() {
 
                 {/* Plans Section */}
                 <section id="plans" className="scroll-mt-24">
-                    <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 className="text-3xl font-bold mb-4 text-[var(--foreground)] tracking-tight">Simple, transparent pricing</h2>
+                    <div className="mb-10 text-center max-w-2xl mx-auto">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</h2>
+                        <h3 className="text-3xl font-bold mb-4 text-[var(--foreground)] tracking-tight flex items-center justify-center gap-2">
+                            <CreditCard className="w-8 h-8 text-[var(--primary)]" />
+                            Simple, transparent pricing
+                        </h3>
                         <p className="text-lg text-[var(--muted-foreground)]">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
                         </p>
@@ -282,7 +290,11 @@ export default function BillingPage() {
                 {/* Comparison Table */}
                 <section>
                     <div className="mb-10 text-center">
-                        <h2 className="text-2xl font-bold">Compare features</h2>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</h2>
+                        <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
+                            <Layers className="w-6 h-6 text-[var(--primary)]" />
+                            Compare features
+                        </h3>
                     </div>
                     <ComparePlansTable plans={PLANS} currentPlanId={tier.id} />
                 </section>
@@ -290,7 +302,11 @@ export default function BillingPage() {
                 {/* Invoice History */}
                 <section>
                     <div className="mb-8">
-                        <h2 className="text-2xl font-bold mb-2 text-[var(--foreground)]">Invoices</h2>
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Billing History</h2>
+                        <h3 className="text-2xl font-bold mb-1 text-[var(--foreground)] flex items-center gap-2">
+                            <History className="w-6 h-6 text-[var(--primary)]" />
+                            Invoices
+                        </h3>
                         <p className="text-[var(--muted-foreground)]">View and download your past invoices.</p>
                     </div>
                     <Card className="p-0 overflow-hidden">

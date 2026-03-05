@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { notFound } from 'next/navigation'
 import { runSimulation } from './actions'
 import { toast } from 'sonner'
-import { Loader2, Play, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Loader2, Play, AlertCircle, CheckCircle2, Cpu } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -77,11 +77,14 @@ export default function EdgeDebugPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-        <header className="mb-8 flex items-center justify-between">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Edge Function Simulator</h1>
-                <p className="text-[var(--muted-foreground)] mt-2">Test middleware logic and edge functions in a sandboxed environment.</p>
+    <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-1">
+                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                    <Cpu className="w-8 h-8 text-[var(--primary)]" />
+                    Edge Function Simulator
+                </h1>
+                <p className="text-[var(--muted-foreground)] text-lg">Test middleware logic and edge functions in a sandboxed environment.</p>
                 <p className="text-xs text-[var(--muted-foreground)] mt-1">Note: Only JavaScript is supported. TypeScript types are not transpiled.</p>
             </div>
             <MovingBorderButton
@@ -95,7 +98,7 @@ export default function EdgeDebugPage() {
             </MovingBorderButton>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-200px)]">
             {/* Left Column: Code Editor */}
             <div className="flex flex-col gap-4 h-full">
                 <div className="flex items-center justify-between">
