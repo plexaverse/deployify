@@ -93,7 +93,7 @@ export async function proxy(request: NextRequest) {
         }
 
         // Reserved subdomains that should never be proxied to a project
-        const reservedSubdomains = ['www', 'api', 'dashboard', 'new', 'login', 'join', 'settings', 'billing', 'invites', 'teams', 'user', 'edge-debug'];
+        const reservedSubdomains = ['test-ui', 'www', 'api', 'dashboard', 'new', 'login', 'join', 'settings', 'billing', 'invites', 'teams', 'user', 'edge-debug'];
 
         // If it's a project subdomain, rewrite to the proxy
         if (subdomain && !reservedSubdomains.includes(subdomain)) {

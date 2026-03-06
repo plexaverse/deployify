@@ -77,14 +77,9 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                     Deployment Region
                 </h3>
                 <p className="text-sm text-[var(--muted-foreground)]">
-                    Select the Google Cloud region where your application will be deployed.
+                    Choose a region close to your users for better performance.
                 </p>
             </div>
-
-            <p className="text-sm text-[var(--muted-foreground)] mb-6">
-                Select the Google Cloud region where your application will be deployed.
-                Choose a region close to your users for better performance.
-            </p>
 
             {error && (
                 <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-sm">
@@ -137,11 +132,11 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 </div>
             </div>
 
-            <div className="mt-6 p-4 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
+            <div className="mt-8 p-4 rounded-lg bg-[var(--info-bg)] border border-[var(--info)]/20">
                 <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
                     <div className="text-sm">
-                        <p className="font-medium text-[var(--foreground)] mb-1">Deployment Required</p>
+                        <p className="font-medium text-[var(--info)] mb-1">Deployment Required</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changing the region will affect the next deployment.
                             To apply the change immediately, trigger a redeploy after saving.
