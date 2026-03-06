@@ -232,6 +232,10 @@
 - **BigQuery**: Verified automated schema initialization in analytics collector.
 - **SSE Logs**: Optimized SSE log streaming backend for better responsiveness and termination.
 - **Collection Standardization**: Centralized the `errors` collection name in `src/lib/firebase.ts` and updated the error tracker to use it, ensuring consistency and resolving linting warnings.
+- **Internal Analytics Fix**: Fixed dashboard event tracking by authorizing the internal dashboard API key in the analytics collector.
+- **Build Status Type Safety**: Added `INTERNAL_ERROR` to the `getBuildStatus` return type for full terminal state coverage.
+- **Automated Registry Cleanup**: Integrated `pruneProjectImages` into the deployment sync logic to automatically maintain the last 10 images per project.
+- **Production Log Hygiene**: Silenced verbose success logs in BigQuery streaming and analytics collection to reduce noise.
 
 ---
 
@@ -282,4 +286,4 @@
 
 ---
 
-*Last updated: March 05, 2026*
+*Last updated: March 06, 2026*

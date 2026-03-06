@@ -261,11 +261,14 @@ export const trackEvent = async (eventName: string, props?: Record<string, unkno
 
     try {
         const projectId = document.currentScript?.getAttribute('data-project-id') || 'deployify-dashboard';
+        const apiKey = document.currentScript?.getAttribute('data-api-key') || 'deployify-dashboard-internal';
+
         await fetch('/api/v1/collect', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 projectId,
+                apiKey,
                 type: eventName,
                 path: window.location.pathname,
                 referrer: document.referrer,

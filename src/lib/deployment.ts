@@ -3,6 +3,7 @@ import { updateDeployment, updateProject, getDeploymentById } from '@/lib/db';
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
+import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
 import { trackDeployment } from '@/lib/billing/tracker';
 import { sendEmail } from '@/lib/email/client';
@@ -134,6 +135,11 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Prune old images (keep 10)
+            pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
+                console.error(`[ArtifactRegistry] Image pruning failed for ${serviceName}:`, err)
+            );
 
             // Run Lighthouse audit if possible
             if (effectiveUrl) {
