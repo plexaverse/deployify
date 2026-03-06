@@ -72,16 +72,20 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
 
     return (
         <Card>
-            <div className="mb-6">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Resources</h2>
-                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                    <Cpu className="w-5 h-5 text-[var(--primary)]" />
-                    Compute Configuration
-                </h3>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                    Configure CPU, memory, and scaling limits for your application.
-                </p>
+            <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <Cpu className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Resources</h2>
+                        <h3 className="text-xl font-semibold">Compute Configuration</h3>
+                    </div>
+                </div>
             </div>
+            <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                Configure CPU, memory, and scaling limits for your application.
+            </p>
 
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

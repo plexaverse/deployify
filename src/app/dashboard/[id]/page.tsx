@@ -228,11 +228,16 @@ export default function ProjectDetailPage() {
                     <Card className="overflow-hidden shadow-lg border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5">
                         <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/10">
                             <div className="flex items-center gap-2">
-                                <Globe className="w-4 h-4 text-[var(--muted-foreground)]" />
-                                <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
-                                <Badge variant="outline" className="text-[10px] font-mono font-normal uppercase tracking-tight py-0 px-1.5 bg-[var(--background)]">
-                                    {project.framework || 'Web App'}
-                                </Badge>
+                                <Globe className="w-5 h-5 text-[var(--primary)]" />
+                                <div className="flex flex-col">
+                                    <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Production</h2>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-lg font-semibold text-[var(--foreground)]">Deployment</h3>
+                                        <Badge variant="outline" className="text-[10px] font-mono font-normal uppercase tracking-tight py-0 px-1.5 bg-[var(--background)]">
+                                            {project.framework || 'Web App'}
+                                        </Badge>
+                                    </div>
+                                </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="relative flex h-2.5 w-2.5">
@@ -316,10 +321,13 @@ export default function ProjectDetailPage() {
                     {/* Compact Error Rate */}
                     {errorCount !== null && (
                         <Card className="p-6 shadow-sm">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">Errors (24h)</span>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-1">Errors</span>
+                                    <h3 className="text-lg font-semibold">24h History</h3>
+                                </div>
                                 <AlertCircle className={cn(
-                                    "w-4 h-4",
+                                    "w-5 h-5",
                                     errorCount > 0 ? "text-[var(--error)]" : "text-[var(--success)]"
                                 )} />
                             </div>
@@ -337,12 +345,17 @@ export default function ProjectDetailPage() {
             {/* Deployment History */}
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
-                        <History className="w-5 h-5 text-[var(--primary)]" />
-                        Deployment History
-                    </h2>
+                    <div className="flex items-center gap-4">
+                        <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                            <History className="w-5 h-5" />
+                        </div>
+                        <div className="flex flex-col">
+                            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">History</h2>
+                            <h3 className="text-xl font-semibold">Deployments</h3>
+                        </div>
+                    </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-xs text-[var(--muted-foreground)]">Showing {deployments.length} deployments</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Showing {deployments.length} deployments</span>
                     </div>
                 </div>
 

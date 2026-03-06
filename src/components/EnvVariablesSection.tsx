@@ -168,16 +168,15 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
 
     return (
         <Card>
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Environment</h2>
-                    <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-[var(--primary)]" />
-                        Environment Variables
-                    </h3>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                        Variables that are available to your build and runtime environments
-                    </p>
+            <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <Shield className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</h2>
+                        <h3 className="text-xl font-semibold">Environment Variables</h3>
+                    </div>
                 </div>
                 {!isAdding && (
                     <MovingBorderButton
@@ -190,6 +189,9 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </MovingBorderButton>
                 )}
             </div>
+            <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                Variables that are available to your build and runtime environments
+            </p>
 
             {error && (
                 <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-sm">

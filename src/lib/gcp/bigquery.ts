@@ -51,7 +51,6 @@ export async function streamEventToBigQuery(event: BigQueryAnalyticsEvent) {
 
     try {
         await table.insert(event);
-        // console.log(`[BigQuery] Successfully streamed ${event.type} for ${event.projectId} in project ${gcpProjectId}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         // If dataset/table doesn't exist, this might fail

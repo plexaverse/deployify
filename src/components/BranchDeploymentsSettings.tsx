@@ -102,19 +102,23 @@ export function BranchDeploymentsSettings({
 
     return (
         <Card>
-            <div className="mb-6">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Branches</h2>
-                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                    <GitBranch className="w-5 h-5 text-[var(--primary)]" />
-                    Branch Deployments
-                </h3>
-                <div className="text-sm text-[var(--muted-foreground)]">
-                    <p>Configure which branches should trigger automatic deployments.</p>
-                    <p className="mt-1">
-                        The default branch is always deployed to Production.
-                        Other branches listed here will be deployed to a persistent branch environment (e.g., <code className="bg-[var(--muted)]/50 px-1 py-0.5 rounded text-xs">dfy-project-branchname</code>).
-                    </p>
+            <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <GitBranch className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Branches</h2>
+                        <h3 className="text-xl font-semibold">Branch Deployments</h3>
+                    </div>
                 </div>
+            </div>
+            <div className="text-sm text-[var(--muted-foreground)] mb-6">
+                <p>Configure which branches should trigger automatic deployments.</p>
+                <p className="mt-1">
+                    The default branch is always deployed to Production.
+                    Other branches listed here will be deployed to a persistent branch environment (e.g., <code className="bg-[var(--muted)]/50 px-1 py-0.5 rounded text-xs">dfy-project-branchname</code>).
+                </p>
             </div>
 
             <div className="space-y-6">

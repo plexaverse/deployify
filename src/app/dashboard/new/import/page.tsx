@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Separator } from '@/components/ui/separator';
 import { useStore } from '@/store';
 
 // Common GCP regions (matching those in new/page.tsx)
@@ -179,29 +180,39 @@ export default function ImportProjectPage() {
                     Back to Git Repositories
                 </Link>
 
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <Settings className="w-8 h-8 text-[var(--primary)]" />
-                        Configure Project
-                    </h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">
-                        Deploying <strong className="text-[var(--foreground)]">{repoFullName}</strong>
-                    </p>
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <Settings className="w-8 h-8" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Step 2 of 2</h2>
+                        <h1 className="text-3xl font-bold tracking-tight">Configure Project</h1>
+                    </div>
                 </div>
+                <p className="text-[var(--muted-foreground)] text-lg">
+                    Deploying <strong className="text-[var(--foreground)]">{repoFullName}</strong>
+                </p>
             </div>
 
             <div className="space-y-8">
                 {/* General Settings */}
                 <Card className="p-6 space-y-6">
-                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
-                            <Settings className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Project Settings</h2>
-                            <p className="text-[var(--muted-foreground)] text-sm">Configure your deployment environment</p>
+                    <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                                <Settings className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">General</h2>
+                                <h3 className="text-xl font-semibold">Project Settings</h3>
+                            </div>
                         </div>
                     </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                        Configure your deployment environment
+                    </p>
+
+                    <Separator className="mb-6" />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -260,15 +271,22 @@ export default function ImportProjectPage() {
 
                 {/* Build Settings */}
                 <Card className="p-6 space-y-6">
-                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center border border-[var(--primary)]/30">
-                            <Settings className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Build Settings</h2>
-                            <p className="text-[var(--muted-foreground)] text-sm">Customize your build pipeline</p>
+                    <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                                <Settings className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Settings</h2>
+                                <h3 className="text-xl font-semibold">Build & Output</h3>
+                            </div>
                         </div>
                     </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                        Customize your build pipeline
+                    </p>
+
+                    <Separator className="mb-6" />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -304,15 +322,22 @@ export default function ImportProjectPage() {
 
                 {/* Environment Variables */}
                 <Card className="p-6 space-y-6">
-                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--success-bg)] text-[var(--success)] flex items-center justify-center border border-[var(--success)]/30">
-                            <Terminal className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Environment Variables</h2>
-                            <p className="text-[var(--muted-foreground)] text-sm">Add build and runtime variables</p>
+                    <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                                <Terminal className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Secrets</h2>
+                                <h3 className="text-xl font-semibold">Environment Variables</h3>
+                            </div>
                         </div>
                     </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                        Add build and runtime variables
+                    </p>
+
+                    <Separator className="mb-6" />
 
                     <div className="space-y-3">
                         {envVars.map((env) => (

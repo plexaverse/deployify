@@ -136,16 +136,20 @@ export default function ProjectSettingsPage() {
 
                 {/* Build Settings */}
                 <Card>
-                    <div className="mb-6">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Build Settings</h2>
-                        <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                            <Settings className="w-5 h-5 text-[var(--primary)]" />
-                            Configuration
-                        </h3>
-                        <p className="text-sm text-[var(--muted-foreground)]">
-                            Configure how your project is built and deployed.
-                        </p>
+                    <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                                <Settings className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Settings</h2>
+                                <h3 className="text-xl font-semibold">Configuration</h3>
+                            </div>
+                        </div>
                     </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                        Configure how your project is built and deployed.
+                    </p>
 
                     <Separator className="mb-6" />
 
@@ -268,16 +272,20 @@ export default function ProjectSettingsPage() {
 
                 {/* Notifications */}
                 <Card>
-                    <div className="mb-6">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Notifications</h2>
-                        <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                            <Bell className="w-5 h-5 text-[var(--primary)]" />
-                            Alert Preferences
-                        </h3>
-                        <p className="text-sm text-[var(--muted-foreground)]">
-                            Manage how you receive alerts about your deployments.
-                        </p>
+                    <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                                <Bell className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notifications</h2>
+                                <h3 className="text-xl font-semibold">Alert Preferences</h3>
+                            </div>
+                        </div>
                     </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                        Manage how you receive alerts about your deployments.
+                    </p>
 
                     <Separator className="mb-6" />
 
@@ -319,16 +327,20 @@ export default function ProjectSettingsPage() {
 
                 {/* Security */}
                 <Card>
-                    <div className="mb-6">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Security</h2>
-                        <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-[var(--primary)]" />
-                            Safety & Protection
-                        </h3>
-                        <p className="text-sm text-[var(--muted-foreground)]">
-                            Configure security features for your deployments.
-                        </p>
+                    <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                                <Shield className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Security</h2>
+                                <h3 className="text-xl font-semibold">Safety & Protection</h3>
+                            </div>
+                        </div>
                     </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                        Configure security features for your deployments.
+                    </p>
 
                     <Separator className="mb-6" />
 
@@ -356,16 +368,20 @@ export default function ProjectSettingsPage() {
 
                 {/* Danger Zone */}
                 <Card className="border-[var(--error)]/30 bg-[var(--error)]/5">
-                    <div className="mb-4">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--error)] mb-2">Danger Zone</h2>
-                        <h3 className="text-xl font-semibold mb-1 text-[var(--error)] flex items-center gap-2">
-                            <AlertTriangle className="w-5 h-5" />
-                            Critical Actions
-                        </h3>
-                        <p className="text-sm text-[var(--muted-foreground)]">
-                            Irreversible and destructive actions.
-                        </p>
+                    <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 rounded-lg bg-[var(--error)]/10 text-[var(--error)]">
+                                <AlertTriangle className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</h2>
+                                <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
+                            </div>
+                        </div>
                     </div>
+                    <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                        Irreversible and destructive actions.
+                    </p>
 
                     <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                         <div>

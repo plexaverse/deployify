@@ -70,16 +70,20 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
 
     return (
         <Card>
-            <div className="mb-6">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Region</h2>
-                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-[var(--primary)]" />
-                    Deployment Region
-                </h3>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                    Choose a region close to your users for better performance.
-                </p>
+            <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <MapPin className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Region</h2>
+                        <h3 className="text-xl font-semibold">Deployment Region</h3>
+                    </div>
+                </div>
             </div>
+            <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                Choose a region close to your users for better performance.
+            </p>
 
             {error && (
                 <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-sm">
