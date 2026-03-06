@@ -62,16 +62,24 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing apiKey' }, { status: 400 });
         }
 
-        // Verify API Key
-        const project = await getProjectByApiKey(apiKey);
-        if (!project) {
-            return NextResponse.json({ error: 'Invalid apiKey' }, { status: 401 });
+        // Verify API Key (or allow internal dashboard key)
+        let projectId = '';
+        const isInternal = apiKey === 'deployify-dashboard-internal';
+
+        if (isInternal) {
+            projectId = 'deployify-dashboard';
+        } else {
+            const project = await getProjectByApiKey(apiKey);
+            if (!project) {
+                return NextResponse.json({ error: 'Invalid apiKey' }, { status: 401 });
+            }
+            projectId = project.id;
         }
 
         const userAgent = req.headers.get('user-agent') || 'unknown';
 
         const eventData = {
-            projectId: project.id,
+            projectId,
             type: type || 'pageview',
             path: path || '/',
             referrer: referrer || '',
