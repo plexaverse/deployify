@@ -102,18 +102,13 @@ export function BranchDeploymentsSettings({
 
     return (
         <Card>
-            <div className="mb-6">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Branches</h2>
-                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+            <div className="mb-6 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                     <GitBranch className="w-5 h-5 text-[var(--primary)]" />
-                    Branch Deployments
-                </h3>
-                <div className="text-sm text-[var(--muted-foreground)]">
-                    <p>Configure which branches should trigger automatic deployments.</p>
-                    <p className="mt-1">
-                        The default branch is always deployed to Production.
-                        Other branches listed here will be deployed to a persistent branch environment (e.g., <code className="bg-[var(--muted)]/50 px-1 py-0.5 rounded text-xs">dfy-project-branchname</code>).
-                    </p>
+                </div>
+                <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Automation</span>
+                    <h3 className="text-xl font-semibold">Branch Deployments</h3>
                 </div>
             </div>
 

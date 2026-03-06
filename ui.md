@@ -14,6 +14,32 @@ This document tracks UI standardization updates across the application to mainta
 
 Conducted a comprehensive pass to standardize page layouts and headers across the dashboard, settings, and comparison pages.
 
+### Dashboard Header Architecture (Standardized)
+- **3-Part Header Standard**: All primary dashboard pages and section cards now follow a unified 3-part visual hierarchy:
+  1. **Icon Container**: Lucide icon in a themed background (`rounded-2xl bg-[var(--primary)]/10` for pages, `rounded-xl` for sections).
+  2. **Context Label**: Uppercase metadata label (`text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]`).
+  3. **Main Title**: Bold tracking-tight title (`text-3xl font-bold` for pages, `text-xl font-semibold` for sections).
+
+### Pages Updated
+- `src/app/dashboard/[id]/page.tsx` (Project Overview)
+- `src/app/dashboard/[id]/deployments/page.tsx` (Deployments)
+- `src/app/dashboard/[id]/analytics/page.tsx` (Analytics)
+- `src/app/dashboard/[id]/logs/page.tsx` (Logs)
+- `src/app/dashboard/[id]/settings/page.tsx` (Project Settings)
+- `src/app/dashboard/settings/page.tsx` (Account/Team Settings)
+
+### Components & Section Standardized
+- `DomainsSection.tsx` (Networking)
+- `EnvVariablesSection.tsx` (Configuration)
+- `RegionSettings.tsx` (Infrastructure)
+- `ResourceSettings.tsx` (Performance)
+- `BranchDeploymentsSettings.tsx` (Automation)
+- `CronsSection.tsx` (Scheduling)
+
+### Metadata & Interactive States
+- **Metadata Standard**: Enforced `text-[10px] font-bold uppercase tracking-wider` for all technical metadata (branches, SHAs, timestamps) in `DeploymentListItem.tsx`.
+- **Badge Consistency**: Standardized badge padding (`px-1.5 py-0.5`) and typography across the platform.
+
 ### Dashboard & Settings Layouts
 - **Files Updated**:
   - `src/app/dashboard/page.tsx`
