@@ -120,7 +120,7 @@ export default function CompareDeploymentsPage() {
     if (!currentProject) return null;
 
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 animate-fade-in pb-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
             <div className="space-y-4">
                 <Button
                     variant="ghost"
@@ -300,11 +300,11 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
-                    <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-widest mb-1">Created</div>
+                    <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Created</div>
                     <div className="text-sm font-semibold">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                 </div>
                  <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
-                    <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-widest mb-1">Environment</div>
+                    <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Environment</div>
                     <div className="text-sm font-semibold capitalize">{deployment.type}</div>
                 </div>
             </div>

@@ -120,7 +120,7 @@ export function ProjectCard({ project }: { project: Project }) {
             </div>
           </div>
         ) : (
-          <div className="text-[10px] text-[var(--muted-foreground)] italic bg-[var(--card-hover)]/30 p-2 rounded-md border border-dashed border-[var(--border)] text-center">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] italic bg-[var(--card-hover)]/30 p-2 rounded-md border border-dashed border-[var(--border)] text-center">
             No deployments yet
           </div>
         )}
