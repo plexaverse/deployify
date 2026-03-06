@@ -49,8 +49,6 @@ export async function streamEventToBigQuery(event: BigQueryAnalyticsEvent) {
     const dataset = bq.dataset(config.bigquery.dataset);
     const table = dataset.table(config.bigquery.table);
 
-    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
-
     try {
         await table.insert(event);
         // console.log(`[BigQuery] Successfully streamed ${event.type} for ${event.projectId} in project ${gcpProjectId}`);
