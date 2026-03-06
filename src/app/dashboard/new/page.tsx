@@ -96,15 +96,18 @@ export default function NewProjectPage() {
                     <ArrowLeft className="w-4 h-4" />
                     Back to projects
                 </Link>
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <Github className="w-8 h-8 text-[var(--primary)]" />
-                        Import Git Repository
-                    </h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">
-                        Select a repository to import and deploy
-                    </p>
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <Github className="w-8 h-8" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Create Project</h2>
+                        <h1 className="text-3xl font-bold tracking-tight">Import Git Repository</h1>
+                    </div>
                 </div>
+                <p className="text-[var(--muted-foreground)] text-lg">
+                    Select a repository to import and deploy
+                </p>
             </div>
 
             {/* Search */}

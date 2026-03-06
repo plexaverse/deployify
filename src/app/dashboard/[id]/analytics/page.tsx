@@ -85,15 +85,17 @@ export default function ProjectAnalyticsPage() {
 
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+            {/* Site ID for Analytics tracking context */}
+            <div className="hidden" data-site-id={siteId} />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <BarChart3 className="w-8 h-8 text-[var(--primary)]" />
-                        Analytics
-                    </h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">
-                        Traffic and performance insights for <span className="font-mono text-[var(--foreground)] font-medium">{siteId}</span>
-                    </p>
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <BarChart3 className="w-8 h-8" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Insights</h2>
+                        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+                    </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <RealtimeVisitors projectId={project.id} />

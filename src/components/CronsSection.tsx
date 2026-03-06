@@ -107,16 +107,15 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
 
     return (
         <Card>
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Scheduling</h2>
-                    <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-[var(--primary)]" />
-                        Cron Jobs
-                    </h3>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                        Schedule recurring tasks to call your API endpoints.
-                    </p>
+            <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <Clock className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scheduling</h2>
+                        <h3 className="text-xl font-semibold">Cron Jobs</h3>
+                    </div>
                 </div>
                 {!isAdding && (
                     <MovingBorderButton
@@ -129,6 +128,9 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                     </MovingBorderButton>
                 )}
             </div>
+            <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                Schedule recurring tasks to call your API endpoints.
+            </p>
 
             {error && (
                 <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-sm">

@@ -5,7 +5,8 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import {
     ArrowLeft,
     GitBranch,
-    ArrowRight
+    ArrowRight,
+    ArrowLeftRight
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { cn } from '@/lib/utils';
@@ -131,12 +132,18 @@ export default function CompareDeploymentsPage() {
                     <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                     Back to Project
                 </Button>
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Compare Deployments</h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">
-                        Analyze differences in build performance and web vitals between two deployments.
-                    </p>
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <ArrowLeftRight className="w-8 h-8" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Analysis</h2>
+                        <h1 className="text-3xl font-bold tracking-tight">Compare Deployments</h1>
+                    </div>
                 </div>
+                <p className="text-[var(--muted-foreground)] text-lg">
+                    Analyze differences in build performance and web vitals between two deployments.
+                </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

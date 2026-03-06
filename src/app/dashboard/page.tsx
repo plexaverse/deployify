@@ -84,13 +84,16 @@ export default function DashboardPage() {
             <CommandPalette />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
-                    </h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">
-                        Manage your Next.js deployments
-                    </p>
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <Plus className="w-8 h-8" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Overview</h2>
+                        <h1 className="text-3xl font-bold tracking-tight">
+                            {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
+                        </h1>
+                    </div>
                 </div>
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">

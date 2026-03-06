@@ -210,7 +210,10 @@ export default function BillingPage() {
                         <Link href="/dashboard" className="p-2 -ml-2 hover:bg-[var(--card-hover)] rounded-full transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
                             <ArrowLeft className="w-4 h-4" />
                         </Link>
-                        <h1 className="text-lg font-semibold gradient-text">Billing & Usage</h1>
+                        <div className="flex items-center gap-2">
+                             <CreditCard className="w-4 h-4 text-[var(--primary)]" />
+                             <h1 className="text-sm font-bold uppercase tracking-wider">Billing & Usage</h1>
+                        </div>
                     </div>
                     <div className="flex items-center gap-x-2">
                         <span className="text-sm text-[var(--muted-foreground)]">Current Plan:</span>

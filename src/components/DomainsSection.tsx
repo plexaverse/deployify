@@ -130,16 +130,15 @@ export function DomainsSection({
 
     return (
         <Card>
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Domains</h2>
-                    <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
-                        <Globe className="w-5 h-5 text-[var(--primary)]" />
-                        Custom Domains
-                    </h3>
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                        Configure custom domains for your deployment
-                    </p>
+            <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                        <Globe className="w-5 h-5" />
+                    </div>
+                    <div className="flex flex-col">
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Domains</h2>
+                        <h3 className="text-xl font-semibold">Custom Domains</h3>
+                    </div>
                 </div>
                 {!isAdding && (
                     <MovingBorderButton
@@ -153,6 +152,9 @@ export function DomainsSection({
                     </MovingBorderButton>
                 )}
             </div>
+            <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                Configure custom domains for your deployment
+            </p>
 
             {/* Error/Success Messages */}
             {error && (
