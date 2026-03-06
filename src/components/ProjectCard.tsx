@@ -86,7 +86,7 @@ export function ProjectCard({ project }: { project: Project }) {
       </div>
 
       {/* Deployment Info */}
-      <div className="mt-auto space-y-3">
+      <div className="mt-auto space-y-4">
         {project.productionUrl && (
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors px-1">
             <ExternalLink className="w-3.5 h-3.5" />
@@ -95,8 +95,8 @@ export function ProjectCard({ project }: { project: Project }) {
         )}
 
         {latestDeployment ? (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[10px] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/30 p-2 rounded-lg border border-[var(--border)] group-hover:border-[var(--foreground)]/10 transition-all group/sha">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/30 p-2 rounded-lg border border-[var(--border)] group-hover:border-[var(--foreground)]/10 transition-all group/sha">
               <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
               <button
@@ -104,7 +104,7 @@ export function ProjectCard({ project }: { project: Project }) {
                 className="opacity-40 hover:opacity-100 flex items-center gap-1 transition-opacity"
                 aria-label="Copy SHA"
               >
-                {latestDeployment.gitCommitSha.substring(0, 7)}
+                <span className="font-mono">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
                 {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
               </button>
             </div>

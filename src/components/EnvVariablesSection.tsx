@@ -329,23 +329,23 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 <div className="h-[1px] flex-1 bg-[var(--border)]" />
                             </div>
 
-                            <div className="overflow-x-auto rounded-md border border-[var(--border)]">
+                            <div className="overflow-x-auto rounded-lg border border-[var(--border)] shadow-sm">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="border-b border-[var(--border)] bg-[var(--muted)]/20">
-                                            <th className="py-3 px-4 font-semibold text-sm w-[30%]">Key</th>
-                                            <th className="py-3 px-4 font-semibold text-sm w-[30%]">Value</th>
-                                            <th className="py-3 px-4 font-semibold text-sm">Type</th>
-                                            <th className="py-3 px-4 font-semibold text-sm">Scope</th>
-                                            <th className="py-3 px-4 font-semibold text-sm text-right">Actions</th>
+                                        <tr className="border-b border-[var(--border)] bg-[var(--muted)]/5">
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Key</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Value</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scope</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {groupedVars[group].map((env) => (
-                                            <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--muted)]/10 transition-colors last:border-0">
-                                                <td className="py-3 px-4 text-sm font-mono">
+                                            <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--card-hover)] transition-colors last:border-0">
+                                                <td className="py-4 px-4 text-sm font-mono">
                                                     <div className="flex items-center gap-2">
-                                                        {env.key}
+                                                        <span className="text-[var(--primary)]">{env.key}</span>
                                                         {env.isSecret && (
                                                             <span title="Secret">
                                                                 <Shield className="w-3 h-3 text-[var(--info)]" />
@@ -353,17 +353,17 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="py-3 px-4 text-sm font-mono">
-                                                    <div className="flex items-center gap-2 bg-[var(--muted)]/50 px-2 py-1 rounded w-fit max-w-full overflow-hidden">
+                                                <td className="py-4 px-4 text-sm font-mono">
+                                                    <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--border)] px-2.5 py-1.5 rounded-md w-fit max-w-full overflow-hidden shadow-sm">
                                                         {revealedIds.has(env.id) ? (
                                                             <span className="text-[var(--foreground)] truncate">
                                                                 {env.isSecret ? (revealedValues[env.id] || 'Loading...') : env.value}
                                                             </span>
                                                         ) : (
-                                                            <span className="text-[var(--muted-foreground)]">••••••••••••••••</span>
+                                                            <span className="text-[var(--muted-foreground)]/50">••••••••••••••••</span>
                                                         )}
 
-                                                        <div className="flex items-center ml-2 border-l border-[var(--border)] pl-1.5 gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                                        <div className="flex items-center ml-2 border-l border-[var(--border)] pl-2 gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
@@ -385,17 +385,17 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-3 px-4">
-                                                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize text-[var(--muted-foreground)]">
+                                                <td className="py-4 px-4">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] text-[var(--muted-foreground)]">
                                                         {getTargetLabel(env.target)}
                                                     </span>
                                                 </td>
-                                                <td className="py-3 px-4">
-                                                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)] capitalize">
+                                                <td className="py-4 px-4">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] text-[var(--muted-foreground)]">
                                                         {env.environment === 'both' || !env.environment ? 'All Envs' : env.environment}
                                                     </span>
                                                 </td>
-                                                <td className="py-3 px-4 text-right">
+                                                <td className="py-4 px-4 text-right">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
