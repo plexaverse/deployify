@@ -243,8 +243,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                 const revertUpdates: Record<string, unknown> = {};
                 // access.project contains the original state before updateProject was called
                 for (const key in updates) {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    revertUpdates[key] = (project as any)[key];
+                    revertUpdates[key] = project[key as keyof typeof project];
                 }
 
                 try {
