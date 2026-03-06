@@ -182,21 +182,27 @@ export default function TeamSettingsPage() {
     if (!activeTeam) {
         return (
             <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">Manage your personal account settings and workspace.</p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <UserIcon className="w-8 h-8 text-[var(--primary)]" />
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Personal Workspace</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+                        </div>
+                    </div>
                 </div>
 
                 <Card className="p-6">
-                    <div className="mb-6">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Profile</h2>
-                        <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                    <div className="mb-6 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <UserIcon className="w-5 h-5 text-[var(--primary)]" />
-                            Personal Profile
-                        </h3>
-                        <p className="text-sm text-[var(--muted-foreground)]">
-                            Manage your personal account information and workspace.
-                        </p>
+                        </div>
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Profile</span>
+                            <h3 className="text-xl font-semibold">Personal Profile</h3>
+                        </div>
                     </div>
                     <Separator className="mb-6" />
 
@@ -233,15 +239,14 @@ export default function TeamSettingsPage() {
                 </Card>
 
                 <Card className="border-[var(--error)]/30 bg-[var(--error)]/5 overflow-hidden p-0">
-                    <div className="p-6">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--error)] mb-2">Danger Zone</h2>
-                        <h3 className="text-xl font-semibold mb-1 text-[var(--error)] flex items-center gap-2">
-                            <AlertTriangle className="w-5 h-5" />
-                            Account Deletion
-                        </h3>
-                        <p className="text-sm text-[var(--muted-foreground)]">
-                            Irreversible and destructive actions.
-                        </p>
+                    <div className="p-6 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--error)]/10 flex items-center justify-center shrink-0">
+                            <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
+                        </div>
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
+                            <h3 className="text-xl font-semibold text-[var(--error)]">Account Deletion</h3>
+                        </div>
                     </div>
                     <Separator className="bg-[var(--error)]/20" />
                     <div className="p-6">
@@ -277,10 +282,15 @@ export default function TeamSettingsPage() {
 
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">{activeTeam.name} Settings</h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">Manage team members, roles, and permissions.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Users className="w-8 h-8 text-[var(--primary)]" />
+                    </div>
+                    <div className="space-y-1">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Management</span>
+                        <h1 className="text-3xl font-bold tracking-tight">{activeTeam.name} Settings</h1>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="capitalize">
@@ -294,15 +304,14 @@ export default function TeamSettingsPage() {
                     {/* Invite Members */}
                     {canManage && (
                         <Card className="p-6">
-                            <div className="mb-6">
-                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Collaboration</h2>
-                                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                            <div className="mb-6 flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                     <UserPlus className="w-5 h-5 text-[var(--primary)]" />
-                                    Invite New Member
-                                </h3>
-                                <p className="text-sm text-[var(--muted-foreground)]">
-                                    Add new members to your team by email.
-                                </p>
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collaboration</span>
+                                    <h3 className="text-xl font-semibold">Invite New Member</h3>
+                                </div>
                             </div>
                             <Separator className="mb-6" />
                             <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4">
@@ -344,15 +353,14 @@ export default function TeamSettingsPage() {
                     {/* Members List */}
                     <Card className="overflow-hidden p-0">
                         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Team</h2>
-                                <h3 className="text-xl font-semibold mb-1 flex items-center gap-2">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                     <Users className="w-5 h-5 text-[var(--primary)]" />
-                                    Team Members
-                                </h3>
-                                <p className="text-sm text-[var(--muted-foreground)]">
-                                    Manage existing members and their roles.
-                                </p>
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team</span>
+                                    <h3 className="text-xl font-semibold">Team Members</h3>
+                                </div>
                             </div>
                             <div className="text-sm font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full">
                                 {members.length} {members.length === 1 ? 'member' : 'members'}
@@ -472,15 +480,14 @@ export default function TeamSettingsPage() {
 
                     {/* Danger Zone */}
                     <Card className="border-[var(--error)]/30 bg-[var(--error)]/5 overflow-hidden p-0">
-                        <div className="p-6">
-                            <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--error)] mb-2">Danger Zone</h2>
-                            <h3 className="text-xl font-semibold mb-1 text-[var(--error)] flex items-center gap-2">
-                                <AlertTriangle className="w-5 h-5" />
-                                Critical Actions
-                            </h3>
-                            <p className="text-sm text-[var(--muted-foreground)]">
-                                Irreversible and destructive actions.
-                            </p>
+                        <div className="p-6 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--error)]/10 flex items-center justify-center shrink-0">
+                                <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
+                            </div>
+                            <div>
+                                <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
+                                <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
+                            </div>
                         </div>
                         <Separator className="bg-[var(--error)]/20" />
                         <div className="p-6 space-y-6">

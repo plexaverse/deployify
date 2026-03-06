@@ -14,7 +14,8 @@ import {
     Loader2,
     AlertCircle,
     Copy,
-    Check
+    Check,
+    Layout
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -156,23 +157,32 @@ export default function ProjectDetailPage() {
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             {/* Project Header Info */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-                    <div className="flex items-center gap-4 text-sm text-[var(--muted-foreground)]">
-                        <a
-                            href={project.repoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors"
-                        >
-                            <Github className="w-4 h-4" />
-                            {project.repoFullName}
-                        </a>
-                        <span className="flex items-center gap-1.5">
-                            <GitBranch className="w-4 h-4" />
-                            {project.defaultBranch}
-                        </span>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Layout className="w-8 h-8 text-[var(--primary)]" />
+                    </div>
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Overview</span>
+                            <span className="text-[var(--muted)]">•</span>
+                            <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
+                                <a
+                                    href={project.repoUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 hover:text-[var(--foreground)] transition-colors"
+                                >
+                                    <Github className="w-3 h-3" />
+                                    {project.repoFullName}
+                                </a>
+                                <span className="flex items-center gap-1">
+                                    <GitBranch className="w-3 h-3" />
+                                    {project.defaultBranch}
+                                </span>
+                            </div>
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
