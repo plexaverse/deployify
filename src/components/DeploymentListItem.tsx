@@ -44,7 +44,7 @@ export function DeploymentListItem({
                             <p className="font-medium text-sm truncate max-w-md">
                                 {deployment.gitCommitMessage}
                             </p>
-                            <Badge variant={deployment.type === 'production' ? 'success' : 'info'} className="text-[10px] px-1.5 py-0">
+                            <Badge variant={deployment.type === 'production' ? 'success' : 'info'} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0">
                                 {deployment.type}
                             </Badge>
                         </div>

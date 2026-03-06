@@ -181,7 +181,7 @@ export default function TeamSettingsPage() {
 
     if (!activeTeam) {
         return (
-            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
+            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
                     <p className="text-[var(--muted-foreground)] text-lg">Manage your personal account settings and workspace.</p>
@@ -276,7 +276,7 @@ export default function TeamSettingsPage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight">{activeTeam.name} Settings</h1>
@@ -332,8 +332,8 @@ export default function TeamSettingsPage() {
                                 <MovingBorderButton
                                     type="submit"
                                     disabled={isInviting || !inviteEmail}
-                                    containerClassName="h-10 w-full sm:w-32"
-                                    className="font-medium text-sm"
+                                    containerClassName="h-10 w-full sm:w-36"
+                                    className="text-xs font-bold"
                                 >
                                     {isInviting ? 'Sending...' : 'Send Invite'}
                                 </MovingBorderButton>

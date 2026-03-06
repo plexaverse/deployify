@@ -87,7 +87,7 @@ export default function ProjectSettingsPage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             {/* Breadcrumb */}
             <Link
                 href={`/dashboard/${project.id}`}
@@ -245,7 +245,7 @@ export default function ProjectSettingsPage() {
                             <MovingBorderButton
                                 onClick={() => saveProjectSettings(project.id)}
                                 loading={saving}
-                                containerClassName="h-10 w-32"
+                                containerClassName="h-10 w-36"
                                 className="text-xs font-bold"
                             >
                                 Save Changes

@@ -86,7 +86,7 @@ export default function NewProjectPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             {/* Header */}
             <div className="space-y-4">
                 <Link

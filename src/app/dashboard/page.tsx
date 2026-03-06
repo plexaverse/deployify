@@ -133,8 +133,8 @@ export default function DashboardPage() {
                     <Link href="/new">
                         <MovingBorderButton
                             as="div"
-                            containerClassName="h-10 w-32"
-                            className="font-bold text-xs"
+                            containerClassName="h-10 w-36"
+                            className="text-xs font-bold"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Add New
