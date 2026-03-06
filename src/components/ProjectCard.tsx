@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Project } from '@/types';
 import { cn } from '@/lib/utils';
 import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
@@ -9,8 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { ProjectAvatar } from '@/components/ProjectAvatar';
 import { toast } from 'sonner';
 
-// Mock data for the sparkline - reflects status
-const generateSparklineData = (status: string) => {
+// Deterministic sparkline data generation using project id as seed
+const generateSparklineData = (status: string, seed: string) => {
   const length = 20;
   let base = 50;
   let volatility = 20;
@@ -26,9 +26,16 @@ const generateSparklineData = (status: string) => {
     volatility = 10;
   }
 
-  return Array.from({ length }, () => ({
-    value: Math.max(0, Math.floor(Math.random() * volatility) + base)
-  }));
+  // Simple hash for seed
+  const hash = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  return Array.from({ length }, (_, i) => {
+    // Deterministic "random" value
+    const pseudoRandom = Math.abs(Math.sin(hash + i) * 1000) % 1;
+    return {
+      value: Math.max(0, Math.floor(pseudoRandom * volatility) + base)
+    };
+  });
 };
 
 const statusConfig = {
@@ -44,13 +51,12 @@ export function ProjectCard({ project }: { project: Project }) {
   const latestDeployment = project.latestDeployment;
   const status = latestDeployment?.status || 'queued';
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
-  const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
+  const sparklineData = useMemo(() => generateSparklineData(status, project.id), [status, project.id]);
 
   return (
-    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
+    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-3xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20 p-6", config.glow)}>
       {/* Header: Project Identity and Sparkline */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -68,20 +74,18 @@ export function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
         <div className="h-10 w-20 opacity-40 group-hover:opacity-100 transition-opacity">
-           {sparklineData.length > 0 && (
-             <ResponsiveContainer width="100%" height="100%">
-               <LineChart data={sparklineData}>
-                 <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke={config.stroke}
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={true}
-                  />
-               </LineChart>
-             </ResponsiveContainer>
-           )}
+           <ResponsiveContainer width="100%" height="100%">
+             <LineChart data={sparklineData}>
+               <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={config.stroke}
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={true}
+                />
+             </LineChart>
+           </ResponsiveContainer>
         </div>
       </div>
 
