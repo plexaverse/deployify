@@ -424,16 +424,19 @@ export default function LandingPage() {
 
           {/* Feature Bento Grid */}
           <div id="features" className="mt-40">
-            <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+        <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-tight">
               Everything you need to scale
             </h2>
             <BentoGrid>
               <BentoGridItem
                 title="Git-Push Deploys"
                 description="Push to GitHub and your app is live. Automatic deployments on every commit."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center"><Zap className="w-12 h-12 text-[var(--foreground)]" /></div>}
+            header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-2xl bg-gradient-to-br from-[var(--foreground)]/[0.03] to-[var(--foreground)]/[0.01] border border-[var(--border)]/50 items-center justify-center overflow-hidden relative group/header">
+              <div className="absolute inset-0 bg-[var(--foreground)]/[0.02] opacity-0 group-hover/header:opacity-100 transition-opacity" />
+              <Zap className="w-12 h-12 text-[var(--foreground)] relative z-10 group-hover/header:scale-110 transition-transform duration-500" />
+            </div>}
                 icon={<Rocket className="h-4 w-4 text-[var(--muted-foreground)]" />}
-                className="md:col-span-2"
+            className="md:col-span-2 rounded-3xl bg-[var(--card)]/50 backdrop-blur-md border-[var(--border)]/50 hover:border-[var(--foreground)]/20 transition-all duration-500"
               />
               <BentoGridItem
                 title="Preview Deployments"
@@ -446,35 +449,39 @@ export default function LandingPage() {
                         e.stopPropagation();
                         handleCopy('https://my-app-pr-123.deployify.run', 'preview-url');
                       }}
-                      className={cn(
-                        buttonVariants({ variant: 'ghost', size: 'icon' }),
-                        "h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                      )}
-                      aria-label={copiedId === 'preview-url' ? "Sample preview URL copied" : "Copy sample preview URL"}
+                  className="h-8 w-8 flex items-center justify-center rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/40 focus-visible:outline-none"
+                  aria-label={copiedId === 'preview-url' ? "SHA Copied" : "Copy sample preview URL"}
                     >
-                      {copiedId === 'preview-url' ? (
-                        <Check className="w-3 h-3 text-[var(--foreground)]" />
-                      ) : (
-                        <Copy className="w-3 h-3" />
-                      )}
+                  {copiedId === 'preview-url' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     </motion.button>
                   </div>
                 }
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center"><Globe className="w-12 h-12 text-[var(--foreground)]" /></div>}
+            header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-2xl bg-gradient-to-br from-[var(--foreground)]/[0.03] to-[var(--foreground)]/[0.01] border border-[var(--border)]/50 items-center justify-center overflow-hidden relative group/header">
+              <div className="absolute inset-0 bg-[var(--foreground)]/[0.02] opacity-0 group-hover/header:opacity-100 transition-opacity" />
+              <Globe className="w-12 h-12 text-[var(--foreground)] relative z-10 group-hover/header:scale-110 transition-transform duration-500" />
+            </div>}
                 icon={<Search className="h-4 w-4 text-[var(--muted-foreground)]" />}
+            className="rounded-3xl bg-[var(--card)]/50 backdrop-blur-md border-[var(--border)]/50 hover:border-[var(--foreground)]/20 transition-all duration-500"
               />
               <BentoGridItem
                 title="Cloud Armor WAF"
                 description="DDoS protection & security."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center"><Shield className="w-12 h-12 text-[var(--foreground)]" /></div>}
+            header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-2xl bg-gradient-to-br from-[var(--foreground)]/[0.03] to-[var(--foreground)]/[0.01] border border-[var(--border)]/50 items-center justify-center overflow-hidden relative group/header">
+              <div className="absolute inset-0 bg-[var(--foreground)]/[0.02] opacity-0 group-hover/header:opacity-100 transition-opacity" />
+              <Shield className="w-12 h-12 text-[var(--foreground)] relative z-10 group-hover/header:scale-110 transition-transform duration-500" />
+            </div>}
                 icon={<Shield className="h-4 w-4 text-[var(--muted-foreground)]" />}
+            className="rounded-3xl bg-[var(--card)]/50 backdrop-blur-md border-[var(--border)]/50 hover:border-[var(--foreground)]/20 transition-all duration-500"
               />
               <BentoGridItem
                 title="Full Resource Control"
                 description="Choose CPU, Memory and Auto-scaling limits."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center"><Cpu className="w-12 h-12 text-[var(--foreground)]" /></div>}
+            header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-2xl bg-gradient-to-br from-[var(--foreground)]/[0.03] to-[var(--foreground)]/[0.01] border border-[var(--border)]/50 items-center justify-center overflow-hidden relative group/header">
+              <div className="absolute inset-0 bg-[var(--foreground)]/[0.02] opacity-0 group-hover/header:opacity-100 transition-opacity" />
+              <Cpu className="w-12 h-12 text-[var(--foreground)] relative z-10 group-hover/header:scale-110 transition-transform duration-500" />
+            </div>}
                 icon={<Cpu className="h-4 w-4 text-[var(--muted-foreground)]" />}
-                className="md:col-span-2"
+            className="md:col-span-2 rounded-3xl bg-[var(--card)]/50 backdrop-blur-md border-[var(--border)]/50 hover:border-[var(--foreground)]/20 transition-all duration-500"
               />
             </BentoGrid>
           </div>
@@ -486,18 +493,18 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 max-w-2xl mx-auto"
           >
-            <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm relative group">
-              <h3 className="text-xl font-bold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
+            <div className="p-12 rounded-[3rem] border border-[var(--border)]/50 bg-[var(--card)]/50 backdrop-blur-xl relative group shadow-2xl">
+              <h3 className="text-2xl font-bold mb-8 text-center text-[var(--foreground)] tracking-tight">Ready to deploy?</h3>
               <div className="relative">
                 <label htmlFor="repo-search" className="sr-only">Search your GitHub repositories</label>
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors z-10" />
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors z-10" />
                 <Input
                   id="repo-search"
                   role="combobox"
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search your GitHub repositories..."
-                  className="w-full h-auto bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] shadow-sm focus:shadow-[var(--primary-glow)] focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
+                  className="w-full h-auto bg-[var(--background)]/60 border-[var(--border)]/50 rounded-3xl py-5 pl-14 pr-14 text-[var(--foreground)] shadow-lg focus:shadow-[0_0_30px_var(--foreground)]/5 focus:ring-2 focus:ring-[var(--foreground)]/40 focus:border-[var(--foreground)]/50 transition-all placeholder:text-[var(--muted-foreground)]/50"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setSelectedIndex(-1); }}
                   onKeyDown={(e) => {
@@ -521,24 +528,22 @@ export default function LandingPage() {
                   aria-autocomplete="list"
                   aria-activedescendant={selectedIndex >= 0 ? `repo-option-${selectedIndex}` : undefined}
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+                <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10">
                   {searchQuery ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
                       onClick={() => { setSearchQuery(''); setSelectedIndex(-1); }}
-                      className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                      className="h-8 w-8 flex items-center justify-center rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--foreground)]/5 transition-colors focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/40 focus-visible:outline-none"
                       aria-label="Clear search"
                     >
                       <X className="w-4 h-4" />
-                    </Button>
+                    </button>
                   ) : (
                     os && (
-                      <div className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity">
-                        <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold text-[var(--muted-foreground)]">
+                      <div className="hidden sm:flex items-center gap-1.5 opacity-40 group-focus-within:opacity-100 transition-opacity pointer-events-none">
+                        <kbd className="h-6 min-w-[1.5rem] flex items-center justify-center rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold text-[var(--muted-foreground)]">
                           {os === 'mac' ? '⌘' : 'Ctrl'}
                         </kbd>
-                        <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold text-[var(--muted-foreground)]">
+                        <kbd className="h-6 min-w-[1.5rem] flex items-center justify-center rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold text-[var(--muted-foreground)]">
                           K
                         </kbd>
                       </div>
@@ -546,7 +551,7 @@ export default function LandingPage() {
                   )}
                 </div>
                 {searchQuery.trim() && (
-                  <motion.div id="repo-results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} role="listbox" className="absolute top-full left-0 right-0 mt-2 bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden z-20 shadow-2xl p-2">
+                  <motion.div id="repo-results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} role="listbox" className="absolute top-full left-0 right-0 mt-4 bg-[var(--card)]/90 backdrop-blur-xl border border-[var(--border)]/50 rounded-[2rem] overflow-hidden z-20 shadow-2xl p-3">
                     {filteredRepos.length > 0 ? filteredRepos.map((repo, i) => (
                       <div
                         key={repo}
@@ -555,11 +560,15 @@ export default function LandingPage() {
                         aria-selected={selectedIndex === i}
                         onMouseEnter={() => setSelectedIndex(i)}
                         onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
-                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-sm transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
+                        className={cn("px-5 py-3 rounded-2xl cursor-pointer flex items-center justify-between text-sm transition-all", selectedIndex === i ? "bg-[var(--foreground)]/[0.05] text-[var(--foreground)] translate-x-1" : "text-[var(--muted-foreground)] hover:bg-[var(--foreground)]/[0.03] hover:text-[var(--foreground)]")}
                       >
-                        <Github className="w-4 h-4" /> {repo}
+                        <div className="flex items-center gap-3">
+                          <Github className="w-4.5 h-4.5 opacity-60" />
+                          <span className="font-medium">{repo}</span>
+                        </div>
+                        <ArrowRight className={cn("w-3.5 h-3.5 transition-opacity", selectedIndex === i ? "opacity-100" : "opacity-0")} />
                       </div>
-                    )) : <div className="px-4 py-4 text-center text-sm text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
+                    )) : <div className="px-5 py-8 text-center text-sm text-[var(--muted-foreground)] font-medium">No results for &quot;{searchQuery}&quot;</div>}
                   </motion.div>
                 )}
               </div>
@@ -573,23 +582,23 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 text-center px-4"
           >
-            <h2 className="text-3xl md:text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-3xl md:text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-tight">
               Global Edge Network
             </h2>
-            <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12">
+            <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12 text-base md:text-lg">
               Deploy your applications to over 100+ locations worldwide with automatic global load balancing and DDoS protection.
             </p>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
               {[
                 { name: 'Ultra-low Latency', icon: Zap },
                 { name: 'Auto-scaling', icon: Rocket },
                 { name: 'Anycast IP', icon: Globe },
                 { name: 'Cloud Armor', icon: Shield },
               ].map((feat, i) => (
-                <div key={feat.name} className="group relative p-8 rounded-[2rem] border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm hover:border-[var(--muted)] transition-all duration-500 text-center overflow-hidden">
-                  <div className="absolute top-4 right-6 text-xs font-black text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
-                  <feat.icon className="w-8 h-8 text-[var(--foreground)] mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
-                  <span className="text-sm font-bold text-[var(--muted-foreground)] block">{feat.name}</span>
+                <div key={feat.name} className="group relative p-10 rounded-[3rem] border border-[var(--border)]/50 bg-[var(--card)]/50 backdrop-blur-md hover:border-[var(--foreground)]/20 transition-all duration-500 text-center overflow-hidden">
+                  <div className="absolute top-6 right-8 text-[10px] font-black text-[var(--muted)]/20 group-hover:text-[var(--foreground)]/20 tracking-widest tabular-nums transition-colors uppercase" aria-hidden="true">Feature 0{i + 1}</div>
+                  <feat.icon className="w-10 h-10 text-[var(--foreground)] mx-auto mb-6 group-hover:scale-110 transition-transform duration-500 opacity-80 group-hover:opacity-100" aria-hidden="true" />
+                  <span className="text-sm font-bold text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] transition-colors uppercase tracking-widest">{feat.name}</span>
                 </div>
               ))}
             </div>
