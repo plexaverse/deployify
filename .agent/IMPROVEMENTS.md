@@ -236,6 +236,7 @@
 - **Build Status Type Safety**: Added `INTERNAL_ERROR` to the `getBuildStatus` return type for full terminal state coverage.
 - **Automated Registry Cleanup**: Integrated `pruneProjectImages` into the deployment sync logic to automatically maintain the last 10 images per project.
 - **Production Log Hygiene**: Silenced verbose success logs in BigQuery streaming and analytics collection to reduce noise.
+- **Linting Fix**: Removed unused `gcpProjectId` variable in `src/lib/gcp/bigquery.ts` to maintain zero-warning policy.
 
 ---
 
