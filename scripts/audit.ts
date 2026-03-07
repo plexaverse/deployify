@@ -106,7 +106,7 @@ async function main() {
                 JSON.parse(content);
                 console.log('\x1b[32mPASS: firestore.indexes.json is valid JSON.\x1b[0m');
 
-                if (firebaseCredsAvailable) {
+                if (firebaseCredsAvailable && process.env.MOCK_DB !== 'true') {
                     console.log('  Attempting to verify indexes with a live query...');
                     try {
                         // Dynamic import to avoid crash if deps are missing or env vars cause issues on load
