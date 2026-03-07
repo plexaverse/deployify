@@ -11,6 +11,7 @@ import { ComparePlansTable } from '@/components/billing/ComparePlansTable';
 import { UsageGauge } from '@/components/billing/UsageGauge';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useStore } from '@/store';
@@ -204,17 +205,30 @@ export default function BillingPage() {
             <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
             {/* Header */}
-            <div className="border-b border-[var(--border)] bg-[var(--background)]/50 backdrop-blur-md sticky top-0 z-30">
-                <div className="max-w-7xl mx-auto px-6 md:px-8 h-14 flex items-center justify-between">
+            <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8 space-y-4">
+                <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to projects
+                </Link>
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
-                        <Link href="/dashboard" className="p-2 -ml-2 hover:bg-[var(--card-hover)] rounded-full transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
-                            <ArrowLeft className="w-4 h-4" />
-                        </Link>
-                        <h1 className="text-lg font-semibold gradient-text">Billing & Usage</h1>
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <CreditCard className="w-8 h-8 text-[var(--primary)]" />
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Billing & Usage</h1>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-x-2">
-                        <span className="text-sm text-[var(--muted-foreground)]">Current Plan:</span>
-                        <Badge variant="default" className="capitalize">{tier.name}</Badge>
+                    <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-end">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Current Plan</span>
+                            <Badge variant="default" className="capitalize px-3 py-1 font-bold">{tier.name}</Badge>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -223,13 +237,14 @@ export default function BillingPage() {
 
                 {/* Usage Section */}
                 <section>
-                    <div className="mb-8">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Resource Monitoring</h2>
-                        <h3 className="text-2xl font-bold mb-1 text-[var(--foreground)] flex items-center gap-2">
-                            <BarChart3 className="w-6 h-6 text-[var(--primary)]" />
-                            Usage
-                        </h3>
-                        <p className="text-[var(--muted-foreground)]">Monitor your resource consumption for the current billing cycle.</p>
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <BarChart3 className="w-5 h-5 text-[var(--primary)]" />
+                        </div>
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Resource Monitoring</span>
+                            <h3 className="text-xl font-semibold">Usage</h3>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -262,12 +277,12 @@ export default function BillingPage() {
 
                 {/* Plans Section */}
                 <section id="plans" className="scroll-mt-24">
-                    <div className="mb-10 text-center max-w-2xl mx-auto">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</h2>
-                        <h3 className="text-3xl font-bold mb-4 text-[var(--foreground)] tracking-tight flex items-center justify-center gap-2">
+                    <div className="flex flex-col items-center text-center max-w-2xl mx-auto mb-10">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-4">
                             <CreditCard className="w-8 h-8 text-[var(--primary)]" />
-                            Simple, transparent pricing
-                        </h3>
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
+                        <h3 className="text-3xl font-bold tracking-tight mb-4">Simple, transparent pricing</h3>
                         <p className="text-lg text-[var(--muted-foreground)]">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
                         </p>
@@ -289,27 +304,30 @@ export default function BillingPage() {
 
                 {/* Comparison Table */}
                 <section>
-                    <div className="mb-10 text-center">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</h2>
-                        <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
-                            <Layers className="w-6 h-6 text-[var(--primary)]" />
-                            Compare features
-                        </h3>
+                    <div className="flex flex-col items-center text-center mb-10">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mb-3">
+                            <Layers className="w-5 h-5 text-[var(--primary)]" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</span>
+                        <h3 className="text-2xl font-bold">Compare features</h3>
                     </div>
                     <ComparePlansTable plans={PLANS} currentPlanId={tier.id} />
                 </section>
 
                 {/* Invoice History */}
                 <section>
-                    <div className="mb-8">
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Billing History</h2>
-                        <h3 className="text-2xl font-bold mb-1 text-[var(--foreground)] flex items-center gap-2">
-                            <History className="w-6 h-6 text-[var(--primary)]" />
-                            Invoices
-                        </h3>
-                        <p className="text-[var(--muted-foreground)]">View and download your past invoices.</p>
-                    </div>
-                    <Card className="p-0 overflow-hidden">
+                    <Card className="overflow-hidden p-0">
+                        <div className="p-6 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                <History className="w-5 h-5 text-[var(--primary)]" />
+                            </div>
+                            <div>
+                                <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Billing History</span>
+                                <h3 className="text-xl font-semibold">Invoices</h3>
+                            </div>
+                        </div>
+
+                        <Separator className="bg-[var(--border)]" />
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-[var(--muted)]/10 border-b border-[var(--border)]">

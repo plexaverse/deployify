@@ -179,14 +179,22 @@ export default function ImportProjectPage() {
                     Back to Git Repositories
                 </Link>
 
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <Settings className="w-8 h-8 text-[var(--primary)]" />
-                        Configure Project
-                    </h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">
-                        Deploying <strong className="text-[var(--foreground)]">{repoFullName}</strong>
-                    </p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Settings className="w-8 h-8 text-[var(--primary)]" />
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Import</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Configure Project</h1>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-end">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Repository</span>
+                            <span className="text-sm font-semibold truncate max-w-[200px]">{repoFullName}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 

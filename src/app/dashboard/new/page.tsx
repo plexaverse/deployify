@@ -96,14 +96,16 @@ export default function NewProjectPage() {
                     <ArrowLeft className="w-4 h-4" />
                     Back to projects
                 </Link>
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <Github className="w-8 h-8 text-[var(--primary)]" />
-                        Import Git Repository
-                    </h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">
-                        Select a repository to import and deploy
-                    </p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Github className="w-8 h-8 text-[var(--primary)]" />
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Connectivity</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Import Repository</h1>
+                        </div>
+                    </div>
                 </div>
             </div>
 

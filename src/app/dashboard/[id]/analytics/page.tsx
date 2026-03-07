@@ -112,18 +112,28 @@ export default function ProjectAnalyticsPage() {
             </div>
 
             <div className="space-y-6">
-                <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-[var(--primary)]" />
-                    Deployment Performance
-                </h2>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Activity className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
+                        <h3 className="text-xl font-semibold">Deployment Performance</h3>
+                    </div>
+                </div>
                 <DeploymentMetricsCharts deployments={deployments} />
             </div>
 
             <div className="pt-10 border-t border-[var(--border)] space-y-6">
-                <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-[var(--primary)]" />
-                    Traffic Analytics
-                </h2>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Activity className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Visitor Statistics</span>
+                        <h3 className="text-xl font-semibold">Traffic Analytics</h3>
+                    </div>
+                </div>
 
                 {stats && <div className="mb-6"><AnalyticsAlerts alerts={evaluatePerformance(stats)} /></div>}
 

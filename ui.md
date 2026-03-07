@@ -89,6 +89,57 @@ Continued standardizing the application layout and ensuring consistency across a
   - Implemented the `text-xs font-bold uppercase tracking-wider` context label.
   - Aligned page titles to `text-3xl font-bold tracking-tight`.
 
+## Progressive UI & Layout Standardization (Session 105)
+
+Standardized the primary dashboard home page and other utility pages to the established 3-part header architecture.
+
+### Dashboard Home Header Standardization
+- **File Updated**: `src/app/dashboard/page.tsx`
+- **Standardization**: Refactored the dashboard home header to follow the 3-part visual hierarchy:
+  - **Icon Container**: Added `Layout` icon in a `w-12 h-12 rounded-2xl bg-[var(--primary)]/10` container.
+  - **Context Label**: Added "Workspace Overview" metadata label (`text-xs font-bold uppercase tracking-wider`).
+  - **Main Title**: Ensured the title uses `text-3xl font-bold tracking-tight`.
+
+### Billing Page Layout & Section Standardization
+- **File Updated**: `src/app/billing/page.tsx`
+- **Standardization**:
+  - Replaced the custom sticky header with the standardized 3-part page header architecture (Icon Container: `CreditCard`, Context Label: "Account Subscription", Main Title: "Billing & Usage").
+  - Standardized all sub-sections (Usage, Pricing Plans, Feature Comparison, Invoices) using the established section header architecture (Icon Container `w-10 h-10 rounded-xl` + Context Label + Title).
+  - Refactored the Invoices list into a standardized `<Card className="overflow-hidden p-0">` with a padded flex header and `<Separator />`.
+  - Replaced the floating back button with a consistent "Back to projects" link matching other configuration views.
+
+### Edge Function Simulator Header Standardization
+- **File Updated**: `src/app/edge-debug/page.tsx`
+- **Standardization**: Refactored the Edge Function Simulator header to follow the 3-part architecture:
+  - **Icon Container**: Updated `Cpu` icon container to the `w-12 h-12 rounded-2xl` standard.
+  - **Context Label**: Added "Developer Tools" metadata label (`text-xs font-bold uppercase tracking-wider`).
+  - **Main Title**: Ensured the title uses `text-3xl font-bold tracking-tight`.
+
+### Project Import Header Standardization
+- **File Updated**: `src/app/dashboard/new/import/page.tsx`
+- **Standardization**: Refactored the Project Import configuration header to follow the 3-part architecture:
+  - **Icon Container**: Updated `Settings` icon container to the `w-12 h-12 rounded-2xl` standard.
+  - **Context Label**: Added "Project Import" metadata label (`text-xs font-bold uppercase tracking-wider`).
+  - **Main Title**: Ensured the title uses `text-3xl font-bold tracking-tight`.
+  - **Technical Metadata**: Added a right-aligned repository name indicator with `text-[10px] font-bold uppercase tracking-wider` labeling to match the Billing Page's current plan indicator.
+
+### Repository Selection Header Standardization
+- **File Updated**: `src/app/dashboard/new/page.tsx`
+- **Standardization**: Refactored the Repository Selection header to follow the 3-part architecture:
+  - **Icon Container**: Updated `Github` icon container to the `w-12 h-12 rounded-2xl` standard.
+  - **Context Label**: Added "Git Connectivity" metadata label (`text-xs font-bold uppercase tracking-wider`).
+  - **Main Title**: Standardized the title to "Import Repository" with `text-3xl font-bold tracking-tight`.
+
+### Account & Team Settings Card Standardization
+- **File Updated**: `src/app/dashboard/settings/page.tsx`
+- **Standardization**:
+  - Refactored "Personal Profile", "Invite New Member", and "Danger Zone" cards to follow the established internal section standard: `<Card className="overflow-hidden p-0">` with a padded flex header, `<Separator />`, and a padded content container.
+  - Standardized section titles (e.g., from "Account Deletion" to "Critical Actions") to align with Project Settings naming conventions.
+
+### Analytics Section Header Standardization
+- **File Updated**: `src/app/dashboard/[id]/analytics/page.tsx`
+- **Standardization**: Standardized "Deployment Performance" and "Traffic Analytics" headers to use the 3-part section header architecture (Icon Container `w-10 h-10 rounded-xl` + Context Label + Title).
+
 ### Settings Toggle Typography
 - **File Updated**: `src/components/SettingsToggle.tsx`
 - **Standardization**: Refined primary label typography from `text-base font-medium` to `text-sm font-semibold`. This improves legibility and matches the compact, professional design language used across other application components.
