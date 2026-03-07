@@ -1,4 +1,7 @@
+'use client';
+
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export const BentoGrid = ({
   className,
@@ -10,7 +13,7 @@ export const BentoGrid = ({
   return (
     <div
       className={cn(
-        "grid md:auto-rows-[18rem] grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto",
+        "grid md:auto-rows-[20rem] grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto",
         className
       )}
     >
@@ -33,22 +36,27 @@ export const BentoGridItem = ({
   icon?: React.ReactNode;
 }) => {
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -4 }}
       className={cn(
-        "row-span-1 rounded-xl group/bento hover:shadow-xl transition duration-200 shadow-[var(--shadow-sm)] p-4 bg-[var(--card)] border border-[var(--border)] justify-between flex flex-col space-y-4",
+        "row-span-1 rounded-3xl group/bento transition duration-200 shadow-[var(--shadow-sm)] p-6 bg-[var(--card)] border border-[var(--border)] justify-between flex flex-col space-y-4",
         className
       )}
     >
       {header}
-      <div className="group-hover/bento:translate-x-2 transition duration-200">
-        {icon}
-        <div className="font-sans font-bold text-[var(--foreground)] mb-2 mt-2">
-          {title}
-        </div>
-        <div className="font-sans font-normal text-[var(--muted-foreground)] text-xs">
-          {description}
-        </div>
+      <div className="transition duration-200">
+        {icon && <div className="mb-2">{icon}</div>}
+        {title && (
+          <div className="font-sans font-bold text-[var(--foreground)] mb-2">
+            {title}
+          </div>
+        )}
+        {description && (
+          <div className="font-sans font-normal text-[var(--muted-foreground)] text-xs">
+            {description}
+          </div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
