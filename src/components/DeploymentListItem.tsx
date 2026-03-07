@@ -61,7 +61,7 @@ export function DeploymentListItem({
                                 {copiedId === `sha-${deployment.id}` && <Check className="w-3 h-3 text-[var(--success)]" />}
                             </div>
                             <span className="text-[var(--muted)]">•</span>
-                            <span>{formatDate(deployment.createdAt)}</span>
+                            <span className="uppercase">{formatDate(deployment.createdAt)}</span>
                         </div>
                     </div>
                 </div>
