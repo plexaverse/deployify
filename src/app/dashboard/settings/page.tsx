@@ -194,8 +194,8 @@ export default function TeamSettingsPage() {
                     </div>
                 </div>
 
-                <Card className="p-6">
-                    <div className="mb-6 flex items-center gap-3">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <UserIcon className="w-5 h-5 text-[var(--primary)]" />
                         </div>
@@ -204,14 +204,9 @@ export default function TeamSettingsPage() {
                             <h3 className="text-xl font-semibold">Personal Profile</h3>
                         </div>
                     </div>
-                    <Separator className="mb-6" />
+                    <Separator className="bg-[var(--border)]" />
 
-                    {/* We can't use useSession here easily without adding it to the project,
-                        but TeamContext or some global state might have it.
-                        Actually, let's just show the placeholder or use the store if user info is there.
-                        The session is available in some contexts.
-                    */}
-                    <div className="flex items-center gap-6">
+                    <div className="p-6 flex items-center gap-6">
                         <Avatar className="w-20 h-20 border-2 border-[var(--border)]">
                             <AvatarImage src={user?.avatarUrl} alt={user?.name || user?.githubUsername} />
                             <AvatarFallback>
@@ -245,7 +240,7 @@ export default function TeamSettingsPage() {
                         </div>
                         <div>
                             <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                            <h3 className="text-xl font-semibold text-[var(--error)]">Account Deletion</h3>
+                            <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--error)]/20" />
@@ -303,8 +298,8 @@ export default function TeamSettingsPage() {
                 <div className="lg:col-span-2 space-y-8">
                     {/* Invite Members */}
                     {canManage && (
-                        <Card className="p-6">
-                            <div className="mb-6 flex items-center gap-3">
+                        <Card className="overflow-hidden p-0">
+                            <div className="p-6 flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                     <UserPlus className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
@@ -313,8 +308,8 @@ export default function TeamSettingsPage() {
                                     <h3 className="text-xl font-semibold">Invite New Member</h3>
                                 </div>
                             </div>
-                            <Separator className="mb-6" />
-                            <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4">
+                            <Separator className="bg-[var(--border)]" />
+                            <form onSubmit={handleInvite} className="p-6 flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
                                     <Label htmlFor="email" className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Email address</Label>
                                     <Input

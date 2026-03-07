@@ -79,13 +79,14 @@ export default function EdgeDebugPage() {
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                     <Cpu className="w-8 h-8 text-[var(--primary)]" />
-                    Edge Function Simulator
-                </h1>
-                <p className="text-[var(--muted-foreground)] text-lg">Test middleware logic and edge functions in a sandboxed environment.</p>
-                <p className="text-xs text-[var(--muted-foreground)] mt-1">Note: Only JavaScript is supported. TypeScript types are not transpiled.</p>
+                </div>
+                <div className="space-y-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
+                    <h1 className="text-3xl font-bold tracking-tight">Edge Function Simulator</h1>
+                </div>
             </div>
             <MovingBorderButton
                 onClick={handleRun}
