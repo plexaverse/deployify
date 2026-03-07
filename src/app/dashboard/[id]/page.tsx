@@ -15,7 +15,8 @@ import {
     AlertCircle,
     Copy,
     Check,
-    Layout
+    Layout,
+    Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,7 @@ import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 
 export default function ProjectDetailPage() {
@@ -166,7 +168,7 @@ export default function ProjectDetailPage() {
                         <div className="flex items-center gap-2">
                             <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Overview</span>
                             <span className="text-[var(--muted)]">•</span>
-                            <div className="flex items-center gap-3 text-xs text-[var(--muted-foreground)]">
+                            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 <a
                                     href={project.repoUrl}
                                     target="_blank"
@@ -235,12 +237,17 @@ export default function ProjectDetailPage() {
                 {/* Left Column: Production Deployment & Stats */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Production Card */}
-                    <Card className="overflow-hidden shadow-lg border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5">
-                        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/10">
-                            <div className="flex items-center gap-2">
-                                <Globe className="w-4 h-4 text-[var(--muted-foreground)]" />
-                                <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Production Deployment</h2>
-                                <Badge variant="outline" className="text-[10px] font-mono font-normal uppercase tracking-tight py-0 px-1.5 bg-[var(--background)]">
+                    <Card className="overflow-hidden shadow-lg border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5 p-0">
+                        <div className="px-6 py-4 flex items-center justify-between bg-[var(--muted)]/5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                    <Globe className="w-5 h-5 text-[var(--primary)]" />
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
+                                    <h2 className="text-xl font-semibold">Production</h2>
+                                </div>
+                                <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)] ml-2">
                                     {project.framework || 'Web App'}
                                 </Badge>
                             </div>
@@ -254,6 +261,9 @@ export default function ProjectDetailPage() {
                                 </Badge>
                             </div>
                         </div>
+
+                        <Separator className="bg-[var(--border)]" />
+
                         <div className="p-8">
                             {project.productionUrl ? (
                                 <div className="space-y-6">
@@ -272,7 +282,7 @@ export default function ProjectDetailPage() {
                                                 </div>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <Clock className="w-3 h-3" />
-                                                    <span>Last Push: <span className="text-[var(--foreground)] font-bold">{formatDate(project.updatedAt)}</span></span>
+                                                    <span>Last Push: <span className="text-[var(--foreground)] font-bold uppercase">{formatDate(project.updatedAt)}</span></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -291,7 +301,7 @@ export default function ProjectDetailPage() {
                                         </Button>
                                     </div>
                                     <div className="pt-6 flex items-center justify-between border-t border-[var(--border)]">
-                                        <div className="flex items-center gap-6 text-[11px] text-[var(--muted-foreground)]">
+                                        <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             <div className="flex items-center gap-1.5">
                                                 <Github className="w-3.5 h-3.5" />
                                                 <span>{project.repoFullName}</span>
@@ -304,7 +314,7 @@ export default function ProjectDetailPage() {
                                             )}
                                         </div>
                                         <Link href={`${params.id}/deployments`}>
-                                            <Button variant="ghost" size="sm" className="text-xs font-medium h-7 text-[var(--primary)] hover:bg-[var(--primary)]/5">
+                                            <Button variant="ghost" size="sm" className="text-xs font-bold h-7 text-[var(--primary)] hover:bg-[var(--primary)]/5 uppercase tracking-wider">
                                                 View All Deploys
                                             </Button>
                                         </Link>
@@ -312,7 +322,7 @@ export default function ProjectDetailPage() {
                                 </div>
                             ) : (
                                 <div className="py-12 text-center space-y-3">
-                                    <p className="text-[var(--muted-foreground)] text-sm">
+                                    <p className="text-[var(--muted-foreground)] text-sm font-medium">
                                         No production deployment yet. Push to {project.defaultBranch} to deploy.
                                     </p>
                                 </div>
@@ -325,17 +335,26 @@ export default function ProjectDetailPage() {
                 <div className="space-y-8">
                     {/* Compact Error Rate */}
                     {errorCount !== null && (
-                        <Card className="p-6 shadow-sm">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">Errors (24h)</span>
+                        <Card className="overflow-hidden p-0 shadow-sm">
+                            <div className="px-6 py-4 flex items-center justify-between bg-[var(--muted)]/5">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                        <Activity className="w-5 h-5 text-[var(--primary)]" />
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">24h Status</span>
+                                        <h3 className="text-xl font-semibold">Vitals</h3>
+                                    </div>
+                                </div>
                                 <AlertCircle className={cn(
-                                    "w-4 h-4",
+                                    "w-5 h-5",
                                     errorCount > 0 ? "text-[var(--error)]" : "text-[var(--success)]"
                                 )} />
                             </div>
-                            <div className="flex items-baseline gap-2">
+                            <Separator className="bg-[var(--border)]" />
+                            <div className="p-6 flex items-baseline gap-2">
                                 <span className="text-3xl font-bold">{errorCount}</span>
-                                <span className="text-xs text-[var(--muted-foreground)]">vitals tracked</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">events tracked</span>
                             </div>
                         </Card>
                     )}
@@ -346,16 +365,6 @@ export default function ProjectDetailPage() {
 
             {/* Deployment History */}
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
-                        <History className="w-5 h-5 text-[var(--primary)]" />
-                        Deployment History
-                    </h2>
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs text-[var(--muted-foreground)]">Showing {deployments.length} deployments</span>
-                    </div>
-                </div>
-
                 {deployments.length === 0 ? (
                     <EmptyState
                         title="Ready to deploy"
@@ -385,7 +394,26 @@ export default function ProjectDetailPage() {
                         </div>
                     </EmptyState>
                 ) : (
-                    <Card className="overflow-hidden shadow-sm">
+                    <Card className="overflow-hidden shadow-sm p-0">
+                        <div className="px-6 py-4 flex items-center justify-between bg-[var(--muted)]/5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                    <History className="w-5 h-5 text-[var(--primary)]" />
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Activity</span>
+                                    <h2 className="text-xl font-semibold">Deployment History</h2>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded border border-[var(--border)]">
+                                    Showing {Math.min(deployments.length, 5)} of {deployments.length}
+                                </span>
+                            </div>
+                        </div>
+
+                        <Separator className="bg-[var(--border)]" />
+
                         <div className="divide-y divide-[var(--border)]">
                             {deployments.slice(0, 5).map((deployment) => (
                                 <DeploymentListItem

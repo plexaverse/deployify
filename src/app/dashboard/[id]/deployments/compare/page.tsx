@@ -5,7 +5,10 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import {
     ArrowLeft,
     GitBranch,
-    ArrowRight
+    ArrowRight,
+    ArrowLeftRight,
+    History,
+    LayoutGrid
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { cn } from '@/lib/utils';
@@ -14,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Separator } from '@/components/ui/separator';
 import type { Deployment } from '@/types';
 
 export default function CompareDeploymentsPage() {
@@ -120,84 +124,120 @@ export default function CompareDeploymentsPage() {
     if (!currentProject) return null;
 
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 pb-24">
-            <div className="space-y-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.back()}
-                    className="group text-[var(--muted-foreground)] hover:text-[var(--foreground)] -ml-2"
-                >
-                    <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                    Back to Project
-                </Button>
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Compare Deployments</h1>
-                    <p className="text-[var(--muted-foreground)] text-lg">
-                        Analyze differences in build performance and web vitals between two deployments.
-                    </p>
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+            {/* Breadcrumb */}
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.back()}
+                className="group text-[var(--muted-foreground)] hover:text-[var(--foreground)] -ml-2 h-auto py-0"
+            >
+                <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                Back to Project
+            </Button>
+
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <ArrowLeftRight className="w-8 h-8 text-[var(--primary)]" />
+                    </div>
+                    <div className="space-y-1">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Analysis</span>
+                        <h1 className="text-3xl font-bold tracking-tight">Compare Deployments</h1>
+                    </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Base Deployment Selector */}
-                <Card className="p-6 space-y-6">
-                    <div>
-                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-3 block">Base Deployment (Previous)</label>
-                        <NativeSelect
-                            value={baseId}
-                            onChange={(e) => handleBaseChange(e.target.value)}
-                        >
-                            <option value="">Select deployment</option>
-                            {currentDeployments.map(d => (
-                                <option key={d.id} value={d.id}>
-                                    {d.gitCommitMessage} ({d.gitCommitSha.substring(0, 7)})
-                                </option>
-                            ))}
-                        </NativeSelect>
-                    </div>
-
-                    {baseDeployment ? (
-                        <DeploymentSummary deployment={baseDeployment} />
-                    ) : (
-                         <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg">
-                            Select a deployment
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <History className="w-5 h-5 text-[var(--primary)]" />
                         </div>
-                    )}
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Base Deployment</span>
+                            <h3 className="text-xl font-semibold">Previous Version</h3>
+                        </div>
+                    </div>
+                    <Separator className="bg-[var(--border)]" />
+                    <div className="p-6 space-y-6">
+                        <div>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-3 block">Select Source</label>
+                            <NativeSelect
+                                value={baseId}
+                                onChange={(e) => handleBaseChange(e.target.value)}
+                            >
+                                <option value="">Select deployment</option>
+                                {currentDeployments.map(d => (
+                                    <option key={d.id} value={d.id}>
+                                        {d.gitCommitMessage} ({d.gitCommitSha.substring(0, 7)})
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                        </div>
+
+                        {baseDeployment ? (
+                            <DeploymentSummary deployment={baseDeployment} />
+                        ) : (
+                             <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-sm font-medium">
+                                Select a deployment
+                            </div>
+                        )}
+                    </div>
                 </Card>
 
                 {/* Target Deployment Selector */}
-                <Card className="p-6 space-y-6">
-                    <div>
-                        <label className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-3 block">Target Deployment (Current)</label>
-                        <NativeSelect
-                            value={targetId}
-                            onChange={(e) => handleTargetChange(e.target.value)}
-                        >
-                            <option value="">Select deployment</option>
-                            {currentDeployments.map(d => (
-                                <option key={d.id} value={d.id}>
-                                    {d.gitCommitMessage} ({d.gitCommitSha.substring(0, 7)})
-                                </option>
-                            ))}
-                        </NativeSelect>
-                    </div>
-
-                    {targetDeployment ? (
-                        <DeploymentSummary deployment={targetDeployment} />
-                    ) : (
-                        <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg">
-                            Select a deployment
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <ArrowRight className="w-5 h-5 text-[var(--primary)]" />
                         </div>
-                    )}
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Deployment</span>
+                            <h3 className="text-xl font-semibold">New Version</h3>
+                        </div>
+                    </div>
+                    <Separator className="bg-[var(--border)]" />
+                    <div className="p-6 space-y-6">
+                        <div>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-3 block">Select Target</label>
+                            <NativeSelect
+                                value={targetId}
+                                onChange={(e) => handleTargetChange(e.target.value)}
+                            >
+                                <option value="">Select deployment</option>
+                                {currentDeployments.map(d => (
+                                    <option key={d.id} value={d.id}>
+                                        {d.gitCommitMessage} ({d.gitCommitSha.substring(0, 7)})
+                                    </option>
+                                ))}
+                            </NativeSelect>
+                        </div>
+
+                        {targetDeployment ? (
+                            <DeploymentSummary deployment={targetDeployment} />
+                        ) : (
+                            <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-sm font-medium">
+                                Select a deployment
+                            </div>
+                        )}
+                    </div>
                 </Card>
             </div>
 
             {/* Comparison Table */}
             {baseDeployment && targetDeployment && (
                 <Card className="overflow-hidden p-0 border-[var(--border)] shadow-sm">
-                    <div className="bg-[var(--muted)]/5 px-6 py-4 border-b border-[var(--border)]">
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Comparison Metrics</h3>
+                    <div className="px-6 py-4 border-b border-[var(--border)] flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <LayoutGrid className="w-5 h-5 text-[var(--primary)]" />
+                        </div>
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
+                            <h3 className="text-xl font-semibold">Comparison Results</h3>
+                        </div>
                     </div>
                     <div className="divide-y divide-[var(--border)]">
                         <ComparisonRow
@@ -286,14 +326,14 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                     <h3 className="font-bold text-lg text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
-                    <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mt-1">
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
                         <GitBranch className="w-3.5 h-3.5" />
-                        <span>{deployment.gitBranch}</span>
-                        <span>•</span>
-                        <span className="font-mono">{deployment.gitCommitSha.substring(0, 7)}</span>
+                        <span className="font-mono text-[var(--foreground)]">{deployment.gitBranch}</span>
+                        <span className="text-[var(--muted)]">•</span>
+                        <span className="font-mono text-[var(--foreground)]">{deployment.gitCommitSha.substring(0, 7)}</span>
                     </div>
                 </div>
-                <Badge variant={deployment.status === 'ready' ? 'success' : 'secondary'}>
+                <Badge variant={deployment.status === 'ready' ? 'success' : 'secondary'} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
                     {deployment.status}
                 </Badge>
             </div>
@@ -301,11 +341,11 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
                     <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Created</div>
-                    <div className="text-sm font-semibold">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                    <div className="text-sm font-semibold text-[var(--foreground)]">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                 </div>
                  <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
                     <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Environment</div>
-                    <div className="text-sm font-semibold capitalize">{deployment.type}</div>
+                    <div className="text-sm font-semibold capitalize text-[var(--foreground)]">{deployment.type}</div>
                 </div>
             </div>
         </div>
