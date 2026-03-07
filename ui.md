@@ -1,4 +1,3 @@
-[... existing content of ui.md based on output from cat ui.md]
 # UI/UX Standards and Updates Log
 
 This document tracks UI standardization updates across the application to maintain consistent visual hierarchy, spacing, typography, and interactive states.
@@ -150,3 +149,40 @@ Continued ensuring environment consistency for local development and auditing.
 
 ### Environment & Audit Readiness
 - **Improvement**: Bootstrapped `.env.local` with required placeholders for `MOCK_DB=true` mode and optimized `scripts/audit.ts` to skip live GCP checks when mocking is enabled. This ensures a "Green" audit state for local development environments.
+
+## Progressive UI & Layout Standardization (Session 107)
+
+Standardized the core authentication flow, project creation pipeline, and root-level system pages.
+
+### Create Project Pipeline Standardization
+- **File Updated**: `src/app/new/page.tsx`
+- **Standardization**: Refactored the entire project creation flow to match dashboard standards:
+  - **Layout**: Adopted the `max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10` root layout.
+  - **Page Header**: Implemented the 3-part header architecture (Icon Container: `Rocket`, Context Label: "Project Creation", Main Title: "Create New Project").
+  - **Stepper Component**: Standardized `StepIndicator` with `w-8 h-8` icon containers and improved `gap-3` spacing for a more professional feel.
+  - **Card Standardization**: Refactored "Project Settings" and "Environment Variables" cards to the internal section standard: `<Card className="overflow-hidden p-0">` with padded headers, `<Separator />`, and padded content bodies.
+  - **Technical Metadata**: Enforced `text-[10px] font-bold uppercase tracking-wider` for "Private" repo badges, environment variable targets/scopes, and build log filenames.
+  - **Action Buttons**: Standardized primary deployment buttons to use `MovingBorderButton` with consistent `h-12` container sizing.
+
+### Join Team Page Standardization
+- **File Updated**: `src/app/join/page.tsx`
+- **Standardization**:
+  - Refactored the invite card and all error state cards to follow the 3-part header architecture (Icon Container + Context Label + Main Title).
+  - Standardized the invite card using the `overflow-hidden p-0` pattern and established section headers.
+  - Updated team avatars to use `rounded-2xl` to match the platform's standard icon container shape.
+  - Enforced consistent spacing and typography across all conditional views.
+
+### Root System Pages Standardization
+- **Files Updated**: `src/app/error.tsx`, `src/app/not-found.tsx`
+- **Standardization**:
+  - Replaced ad-hoc system layouts with the standardized 3-part header architecture (Icon Container: `AlertCircle` for errors, `FileQuestion` for 404s).
+  - Aligned context labels ("System Error", "404 Error") and typography to established dashboard standards.
+  - Refactored full-page containers to use the standardized `<Card className="overflow-hidden p-0">` pattern with internal padding.
+  - Unified technical metadata (Error Digests) to the `text-[10px] font-bold uppercase tracking-wider` standard.
+
+### Authentication Flow Standardization
+- **File Updated**: `src/app/(marketing)/login/page.tsx`
+- **Standardization**:
+  - Refactored the login card to follow the 3-part header architecture (Icon Container: `Rocket`, Context Label: "Authentication", Main Title: "Welcome back").
+  - Standardized the login card using the `overflow-hidden p-0` pattern and `rounded-[2.5rem]` sizing.
+  - Aligned technical labels (Secure OAuth) to the `text-[10px] font-bold uppercase tracking-wider` standard.

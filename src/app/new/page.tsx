@@ -20,6 +20,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { BuildLogViewer } from '@/components/BuildLogViewer';
 import { cn } from '@/lib/utils';
 import type { GitHubRepo, Project, Deployment, EnvVariableTarget } from '@/types';
@@ -63,26 +64,32 @@ export default function NewProjectPage() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-[var(--background)] antialiased relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             <BackgroundBeams className="opacity-40" />
 
-            <div className="relative z-10 container mx-auto px-4 py-8 max-w-5xl h-screen flex flex-col">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+            {/* Header */}
+            <div className="space-y-4 relative z-10">
+                <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to projects
+                </Link>
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
-                        <Link
-                            href="/dashboard"
-                            className="p-2 rounded-full hover:bg-[var(--card)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <h1 className="text-2xl font-bold gradient-text">
-                            Create Project
-                        </h1>
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Rocket className="w-8 h-8 text-[var(--primary)]" />
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Create New Project</h1>
+                        </div>
                     </div>
 
                     {/* Stepper Indicator */}
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className="flex items-center gap-4 text-sm">
                         <StepIndicator current={step} number={1} label="Select" />
                         <div className="w-8 h-[1px] bg-[var(--border)]" />
                         <StepIndicator current={step} number={2} label="Configure" />
@@ -90,30 +97,30 @@ export default function NewProjectPage() {
                         <StepIndicator current={step} number={3} label="Deploy" />
                     </div>
                 </div>
+            </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto">
-                    <AnimatePresence mode="wait">
-                        {step === 1 && (
-                            <Step1SelectRepo key="step1" onSelect={handleRepoSelect} />
-                        )}
-                        {step === 2 && selectedRepo && (
-                            <Step2Configure
-                                key="step2"
-                                repo={selectedRepo}
-                                onBack={() => setStep(1)}
-                                onDeploy={handleDeploymentStarted}
-                            />
-                        )}
-                        {step === 3 && project && deployment && (
-                            <Step3Deploy
-                                key="step3"
-                                project={project}
-                                initialDeployment={deployment}
-                            />
-                        )}
-                    </AnimatePresence>
-                </div>
+            {/* Content */}
+            <div className="relative z-10">
+                <AnimatePresence mode="wait">
+                    {step === 1 && (
+                        <Step1SelectRepo key="step1" onSelect={handleRepoSelect} />
+                    )}
+                    {step === 2 && selectedRepo && (
+                        <Step2Configure
+                            key="step2"
+                            repo={selectedRepo}
+                            onBack={() => setStep(1)}
+                            onDeploy={handleDeploymentStarted}
+                        />
+                    )}
+                    {step === 3 && project && deployment && (
+                        <Step3Deploy
+                            key="step3"
+                            project={project}
+                            initialDeployment={deployment}
+                        />
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
@@ -126,7 +133,7 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
 
     return (
         <div className={cn(
-            "flex items-center gap-2 transition-colors duration-300",
+            "flex items-center gap-3 transition-colors duration-300",
             active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
         )}>
             <motion.div
@@ -137,7 +144,7 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
                     scale: currentStep ? 1.1 : 1,
                 }}
                 className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border relative",
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border relative",
                     currentStep && 'ring-2 ring-[var(--primary)]/30 ring-offset-2 ring-offset-[var(--background)]'
                 )}
             >
@@ -240,7 +247,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="w-full max-w-3xl mx-auto space-y-8 pb-24"
+            className="w-full space-y-8"
         >
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
@@ -311,7 +318,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                         <h3 className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
                                             {repo.full_name}
                                             {repo.private && (
-                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
                                                     Private
                                                 </span>
                                             )}
@@ -468,236 +475,244 @@ function Step2Configure({ repo, onBack, onDeploy }: {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="max-w-3xl mx-auto space-y-8 pb-24"
+            className="w-full space-y-8"
         >
-            <Card className="p-6 space-y-6">
-                <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
-                    <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
-                        <Settings className="w-6 h-6" />
+            <Card className="overflow-hidden p-0">
+                <div className="p-6 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 shrink-0">
+                        <Settings className="w-6 h-6 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-[var(--foreground)]">Project Settings</h2>
-                        <p className="text-[var(--muted-foreground)] text-sm">Configure your deployment environment</p>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
+                        <h2 className="text-xl font-semibold">Project Settings</h2>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label htmlFor="projectName" className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Project Name</label>
-                        <Input
-                            id="projectName"
-                            type="text"
-                            value={projectName}
-                            onChange={(e) => setProjectName(e.target.value)}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Framework</label>
-                        <NativeSelect
-                            value={framework}
-                            onChange={(e) => setFramework(e.target.value)}
-                        >
-                            <option value="auto">Auto-detect</option>
-                            <option value="nextjs">Next.js</option>
-                            <option value="vite">Vite</option>
-                            <option value="astro">Astro</option>
-                            <option value="remix">Remix</option>
-                            <option value="nuxt">Nuxt</option>
-                            <option value="sveltekit">SvelteKit</option>
-                            <option value="bun">Bun</option>
-                            <option value="docker">Docker</option>
-                        </NativeSelect>
-                        {framework === 'docker' && (
-                            <p className="text-xs text-[var(--info)] pt-1">
-                                Deployify will use the <code>Dockerfile</code> in your repository root.
-                            </p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Root Directory</label>
-                        <Input
-                            type="text"
-                            value={rootDirectory}
-                            onChange={(e) => setRootDirectory(e.target.value)}
-                            placeholder="./"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Region</label>
-                        <NativeSelect
-                            value={region}
-                            onChange={(e) => setRegion(e.target.value)}
-                        >
-                            {GCP_REGIONS.map((r) => (
-                                <option key={r.value} value={r.value}>{r.label}</option>
-                            ))}
-                        </NativeSelect>
-                    </div>
-                </div>
+                <Separator className="bg-[var(--border)]" />
 
-                <div className="pt-4 border-t border-[var(--border)]">
-                    <button
-                        type="button"
-                        onClick={() => setShowAdvanced(!showAdvanced)}
-                        className="flex items-center gap-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                    >
-                        {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        Advanced Build Settings
-                    </button>
-
-                    <AnimatePresence>
-                        {showAdvanced && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="overflow-hidden"
+                <div className="p-6 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label htmlFor="projectName" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Name</label>
+                            <Input
+                                id="projectName"
+                                type="text"
+                                value={projectName}
+                                onChange={(e) => setProjectName(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Framework</label>
+                            <NativeSelect
+                                value={framework}
+                                onChange={(e) => setFramework(e.target.value)}
                             >
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-                                    <div className="space-y-2">
-                                        <label htmlFor="buildCommand" className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Build Command</label>
-                                        <Input
-                                            id="buildCommand"
-                                            type="text"
-                                            value={buildCommand}
-                                            onChange={(e) => setBuildCommand(e.target.value)}
-                                            placeholder="npm run build"
-                                        />
+                                <option value="auto">Auto-detect</option>
+                                <option value="nextjs">Next.js</option>
+                                <option value="vite">Vite</option>
+                                <option value="astro">Astro</option>
+                                <option value="remix">Remix</option>
+                                <option value="nuxt">Nuxt</option>
+                                <option value="sveltekit">SvelteKit</option>
+                                <option value="bun">Bun</option>
+                                <option value="docker">Docker</option>
+                            </NativeSelect>
+                            {framework === 'docker' && (
+                                <p className="text-xs text-[var(--info)] pt-1">
+                                    Deployify will use the <code>Dockerfile</code> in your repository root.
+                                </p>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Root Directory</label>
+                            <Input
+                                type="text"
+                                value={rootDirectory}
+                                onChange={(e) => setRootDirectory(e.target.value)}
+                                placeholder="./"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Region</label>
+                            <NativeSelect
+                                value={region}
+                                onChange={(e) => setRegion(e.target.value)}
+                            >
+                                {GCP_REGIONS.map((r) => (
+                                    <option key={r.value} value={r.value}>{r.label}</option>
+                                ))}
+                            </NativeSelect>
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-[var(--border)]">
+                        <button
+                            type="button"
+                            onClick={() => setShowAdvanced(!showAdvanced)}
+                            className="flex items-center gap-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                        >
+                            {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                            Advanced Build Settings
+                        </button>
+
+                        <AnimatePresence>
+                            {showAdvanced && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+                                        <div className="space-y-2">
+                                            <label htmlFor="buildCommand" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Command</label>
+                                            <Input
+                                                id="buildCommand"
+                                                type="text"
+                                                value={buildCommand}
+                                                onChange={(e) => setBuildCommand(e.target.value)}
+                                                placeholder="npm run build"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label htmlFor="installCommand" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Install Command</label>
+                                            <Input
+                                                id="installCommand"
+                                                type="text"
+                                                value={installCommand}
+                                                onChange={(e) => setInstallCommand(e.target.value)}
+                                                placeholder="npm install"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label htmlFor="outputDirectory" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Output Directory</label>
+                                            <Input
+                                                id="outputDirectory"
+                                                type="text"
+                                                value={outputDirectory}
+                                                onChange={(e) => setOutputDirectory(e.target.value)}
+                                                placeholder=".next"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label htmlFor="installCommand" className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Install Command</label>
-                                        <Input
-                                            id="installCommand"
-                                            type="text"
-                                            value={installCommand}
-                                            onChange={(e) => setInstallCommand(e.target.value)}
-                                            placeholder="npm install"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label htmlFor="outputDirectory" className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-wider">Output Directory</label>
-                                        <Input
-                                            id="outputDirectory"
-                                            type="text"
-                                            value={outputDirectory}
-                                            onChange={(e) => setOutputDirectory(e.target.value)}
-                                            placeholder=".next"
-                                        />
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </Card>
 
-            <Card className="p-6 space-y-6">
-                <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
-                    <div className="w-12 h-12 rounded-lg bg-[var(--success-bg)] text-[var(--success)] flex items-center justify-center border border-[var(--success)]/30">
-                        <Terminal className="w-6 h-6" />
+            <Card className="overflow-hidden p-0">
+                <div className="p-6 flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-[var(--success)]/10 flex items-center justify-center border border-[var(--success)]/20 shrink-0">
+                        <Terminal className="w-6 h-6 text-[var(--success)]" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-[var(--foreground)]">Environment Variables</h2>
-                        <p className="text-[var(--muted-foreground)] text-sm">Add build and runtime variables</p>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
+                        <h2 className="text-xl font-semibold">Environment Variables</h2>
                     </div>
                 </div>
 
-                <div className="space-y-3">
-                    {envVars.map((env) => (
-                        <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
-                            <div className="flex-1 grid grid-cols-5 gap-4 items-center">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono text-sm text-[var(--primary)]">{env.key}</span>
-                                    {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
+                <Separator className="bg-[var(--border)]" />
+
+                <div className="p-6 space-y-6">
+                    <div className="space-y-3">
+                        {envVars.map((env) => (
+                            <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
+                                <div className="flex-1 grid grid-cols-5 gap-4 items-center">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-mono text-sm text-[var(--primary)]">{env.key}</span>
+                                        {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
+                                    </div>
+                                    <span className="font-mono text-sm text-[var(--foreground)] truncate">
+                                        {env.isSecret ? '••••••••' : env.value}
+                                    </span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                        {env.target === 'both' ? 'Build & Runtime' : env.target}
+                                    </span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                        {env.environment === 'both' ? 'All Envs' : env.environment}
+                                    </span>
                                 </div>
-                                <span className="font-mono text-sm text-[var(--foreground)] truncate">
-                                    {env.isSecret ? '••••••••' : env.value}
-                                </span>
-                                <span className="text-[10px] text-[var(--muted-foreground)] uppercase px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
-                                    {env.target === 'both' ? 'Build & Runtime' : env.target}
-                                </span>
-                                <span className="text-[10px] text-[var(--muted-foreground)] uppercase px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
-                                    {env.environment === 'both' ? 'All Envs' : env.environment}
-                                </span>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setEnvVars(envVars.filter(e => e.key !== env.key))}
+                                    className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
                             </div>
+                        ))}
+                    </div>
+
+                    <div className="space-y-4 p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)]">
+                        <div className="flex gap-2">
+                            <Input
+                                type="text"
+                                placeholder="KEY"
+                                value={newEnvKey}
+                                onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
+                                className="font-mono"
+                            />
+                            <Input
+                                type={newEnvIsSecret ? "password" : "text"}
+                                placeholder="VALUE"
+                                value={newEnvValue}
+                                onChange={(e) => setNewEnvValue(e.target.value)}
+                                className="font-mono"
+                            />
                             <Button
                                 variant="ghost"
-                                size="icon"
-                                onClick={() => setEnvVars(envVars.filter(e => e.key !== env.key))}
-                                className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                                size="sm"
+                                onClick={handleAddEnv}
+                                disabled={!newEnvKey || !newEnvValue}
+                                className="text-[var(--primary)] px-4"
                             >
-                                <Trash2 className="w-4 h-4" />
+                                <Plus className="w-5 h-5 mr-2" />
+                                Add
                             </Button>
                         </div>
-                    ))}
-                </div>
 
-                <div className="space-y-4 p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)]">
-                    <div className="flex gap-2">
-                        <Input
-                            type="text"
-                            placeholder="KEY"
-                            value={newEnvKey}
-                            onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                            className="font-mono"
-                        />
-                        <Input
-                            type={newEnvIsSecret ? "password" : "text"}
-                            placeholder="VALUE"
-                            value={newEnvValue}
-                            onChange={(e) => setNewEnvValue(e.target.value)}
-                            className="font-mono"
-                        />
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleAddEnv}
-                            disabled={!newEnvKey || !newEnvValue}
-                            className="text-[var(--primary)] px-4"
-                        >
-                            <Plus className="w-5 h-5 mr-2" />
-                            Add
-                        </Button>
-                    </div>
-
-                    <div className="flex flex-col md:flex-row md:items-start gap-8 pt-4">
-                        <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]/50">
-                            <Switch
-                                id="isSecret"
-                                checked={newEnvIsSecret}
-                                onCheckedChange={setNewEnvIsSecret}
-                            />
-                            <label htmlFor="isSecret" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
-                                <Shield className="w-4 h-4 text-[var(--info)]" />
-                                Secret (Encrypted)
-                            </label>
-                        </div>
-
-                        <div className="flex-1 space-y-4">
-                            <div className="space-y-2">
-                                <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block">Target Environment Type</span>
-                                <SegmentedControl
-                                    options={[
-                                        { value: 'both', label: 'Build & Runtime' },
-                                        { value: 'build', label: 'Build Only' },
-                                        { value: 'runtime', label: 'Runtime Only' }
-                                    ]}
-                                    value={newEnvTarget}
-                                    onChange={(v) => setNewEnvTarget(v as EnvVariableTarget)}
+                        <div className="flex flex-col md:flex-row md:items-start gap-8 pt-4">
+                            <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]/50">
+                                <Switch
+                                    id="isSecret"
+                                    checked={newEnvIsSecret}
+                                    onCheckedChange={setNewEnvIsSecret}
                                 />
+                                <label htmlFor="isSecret" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                                    <Shield className="w-4 h-4 text-[var(--info)]" />
+                                    Secret (Encrypted)
+                                </label>
                             </div>
 
-                            <div className="space-y-2">
-                                <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block">Scope</span>
-                                <SegmentedControl
-                                    options={[
-                                        { value: 'both', label: 'All Envs' },
-                                        { value: 'production', label: 'Production Only' },
-                                        { value: 'preview', label: 'Preview Only' }
-                                    ]}
-                                    value={newEnvEnvironment}
-                                    onChange={(v) => setNewEnvEnvironment(v as 'both' | 'production' | 'preview')}
-                                />
+                            <div className="flex-1 space-y-4">
+                                <div className="space-y-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Target Environment Type</span>
+                                    <SegmentedControl
+                                        options={[
+                                            { value: 'both', label: 'Build & Runtime' },
+                                            { value: 'build', label: 'Build Only' },
+                                            { value: 'runtime', label: 'Runtime Only' }
+                                        ]}
+                                        value={newEnvTarget}
+                                        onChange={(v) => setNewEnvTarget(v as EnvVariableTarget)}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Scope</span>
+                                    <SegmentedControl
+                                        options={[
+                                            { value: 'both', label: 'All Envs' },
+                                            { value: 'production', label: 'Production Only' },
+                                            { value: 'preview', label: 'Preview Only' }
+                                        ]}
+                                        value={newEnvEnvironment}
+                                        onChange={(v) => setNewEnvEnvironment(v as 'both' | 'production' | 'preview')}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -715,8 +730,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <MovingBorderButton
                     onClick={handleDeploy}
                     disabled={deploying || !projectName}
-                    containerClassName="h-16 w-48"
-                    className="font-bold text-base"
+                    containerClassName="h-12 w-48"
+                    className="font-bold text-sm"
                 >
                     {deploying ? <Loader2 className="mr-2 w-5 h-5 animate-spin" /> : null}
                     {deploying ? 'Deploying...' : 'Deploy Project'}
@@ -781,7 +796,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl mx-auto h-full flex flex-col gap-8 pb-24"
+            className="w-full flex flex-col gap-8"
         >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-2">
@@ -889,11 +904,11 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
-                                        <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] block mb-1">Production URL</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Production URL</span>
                                         <p className="text-sm font-mono truncate">{project.productionUrl?.replace(/^https?:\/\//, '')}</p>
                                     </div>
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
-                                        <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] block mb-1">Environment</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Environment</span>
                                         <p className="text-sm font-medium">Production</p>
                                     </div>
                                 </div>
@@ -916,7 +931,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                             <span className="text-xs font-medium">Build Logs</span>
                         </div>
                     </div>
-                    <div className="text-[var(--terminal-foreground)]/20 text-[10px] uppercase tracking-widest font-bold">build-log.txt</div>
+                    <div className="text-[var(--terminal-foreground)]/20 text-[10px] font-bold uppercase tracking-wider">build-log.txt</div>
                 </div>
 
                 <div className="flex-1 overflow-hidden relative">

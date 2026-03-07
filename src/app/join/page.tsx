@@ -18,12 +18,18 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)] relative overflow-hidden">
                 <BackgroundBeams className="opacity-20" />
-                <Card className="max-w-md w-full text-center relative z-10 p-10 shadow-2xl">
-                    <div className="w-20 h-20 bg-[var(--error-bg)] text-[var(--error)] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[var(--error-bg)]">
-                        <AlertTriangle className="w-10 h-10" />
+                <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--error)]/30">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-[var(--error)]"></div>
+                    <div className="p-10 flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--error)]/10 flex items-center justify-center shrink-0 mb-6">
+                            <AlertTriangle className="w-6 h-6 text-[var(--error)]" />
+                        </div>
+                        <div className="space-y-1 mb-4">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Invalid Invite</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Invite Error</h1>
+                        </div>
+                        <p className="text-[var(--muted-foreground)]">No invite token provided. Please check your link.</p>
                     </div>
-                    <h1 className="text-2xl font-bold text-[var(--error)] mb-2">Invalid Invite</h1>
-                    <p className="text-[var(--muted-foreground)]">No invite token provided. Please check your link.</p>
                 </Card>
             </div>
         );
@@ -41,12 +47,18 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)] relative overflow-hidden">
                 <BackgroundBeams className="opacity-20" />
-                <Card className="max-w-md w-full text-center relative z-10 p-10 shadow-2xl">
-                    <div className="w-20 h-20 bg-[var(--error-bg)] text-[var(--error)] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[var(--error-bg)]">
-                        <AlertTriangle className="w-10 h-10" />
+                <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--error)]/30">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-[var(--error)]"></div>
+                    <div className="p-10 flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--error)]/10 flex items-center justify-center shrink-0 mb-6">
+                            <AlertTriangle className="w-6 h-6 text-[var(--error)]" />
+                        </div>
+                        <div className="space-y-1 mb-4">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Invalid Invite</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Invite Error</h1>
+                        </div>
+                        <p className="text-[var(--muted-foreground)]">The invite link is invalid or has expired.</p>
                     </div>
-                    <h1 className="text-2xl font-bold text-[var(--error)] mb-2">Invalid Invite</h1>
-                    <p className="text-[var(--muted-foreground)]">The invite link is invalid or has expired.</p>
                 </Card>
             </div>
         );
@@ -56,12 +68,18 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
          return (
             <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)] relative overflow-hidden">
                 <BackgroundBeams className="opacity-20" />
-                <Card className="max-w-md w-full text-center relative z-10 p-10 shadow-2xl">
-                    <div className="w-20 h-20 bg-[var(--error-bg)] text-[var(--error)] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[var(--error-bg)]">
-                        <Clock className="w-10 h-10" />
+                <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--error)]/30">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-[var(--error)]"></div>
+                    <div className="p-10 flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--error)]/10 flex items-center justify-center shrink-0 mb-6">
+                            <Clock className="w-6 h-6 text-[var(--error)]" />
+                        </div>
+                        <div className="space-y-1 mb-4">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Invite Expired</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Invite Error</h1>
+                        </div>
+                        <p className="text-[var(--muted-foreground)]">This invite link has expired. Please request a new one.</p>
                     </div>
-                    <h1 className="text-2xl font-bold text-[var(--error)] mb-2">Invite Expired</h1>
-                    <p className="text-[var(--muted-foreground)]">This invite link has expired. Please request a new one.</p>
                 </Card>
             </div>
         );
@@ -73,12 +91,18 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
          return (
             <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)] relative overflow-hidden">
                 <BackgroundBeams className="opacity-20" />
-                <Card className="max-w-md w-full text-center relative z-10 p-10 shadow-2xl">
-                    <div className="w-20 h-20 bg-[var(--error-bg)] text-[var(--error)] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[var(--error-bg)]">
-                        <Users className="w-10 h-10" />
+                <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--error)]/30">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-[var(--error)]"></div>
+                    <div className="p-10 flex flex-col items-center">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--error)]/10 flex items-center justify-center shrink-0 mb-6">
+                            <Users className="w-6 h-6 text-[var(--error)]" />
+                        </div>
+                        <div className="space-y-1 mb-4">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Team Not Found</span>
+                            <h1 className="text-3xl font-bold tracking-tight">Invite Error</h1>
+                        </div>
+                        <p className="text-[var(--muted-foreground)]">The team associated with this invite no longer exists.</p>
                     </div>
-                    <h1 className="text-2xl font-bold text-[var(--error)] mb-2">Team Not Found</h1>
-                    <p className="text-[var(--muted-foreground)]">The team associated with this invite no longer exists.</p>
                 </Card>
             </div>
         );
@@ -88,26 +112,32 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[var(--background)] relative overflow-hidden">
             <BackgroundBeams className="opacity-40" />
 
-            <Card className="max-w-md w-full text-center relative z-10 p-8 shadow-2xl border-[var(--primary)]/10">
-                <div className="mb-6 flex justify-center relative">
-                    <div className="absolute -inset-4 bg-[var(--primary)]/10 blur-xl rounded-full animate-pulse-glow" />
-                    <Avatar className="w-20 h-20 text-3xl font-bold border-4 border-[var(--background)] relative z-10 shadow-lg">
-                        <AvatarImage src={team.avatarUrl || undefined} alt={team.name} />
-                        <AvatarFallback className="bg-[var(--primary)] text-[var(--primary-foreground)]">
-                            {team.name.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-1 -right-1 bg-[var(--background)] p-1.5 rounded-full border border-[var(--border)] shadow-md z-20">
-                        <UserPlus className="w-4 h-4 text-[var(--primary)]" />
+            <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--primary)]/10">
+                <div className="p-8 flex flex-col items-center">
+                    <div className="mb-6 flex justify-center relative">
+                        <div className="absolute -inset-4 bg-[var(--primary)]/10 blur-xl rounded-full animate-pulse-glow" />
+                        <Avatar className="w-20 h-20 text-3xl font-bold border-4 border-[var(--background)] relative z-10 shadow-lg rounded-2xl">
+                            <AvatarImage src={team.avatarUrl || undefined} alt={team.name} />
+                            <AvatarFallback className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded-2xl">
+                                {team.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1 bg-[var(--background)] p-1.5 rounded-full border border-[var(--border)] shadow-md z-20">
+                            <UserPlus className="w-4 h-4 text-[var(--primary)]" />
+                        </div>
                     </div>
+
+                    <div className="space-y-1 mb-6">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Invitation</span>
+                        <h1 className="text-3xl font-bold tracking-tight">Join {team.name}</h1>
+                    </div>
+
+                    <p className="text-[var(--muted-foreground)] mb-8 leading-relaxed">
+                        You have been invited to collaborate with <strong>{team.name}</strong> on Deployify. Accept the invitation to get started.
+                    </p>
+
+                    <JoinButton token={token} teamName={team.name} />
                 </div>
-
-                <h1 className="text-2xl font-bold mb-2 tracking-tight">Join {team.name}</h1>
-                <p className="text-[var(--muted-foreground)] mb-8 leading-relaxed">
-                    You have been invited to collaborate with <strong>{team.name}</strong> on Deployify. Accept the invitation to get started.
-                </p>
-
-                <JoinButton token={token} teamName={team.name} />
             </Card>
         </div>
     );
