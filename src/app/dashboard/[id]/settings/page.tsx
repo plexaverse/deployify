@@ -137,8 +137,8 @@ export default function ProjectSettingsPage() {
                 />
 
                 {/* Build Settings */}
-                <Card>
-                    <div className="mb-6 flex items-center gap-3">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <Settings className="w-5 h-5 text-[var(--primary)]" />
                         </div>
@@ -148,9 +148,9 @@ export default function ProjectSettingsPage() {
                         </div>
                     </div>
 
-                    <Separator className="mb-6" />
+                    <Separator className="bg-[var(--border)]" />
 
-                    <div className="space-y-6">
+                    <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="framework">Framework</Label>
@@ -268,8 +268,8 @@ export default function ProjectSettingsPage() {
                 />
 
                 {/* Notifications */}
-                <Card>
-                    <div className="mb-6 flex items-center gap-3">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <Bell className="w-5 h-5 text-[var(--primary)]" />
                         </div>
@@ -279,9 +279,9 @@ export default function ProjectSettingsPage() {
                         </div>
                     </div>
 
-                    <Separator className="mb-6" />
+                    <Separator className="bg-[var(--border)]" />
 
-                    <div className="space-y-6">
+                    <div className="p-6 space-y-6">
                         <SettingsToggle
                             id="email-notifications"
                             title="Email Notifications"
@@ -318,8 +318,8 @@ export default function ProjectSettingsPage() {
                 </Card>
 
                 {/* Security */}
-                <Card>
-                    <div className="mb-6 flex items-center gap-3">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <Shield className="w-5 h-5 text-[var(--primary)]" />
                         </div>
@@ -329,9 +329,9 @@ export default function ProjectSettingsPage() {
                         </div>
                     </div>
 
-                    <Separator className="mb-6" />
+                    <Separator className="bg-[var(--border)]" />
 
-                    <div className="space-y-6">
+                    <div className="p-6 space-y-6">
                         <SettingsToggle
                             id="cloud-armor"
                             title="Cloud Armor WAF"
@@ -354,8 +354,8 @@ export default function ProjectSettingsPage() {
                 </Card>
 
                 {/* Danger Zone */}
-                <Card className="border-[var(--error)]/30 bg-[var(--error)]/5">
-                    <div className="mb-6 flex items-center gap-3">
+                <Card className="border-[var(--error)]/30 bg-[var(--error)]/5 overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--error)]/10 flex items-center justify-center shrink-0">
                             <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
                         </div>
@@ -365,20 +365,24 @@ export default function ProjectSettingsPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
+                    <Separator className="bg-[var(--error)]/20" />
+
+                    <div className="p-6">
+                        <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                         <div>
                             <p className="font-medium">Delete Project</p>
                             <p className="text-sm text-[var(--muted-foreground)]">
                                 Permanently delete this project and all its deployments.
                             </p>
                         </div>
-                        <Button
-                            variant="ghost"
-                            onClick={() => setIsDeleteModalOpen(true)}
-                            className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
-                        >
-                            Delete Project
-                        </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+                            >
+                                Delete Project
+                            </Button>
+                        </div>
                     </div>
                 </Card>
             </div>
