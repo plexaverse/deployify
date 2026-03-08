@@ -60,8 +60,15 @@ export function ProjectCard({ project }: { project: Project }) {
               {project.name}
             </h3>
             <div className="flex items-center gap-1.5">
-              <Badge variant={config.variant} className="h-4 text-[8px] px-2 gap-1.5 uppercase tracking-[0.2em] font-bold">
-                {status === 'building' || status === 'deploying' ? <Loader2 className="w-2 h-2 animate-spin" /> : <config.icon className="w-2 h-2" />}
+              <Badge
+                variant={config.variant}
+                className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 gap-1.5"
+              >
+                {status === 'building' || status === 'deploying' ? (
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                ) : (
+                  <config.icon className="w-2.5 h-2.5" />
+                )}
                 {config.label}
               </Badge>
             </div>
