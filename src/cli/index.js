@@ -230,7 +230,11 @@ async function handleDeploy() {
 
     if (!projectId) {
         console.error(`\nError: Could not find a project to deploy.`);
-        console.error('Either link a project using `deployify link` or ensure you are in a git repo connected to a Deployify project.');
+        console.error('No project is linked to this directory.');
+        console.error('\nTo fix this, you can:');
+        console.log('  1. Run `deployify link` to select an existing project');
+        console.log('  2. Ensure you are in a git repository that is already connected to a project on Deployify');
+        console.log('  3. Create a new project on the dashboard first: ' + instanceUrl + '/new');
         return;
     }
 
@@ -480,7 +484,7 @@ async function fetchJson(url, token, options = {}) {
 function getGitStatus() {
     try {
         // --porcelain gives a machine-readable output. If empty, clean.
-        return execSync('git status --porcelain').toString().trim();
+        return execSync('git status --porcelain', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
     } catch {
         return null;
     }
@@ -488,7 +492,7 @@ function getGitStatus() {
 
 function getCurrentBranch() {
     try {
-        return execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+        return execSync('git rev-parse --abbrev-ref HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
     } catch {
         return null;
     }
