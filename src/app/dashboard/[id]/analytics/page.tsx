@@ -12,6 +12,7 @@ import { evaluatePerformance } from '@/lib/analytics/alerts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Separator } from '@/components/ui/separator';
 
 export default function ProjectAnalyticsPage() {
     const params = useParams();
@@ -112,28 +113,33 @@ export default function ProjectAnalyticsPage() {
             </div>
 
             <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                        <Activity className="w-5 h-5 text-[var(--primary)]" />
+                <div className="p-0 overflow-hidden">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Activity className="w-5 h-5 text-[var(--primary)]" />
+                        </div>
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
+                            <h3 className="text-xl font-semibold">Deployment Performance</h3>
+                        </div>
                     </div>
-                    <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
-                        <h3 className="text-xl font-semibold">Deployment Performance</h3>
-                    </div>
+                    <DeploymentMetricsCharts deployments={deployments} />
                 </div>
-                <DeploymentMetricsCharts deployments={deployments} />
             </div>
 
-            <div className="pt-10 border-t border-[var(--border)] space-y-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                        <Activity className="w-5 h-5 text-[var(--primary)]" />
+            <Separator className="bg-[var(--border)]" />
+
+            <div className="space-y-6">
+                <div className="p-0 overflow-hidden">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Activity className="w-5 h-5 text-[var(--primary)]" />
+                        </div>
+                        <div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Visitor Statistics</span>
+                            <h3 className="text-xl font-semibold">Traffic Analytics</h3>
+                        </div>
                     </div>
-                    <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Visitor Statistics</span>
-                        <h3 className="text-xl font-semibold">Traffic Analytics</h3>
-                    </div>
-                </div>
 
                 {stats && <div className="mb-6"><AnalyticsAlerts alerts={evaluatePerformance(stats)} /></div>}
 
@@ -151,6 +157,7 @@ export default function ProjectAnalyticsPage() {
                         </p>
                     </Card>
                 )}
+                </div>
             </div>
         </div>
     );

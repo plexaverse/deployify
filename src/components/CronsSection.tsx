@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
+import { Separator } from '@/components/ui/separator';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { CronJobConfig } from '@/types';
 import { toast } from 'sonner';
@@ -106,8 +107,8 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
     };
 
     return (
-        <Card>
-            <div className="flex items-center justify-between mb-6">
+        <Card className="overflow-hidden p-0">
+            <div className="p-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                         <Clock className="w-5 h-5 text-[var(--primary)]" />
@@ -120,7 +121,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                 {!isAdding && (
                     <MovingBorderButton
                         onClick={() => setIsAdding(true)}
-                        containerClassName="h-9 w-36"
+                        containerClassName="h-10 w-36"
                         className="text-xs font-bold"
                     >
                         <Plus className="w-4 h-4 mr-2" />
@@ -129,14 +130,17 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                 )}
             </div>
 
-            {error && (
-                <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-sm">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    {error}
-                </div>
-            )}
+            <Separator className="bg-[var(--border)]" />
 
-            {isAdding && (
+            <div className="p-6">
+                {error && (
+                    <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-sm">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        {error}
+                    </div>
+                )}
+
+                {isAdding && (
                 <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
@@ -211,9 +215,9 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/5">
-                                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Path</th>
-                                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Schedule</th>
-                                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Path</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Schedule</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -243,7 +247,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                 </div>
             )}
 
-            <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
+                <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
                 <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
                     <p className="font-medium text-[var(--info)] mb-1 text-sm">How it works</p>
@@ -254,6 +258,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                     </p>
                 </div>
             </div>
+        </div>
 
             <ConfirmationModal
                 isOpen={cronToDelete !== null}

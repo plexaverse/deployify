@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
 
@@ -167,8 +168,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     }, {} as Record<string, typeof envVariables>);
 
     return (
-        <Card>
-            <div className="flex items-center justify-between mb-6">
+        <Card className="overflow-hidden p-0">
+            <div className="p-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                         <Shield className="w-5 h-5 text-[var(--primary)]" />
@@ -181,7 +182,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 {!isAdding && (
                     <MovingBorderButton
                         onClick={() => setIsAdding(true)}
-                        containerClassName="h-9 w-36"
+                        containerClassName="h-10 w-36"
                         className="text-xs font-bold"
                     >
                         <Plus className="w-4 h-4 mr-2" />
@@ -190,14 +191,17 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 )}
             </div>
 
-            {error && (
-                <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-sm">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    {error}
-                </div>
-            )}
+            <Separator className="bg-[var(--border)]" />
 
-            {isAdding && (
+            <div className="p-6">
+                {error && (
+                    <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-sm">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        {error}
+                    </div>
+                )}
+
+                {isAdding && (
                 <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
@@ -259,7 +263,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
 
                         <div className="flex-1 space-y-4">
                             <div className="space-y-2">
-                                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider block">Target Environment Type</span>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider block">Target Environment Type</span>
                                 <SegmentedControl
                                     options={[
                                         { value: 'both', label: 'Build & Runtime' },
@@ -272,7 +276,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             </div>
 
                             <div className="space-y-2">
-                                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider block">Scope</span>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider block">Scope</span>
                                 <SegmentedControl
                                     options={[
                                         { value: 'both', label: 'All Environments' },
@@ -324,7 +328,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     {uniqueGroups.map((group) => (
                         <div key={group} className="space-y-2">
                              <div className="flex items-center gap-2 px-1">
-                                <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">{group}</span>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{group}</span>
                                 <div className="h-[1px] flex-1 bg-[var(--border)]" />
                             </div>
 
@@ -415,13 +419,14 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 </div>
             )}
 
-            <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
-                <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
-                <div className="text-sm">
-                    <p className="font-medium text-[var(--info)] mb-1 text-sm">Deployment required</p>
-                    <p className="text-[var(--muted-foreground)] leading-relaxed">
-                        Changes to environment variables will apply to new deployments. Existing deployments will keep their current variables until redeployed.
-                    </p>
+                <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
+                    <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                        <p className="font-medium text-[var(--info)] mb-1 text-sm">Deployment required</p>
+                        <p className="text-[var(--muted-foreground)] leading-relaxed">
+                            Changes to environment variables will apply to new deployments. Existing deployments will keep their current variables until redeployed.
+                        </p>
+                    </div>
                 </div>
             </div>
 

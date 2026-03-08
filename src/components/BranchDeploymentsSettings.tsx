@@ -10,6 +10,7 @@ import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Input } from '@/components/ui/input';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
+import { Separator } from '@/components/ui/separator';
 
 interface BranchEnvironments {
     branch: string;
@@ -101,8 +102,8 @@ export function BranchDeploymentsSettings({
     };
 
     return (
-        <Card>
-            <div className="mb-6 flex items-center gap-3">
+        <Card className="overflow-hidden p-0">
+            <div className="p-6 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                     <GitBranch className="w-5 h-5 text-[var(--primary)]" />
                 </div>
@@ -112,7 +113,9 @@ export function BranchDeploymentsSettings({
                 </div>
             </div>
 
-            <div className="space-y-6">
+            <Separator className="bg-[var(--border)]" />
+
+            <div className="p-6 space-y-6">
                 <div className="flex gap-2">
                     <Input
                         type="text"
@@ -155,7 +158,7 @@ export function BranchDeploymentsSettings({
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] uppercase font-bold text-[var(--muted-foreground)] tracking-tight px-1">Target Environment</span>
+                                        <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider px-1">Target Environment</span>
                                         <SegmentedControl
                                             options={[
                                                 { value: 'preview', label: 'Preview' },

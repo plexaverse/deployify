@@ -6,6 +6,7 @@ import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
+import { Separator } from '@/components/ui/separator';
 
 // Common GCP regions for Cloud Run
 const GCP_REGIONS = [
@@ -69,8 +70,8 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
     const tier2Regions = GCP_REGIONS.filter(r => r.tier === 'Tier 2');
 
     return (
-        <Card>
-            <div className="mb-6 flex items-center gap-3">
+        <Card className="overflow-hidden p-0">
+            <div className="p-6 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                     <MapPin className="w-5 h-5 text-[var(--primary)]" />
                 </div>
@@ -80,13 +81,14 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 </div>
             </div>
 
-            {error && (
-                <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-sm">
-                    {error}
-                </div>
-            )}
+            <Separator className="bg-[var(--border)]" />
 
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
+                {error && (
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-sm">
+                        {error}
+                    </div>
+                )}
                 <div className="grid gap-2">
                     <Label htmlFor="region-select">Region</Label>
                     <NativeSelect
@@ -117,21 +119,20 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
 
                 <div className="flex items-center gap-2 h-6">
                     {saving && (
-                        <span className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] animate-fade-in">
+                        <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] animate-fade-in">
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             Saving...
                         </span>
                     )}
                     {saved && (
-                        <span className="flex items-center gap-2 text-sm text-[var(--success)] animate-fade-in">
+                        <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--success)] animate-fade-in">
                             <Check className="w-3.5 h-3.5" />
                             Saved successfully
                         </span>
                     )}
                 </div>
-            </div>
 
-            <div className="mt-8 p-4 rounded-lg bg-[var(--info-bg)] border border-[var(--info)]/20">
+                <div className="mt-8 p-4 rounded-lg bg-[var(--info-bg)] border border-[var(--info)]/20">
                 <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
                     <div className="text-sm">
@@ -143,6 +144,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                     </div>
                 </div>
             </div>
-        </Card>
+        </div>
+    </Card>
     );
 }

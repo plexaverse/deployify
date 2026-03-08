@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { NoDomainsIllustration } from '@/components/ui/illustrations';
+import { Separator } from '@/components/ui/separator';
 
 interface DomainsSectionProps {
     projectId: string;
@@ -129,8 +130,8 @@ export function DomainsSection({
     };
 
     return (
-        <Card>
-            <div className="flex items-center justify-between mb-6">
+        <Card className="overflow-hidden p-0">
+            <div className="p-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                         <Globe className="w-5 h-5 text-[var(--primary)]" />
@@ -144,7 +145,7 @@ export function DomainsSection({
                     <MovingBorderButton
                         onClick={() => setIsAdding(true)}
                         disabled={isLoading}
-                        containerClassName="h-9 w-32"
+                        containerClassName="h-10 w-36"
                         className="text-xs font-bold"
                     >
                         <Plus className="w-4 h-4 mr-2" />
@@ -153,19 +154,22 @@ export function DomainsSection({
                 )}
             </div>
 
-            {/* Error/Success Messages */}
-            {error && (
-                <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-sm">
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-sm">
-                    {success}
-                </div>
-            )}
+            <Separator className="bg-[var(--border)]" />
 
-            {/* Add New Domain Form */}
+            <div className="p-6">
+                {/* Error/Success Messages */}
+                {error && (
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-sm">
+                        {error}
+                    </div>
+                )}
+                {success && (
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-sm">
+                        {success}
+                    </div>
+                )}
+
+                {/* Add New Domain Form */}
             {isAdding && (
                 <div className="mb-6 p-4 rounded-lg border border-[var(--border)] bg-[var(--background)] animate-fade-in">
                     <div className="mb-4 space-y-2">
@@ -209,30 +213,32 @@ export function DomainsSection({
             {dnsRecords.length > 0 && (
                 <div className="mb-6 p-6 rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-sm animate-fade-in">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="font-semibold text-lg flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-[var(--primary)]" />
-                            Verification Steps
-                        </h3>
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--warning-bg)] border border-[var(--warning)]/20">
-                            <span className="flex h-2 w-2 rounded-full bg-[var(--warning)] animate-pulse"></span>
-                            <span className="text-xs font-medium text-[var(--warning)]">Analyzing...</span>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
+                            </div>
+                            <h3 className="font-semibold text-lg">Verification Steps</h3>
+                        </div>
+                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--warning-bg)] border border-[var(--warning)]/20">
+                            <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--warning)] animate-pulse"></span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)]">Analyzing...</span>
                         </div>
                     </div>
 
-                    <div className="mb-8 flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-2 text-[var(--foreground)] font-medium">
-                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-xs font-bold">1</div>
-                            <span>DNS Configuration</span>
+                    <div className="mb-8 flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-[var(--foreground)]">
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">1</div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">DNS Configuration</span>
                         </div>
                         <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
                         <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-xs font-bold">2</div>
-                            <span>Securing your site</span>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] font-bold">2</div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Securing site</span>
                         </div>
                         <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
                         <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-xs font-bold">3</div>
-                            <span>Ready</span>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] font-bold">3</div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Ready</span>
                         </div>
                     </div>
 
@@ -252,11 +258,11 @@ export function DomainsSection({
                             <tbody className="divide-y divide-[var(--border)]">
                                 {dnsRecords.map((record, index) => (
                                     <tr key={index} className="bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors">
-                                        <td className="py-3 px-4 font-mono font-bold text-[var(--primary)] text-xs">{record.type}</td>
+                                        <td className="py-3 px-4 font-mono font-bold text-[var(--primary)] text-[10px] uppercase tracking-wider">{record.type}</td>
                                         <td className="py-3 px-4 font-mono text-[var(--muted-foreground)] text-xs">{record.name}</td>
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-3">
-                                                <code className="font-mono text-[10px] bg-[var(--muted)]/20 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate text-[var(--foreground)]" title={record.value}>
+                                                <code className="font-mono text-[10px] bg-[var(--muted)]/20 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate text-[var(--foreground)] font-bold uppercase tracking-wider" title={record.value}>
                                                     {record.value}
                                                 </code>
                                                 <Button
@@ -428,12 +434,12 @@ export function DomainsSection({
                                         href={`https://${domain.domain}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="font-medium hover:text-[var(--primary)] flex items-center gap-1"
+                                        className="text-sm font-semibold hover:text-[var(--primary)] flex items-center gap-1"
                                     >
                                         {domain.domain}
                                         <ExternalLink className="w-3 h-3" />
                                     </a>
-                                    <span className={`text-xs ${domain.status === 'active' ? 'text-[var(--success)]' :
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${domain.status === 'active' ? 'text-[var(--success)]' :
                                         domain.status === 'pending' ? 'text-[var(--warning)]' :
                                             'text-[var(--error)]'
                                         }`}>
@@ -468,9 +474,10 @@ export function DomainsSection({
             )}
 
             {/* Info */}
-            <div className="mt-6 text-xs text-[var(--muted-foreground)]">
-                <p><strong>Note:</strong> DNS changes may take up to 48 hours to propagate worldwide.</p>
-                <p className="mt-1">SSL certificates are automatically provisioned by Google Cloud.</p>
+                <div className="mt-6 text-xs text-[var(--muted-foreground)] border-t border-[var(--border)] pt-4">
+                    <p><strong>Note:</strong> DNS changes may take up to 48 hours to propagate worldwide.</p>
+                    <p className="mt-1">SSL certificates are automatically provisioned by Google Cloud.</p>
+                </div>
             </div>
 
             <ConfirmationModal
