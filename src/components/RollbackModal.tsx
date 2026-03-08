@@ -22,16 +22,21 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
                 <Card className="w-full max-w-md p-0 overflow-hidden animate-fade-in max-h-[85vh] shadow-2xl">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
-                        <h3 className="font-semibold text-lg flex items-center gap-2 text-[var(--foreground)]">
-                            <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
-                            Confirm Rollback
-                        </h3>
+                    <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--warning)]/10 flex items-center justify-center shrink-0">
+                                <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
+                            </div>
+                            <div className="space-y-0.5">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Action</span>
+                                <h3 className="text-xl font-semibold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
+                            </div>
+                        </div>
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={onClose}
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-full"
                         >
                             <X className="w-5 h-5" />
                         </Button>
@@ -39,27 +44,27 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
 
                     {/* Content */}
                     <div className="p-6 overflow-y-auto">
-                        <p className="text-[var(--muted-foreground)] mb-4">
+                        <p className="text-sm text-[var(--muted-foreground)] mb-6 leading-relaxed">
                             Are you sure you want to rollback to this version? This will immediately switch traffic to the selected revision.
                         </p>
 
-                        <div className="bg-[var(--background)] rounded-lg p-4 border border-[var(--border)] space-y-3">
-                            <div>
-                                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase">Commit</span>
-                                <p className="font-mono text-sm text-[var(--foreground)]">{deployment.gitCommitSha.substring(0, 7)}</p>
+                        <div className="bg-[var(--background)] rounded-xl p-6 border border-[var(--border)] space-y-4 shadow-sm">
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Commit</span>
+                                <p className="font-mono text-sm text-[var(--foreground)] bg-[var(--muted)]/20 px-2 py-1 rounded w-fit">{deployment.gitCommitSha.substring(0, 7).toUpperCase()}</p>
                             </div>
-                            <div>
-                                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase">Message</span>
-                                <p className="text-sm line-clamp-2 text-[var(--foreground)]">{deployment.gitCommitMessage}</p>
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Message</span>
+                                <p className="text-sm font-semibold line-clamp-2 text-[var(--foreground)]">{deployment.gitCommitMessage}</p>
                             </div>
-                            <div className="flex justify-between">
-                                <div>
-                                    <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase">Author</span>
-                                    <p className="text-sm text-[var(--foreground)]">{deployment.gitCommitAuthor}</p>
+                            <div className="flex justify-between gap-4 pt-2">
+                                <div className="space-y-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Author</span>
+                                    <p className="text-xs font-semibold text-[var(--foreground)]">{deployment.gitCommitAuthor}</p>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase">Date</span>
-                                    <p className="text-sm text-[var(--foreground)]">
+                                <div className="text-right space-y-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployed At</span>
+                                    <p className="text-xs font-semibold text-[var(--foreground)] uppercase">
                                         {new Date(deployment.createdAt).toLocaleDateString()}
                                     </p>
                                 </div>
@@ -72,13 +77,14 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                         <Button
                             variant="secondary"
                             onClick={onClose}
+                            className="text-xs font-bold uppercase tracking-wider"
                         >
                             Cancel
                         </Button>
                         <MovingBorderButton
                             onClick={onConfirm}
                             containerClassName="h-10 w-40"
-                            className="font-bold text-sm"
+                            className="font-bold text-xs uppercase tracking-wider"
                         >
                             Confirm Rollback
                         </MovingBorderButton>

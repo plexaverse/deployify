@@ -60,16 +60,21 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
                 <Card className="w-full max-w-md p-0 overflow-hidden animate-fade-in shadow-2xl">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
-                        <h3 className="font-semibold text-lg flex items-center gap-2 text-[var(--foreground)]">
-                            <Users className="w-5 h-5 text-[var(--primary)]" />
-                            Create New Team
-                        </h3>
+                    <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                <Users className="w-5 h-5 text-[var(--primary)]" />
+                            </div>
+                            <div className="space-y-0.5">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Management</span>
+                                <h3 className="text-xl font-semibold tracking-tight text-[var(--foreground)]">Create New Team</h3>
+                            </div>
+                        </div>
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={onClose}
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-full"
                         >
                             <X className="w-5 h-5" />
                         </Button>
@@ -78,7 +83,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                     {/* Content */}
                     <form onSubmit={handleSubmit} className="p-6 space-y-4">
                         <div className="space-y-2">
-                            <Label>Team Name</Label>
+                            <Label className="text-sm font-semibold">Team Name</Label>
                             <Input
                                 type="text"
                                 value={name}
@@ -88,7 +93,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Team Slug</Label>
+                            <Label className="text-sm font-semibold">Team Slug</Label>
                             <Input
                                 type="text"
                                 value={slug}
@@ -99,7 +104,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 pattern="^[a-z0-9-]+$"
                                 title="Only lowercase letters, numbers, and hyphens allowed"
                             />
-                            <p className="text-xs text-[var(--muted-foreground)]">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Used in URLs. Only lowercase letters, numbers, and hyphens.
                             </p>
                         </div>
@@ -117,7 +122,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 type="submit"
                                 disabled={isSubmitting || !name || !slug}
                                 containerClassName="h-10 w-32"
-                                className="font-bold text-sm"
+                                className="font-bold text-xs uppercase tracking-wider"
                             >
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                 {isSubmitting ? 'Creating...' : 'Create Team'}
