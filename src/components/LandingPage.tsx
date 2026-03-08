@@ -431,7 +431,7 @@ export default function LandingPage() {
               <BentoGridItem
                 title="Git-Push Deploys"
                 description="Push to GitHub and your app is live. Automatic deployments on every commit."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center"><Zap className="w-12 h-12 text-[var(--foreground)]" /></div>}
+                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-3xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center shadow-sm group-hover/bento:shadow-md transition-all duration-300"><Zap className="w-12 h-12 text-[var(--foreground)]" /></div>}
                 icon={<Rocket className="h-4 w-4 text-[var(--muted-foreground)]" />}
                 className="md:col-span-2"
               />
@@ -460,19 +460,19 @@ export default function LandingPage() {
                     </motion.button>
                   </div>
                 }
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center"><Globe className="w-12 h-12 text-[var(--foreground)]" /></div>}
+                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-3xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center shadow-sm group-hover/bento:shadow-md transition-all duration-300"><Globe className="w-12 h-12 text-[var(--foreground)]" /></div>}
                 icon={<Search className="h-4 w-4 text-[var(--muted-foreground)]" />}
               />
               <BentoGridItem
                 title="Cloud Armor WAF"
                 description="DDoS protection & security."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center"><Shield className="w-12 h-12 text-[var(--foreground)]" /></div>}
+                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-3xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center shadow-sm group-hover/bento:shadow-md transition-all duration-300"><Shield className="w-12 h-12 text-[var(--foreground)]" /></div>}
                 icon={<Shield className="h-4 w-4 text-[var(--muted-foreground)]" />}
               />
               <BentoGridItem
                 title="Full Resource Control"
                 description="Choose CPU, Memory and Auto-scaling limits."
-                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center"><Cpu className="w-12 h-12 text-[var(--foreground)]" /></div>}
+                header={<div className="flex flex-1 w-full h-full min-h-[6rem] rounded-3xl bg-gradient-to-br from-[var(--card-hover)] to-[var(--card)] border border-[var(--border)] items-center justify-center shadow-sm group-hover/bento:shadow-md transition-all duration-300"><Cpu className="w-12 h-12 text-[var(--foreground)]" /></div>}
                 icon={<Cpu className="h-4 w-4 text-[var(--muted-foreground)]" />}
                 className="md:col-span-2"
               />

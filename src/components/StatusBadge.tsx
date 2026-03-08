@@ -62,7 +62,13 @@ export function StatusBadge({ status, className, showIcon = true }: StatusBadgeP
     const Icon = config.icon;
 
     return (
-        <Badge variant={config.variant} className={cn("gap-1.5", className)}>
+        <Badge
+            variant={config.variant}
+            className={cn(
+                "gap-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5",
+                className
+            )}
+        >
             {showIcon && Icon && (
                 <Icon className={cn("w-3 h-3", config.animation)} />
             )}

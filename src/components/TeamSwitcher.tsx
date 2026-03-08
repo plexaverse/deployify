@@ -33,53 +33,56 @@ export function TeamSwitcher() {
             <div className="relative mb-4" ref={containerRef}>
                 <button
                     onClick={toggleTeamSwitcher}
-                    className="flex items-center justify-between w-full p-2 text-sm border border-[var(--border)] rounded-lg hover:bg-[var(--card-hover)] transition-colors"
+                    className="flex items-center justify-between w-full p-2.5 text-sm border border-[var(--border)] rounded-xl hover:bg-[var(--card-hover)] transition-all duration-200 hover:shadow-sm"
                 >
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <Avatar className={cn("h-6 w-6 rounded", activeTeam ? "bg-[var(--info-bg)]" : "bg-[var(--primary)]/10")}>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <Avatar className={cn("h-7 w-7 rounded-lg", activeTeam ? "bg-[var(--info-bg)]" : "bg-[var(--primary)]/10")}>
                             {activeTeam ? (
                                 <>
                                     <AvatarImage src={activeTeam.avatarUrl || undefined} alt={activeTeam.name} />
-                                    <AvatarFallback className="rounded bg-[var(--info-bg)] text-[var(--info)]">
+                                    <AvatarFallback className="rounded-lg bg-[var(--info-bg)] text-[var(--info)]">
                                         <Users className="w-4 h-4" />
                                     </AvatarFallback>
                                 </>
                             ) : (
-                                <AvatarFallback className="rounded bg-[var(--primary)]/10 text-[var(--primary)]">
+                                <AvatarFallback className="rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
                                     <User className="w-4 h-4" />
                                 </AvatarFallback>
                             )}
                         </Avatar>
-                        <span className="font-medium truncate">
-                            {activeTeam ? activeTeam.name : 'Personal Workspace'}
-                        </span>
+                        <div className="flex flex-col items-start min-w-0">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-none mb-1">Workspace</span>
+                            <span className="font-semibold truncate leading-tight">
+                                {activeTeam ? activeTeam.name : 'Personal'}
+                            </span>
+                        </div>
                     </div>
                     <ChevronsUpDown className="w-4 h-4 text-[var(--muted-foreground)] ml-2 flex-shrink-0" />
                 </button>
 
                 {isTeamSwitcherOpen && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="p-1">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 p-1.5 space-y-1">
+                        <div>
                             <button
                                 onClick={() => {
                                     setActiveTeam(null);
                                     setTeamSwitcherOpen(false);
                                 }}
-                                className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--card-hover)] transition-colors"
+                                className="flex items-center w-full gap-3 p-2 text-sm rounded-lg hover:bg-[var(--card-hover)] transition-colors"
                             >
-                                <Avatar className="h-6 w-6 rounded bg-[var(--primary)]/10">
-                                    <AvatarFallback className="rounded bg-[var(--primary)]/10 text-[var(--primary)]">
-                                        <User className="w-4 h-4" />
+                                <Avatar className="h-6 w-6 rounded-md bg-[var(--primary)]/10">
+                                    <AvatarFallback className="rounded-md bg-[var(--primary)]/10 text-[var(--primary)]">
+                                        <User className="w-3.5 h-3.5" />
                                     </AvatarFallback>
                                 </Avatar>
-                                <span className="flex-1 text-left">Personal Workspace</span>
+                                <span className="flex-1 text-left font-medium">Personal Workspace</span>
                                 {!activeTeam && <Check className="w-4 h-4 text-[var(--primary)]" />}
                             </button>
                         </div>
 
                         {teams.length > 0 && (
-                            <div className="p-1 border-t border-[var(--border)]">
-                                <div className="px-2 py-1 text-xs text-[var(--muted-foreground)]">Teams</div>
+                            <div className="pt-1.5 border-t border-[var(--border)] space-y-1">
+                                <div className="px-2 pb-1.5 text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Teams</div>
                                 {teams.map((team) => (
                                     <button
                                         key={team.id}
@@ -87,15 +90,15 @@ export function TeamSwitcher() {
                                             setActiveTeam(team);
                                             setTeamSwitcherOpen(false);
                                         }}
-                                        className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--card-hover)] transition-colors"
+                                        className="flex items-center w-full gap-3 p-2 text-sm rounded-lg hover:bg-[var(--card-hover)] transition-colors"
                                     >
-                                        <Avatar className="h-6 w-6 rounded bg-[var(--info-bg)]">
+                                        <Avatar className="h-6 w-6 rounded-md bg-[var(--info-bg)]">
                                             <AvatarImage src={team.avatarUrl || undefined} alt={team.name} />
-                                            <AvatarFallback className="rounded bg-[var(--info-bg)] text-[var(--info)]">
-                                                <Users className="w-4 h-4" />
+                                            <AvatarFallback className="rounded-md bg-[var(--info-bg)] text-[var(--info)]">
+                                                <Users className="w-3.5 h-3.5" />
                                             </AvatarFallback>
                                         </Avatar>
-                                        <span className="flex-1 text-left truncate">{team.name}</span>
+                                        <span className="flex-1 text-left truncate font-medium">{team.name}</span>
                                         {activeTeam?.id === team.id && (
                                             <Check className="w-4 h-4 text-[var(--primary)]" />
                                         )}
@@ -104,18 +107,18 @@ export function TeamSwitcher() {
                             </div>
                         )}
 
-                        <div className="p-1 border-t border-[var(--border)]">
+                        <div className="pt-1.5 border-t border-[var(--border)]">
                             <button
                                 onClick={() => {
                                     setIsCreateModalOpen(true);
                                     setTeamSwitcherOpen(false);
                                 }}
-                                className="flex items-center w-full gap-2 p-2 text-sm rounded hover:bg-[var(--card-hover)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                className="flex items-center w-full gap-3 p-2 text-sm rounded-lg hover:bg-[var(--card-hover)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                             >
-                                <div className="flex items-center justify-center w-6 h-6 rounded border border-dashed border-[var(--border)]">
+                                <div className="flex items-center justify-center w-6 h-6 rounded-md border border-dashed border-[var(--border)]">
                                     <Plus className="w-4 h-4" />
                                 </div>
-                                <span className="flex-1 text-left">Create Team</span>
+                                <span className="flex-1 text-left font-medium">Create Team</span>
                             </button>
                         </div>
                     </div>

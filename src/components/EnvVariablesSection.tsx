@@ -148,13 +148,13 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     const getTargetLabel = (target: EnvVariableTarget) => {
         switch (target) {
             case 'build':
-                return 'Build';
+                return 'BUILD';
             case 'runtime':
-                return 'Runtime';
+                return 'RUNTIME';
             case 'both':
-                return 'Build & Runtime';
+                return 'BUILD & RUNTIME';
             default:
-                return target;
+                return (target as string).toUpperCase();
         }
     };
 
@@ -205,7 +205,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
-                            <Label>Key</Label>
+                            <Label className="text-sm font-semibold">Key</Label>
                             <Input
                                 type="text"
                                 value={newKey}
@@ -215,7 +215,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Value</Label>
+                            <Label className="text-sm font-semibold">Value</Label>
                             <Input
                                 type={newIsSecret ? 'password' : 'text'}
                                 value={newValue}
@@ -225,7 +225,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                            <Label>Group (Optional)</Label>
+                            <Label className="text-sm font-semibold">Group (Optional)</Label>
                             <div className="relative">
                                 <Input
                                     type="text"
@@ -266,9 +266,9 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider block">Target Environment Type</span>
                                 <SegmentedControl
                                     options={[
-                                        { value: 'both', label: 'Build & Runtime' },
-                                        { value: 'build', label: 'Build Only' },
-                                        { value: 'runtime', label: 'Runtime Only' }
+                                        { value: 'both', label: 'BUILD & RUNTIME' },
+                                        { value: 'build', label: 'BUILD ONLY' },
+                                        { value: 'runtime', label: 'RUNTIME ONLY' }
                                     ]}
                                     value={newTarget}
                                     onChange={(v) => setNewTarget(v as EnvVariableTarget)}
@@ -279,9 +279,9 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider block">Scope</span>
                                 <SegmentedControl
                                     options={[
-                                        { value: 'both', label: 'All Environments' },
-                                        { value: 'production', label: 'Production Only' },
-                                        { value: 'preview', label: 'Preview Only' }
+                                        { value: 'both', label: 'ALL ENVIRONMENTS' },
+                                        { value: 'production', label: 'PRODUCTION ONLY' },
+                                        { value: 'preview', label: 'PREVIEW ONLY' }
                                     ]}
                                     value={newEnvironment}
                                     onChange={(v) => setNewEnvironment(v as 'production' | 'preview' | 'both')}
@@ -395,7 +395,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                 </td>
                                                 <td className="py-4 px-4">
                                                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] text-[var(--muted-foreground)]">
-                                                        {env.environment === 'both' || !env.environment ? 'All Envs' : env.environment}
+                                                        {env.environment === 'both' || !env.environment ? 'ALL ENVS' : env.environment.toUpperCase()}
                                                     </span>
                                                 </td>
                                                 <td className="py-4 px-4 text-right">

@@ -112,52 +112,53 @@ export default function ProjectAnalyticsPage() {
                 </div>
             </div>
 
-            <div className="space-y-6">
-                <div className="p-0 overflow-hidden">
-                    <div className="flex items-center gap-3 mb-6">
+            <div className="space-y-10">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <Activity className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
                             <h3 className="text-xl font-semibold">Deployment Performance</h3>
                         </div>
                     </div>
-                    <DeploymentMetricsCharts deployments={deployments} />
-                </div>
-            </div>
+                    <Separator className="bg-[var(--border)]" />
+                    <div className="p-6">
+                        <DeploymentMetricsCharts deployments={deployments} />
+                    </div>
+                </Card>
 
-            <Separator className="bg-[var(--border)]" />
-
-            <div className="space-y-6">
-                <div className="p-0 overflow-hidden">
-                    <div className="flex items-center gap-3 mb-6">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <Activity className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Visitor Statistics</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Visitor Statistics</span>
                             <h3 className="text-xl font-semibold">Traffic Analytics</h3>
                         </div>
                     </div>
+                    <Separator className="bg-[var(--border)]" />
+                    <div className="p-6 space-y-6">
+                        {stats && <AnalyticsAlerts alerts={evaluatePerformance(stats)} />}
 
-                {stats && <div className="mb-6"><AnalyticsAlerts alerts={evaluatePerformance(stats)} /></div>}
-
-                {loadingAnalytics && !stats ? (
-                    <div className="space-y-4">
-                        <Skeleton className="h-[400px] w-full rounded-xl" />
+                        {loadingAnalytics && !stats ? (
+                            <div className="space-y-4">
+                                <Skeleton className="h-[400px] w-full rounded-xl" />
+                            </div>
+                        ) : stats ? (
+                            <AnalyticsCharts data={stats} period={period} />
+                        ) : (
+                            <div className="p-12 text-center">
+                                <h3 className="text-lg font-semibold mb-2">No Analytics Data</h3>
+                                <p className="text-[var(--muted-foreground)]">
+                                    We couldn&apos;t fetch analytics data for this project. Ensure your project is deployed and the domain is correct.
+                                </p>
+                            </div>
+                        )}
                     </div>
-                ) : stats ? (
-                    <AnalyticsCharts data={stats} period={period} />
-                ) : (
-                    <Card className="p-12 text-center">
-                        <h3 className="text-lg font-semibold mb-2">No Analytics Data</h3>
-                        <p className="text-[var(--muted-foreground)]">
-                            We couldn&apos;t fetch analytics data for this project. Ensure your project is deployed and the domain is correct.
-                        </p>
-                    </Card>
-                )}
-                </div>
+                </Card>
             </div>
         </div>
     );
