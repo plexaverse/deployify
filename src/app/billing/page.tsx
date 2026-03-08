@@ -220,7 +220,7 @@ export default function BillingPage() {
                             <CreditCard className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
                             <h1 className="text-3xl font-bold tracking-tight">Billing & Usage</h1>
                         </div>
                     </div>
@@ -242,7 +242,7 @@ export default function BillingPage() {
                             <BarChart3 className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Resource Monitoring</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Resource Monitoring</span>
                             <h3 className="text-xl font-semibold">Usage</h3>
                         </div>
                     </div>
@@ -281,7 +281,7 @@ export default function BillingPage() {
                         <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-4">
                             <CreditCard className="w-8 h-8 text-[var(--primary)]" />
                         </div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
                         <h3 className="text-3xl font-bold tracking-tight mb-4">Simple, transparent pricing</h3>
                         <p className="text-lg text-[var(--muted-foreground)]">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
@@ -308,7 +308,7 @@ export default function BillingPage() {
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mb-3">
                             <Layers className="w-5 h-5 text-[var(--primary)]" />
                         </div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</span>
                         <h3 className="text-2xl font-bold">Compare features</h3>
                     </div>
                     <ComparePlansTable plans={PLANS} currentPlanId={tier.id} />
@@ -322,7 +322,7 @@ export default function BillingPage() {
                                 <History className="w-5 h-5 text-[var(--primary)]" />
                             </div>
                             <div>
-                                <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Billing History</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Billing History</span>
                                 <h3 className="text-xl font-semibold">Invoices</h3>
                             </div>
                         </div>

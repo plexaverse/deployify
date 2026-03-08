@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Separator } from '@/components/ui/separator';
 import { useStore } from '@/store';
 
 // Common GCP regions (matching those in new/page.tsx)
@@ -185,7 +186,7 @@ export default function ImportProjectPage() {
                             <Settings className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Import</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Import</span>
                             <h1 className="text-3xl font-bold tracking-tight">Configure Project</h1>
                         </div>
                     </div>
@@ -200,8 +201,8 @@ export default function ImportProjectPage() {
 
             <div className="space-y-8">
                 {/* General Settings */}
-                <Card className="p-6 space-y-6">
-                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
                             <Settings className="w-6 h-6" />
                         </div>
@@ -210,8 +211,10 @@ export default function ImportProjectPage() {
                             <p className="text-[var(--muted-foreground)] text-sm">Configure your deployment environment</p>
                         </div>
                     </div>
+                    <Separator className="bg-[var(--border)]" />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Project Name</Label>
                             <Input
@@ -240,35 +243,36 @@ export default function ImportProjectPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Root Directory</Label>
-                            <Input
-                                type="text"
-                                value={rootDirectory}
-                                onChange={(e) => setRootDirectory(e.target.value)}
-                                placeholder="./"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Region</Label>
-                            <NativeSelect
-                                value={region}
-                                onChange={(e) => setRegion(e.target.value)}
-                            >
-                                {GCP_REGIONS.map((r) => (
-                                    <option key={r.value} value={r.value}>
-                                        {r.label}
-                                    </option>
-                                ))}
-                            </NativeSelect>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Root Directory</Label>
+                                <Input
+                                    type="text"
+                                    value={rootDirectory}
+                                    onChange={(e) => setRootDirectory(e.target.value)}
+                                    placeholder="./"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Region</Label>
+                                <NativeSelect
+                                    value={region}
+                                    onChange={(e) => setRegion(e.target.value)}
+                                >
+                                    {GCP_REGIONS.map((r) => (
+                                        <option key={r.value} value={r.value}>
+                                            {r.label}
+                                        </option>
+                                    ))}
+                                </NativeSelect>
+                            </div>
                         </div>
                     </div>
                 </Card>
 
                 {/* Build Settings */}
-                <Card className="p-6 space-y-6">
-                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center border border-[var(--primary)]/30">
                             <Settings className="w-6 h-6" />
                         </div>
@@ -277,8 +281,10 @@ export default function ImportProjectPage() {
                             <p className="text-[var(--muted-foreground)] text-sm">Customize your build pipeline</p>
                         </div>
                     </div>
+                    <Separator className="bg-[var(--border)]" />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Build Command</Label>
                             <Input
@@ -299,20 +305,21 @@ export default function ImportProjectPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Install Command</Label>
-                        <Input
-                            type="text"
-                            value={installCommand}
-                            onChange={(e) => setInstallCommand(e.target.value)}
-                            placeholder="npm install"
-                        />
+                        <div className="space-y-2">
+                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Install Command</Label>
+                            <Input
+                                type="text"
+                                value={installCommand}
+                                onChange={(e) => setInstallCommand(e.target.value)}
+                                placeholder="npm install"
+                            />
+                        </div>
                     </div>
                 </Card>
 
                 {/* Environment Variables */}
-                <Card className="p-6 space-y-6">
-                    <div className="flex items-center gap-4 pb-4 border-b border-[var(--border)]">
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-lg bg-[var(--success-bg)] text-[var(--success)] flex items-center justify-center border border-[var(--success)]/30">
                             <Terminal className="w-6 h-6" />
                         </div>
@@ -321,8 +328,10 @@ export default function ImportProjectPage() {
                             <p className="text-[var(--muted-foreground)] text-sm">Add build and runtime variables</p>
                         </div>
                     </div>
+                    <Separator className="bg-[var(--border)]" />
 
-                    <div className="space-y-3">
+                    <div className="p-6 space-y-6">
+                        <div className="space-y-3">
                         {envVars.map((env) => (
                             <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
                                 <div className="flex-1 grid grid-cols-3 gap-4 items-center">
@@ -402,6 +411,7 @@ export default function ImportProjectPage() {
                                 />
                             </div>
                         </div>
+                    </div>
                     </div>
                 </Card>
 
