@@ -144,7 +144,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                 <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
-                            <Label>Path</Label>
+                            <Label className="text-sm font-semibold">Path</Label>
                             <Input
                                 type="text"
                                 value={newPath}
@@ -157,7 +157,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                             </p>
                         </div>
                         <div className="space-y-2">
-                            <Label>Schedule</Label>
+                            <Label className="text-sm font-semibold">Schedule</Label>
                             <SegmentedControl
                                 options={PREDEFINED_SCHEDULES.map(s => ({ value: s.value, label: s.label }))}
                                 value={scheduleType}
@@ -167,7 +167,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                         </div>
                         {scheduleType === 'custom' && (
                             <div className="space-y-2 md:col-span-2">
-                                <Label>Custom Expression (UTC)</Label>
+                                <Label className="text-sm font-semibold">Custom Expression (UTC)</Label>
                                 <Input
                                     type="text"
                                     value={customSchedule}

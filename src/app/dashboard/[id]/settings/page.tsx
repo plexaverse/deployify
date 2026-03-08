@@ -153,7 +153,7 @@ export default function ProjectSettingsPage() {
                     <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="framework">Framework</Label>
+                                <Label htmlFor="framework" className="text-sm font-semibold">Framework</Label>
                                 <NativeSelect
                                     id="framework"
                                     value={framework}
@@ -173,7 +173,7 @@ export default function ProjectSettingsPage() {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="root-directory">Root Directory</Label>
+                                <Label htmlFor="root-directory" className="text-sm font-semibold">Root Directory</Label>
                                 <Input
                                     id="root-directory"
                                     type="text"
@@ -189,7 +189,7 @@ export default function ProjectSettingsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="build-command">Build Command</Label>
+                                <Label htmlFor="build-command" className="text-sm font-semibold">Build Command</Label>
                                 <Input
                                     id="build-command"
                                     type="text"
@@ -202,7 +202,7 @@ export default function ProjectSettingsPage() {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="output-directory">Output Directory</Label>
+                                <Label htmlFor="output-directory" className="text-sm font-semibold">Output Directory</Label>
                                 <Input
                                     id="output-directory"
                                     type="text"
@@ -218,7 +218,7 @@ export default function ProjectSettingsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="install-command">Install Command</Label>
+                                <Label htmlFor="install-command" className="text-sm font-semibold">Install Command</Label>
                                 <Input
                                     id="install-command"
                                     type="text"
@@ -291,7 +291,7 @@ export default function ProjectSettingsPage() {
                         />
 
                         <div className="space-y-2">
-                            <Label htmlFor="webhook-url">Webhook URL</Label>
+                            <Label htmlFor="webhook-url" className="text-sm font-semibold">Webhook URL</Label>
                             <Input
                                 id="webhook-url"
                                 type="text"
