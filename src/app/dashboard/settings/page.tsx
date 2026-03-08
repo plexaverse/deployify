@@ -347,20 +347,22 @@ export default function TeamSettingsPage() {
 
                     {/* Members List */}
                     <Card className="overflow-hidden p-0">
-                        <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
+                        <div className="p-6 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                     <Users className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team</span>
                                     <h3 className="text-xl font-semibold">Team Members</h3>
                                 </div>
                             </div>
-                            <div className="text-sm font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full">
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full border border-[var(--border)]">
                                 {members.length} {members.length === 1 ? 'member' : 'members'}
                             </div>
                         </div>
+
+                        <Separator className="bg-[var(--border)]" />
                         <div className="divide-y divide-[var(--border)]">
                             {isLoading ? (
                                 <div className="p-12 space-y-4">
@@ -527,13 +529,20 @@ export default function TeamSettingsPage() {
 
                 {/* Sidebar: Audit Log */}
                 <div className="space-y-6">
-                    <Card className="p-6 h-full max-h-[800px] flex flex-col">
-                        <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 shrink-0">
-                            <History className="w-5 h-5 text-[var(--muted-foreground)]" />
-                            Audit Log
-                        </h3>
+                    <Card className="overflow-hidden p-0 h-full max-h-[800px] flex flex-col">
+                        <div className="p-6 flex items-center gap-3 shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                                <History className="w-5 h-5 text-[var(--primary)]" />
+                            </div>
+                            <div>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Activity</span>
+                                <h3 className="text-xl font-semibold">Audit Log</h3>
+                            </div>
+                        </div>
 
-                        <div className="flex-1 overflow-y-auto pr-2 space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--border)]">
+                        <Separator className="bg-[var(--border)]" />
+
+                        <div className="flex-1 overflow-y-auto p-6 pr-2 space-y-6 relative before:absolute before:left-[43px] before:top-6 before:bottom-6 before:w-[1px] before:bg-[var(--border)]">
                             {logs.length === 0 && !isLoading ? (
                                 <div className="text-center text-[var(--muted-foreground)] text-sm py-8 pl-8">
                                     No activity recorded yet.
@@ -541,7 +550,7 @@ export default function TeamSettingsPage() {
                             ) : (
                                 logs.map((log) => (
                                     <div key={log.id} className="relative pl-8">
-                                        <div className="absolute left-[11px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
+                                        <div className="absolute left-[19px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
                                         <div className="flex flex-col gap-1">
                                             <span className="text-sm font-medium text-[var(--foreground)]">
                                                 {log.action}
