@@ -295,3 +295,38 @@ Standardized common status components and core project overview cards.
   - Standardized "Production Deployment", "Vitals", and "Deployment History" card headers to use the 3-part internal section header architecture (Icon Container + Context Label + Title).
   - Enforced `p-6` padding for all section headers and removed inconsistent background colors.
   - Aligned technical metadata (framework badges, live indicators) within the standardized header structure.
+
+## Progressive UI & Layout Standardization (Session 112)
+
+Standardized the modal architecture and navigation components to maintain consistent visual hierarchy across the platform.
+
+### Modal Header Architecture Standardization
+- **Files Updated**:
+  - `src/components/CreateTeamModal.tsx`
+  - `src/components/RollbackModal.tsx`
+  - `src/components/DeploymentLogsModal.tsx`
+- **Standardization**:
+  - Refactored all primary modals to use the 3-part header architecture adapted for overlays: Icon Container (`w-10 h-10 rounded-xl`), Context Label (`text-[10px] font-bold uppercase tracking-wider`), and Main Title (`text-xl font-semibold`).
+  - Standardized modal header padding to `p-6` for a more spacious, premium feel.
+  - Enforced the `text-sm font-semibold` standard for form labels and `text-[10px] font-bold uppercase tracking-wider` for technical metadata (commit SHAs, instructions, timestamps) within modal bodies.
+  - Updated action buttons within modals to use consistent typography and `MovingBorderButton` for primary actions.
+
+### Sidebar & Navigation Standardization
+- **Files Updated**:
+  - `src/components/DashboardSidebar.tsx`
+  - `src/components/TeamSwitcher.tsx`
+- **Standardization**:
+  - Enforced `text-[10px] font-bold uppercase tracking-wider` for all navigation group labels ("Platform", "Settings"), technical metadata (usernames, theme labels), and secondary actions (Sign out).
+  - Standardized the `TeamSwitcher` button with a 2-tier typography layout: a metadata label ("Workspace") and a primary title ("Team Name").
+  - Refined avatar and button rounding to `rounded-xl` and `rounded-lg` to create a more modern, cohesive design language across the sidebar.
+  - Improved interactive states with `shadow-sm` and `bg-[var(--card-hover)]` transitions.
+
+### Global Utility Refinement
+- **Files Updated**:
+  - `src/components/EmptyState.tsx`
+  - `src/components/BuildLogViewer.tsx`
+- **Standardization**:
+  - Refactored `EmptyState` to follow the section standard: Icon Container (`w-16 h-16 rounded-2xl`) + Bold Title (`text-xl`) + Semi-bold description. Increased default rounding to `rounded-3xl` for full-page states.
+  - Standardized `BuildLogViewer` to match the `LogViewer` technical metadata standard: Enforced `text-[10px] font-bold uppercase tracking-wider` for all status headers, line numbers, and error messages.
+  - Improved the `BuildLogViewer` loading and initialization states with standardized skeleton layouts and metadata labels ("Initialization").
+  - Enforced a `text-[11px]` monospace font for logs to optimize information density while maintaining readability.

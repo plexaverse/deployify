@@ -144,7 +144,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                 <nav className="flex-1 p-4 overflow-y-auto space-y-6">
                     {navGroups.map((group) => (
                         <div key={group.label}>
-                            <h3 className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-2 px-2">
+                            <h3 className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-3 px-3">
                                 {group.label}
                             </h3>
                             <ul className="space-y-1">
@@ -192,7 +192,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                     label: (
                                         <div className="flex items-center gap-2">
                                             <Sun className="w-3.5 h-3.5" />
-                                            <span>Light</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Light</span>
                                         </div>
                                     )
                                 },
@@ -201,7 +201,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                     label: (
                                         <div className="flex items-center gap-2">
                                             <Moon className="w-3.5 h-3.5" />
-                                            <span>Dark</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Dark</span>
                                         </div>
                                     )
                                 }
@@ -213,20 +213,20 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                     </div>
 
                     <div className="flex items-center gap-3 px-3 py-2">
-                        <Avatar className="h-8 w-8 border border-[var(--border)]">
+                        <Avatar className="h-8 w-8 border border-[var(--border)] rounded-lg">
                             <AvatarImage src={session.user.avatarUrl} alt={session.user.githubUsername} />
-                            <AvatarFallback>{session.user.githubUsername.slice(0, 2).toUpperCase()}</AvatarFallback>
+                            <AvatarFallback className="rounded-lg">{session.user.githubUsername.slice(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium truncate text-[var(--foreground)]">
+                                <p className="text-sm font-semibold truncate text-[var(--foreground)]">
                                     {session.user.name || session.user.githubUsername}
                                 </p>
                                 {session.user.subscription?.tier && session.user.subscription.tier !== 'free' && (
                                     <PlanBadge tier={session.user.subscription.tier} />
                                 )}
                             </div>
-                            <p className="text-xs text-[var(--muted-foreground)] truncate">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate">
                                 @{session.user.githubUsername}
                             </p>
                         </div>
@@ -234,7 +234,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                     <motion.a
                         whileTap={{ scale: 0.98 }}
                         href="/api/auth/logout"
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
+                        className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
                     >
                         <LogOut className="w-4 h-4" />
                         Sign out
