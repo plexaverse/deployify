@@ -65,3 +65,7 @@
 ## 2026-03-22 - [Scripe.io Aesthetic and Compact Interactivity]
 **Learning:** Achieving a "premium" scripe.io aesthetic requires attention to micro-typography (e.g., `tracking-[0.2em]`) and glass-morphism (`backdrop-blur`). When implementing interactive elements (like copy buttons) within a parent navigation link, the `e.stopPropagation()` and `e.preventDefault()` patterns are essential. Additionally, avoiding `useEffect` for deterministic UI state (like mock sparklines) prevents cascading render warnings in strict environments.
 **Action:** Use wider tracking for metadata labels and prefer `useMemo` for deterministic visual data to satisfy strict linter rules.
+
+## 2026-03-24 - [Deterministic UI Stability and Grid Flexibility]
+**Learning:** Using `useMemo` with a seed (like project ID) for visual elements that usually rely on random data (like sparklines) eliminates hydration mismatches and "flickering" between renders, which significantly enhances the perceived quality of the interface. Furthermore, implementing conditional rendering logic in layout components (like `BentoGridItem`) to detect "wrapper-only" usage (when title/description/icon are missing) prevents redundant styling (padding/borders) and ensures the interface remains crisp and intentional.
+**Action:** Always prefer deterministic rendering for visual data and provide "clean" wrapper modes for core layout components to support complex interactive children.
