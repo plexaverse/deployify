@@ -244,6 +244,54 @@ Completed a comprehensive standardization pass for all core project settings com
   - Enforced `text-[10px] font-bold uppercase tracking-wider` and uppercase formatting for all technical log metadata, including timestamps, severity levels (INFO, WARNING, ERROR), and connection status badges.
   - Refined log line layout with improved spacing and fixed-width columns for timestamps and severities to ensure vertical alignment and developer-grade legibility.
 
+### Dashboard Overview Header Standardization
+- **File Updated**: `src/app/dashboard/page.tsx`
+- **Standardization**:
+  - Updated the "Workspace Overview" context label to `text-[10px] font-bold uppercase tracking-wider` for consistent metadata styling.
+
+### Project Logs Header Standardization
+- **File Updated**: `src/app/dashboard/[id]/logs/page.tsx`
+- **Standardization**:
+  - Updated the "Runtime Output" context label to `text-[10px] font-bold uppercase tracking-wider` for consistent metadata styling.
+
+### Project Deployments Header Standardization
+- **File Updated**: `src/app/dashboard/[id]/deployments/page.tsx`
+- **Standardization**:
+  - Updated the "Project History" context label to `text-[10px] font-bold uppercase tracking-wider` for consistent metadata styling.
+
+### Project Settings Header Standardization
+- **File Updated**: `src/app/dashboard/[id]/settings/page.tsx`
+- **Standardization**:
+  - Updated the "Project Configuration" context label to `text-[10px] font-bold uppercase tracking-wider` for consistent metadata styling.
+
+### Import Repository Standardization
+- **File Updated**: `src/app/dashboard/new/import/page.tsx`
+- **Standardization**:
+  - Updated the "Project Import" context label to `text-[10px] font-bold uppercase tracking-wider`.
+  - Refactored "Project Settings", "Build Settings", and "Environment Variables" cards to adhere to the internal section standard: `<Card className="overflow-hidden p-0">` with padded headers (`p-6 flex ...`), `<Separator className="bg-[var(--border)]" />`, and padded body content.
+
+### Repository Selection Header Standardization
+- **File Updated**: `src/app/dashboard/new/page.tsx`
+- **Standardization**:
+  - Updated the "Git Connectivity" context label to `text-[10px] font-bold uppercase tracking-wider` for consistent metadata styling.
+
+### Edge Debug Simulator Standardization
+- **File Updated**: `src/app/edge-debug/page.tsx`
+- **Standardization**:
+  - Updated the "Developer Tools" context label to `text-[10px] font-bold uppercase tracking-wider`.
+  - Standardized the "Request Configuration" card to use the `overflow-hidden p-0` pattern with padded flex headers (`p-6 flex ...`), a `<Separator className="bg-[var(--border)]" />`, and padded body content. Note: Simulation Result card was left largely untouched as its structure is specifically designed for terminal-like output.
+
+### Team/Account Settings Header Standardization
+- **File Updated**: `src/app/dashboard/settings/page.tsx`
+- **Standardization**:
+  - Updated the "Personal Workspace" and "Team Management" context labels to `text-[10px] font-bold uppercase tracking-wider` for consistent metadata styling.
+
+### Billing Header Standardization
+- **File Updated**: `src/app/billing/page.tsx`
+- **Standardization**:
+  - Updated the "Account Subscription" page header context label to `text-[10px] font-bold uppercase tracking-wider`.
+  - Updated the "Resource Monitoring", "Pricing Plans", "Feature Comparison", and "Billing History" section header context labels to `text-[10px] font-bold uppercase tracking-wider` for consistent metadata styling.
+  - Verified the "Invoices" section card already conforms to the `<Card className="overflow-hidden p-0">` standard.
 ## Progressive UI & Layout Standardization (Session 110)
 
 Final pass on Project Settings and CLI robustness.

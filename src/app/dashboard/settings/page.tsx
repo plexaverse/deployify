@@ -188,7 +188,7 @@ export default function TeamSettingsPage() {
                             <UserIcon className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Personal Workspace</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Personal Workspace</span>
                             <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
                         </div>
                     </div>
@@ -283,7 +283,7 @@ export default function TeamSettingsPage() {
                         <Users className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Management</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Management</span>
                         <h1 className="text-3xl font-bold tracking-tight">{activeTeam.name} Settings</h1>
                     </div>
                 </div>

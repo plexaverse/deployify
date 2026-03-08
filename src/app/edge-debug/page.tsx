@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SegmentedControl } from '@/components/ui/segmented-control'
 import { Button as MovingBorderButton } from '@/components/ui/moving-border'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
@@ -84,7 +83,7 @@ export default function EdgeDebugPage() {
                     <Cpu className="w-8 h-8 text-[var(--primary)]" />
                 </div>
                 <div className="space-y-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
                     <h1 className="text-3xl font-bold tracking-tight">Edge Function Simulator</h1>
                 </div>
             </div>
@@ -119,8 +118,18 @@ export default function EdgeDebugPage() {
             <div className="flex flex-col gap-6 overflow-y-auto pr-2 pb-4">
 
                 {/* Request Config */}
-                <Card className="space-y-6">
-                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Request Configuration</h2>
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
+                            <Cpu className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Request Configuration</h2>
+                            <p className="text-[var(--muted-foreground)] text-sm">Configure request parameters</p>
+                        </div>
+                    </div>
+                    <Separator className="bg-[var(--border)]" />
+                    <div className="p-6 space-y-6">
 
                     <div className="space-y-2">
                         <Label>HTTP Method</Label>
@@ -159,6 +168,7 @@ export default function EdgeDebugPage() {
                             )}
                             spellCheck={false}
                         />
+                    </div>
                     </div>
                 </Card>
 

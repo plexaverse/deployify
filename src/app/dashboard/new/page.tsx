@@ -102,7 +102,7 @@ export default function NewProjectPage() {
                             <Github className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Connectivity</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Connectivity</span>
                             <h1 className="text-3xl font-bold tracking-tight">Import Repository</h1>
                         </div>
                     </div>
