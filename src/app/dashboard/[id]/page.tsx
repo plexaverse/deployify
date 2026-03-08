@@ -238,25 +238,30 @@ export default function ProjectDetailPage() {
                 <div className="lg:col-span-2 space-y-8">
                     {/* Production Card */}
                     <Card className="overflow-hidden shadow-lg border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5 p-0">
-                        <div className="px-6 py-4 flex items-center justify-between bg-[var(--muted)]/5">
+                        <div className="p-6 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                     <Globe className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
                                     <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
-                                    <h2 className="text-xl font-semibold">Production</h2>
+                                    <div className="flex items-center gap-2">
+                                        <h2 className="text-xl font-semibold">Production</h2>
+                                        <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)]">
+                                            {project.framework || 'Web App'}
+                                        </Badge>
+                                    </div>
                                 </div>
-                                <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)] ml-2">
-                                    {project.framework || 'Web App'}
-                                </Badge>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="relative flex h-2.5 w-2.5">
                                     <span className="animate-pulse-glow absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-40"></span>
                                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--success)] shadow-[0_0_10px_var(--success)]"></span>
                                 </div>
-                                <Badge variant="success" className="text-[10px] py-0 px-2 font-bold tracking-wide uppercase shadow-[0_0_10px_var(--success-bg)]">
+                                <Badge
+                                    variant="success"
+                                    className="text-[10px] py-0.5 px-2 font-bold tracking-wider uppercase shadow-[0_0_10px_var(--success-bg)]"
+                                >
                                     Live
                                 </Badge>
                             </div>
@@ -336,7 +341,7 @@ export default function ProjectDetailPage() {
                     {/* Compact Error Rate */}
                     {errorCount !== null && (
                         <Card className="overflow-hidden p-0 shadow-sm">
-                            <div className="px-6 py-4 flex items-center justify-between bg-[var(--muted)]/5">
+                            <div className="p-6 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                         <Activity className="w-5 h-5 text-[var(--primary)]" />
@@ -395,7 +400,7 @@ export default function ProjectDetailPage() {
                     </EmptyState>
                 ) : (
                     <Card className="overflow-hidden shadow-sm p-0">
-                        <div className="px-6 py-4 flex items-center justify-between bg-[var(--muted)]/5">
+                        <div className="p-6 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                     <History className="w-5 h-5 text-[var(--primary)]" />

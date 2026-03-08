@@ -5,6 +5,7 @@ import { getLCPStatus, getFIDStatus, getCLSStatus, getScoreStatus } from '@/lib/
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const variantMap: Record<string, 'success' | 'warning' | 'error' | 'secondary'> = {
     good: 'success',
@@ -96,45 +97,58 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
     }
 
     return (
-        <Card className="mb-8 p-6">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-[var(--primary)]" />
-                    Core Web Vitals
-                </h2>
-                <Badge variant="outline" className="text-[10px] uppercase tracking-widest px-2">
+        <Card className="overflow-hidden p-0 shadow-sm">
+            <div className="p-6 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Activity className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
+                        <h3 className="text-xl font-semibold">Core Web Vitals</h3>
+                    </div>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider px-2">
                     Real-time Data
                 </Badge>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((stat) => {
-                    const variant = variantMap[stat.status as string] || 'secondary';
-                    return (
-                        <div key={stat.label} className="p-4 rounded-xl bg-[var(--muted)]/5 border border-[var(--border)] group hover:border-[var(--primary)] transition-all duration-300">
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-tight">{stat.label}</span>
-                                <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", {
-                                    "text-[var(--success)]": variant === 'success',
-                                    "text-[var(--warning)]": variant === 'warning',
-                                    "text-[var(--error)]": variant === 'error',
-                                })} />
+
+            <Separator className="bg-[var(--border)]" />
+
+            <div className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {stats.map((stat) => {
+                        const variant = variantMap[stat.status as string] || 'secondary';
+                        return (
+                            <div key={stat.label} className="p-4 rounded-xl bg-[var(--muted)]/5 border border-[var(--border)] group hover:border-[var(--primary)] transition-all duration-300">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-tight">{stat.label}</span>
+                                    <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", {
+                                        "text-[var(--success)]": variant === 'success',
+                                        "text-[var(--warning)]": variant === 'warning',
+                                        "text-[var(--error)]": variant === 'error',
+                                    })} />
+                                </div>
+                                <div className="flex items-baseline gap-1.5 mb-3">
+                                    <span className={cn("text-2xl font-bold tracking-tight", {
+                                        "text-[var(--success)]": variant === 'success',
+                                        "text-[var(--warning)]": variant === 'warning',
+                                        "text-[var(--error)]": variant === 'error',
+                                    })}>
+                                        {stat.value}
+                                    </span>
+                                    <span className="text-xs text-[var(--muted-foreground)] font-medium">{stat.unit}</span>
+                                </div>
+                                <Badge
+                                    variant={variant}
+                                    className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5"
+                                >
+                                    {stat.status}
+                                </Badge>
                             </div>
-                            <div className="flex items-baseline gap-1.5 mb-3">
-                                <span className={cn("text-2xl font-bold tracking-tight", {
-                                    "text-[var(--success)]": variant === 'success',
-                                    "text-[var(--warning)]": variant === 'warning',
-                                    "text-[var(--error)]": variant === 'error',
-                                })}>
-                                    {stat.value}
-                                </span>
-                                <span className="text-xs text-[var(--muted-foreground)] font-medium">{stat.unit}</span>
-                            </div>
-                            <Badge variant={variant} className="text-[9px] px-2 py-0 font-bold uppercase tracking-wide">
-                                {stat.status}
-                            </Badge>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
         </Card>
     );

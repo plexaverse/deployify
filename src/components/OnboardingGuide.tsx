@@ -3,9 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { CheckCircle2, GitBranch, Settings, Globe, ArrowRight } from 'lucide-react';
+import { CheckCircle2, GitBranch, Settings, Globe, ArrowRight, Rocket } from 'lucide-react';
 import { BackgroundBeams } from '@/components/ui/background-beams';
-import { Button } from '@/components/ui/moving-border';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { cn } from '@/lib/utils';
 
 export function OnboardingGuide() {
@@ -45,11 +45,17 @@ export function OnboardingGuide() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="space-y-4"
+                    className="flex flex-col items-center gap-6"
                 >
-                    <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-[var(--gradient-primary)]">
-                        Welcome to Deployify
-                    </h2>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Rocket className="w-8 h-8 text-[var(--primary)]" />
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Welcome</span>
+                            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Welcome to Deployify</h1>
+                        </div>
+                    </div>
                     <p className="text-[var(--muted-foreground)] text-lg max-w-lg mx-auto">
                         Deploy your Next.js applications in minutes. Just import your repository and we handle the rest.
                     </p>
@@ -100,16 +106,15 @@ export function OnboardingGuide() {
                     className="pt-8"
                 >
                     <Link href="/new">
-                        <Button
-                            borderRadius="1.75rem"
-                            className="bg-[var(--primary)] text-[var(--primary-foreground)] border-transparent text-base font-bold shadow-[var(--primary-glow)]"
+                        <MovingBorderButton
                             containerClassName="h-14 w-52"
+                            className="text-base font-bold"
                         >
                             <span className="flex items-center gap-2">
                                 Import Project
                                 <ArrowRight className="w-4 h-4" />
                             </span>
-                        </Button>
+                        </MovingBorderButton>
                     </Link>
                 </motion.div>
             </div>

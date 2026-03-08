@@ -263,3 +263,35 @@ Final pass on Project Settings and CLI robustness.
 - **Improvement**:
   - Enhanced the `deploy` command with descriptive error feedback and actionable steps when a project is not linked.
   - Silenced Git error messages during background state checks to prevent user confusion when running the CLI outside of a repository.
+
+## Progressive UI & Layout Standardization (Session 111)
+
+Standardized common status components and core project overview cards.
+
+### Badge & Typography Standardization
+- **Files Updated**:
+  - `src/components/StatusBadge.tsx`
+  - `src/components/ProjectCard.tsx`
+- **Standardization**:
+  - Enforced `text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5` across all deployment status badges to unify technical metadata styling.
+  - Updated `ProjectCard` to use the standardized status badge typography and icon sizing (`w-2.5 h-2.5`).
+
+### WebVitals Component Standardization
+- **File Updated**: `src/components/WebVitals.tsx`
+- **Standardization**:
+  - Refactored to the 3-part internal section header standard (Icon Container `w-10 h-10` + Context Label: "Performance" + Title: "Core Web Vitals").
+  - Adopted the `<Card className="overflow-hidden p-0">` layout with a `<Separator />` for consistent section boundaries.
+  - Standardized internal status badges to the `text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5` typography.
+
+### Onboarding Guide Component Standardization
+- **File Updated**: `src/components/OnboardingGuide.tsx`
+- **Standardization**:
+  - Refactored the welcome header to follow the 3-part architecture (Icon Container: `Rocket` + Context Label: "Welcome" + Main Title: "Welcome to Deployify").
+  - Standardized the primary "Import Project" action button to use the `MovingBorderButton` component.
+
+### Project Overview Card Header Standardization
+- **File Updated**: `src/app/dashboard/[id]/page.tsx`
+- **Standardization**:
+  - Standardized "Production Deployment", "Vitals", and "Deployment History" card headers to use the 3-part internal section header architecture (Icon Container + Context Label + Title).
+  - Enforced `p-6` padding for all section headers and removed inconsistent background colors.
+  - Aligned technical metadata (framework badges, live indicators) within the standardized header structure.
