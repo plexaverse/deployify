@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { ProjectCard } from '@/components/ProjectCard';
 import { CommandPalette } from '@/components/CommandPalette';
@@ -81,12 +82,14 @@ export default function DashboardHome() {
                href={`/dashboard/${project.id}`}
                className="block h-full"
              >
-               <BentoGridItem
-                 title={null}
-                 description={null}
-                 header={<ProjectCard project={project} />}
-                 className="h-full min-h-[12rem] cursor-pointer hover:border-[var(--primary)] transition-colors"
-               />
+               <motion.div whileTap={{ scale: 0.98 }} className="h-full">
+                 <BentoGridItem
+                   title={null}
+                   description={null}
+                   header={<ProjectCard project={project} />}
+                   className="h-full min-h-[12rem] cursor-pointer hover:border-[var(--primary)] transition-colors p-0 overflow-hidden border-0 bg-transparent shadow-none"
+                 />
+               </motion.div>
              </Link>
            ))}
         </BentoGrid>
