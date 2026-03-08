@@ -9,6 +9,7 @@ import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SegmentedControl } from '@/components/ui/segmented-control';
+import { Separator } from '@/components/ui/separator';
 
 interface ResourceSettingsProps {
     projectId: string;
@@ -71,8 +72,8 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
     };
 
     return (
-        <Card>
-            <div className="mb-6 flex items-center gap-3">
+        <Card className="overflow-hidden p-0">
+            <div className="p-6 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                     <Cpu className="w-5 h-5 text-[var(--primary)]" />
                 </div>
@@ -82,7 +83,9 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                 </div>
             </div>
 
-            <div className="space-y-6">
+            <Separator className="bg-[var(--border)]" />
+
+            <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <Label>CPU</Label>

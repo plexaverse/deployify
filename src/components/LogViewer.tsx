@@ -213,9 +213,9 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                 minute: '2-digit',
                 second: '2-digit',
                 fractionalSecondDigits: 3
-            });
+            }).toUpperCase();
         } catch {
-            return isoString;
+            return isoString.toUpperCase();
         }
     };
 
@@ -236,7 +236,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
                     <Badge
                         variant={isConnected ? 'success' : 'destructive'}
-                        className="text-[10px] py-0 px-2 h-5 gap-1.5"
+                        className="text-[10px] font-bold uppercase tracking-wider py-0 px-2 h-5 gap-1.5"
                     >
                         {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
                         {isConnected ? 'Connected' : 'Disconnected'}
@@ -345,7 +345,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                         {[1, 2, 3, 4, 5].map((i) => (
                             <div key={i} className="flex gap-4">
                                 <Skeleton className="h-4 w-24 bg-[var(--terminal-foreground)]/5" />
-                                <Skeleton className="h-4 w-12 bg-[var(--terminal-foreground)]/5" />
+                                <Skeleton className="h-4 w-16 bg-[var(--terminal-foreground)]/5" />
                                 <Skeleton className="h-4 w-full bg-[var(--terminal-foreground)]/5" />
                             </div>
                         ))}
@@ -364,14 +364,14 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                 ) : (
                     <div className="flex flex-col">
                         {filteredLogs.map((log, index) => (
-                            <div key={log.insertId || index} className="flex items-start gap-3 hover:bg-[var(--terminal-foreground)]/5 px-1 py-0.5 rounded -mx-1 group transition-colors">
-                                <span className="text-[var(--muted)] shrink-0 select-none w-[100px] opacity-70 group-hover:opacity-100 transition-opacity">
+                            <div key={log.insertId || index} className="flex items-start gap-4 hover:bg-[var(--terminal-foreground)]/5 px-1 py-0.5 rounded -mx-1 group transition-colors">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] shrink-0 select-none w-[110px] opacity-70 group-hover:opacity-100 transition-opacity pt-0.5">
                                     {formatTimestamp(log.timestamp)}
                                 </span>
-                                <span className={`font-bold shrink-0 w-[70px] select-none ${getSeverityColor(log.severity)}`}>
+                                <span className={`text-[10px] font-bold uppercase tracking-wider shrink-0 w-[70px] select-none pt-0.5 ${getSeverityColor(log.severity)}`}>
                                     {log.severity}
                                 </span>
-                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1">
+                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-xs font-medium">
                                     {log.textPayload || (log.jsonPayload ? JSON.stringify(log.jsonPayload) : '')}
                                 </span>
                             </div>
