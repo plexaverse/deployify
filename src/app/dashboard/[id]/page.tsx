@@ -336,8 +336,8 @@ export default function ProjectDetailPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        <Link href={`${params.id}/deployments`}>
-                                            <Button variant="ghost" size="sm" className="text-xs font-bold h-7 text-[var(--primary)] hover:bg-[var(--primary)]/5 uppercase tracking-wider">
+                                        <Link href={`/dashboard/${params.id}/deployments`}>
+                                            <Button variant="ghost" size="sm" className="text-[10px] font-bold h-7 text-[var(--primary)] hover:bg-[var(--primary)]/5 uppercase tracking-wider">
                                                 View All Deploys
                                             </Button>
                                         </Link>
@@ -377,7 +377,7 @@ export default function ProjectDetailPage() {
                             <Separator className="bg-[var(--border)]" />
                             <div className="p-6 flex items-baseline gap-2">
                                 <span className="text-3xl font-bold">{errorCount}</span>
-                                <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">events tracked</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">events tracked</span>
                             </div>
                         </Card>
                     )}
@@ -454,7 +454,7 @@ export default function ProjectDetailPage() {
                             <div className="px-6 py-3 bg-[var(--card)] border-t border-[var(--border)] text-center">
                                 <Link
                                     href={`/dashboard/${params.id}/deployments`}
-                                    className="text-xs font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                                    className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                                 >
                                     View all deployments
                                 </Link>

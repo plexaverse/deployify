@@ -9,6 +9,10 @@ interface BQRow {
 }
 
 async function getStatsFromBigQuery(projectId: string, days: number): Promise<BQRow[]> {
+    if (process.env.MOCK_DB === 'true') {
+        return [];
+    }
+
     try {
         const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
         const { BigQuery } = await import('@google-cloud/bigquery');
