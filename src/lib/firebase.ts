@@ -93,6 +93,7 @@ function createMockFirestore(): Firestore {
                 ...base,
                 name: 'Mock Project',
                 slug: 'mock-slug',
+                productionUrl: 'https://mock-slug.deployify.app',
                 userId: 'audit-test',
                 githubUsername: 'plexaverse',
                 repoFullName: 'owner/repo',
