@@ -82,7 +82,7 @@ export default function NewProjectPage() {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
-        });
+        }).toUpperCase();
     };
 
     return (
@@ -156,11 +156,13 @@ export default function NewProjectPage() {
             {loading && (
                 <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (
-                        <Card key={i} className="flex items-center gap-4">
-                            <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
-                            <div className="flex-1 space-y-2">
-                                <Skeleton className="h-4 w-1/3" />
-                                <Skeleton className="h-3 w-1/2" />
+                        <Card key={i} className="overflow-hidden p-0">
+                            <div className="p-6 flex items-center gap-4">
+                                <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                    <Skeleton className="h-4 w-1/3" />
+                                    <Skeleton className="h-3 w-1/2" />
+                                </div>
                             </div>
                         </Card>
                     ))}
@@ -182,69 +184,72 @@ export default function NewProjectPage() {
                                 whileTap={{ scale: 0.995 }}
                             >
                                 <Card
-                                    className="group relative flex items-center gap-4 hover:border-[var(--primary)] transition-all cursor-pointer overflow-hidden p-6"
+                                    className="group relative hover:border-[var(--primary)] transition-all cursor-pointer overflow-hidden p-0"
                                     onClick={() => handleImport(repo)}
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="p-6 flex items-center gap-4 relative">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                                    {/* Icon */}
-                                    <div className="relative z-10 w-12 h-12 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)] group-hover:border-[var(--primary)]/30 transition-colors">
-                                        {repo.private ? (
-                                            <Lock className="w-5 h-5 text-[var(--warning)]" />
-                                        ) : (
-                                            <Globe className="w-5 h-5 text-[var(--success)]" />
-                                        )}
-                                    </div>
-
-                                    {/* Repo info */}
-                                    <div className="relative z-10 flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
-                                                {repo.full_name}
-                                            </h3>
-                                            {repo.private && (
-                                                <Badge variant="warning" className="text-[10px] px-2 py-0 uppercase font-bold tracking-wider">
-                                                    Private
-                                                </Badge>
+                                        {/* Icon */}
+                                        <div className="relative z-10 w-12 h-12 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)] group-hover:border-[var(--primary)]/30 transition-colors">
+                                            {repo.private ? (
+                                                <Lock className="w-5 h-5 text-[var(--warning)]" />
+                                            ) : (
+                                                <Globe className="w-5 h-5 text-[var(--success)]" />
                                             )}
                                         </div>
-                                        <p className="text-sm text-[var(--muted-foreground)] truncate mt-0.5">
-                                            {repo.description || 'No description'}
-                                        </p>
-                                        <div className="flex items-center gap-4 mt-2 text-xs text-[var(--muted-foreground)]">
-                                            {repo.language && (
+
+                                        {/* Repo info */}
+                                        <div className="relative z-10 flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
+                                                    {repo.full_name}
+                                                </h3>
+                                                {repo.private && (
+                                                    <Badge variant="warning" className="text-[10px] px-1.5 py-0.5 uppercase font-bold tracking-wider">
+                                                        Private
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-[var(--muted-foreground)] truncate mt-0.5">
+                                                {repo.description || 'No description'}
+                                            </p>
+                                            <div className="flex items-center gap-4 mt-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                {repo.language && (
+                                                    <span className="flex items-center gap-1.5">
+                                                        <span className="w-2 h-2 rounded-full bg-[var(--info)]"></span>
+                                                        {repo.language}
+                                                    </span>
+                                                )}
                                                 <span className="flex items-center gap-1.5">
-                                                    <span className="w-2 h-2 rounded-full bg-[var(--info)]"></span>
-                                                    {repo.language}
+                                                    <GitBranch className="w-3.5 h-3.5" />
+                                                    {repo.default_branch}
                                                 </span>
-                                            )}
-                                            <span className="flex items-center gap-1.5">
-                                                <GitBranch className="w-3.5 h-3.5" />
-                                                {repo.default_branch}
-                                            </span>
-                                            <span>Updated {formatDate(repo.pushed_at)}</span>
+                                                <span>Updated {formatDate(repo.pushed_at)}</span>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Action indicator */}
-                                    <div className="relative z-10 flex items-center gap-3">
-                                        <Button
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleImport(repo);
-                                            }}
-                                            loading={importing === repo.full_name}
-                                            disabled={importing !== null}
-                                            className="hidden sm:flex"
-                                        >
-                                            Import
-                                        </Button>
-                                        <div className="opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                                            <ChevronRight className="w-5 h-5 text-[var(--primary)]" />
+                                        {/* Action indicator */}
+                                        <div className="relative z-10 flex items-center gap-3">
+                                            <Button
+                                                size="sm"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleImport(repo);
+                                                }}
+                                                loading={importing === repo.full_name}
+                                                disabled={importing !== null}
+                                                className="hidden sm:flex text-[10px] font-bold uppercase tracking-wider"
+                                            >
+                                                Import
+                                            </Button>
+                                            <div className="opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                                <ChevronRight className="w-5 h-5 text-[var(--primary)]" />
+                                            </div>
                                         </div>
                                     </div>
                                 </Card>
+
                             </motion.div>
                         ))}
                     </AnimatePresence>

@@ -114,13 +114,25 @@ export default function DeploymentsPage() {
 
     if (loading && !project) {
         return (
-            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-6">
-                <Skeleton className="h-8 w-48 mb-6" />
-                <div className="space-y-4">
-                    {[...Array(5)].map((_, i) => (
-                        <Skeleton key={i} className="h-24 w-full rounded-xl" />
-                    ))}
+            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
+                        <div className="space-y-1">
+                            <Skeleton className="h-3 w-32" />
+                            <Skeleton className="h-8 w-48" />
+                        </div>
+                    </div>
                 </div>
+                <Card className="overflow-hidden p-0">
+                    <div className="divide-y divide-[var(--border)]">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="p-6">
+                                <Skeleton className="h-24 w-full rounded-xl" />
+                            </div>
+                        ))}
+                    </div>
+                </Card>
             </div>
         );
     }

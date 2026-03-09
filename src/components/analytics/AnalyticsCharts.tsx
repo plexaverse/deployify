@@ -286,18 +286,20 @@ function WebVitalCard({ title, value, unit, status, description }: {
 function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) {
     if (active && payload && payload.length && label) {
         return (
-            <Card className="p-3 shadow-2xl bg-[var(--card)] border-[var(--border)]">
-                <p className="text-sm font-medium text-[var(--foreground)] mb-2">
-                    {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </p>
-                <div className="space-y-1">
-                    {payload.map((entry: TooltipEntry, index: number) => (
-                        <div key={index} className="flex items-center gap-2 text-xs">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
-                            <span className="font-mono font-medium text-[var(--foreground)]">{entry.value}</span>
-                        </div>
-                    ))}
+            <Card className="overflow-hidden p-0 shadow-2xl bg-[var(--card)] border-[var(--border)]">
+                <div className="p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                        {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
+                    </p>
+                    <div className="space-y-1">
+                        {payload.map((entry: TooltipEntry, index: number) => (
+                            <div key={index} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
+                                <span className="text-[var(--foreground)]">{(entry.value as number).toLocaleString()}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </Card>
         );

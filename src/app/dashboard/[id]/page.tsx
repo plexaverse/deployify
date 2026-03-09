@@ -64,7 +64,7 @@ export default function ProjectDetailPage() {
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-        });
+        }).toUpperCase();
     };
 
     const handleCopyUrl = async (url: string | undefined | null, id: string) => {
@@ -132,22 +132,36 @@ export default function ProjectDetailPage() {
     if (loading && !project) {
         return (
             <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
-                <div className="space-y-2">
-                    <Skeleton className="h-10 w-1/4" />
-                    <Skeleton className="h-4 w-1/2" />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="w-12 h-12 rounded-2xl shrink-0" />
+                        <div className="space-y-1">
+                            <Skeleton className="h-3 w-32" />
+                            <Skeleton className="h-8 w-48" />
+                        </div>
+                    </div>
+                    <div className="flex gap-3">
+                        <Skeleton className="h-9 w-32 rounded-xl" />
+                        <Skeleton className="h-9 w-24 rounded-xl" />
+                    </div>
                 </div>
                 <Card className="overflow-hidden p-0">
+                    <div className="p-6">
+                        <Skeleton className="h-10 w-full rounded-xl" />
+                    </div>
+                    <Separator />
                     <div className="p-8">
-                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-32 w-full rounded-xl" />
                     </div>
                 </Card>
                 <Card className="overflow-hidden p-0">
                     <div className="p-6">
-                        <Skeleton className="h-6 w-48 mb-6" />
-                        <div className="space-y-4">
-                            <Skeleton className="h-24 w-full" />
-                            <Skeleton className="h-24 w-full" />
-                        </div>
+                        <Skeleton className="h-10 w-full rounded-xl" />
+                    </div>
+                    <Separator />
+                    <div className="p-6 space-y-4">
+                        <Skeleton className="h-24 w-full rounded-xl" />
+                        <Skeleton className="h-24 w-full rounded-xl" />
                     </div>
                 </Card>
             </div>
@@ -170,7 +184,7 @@ export default function ProjectDetailPage() {
                     </div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Overview</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Overview</span>
                             <span className="text-[var(--muted)]">•</span>
                             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 <a
@@ -248,7 +262,7 @@ export default function ProjectDetailPage() {
                                     <Globe className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
                                     <div className="flex items-center gap-2">
                                         <h2 className="text-xl font-semibold">Production</h2>
                                         <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)]">
@@ -351,7 +365,7 @@ export default function ProjectDetailPage() {
                                         <Activity className="w-5 h-5 text-[var(--primary)]" />
                                     </div>
                                     <div>
-                                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">24h Status</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">24h Status</span>
                                         <h3 className="text-xl font-semibold">Vitals</h3>
                                     </div>
                                 </div>
@@ -410,7 +424,7 @@ export default function ProjectDetailPage() {
                                     <History className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Activity</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Activity</span>
                                     <h2 className="text-xl font-semibold">Deployment History</h2>
                                 </div>
                             </div>
