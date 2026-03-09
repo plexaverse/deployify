@@ -44,19 +44,21 @@ export const BentoGridItem = ({
       )}
     >
       {header}
-      <div>
-        {icon && <div className="mb-2 transition-transform duration-200">{icon}</div>}
-        {title && (
-          <div className="font-sans font-bold text-[var(--foreground)] mb-2 mt-2">
-            {title}
-          </div>
-        )}
-        {description && (
-          <div className="font-sans font-normal text-[var(--muted-foreground)] text-xs">
-            {description}
-          </div>
-        )}
-      </div>
+      {(icon || title || description) && (
+        <div>
+          {icon && <div className="mb-2 transition-transform duration-200">{icon}</div>}
+          {title && (
+            <div className="font-sans font-bold text-[var(--foreground)] mb-2 mt-2">
+              {title}
+            </div>
+          )}
+          {description && (
+            <div className="font-sans font-normal text-[var(--muted-foreground)] text-xs">
+              {description}
+            </div>
+          )}
+        </div>
+      )}
     </motion.div>
   );
 };
