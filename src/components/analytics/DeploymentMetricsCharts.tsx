@@ -14,6 +14,8 @@ import {
 import type { Deployment, TooltipEntry } from '@/types';
 import { formatDuration } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Clock, Zap } from 'lucide-react';
 
 interface DeploymentMetricsChartsProps {
     deployments: Deployment[];
@@ -74,85 +76,107 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Build Duration Chart */}
-            <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-6">Build Duration History</h3>
-                 <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} opacity={0.4} />
-                            <XAxis
-                                dataKey="date"
-                                stroke="var(--muted-foreground)"
-                                fontSize={10}
-                                tickLine={false}
-                                axisLine={false}
-                                dy={10}
-                                tickFormatter={(value) => {
-                                    const date = new Date(value);
-                                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                                }}
-                            />
-                            <YAxis
-                                stroke="var(--muted-foreground)"
-                                fontSize={10}
-                                tickLine={false}
-                                axisLine={false}
-                                tickFormatter={(val) => `${val}s`}
-                                dx={-10}
-                            />
-                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--muted)', opacity: 0.1 }} />
-                            <Bar
-                                dataKey="duration"
-                                name="Duration"
-                                fill="var(--primary)"
-                                radius={[4, 4, 0, 0]}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                 </div>
+            <Card className="overflow-hidden p-0">
+                <div className="p-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Clock className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Efficiency</span>
+                        <h3 className="text-xl font-semibold">Build Duration History</h3>
+                    </div>
+                </div>
+                <Separator className="bg-[var(--border)]" />
+                <div className="p-6">
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={data}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} opacity={0.4} />
+                                <XAxis
+                                    dataKey="date"
+                                    stroke="var(--muted-foreground)"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                    tickFormatter={(value) => {
+                                        const date = new Date(value);
+                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                    }}
+                                />
+                                <YAxis
+                                    stroke="var(--muted-foreground)"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickFormatter={(val) => `${val}s`}
+                                    dx={-10}
+                                />
+                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--muted)', opacity: 0.1 }} />
+                                <Bar
+                                    dataKey="duration"
+                                    name="Duration"
+                                    fill="var(--primary)"
+                                    radius={[4, 4, 0, 0]}
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
             </Card>
 
             {/* Performance Score Chart */}
-            <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-6">Performance Score History</h3>
-                 <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} opacity={0.4} />
-                            <XAxis
-                                dataKey="date"
-                                stroke="var(--muted-foreground)"
-                                fontSize={10}
-                                tickLine={false}
-                                axisLine={false}
-                                dy={10}
-                                tickFormatter={(value) => {
-                                    const date = new Date(value);
-                                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                                }}
-                            />
-                            <YAxis
-                                stroke="var(--muted-foreground)"
-                                fontSize={10}
-                                tickLine={false}
-                                axisLine={false}
-                                domain={[0, 100]}
-                                dx={-10}
-                            />
-                             <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                            <Line
-                                type="monotone"
-                                dataKey="score"
-                                name="Score"
-                                stroke="var(--success)"
-                                strokeWidth={2}
-                                dot={{ fill: 'var(--success)', r: 4 }}
-                                activeDot={{ r: 6 }}
-                                connectNulls
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                 </div>
+            <Card className="overflow-hidden p-0">
+                <div className="p-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--success)]/10 flex items-center justify-center shrink-0">
+                        <Zap className="w-5 h-5 text-[var(--success)]" />
+                    </div>
+                    <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Optimization Score</span>
+                        <h3 className="text-xl font-semibold">Performance Score History</h3>
+                    </div>
+                </div>
+                <Separator className="bg-[var(--border)]" />
+                <div className="p-6">
+                    <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={data}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} opacity={0.4} />
+                                <XAxis
+                                    dataKey="date"
+                                    stroke="var(--muted-foreground)"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                    tickFormatter={(value) => {
+                                        const date = new Date(value);
+                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                    }}
+                                />
+                                <YAxis
+                                    stroke="var(--muted-foreground)"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    domain={[0, 100]}
+                                    dx={-10}
+                                />
+                                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                                <Line
+                                    type="monotone"
+                                    dataKey="score"
+                                    name="Score"
+                                    stroke="var(--success)"
+                                    strokeWidth={2}
+                                    dot={{ fill: 'var(--success)', r: 4 }}
+                                    activeDot={{ r: 6 }}
+                                    connectNulls
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
             </Card>
         </div>
     );

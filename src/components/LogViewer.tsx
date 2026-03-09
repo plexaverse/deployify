@@ -274,7 +274,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                     variant="ghost"
                                     onClick={() => toggleSeverityFilter(sev)}
                                     className={cn(
-                                        "h-7 px-2 py-0 text-[10px] font-bold border transition-all",
+                                        "h-7 px-2 py-0 text-[10px] font-bold uppercase tracking-wider border transition-all",
                                         severityFilter.has(sev)
                                             ? sev === 'ERROR' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-bg)]/80'
                                             : sev === 'WARNING' ? 'bg-[var(--warning-bg)] text-[var(--warning)] border-[var(--warning)]/30 hover:bg-[var(--warning-bg)]/80'
