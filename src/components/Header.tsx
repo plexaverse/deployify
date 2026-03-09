@@ -82,7 +82,7 @@ export function Header() {
                     className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--card)] border border-[var(--border)] hover:border-[var(--border-hover)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all group min-w-[180px]"
                 >
                     <Search className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-medium flex-1 text-left">Search projects...</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider flex-1 text-left">Search projects...</span>
                     <div className="flex items-center gap-0.5 text-[10px] font-mono opacity-50">
                         <span>{isMac ? '⌘' : 'Ctrl'}</span>
                         <span>K</span>

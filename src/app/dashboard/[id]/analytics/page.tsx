@@ -92,7 +92,7 @@ export default function ProjectAnalyticsPage() {
                         <BarChart3 className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Insights • {siteId}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Insights &bull; {siteId}</span>
                         <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
                     </div>
                 </div>

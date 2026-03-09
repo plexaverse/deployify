@@ -137,7 +137,7 @@ export default function LandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
               </span>
-              <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">
+              <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">
                 Deployify 1.0 is here
               </span>
             </motion.div>
@@ -208,7 +208,7 @@ export default function LandingPage() {
                   className="mt-16 flex flex-col items-center gap-2"
                   aria-hidden="true"
                 >
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)] font-bold">Scroll to explore</span>
+                  <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)] font-bold">Scroll to explore</span>
                   <div className="w-5 h-8 border-2 border-[var(--border)] rounded-full flex justify-center p-1.5">
                     <motion.div
                       animate={{ y: [0, 8, 0] }}
@@ -259,7 +259,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-24 text-center"
           >
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--muted-foreground)] mb-12">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-12">
               Trusted by innovative teams
             </p>
             <div
@@ -351,7 +351,7 @@ export default function LandingPage() {
                     <div className="text-lg text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}
                     </div>
-                    <div className="p-1 rounded-full bg-[var(--primary)]/5 w-fit px-5 py-1.5 text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.15em] border border-[var(--primary)]/10">
+                    <div className="p-1 rounded-full bg-[var(--primary)]/5 w-fit px-5 py-1.5 text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider border border-[var(--primary)]/10">
                       {step.badge}
                     </div>
                   </motion.div>
