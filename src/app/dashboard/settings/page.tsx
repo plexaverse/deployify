@@ -206,7 +206,7 @@ export default function TeamSettingsPage() {
                             <UserIcon className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Profile</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Profile</span>
                             <h3 className="text-xl font-semibold">Personal Profile</h3>
                         </div>
                     </div>
@@ -245,7 +245,7 @@ export default function TeamSettingsPage() {
                             <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
                             <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
@@ -310,7 +310,7 @@ export default function TeamSettingsPage() {
                                     <UserPlus className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collaboration</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collaboration</span>
                                     <h3 className="text-xl font-semibold">Invite New Member</h3>
                                 </div>
                             </div>
@@ -488,7 +488,7 @@ export default function TeamSettingsPage() {
                                 <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
                             </div>
                             <div>
-                                <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
                                 <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
                             </div>
                         </div>

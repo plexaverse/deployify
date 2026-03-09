@@ -200,41 +200,37 @@ export default function BillingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24 relative overflow-hidden">
-            <div className="absolute inset-0 grid-bg opacity-30 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 relative">
             <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
             {/* Header */}
-            <div className="max-w-7xl mx-auto px-6 md:px-8 pt-8 space-y-4">
-                <Link
-                    href="/dashboard"
-                    className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to projects
-                </Link>
-
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                            <CreditCard className="w-8 h-8 text-[var(--primary)]" />
-                        </div>
-                        <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
-                            <h1 className="text-3xl font-bold tracking-tight">Billing & Usage</h1>
-                        </div>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <CreditCard className="w-8 h-8 text-[var(--primary)]" />
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex flex-col items-end">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Current Plan</span>
-                            <Badge variant="default" className="capitalize px-3 py-1 font-bold">{tier.name}</Badge>
-                        </div>
+                    <div className="space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
+                        <h1 className="text-3xl font-bold tracking-tight">Billing & Usage</h1>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <Link
+                        href="/dashboard"
+                        className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to projects
+                    </Link>
+                    <div className="h-8 w-[1px] bg-[var(--border)]" />
+                    <div className="flex flex-col items-end">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Current Plan</span>
+                        <Badge variant="default" className="capitalize px-3 py-1 font-bold">{tier.name}</Badge>
                     </div>
                 </div>
             </div>
 
-            <main className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-16">
-
+            <div className="space-y-10">
                 {/* Usage Section */}
                 <section>
                     <div className="flex items-center gap-3 mb-8">
@@ -384,7 +380,7 @@ export default function BillingPage() {
                         </div>
                     </Card>
                 </section>
-            </main>
+            </div>
         </div>
     );
 }
