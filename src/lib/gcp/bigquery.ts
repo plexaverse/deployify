@@ -10,7 +10,7 @@ function getBigQueryClient() {
             projectId: gcpProjectId,
             credentials: {
                 client_email: config.firebase.clientEmail,
-                private_key: config.firebase.privateKey,
+                private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
             },
         });
     }
