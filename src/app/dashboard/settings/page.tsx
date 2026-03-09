@@ -164,15 +164,21 @@ export default function TeamSettingsPage() {
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
-                        <Card className="p-6">
-                            <Skeleton className="h-32 w-full" />
+                        <Card className="overflow-hidden p-0">
+                            <div className="p-6">
+                                <Skeleton className="h-32 w-full" />
+                            </div>
                         </Card>
-                        <Card className="p-6">
-                            <Skeleton className="h-64 w-full" />
+                        <Card className="overflow-hidden p-0">
+                            <div className="p-6">
+                                <Skeleton className="h-64 w-full" />
+                            </div>
                         </Card>
                     </div>
-                    <Card className="p-6">
-                        <Skeleton className="h-96 w-full" />
+                    <Card className="overflow-hidden p-0">
+                        <div className="p-6">
+                            <Skeleton className="h-96 w-full" />
+                        </div>
                     </Card>
                 </div>
             </div>

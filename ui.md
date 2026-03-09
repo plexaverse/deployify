@@ -430,3 +430,26 @@ Standardized Project Navigation and refined Analytics & Team Settings card archi
   - Refactored the "Audit Log" card to follow the 3-part header architecture (Icon Container + Context Label + Main Title) and integrated a `<Separator />`.
   - Enforced the `text-[10px] font-bold uppercase tracking-wider` typography for all section context labels and member count badges.
   - Re-aligned the audit log timeline connector to match the new standardized header layout.
+
+## Progressive UI & Layout Standardization (Session 115)
+
+Standardized remaining loose loading skeletons and empty states to the internal section card architecture.
+
+### Skeleton & Empty State Card Standardization
+- **Files Updated**:
+  - `src/app/dashboard/[id]/page.tsx`
+  - `src/app/dashboard/settings/page.tsx`
+  - `src/app/dashboard/new/page.tsx`
+  - `src/app/new/page.tsx`
+  - `src/components/analytics/DeploymentMetricsCharts.tsx`
+- **Standardization**: Refactored basic `<Card className="p-6">` and `<Card className="p-8">` layouts to strictly use the established section standard: `<Card className="overflow-hidden p-0">` with an inner padded container (`<div className="p-6">` or `p-8`). This prevents content bleeding on rounded corners and unifies the DOM structure between loading states, empty states, and fully populated configuration cards.
+
+### Cloudflare Setup Card Standardization
+- **File Updated**: `src/components/DomainsSection.tsx`
+- **Standardization**: Refactored the Cloudflare setup recommendation card to follow the internal section standard (`overflow-hidden p-0` with inner `p-6` padding) while maintaining its contextual warning theming (`border-[var(--warning)]/30 bg-[var(--warning)]/5`).
+
+### Analytics Summary Card Refinement
+- **File Updated**: `src/components/analytics/AnalyticsCharts.tsx`
+- **Standardization**:
+  - Refactored `SummaryCard` and `WebVitalCard` to use the `overflow-hidden p-0` pattern with inner `p-6` padding.
+  - Removed ad-hoc box shadows and standardized hover effects (`hover:border-[var(--primary)] hover:shadow-md transition-all duration-300 group`) to align with the platform's interactive element standards.
