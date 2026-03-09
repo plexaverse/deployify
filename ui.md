@@ -492,7 +492,7 @@ Standardized the repository selection flow and initial project import cards.
   - `src/components/analytics/AnalyticsCharts.tsx`
   - `src/components/billing/PricingCard.tsx`
 - **Standardization**:
-  - Refactored `GlobalError` and `DashboardNotFound` to use the 3-part header architecture and `overflow-hidden p-0` card pattern.
+  - Refactored `GlobalError` and `DashboardNotFound` to use the 3-part header architecture and `overflow-hidden p-0` card pattern. Removed unused `Separator` component from `GlobalError` to adhere to zero-warnings policy while maintaining the standard layout.
   - Standardized the multi-step project creation wizard (`src/app/new/page.tsx`) to use the `overflow-hidden p-0` pattern for repository cards, skeletons, and empty states.
   - Updated all primary form labels in the project wizard to `text-sm font-semibold`.
   - Standardized `PricingCard` to use a consistent `overflow-hidden p-0` structure with `p-8` internal padding, improved typography for features, and technical metadata for badges.
