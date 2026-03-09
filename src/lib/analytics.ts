@@ -108,7 +108,9 @@ export async function getAnalyticsStats(
 
         events.forEach((event) => {
             if (!event.timestamp) return;
-            const ts = typeof event.timestamp.toDate === 'function' ? event.timestamp.toDate() : new Date(event.timestamp);
+            // Handle both Firestore Timestamp and JS Date/String
+            const timestamp = event.timestamp as any;
+            const ts = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp);
             const date = ts.toISOString().split('T')[0];
             const ip = event.ip || 'unknown';
             const path = event.path || '/';

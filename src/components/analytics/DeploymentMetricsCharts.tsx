@@ -37,9 +37,9 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
                         </span>
                     </div>
                 ))}
-                {payload[0] && payload[0].payload.commit && (
+                {payload[0] && !!payload[0].payload.commit && (
                      <div className="mt-2 text-xs text-[var(--muted-foreground)] border-t border-[var(--border)] pt-2 max-w-[200px] truncate">
-                         Commit: {payload[0].payload.commit}
+                         Commit: {payload[0].payload.commit as string}
                      </div>
                 )}
             </div>

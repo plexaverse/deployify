@@ -2,7 +2,7 @@ import { getDb, Collections } from '@/lib/firebase';
 import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole, EnvVariable } from '@/types';
 import { generateId } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
-import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot } from 'firebase-admin/firestore';
+import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 
 // ============= User Operations =============
 
@@ -437,8 +437,7 @@ export async function listTeamsForUser(userId: string): Promise<Team[]> {
 }
 
 // Allow injecting db for testing
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function listTeamsWithMembership(userId: string, dbClient?: any): Promise<TeamWithRole[]> {
+export async function listTeamsWithMembership(userId: string, dbClient?: Firestore): Promise<TeamWithRole[]> {
     const db = dbClient || getDb();
     const membershipsSnapshot = await db
         .collection(Collections.TEAM_MEMBERSHIPS)
