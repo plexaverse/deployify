@@ -453,3 +453,47 @@ Standardized remaining loose loading skeletons and empty states to the internal 
 - **Standardization**:
   - Refactored `SummaryCard` and `WebVitalCard` to use the `overflow-hidden p-0` pattern with inner `p-6` padding.
   - Removed ad-hoc box shadows and standardized hover effects (`hover:border-[var(--primary)] hover:shadow-md transition-all duration-300 group`) to align with the platform's interactive element standards.
+
+## Progressive UI & Layout Standardization (Session 116)
+
+Standardized the repository selection flow and initial project import cards.
+
+### Repository Selection Standardization
+- **File Updated**: `src/app/dashboard/new/page.tsx`
+- **Standardization**:
+  - Refactored repository list cards and loading skeletons to strictly use the `<Card className="overflow-hidden p-0">` pattern with internal `p-6` padding.
+  - Enforced `text-[10px] font-bold uppercase tracking-wider` for all technical metadata, including repository language, default branch, and push timestamps.
+  - Unified date formatting to uppercase for a consistent developer-focused aesthetic.
+  - Standardized the empty state card to the `overflow-hidden p-0` architecture.
+  - Updated the "Import" action button within list items to use the `text-[10px] font-bold uppercase tracking-wider` typography.
+
+### Project Import Configuration Standardization
+- **File Updated**: `src/app/dashboard/new/import/page.tsx`
+- **Standardization**:
+  - Refactored "Project Settings", "Build Settings", and "Environment Variables" cards to strictly use the 3-part section header (Icon Container + Context Label + Title) and `overflow-hidden p-0` pattern with `<Separator />`.
+  - Updated all form labels (Project Name, Framework, Commands, etc.) to the `text-sm font-semibold` standard, replacing uppercase-only metadata labels where they served as primary inputs.
+  - Standardized technical metadata for environment variable targets to use `text-[10px] font-bold uppercase tracking-wider`.
+
+### Project Overview & History Refinement
+- **Files Updated**:
+  - `src/app/dashboard/[id]/page.tsx`
+  - `src/app/dashboard/[id]/deployments/page.tsx`
+- **Standardization**:
+  - Refined project page skeletons to follow the established 3-part header and card architecture.
+  - Enforced `text-[10px] font-bold uppercase tracking-wider` for all remaining context labels (e.g., "Project Overview", "Environment", "24h Status").
+  - Unified date formatting to uppercase in `ProjectDetailPage` for consistency with the rest of the platform.
+  - Standardized the `DeploymentsPage` loading state to use a unified `overflow-hidden p-0` list container.
+
+### System & Utility UI Standardization
+- **Files Updated**:
+  - `src/app/global-error.tsx`
+  - `src/app/dashboard/not-found.tsx`
+  - `src/app/new/page.tsx`
+  - `src/components/analytics/AnalyticsCharts.tsx`
+  - `src/components/billing/PricingCard.tsx`
+- **Standardization**:
+  - Refactored `GlobalError` and `DashboardNotFound` to use the 3-part header architecture and `overflow-hidden p-0` card pattern.
+  - Standardized the multi-step project creation wizard (`src/app/new/page.tsx`) to use the `overflow-hidden p-0` pattern for repository cards, skeletons, and empty states.
+  - Updated all primary form labels in the project wizard to `text-sm font-semibold`.
+  - Standardized `PricingCard` to use a consistent `overflow-hidden p-0` structure with `p-8` internal padding, improved typography for features, and technical metadata for badges.
+  - Enforced `text-[10px] font-bold uppercase tracking-wider` for all secondary labels and technical metadata across these components.

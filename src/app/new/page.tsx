@@ -239,7 +239,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString('en-US', {
             month: 'short', day: 'numeric', year: 'numeric'
-        });
+        }).toUpperCase();
     };
 
     return (
@@ -286,7 +286,11 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
             {loading ? (
                 <div className="space-y-4">
                     {[1, 2, 3, 4, 5].map(i => (
-                        <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                        <Card key={i} className="overflow-hidden p-0">
+                            <div className="p-6">
+                                <Skeleton className="h-24 w-full rounded-xl" />
+                            </div>
+                        </Card>
                     ))}
                 </div>
             ) : (
@@ -302,47 +306,49 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                         >
                             <Card
                                 onClick={() => onSelect(repo)}
-                                className="group relative hover:border-[var(--primary)] transition-all cursor-pointer p-6 overflow-hidden"
+                                className="group relative hover:border-[var(--primary)] transition-all cursor-pointer overflow-hidden p-0"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="relative z-10 flex items-start justify-between">
-                                    <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)]">
-                                        {repo.private ? (
-                                            <Lock className="w-5 h-5 text-[var(--warning)]" />
-                                        ) : (
-                                            <Globe className="w-5 h-5 text-[var(--success)]" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-medium text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
-                                            {repo.full_name}
-                                            {repo.private && (
-                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
-                                                    Private
-                                                </span>
-                                            )}
-                                        </h3>
-                                        <p className="text-sm text-[var(--muted-foreground)] mt-1 line-clamp-1">
-                                            {repo.description || 'No description'}
-                                        </p>
-                                        <div className="flex items-center gap-4 mt-3 text-xs text-[var(--muted-foreground)]">
-                                            {repo.language && (
-                                                <span className="flex items-center gap-1.5">
-                                                    <span className="w-2 h-2 rounded-full bg-[var(--info)]" />
-                                                    {repo.language}
-                                                </span>
-                                            )}
-                                            <span className="flex items-center gap-1">
-                                                <GitBranch className="w-3 h-3" />
-                                                {repo.default_branch}
-                                            </span>
-                                            <span>Updated {formatDate(repo.updated_at)}</span>
+                                <div className="p-6 relative z-10">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative z-10 flex items-start justify-between">
+                                        <div className="flex items-start gap-4">
+                                            <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)]">
+                                                {repo.private ? (
+                                                    <Lock className="w-5 h-5 text-[var(--warning)]" />
+                                                ) : (
+                                                    <Globe className="w-5 h-5 text-[var(--success)]" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
+                                                    {repo.full_name}
+                                                    {repo.private && (
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
+                                                            Private
+                                                        </span>
+                                                    )}
+                                                </h3>
+                                                <p className="text-sm text-[var(--muted-foreground)] mt-1 line-clamp-1">
+                                                    {repo.description || 'No description'}
+                                                </p>
+                                                <div className="flex items-center gap-4 mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    {repo.language && (
+                                                        <span className="flex items-center gap-1.5">
+                                                            <span className="w-2 h-2 rounded-full bg-[var(--info)]" />
+                                                            {repo.language}
+                                                        </span>
+                                                    )}
+                                                    <span className="flex items-center gap-1">
+                                                        <GitBranch className="w-3 h-3" />
+                                                        {repo.default_branch}
+                                                    </span>
+                                                    <span>Updated {formatDate(repo.updated_at)}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    </div>
-                                    <div className="opacity-0 group-hover:opacity-100 transition-all self-center pr-2 translate-x-4 group-hover:translate-x-0">
-                                        <ChevronRight className="w-5 h-5 text-[var(--primary)]" />
+                                        <div className="opacity-0 group-hover:opacity-100 transition-all self-center pr-2 translate-x-4 group-hover:translate-x-0">
+                                            <ChevronRight className="w-5 h-5 text-[var(--primary)]" />
+                                        </div>
                                     </div>
                                 </div>
                             </Card>
@@ -350,9 +356,11 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                     ))}
 
                     {filteredRepos.length === 0 && (
-                        <div className="text-center py-12 text-[var(--muted-foreground)]">
-                            <p>No repositories found matching your search.</p>
-                        </div>
+                        <Card className="overflow-hidden p-0">
+                            <div className="text-center py-12 text-[var(--muted-foreground)]">
+                                <p>No repositories found matching your search.</p>
+                            </div>
+                        </Card>
                     )}
                 </div>
             )}
@@ -493,7 +501,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <div className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="projectName" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Name</label>
+                            <label htmlFor="projectName" className="text-sm font-semibold block mb-2">Project Name</label>
                             <Input
                                 id="projectName"
                                 type="text"
@@ -502,7 +510,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Framework</label>
+                            <label className="text-sm font-semibold block mb-2">Framework Preset</label>
                             <NativeSelect
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
@@ -524,7 +532,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Root Directory</label>
+                            <label className="text-sm font-semibold block mb-2">Root Directory</label>
                             <Input
                                 type="text"
                                 value={rootDirectory}
@@ -533,7 +541,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Region</label>
+                            <label className="text-sm font-semibold block mb-2">Region</label>
                             <NativeSelect
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
@@ -565,7 +573,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 >
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
                                         <div className="space-y-2">
-                                            <label htmlFor="buildCommand" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Command</label>
+                                            <label htmlFor="buildCommand" className="text-sm font-semibold block mb-2">Build Command</label>
                                             <Input
                                                 id="buildCommand"
                                                 type="text"
@@ -575,7 +583,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="installCommand" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Install Command</label>
+                                            <label htmlFor="installCommand" className="text-sm font-semibold block mb-2">Install Command</label>
                                             <Input
                                                 id="installCommand"
                                                 type="text"
@@ -585,7 +593,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="outputDirectory" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Output Directory</label>
+                                            <label htmlFor="outputDirectory" className="text-sm font-semibold block mb-2">Output Directory</label>
                                             <Input
                                                 id="outputDirectory"
                                                 type="text"
@@ -628,10 +636,10 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                         {env.isSecret ? '••••••••' : env.value}
                                     </span>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
-                                        {env.target === 'both' ? 'Build & Runtime' : env.target}
+                                        {(env.target === 'both' ? 'Build & Runtime' : env.target).toUpperCase()}
                                     </span>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
-                                        {env.environment === 'both' ? 'All Envs' : env.environment}
+                                        {(env.environment === 'both' ? 'All Envs' : env.environment).toUpperCase()}
                                     </span>
                                 </div>
                                 <Button

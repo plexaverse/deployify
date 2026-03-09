@@ -203,12 +203,12 @@ export default function ImportProjectPage() {
                 {/* General Settings */}
                 <Card className="overflow-hidden p-0">
                     <div className="p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
-                            <Settings className="w-6 h-6" />
+                        <div className="w-10 h-10 rounded-xl bg-[var(--info)]/10 flex items-center justify-center shrink-0">
+                            <Settings className="w-5 h-5 text-[var(--info)]" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Project Settings</h2>
-                            <p className="text-[var(--muted-foreground)] text-sm">Configure your deployment environment</p>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
+                            <h2 className="text-xl font-semibold">Project Settings</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -216,7 +216,7 @@ export default function ImportProjectPage() {
                     <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Project Name</Label>
+                            <Label className="text-sm font-semibold block mb-2">Project Name</Label>
                             <Input
                                 type="text"
                                 value={projectName}
@@ -225,7 +225,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Framework Preset</Label>
+                            <Label className="text-sm font-semibold block mb-2">Framework Preset</Label>
                             <NativeSelect
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
@@ -245,7 +245,7 @@ export default function ImportProjectPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Root Directory</Label>
+                                <Label className="text-sm font-semibold block mb-2">Root Directory</Label>
                                 <Input
                                     type="text"
                                     value={rootDirectory}
@@ -254,7 +254,7 @@ export default function ImportProjectPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Region</Label>
+                                <Label className="text-sm font-semibold block mb-2">Region</Label>
                                 <NativeSelect
                                     value={region}
                                     onChange={(e) => setRegion(e.target.value)}
@@ -273,12 +273,12 @@ export default function ImportProjectPage() {
                 {/* Build Settings */}
                 <Card className="overflow-hidden p-0">
                     <div className="p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center border border-[var(--primary)]/30">
-                            <Settings className="w-6 h-6" />
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Settings className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Build Settings</h2>
-                            <p className="text-[var(--muted-foreground)] text-sm">Customize your build pipeline</p>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Pipeline</span>
+                            <h2 className="text-xl font-semibold">Build Settings</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -286,7 +286,7 @@ export default function ImportProjectPage() {
                     <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Build Command</Label>
+                            <Label className="text-sm font-semibold block mb-2">Build Command</Label>
                             <Input
                                 type="text"
                                 value={buildCommand}
@@ -295,7 +295,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Output Directory</Label>
+                            <Label className="text-sm font-semibold block mb-2">Output Directory</Label>
                             <Input
                                 type="text"
                                 value={outputDirectory}
@@ -306,7 +306,7 @@ export default function ImportProjectPage() {
                     </div>
 
                         <div className="space-y-2">
-                            <Label className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Install Command</Label>
+                            <Label className="text-sm font-semibold block mb-2">Install Command</Label>
                             <Input
                                 type="text"
                                 value={installCommand}
@@ -320,12 +320,12 @@ export default function ImportProjectPage() {
                 {/* Environment Variables */}
                 <Card className="overflow-hidden p-0">
                     <div className="p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--success-bg)] text-[var(--success)] flex items-center justify-center border border-[var(--success)]/30">
-                            <Terminal className="w-6 h-6" />
+                        <div className="w-10 h-10 rounded-xl bg-[var(--success)]/10 flex items-center justify-center shrink-0">
+                            <Terminal className="w-5 h-5 text-[var(--success)]" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Environment Variables</h2>
-                            <p className="text-[var(--muted-foreground)] text-sm">Add build and runtime variables</p>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
+                            <h2 className="text-xl font-semibold">Environment Variables</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -342,8 +342,8 @@ export default function ImportProjectPage() {
                                     <span className="font-mono text-sm text-[var(--foreground)] truncate">
                                         {env.isSecret ? '••••••••' : env.value}
                                     </span>
-                                    <span className="text-[10px] text-[var(--muted-foreground)] uppercase px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
-                                        {env.target === 'both' ? 'Build & Runtime' : env.target}
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                        {(env.target === 'both' ? 'Build & Runtime' : env.target).toUpperCase()}
                                     </span>
                                 </div>
                                 <Button
@@ -399,7 +399,7 @@ export default function ImportProjectPage() {
                             </div>
 
                             <div className="space-y-2 flex-1 max-w-xs">
-                                <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block">Target Environment</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Target Environment</span>
                                 <SegmentedControl
                                     value={newEnvTarget}
                                     onChange={(val) => setNewEnvTarget(val as 'both' | 'build' | 'runtime')}
