@@ -63,14 +63,14 @@ export function getDb(): Firestore {
     return db;
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Create a minimal mock Firestore for local development/audit
  */
-function createMockFirestore(): any {
-    const mockDoc = (id?: string, collection?: string) => ({
+function createMockFirestore(): Firestore {
+    const mockDoc = (id?: string, collection?: string): unknown => ({
         id: id || 'mock-id',
         exists: true,
+        ref: { id: id || 'mock-id', path: `${collection || 'mock'}/${id || 'mock-id'}` },
         data: () => {
             const base = {
                 id: id || 'mock-id',
@@ -106,13 +106,13 @@ function createMockFirestore(): any {
                 expiresAt: { toDate: () => new Date() },
             };
         },
-        get: async () => mockDoc(id),
+        get: async () => mockDoc(id, collection),
         set: async () => ({}),
         update: async () => ({}),
         delete: async () => ({}),
     });
 
-    const mockCollection = (name: string) => ({
+    const mockCollection = (name: string): unknown => ({
         doc: (id: string) => mockDoc(id, name),
         where: () => mockCollection(name),
         orderBy: () => mockCollection(name),
@@ -137,14 +137,14 @@ function createMockFirestore(): any {
             delete: () => { },
             commit: async () => { },
         }),
-        runTransaction: async (cb: any) => cb({
+        runTransaction: async (cb: (t: unknown) => Promise<unknown>) => cb({
             get: async () => mockDoc(),
             set: () => { },
             update: () => { },
             delete: () => { },
         }),
-        getAll: async (...refs: any[]) => refs.map(ref => mockDoc(ref._path?.segments?.pop())),
-    };
+        getAll: async (...refs: { _path?: { segments?: string[] } }[]) => refs.map(ref => mockDoc(ref._path?.segments?.pop())),
+    } as unknown as Firestore;
 }
 
 // Collection names
