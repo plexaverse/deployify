@@ -64,11 +64,13 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
 
     if (data.length === 0) {
         return (
-            <Card className="p-12 text-center">
-                 <h3 className="text-lg font-semibold mb-2">No Deployment Metrics</h3>
-                 <p className="text-[var(--muted-foreground)]">
-                     Once you have successful deployments, metrics will appear here.
-                 </p>
+            <Card className="overflow-hidden p-0">
+                <div className="p-12 text-center">
+                     <h3 className="text-lg font-semibold mb-2">No Deployment Metrics</h3>
+                     <p className="text-[var(--muted-foreground)]">
+                         Once you have successful deployments, metrics will appear here.
+                     </p>
+                </div>
             </Card>
         );
     }

@@ -255,28 +255,30 @@ function WebVitalCard({ title, value, unit, status, description }: {
     const variant = status === 'good' ? 'success' : status === 'needs-improvement' ? 'warning' : 'error';
 
     return (
-        <Card className="p-4 hover:border-[var(--primary)] hover:shadow-md transition-all duration-200 group">
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{title}</span>
-                <div className={cn("w-2 h-2 rounded-full animate-pulse",
-                    status === 'good' ? 'bg-[var(--success)]' :
-                    status === 'needs-improvement' ? 'bg-[var(--warning)]' :
-                    'bg-[var(--error)]')} />
+        <Card className="overflow-hidden p-0 hover:border-[var(--primary)] hover:shadow-md transition-all duration-200 group">
+            <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{title}</span>
+                    <div className={cn("w-2 h-2 rounded-full animate-pulse",
+                        status === 'good' ? 'bg-[var(--success)]' :
+                        status === 'needs-improvement' ? 'bg-[var(--warning)]' :
+                        'bg-[var(--error)]')} />
+                </div>
+                <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
+                        {value < 1 ? value.toFixed(3) : Math.round(value)}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
+                </div>
+                <div className="mt-2">
+                    <Badge variant={variant} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                        {status.replace('-', ' ')}
+                    </Badge>
+                </div>
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                    {description}
+                </p>
             </div>
-            <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
-                    {value < 1 ? value.toFixed(3) : Math.round(value)}
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
-            </div>
-            <div className="mt-2">
-                <Badge variant={variant} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
-                    {status.replace('-', ' ')}
-                </Badge>
-            </div>
-            <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                {description}
-            </p>
         </Card>
     );
 }
@@ -305,12 +307,14 @@ function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payloa
 
 function SummaryCard({ title, value }: { title: string; value: string }) {
     return (
-        <Card className="p-6 hover:border-[var(--primary)] hover:shadow-md transition-all duration-300 group">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
-                {title}
-            </h3>
-            <div className="mt-3 text-3xl font-bold font-mono tracking-tighter text-[var(--foreground)]">
-                {value}
+        <Card className="overflow-hidden p-0 hover:border-[var(--primary)] hover:shadow-md transition-all duration-300 group">
+            <div className="p-6">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
+                    {title}
+                </h3>
+                <div className="mt-3 text-3xl font-bold font-mono tracking-tighter text-[var(--foreground)]">
+                    {value}
+                </div>
             </div>
         </Card>
     );

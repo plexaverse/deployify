@@ -250,10 +250,12 @@ export default function NewProjectPage() {
                     </AnimatePresence>
 
                     {filteredRepos.length === 0 && !loading && (
-                        <Card className="text-center py-12">
-                            <p className="text-[var(--muted-foreground)]">
-                                {search ? 'No repositories match your search' : 'No repositories found'}
-                            </p>
+                        <Card className="overflow-hidden p-0">
+                            <div className="text-center py-12">
+                                <p className="text-[var(--muted-foreground)]">
+                                    {search ? 'No repositories match your search' : 'No repositories found'}
+                                </p>
+                            </div>
                         </Card>
                     )}
                 </div>

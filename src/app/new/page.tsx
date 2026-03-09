@@ -890,8 +890,8 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ delay: 0.1, type: 'spring', damping: 15 }}
                 >
-                    <Card className="p-8 bg-gradient-to-br from-[var(--success-bg)]/30 to-[var(--background)] border-[var(--success)]/20 shadow-xl shadow-[var(--success-bg)]/20">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <Card className="overflow-hidden p-0 bg-gradient-to-br from-[var(--success-bg)]/30 to-[var(--background)] border-[var(--success)]/20 shadow-xl shadow-[var(--success-bg)]/20">
+                        <div className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="space-y-4 flex-1">
                                 <div className="flex items-center gap-3">
                                     <div className="p-3 rounded-2xl bg-[var(--success)] text-[var(--primary-foreground)] shadow-lg shadow-[var(--success)]/20">
