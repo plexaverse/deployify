@@ -22,11 +22,21 @@ function initializeFirebase(): App {
 
     // Use service account credentials if available
     if (config.firebase.clientEmail && config.firebase.privateKey && config.firebase.privateKey.includes('BEGIN PRIVATE KEY')) {
+        let privateKey = config.firebase.privateKey;
+        // The config.ts already replaces \\n with \n, but let's be double sure for direct env var access
+        if (privateKey.includes('\\n')) {
+            privateKey = privateKey.replace(/\\n/g, '\n');
+        } else if (!privateKey.includes('\n')) {
+            // Handle case where \n was stripped completely or wasn't there but it's not a valid PEM
+            // The config might have literal "\n" chars if loaded from some env managers.
+            console.warn('[Firebase] Private key might be missing newlines.');
+        }
+
         return initializeApp({
             credential: cert({
                 projectId: config.firebase.projectId,
                 clientEmail: config.firebase.clientEmail,
-                privateKey: config.firebase.privateKey,
+                privateKey: privateKey,
             }),
         });
     }
