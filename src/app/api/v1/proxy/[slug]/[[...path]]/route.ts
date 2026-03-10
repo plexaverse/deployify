@@ -211,12 +211,12 @@ async function handleProxyRequest(
             headers: responseHeaders,
         });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during proxying';
         console.error(`Internal Proxy Error (${req.method}):`, error);
         return NextResponse.json({
             error: 'Internal Proxy Error',
-            message: error.message || 'Unknown error occurred during proxying',
+            message: errorMessage,
             targetUrl
         }, { status: 502 });
     }
