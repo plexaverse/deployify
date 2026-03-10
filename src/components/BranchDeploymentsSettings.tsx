@@ -108,7 +108,7 @@ export function BranchDeploymentsSettings({
                     <GitBranch className="w-5 h-5 text-[var(--primary)]" />
                 </div>
                 <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Automation</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Automation</span>
                     <h3 className="text-xl font-semibold">Branch Deployments</h3>
                 </div>
             </div>

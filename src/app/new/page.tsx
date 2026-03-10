@@ -83,7 +83,7 @@ export default function NewProjectPage() {
                             <Rocket className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
                             <h1 className="text-3xl font-bold tracking-tight">Create New Project</h1>
                         </div>
                     </div>
@@ -491,7 +491,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         <Settings className="w-6 h-6 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
                         <h2 className="text-xl font-semibold">Project Settings</h2>
                     </div>
                 </div>
@@ -616,7 +616,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         <Terminal className="w-6 h-6 text-[var(--success)]" />
                     </div>
                     <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
                         <h2 className="text-xl font-semibold">Environment Variables</h2>
                     </div>
                 </div>

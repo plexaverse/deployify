@@ -104,7 +104,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                         <Activity className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
                         <h3 className="text-xl font-semibold">Core Web Vitals</h3>
                     </div>
                 </div>
@@ -122,7 +122,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                         return (
                             <div key={stat.label} className="p-4 rounded-xl bg-[var(--muted)]/5 border border-[var(--border)] group hover:border-[var(--primary)] transition-all duration-300">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase tracking-tight">{stat.label}</span>
+                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{stat.label}</span>
                                     <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", {
                                         "text-[var(--success)]": variant === 'success',
                                         "text-[var(--warning)]": variant === 'warning',

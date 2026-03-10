@@ -143,7 +143,7 @@ export default function CompareDeploymentsPage() {
                         <ArrowLeftRight className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Analysis</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Analysis</span>
                         <h1 className="text-3xl font-bold tracking-tight">Compare Deployments</h1>
                     </div>
                 </div>
@@ -157,7 +157,7 @@ export default function CompareDeploymentsPage() {
                             <History className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Base Deployment</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Base Deployment</span>
                             <h3 className="text-xl font-semibold">Previous Version</h3>
                         </div>
                     </div>
@@ -195,7 +195,7 @@ export default function CompareDeploymentsPage() {
                             <ArrowRight className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Deployment</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Deployment</span>
                             <h3 className="text-xl font-semibold">New Version</h3>
                         </div>
                     </div>
@@ -235,7 +235,7 @@ export default function CompareDeploymentsPage() {
                             <LayoutGrid className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
                             <h3 className="text-xl font-semibold">Comparison Results</h3>
                         </div>
                     </div>

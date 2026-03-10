@@ -64,7 +64,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                                 </div>
                                 <div className="text-right space-y-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployed At</span>
-                                    <p className="text-xs font-semibold text-[var(--foreground)] uppercase">
+                                    <p className="text-[10px] font-bold text-[var(--foreground)] uppercase tracking-wider">
                                         {new Date(deployment.createdAt).toLocaleDateString()}
                                     </p>
                                 </div>
@@ -77,14 +77,14 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                         <Button
                             variant="secondary"
                             onClick={onClose}
-                            className="text-xs font-bold uppercase tracking-wider"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             Cancel
                         </Button>
                         <MovingBorderButton
                             onClick={onConfirm}
                             containerClassName="h-10 w-40"
-                            className="font-bold text-xs uppercase tracking-wider"
+                            className="font-bold text-[10px] uppercase tracking-wider"
                         >
                             Confirm Rollback
                         </MovingBorderButton>

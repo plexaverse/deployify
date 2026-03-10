@@ -27,7 +27,7 @@ export default function Error({
                     <AlertCircle className="w-8 h-8 text-[var(--error)]" />
                 </div>
                 <div className="space-y-1 mb-6">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
                     <h1 className="text-3xl font-bold tracking-tight">Something went wrong!</h1>
                 </div>
                 <p className="text-[var(--muted-foreground)] text-lg mb-8">

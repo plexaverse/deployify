@@ -76,7 +76,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                     <MapPin className="w-5 h-5 text-[var(--primary)]" />
                 </div>
                 <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
                     <h3 className="text-xl font-semibold">Deployment Region</h3>
                 </div>
             </div>

@@ -78,7 +78,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                     <Cpu className="w-5 h-5 text-[var(--primary)]" />
                 </div>
                 <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
                     <h3 className="text-xl font-semibold">Compute Configuration</h3>
                 </div>
             </div>

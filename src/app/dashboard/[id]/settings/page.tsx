@@ -143,7 +143,7 @@ export default function ProjectSettingsPage() {
                             <Settings className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Settings</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Settings</span>
                             <h3 className="text-xl font-semibold">Configuration</h3>
                         </div>
                     </div>
@@ -274,7 +274,7 @@ export default function ProjectSettingsPage() {
                             <Bell className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notifications</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notifications</span>
                             <h3 className="text-xl font-semibold">Alert Preferences</h3>
                         </div>
                     </div>
@@ -324,7 +324,7 @@ export default function ProjectSettingsPage() {
                             <Shield className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Security</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Security</span>
                             <h3 className="text-xl font-semibold">Safety & Protection</h3>
                         </div>
                     </div>
@@ -360,7 +360,7 @@ export default function ProjectSettingsPage() {
                             <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
                         </div>
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
                             <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>

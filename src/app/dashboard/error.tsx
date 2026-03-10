@@ -25,7 +25,7 @@ export default function DashboardError({
                 <AlertCircle className="w-6 h-6 text-[var(--error)]" />
             </div>
             <div className="space-y-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
                 <h1 className="text-3xl font-bold tracking-tight">
                     Dashboard Error
                 </h1>
