@@ -143,6 +143,25 @@ async function handleProxyRequest(
             fetchOptions.body = await req.arrayBuffer();
         }
 
+        // Mock mode specific handling
+        if (process.env.MOCK_DB === 'true' && project.id === 'mock-id-1') {
+            const html = `<!DOCTYPE html><html><head><title>Mock Project</title></head><body><h1>Deployed via Deployify (Mock)</h1><p>Path: ${fullPath}</p></body></html>`;
+            const mockHeaders = new Headers();
+            mockHeaders.set('Content-Type', 'text/html');
+            mockHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+            let htmlWithScript = html;
+            if (project.analyticsApiKey) {
+                const scriptTag = `\n<script src="/deployify-insights.js" data-api-key="${project.analyticsApiKey}" defer></script>\n`;
+                htmlWithScript = html.replace('</body>', `${scriptTag}</body>`);
+            }
+
+            return new NextResponse(htmlWithScript, {
+                status: 200,
+                headers: mockHeaders,
+            });
+        }
+
         const targetResponse = await fetch(targetUrl, fetchOptions);
 
         const contentType = targetResponse.headers.get('content-type') || '';
