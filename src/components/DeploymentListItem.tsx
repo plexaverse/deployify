@@ -72,7 +72,7 @@ export function DeploymentListItem({
                             href={deployment.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]')}
+                            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-8 px-2.5 text-[10px] font-bold uppercase tracking-wider border border-[var(--border)] hover:border-[var(--foreground)]')}
                         >
                             <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                             View
@@ -83,7 +83,7 @@ export function DeploymentListItem({
                         variant="ghost"
                         size="sm"
                         onClick={() => onViewLogs(deployment.id)}
-                        className="h-8 px-2.5 text-xs border border-[var(--border)] hover:border-[var(--foreground)]"
+                        className="h-8 px-2.5 text-[10px] font-bold uppercase tracking-wider border border-[var(--border)] hover:border-[var(--foreground)]"
                     >
                         <FileText className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                         Logs
@@ -94,7 +94,7 @@ export function DeploymentListItem({
                             variant="ghost"
                             size="sm"
                             onClick={() => onRollback(deployment.id)}
-                            className="h-8 px-2.5 text-xs text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
+                            className="h-8 px-2.5 text-[10px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
                         >
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                             Rollback
@@ -106,7 +106,7 @@ export function DeploymentListItem({
                             variant="ghost"
                             size="sm"
                             onClick={() => onCancel(deployment.id)}
-                            className="h-8 px-2.5 text-xs text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
+                            className="h-8 px-2.5 text-[10px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
                         >
                             Cancel
                         </Button>

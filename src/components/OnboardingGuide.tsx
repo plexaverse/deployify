@@ -91,7 +91,7 @@ export function OnboardingGuide() {
                                 )}>
                                     {step.title}
                                 </h3>
-                                <p className="text-xs text-[var(--muted-foreground)] max-w-[140px] mx-auto hidden md:block">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-[140px] mx-auto hidden md:block">
                                     {step.description}
                                 </p>
                             </div>

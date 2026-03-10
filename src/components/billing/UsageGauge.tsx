@@ -1,5 +1,7 @@
 'use client';
 
+import { Card } from '@/components/ui/card';
+
 interface UsageGaugeProps {
     icon: React.ReactNode;
     title: string;
@@ -29,15 +31,16 @@ export function UsageGauge({
     const formattedLimit = limit === Infinity ? 'Unlimited' : (format ? format(limit) : limit);
 
     return (
-        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 flex flex-col items-center justify-center relative overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-                <div className="p-2 bg-[var(--card-hover)] rounded-md">
-                    {icon}
+        <Card className="overflow-hidden p-0 group">
+            <div className="p-6 flex flex-col items-center justify-center relative hover:bg-[var(--card-hover)]/30 transition-colors duration-300">
+                <div className="absolute top-4 left-4 flex items-center gap-2">
+                    <div className="p-2 bg-[var(--card-hover)] rounded-md">
+                        {icon}
+                    </div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{title}</h3>
                 </div>
-                <h3 className="font-medium text-sm text-[var(--muted-foreground)]">{title}</h3>
-            </div>
 
-            <div className="mt-8 relative flex items-center justify-center">
+                <div className="mt-8 relative flex items-center justify-center">
                 <svg
                     height={radius * 2 + 20}
                     width={radius * 2 + 20}
@@ -72,14 +75,15 @@ export function UsageGauge({
                 </div>
             </div>
 
-            <div className="mt-4 text-center">
-                <div className="text-xl font-bold text-[var(--foreground)]">
-                    {formattedUsed} <span className="text-sm text-[var(--muted-foreground)] font-normal">{unit}</span>
-                </div>
-                <div className="text-xs text-[var(--muted-foreground)] mt-1">
-                    of {formattedLimit} {unit && limit !== Infinity ? unit : ''}
+                <div className="mt-4 text-center">
+                    <div className="text-xl font-bold text-[var(--foreground)]">
+                        {formattedUsed} <span className="text-sm text-[var(--muted-foreground)] font-normal">{unit}</span>
+                    </div>
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
+                        of {formattedLimit} {unit && limit !== Infinity ? unit : ''}
+                    </div>
                 </div>
             </div>
-        </div>
+        </Card>
     );
 }
