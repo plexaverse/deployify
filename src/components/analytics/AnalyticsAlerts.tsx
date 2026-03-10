@@ -22,7 +22,7 @@ export function AnalyticsAlerts({ alerts }: AnalyticsAlertsProps) {
                     <div
                         key={alert.id}
                         className={cn(
-                            "flex gap-3 p-3 rounded-lg border text-xs",
+                            "flex gap-3 p-3 rounded-lg border text-[10px] font-bold uppercase tracking-wider",
                             alert.type === 'critical'
                                 ? 'bg-[var(--error-bg)] border-[var(--error)]/20 text-[var(--error)]'
                                 : 'bg-[var(--warning-bg)] border-[var(--warning)]/20 text-[var(--warning)]'

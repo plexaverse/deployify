@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
                     {label}
                 </p>
                  {payload.map((entry: TooltipEntry, index: number) => (
-                    <div key={index} className="flex items-center gap-2 text-xs">
+                    <div key={index} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                         <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
                         <span className="font-mono font-medium text-[var(--foreground)]">
@@ -38,7 +38,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
                     </div>
                 ))}
                 {payload[0] && !!payload[0].payload.commit && (
-                     <div className="mt-2 text-xs text-[var(--muted-foreground)] border-t border-[var(--border)] pt-2 max-w-[200px] truncate">
+                     <div className="mt-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-t border-[var(--border)] pt-2 max-w-[200px] truncate">
                          Commit: {payload[0].payload.commit as string}
                      </div>
                 )}
