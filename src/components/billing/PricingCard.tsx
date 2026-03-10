@@ -54,7 +54,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                     <div className="flex items-baseline gap-1">
                         <span className="text-5xl font-bold tracking-tighter">{plan.price}</span>
                         {plan.price !== 'Custom' && (
-                            <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">/ month</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">/ month</span>
                         )}
                     </div>
                 </div>
@@ -79,7 +79,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                     <Button
                         onClick={() => onUpgrade(plan.id)}
                         disabled={isCurrent || (plan.id === 'free' && !isCurrent) || loading}
-                        className="w-full h-12 font-bold uppercase tracking-wider text-xs"
+                        className="w-full h-12 font-bold uppercase tracking-wider text-[10px]"
                         variant={isCurrent ? 'outline' : isEnterprise ? 'secondary' : 'primary'}
                         size="lg"
                         loading={loading}

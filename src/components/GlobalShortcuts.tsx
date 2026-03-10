@@ -95,7 +95,7 @@ export function GlobalShortcuts() {
                     </div>
                     <div className="p-6 space-y-6 bg-[var(--card)]">
                         <div className="space-y-3">
-                            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Navigation</h4>
+                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Navigation</h4>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-[var(--foreground)]">Go to Dashboard</span>
                                 <div className="flex items-center gap-1.5">
@@ -115,7 +115,7 @@ export function GlobalShortcuts() {
                         </div>
 
                         <div className="space-y-3">
-                            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Actions</h4>
+                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Actions</h4>
                              <div className="flex justify-between items-center text-sm">
                                 <span className="text-[var(--foreground)]">Create New Project</span>
                                  <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-xs font-mono shadow-sm">c</kbd>

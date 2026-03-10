@@ -114,7 +114,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                         <Clock className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scheduling</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scheduling</span>
                         <h3 className="text-xl font-semibold">Cron Jobs</h3>
                     </div>
                 </div>

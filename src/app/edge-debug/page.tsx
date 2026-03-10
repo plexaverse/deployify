@@ -120,12 +120,12 @@ export default function EdgeDebugPage() {
                 {/* Request Config */}
                 <Card className="overflow-hidden p-0">
                     <div className="p-6 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30">
-                            <Cpu className="w-6 h-6" />
+                        <div className="w-10 h-10 rounded-xl bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30 shrink-0">
+                            <Cpu className="w-5 h-5" />
                         </div>
-                        <div>
-                            <h2 className="text-lg font-semibold text-[var(--foreground)]">Request Configuration</h2>
-                            <p className="text-[var(--muted-foreground)] text-sm">Configure request parameters</p>
+                        <div className="space-y-0.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
+                            <h2 className="text-xl font-semibold text-[var(--foreground)]">Request Configuration</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -196,7 +196,7 @@ export default function EdgeDebugPage() {
                             )}>
                                 {result.type === 'error' ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
                                 <span className="font-bold">{result.status}</span>
-                                <span className="uppercase text-xs font-mono px-2 py-0.5 rounded-full border border-current">{result.type}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-current">{result.type}</span>
                             </div>
 
                             {/* Logs */}

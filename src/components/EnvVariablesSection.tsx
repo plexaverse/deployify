@@ -175,7 +175,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                         <Shield className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
                         <h3 className="text-xl font-semibold">Environment Variables</h3>
                     </div>
                 </div>

@@ -137,7 +137,7 @@ export function DomainsSection({
                         <Globe className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Networking</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Networking</span>
                         <h3 className="text-xl font-semibold">Custom Domains</h3>
                     </div>
                 </div>
@@ -374,7 +374,7 @@ export function DomainsSection({
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-[var(--border)]"></div>
                     </div>
-                    <div className="relative flex justify-center text-xs uppercase">
+                    <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-wider">
                         <span className="bg-[var(--card)] px-2 text-[var(--muted-foreground)]">Or use GCP Domain Mapping</span>
                     </div>
                 </div>

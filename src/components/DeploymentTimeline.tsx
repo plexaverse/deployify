@@ -88,7 +88,7 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
                             <div className={cn("w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors", colorClass)}>
                                 {icon}
                             </div>
-                            <span className={cn("text-xs font-medium transition-colors",
+                            <span className={cn("text-[10px] font-bold uppercase tracking-wider transition-colors",
                                 stepStatus === 'current' || stepStatus === 'completed' ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
                             )}>
                                 {step.label}

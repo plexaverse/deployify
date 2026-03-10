@@ -153,14 +153,14 @@ export function CommandPalette() {
                           <div className="text-sm font-bold text-[var(--foreground)]">{project.name}</div>
                           <div className="text-xs text-[var(--muted-foreground)] font-medium">{project.repoFullName}</div>
                        </div>
-                       <span className="text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-all">Jump to</span>
+                       <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-all">Jump to</span>
                      </motion.button>
                    ))}
                  </AnimatePresence>
                </div>
              )}
           </div>
-          <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/50 text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] flex justify-between px-4 relative z-10">
+          <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/50 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex justify-between px-4 relative z-10">
              <span>Deployify Command</span>
              <span>{projects.length} projects</span>
           </div>
