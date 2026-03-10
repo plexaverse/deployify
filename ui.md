@@ -560,8 +560,10 @@ Conducted a final platform-wide sweep to ensure all remaining context labels and
 - **Authentication**: `login/page.tsx`, `join/page.tsx`
 - **Dashboard Utility**: `dashboard/error.tsx`, `not-found.tsx`, `global-error.tsx`, `error.tsx`
 - **Project Settings & Flow**: `src/app/new/page.tsx`, `src/app/dashboard/[id]/settings/page.tsx`, `src/app/dashboard/[id]/deployments/compare/page.tsx`
+- **Analytics & Logs**: `AnalyticsAlerts.tsx`, `DeploymentMetricsCharts.tsx`, `LogViewer.tsx`
 - **Core Components**: `GlobalShortcuts.tsx`, `OnboardingGuide.tsx`, `RegionSettings.tsx`, `EnvVariablesSection.tsx`, `CronsSection.tsx`, `DomainsSection.tsx`, `BranchDeploymentsSettings.tsx`, `ResourceSettings.tsx`, `WebVitals.tsx`, `DeploymentTimeline.tsx`, `CommandPalette.tsx`, `PricingCard.tsx`, `CreateTeamModal.tsx`, `RollbackModal.tsx`
 
 ### Technical Refinement
 - **Consistency**: Unified `tracking-wider` usage across all metadata components, replacing inconsistent `tracking-widest` and `tracking-tight` variations.
 - **Interactive Elements**: Updated action buttons within modals and pricing cards to match the metadata typography standard, ensuring a cohesive visual hierarchy for secondary actions.
+- **Terminal Aesthetics**: Standardized `LogViewer` with `text-[11px]` for content and `text-[10px] font-bold uppercase` for technical metadata, optimizing information density.

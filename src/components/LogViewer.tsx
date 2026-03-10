@@ -253,7 +253,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                 placeholder="Filter logs..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-8 pl-8 pr-8 text-xs bg-[var(--muted)]/20"
+                                className="h-8 pl-8 pr-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20"
                             />
                             {searchQuery && (
                                 <Button
@@ -328,7 +328,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
             {/* Error Message */}
             {error && (
-                <div className="bg-[var(--error-bg)] text-[var(--error)] px-4 py-2 text-xs border-b border-[var(--error)]/20 flex items-center gap-2">
+                <div className="bg-[var(--error-bg)] text-[var(--error)] px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-b border-[var(--error)]/20 flex items-center gap-2">
                     <Activity className="w-4 h-4" />
                     Error: {error}
                 </div>
@@ -371,7 +371,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                 <span className={`text-[10px] font-bold uppercase tracking-wider shrink-0 w-[70px] select-none pt-0.5 ${getSeverityColor(log.severity)}`}>
                                     {log.severity}
                                 </span>
-                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-xs font-medium">
+                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-[11px] font-medium">
                                     {log.textPayload || (log.jsonPayload ? JSON.stringify(log.jsonPayload) : '')}
                                 </span>
                             </div>
