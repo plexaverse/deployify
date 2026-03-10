@@ -265,8 +265,8 @@ export default function ProjectDetailPage() {
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
                                     <div className="flex items-center gap-2">
                                         <h2 className="text-xl font-semibold">Production</h2>
-                                        <Badge variant="outline" className="text-[10px] font-mono font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)]">
-                                            {project.framework || 'Web App'}
+                                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)]">
+                                            {project.framework?.toUpperCase() || 'WEB APP'}
                                         </Badge>
                                     </div>
                                 </div>

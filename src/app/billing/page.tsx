@@ -19,9 +19,32 @@ import { cn } from '@/lib/utils';
 
 declare global {
     interface Window {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        Razorpay: any;
+        Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
     }
+}
+
+interface RazorpayOptions {
+    key: string;
+    amount: number;
+    currency: string;
+    name: string;
+    description: string;
+    order_id: string;
+    handler: (response: RazorpayResponse) => Promise<void>;
+    modal: {
+        ondismiss: () => void;
+    };
+}
+
+interface RazorpayResponse {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+}
+
+interface RazorpayInstance {
+    on: (event: string, handler: (response: { error: { description: string } }) => void) => void;
+    open: () => void;
 }
 
 const PLANS = [
@@ -106,8 +129,7 @@ export default function BillingPage() {
                 name: 'Deployify',
                 description: `Upgrade to ${tierId} plan`,
                 order_id: data.orderId,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                handler: async function (response: any) {
+                handler: async function (response: RazorpayResponse) {
                     try {
                         const verifyRes = await fetch('/api/billing/verify', {
                             method: 'POST',
@@ -143,8 +165,7 @@ export default function BillingPage() {
             };
 
             const rzp1 = new window.Razorpay(options);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            rzp1.on('payment.failed', function (response: any) {
+            rzp1.on('payment.failed', function (response: { error: { description: string } }) {
                 toast.error(response.error.description);
                 setUpgradingTierId(null);
             });

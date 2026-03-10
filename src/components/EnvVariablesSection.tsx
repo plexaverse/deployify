@@ -346,9 +346,9 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                     <tbody>
                                         {groupedVars[group].map((env) => (
                                             <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--card-hover)] transition-colors last:border-0">
-                                                <td className="py-4 px-4 text-sm font-mono">
+                                                <td className="py-4 px-4 font-mono">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[var(--primary)]">{env.key}</span>
+                                                        <span className="text-[var(--primary)] text-sm">{env.key}</span>
                                                         {env.isSecret && (
                                                             <span title="Secret">
                                                                 <Shield className="w-3 h-3 text-[var(--info)]" />
