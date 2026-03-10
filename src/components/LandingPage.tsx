@@ -193,7 +193,7 @@ export default function LandingPage() {
                     <Play className="w-5 h-5 text-[var(--foreground)] fill-[var(--foreground)] relative z-10" aria-hidden="true" />
                   </div>
                   Watch Demo
-                  <span className="text-xs font-medium text-[var(--muted-foreground)] ml-1">2 min</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">2 min</span>
                 </Button>
               </motion.div>
             </motion.div>
@@ -373,7 +373,7 @@ export default function LandingPage() {
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-lg font-bold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
-                    <p className="text-xs text-[var(--muted-foreground)]/70 font-medium">Enterprise DX at a Premium</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
                   </div>
                   <X className="w-5 h-5 text-[var(--error)]" />
                 </div>
@@ -401,7 +401,7 @@ export default function LandingPage() {
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-lg font-bold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
-                    <p className="text-xs text-[var(--muted-foreground)] font-medium">Enterprise DX at Raw Cost</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
                   </div>
                   <Check className="w-5 h-5 text-[var(--foreground)]" />
                 </div>

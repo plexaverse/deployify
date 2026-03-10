@@ -567,3 +567,47 @@ Conducted a final platform-wide sweep to ensure all remaining context labels and
 - **Consistency**: Unified `tracking-wider` usage across all metadata components, replacing inconsistent `tracking-widest` and `tracking-tight` variations.
 - **Interactive Elements**: Updated action buttons within modals and pricing cards to match the metadata typography standard, ensuring a cohesive visual hierarchy for secondary actions.
 - **Terminal Aesthetics**: Standardized `LogViewer` with `text-[11px]` for content and `text-[10px] font-bold uppercase` for technical metadata, optimizing information density.
+
+## Progressive UI & Layout Standardization (Session 120)
+
+Standardized remaining billing, landing, and utility components.
+
+### Billing Resource Gauge Standardization
+- **File Updated**: `src/components/billing/UsageGauge.tsx`
+- **Standardization**:
+  - Refactored the component to use the `<Card className="overflow-hidden p-0">` pattern for consistent containment.
+  - Standardized the gauge title and usage limit labels to the `text-[10px] font-bold uppercase tracking-wider` technical metadata standard.
+  - Improved interactive feel with a refined hover background transition.
+
+### Plan Comparison Typography Standardization
+- **File Updated**: `src/components/billing/ComparePlansTable.tsx`
+- **Standardization**:
+  - Updated plan comparison tooltips to the `text-[10px] font-bold uppercase tracking-wider` technical metadata standard.
+  - Standardized the "Current" plan status badge with the uppercase tracking-wider typography to align with platform status conventions.
+
+### Landing Page Metadata Standardization
+- **File Updated**: `src/components/LandingPage.tsx`
+- **Standardization**:
+  - Updated "Watch Demo" duration, "Vercel / Netlify" comparison sub-labels, and "Trusted by teams" context to the `text-[10px] font-bold uppercase tracking-wider` standard.
+  - Unified all landing page micro-copy to the technical metadata typography.
+
+### Global Shortcuts UI Standardization
+- **File Updated**: `src/components/GlobalShortcuts.tsx`
+- **Standardization**:
+  - Updated all `kbd` elements and sequence labels to the `text-[10px] font-bold uppercase tracking-wider` standard.
+  - Standardized the footer "Esc to close" instructions with the technical metadata typography.
+
+### Onboarding Guide Typography Standardization
+- **File Updated**: `src/components/OnboardingGuide.tsx`
+- **Standardization**:
+  - Updated step descriptions to the `text-[10px] font-bold uppercase tracking-wider` standard, ensuring all workspace metadata follows the same high-density aesthetic.
+
+### Deployment List Action Typography Standardization
+- **File Updated**: `src/components/DeploymentListItem.tsx`
+- **Standardization**:
+  - Updated action buttons ("View", "Logs", "Rollback", "Cancel") to the `text-[10px] font-bold uppercase tracking-wider` standard.
+  - Unified action buttons with the platform's technical metadata and status typography.
+
+### Web Vitals Unit Typography Standardization
+- **File Updated**: `src/components/WebVitals.tsx`
+- **Standardization**: Updated unit labels in the Core Web Vitals section to the `text-[10px] font-bold uppercase tracking-wider` standard to match the surrounding metadata.

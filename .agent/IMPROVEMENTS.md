@@ -285,8 +285,12 @@
 - **Status**: ✅ Implemented
 
 ### 2. **Iconography & Typography**
-- **Improvement**: Standardize use of Lucide icons in page and section headers with consistent sizing and typography (`text-xs font-bold uppercase tracking-wider`).
-- **Status**: ✅ Implemented
+- **Improvement**: Standardize use of Lucide icons in page and section headers with consistent sizing and typography (`text-[10px] font-bold uppercase tracking-wider`).
+- **Status**: ✅ Implemented (Updated from `text-xs` to the high-density technical metadata standard across all components)
+
+### 3. **Component-level Layout Standardization**
+- **Improvement**: Standardize all utility and billing components to use the established `Card` and internal section architecture.
+- **Status**: ✅ Implemented (`UsageGauge`, `PricingCard`, `ComparePlansTable`)
 
 ---
 
