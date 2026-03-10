@@ -239,6 +239,7 @@
 - **Linting Fix**: Removed unused `gcpProjectId` variable in `src/lib/gcp/bigquery.ts` to maintain zero-warning policy.
 - **Audit Script Optimization**: Updated `scripts/audit.ts` to skip live Firestore index verification when `MOCK_DB=true` is set, allowing for seamless local audits without real GCP credentials.
 - **Analytics Types**: Fixed type casting error for Firestore timestamps in `src/lib/analytics.ts` where `any` type was used. Handled explicit type checking to fulfill zero-warnings linting policy.
+- **Audit Script Mock DB Proxy Ignored**: Explicitly handled checking proxy URL status and ignored 502 status during `MOCK_DB=true`.
 
 ---
 
