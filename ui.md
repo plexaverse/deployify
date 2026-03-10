@@ -572,6 +572,33 @@ Conducted a final platform-wide sweep to ensure all remaining context labels and
 
 Standardized remaining billing, landing, and utility components.
 
+## Progressive UI & Layout Standardization (Session 121)
+
+Conducted a comprehensive standardization pass for core project settings components and modals.
+
+### Settings Component Standardization
+- **Files Updated**:
+  - `src/components/EnvVariablesSection.tsx`
+  - `src/components/DomainsSection.tsx`
+  - `src/components/CronsSection.tsx`
+  - `src/components/RegionSettings.tsx`
+  - `src/components/ResourceSettings.tsx`
+  - `src/components/BranchDeploymentsSettings.tsx`
+- **Standardization**:
+  - Standardized all primary form labels (Key, Value, Path, Schedule, Domain, Region, CPU, Memory, etc.) to `text-sm font-semibold`.
+  - Enforced the `text-[10px] font-bold uppercase tracking-wider` technical metadata standard for all table headers, status indicators, and sub-labels in info cards.
+  - Unified `SegmentedControl` and `NativeSelect` options to uppercase (e.g., "PRODUCTION", "PREVIEW", "VCPU", "BUILD & RUNTIME") to align with platform status conventions.
+  - Verified and ensured all components strictly adhere to the internal section standard: `<Card className="overflow-hidden p-0">` with padded headers, `<Separator />`, and padded content bodies.
+
+### Modal Typography Standardization
+- **File Updated**: `src/components/RollbackModal.tsx`
+- **Standardization**:
+  - Updated the "Author" label and value to the `text-[10px] font-bold uppercase tracking-wider` technical metadata standard.
+  - Ensured all action buttons within the modal follow the uppercase tracking-wider typography.
+
+### General Polish
+- **Consistency**: Improved date and status formatting to be consistently uppercase across all settings sections and modals, reinforcing the platform's professional developer-grade aesthetic.
+
 ### Billing Resource Gauge Standardization
 - **File Updated**: `src/components/billing/UsageGauge.tsx`
 - **Standardization**:

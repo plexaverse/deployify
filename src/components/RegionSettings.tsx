@@ -90,7 +90,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                     </div>
                 )}
                 <div className="grid gap-2">
-                    <Label htmlFor="region-select">Region</Label>
+                    <Label htmlFor="region-select" className="text-sm font-semibold">Region</Label>
                     <NativeSelect
                         id="region-select"
                         value={selectedRegion}
@@ -136,7 +136,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
                     <div className="text-sm">
-                        <p className="font-medium text-[var(--info)] mb-1">Deployment Required</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">Deployment Required</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changing the region will affect the next deployment.
                             To apply the change immediately, trigger a redeploy after saving.
