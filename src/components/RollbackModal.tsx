@@ -60,7 +60,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                             <div className="flex justify-between gap-4 pt-2">
                                 <div className="space-y-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Author</span>
-                                    <p className="text-xs font-semibold text-[var(--foreground)]">{deployment.gitCommitAuthor}</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]">{deployment.gitCommitAuthor}</p>
                                 </div>
                                 <div className="text-right space-y-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployed At</span>

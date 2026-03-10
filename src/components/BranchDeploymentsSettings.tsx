@@ -161,8 +161,8 @@ export function BranchDeploymentsSettings({
                                         <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider px-1">Target Environment</span>
                                         <SegmentedControl
                                             options={[
-                                                { value: 'preview', label: 'Preview' },
-                                                { value: 'production', label: 'Production' },
+                                                { value: 'preview', label: 'PREVIEW' },
+                                                { value: 'production', label: 'PRODUCTION' },
                                             ]}
                                             value={getEnvTarget(branch)}
                                             onChange={(v) => handleEnvironmentChange(branch, v)}

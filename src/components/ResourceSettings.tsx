@@ -88,9 +88,9 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
             <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label>CPU</Label>
+                        <Label className="text-sm font-semibold">CPU</Label>
                         <SegmentedControl
-                            options={CPU_OPTIONS.map(opt => ({ value: String(opt), label: `${opt} vCPU` }))}
+                            options={CPU_OPTIONS.map(opt => ({ value: String(opt), label: `${opt} VCPU` }))}
                             value={String(cpu)}
                             onChange={(v) => setCpu(Number(v))}
                         />
@@ -99,7 +99,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <Label>Memory</Label>
+                        <Label className="text-sm font-semibold">Memory</Label>
                         <SegmentedControl
                             options={MEMORY_OPTIONS.map(opt => ({ value: opt, label: opt }))}
                             value={memory}
@@ -113,7 +113,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label htmlFor="min-instances">Min Instances</Label>
+                        <Label htmlFor="min-instances" className="text-sm font-semibold">Min Instances</Label>
                         <Input
                             id="min-instances"
                             type="number"
@@ -126,7 +126,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="max-instances">Max Instances</Label>
+                        <Label htmlFor="max-instances" className="text-sm font-semibold">Max Instances</Label>
                         <Input
                             id="max-instances"
                             type="number"

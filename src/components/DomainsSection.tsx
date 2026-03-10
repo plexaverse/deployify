@@ -173,7 +173,7 @@ export function DomainsSection({
             {isAdding && (
                 <div className="mb-6 p-4 rounded-lg border border-[var(--border)] bg-[var(--background)] animate-fade-in">
                     <div className="mb-4 space-y-2">
-                        <Label>Domain</Label>
+                        <Label className="text-sm font-semibold">Domain</Label>
                         <Input
                             type="text"
                             value={newDomain}
@@ -445,7 +445,7 @@ export function DomainsSection({
                                         domain.status === 'pending' ? 'text-[var(--warning)]' :
                                             'text-[var(--error)]'
                                         }`}>
-                                        {getStatusLabel(domain.status)}
+                                        {getStatusLabel(domain.status).toUpperCase()}
                                     </span>
                                 </div>
                             </div>

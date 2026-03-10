@@ -255,7 +255,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 checked={newIsSecret}
                                 onCheckedChange={setNewIsSecret}
                             />
-                            <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer font-medium">
+                            <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer text-sm font-semibold">
                                 <Shield className="w-4 h-4 text-[var(--info)]" />
                                 Secret (Encrypted)
                             </Label>
@@ -280,8 +280,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 <SegmentedControl
                                     options={[
                                         { value: 'both', label: 'ALL ENVIRONMENTS' },
-                                        { value: 'production', label: 'PRODUCTION ONLY' },
-                                        { value: 'preview', label: 'PREVIEW ONLY' }
+                                        { value: 'production', label: 'PRODUCTION' },
+                                        { value: 'preview', label: 'PREVIEW' }
                                     ]}
                                     value={newEnvironment}
                                     onChange={(v) => setNewEnvironment(v as 'production' | 'preview' | 'both')}
@@ -395,7 +395,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                 </td>
                                                 <td className="py-4 px-4">
                                                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] text-[var(--muted-foreground)]">
-                                                        {env.environment === 'both' || !env.environment ? 'ALL ENVS' : env.environment.toUpperCase()}
+                                                        {env.environment === 'both' || !env.environment ? 'ALL ENVIRONMENTS' : env.environment.toUpperCase()}
                                                     </span>
                                                 </td>
                                                 <td className="py-4 px-4 text-right">

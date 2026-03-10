@@ -27,12 +27,12 @@ interface CronsSectionProps {
 }
 
 const PREDEFINED_SCHEDULES = [
-    { label: 'Every minute', value: '* * * * *' },
-    { label: 'Every 5 minutes', value: '*/5 * * * *' },
-    { label: 'Every 15 minutes', value: '*/15 * * * *' },
-    { label: 'Every hour', value: '0 * * * *' },
-    { label: 'Every day (Midnight UTC)', value: '0 0 * * *' },
-    { label: 'Custom', value: 'custom' },
+    { label: 'EVERY MINUTE', value: '* * * * *' },
+    { label: 'EVERY 5 MINUTES', value: '*/5 * * * *' },
+    { label: 'EVERY 15 MINUTES', value: '*/15 * * * *' },
+    { label: 'EVERY HOUR', value: '0 * * * *' },
+    { label: 'EVERY DAY', value: '0 0 * * *' },
+    { label: 'CUSTOM', value: 'custom' },
 ];
 
 export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
@@ -250,7 +250,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
                 <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
-                    <p className="font-medium text-[var(--info)] mb-1 text-sm">How it works</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">How it works</p>
                     <p className="text-[var(--muted-foreground)] leading-relaxed">
                         Deployify uses Google Cloud Scheduler to trigger your application&apos;s endpoints via HTTP GET requests.
                         Ensure your application is deployed and the endpoints are accessible.
