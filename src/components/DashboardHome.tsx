@@ -85,7 +85,7 @@ export default function DashboardHome() {
                  title={null}
                  description={null}
                  header={<ProjectCard project={project} />}
-                 className="h-full min-h-[12rem] cursor-pointer hover:border-[var(--primary)] transition-colors"
+                 className="h-full min-h-[12rem] cursor-pointer p-0 overflow-hidden border-0 bg-transparent shadow-none hover:shadow-none"
                />
              </Link>
            ))}
