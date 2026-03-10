@@ -52,12 +52,12 @@ export async function streamEventToBigQuery(event: BigQueryAnalyticsEvent) {
     try {
         await table.insert(event);
         // console.log(`[BigQuery] Successfully streamed ${event.type} for ${event.projectId} in project ${gcpProjectId}`);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+    } catch (error: unknown) {
         // If dataset/table doesn't exist, this might fail
         console.error('[BigQuery] Streaming failed:', error);
-        if (error.name === 'PartialFailureError') {
-            console.error('[BigQuery] Partial errors:', JSON.stringify(error.errors, null, 2));
+        if (error && typeof error === 'object' && 'name' in error && error.name === 'PartialFailureError') {
+            const partialError = error as { errors?: unknown[] };
+            console.error('[BigQuery] Partial errors:', JSON.stringify(partialError.errors, null, 2));
         }
     }
 }
