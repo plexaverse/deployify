@@ -45,7 +45,7 @@ export function DeploymentListItem({
                                 {deployment.gitCommitMessage}
                             </p>
                             <Badge variant={deployment.type === 'production' ? 'success' : 'info'} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
-                                {deployment.type}
+                                {deployment.type.toUpperCase()}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">

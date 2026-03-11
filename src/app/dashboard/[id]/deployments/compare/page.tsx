@@ -334,18 +334,18 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
                     </div>
                 </div>
                 <Badge variant={deployment.status === 'ready' ? 'success' : 'secondary'} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
-                    {deployment.status}
+                    {deployment.status.toUpperCase()}
                 </Badge>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
                     <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Created</div>
-                    <div className="text-sm font-semibold text-[var(--foreground)]">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                    <div className="text-sm font-semibold text-[var(--foreground)]">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</div>
                 </div>
                  <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
                     <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Environment</div>
-                    <div className="text-sm font-semibold capitalize text-[var(--foreground)]">{deployment.type}</div>
+                    <div className="text-sm font-semibold text-[var(--foreground)] uppercase">{deployment.type}</div>
                 </div>
             </div>
         </div>

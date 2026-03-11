@@ -684,25 +684,38 @@ Conducted a comprehensive standardization pass across the dashboard, settings, a
   - `src/lib/gcp/firewall.ts`
 - **Standardization**: Refactored core application logic to eliminate remaining `any` types in favor of `unknown` with proper type guards. This ensures the codebase strictly adheres to the platform's high standards for technical excellence and reliability.
 
-## Progressive UI & Layout Standardization (Session 124)
+## Progressive UI & Layout Standardization (Session 125)
 
-Final sweep of secondary copy, placeholder text, and help descriptions across the platform to unify the developer aesthetic.
+Conducted a platform-wide standardization pass for date formatting and status indicators.
 
-### Typography Refinement
+### Date and Status Formatting Standardization
 - **Files Updated**:
+  - `src/components/ProjectCard.tsx`
+  - `src/app/billing/page.tsx`
   - `src/app/dashboard/settings/page.tsx`
-  - `src/app/dashboard/[id]/settings/page.tsx`
-  - `src/app/new/page.tsx`
-  - `src/app/dashboard/new/page.tsx`
-  - `src/components/RollbackModal.tsx`
-  - `src/components/DeploymentTimeline.tsx`
-  - `src/components/DomainsSection.tsx`
-  - `src/components/analytics/AnalyticsCharts.tsx`
-  - `src/components/billing/PricingCard.tsx`
-  - `src/components/billing/ComparePlansTable.tsx`
-  - `src/components/billing/UsageGauge.tsx`
-  - `src/components/LandingPage.tsx`
+  - `src/app/dashboard/[id]/deployments/compare/page.tsx`
 - **Standardization**:
-  - Updated all structural helper text, such as "Delete Account/Project" descriptions, empty state placeholders ("No activity recorded yet.", "No results for..."), and warning modals to the platform's standard `text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]` typography.
-  - Unified unit labels in gauge components and plan descriptors in pricing tables with the high-density technical aesthetic.
-  - Excluded navigation links (like `Back to dashboard`) to preserve legibility and standard UX expectations for primary routing elements.
+  - Enforced uppercase formatting for all system dates and status labels using `.toUpperCase()`.
+  - Standardized status badges in the billing invoice list and project cards to use the high-density technical metadata typography (`text-[10px] font-bold uppercase tracking-wider`).
+  - Unified date formatting in the team audit log and project comparison summaries to maintain a consistent developer-grade aesthetic.
+
+### Primary Action Button Typography Standardization
+- **Files Updated**:
+  - `src/components/OnboardingGuide.tsx`
+  - `src/app/new/page.tsx`
+  - `src/app/dashboard/new/import/page.tsx`
+- **Standardization**:
+  - Updated primary action buttons ("Import Project", "Deploy Project", "Visit App", "Deploy") to use the platform's standard `text-[10px] font-bold uppercase tracking-wider` typography.
+  - This ensures that all primary call-to-actions follow the same high-density technical aesthetic as other metadata and navigation elements.
+
+### Settings and Toggle Typography Standardization
+- **File Updated**: `src/components/SettingsToggle.tsx`
+- **Standardization**:
+  - Updated toggle descriptions to use the platform's standard `text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]` typography.
+  - This unifies settings help text with other technical metadata across the dashboard.
+
+### Core Component Polish & Metadata Consistency
+- **File Updated**: `src/components/WebVitals.tsx`, `src/components/StatusBadge.tsx`
+- **Standardization**:
+  - Refined Web Vitals labels and status badges to strictly use `font-bold uppercase tracking-wider` and uppercase formatting for all performance states (GOOD, AVERAGE, POOR).
+  - Enforced uppercase formatting for all status badge labels across the platform to ensure terminal-grade aesthetic consistency.

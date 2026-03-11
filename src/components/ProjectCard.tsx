@@ -69,7 +69,7 @@ export function ProjectCard({ project }: { project: Project }) {
                 ) : (
                   <config.icon className="w-2.5 h-2.5" />
                 )}
-                {config.label}
+                {config.label.toUpperCase()}
               </Badge>
             </div>
           </div>
@@ -122,7 +122,7 @@ export function ProjectCard({ project }: { project: Project }) {
                </div>
                <div className="flex items-center gap-1.5">
                  <Clock className="w-3 h-3" />
-                 <span>{new Date(latestDeployment.updatedAt).toLocaleDateString()}</span>
+                 <span>{new Date(latestDeployment.updatedAt).toLocaleDateString().toUpperCase()}</span>
                </div>
             </div>
           </div>

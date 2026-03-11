@@ -72,7 +72,7 @@ export function StatusBadge({ status, className, showIcon = true }: StatusBadgeP
             {showIcon && Icon && (
                 <Icon className={cn("w-3 h-3", config.animation)} />
             )}
-            {config.label}
+            {config.label.toUpperCase()}
         </Badge>
     );
 }

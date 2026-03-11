@@ -739,7 +739,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     onClick={handleDeploy}
                     disabled={deploying || !projectName}
                     containerClassName="h-12 w-48"
-                    className="font-bold text-sm"
+                    className="text-[10px] font-bold uppercase tracking-wider"
                 >
                     {deploying ? <Loader2 className="mr-2 w-5 h-5 animate-spin" /> : null}
                     {deploying ? 'Deploying...' : 'Deploy Project'}
@@ -864,7 +864,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                 >
                                     <MovingBorderButton
                                         containerClassName="h-11 w-40"
-                                        className="font-bold text-sm"
+                                        className="text-[10px] font-bold uppercase tracking-wider"
                                     >
                                         <Globe className="w-4 h-4 mr-2" />
                                         Visit App

@@ -246,7 +246,7 @@ export default function BillingPage() {
                     <div className="h-8 w-[1px] bg-[var(--border)]" />
                     <div className="flex flex-col items-end">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Current Plan</span>
-                        <Badge variant="default" className="capitalize px-3 py-1 font-bold">{tier.name}</Badge>
+                        <Badge variant="default" className="text-[10px] font-bold uppercase tracking-wider px-3 py-1">{tier.name.toUpperCase()}</Badge>
                     </div>
                 </div>
             </div>
@@ -367,7 +367,7 @@ export default function BillingPage() {
                                         invoices.map((invoice) => (
                                             <tr key={invoice.id} className="hover:bg-[var(--muted)]/10 transition-colors">
                                                 <td className="p-4 font-medium">{invoice.invoiceNumber}</td>
-                                                <td className="p-4">{new Date(invoice.date).toLocaleDateString()}</td>
+                                                <td className="p-4">{new Date(invoice.date).toLocaleDateString().toUpperCase()}</td>
                                                 <td className="p-4">₹{invoice.total.toFixed(2)}</td>
                                                 <td className="p-4">
                                                     <Badge
@@ -375,9 +375,9 @@ export default function BillingPage() {
                                                             invoice.status === 'paid' ? 'success' :
                                                             invoice.status === 'pending' ? 'warning' : 'secondary'
                                                         }
-                                                        className="capitalize"
+                                                        className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5"
                                                     >
-                                                        {invoice.status}
+                                                        {invoice.status.toUpperCase()}
                                                     </Badge>
                                                 </td>
                                                 <td className="p-4 text-right">

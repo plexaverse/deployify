@@ -420,7 +420,7 @@ export default function ImportProjectPage() {
                         onClick={handleDeploy}
                         disabled={isDeploying || !projectName}
                         containerClassName="h-14 w-full md:w-48"
-                        className="text-base font-bold shadow-[var(--primary-glow)]"
+                        className="text-[10px] font-bold uppercase tracking-wider shadow-[var(--primary-glow)]"
                     >
                         {isDeploying ? (
                             <>
