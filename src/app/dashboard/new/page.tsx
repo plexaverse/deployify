@@ -211,7 +211,7 @@ export default function NewProjectPage() {
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <p className="text-sm text-[var(--muted-foreground)] truncate mt-0.5">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate mt-0.5">
                                                 {repo.description || 'No description'}
                                             </p>
                                             <div className="flex items-center gap-4 mt-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">

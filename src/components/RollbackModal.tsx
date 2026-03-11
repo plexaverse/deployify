@@ -44,7 +44,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
 
                     {/* Content */}
                     <div className="p-6 overflow-y-auto">
-                        <p className="text-sm text-[var(--muted-foreground)] mb-6 leading-relaxed">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-6 leading-relaxed">
                             Are you sure you want to rollback to this version? This will immediately switch traffic to the selected revision.
                         </p>
 

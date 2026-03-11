@@ -106,7 +106,7 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
                 </div>
             )}
              {isCancelled && (
-                <div className="mt-4 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)] flex items-start gap-2 text-sm text-[var(--muted-foreground)]">
+                <div className="mt-4 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)] flex items-start gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                     <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                     <p>Deployment was cancelled.</p>
                 </div>
