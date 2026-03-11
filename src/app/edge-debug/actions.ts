@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import vm from 'vm'
 
-type SimulationResult = {
+export type SimulationResult = {
   status: number
   headers: Record<string, string>
   body: string
@@ -37,19 +37,15 @@ export async function runSimulation(
     })
 
     // 2. Prepare the Sandbox
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sandbox: any = {
+    const sandbox: Record<string, unknown> = {
       NextRequest,
       NextResponse,
       request: req,
       URL,
       console: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        log: (...args: any[]) => logs.push(args.map((a) => String(a)).join(' ')),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        error: (...args: any[]) => logs.push('[ERROR] ' + args.map((a) => String(a)).join(' ')),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        warn: (...args: any[]) => logs.push('[WARN] ' + args.map((a) => String(a)).join(' ')),
+        log: (...args: unknown[]) => logs.push(args.map((a) => String(a)).join(' ')),
+        error: (...args: unknown[]) => logs.push('[ERROR] ' + args.map((a) => String(a)).join(' ')),
+        warn: (...args: unknown[]) => logs.push('[WARN] ' + args.map((a) => String(a)).join(' ')),
       },
       process: {
         env: {},
@@ -59,7 +55,7 @@ export async function runSimulation(
     }
 
     // Link exports
-    sandbox.exports = sandbox.module.exports
+    sandbox.exports = (sandbox.module as { exports: unknown }).exports
 
     const context = vm.createContext(sandbox)
 
@@ -82,19 +78,22 @@ export async function runSimulation(
     const script = new vm.Script(cleanCode)
     script.runInContext(context, { timeout: 1000 })
 
-    let middlewareFn = null
+    let middlewareFn: ((req: NextRequest) => Promise<NextResponse | null | undefined>) | null = null
 
     // Check module.exports and exports
-    if (typeof sandbox.module.exports === 'function') {
-      middlewareFn = sandbox.module.exports
-    } else if (typeof sandbox.module.exports.middleware === 'function') {
-      middlewareFn = sandbox.module.exports.middleware
-    } else if (typeof sandbox.module.exports.default === 'function') {
-        middlewareFn = sandbox.module.exports.default
-    } else if (typeof sandbox.exports.middleware === 'function') {
-       middlewareFn = sandbox.exports.middleware
+    const moduleExports = (sandbox.module as { exports?: unknown })?.exports
+    const exports = sandbox.exports as Record<string, unknown>
+
+    if (typeof moduleExports === 'function') {
+      middlewareFn = moduleExports as (req: NextRequest) => Promise<NextResponse>
+    } else if (moduleExports && typeof (moduleExports as Record<string, unknown>).middleware === 'function') {
+      middlewareFn = (moduleExports as Record<string, unknown>).middleware as (req: NextRequest) => Promise<NextResponse>
+    } else if (moduleExports && typeof (moduleExports as Record<string, unknown>).default === 'function') {
+        middlewareFn = (moduleExports as Record<string, unknown>).default as (req: NextRequest) => Promise<NextResponse>
+    } else if (typeof exports?.middleware === 'function') {
+       middlewareFn = exports.middleware as (req: NextRequest) => Promise<NextResponse>
     } else if (typeof sandbox.middleware === 'function') {
-        middlewareFn = sandbox.middleware
+        middlewareFn = sandbox.middleware as (req: NextRequest) => Promise<NextResponse>
     }
 
     if (!middlewareFn) {
@@ -155,15 +154,15 @@ export async function runSimulation(
       type,
     }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as Record<string, unknown>;
     return {
       status: 500,
       headers: {},
       body: '',
       logs,
       type: 'error',
-      error: err.message,
+      error: typeof error?.message === 'string' ? error.message : String(err),
     }
   }
 }

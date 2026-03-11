@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { notFound } from 'next/navigation'
-import { runSimulation } from './actions'
+import { runSimulation, type SimulationResult } from './actions'
 import { toast } from 'sonner'
 import { Loader2, Play, AlertCircle, CheckCircle2, Cpu } from 'lucide-react'
 import { Card } from '@/components/ui/card'
@@ -38,8 +38,7 @@ export default function EdgeDebugPage() {
   const [method, setMethod] = useState('GET')
   const [headers, setHeaders] = useState(DEFAULT_HEADERS)
   const [loading, setLoading] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<SimulationResult | null>(null)
 
   const handleRun = async () => {
     setLoading(true)
@@ -132,7 +131,7 @@ export default function EdgeDebugPage() {
                     <div className="p-6 space-y-6">
 
                     <div className="space-y-2">
-                        <Label>HTTP Method</Label>
+                        <Label className="text-sm font-semibold">HTTP Method</Label>
                         <SegmentedControl
                             options={[
                                 { value: 'GET', label: 'GET' },
@@ -147,7 +146,7 @@ export default function EdgeDebugPage() {
                     </div>
 
                     <div className="space-y-2">
-                         <Label>Target URL</Label>
+                         <Label className="text-sm font-semibold">Target URL</Label>
                          <Input
                             type="text"
                             value={url}
@@ -157,7 +156,7 @@ export default function EdgeDebugPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="mb-2 block">Headers (JSON)</Label>
+                        <Label className="text-sm font-semibold mb-2 block">Headers (JSON)</Label>
                         <textarea
                             value={headers}
                             onChange={(e) => setHeaders(e.target.value)}
@@ -195,14 +194,14 @@ export default function EdgeDebugPage() {
                                 result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)]' : 'bg-[var(--success-bg)] text-[var(--success)]'
                             )}>
                                 {result.type === 'error' ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
-                                <span className="font-bold">{result.status}</span>
+                                <span className="text-xl font-bold">{result.status}</span>
                                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-current">{result.type}</span>
                             </div>
 
                             {/* Logs */}
                             {result.logs.length > 0 && (
                                 <div className="p-4 border-b border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[150px]">
-                                    <div className="text-[var(--muted-foreground)] mb-2">Logs:</div>
+                                    <div className="text-[var(--muted-foreground)] mb-2 uppercase">Logs:</div>
                                     {result.logs.map((log: string, i: number) => (
                                         <div key={i}>{log}</div>
                                     ))}
@@ -211,7 +210,7 @@ export default function EdgeDebugPage() {
 
                              {/* Error Message */}
                             {result.error && (
-                                <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] font-mono text-sm">
+                                <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] font-mono text-[10px] font-bold uppercase tracking-wider">
                                     {result.error}
                                 </div>
                             )}
@@ -222,11 +221,10 @@ export default function EdgeDebugPage() {
                                     {/* Headers */}
                                     {Object.keys(result.headers).length > 0 && (
                                          <details className="text-sm text-[var(--foreground)]">
-                                            <summary className="cursor-pointer font-medium mb-2 select-none">Response Headers</summary>
+                                            <summary className="cursor-pointer font-semibold mb-2 select-none text-sm">Response Headers</summary>
                                             <div className="bg-[var(--muted)]/20 p-2 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
                                                 {Object.entries(result.headers).map(([k, v]) => (
-                                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                                    <div key={k}><span className="text-[var(--info)]">{k}:</span> {v as any}</div>
+                                                    <div key={k}><span className="text-[var(--info)]">{k.toUpperCase()}:</span> {v.toUpperCase()}</div>
                                                 ))}
                                             </div>
                                         </details>
@@ -234,7 +232,7 @@ export default function EdgeDebugPage() {
 
                                     {/* Body */}
                                     <div>
-                                         <div className="font-medium mb-2 text-sm text-[var(--foreground)]">Response Body</div>
+                                         <div className="font-semibold mb-2 text-sm text-[var(--foreground)]">Response Body</div>
                                          <pre className="bg-[var(--muted)]/20 p-3 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
                                             {result.body || <span className="text-[var(--muted-foreground)] italic">No content</span>}
                                          </pre>
