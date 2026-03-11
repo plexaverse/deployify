@@ -49,7 +49,7 @@ export default async function LoginPage() {
                             </div>
                         </div>
 
-                        <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                             By signing in, you agree to our{' '}
                             <Link href="/terms" className="text-[var(--primary)] hover:underline">Terms</Link> and{' '}
                             <Link href="/privacy" className="text-[var(--primary)] hover:underline">Privacy</Link>

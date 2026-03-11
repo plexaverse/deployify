@@ -122,7 +122,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                     <MovingBorderButton
                         onClick={() => setIsAdding(true)}
                         containerClassName="h-10 w-36"
-                        className="text-xs font-bold"
+                        className="text-[10px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Cron Job
@@ -152,7 +152,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                 placeholder="/api/cron/daily-report"
                                 className="font-mono text-sm"
                             />
-                            <p className="text-xs text-[var(--muted-foreground)]">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Relative path to call (GET request).
                             </p>
                         </div>
@@ -175,7 +175,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                     placeholder="0 0 * * *"
                                     className="font-mono text-sm"
                                 />
-                                <p className="text-xs text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Standard cron format: minute hour day(month) month day(week)
                                 </p>
                             </div>
@@ -195,7 +195,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                             disabled={isSubmitting}
                             loading={isSubmitting}
                             containerClassName="h-10 w-36"
-                            className="text-xs font-bold"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             Add Cron Job
                         </MovingBorderButton>

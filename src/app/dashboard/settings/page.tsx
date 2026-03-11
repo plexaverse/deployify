@@ -227,10 +227,10 @@ export default function TeamSettingsPage() {
                                 {user?.email || 'You are using your individual workspace for hobby projects.'}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
-                                <Button onClick={() => router.push('/billing')} variant="outline" size="sm">
+                                <Button onClick={() => router.push('/billing')} variant="outline" size="sm" className="text-[10px] font-bold uppercase tracking-wider">
                                     Manage Billing
                                 </Button>
-                                <Link href="/api/auth/github" className="text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors flex items-center gap-1">
+                                <Link href="/api/auth/github" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors flex items-center gap-1">
                                     <Github className="w-3 h-3" />
                                     Account connected via GitHub
                                 </Link>
@@ -343,7 +343,7 @@ export default function TeamSettingsPage() {
                                     type="submit"
                                     disabled={isInviting || !inviteEmail}
                                     containerClassName="h-10 w-full sm:w-36"
-                                    className="text-xs font-bold"
+                                    className="text-[10px] font-bold uppercase tracking-wider"
                                 >
                                     {isInviting ? 'Sending...' : 'Send Invite'}
                                 </MovingBorderButton>
@@ -402,7 +402,7 @@ export default function TeamSettingsPage() {
                                                         {member.user?.name || member.user?.githubUsername || 'Unknown User'}
                                                         {member.role === 'owner' && <Badge variant="warning" className="text-[9px] px-1 py-0 uppercase">Owner</Badge>}
                                                     </p>
-                                                    <p className="text-sm text-[var(--muted-foreground)]">
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                         {member.user?.email}
                                                     </p>
                                                 </div>
@@ -451,8 +451,8 @@ export default function TeamSettingsPage() {
                                                         {invite.email}
                                                         <Badge variant="info" className="text-[10px] px-1.5 py-0 uppercase">Invited</Badge>
                                                     </p>
-                                                    <p className="text-xs text-[var(--muted-foreground)]">
-                                                        Sent {new Date(invite.createdAt).toLocaleDateString()}
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                        Sent {new Date(invite.createdAt).toLocaleDateString().toUpperCase()}
                                                     </p>
                                                 </div>
                                             </div>
@@ -561,7 +561,7 @@ export default function TeamSettingsPage() {
                                             <span className="text-sm font-medium text-[var(--foreground)]">
                                                 {log.action}
                                             </span>
-                                            <span className="text-xs text-[var(--muted-foreground)] leading-relaxed line-clamp-2">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed line-clamp-2">
                                                 {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
                                             </span>
                                             <div className="flex items-center gap-2 mt-1">

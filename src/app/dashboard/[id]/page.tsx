@@ -210,7 +210,7 @@ export default function ProjectDetailPage() {
                         onClick={() => handleRedeploy(false)}
                         disabled={deploying}
                         containerClassName="h-9 w-32"
-                        className="text-xs font-bold"
+                        className="text-[10px] font-bold uppercase tracking-wider"
                     >
                         {deploying ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />
@@ -240,7 +240,7 @@ export default function ProjectDetailPage() {
                     >
                         <MovingBorderButton
                             containerClassName="h-9 w-24"
-                            className="font-bold text-xs"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                             disabled={!project.productionUrl}
                         >
                             <ExternalLink className="w-3.5 h-3.5 mr-2" />
@@ -394,12 +394,12 @@ export default function ProjectDetailPage() {
                         icon={GitBranch}
                         description={
                             <span>
-                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-xs">{project.defaultBranch}</code> to trigger your first deployment.
+                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch}</code> to trigger your first deployment.
                                 We&apos;ll build and deploy your application automatically.
                             </span>
                         }
                     >
-                        <div className="flex items-center gap-4 text-xs text-[var(--muted-foreground)] bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)]">
+                        <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)]">
                             <span className="flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full bg-[var(--success)] shadow-[0_0_8px_var(--success)]" />
                                 Git Push

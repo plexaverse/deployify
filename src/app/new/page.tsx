@@ -526,7 +526,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 <option value="docker">Docker</option>
                             </NativeSelect>
                             {framework === 'docker' && (
-                                <p className="text-xs text-[var(--info)] pt-1">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] pt-1">
                                     Deployify will use the <code>Dockerfile</code> in your repository root.
                                 </p>
                             )}
@@ -845,7 +845,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         <span className="opacity-50">•</span>
                         <span>{initialDeployment.gitBranch}</span>
                         <span className="opacity-50">•</span>
-                        <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-xs font-mono">{initialDeployment.gitCommitSha.substring(0, 7)}</code>
+                        <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono">{initialDeployment.gitCommitSha.substring(0, 7)}</code>
                     </p>
                 </div>
 
@@ -936,7 +936,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         </div>
                         <div className="flex items-center gap-2 text-[var(--terminal-foreground)]/40">
                             <Terminal className="w-3.5 h-3.5" />
-                            <span className="text-xs font-medium">Build Logs</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Build Logs</span>
                         </div>
                     </div>
                     <div className="text-[var(--terminal-foreground)]/20 text-[10px] font-bold uppercase tracking-wider">build-log.txt</div>

@@ -183,7 +183,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     <MovingBorderButton
                         onClick={() => setIsAdding(true)}
                         containerClassName="h-10 w-36"
-                        className="text-xs font-bold"
+                        className="text-[10px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Variable
@@ -303,7 +303,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             disabled={isSubmitting}
                             loading={isSubmitting}
                             containerClassName="h-10 w-36"
-                            className="text-xs font-bold"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             Add Variable
                         </MovingBorderButton>

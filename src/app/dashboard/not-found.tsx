@@ -17,11 +17,11 @@ export default function DashboardNotFound() {
                     Page Not Found
                 </h1>
             </div>
-            <p className="text-[var(--muted-foreground)] text-sm mb-8 max-w-[280px]">
+            <p className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-8 max-w-[280px]">
                 The resource you are looking for within the dashboard could not be found.
             </p>
             <Link href="/dashboard" className="w-full">
-                <Button variant="outline" className="w-full h-12 font-bold">
+                <Button variant="outline" className="w-full h-12 text-[10px] font-bold uppercase tracking-wider">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Return to Dashboard
                 </Button>
