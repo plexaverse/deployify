@@ -55,7 +55,7 @@ export async function runSimulation(
     }
 
     // Link exports
-    sandbox.exports = sandbox.module.exports
+    sandbox.exports = (sandbox.module as { exports: unknown }).exports
 
     const context = vm.createContext(sandbox)
 
@@ -78,22 +78,22 @@ export async function runSimulation(
     const script = new vm.Script(cleanCode)
     script.runInContext(context, { timeout: 1000 })
 
-    let middlewareFn = null
+    let middlewareFn: ((req: NextRequest) => Promise<NextResponse | null | undefined>) | null = null
 
     // Check module.exports and exports
     const moduleExports = (sandbox.module as { exports?: unknown })?.exports
     const exports = sandbox.exports as Record<string, unknown>
 
     if (typeof moduleExports === 'function') {
-      middlewareFn = moduleExports
+      middlewareFn = moduleExports as (req: NextRequest) => Promise<NextResponse>
     } else if (moduleExports && typeof (moduleExports as Record<string, unknown>).middleware === 'function') {
-      middlewareFn = (moduleExports as Record<string, unknown>).middleware
+      middlewareFn = (moduleExports as Record<string, unknown>).middleware as (req: NextRequest) => Promise<NextResponse>
     } else if (moduleExports && typeof (moduleExports as Record<string, unknown>).default === 'function') {
-        middlewareFn = (moduleExports as Record<string, unknown>).default
+        middlewareFn = (moduleExports as Record<string, unknown>).default as (req: NextRequest) => Promise<NextResponse>
     } else if (typeof exports?.middleware === 'function') {
-       middlewareFn = exports.middleware
+       middlewareFn = exports.middleware as (req: NextRequest) => Promise<NextResponse>
     } else if (typeof sandbox.middleware === 'function') {
-        middlewareFn = sandbox.middleware
+        middlewareFn = sandbox.middleware as (req: NextRequest) => Promise<NextResponse>
     }
 
     if (!middlewareFn) {
