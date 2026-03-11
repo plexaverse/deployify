@@ -231,6 +231,8 @@
 - **CLI**: Verified CLI tool runs and displays help (`node src/cli/index.js --help`).
 - **BigQuery**: Verified automated schema initialization in analytics collector.
 - **SSE Logs**: Optimized SSE log streaming backend for better responsiveness and termination.
+- **Type Safety Pass**: Eliminated remaining `any` types in `src/app/api/projects/[id]/route.ts`, `src/app/edge-debug/actions.ts`, and `src/app/edge-debug/page.tsx` in favor of specific types and `unknown` with proper type guards. Fixed error handling in the Edge Simulator to ensure cross-context error property accessibility.
+- **UI Standardization**: Completed the standardization of the Edge Function Simulator UI, enforcing high-density technical metadata typography and consistent form labels.
 - **Collection Standardization**: Centralized the `errors` collection name in `src/lib/firebase.ts` and updated the error tracker to use it, ensuring consistency and resolving linting warnings.
 - **Internal Analytics Fix**: Fixed dashboard event tracking by authorizing the internal dashboard API key in the analytics collector.
 - **Build Status Type Safety**: Added `INTERNAL_ERROR` to the `getBuildStatus` return type for full terminal state coverage.
