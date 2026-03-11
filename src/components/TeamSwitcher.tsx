@@ -75,7 +75,7 @@ export function TeamSwitcher() {
                                         <User className="w-3.5 h-3.5" />
                                     </AvatarFallback>
                                 </Avatar>
-                                <span className="flex-1 text-left font-medium">Personal Workspace</span>
+                                <span className="flex-1 text-left text-[10px] font-bold uppercase tracking-wider">Personal Workspace</span>
                                 {!activeTeam && <Check className="w-4 h-4 text-[var(--primary)]" />}
                             </button>
                         </div>
@@ -118,7 +118,7 @@ export function TeamSwitcher() {
                                 <div className="flex items-center justify-center w-6 h-6 rounded-md border border-dashed border-[var(--border)]">
                                     <Plus className="w-4 h-4" />
                                 </div>
-                                <span className="flex-1 text-left font-medium">Create Team</span>
+                                <span className="flex-1 text-left text-[10px] font-bold uppercase tracking-wider">Create Team</span>
                             </button>
                         </div>
                     </div>

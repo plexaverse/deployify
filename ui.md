@@ -706,3 +706,23 @@ Final sweep of secondary copy, placeholder text, and help descriptions across th
   - Updated all structural helper text, such as "Delete Account/Project" descriptions, empty state placeholders ("No activity recorded yet.", "No results for..."), and warning modals to the platform's standard `text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]` typography.
   - Unified unit labels in gauge components and plan descriptors in pricing tables with the high-density technical aesthetic.
   - Excluded navigation links (like `Back to dashboard`) to preserve legibility and standard UX expectations for primary routing elements.
+
+## Progressive UI & Layout Standardization (Session 125)
+
+Standardized the Edge Function Simulator and further refined Team Switcher and Account Settings components.
+
+### Edge Function Simulator Standardization
+- **File Updated**: `src/app/edge-debug/page.tsx`
+- **Standardization**:
+  - Refactored "Middleware Code" and "Simulation Result" sections to strictly follow the internal section standard: `<Card className="overflow-hidden p-0">` with padded headers (`p-6 flex ...`), `<Separator className="bg-[var(--border)]" />`, and padded content bodies.
+  - Implemented the 3-part header architecture (Icon Container + Context Label + Title) for both sections.
+  - Standardized all primary form labels (Method, URL, Headers) to `text-sm font-semibold`.
+  - Enforced `text-[10px] font-bold uppercase tracking-wider` for the "Run Simulation" button, error messages, response headers, and response body labels.
+
+### Team Switcher & Account Settings Standardization
+- **Files Updated**:
+  - `src/components/TeamSwitcher.tsx`
+  - `src/app/dashboard/settings/page.tsx`
+- **Standardization**:
+  - Standardized the typography of action items in the Team Switcher ("Personal Workspace", "Create Team") to the `text-[10px] font-bold uppercase tracking-wider` technical metadata standard.
+  - Refined account-level form labels ("Email address", "Role") in Team Settings to use the `text-sm font-semibold` standard, ensuring consistency with project-level configuration forms.

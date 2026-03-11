@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { notFound } from 'next/navigation'
 import { runSimulation } from './actions'
 import { toast } from 'sonner'
-import { Loader2, Play, AlertCircle, CheckCircle2, Cpu } from 'lucide-react'
+import { Loader2, Play, AlertCircle, CheckCircle2, Cpu, Code, Activity } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -91,28 +91,35 @@ export default function EdgeDebugPage() {
                 onClick={handleRun}
                 disabled={loading}
                 containerClassName="h-12 w-48"
-                className="font-bold text-sm"
+                className="text-[10px] font-bold uppercase tracking-wider"
             >
                 {!loading && <Play className="mr-2 h-4 w-4" />}
                 {loading ? 'Running...' : 'Run Simulation'}
             </MovingBorderButton>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-240px)]">
             {/* Left Column: Code Editor */}
-            <div className="flex flex-col gap-4 h-full">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Middleware Code</h2>
+            <Card className="overflow-hidden p-0 flex flex-col h-full">
+                <div className="p-6 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Code className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <div className="space-y-0.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Source Code</span>
+                        <h2 className="text-xl font-semibold text-[var(--foreground)]">Middleware Editor</h2>
+                    </div>
                 </div>
-                <div className="flex-1 border border-[var(--terminal-border)] rounded-md overflow-hidden bg-[var(--terminal-bg)] shadow-sm">
+                <Separator className="bg-[var(--border)]" />
+                <div className="flex-1 bg-[var(--terminal-bg)]">
                      <textarea
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
-                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-sm p-4 focus:outline-none resize-none"
+                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-sm p-6 focus:outline-none resize-none"
                         spellCheck={false}
                     />
                 </div>
-            </div>
+            </Card>
 
             {/* Right Column: Configuration & Output */}
             <div className="flex flex-col gap-6 overflow-y-auto pr-2 pb-4">
@@ -132,7 +139,7 @@ export default function EdgeDebugPage() {
                     <div className="p-6 space-y-6">
 
                     <div className="space-y-2">
-                        <Label>HTTP Method</Label>
+                        <Label className="text-sm font-semibold">HTTP Method</Label>
                         <SegmentedControl
                             options={[
                                 { value: 'GET', label: 'GET' },
@@ -147,7 +154,7 @@ export default function EdgeDebugPage() {
                     </div>
 
                     <div className="space-y-2">
-                         <Label>Target URL</Label>
+                         <Label className="text-sm font-semibold">Target URL</Label>
                          <Input
                             type="text"
                             value={url}
@@ -157,7 +164,7 @@ export default function EdgeDebugPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="mb-2 block">Headers (JSON)</Label>
+                        <Label className="text-sm font-semibold mb-2 block">Headers (JSON)</Label>
                         <textarea
                             value={headers}
                             onChange={(e) => setHeaders(e.target.value)}
@@ -173,23 +180,33 @@ export default function EdgeDebugPage() {
                 </Card>
 
                 {/* Output */}
-                 <div className="space-y-4 flex-1 flex flex-col">
-                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Simulation Result</h2>
+                <Card className="overflow-hidden p-0 flex flex-col flex-1 min-h-0">
+                    <div className="p-6 flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Activity className="w-5 h-5 text-[var(--primary)]" />
+                        </div>
+                        <div className="space-y-0.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Execution Result</span>
+                            <h2 className="text-xl font-semibold text-[var(--foreground)]">Output Analysis</h2>
+                        </div>
+                    </div>
+                    <Separator className="bg-[var(--border)]" />
 
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
                     {!result && !loading && (
-                        <div className="flex-1 border border-dashed border-[var(--border)] rounded-md flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px]">
-                            Run a simulation to see the results
+                        <div className="h-full border border-dashed border-[var(--border)] rounded-md flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px]">
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Run a simulation to see the results</span>
                         </div>
                     )}
 
                     {loading && (
-                        <div className="flex-1 border border-dashed border-[var(--border)] rounded-md flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px]">
+                        <div className="h-full border border-dashed border-[var(--border)] rounded-md flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px]">
                              <Loader2 className="h-8 w-8 animate-spin" />
                         </div>
                     )}
 
                     {result && (
-                        <Card className="p-0 overflow-hidden flex flex-col gap-0 shadow-sm border-[var(--border)]">
+                        <Card className="p-0 overflow-hidden flex flex-col gap-0 shadow-sm border-[var(--border)] bg-[var(--background)]">
                             {/* Status Bar */}
                             <div className={cn("p-4 border-b border-[var(--border)] flex items-center gap-2",
                                 result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)]' : 'bg-[var(--success-bg)] text-[var(--success)]'
@@ -211,7 +228,7 @@ export default function EdgeDebugPage() {
 
                              {/* Error Message */}
                             {result.error && (
-                                <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] font-mono text-sm">
+                                <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] font-mono text-[10px] font-bold uppercase tracking-wider">
                                     {result.error}
                                 </div>
                             )}
@@ -221,8 +238,8 @@ export default function EdgeDebugPage() {
                                 <div className="p-4 space-y-4">
                                     {/* Headers */}
                                     {Object.keys(result.headers).length > 0 && (
-                                         <details className="text-sm text-[var(--foreground)]">
-                                            <summary className="cursor-pointer font-medium mb-2 select-none">Response Headers</summary>
+                                         <details className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]">
+                                            <summary className="cursor-pointer font-bold mb-2 select-none">Response Headers</summary>
                                             <div className="bg-[var(--muted)]/20 p-2 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
                                                 {Object.entries(result.headers).map(([k, v]) => (
                                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -234,7 +251,7 @@ export default function EdgeDebugPage() {
 
                                     {/* Body */}
                                     <div>
-                                         <div className="font-medium mb-2 text-sm text-[var(--foreground)]">Response Body</div>
+                                         <div className="font-bold mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]">Response Body</div>
                                          <pre className="bg-[var(--muted)]/20 p-3 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
                                             {result.body || <span className="text-[var(--muted-foreground)] italic">No content</span>}
                                          </pre>
@@ -243,7 +260,8 @@ export default function EdgeDebugPage() {
                             )}
                         </Card>
                     )}
-                </div>
+                    </div>
+                </Card>
             </div>
         </div>
     </div>
