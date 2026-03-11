@@ -227,7 +227,7 @@ export default function LandingPage() {
               transition={{ delay: 0.6 }}
               className="mt-12 max-w-md mx-auto p-1 rounded-2xl bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm flex items-center gap-3 pr-4 group"
             >
-              <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-xs font-mono text-[var(--foreground)] font-bold">
+              <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider font-mono text-[var(--foreground)]">
                 $
               </div>
               <code className="text-sm font-mono text-[var(--muted-foreground)] flex-1 text-left">
@@ -587,9 +587,9 @@ export default function LandingPage() {
                 { name: 'Cloud Armor', icon: Shield },
               ].map((feat, i) => (
                 <div key={feat.name} className="group relative p-8 rounded-[2rem] border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm hover:border-[var(--muted)] transition-all duration-500 text-center overflow-hidden">
-                  <div className="absolute top-4 right-6 text-xs font-black text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
+                  <div className="absolute top-4 right-6 text-[10px] font-black text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
                   <feat.icon className="w-8 h-8 text-[var(--foreground)] mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
-                  <span className="text-sm font-bold text-[var(--muted-foreground)] block">{feat.name}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">{feat.name}</span>
                 </div>
               ))}
             </div>

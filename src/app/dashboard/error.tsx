@@ -42,7 +42,7 @@ export default function DashboardError({
             <RotateCcw className="mr-2 h-4 w-4" />
             Try Again
         </Button>
-        <p className="mt-4 text-xs text-[var(--muted-foreground)] font-mono truncate px-2" title={error.message || 'Unknown error'}>
+        <p className="mt-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono truncate px-2" title={error.message || 'Unknown error'}>
              {error.message || 'Unknown error'}
         </p>
       </Card>

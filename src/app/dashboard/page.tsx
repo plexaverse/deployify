@@ -127,7 +127,7 @@ export default function DashboardPage() {
                                     <X className="w-3.5 h-3.5" />
                                 </Button>
                             ) : (
-                                <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-medium border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                                <div className="hidden sm:flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
                                     <span>/</span>
                                 </div>
                             )}
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                         <MovingBorderButton
                             as="div"
                             containerClassName="h-10 w-36"
-                            className="text-xs font-bold"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             Add New

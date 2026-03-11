@@ -146,7 +146,7 @@ export function DomainsSection({
                         onClick={() => setIsAdding(true)}
                         disabled={isLoading}
                         containerClassName="h-10 w-36"
-                        className="text-xs font-bold"
+                        className="text-[10px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Domain
@@ -180,7 +180,7 @@ export function DomainsSection({
                             onChange={(e) => setNewDomain(e.target.value)}
                             placeholder="app.example.com"
                         />
-                        <p className="text-xs text-[var(--muted-foreground)]">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Enter your domain or subdomain (e.g., app.example.com)
                         </p>
                     </div>
@@ -190,7 +190,7 @@ export function DomainsSection({
                             disabled={isSubmitting || !newDomain.trim()}
                             loading={isSubmitting}
                             containerClassName="h-10 w-32"
-                            className="text-xs font-bold"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             Add Domain
                         </MovingBorderButton>
@@ -259,7 +259,7 @@ export function DomainsSection({
                                 {dnsRecords.map((record, index) => (
                                     <tr key={index} className="bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors">
                                         <td className="py-3 px-4 font-mono font-bold text-[var(--primary)] text-[10px] uppercase tracking-wider">{record.type}</td>
-                                        <td className="py-3 px-4 font-mono text-[var(--muted-foreground)] text-xs">{record.name}</td>
+                                        <td className="py-3 px-4 font-mono text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">{record.name}</td>
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-3">
                                                 <code className="font-mono text-[10px] bg-[var(--muted)]/20 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate text-[var(--foreground)] font-bold uppercase tracking-wider" title={record.value}>
@@ -455,7 +455,7 @@ export function DomainsSection({
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => fetchProjectDomains(projectId)}
-                                        className="text-xs text-[var(--primary)] hover:underline"
+                                        className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline"
                                     >
                                         Refresh
                                     </Button>
@@ -476,7 +476,7 @@ export function DomainsSection({
             )}
 
             {/* Info */}
-                <div className="mt-6 text-xs text-[var(--muted-foreground)] border-t border-[var(--border)] pt-4">
+                <div className="mt-6 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-t border-[var(--border)] pt-4">
                     <p><strong>Note:</strong> DNS changes may take up to 48 hours to propagate worldwide.</p>
                     <p className="mt-1">SSL certificates are automatically provisioned by Google Cloud.</p>
                 </div>

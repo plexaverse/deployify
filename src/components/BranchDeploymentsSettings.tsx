@@ -135,7 +135,7 @@ export function BranchDeploymentsSettings({
                         disabled={loading || !newBranch.trim()}
                         loading={loading}
                         containerClassName="h-10 w-36"
-                        className="text-xs font-bold"
+                        className="text-[10px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Branch

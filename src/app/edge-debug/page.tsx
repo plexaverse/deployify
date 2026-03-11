@@ -201,7 +201,7 @@ export default function EdgeDebugPage() {
 
                             {/* Logs */}
                             {result.logs.length > 0 && (
-                                <div className="p-4 border-b border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-xs overflow-auto max-h-[150px]">
+                                <div className="p-4 border-b border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[150px]">
                                     <div className="text-[var(--muted-foreground)] mb-2">Logs:</div>
                                     {result.logs.map((log: string, i: number) => (
                                         <div key={i}>{log}</div>
@@ -223,7 +223,7 @@ export default function EdgeDebugPage() {
                                     {Object.keys(result.headers).length > 0 && (
                                          <details className="text-sm text-[var(--foreground)]">
                                             <summary className="cursor-pointer font-medium mb-2 select-none">Response Headers</summary>
-                                            <div className="bg-[var(--muted)]/20 p-2 rounded-md font-mono text-xs overflow-auto border border-[var(--border)]">
+                                            <div className="bg-[var(--muted)]/20 p-2 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
                                                 {Object.entries(result.headers).map(([k, v]) => (
                                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                     <div key={k}><span className="text-[var(--info)]">{k}:</span> {v as any}</div>
@@ -235,7 +235,7 @@ export default function EdgeDebugPage() {
                                     {/* Body */}
                                     <div>
                                          <div className="font-medium mb-2 text-sm text-[var(--foreground)]">Response Body</div>
-                                         <pre className="bg-[var(--muted)]/20 p-3 rounded-md font-mono text-xs overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
+                                         <pre className="bg-[var(--muted)]/20 p-3 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
                                             {result.body || <span className="text-[var(--muted-foreground)] italic">No content</span>}
                                          </pre>
                                     </div>

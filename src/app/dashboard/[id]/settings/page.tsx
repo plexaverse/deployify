@@ -168,7 +168,7 @@ export default function ProjectSettingsPage() {
                                     <option value="bun">Bun</option>
                                     <option value="docker">Docker</option>
                                 </NativeSelect>
-                                <p className="text-xs text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The framework used for building. Use &quot;Docker&quot; to use your own Dockerfile.
                                 </p>
                             </div>
@@ -181,7 +181,7 @@ export default function ProjectSettingsPage() {
                                     onChange={(e) => setProjectSettingsField('rootDirectory', e.target.value)}
                                     placeholder="./"
                                 />
-                                <p className="text-xs text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The directory within your project where code is located.
                                 </p>
                             </div>
@@ -197,7 +197,7 @@ export default function ProjectSettingsPage() {
                                     onChange={(e) => setProjectSettingsField('buildCommand', e.target.value)}
                                     placeholder="npm run build"
                                 />
-                                <p className="text-xs text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The command used to build your project.
                                 </p>
                             </div>
@@ -210,7 +210,7 @@ export default function ProjectSettingsPage() {
                                     onChange={(e) => setProjectSettingsField('outputDirectory', e.target.value)}
                                     placeholder=".next"
                                 />
-                                <p className="text-xs text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The directory where build artifacts are located.
                                 </p>
                             </div>
@@ -226,7 +226,7 @@ export default function ProjectSettingsPage() {
                                     onChange={(e) => setProjectSettingsField('installCommand', e.target.value)}
                                     placeholder="npm install"
                                 />
-                                <p className="text-xs text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The command used to install dependencies.
                                 </p>
                             </div>
@@ -247,7 +247,7 @@ export default function ProjectSettingsPage() {
                                 onClick={() => saveProjectSettings(project.id)}
                                 loading={saving}
                                 containerClassName="h-10 w-36"
-                                className="text-xs font-bold"
+                                className="text-[10px] font-bold uppercase tracking-wider"
                             >
                                 Save Changes
                             </MovingBorderButton>
@@ -299,7 +299,7 @@ export default function ProjectSettingsPage() {
                                 onChange={(e) => setProjectSettingsField('webhookUrl', e.target.value)}
                                 placeholder="https://discord.com/api/webhooks/..."
                             />
-                            <p className="text-xs text-[var(--muted-foreground)]">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Receive notifications when a build fails. Supports Discord, Slack, and other webhook-compatible services.
                             </p>
                         </div>
@@ -309,7 +309,7 @@ export default function ProjectSettingsPage() {
                                 onClick={() => saveNotificationSettings(project.id)}
                                 loading={savingWebhook}
                                 containerClassName="h-10 w-36"
-                                className="text-xs font-bold"
+                                className="text-[10px] font-bold uppercase tracking-wider"
                             >
                                 Save Preferences
                             </MovingBorderButton>
@@ -345,7 +345,7 @@ export default function ProjectSettingsPage() {
                                 onClick={() => saveSecuritySettings(project.id)}
                                 loading={savingSecurity}
                                 containerClassName="h-10 w-44"
-                                className="text-xs font-bold"
+                                className="text-[10px] font-bold uppercase tracking-wider"
                             >
                                 Save Security Settings
                             </MovingBorderButton>

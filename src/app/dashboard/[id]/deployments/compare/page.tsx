@@ -94,10 +94,10 @@ export default function CompareDeploymentsPage() {
         const isImprovement = inverse ? diff < 0 : diff > 0;
         const isNeutral = diff === 0;
 
-        if (isNeutral) return <span className="text-[var(--muted-foreground)] text-xs ml-2">No change</span>;
+        if (isNeutral) return <span className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider ml-2">No change</span>;
 
         return (
-            <span className={cn("text-xs ml-2 flex items-center gap-0.5", isImprovement ? "text-[var(--success)]" : "text-[var(--error)]")}>
+            <span className={cn("text-[10px] font-bold uppercase tracking-wider ml-2 flex items-center gap-0.5", isImprovement ? "text-[var(--success)]" : "text-[var(--error)]")}>
                 {diff > 0 ? '+' : ''}{formatter(diff)} ({diff > 0 ? '+' : ''}{percent.toFixed(1)}%)
             </span>
         );

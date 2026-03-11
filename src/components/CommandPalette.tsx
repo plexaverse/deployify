@@ -117,7 +117,7 @@ export function CommandPalette() {
                    <X className="w-4 h-4" />
                  </Button>
                )}
-               <span className="text-xs text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5">ESC</span>
+               <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5">ESC</span>
             </div>
           </div>
           <div className="max-h-[60vh] overflow-y-auto p-2 relative z-10">
@@ -151,7 +151,7 @@ export function CommandPalette() {
                        <Rocket className={`w-4 h-4 transition-colors ${selectedIndex === index ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'}`} />
                        <div className="flex-1">
                           <div className="text-sm font-bold text-[var(--foreground)]">{project.name}</div>
-                          <div className="text-xs text-[var(--muted-foreground)] font-medium">{project.repoFullName}</div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-medium">{project.repoFullName}</div>
                        </div>
                        <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-all">Jump to</span>
                      </motion.button>

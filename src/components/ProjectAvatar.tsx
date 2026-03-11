@@ -63,7 +63,7 @@ export function ProjectAvatar({ name, productionUrl, className }: ProjectAvatarP
                 />
             )}
             <AvatarFallback
-                className={cn("font-medium text-xs", colorClass)}
+                className={cn("text-[10px] font-bold uppercase tracking-wider", colorClass)}
             >
                 {initials || <FolderGit2 className="w-5 h-5" />}
             </AvatarFallback>
