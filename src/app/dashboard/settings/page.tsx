@@ -254,7 +254,7 @@ export default function TeamSettingsPage() {
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                             <div>
                                 <h3 className="font-medium text-[var(--error)]">Delete Account</h3>
-                                <p className="text-sm text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Permanently remove your account and all of your data. This action cannot be undone.
                                 </p>
                             </div>
@@ -497,7 +497,7 @@ export default function TeamSettingsPage() {
                             <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                 <div>
                                     <h3 className="font-medium">Leave Team</h3>
-                                    <p className="text-sm text-[var(--muted-foreground)]">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                         Revoke your access to this team. You will need to be re-invited to join again.
                                     </p>
                                 </div>
@@ -516,7 +516,7 @@ export default function TeamSettingsPage() {
                                     <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                         <div>
                                             <h3 className="font-medium text-[var(--error)]">Delete Team</h3>
-                                            <p className="text-sm text-[var(--muted-foreground)]">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 Permanently remove this team and all of its data. This action cannot be undone.
                                             </p>
                                         </div>
@@ -550,7 +550,7 @@ export default function TeamSettingsPage() {
 
                         <div className="flex-1 overflow-y-auto p-6 pr-2 space-y-6 relative before:absolute before:left-[43px] before:top-6 before:bottom-6 before:w-[1px] before:bg-[var(--border)]">
                             {logs.length === 0 && !isLoading ? (
-                                <div className="text-center text-[var(--muted-foreground)] text-sm py-8 pl-8">
+                                <div className="text-center text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider py-8 pl-8">
                                     No activity recorded yet.
                                 </div>
                             ) : (

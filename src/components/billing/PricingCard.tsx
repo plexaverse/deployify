@@ -47,7 +47,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                         Available Plan
                     </span>
                     <h3 className="text-2xl font-bold mb-3">{plan.name}</h3>
-                    <p className="text-sm text-[var(--muted-foreground)] min-h-[40px] leading-relaxed">{plan.description}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] min-h-[40px] leading-relaxed">{plan.description}</p>
                 </div>
 
                 <div className="mb-10">

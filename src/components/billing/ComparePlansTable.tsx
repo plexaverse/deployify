@@ -101,7 +101,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                         {features.map((section) => (
                             <React.Fragment key={section.category}>
                                 <tr className="bg-[var(--muted)]/20">
-                                    <td colSpan={plans.length + 1} className="p-4 py-3 font-medium text-sm text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
+                                    <td colSpan={plans.length + 1} className="p-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
                                         {section.category}
                                     </td>
                                 </tr>

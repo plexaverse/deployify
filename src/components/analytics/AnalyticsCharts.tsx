@@ -194,15 +194,15 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                     <div key={index} className="flex items-center justify-between group">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 rounded-full bg-[var(--primary)] group-hover:scale-125 transition-transform duration-200" />
-                                            <span className="text-sm font-medium">{source.source}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">{source.source}</span>
                                         </div>
-                                        <span className="text-sm text-[var(--muted-foreground)] font-mono">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono">
                                             {source.visitors.toLocaleString()}
                                         </span>
                                     </div>
                                 ))}
                                 {sources.length === 0 && (
-                                    <p className="text-sm text-[var(--muted-foreground)]">No data available</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
                                 )}
                             </div>
                         </div>
@@ -226,15 +226,15 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                     <div key={index} className="flex items-center justify-between group">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 rounded-full bg-[var(--info)] group-hover:scale-125 transition-transform duration-200" />
-                                            <span className="text-sm font-medium">{location.country}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">{location.country}</span>
                                         </div>
-                                        <span className="text-sm text-[var(--muted-foreground)] font-mono">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono">
                                             {location.visitors.toLocaleString()}
                                         </span>
                                     </div>
                                 ))}
                                 {locations.length === 0 && (
-                                    <p className="text-sm text-[var(--muted-foreground)]">No data available</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
                                 )}
                             </div>
                         </div>

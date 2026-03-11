@@ -559,7 +559,7 @@ export default function LandingPage() {
                       >
                         <Github className="w-4 h-4" /> {repo}
                       </div>
-                    )) : <div className="px-4 py-4 text-center text-sm text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
+                    )) : <div className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
                   </motion.div>
                 )}
               </div>

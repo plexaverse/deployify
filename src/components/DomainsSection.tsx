@@ -242,7 +242,7 @@ export function DomainsSection({
                         </div>
                     </div>
 
-                    <p className="text-sm text-[var(--muted-foreground)] mb-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                         Please add the following DNS records to your domain provider to verify ownership.
                     </p>
 
@@ -309,7 +309,7 @@ export function DomainsSection({
                             </svg>
                             <h3 className="font-bold text-[var(--warning)]">Cloudflare Setup (Recommended)</h3>
                         </div>
-                        <p className="text-sm text-[var(--muted-foreground)] mb-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                             For global CDN and faster performance, use Cloudflare instead of GCP domain mapping:
                         </p>
                     <ol className="text-sm space-y-4 text-[var(--muted-foreground)] list-decimal list-inside mb-6">

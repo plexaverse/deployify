@@ -328,7 +328,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                                         </span>
                                                     )}
                                                 </h3>
-                                                <p className="text-sm text-[var(--muted-foreground)] mt-1 line-clamp-1">
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1 line-clamp-1">
                                                     {repo.description || 'No description'}
                                                 </p>
                                                 <div className="flex items-center gap-4 mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
@@ -907,7 +907,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-lg">Your project is live!</h3>
-                                        <p className="text-sm text-[var(--muted-foreground)]">Everything is configured and running on Cloud Run.</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Everything is configured and running on Cloud Run.</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

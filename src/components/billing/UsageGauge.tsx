@@ -77,7 +77,7 @@ export function UsageGauge({
 
                 <div className="mt-4 text-center">
                     <div className="text-xl font-bold text-[var(--foreground)]">
-                        {formattedUsed} <span className="text-sm text-[var(--muted-foreground)] font-normal">{unit}</span>
+                        {formattedUsed} <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
                     </div>
                     <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
                         of {formattedLimit} {unit && limit !== Infinity ? unit : ''}
