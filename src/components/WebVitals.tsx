@@ -72,7 +72,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                     return (
                         <div key={stat.label} className="p-3 rounded-lg bg-[var(--background)] border border-[var(--border)]">
                             <div className="flex items-center justify-between mb-1">
-                                <span className="text-[10px] uppercase font-semibold tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
                                 <stat.icon className={cn("w-3.5 h-3.5", {
                                     "text-[var(--success)]": variant === 'success',
                                     "text-[var(--warning)]": variant === 'warning',
@@ -143,7 +143,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                                     variant={variant}
                                     className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5"
                                 >
-                                    {stat.status}
+                                    {stat.status.toUpperCase()}
                                 </Badge>
                             </div>
                         );

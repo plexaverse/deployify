@@ -294,8 +294,8 @@ export default function TeamSettingsPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="capitalize">
-                        {activeTeam.membership.role}
+                    <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                        {activeTeam.membership.role.toUpperCase()}
                     </Badge>
                 </div>
             </div>
@@ -400,7 +400,7 @@ export default function TeamSettingsPage() {
                                                 <div>
                                                     <p className="font-medium text-[var(--foreground)] flex items-center gap-2">
                                                         {member.user?.name || member.user?.githubUsername || 'Unknown User'}
-                                                        {member.role === 'owner' && <Badge variant="warning" className="text-[9px] px-1 py-0 uppercase">Owner</Badge>}
+                                                        {member.role === 'owner' && <Badge variant="warning" className="text-[10px] px-1.5 py-0.5 font-bold uppercase tracking-wider">Owner</Badge>}
                                                     </p>
                                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                         {member.user?.email}
@@ -419,8 +419,8 @@ export default function TeamSettingsPage() {
                                                         onChange={(v) => handleRoleUpdate(member.userId, v as TeamRole)}
                                                     />
                                                 ) : (
-                                                    <Badge variant={member.role === 'owner' ? 'success' : member.role === 'admin' ? 'info' : 'secondary'} className="capitalize">
-                                                        {member.role}
+                                                    <Badge variant={member.role === 'owner' ? 'success' : member.role === 'admin' ? 'info' : 'secondary'} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                                                        {member.role.toUpperCase()}
                                                     </Badge>
                                                 )}
 
@@ -457,7 +457,7 @@ export default function TeamSettingsPage() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <Badge variant="secondary" className="capitalize">{invite.role}</Badge>
+                                                <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">{invite.role.toUpperCase()}</Badge>
                                                 {canManage && (
                                                     <Button
                                                         variant="ghost"
@@ -569,7 +569,7 @@ export default function TeamSettingsPage() {
                                                     {log.user?.email || 'Unknown User'}
                                                 </span>
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                                    {new Date(log.createdAt).toLocaleDateString()}
+                                                    {new Date(log.createdAt).toLocaleDateString().toUpperCase()}
                                                 </span>
                                             </div>
                                         </div>
