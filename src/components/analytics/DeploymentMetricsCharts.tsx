@@ -103,7 +103,7 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                                     dy={10}
                                     tickFormatter={(value) => {
                                         const date = new Date(value);
-                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
                                     }}
                                 />
                                 <YAxis
@@ -153,7 +153,7 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                                     dy={10}
                                     tickFormatter={(value) => {
                                         const date = new Date(value);
-                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
                                     }}
                                 />
                                 <YAxis
