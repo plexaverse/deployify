@@ -103,6 +103,8 @@ function createMockFirestore(): Firestore {
                 gitCommitMessage: 'Initial commit',
                 status: 'ready',
                 type: 'production',
+                buildDurationMs: 45000,
+                performanceMetrics: { performanceScore: 0.95 },
                 joinedAt: { toDate: () => new Date() },
                 expiresAt: { toDate: () => new Date() },
             };
