@@ -332,9 +332,9 @@ export default function TeamSettingsPage() {
                                     <Label htmlFor="role" className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2 px-1">Role</Label>
                                     <SegmentedControl
                                         options={[
-                                            { value: 'admin', label: 'Admin' },
-                                            { value: 'member', label: 'Member' },
-                                            { value: 'viewer', label: 'Viewer' },
+                                            { value: 'admin', label: 'ADMIN' },
+                                            { value: 'member', label: 'MEMBER' },
+                                            { value: 'viewer', label: 'VIEWER' },
                                         ]}
                                         value={inviteRole}
                                         onChange={(v) => setInviteRole(v as TeamRole)}
@@ -412,9 +412,9 @@ export default function TeamSettingsPage() {
                                                 {canManage && member.role !== 'owner' && member.userId !== activeTeam.membership.userId ? (
                                                     <SegmentedControl
                                                         options={[
-                                                            { value: 'admin', label: 'Admin' },
-                                                            { value: 'member', label: 'Member' },
-                                                            { value: 'viewer', label: 'Viewer' },
+                                                            { value: 'admin', label: 'ADMIN' },
+                                                            { value: 'member', label: 'MEMBER' },
+                                                            { value: 'viewer', label: 'VIEWER' },
                                                         ]}
                                                         value={member.role}
                                                         onChange={(v) => handleRoleUpdate(member.userId, v as TeamRole)}

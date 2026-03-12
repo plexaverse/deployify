@@ -103,10 +103,10 @@ export default function ProjectAnalyticsPage() {
                         value={period}
                         onChange={handlePeriodChange}
                         options={[
-                            { value: '1h', label: '1h' },
-                            { value: '24h', label: '24h' },
-                            { value: '7d', label: '7d' },
-                            { value: '30d', label: '30d' },
+                            { value: '1h', label: '1H' },
+                            { value: '24h', label: '24H' },
+                            { value: '7d', label: '7D' },
+                            { value: '30d', label: '30D' },
                         ]}
                     />
                 </div>

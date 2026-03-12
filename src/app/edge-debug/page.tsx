@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { notFound } from 'next/navigation'
 import { runSimulation, type SimulationResult } from './actions'
 import { toast } from 'sonner'
-import { Loader2, Play, AlertCircle, CheckCircle2, Cpu } from 'lucide-react'
+import { Loader2, Play, AlertCircle, CheckCircle2, Cpu, Terminal, Layout } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SegmentedControl } from '@/components/ui/segmented-control'
@@ -90,7 +91,7 @@ export default function EdgeDebugPage() {
                 onClick={handleRun}
                 disabled={loading}
                 containerClassName="h-12 w-48"
-                className="font-bold text-sm"
+                className="text-[10px] font-bold uppercase tracking-wider"
             >
                 {!loading && <Play className="mr-2 h-4 w-4" />}
                 {loading ? 'Running...' : 'Run Simulation'}
@@ -99,11 +100,18 @@ export default function EdgeDebugPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-200px)]">
             {/* Left Column: Code Editor */}
-            <div className="flex flex-col gap-4 h-full">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Middleware Code</h2>
+            <Card className="overflow-hidden p-0 flex flex-col h-full">
+                <div className="p-6 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Terminal className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                    <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Code Editor</span>
+                        <h2 className="text-xl font-semibold">Middleware Code</h2>
+                    </div>
                 </div>
-                <div className="flex-1 border border-[var(--terminal-border)] rounded-md overflow-hidden bg-[var(--terminal-bg)] shadow-sm">
+                <Separator className="bg-[var(--border)]" />
+                <div className="flex-1 p-0 overflow-hidden bg-[var(--terminal-bg)]">
                      <textarea
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
@@ -111,10 +119,10 @@ export default function EdgeDebugPage() {
                         spellCheck={false}
                     />
                 </div>
-            </div>
+            </Card>
 
             {/* Right Column: Configuration & Output */}
-            <div className="flex flex-col gap-6 overflow-y-auto pr-2 pb-4">
+            <div className="flex flex-col gap-8 overflow-y-auto pr-2 pb-4">
 
                 {/* Request Config */}
                 <Card className="overflow-hidden p-0">
@@ -173,74 +181,96 @@ export default function EdgeDebugPage() {
 
                 {/* Output */}
                  <div className="space-y-4 flex-1 flex flex-col">
-                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Simulation Result</h2>
-
-                    {!result && !loading && (
-                        <div className="flex-1 border border-dashed border-[var(--border)] rounded-md flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px]">
-                            Run a simulation to see the results
-                        </div>
-                    )}
-
-                    {loading && (
-                        <div className="flex-1 border border-dashed border-[var(--border)] rounded-md flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px]">
-                             <Loader2 className="h-8 w-8 animate-spin" />
-                        </div>
-                    )}
-
-                    {result && (
-                        <Card className="p-0 overflow-hidden flex flex-col gap-0 shadow-sm border-[var(--border)]">
-                            {/* Status Bar */}
-                            <div className={cn("p-4 border-b border-[var(--border)] flex items-center gap-2",
-                                result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)]' : 'bg-[var(--success-bg)] text-[var(--success)]'
-                            )}>
-                                {result.type === 'error' ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
-                                <span className="text-xl font-bold">{result.status}</span>
-                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-current">{result.type}</span>
+                    <Card className="overflow-hidden p-0 flex flex-col flex-1">
+                        <div className="p-6 flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                <Layout className="w-5 h-5 text-[var(--primary)]" />
                             </div>
+                            <div>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Execution Output</span>
+                                <h2 className="text-xl font-semibold">Simulation Result</h2>
+                            </div>
+                        </div>
+                        <Separator className="bg-[var(--border)]" />
 
-                            {/* Logs */}
-                            {result.logs.length > 0 && (
-                                <div className="p-4 border-b border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[150px]">
-                                    <div className="text-[var(--muted-foreground)] mb-2 uppercase">Logs:</div>
-                                    {result.logs.map((log: string, i: number) => (
-                                        <div key={i}>{log}</div>
-                                    ))}
+                        <div className="p-6 flex-1 flex flex-col">
+                            {!result && !loading && (
+                                <div className="flex-1 border border-dashed border-[var(--border)] rounded-xl flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px] text-[10px] font-bold uppercase tracking-wider">
+                                    Run a simulation to see the results
                                 </div>
                             )}
 
-                             {/* Error Message */}
-                            {result.error && (
-                                <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] font-mono text-[10px] font-bold uppercase tracking-wider">
-                                    {result.error}
+                            {loading && (
+                                <div className="flex-1 border border-dashed border-[var(--border)] rounded-xl flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px]">
+                                    <Loader2 className="h-8 w-8 animate-spin" />
                                 </div>
                             )}
 
-                            {/* Response Info */}
-                            {!result.error && (
-                                <div className="p-4 space-y-4">
-                                    {/* Headers */}
-                                    {Object.keys(result.headers).length > 0 && (
-                                         <details className="text-sm text-[var(--foreground)]">
-                                            <summary className="cursor-pointer font-semibold mb-2 select-none text-sm">Response Headers</summary>
-                                            <div className="bg-[var(--muted)]/20 p-2 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
-                                                {Object.entries(result.headers).map(([k, v]) => (
-                                                    <div key={k}><span className="text-[var(--info)]">{k.toUpperCase()}:</span> {v.toUpperCase()}</div>
+                            {result && (
+                                <div className="flex flex-col gap-6">
+                                    <div className={cn("p-4 rounded-xl border flex items-center gap-3",
+                                        result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/20' : 'bg-[var(--success-bg)] text-[var(--success)] border-[var(--success)]/20'
+                                    )}>
+                                        {result.type === 'error' ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+                                        <span className="text-2xl font-bold">{result.status}</span>
+                                        <Badge variant={result.type === 'error' ? 'error' : 'success'} className="ml-auto">
+                                            {result.type}
+                                        </Badge>
+                                    </div>
+
+                                    {/* Logs */}
+                                    {result.logs.length > 0 && (
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Runtime Logs</span>
+                                            <div className="p-4 rounded-xl border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[150px]">
+                                                {result.logs.map((log: string, i: number) => (
+                                                    <div key={i}>{log}</div>
                                                 ))}
                                             </div>
-                                        </details>
+                                        </div>
                                     )}
 
-                                    {/* Body */}
-                                    <div>
-                                         <div className="font-semibold mb-2 text-sm text-[var(--foreground)]">Response Body</div>
-                                         <pre className="bg-[var(--muted)]/20 p-3 rounded-md font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
-                                            {result.body || <span className="text-[var(--muted-foreground)] italic">No content</span>}
-                                         </pre>
-                                    </div>
+                                    {/* Error Message */}
+                                    {result.error && (
+                                        <div className="space-y-2">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Error Details</span>
+                                            <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] border border-[var(--error)]/20 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider">
+                                                {result.error}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Response Info */}
+                                    {!result.error && (
+                                        <div className="space-y-6">
+                                            {/* Headers */}
+                                            {Object.keys(result.headers).length > 0 && (
+                                                <div className="space-y-2">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Headers</span>
+                                                    <div className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
+                                                        {Object.entries(result.headers).map(([k, v]) => (
+                                                            <div key={k} className="flex gap-2">
+                                                                <span className="text-[var(--primary)]">{k.toUpperCase()}:</span>
+                                                                <span className="text-[var(--foreground)]">{v.toUpperCase()}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Body */}
+                                            <div className="space-y-2">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Body</span>
+                                                <pre className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
+                                                    {result.body || <span className="text-[var(--muted-foreground)] italic opacity-50">No content</span>}
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
-                        </Card>
-                    )}
+                        </div>
+                    </Card>
                 </div>
             </div>
         </div>

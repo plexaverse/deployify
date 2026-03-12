@@ -487,8 +487,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
         >
             <Card className="overflow-hidden p-0">
                 <div className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 shrink-0">
-                        <Settings className="w-6 h-6 text-[var(--primary)]" />
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                        <Settings className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
@@ -612,8 +612,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
 
             <Card className="overflow-hidden p-0">
                 <div className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[var(--success)]/10 flex items-center justify-center border border-[var(--success)]/20 shrink-0">
-                        <Terminal className="w-6 h-6 text-[var(--success)]" />
+                    <div className="w-10 h-10 rounded-xl bg-[var(--success)]/10 flex items-center justify-center shrink-0">
+                        <Terminal className="w-5 h-5 text-[var(--success)]" />
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
@@ -675,9 +675,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 size="sm"
                                 onClick={handleAddEnv}
                                 disabled={!newEnvKey || !newEnvValue}
-                                className="text-[var(--primary)] px-4"
+                                className="text-[var(--primary)] px-4 text-[10px] font-bold uppercase tracking-wider"
                             >
-                                <Plus className="w-5 h-5 mr-2" />
+                                <Plus className="w-4 h-4 mr-2" />
                                 Add
                             </Button>
                         </div>
@@ -700,9 +700,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Target Environment Type</span>
                                     <SegmentedControl
                                         options={[
-                                            { value: 'both', label: 'Build & Runtime' },
-                                            { value: 'build', label: 'Build Only' },
-                                            { value: 'runtime', label: 'Runtime Only' }
+                                            { value: 'both', label: 'BUILD & RUNTIME' },
+                                            { value: 'build', label: 'BUILD ONLY' },
+                                            { value: 'runtime', label: 'RUNTIME ONLY' }
                                         ]}
                                         value={newEnvTarget}
                                         onChange={(v) => setNewEnvTarget(v as EnvVariableTarget)}
@@ -713,9 +713,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Scope</span>
                                     <SegmentedControl
                                         options={[
-                                            { value: 'both', label: 'All Envs' },
-                                            { value: 'production', label: 'Production Only' },
-                                            { value: 'preview', label: 'Preview Only' }
+                                            { value: 'both', label: 'ALL ENVS' },
+                                            { value: 'production', label: 'PRODUCTION ONLY' },
+                                            { value: 'preview', label: 'PREVIEW ONLY' }
                                         ]}
                                         value={newEnvEnvironment}
                                         onChange={(v) => setNewEnvEnvironment(v as 'both' | 'production' | 'preview')}
@@ -731,7 +731,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <Button
                     variant="ghost"
                     onClick={onBack}
-                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-[10px] font-bold uppercase tracking-wider"
                 >
                     Back to Select
                 </Button>
