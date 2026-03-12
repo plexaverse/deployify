@@ -138,7 +138,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                         axisLine={false}
                                         tickFormatter={(value) => {
                                             const date = new Date(value);
-                                            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
                                         }}
                                         dy={10}
                                     />
