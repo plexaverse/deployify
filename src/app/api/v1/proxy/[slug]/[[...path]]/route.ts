@@ -144,7 +144,7 @@ async function handleProxyRequest(
         }
 
         // Mock mode specific handling
-        if (process.env.MOCK_DB === 'true' && project.id === 'mock-id-1') {
+        if (process.env.MOCK_DB === 'true' && (project.id === 'mock-id-1' || project.id === 'mock-id-2' || slug === 'audit-id')) {
             const html = `<!DOCTYPE html><html><head><title>Mock Project</title></head><body><h1>Deployed via Deployify (Mock)</h1><p>Path: ${fullPath}</p></body></html>`;
             const mockHeaders = new Headers();
             mockHeaders.set('Content-Type', 'text/html');

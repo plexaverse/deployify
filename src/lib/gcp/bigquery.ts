@@ -55,9 +55,15 @@ export async function streamEventToBigQuery(event: BigQueryAnalyticsEvent) {
     } catch (error: unknown) {
         // If dataset/table doesn't exist, this might fail
         console.error('[BigQuery] Streaming failed:', error);
-        if (error && typeof error === 'object' && 'name' in error && error.name === 'PartialFailureError') {
-            const partialError = error as { errors?: unknown[] };
-            console.error('[BigQuery] Partial errors:', JSON.stringify(partialError.errors, null, 2));
+        if (
+            error &&
+            typeof error === 'object' &&
+            'name' in error &&
+            error.name === 'PartialFailureError' &&
+            'errors' in error &&
+            Array.isArray((error as Record<string, unknown>).errors)
+        ) {
+            console.error('[BigQuery] Partial errors:', JSON.stringify((error as Record<string, unknown>).errors, null, 2));
         }
     }
 }

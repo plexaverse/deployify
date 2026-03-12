@@ -42,8 +42,12 @@ interface RazorpayResponse {
     razorpay_signature: string;
 }
 
+interface RazorpayErrorResponse {
+    error: { description: string };
+}
+
 interface RazorpayInstance {
-    on: (event: string, handler: (response: { error: { description: string } }) => void) => void;
+    on: (event: string, handler: (response: RazorpayErrorResponse) => void) => void;
     open: () => void;
 }
 
@@ -165,7 +169,7 @@ export default function BillingPage() {
             };
 
             const rzp1 = new window.Razorpay(options);
-            rzp1.on('payment.failed', function (response: { error: { description: string } }) {
+            rzp1.on('payment.failed', function (response: RazorpayErrorResponse) {
                 toast.error(response.error.description);
                 setUpgradingTierId(null);
             });
