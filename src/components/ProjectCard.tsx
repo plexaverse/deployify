@@ -10,8 +10,19 @@ import { ProjectAvatar } from '@/components/ProjectAvatar';
 import { toast } from 'sonner';
 
 // Mock data for the sparkline - reflects status
-const generateSparklineData = (status: string) => {
+const generateSparklineData = (status: string, seed: string = 'default') => {
   const length = 20;
+  // Use a simple deterministic "random" generator based on seed string
+  const getPseudoRandom = (i: number) => {
+    let hash = 0;
+    const combined = seed + i;
+    for (let j = 0; j < combined.length; j++) {
+      hash = (hash << 5) - hash + combined.charCodeAt(j);
+      hash |= 0;
+    }
+    return (Math.abs(hash) % 100) / 100;
+  };
+
   let base = 50;
   let volatility = 20;
 
@@ -26,8 +37,8 @@ const generateSparklineData = (status: string) => {
     volatility = 10;
   }
 
-  return Array.from({ length }, () => ({
-    value: Math.max(0, Math.floor(Math.random() * volatility) + base)
+  return Array.from({ length }, (_, i) => ({
+    value: Math.max(0, Math.floor(getPseudoRandom(i) * volatility) + base)
   }));
 };
 
@@ -44,13 +55,13 @@ export function ProjectCard({ project }: { project: Project }) {
   const latestDeployment = project.latestDeployment;
   const status = latestDeployment?.status || 'queued';
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
-  const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
+  // Use useMemo for deterministic sparkline data to ensure visual consistency
+  const sparklineData = React.useMemo(() => generateSparklineData(status, project.id), [status, project.id]);
 
   return (
-    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
+    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-3xl bg-[var(--card)]/50 backdrop-blur-xl border border-[var(--border)]/50 hover:border-[var(--foreground)]/20 shadow-none hover:shadow-2xl hover:shadow-[var(--foreground)]/5", config.glow)}>
       {/* Header: Project Identity and Sparkline */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
