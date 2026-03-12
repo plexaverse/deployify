@@ -33,7 +33,7 @@ export function formatRelativeTime(date: Date): string {
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
 
-    return date.toLocaleDateString();
+    return date.toLocaleDateString().toUpperCase();
 }
 
 // Format duration in milliseconds to human-readable

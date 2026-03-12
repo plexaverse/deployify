@@ -62,7 +62,7 @@ export default function JoinButton({ token, teamName }: JoinButtonProps) {
                 onClick={handleJoin}
                 disabled={isLoading}
                 containerClassName="w-full h-14"
-                className="font-bold text-base flex items-center justify-center gap-2"
+                className="text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-2"
             >
                 {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

@@ -35,7 +35,7 @@ export default async function LoginPage() {
                             <MovingBorderButton
                                 as="div"
                                 containerClassName="w-full h-14"
-                                className="bg-[var(--foreground)] text-[var(--background)] font-bold text-base flex items-center justify-center gap-2"
+                                className="bg-[var(--foreground)] text-[var(--background)] text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-2"
                             >
                                 <Github className="w-5 h-5" />
                                 Continue with GitHub
