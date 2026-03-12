@@ -261,6 +261,7 @@ export default function TeamSettingsPage() {
                             <Button
                                 variant="destructive"
                                 onClick={() => setConfirmDeleteAccount(true)}
+                                className="text-[10px] font-bold uppercase tracking-wider"
                             >
                                 Delete Account
                             </Button>
@@ -504,7 +505,7 @@ export default function TeamSettingsPage() {
                                 <Button
                                     variant="ghost"
                                     onClick={() => setConfirmLeaveTeam(true)}
-                                    className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+                                    className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)] text-[10px] font-bold uppercase tracking-wider"
                                 >
                                     Leave Team
                                 </Button>
@@ -523,6 +524,7 @@ export default function TeamSettingsPage() {
                                         <Button
                                             variant="destructive"
                                             onClick={() => setConfirmDeleteTeam(true)}
+                                            className="text-[10px] font-bold uppercase tracking-wider"
                                         >
                                             Delete Team
                                         </Button>

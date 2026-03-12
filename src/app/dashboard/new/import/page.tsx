@@ -336,10 +336,10 @@ export default function ImportProjectPage() {
                             <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
                                 <div className="flex-1 grid grid-cols-3 gap-4 items-center">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-mono text-sm text-[var(--primary)]">{env.key}</span>
+                                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{env.key}</span>
                                         {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
                                     </div>
-                                    <span className="font-mono text-sm text-[var(--foreground)] truncate">
+                                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] truncate">
                                         {env.isSecret ? '••••••••' : env.value}
                                     </span>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
@@ -365,14 +365,14 @@ export default function ImportProjectPage() {
                                 value={newEnvKey}
                                 onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="KEY"
-                                className="font-mono"
+                                        className="font-mono text-[10px] font-bold uppercase tracking-wider"
                             />
                             <Input
                                 type={newEnvIsSecret ? 'password' : 'text'}
                                 value={newEnvValue}
                                 onChange={(e) => setNewEnvValue(e.target.value)}
                                 placeholder="VALUE"
-                                className="font-mono"
+                                        className="font-mono text-[10px] font-bold uppercase tracking-wider"
                             />
                             <Button
                                 variant="ghost"

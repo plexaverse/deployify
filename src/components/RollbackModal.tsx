@@ -51,7 +51,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                         <div className="bg-[var(--background)] rounded-xl p-6 border border-[var(--border)] space-y-4 shadow-sm">
                             <div className="space-y-1">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Commit</span>
-                                <p className="font-mono text-sm text-[var(--foreground)] bg-[var(--muted)]/20 px-2 py-1 rounded w-fit">{deployment.gitCommitSha.substring(0, 7).toUpperCase()}</p>
+                                <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] bg-[var(--muted)]/20 px-2 py-1 rounded w-fit">{deployment.gitCommitSha.substring(0, 7).toUpperCase()}</p>
                             </div>
                             <div className="space-y-1">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Message</span>
@@ -65,7 +65,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                                 <div className="text-right space-y-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployed At</span>
                                     <p className="text-[10px] font-bold text-[var(--foreground)] uppercase tracking-wider">
-                                        {new Date(deployment.createdAt).toLocaleDateString()}
+                                        {new Date(deployment.createdAt).toLocaleDateString().toUpperCase()}
                                     </p>
                                 </div>
                             </div>

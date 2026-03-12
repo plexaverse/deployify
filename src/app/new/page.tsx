@@ -629,10 +629,10 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
                                 <div className="flex-1 grid grid-cols-5 gap-4 items-center">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-mono text-sm text-[var(--primary)]">{env.key}</span>
+                                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{env.key}</span>
                                         {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
                                     </div>
-                                    <span className="font-mono text-sm text-[var(--foreground)] truncate">
+                                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] truncate">
                                         {env.isSecret ? '••••••••' : env.value}
                                     </span>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
@@ -661,14 +661,14 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 placeholder="KEY"
                                 value={newEnvKey}
                                 onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                                className="font-mono"
+                                        className="font-mono text-[10px] font-bold uppercase tracking-wider"
                             />
                             <Input
                                 type={newEnvIsSecret ? "password" : "text"}
                                 placeholder="VALUE"
                                 value={newEnvValue}
                                 onChange={(e) => setNewEnvValue(e.target.value)}
-                                className="font-mono"
+                                        className="font-mono text-[10px] font-bold uppercase tracking-wider"
                             />
                             <Button
                                 variant="ghost"
@@ -874,7 +874,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                             <Button
                                 variant="secondary"
                                 onClick={() => router.push(`/dashboard/${project.id}`)}
-                                className="h-11 px-6 rounded-xl font-medium"
+                                className="h-11 px-6 rounded-xl text-[10px] font-bold uppercase tracking-wider"
                             >
                                 Dashboard
                             </Button>
@@ -884,7 +884,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         <Button
                             variant="primary"
                             onClick={() => window.location.reload()}
-                            className="h-11 px-8 rounded-xl font-bold"
+                            className="h-11 px-8 rounded-xl text-[10px] font-bold uppercase tracking-wider"
                         >
                             Try Again
                         </Button>

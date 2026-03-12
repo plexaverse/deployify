@@ -257,7 +257,7 @@ export default function NewProjectPage() {
                     {filteredRepos.length === 0 && !loading && (
                         <Card className="overflow-hidden p-0">
                             <div className="text-center py-12">
-                                <p className="text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     {search ? 'No repositories match your search' : 'No repositories found'}
                                 </p>
                             </div>
