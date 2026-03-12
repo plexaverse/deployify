@@ -378,7 +378,7 @@ export default function ProjectSettingsPage() {
                             <Button
                                 variant="ghost"
                                 onClick={() => setIsDeleteModalOpen(true)}
-                                className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+                                className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)] text-[10px] font-bold uppercase tracking-wider"
                             >
                                 Delete Project
                             </Button>

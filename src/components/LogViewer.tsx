@@ -226,9 +226,9 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                 <div className="flex items-center justify-between px-3 py-3">
                     <SegmentedControl
                         options={[
-                            { value: 'runtime', label: 'Runtime Logs' },
-                            { value: 'system', label: 'System Logs' },
-                            { value: 'build', label: 'Build Logs' },
+                            { value: 'runtime', label: 'RUNTIME LOGS' },
+                            { value: 'system', label: 'SYSTEM LOGS' },
+                            { value: 'build', label: 'BUILD LOGS' },
                         ]}
                         value={activeTab}
                         onChange={(v) => setActiveTab(v as LogTab)}

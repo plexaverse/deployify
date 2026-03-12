@@ -379,7 +379,7 @@ export default function ImportProjectPage() {
                                 size="sm"
                                 onClick={handleAddEnv}
                                 disabled={!newEnvKey || !newEnvValue}
-                                className="text-[var(--primary)] px-4"
+                                className="text-[var(--primary)] px-4 text-[10px] font-bold uppercase tracking-wider"
                             >
                                 <Plus className="w-5 h-5 mr-2" /> Add
                             </Button>
@@ -404,9 +404,9 @@ export default function ImportProjectPage() {
                                     value={newEnvTarget}
                                     onChange={(val) => setNewEnvTarget(val as 'both' | 'build' | 'runtime')}
                                     options={[
-                                        { value: 'both', label: 'Both' },
-                                        { value: 'build', label: 'Build' },
-                                        { value: 'runtime', label: 'Runtime' },
+                                        { value: 'both', label: 'BOTH' },
+                                        { value: 'build', label: 'BUILD' },
+                                        { value: 'runtime', label: 'RUNTIME' },
                                     ]}
                                 />
                             </div>

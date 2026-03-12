@@ -709,6 +709,31 @@ Conducted a comprehensive standardization pass across the dashboard, settings, a
   - `src/lib/gcp/firewall.ts`
 - **Standardization**: Refactored core application logic to eliminate remaining `any` types in favor of `unknown` with proper type guards. This ensures the codebase strictly adheres to the platform's high standards for technical excellence and reliability.
 
+## Progressive UI & Layout Standardization (Session 128)
+
+Conducted a comprehensive standardization pass for the Edge Function Simulator and technical metadata presentation.
+
+### Edge Function Simulator Standardization
+- **File Updated**: `src/app/edge-debug/page.tsx`
+- **Standardization**:
+  - Refactored "Middleware Code" and "Simulation Result" sections to strictly follow the 3-part internal section header standard (Icon Container `w-10 h-10` + Context Label + Title) and `<Card className="overflow-hidden p-0">` pattern.
+  - Standardized the "Run Simulation" button and all response metadata (headers, body labels, logs) to the `text-[10px] font-bold uppercase tracking-wider` typography standard.
+  - Improved layout consistency by using standardized separators and internal `p-6` padding for execution output containers.
+  - Unified simulation result status badges with platform-wide status typography.
+
+### Global SegmentedControl & Metadata Polish
+- **Files Updated**:
+  - `src/app/dashboard/settings/page.tsx`
+  - `src/app/new/page.tsx`
+  - `src/app/dashboard/new/import/page.tsx`
+  - `src/app/dashboard/[id]/analytics/page.tsx`
+  - `src/components/LogViewer.tsx`
+  - `src/components/BranchDeploymentsSettings.tsx`
+- **Standardization**:
+  - Standardized all `SegmentedControl` options to uppercase (e.g., "ADMIN", "RUNTIME LOGS", "BUILD ONLY", "30D") to align with technical metadata standards.
+  - Standardized secondary action buttons (e.g., "Add", "Back to Select", "Delete Project") to use the `text-[10px] font-bold uppercase tracking-wider` typography.
+  - Verified and corrected internal section icon container sizes to strictly follow the `w-10 h-10` standard across project creation and configuration flows.
+
 ## Progressive UI & Layout Standardization (Session 125)
 
 Conducted a platform-wide standardization pass for date formatting and status indicators.
