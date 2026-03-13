@@ -223,7 +223,7 @@ export default function TeamSettingsPage() {
                             <h3 className="text-xl font-bold text-[var(--foreground)]">
                                 {user?.name || user?.githubUsername || 'Personal Workspace'}
                             </h3>
-                            <p className="text-[var(--muted-foreground)]">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 {user?.email || 'You are using your individual workspace for hobby projects.'}
                             </p>
                             <div className="flex items-center gap-2 mt-2">

@@ -163,9 +163,9 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                                 <Link
                                                     href={item.href}
                                                     className={cn(
-                                                        "flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-sm transition-all duration-200",
+                                                        "flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all duration-200",
                                                         isActive
-                                                            ? 'bg-[var(--primary)]/5 text-[var(--foreground)] font-semibold shadow-sm border border-[var(--primary)]/10'
+                                                            ? 'bg-[var(--primary)]/5 text-[var(--foreground)] shadow-sm border border-[var(--primary)]/10'
                                                             : 'text-[var(--muted-foreground)] hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]'
                                                     )}
                                                     onClick={() => setSidebarOpen(false)}

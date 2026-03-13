@@ -159,12 +159,12 @@ export function DomainsSection({
             <div className="p-6">
                 {/* Error/Success Messages */}
                 {error && (
-                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-sm">
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-[10px] font-bold uppercase tracking-wider">
                         {error}
                     </div>
                 )}
                 {success && (
-                    <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-sm">
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-[10px] font-bold uppercase tracking-wider">
                         {success}
                     </div>
                 )}
@@ -386,13 +386,13 @@ export function DomainsSection({
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Globe className="w-4 h-4 text-[var(--muted-foreground)]" />
-                            <span className="text-sm font-medium">Cloud Run URL</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Cloud Run URL</span>
                         </div>
                         <a
                             href={productionUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-[var(--primary)] hover:underline flex items-center gap-1"
+                            className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline flex items-center gap-1"
                         >
                             {productionUrl.replace('https://', '')}
                             <ExternalLink className="w-3 h-3" />
@@ -436,7 +436,7 @@ export function DomainsSection({
                                         href={`https://${domain.domain}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-sm font-semibold hover:text-[var(--primary)] flex items-center gap-1"
+                                        className="text-[10px] font-bold uppercase tracking-wider hover:text-[var(--primary)] flex items-center gap-1"
                                     >
                                         {domain.domain}
                                         <ExternalLink className="w-3 h-3" />

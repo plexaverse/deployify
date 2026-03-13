@@ -49,7 +49,7 @@ export function Header() {
 
     return (
         <header className="sticky top-0 z-30 flex items-center justify-between w-full h-14 px-6 bg-[var(--background)] border-b border-[var(--border)]">
-            <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-sm overflow-x-auto no-scrollbar">
+            <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-wider overflow-x-auto no-scrollbar">
                 <Link
                     href="/dashboard"
                     className="flex items-center text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
