@@ -875,3 +875,23 @@ Refined the global dashboard layout and completed the standardization pass for p
 ### Final Audit & Verification
 - **Audit**: Verified `src/app/dashboard/new/import/page.tsx` and confirmed it adheres to the latest standards.
 - **Tests**: Re-verified all 76 unit tests pass following layout refinements.
+
+## Progressive UI & Layout Standardization (Session 133)
+
+Continued refining core components and typography across the platform.
+
+### Modal Header Architecture Standardization
+- **File Updated**: `src/components/ui/confirmation-modal.tsx`
+- **Standardization**: Refactored the header to the platform's 3-part standard: Icon Container (`w-10 h-10 rounded-xl`), Context Label (`text-[10px] font-bold uppercase tracking-wider`), and Title (`text-xl font-semibold`). Added `CheckCircle2` for default and `AlertTriangle` for destructive variants.
+
+### Deployment Comparison Typography Standardization
+- **File Updated**: `src/app/dashboard/[id]/deployments/compare/page.tsx`
+- **Standardization**: Updated `ComparisonRow` labels to the `text-[10px] font-bold uppercase tracking-wider` standard for technical metadata. Improved interactive state by switching from `bg-[var(--muted)]/5` to `bg-[var(--card-hover)]` for consistency with other lists.
+
+### Global Button Component Enhancement
+- **File Updated**: `src/components/ui/button.tsx`
+- **Standardization**: Updated the `sm` size variant to include `font-bold` by default. This ensures all small action buttons across the platform automatically adhere to the high-density technical metadata typography standard.
+
+### Settings Typography Standardization
+- **Files Updated**: `src/app/dashboard/settings/page.tsx`, `src/app/dashboard/[id]/settings/page.tsx`
+- **Standardization**: Replaced `font-medium` with `font-semibold` for primary titles and labels (e.g., "Delete Account", "Leave Team", "Delete Project") to match the platform's professional developer-grade aesthetic.

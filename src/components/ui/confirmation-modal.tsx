@@ -1,8 +1,9 @@
 'use client';
 
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Portal } from '@/components/ui/portal';
+import { cn } from '@/lib/utils';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -34,19 +35,33 @@ export function ConfirmationModal({
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-fade-in">
         <div className="bg-[var(--card)] border border-[var(--border)] w-full max-w-md rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
-            <div className="flex items-center gap-2 font-semibold text-lg">
-              {variant === 'destructive' && (
-                <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
-              )}
-              {title}
+          <div className="flex items-center justify-between p-6 border-b border-[var(--border)] bg-[var(--background)] shrink-0">
+            <div className="flex items-center gap-4">
+              <div className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                variant === 'destructive' ? "bg-[var(--error)]/10" : "bg-[var(--primary)]/10"
+              )}>
+                {variant === 'destructive' ? (
+                  <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
+                ) : (
+                  <CheckCircle2 className="w-5 h-5 text-[var(--primary)]" />
+                )}
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                  {variant === 'destructive' ? 'Critical Action' : 'Confirmation Required'}
+                </span>
+                <h3 className="text-xl font-semibold tracking-tight text-[var(--foreground)]">
+                  {title}
+                </h3>
+              </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
               disabled={loading}
-              className="rounded-full"
+              className="h-8 w-8 rounded-full"
             >
               <X className="w-5 h-5" />
             </Button>
