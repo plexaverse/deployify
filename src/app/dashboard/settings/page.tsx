@@ -272,7 +272,7 @@ export default function TeamSettingsPage() {
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                             <div>
-                                <h3 className="font-medium text-[var(--error)]">Delete Account</h3>
+                                <h3 className="font-semibold text-[var(--error)]">Delete Account</h3>
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Permanently remove your account and all of your data. This action cannot be undone.
                                 </p>
@@ -418,7 +418,7 @@ export default function TeamSettingsPage() {
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="font-medium text-[var(--foreground)] flex items-center gap-2">
+                                                    <p className="font-semibold text-[var(--foreground)] flex items-center gap-2">
                                                         {member.user?.name || member.user?.githubUsername || 'Unknown User'}
                                                         {member.role === 'owner' && <Badge variant="warning" className="text-[10px] px-1.5 py-0.5 font-bold uppercase tracking-wider">Owner</Badge>}
                                                     </p>
@@ -467,7 +467,7 @@ export default function TeamSettingsPage() {
                                                     <Mail className="w-4 h-4 text-[var(--muted-foreground)]" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-[var(--foreground)] flex items-center gap-2">
+                                                    <p className="font-semibold text-[var(--foreground)] flex items-center gap-2">
                                                         {invite.email}
                                                         <Badge variant="info" className="text-[10px] px-1.5 py-0 uppercase">Invited</Badge>
                                                     </p>
@@ -516,7 +516,7 @@ export default function TeamSettingsPage() {
                         <div className="p-6 space-y-6">
                             <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                 <div>
-                                    <h3 className="font-medium">Leave Team</h3>
+                                    <h3 className="font-semibold">Leave Team</h3>
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                         Revoke your access to this team. You will need to be re-invited to join again.
                                     </p>
@@ -535,7 +535,7 @@ export default function TeamSettingsPage() {
                                     <Separator className="bg-[var(--error)]/20" />
                                     <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                         <div>
-                                            <h3 className="font-medium text-[var(--error)]">Delete Team</h3>
+                                            <h3 className="font-semibold text-[var(--error)]">Delete Team</h3>
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 Permanently remove this team and all of its data. This action cannot be undone.
                                             </p>
@@ -579,7 +579,7 @@ export default function TeamSettingsPage() {
                                     <div key={log.id} className="relative pl-8">
                                         <div className="absolute left-[19px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-sm font-medium text-[var(--foreground)]">
+                                            <span className="text-sm font-semibold text-[var(--foreground)]">
                                                 {log.action}
                                             </span>
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed line-clamp-2">

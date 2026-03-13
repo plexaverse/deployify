@@ -283,11 +283,11 @@ export default function CompareDeploymentsPage() {
                             <>
                                 <ComparisonRow
                                     label="LCP (Largest Contentful Paint)"
-                                    baseValue={baseDeployment.performanceMetrics ? `${baseDeployment.performanceMetrics.lcp.toFixed(0)}ms` : '-'}
+                                    baseValue={baseDeployment.performanceMetrics?.lcp !== undefined ? `${baseDeployment.performanceMetrics.lcp.toFixed(0)}ms` : '-'}
                                     targetValue={
                                         <span className="flex items-center">
-                                            {targetDeployment.performanceMetrics.lcp.toFixed(0)}ms
-                                            {baseDeployment.performanceMetrics && renderMetricDiff(
+                                            {targetDeployment.performanceMetrics?.lcp !== undefined ? `${targetDeployment.performanceMetrics.lcp.toFixed(0)}ms` : '-'}
+                                            {baseDeployment.performanceMetrics?.lcp !== undefined && targetDeployment.performanceMetrics?.lcp !== undefined && renderMetricDiff(
                                                 baseDeployment.performanceMetrics.lcp,
                                                 targetDeployment.performanceMetrics.lcp,
                                                 (v) => `${v.toFixed(0)}ms`,
@@ -298,11 +298,11 @@ export default function CompareDeploymentsPage() {
                                 />
                                 <ComparisonRow
                                     label="CLS (Cumulative Layout Shift)"
-                                    baseValue={baseDeployment.performanceMetrics ? baseDeployment.performanceMetrics.cls.toFixed(3) : '-'}
+                                    baseValue={baseDeployment.performanceMetrics?.cls !== undefined ? baseDeployment.performanceMetrics.cls.toFixed(3) : '-'}
                                     targetValue={
                                         <span className="flex items-center">
-                                            {targetDeployment.performanceMetrics.cls.toFixed(3)}
-                                            {baseDeployment.performanceMetrics && renderMetricDiff(
+                                            {targetDeployment.performanceMetrics?.cls !== undefined ? targetDeployment.performanceMetrics.cls.toFixed(3) : '-'}
+                                            {baseDeployment.performanceMetrics?.cls !== undefined && targetDeployment.performanceMetrics?.cls !== undefined && renderMetricDiff(
                                                 baseDeployment.performanceMetrics.cls,
                                                 targetDeployment.performanceMetrics.cls,
                                                 (v) => v.toFixed(3),
@@ -354,8 +354,8 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
 
 function ComparisonRow({ label, baseValue, targetValue }: { label: string, baseValue: React.ReactNode, targetValue: React.ReactNode }) {
     return (
-        <div className="grid grid-cols-3 px-6 py-4 items-center hover:bg-[var(--muted)]/5 transition-colors group">
-            <div className="text-sm font-medium text-[var(--muted-foreground)]">{label}</div>
+        <div className="grid grid-cols-3 px-6 py-4 items-center hover:bg-[var(--card-hover)] transition-colors group">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{label}</div>
             <div className="text-sm font-mono font-medium">{baseValue}</div>
             <div className="text-sm font-mono font-semibold flex items-center gap-2">
                 {targetValue}
