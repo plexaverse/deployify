@@ -35,9 +35,9 @@ export function EmptyState({
                 </div>
             ) : null}
             <h3 className="text-xl font-bold mb-2 tracking-tight text-[var(--foreground)]">{title}</h3>
-            <p className="text-sm font-medium text-[var(--muted-foreground)] max-w-sm mb-8 leading-relaxed">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-sm mb-8 leading-relaxed">
                 {description}
-            </p>
+            </div>
             {children}
             {action && (
                 <div className="mt-2">

@@ -4,7 +4,7 @@ This document tracks UI standardization updates across the application to mainta
 
 ## Global Classes and Design Tokens
 - **Root Layouts**: `max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10` applied to all dashboard page wrappers.
-- **Section Headers (Settings, Danger Zone, etc.)**: `text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2`
+- **Section Headers (Settings, Danger Zone, etc.)**: `text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2`
 - **Metadata Tags (Commits, Badges, Types)**: `text-[10px] font-bold uppercase tracking-wider`
 - **Action Buttons**: Standardized using `MovingBorderButton` with consistent container sizing (`h-10 w-36` or contextual).
 - **Icons**: Sized `w-5 h-5` for standard headings and `w-8 h-8` for page titles.
@@ -16,7 +16,7 @@ Conducted a comprehensive pass to standardize page layouts and headers across th
 ### Dashboard Header Architecture (Standardized)
 - **3-Part Header Standard**: All primary dashboard pages and section cards now follow a unified 3-part visual hierarchy:
   1. **Icon Container**: Lucide icon in a themed background (`rounded-2xl bg-[var(--primary)]/10` for pages, `rounded-xl` for sections).
-  2. **Context Label**: Uppercase metadata label (`text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]`).
+  2. **Context Label**: Uppercase metadata label (`text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]`).
   3. **Main Title**: Bold tracking-tight title (`text-3xl font-bold` for pages, `text-xl font-semibold` for sections).
 
 ### Pages Updated
@@ -824,3 +824,23 @@ Standardized global navigation components and refined technical metadata typogra
 - **Standardization**:
   - Standardized error, success, and short status messages across the Networking and Configuration sections to use the `text-[10px] font-bold uppercase tracking-wider` typography.
   - Refined metadata labels in the project overview and personal profile settings to match the platform's high-density technical aesthetic while maintaining standard readability for long-form instructional content.
+
+## Progressive UI & Layout Standardization (Session 131)
+
+Conducted a refinement pass for system error pages and loading states to ensure strict adherence to the card architecture and technical metadata standards.
+
+### Dashboard Error Page Standardization
+- **File Updated**: `src/app/dashboard/error.tsx`
+- **Standardization**: Refactored the dashboard error card to follow the `<Card className="overflow-hidden p-0">` pattern with internal `p-8` padding. This ensures visual consistency with the platform's standardized configuration and information cards, while maintaining its contextual error theming.
+
+### Settings Loading Skeleton Standardization
+- **Files Updated**:
+  - `src/app/dashboard/[id]/settings/page.tsx`
+  - `src/app/dashboard/settings/page.tsx`
+- **Standardization**: Refactored loading skeletons to strictly adhere to the platform's 3-part header architecture (Icon Container + Context Label + Title) and `<Card className="overflow-hidden p-0">` pattern. This ensures that the spatial layout during data retrieval perfectly matches the final rendered state, eliminating layout shift and maintaining visual continuity.
+
+### Utility Component Typography Standardization
+- **Files Updated**:
+  - `src/components/EmptyState.tsx`
+  - `src/components/CommandPalette.tsx`
+- **Standardization**: Enforced the `text-[10px] font-bold uppercase tracking-wider` standard for all secondary descriptions, metadata labels, and interactive hints within global utility components. This unifies the platform's high-density technical aesthetic across search interfaces and empty states.
