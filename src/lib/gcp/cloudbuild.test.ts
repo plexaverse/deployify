@@ -15,12 +15,12 @@ describe('generateCloudRunDeployConfig', () => {
             healthCheckPath: '/health',
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result: any = generateCloudRunDeployConfig(buildConfig);
+        interface CloudBuildStep { args: string[] }
+        interface CloudBuildConfig { steps: CloudBuildStep[] }
+        const result = generateCloudRunDeployConfig(buildConfig) as unknown as CloudBuildConfig;
 
         // Find the 'gcloud run deploy' step
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const deployStep = result.steps.find((step: any) =>
+        const deployStep = result.steps.find((step: CloudBuildStep) =>
             step.args && step.args.includes('run') && step.args.includes('deploy')
         );
 
@@ -48,11 +48,11 @@ describe('generateCloudRunDeployConfig', () => {
             commitSha: '1234567',
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result: any = generateCloudRunDeployConfig(buildConfig);
+        interface CloudBuildStep { args: string[] }
+        interface CloudBuildConfig { steps: CloudBuildStep[] }
+        const result = generateCloudRunDeployConfig(buildConfig) as unknown as CloudBuildConfig;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const deployStep = result.steps.find((step: any) =>
+        const deployStep = result.steps.find((step: CloudBuildStep) =>
             step.args && step.args.includes('run') && step.args.includes('deploy')
         );
 

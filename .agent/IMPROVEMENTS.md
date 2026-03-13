@@ -229,6 +229,7 @@
 - **Analytics Fix**: Fixed a runtime `TypeError` in `src/lib/analytics.ts` where `event.timestamp` was accessed without a null check.
 - **Features**: Verified existence of Team Settings, Analytics, and Compare Deployments pages in the codebase.
 - **CLI**: Verified CLI tool runs and displays help (`node src/cli/index.js --help`).
+- **Test Type Safety**: Refactored test files (`logging.test.ts`, `firewall.test.ts`, `armor.test.ts`, `cloudbuild.test.ts`, `lighthouse.test.ts`) to eliminate `any` types in favor of specific types and `unknown` with proper casting/guards, fulfilling the zero-warning linting policy.
 - **BigQuery**: Verified automated schema initialization in analytics collector.
 - **SSE Logs**: Optimized SSE log streaming backend for better responsiveness and termination.
 - **Type Safety Pass**: Eliminated remaining `any` types in `src/app/api/projects/[id]/route.ts`, `src/app/edge-debug/actions.ts`, and `src/app/edge-debug/page.tsx` in favor of specific types and `unknown` with proper type guards. Fixed error handling in the Edge Simulator to ensure cross-context error property accessibility.

@@ -8,7 +8,7 @@ import { updateProjectFirewall } from './firewall';
 
 describe('updateProjectFirewall', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let fetchMock: any;
+    let fetchMock: any; // Using any for the mock function to allow node:test mocking
 
     beforeEach(() => {
         fetchMock = mock.fn();
@@ -24,10 +24,9 @@ describe('updateProjectFirewall', () => {
         const accessToken = 'fake-token';
 
         // Smart mock implementation based on URL/Method
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        fetchMock.mock.mockImplementation(async (...args: any[]) => {
-            const url = args[0] as string;
-            const options = args[1] || {};
+        fetchMock.mock.mockImplementation(async (urlInput: URL | string, optionsInput?: RequestInit) => {
+            const url = urlInput.toString();
+            const options = optionsInput || {};
 
             // 1. Get Policy
             if (url.endsWith('/securityPolicies/dfy-my-project-policy') && (!options.method || options.method === 'GET')) {
@@ -96,18 +95,16 @@ describe('updateProjectFirewall', () => {
         assert.ok(fetchMock.mock.callCount() >= 5);
 
         // Check Create
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const createCall = fetchMock.mock.calls.find((c: any) => c.arguments[0].endsWith('/securityPolicies') && c.arguments[1].method === 'POST');
+        interface MockCall { arguments: [string | URL, RequestInit?] }
+        const createCall = fetchMock.mock.calls.find((c: MockCall) => c.arguments[0].toString().endsWith('/securityPolicies') && c.arguments[1]?.method === 'POST');
         assert.ok(createCall, 'Should create policy');
 
         // Check Rules
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const addCalls = fetchMock.mock.calls.filter((c: any) => c.arguments[0].includes('/addRule'));
+        const addCalls = fetchMock.mock.calls.filter((c: MockCall) => c.arguments[0].toString().includes('/addRule'));
         assert.strictEqual(addCalls.length, 3, 'Should add 3 rules');
 
         // Check Polling
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pollCalls = fetchMock.mock.calls.filter((c: any) => c.arguments[0].includes('/global/operations/'));
+        const pollCalls = fetchMock.mock.calls.filter((c: MockCall) => c.arguments[0].toString().includes('/global/operations/'));
         assert.strictEqual(pollCalls.length, 4, 'Should poll 4 operations (1 create + 3 adds)');
     });
 
@@ -121,9 +118,8 @@ describe('updateProjectFirewall', () => {
          };
          const accessToken = 'fake-token';
 
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-         fetchMock.mock.mockImplementation(async (...args: any[]) => {
-            const url = args[0] as string;
+         fetchMock.mock.mockImplementation(async (urlInput: URL | string) => {
+            const url = urlInput.toString();
 
             // Get Policy
             if (url.endsWith('/securityPolicies/dfy-my-project-2-policy')) {
@@ -165,18 +161,16 @@ describe('updateProjectFirewall', () => {
 
          // Assertions
          // Check Remove
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-         const removeCall = fetchMock.mock.calls.find((c: any) => c.arguments[0].includes('removeRule?priority=1000'));
+         interface MockCall { arguments: [string | URL, RequestInit?] }
+         const removeCall = fetchMock.mock.calls.find((c: MockCall) => c.arguments[0].toString().includes('removeRule?priority=1000'));
          assert.ok(removeCall, 'Should remove rule 1000');
 
          // Check Add
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-         const addCalls = fetchMock.mock.calls.filter((c: any) => c.arguments[0].includes('/addRule'));
-         assert.strictEqual(addCalls.length, 2, 'Should add 2 block chunks');
+         const addCallsCount = fetchMock.mock.calls.filter((c: MockCall) => c.arguments[0].toString().includes('/addRule'));
+         assert.strictEqual(addCallsCount.length, 2, 'Should add 2 block chunks');
 
          // Check Polling (1 remove + 2 adds = 3)
-         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-         const pollCalls = fetchMock.mock.calls.filter((c: any) => c.arguments[0].includes('/global/operations/'));
-         assert.strictEqual(pollCalls.length, 3, 'Should poll 3 operations');
+         const pollCallsCount = fetchMock.mock.calls.filter((c: MockCall) => c.arguments[0].toString().includes('/global/operations/'));
+         assert.strictEqual(pollCallsCount.length, 3, 'Should poll 3 operations');
     });
 });
