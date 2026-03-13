@@ -31,8 +31,7 @@ describe('runLighthouseAudit', () => {
             }
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        global.fetch = mock.fn(async (url: any) => {
+        global.fetch = mock.fn(async (url: URL | string) => {
             assert.ok(url.toString().includes('googleapis.com/pagespeedonline/v5/runPagespeed'));
             return {
                 ok: true,
