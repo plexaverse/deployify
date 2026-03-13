@@ -9,7 +9,7 @@ import { CommandPalette } from '@/components/CommandPalette';
 import { Project } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
-import { buttonVariants } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { useTeam } from '@/contexts/TeamContext';
 
 export default function DashboardHome() {
