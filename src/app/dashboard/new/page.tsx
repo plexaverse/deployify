@@ -191,7 +191,7 @@ export default function NewProjectPage() {
                                         <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                         {/* Icon */}
-                                        <div className="relative z-10 w-12 h-12 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)] group-hover:border-[var(--primary)]/30 transition-colors">
+                                        <div className="relative z-10 w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--border)] group-hover:border-[var(--primary)]/30 transition-colors">
                                             {repo.private ? (
                                                 <Lock className="w-5 h-5 text-[var(--warning)]" />
                                             ) : (
