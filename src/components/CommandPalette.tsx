@@ -151,9 +151,9 @@ export function CommandPalette() {
                        <Rocket className={`w-4 h-4 transition-colors ${selectedIndex === index ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'}`} />
                        <div className="flex-1">
                           <div className="text-sm font-bold text-[var(--foreground)]">{project.name}</div>
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-medium">{project.repoFullName}</div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{project.repoFullName}</div>
                        </div>
-                       <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-all">Jump to</span>
+                       <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-all">Jump to</span>
                      </motion.button>
                    ))}
                  </AnimatePresence>
