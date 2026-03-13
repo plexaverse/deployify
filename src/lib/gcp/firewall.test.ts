@@ -7,12 +7,11 @@ process.env.GCP_PROJECT_ID = 'test-gcp-project';
 import { updateProjectFirewall } from './firewall';
 
 describe('updateProjectFirewall', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let fetchMock: any; // Using any for the mock function to allow node:test mocking
+    let fetchMock: ReturnType<typeof mock.fn<(...args: [URL | string, RequestInit?]) => Promise<Partial<Response>>>>;
 
     beforeEach(() => {
-        fetchMock = mock.fn();
-        global.fetch = fetchMock;
+        fetchMock = mock.fn<(...args: [URL | string, RequestInit?]) => Promise<Partial<Response>>>();
+        global.fetch = fetchMock as unknown as typeof fetch;
     });
 
     it('should create policy if not exists and add rules', async () => {
