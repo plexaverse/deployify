@@ -46,16 +46,23 @@ export default function DashboardHome() {
 
       <div className="flex items-center justify-between mb-8">
         <div>
-           <h1 className="text-2xl font-bold text-[var(--foreground)]">
+           <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Overview</span>
+           <h1 className="text-3xl font-bold tracking-tight">
                {activeTeam ? `${activeTeam.name} Projects` : 'Project Overview'}
            </h1>
-           <p className="text-[var(--muted-foreground)] text-sm mt-1">
+           <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
                Command Center • {projects.length} Projects
            </p>
         </div>
-        <Link href="/new" className={buttonVariants({ variant: 'primary' })}>
-           <Plus className="w-4 h-4 mr-2" />
-           New Project
+        <Link href="/new">
+            <MovingBorderButton
+                as="div"
+                containerClassName="h-10 w-36"
+                className="text-[10px] font-bold uppercase tracking-wider"
+            >
+                <Plus className="w-4 h-4 mr-2" />
+                ADD NEW
+            </MovingBorderButton>
         </Link>
       </div>
 

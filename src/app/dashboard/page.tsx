@@ -140,7 +140,7 @@ export default function DashboardPage() {
                             className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             <Plus className="w-4 h-4 mr-2" />
-                            Add New
+                            ADD NEW
                         </MovingBorderButton>
                     </Link>
                 </div>
