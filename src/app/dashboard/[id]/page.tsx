@@ -345,7 +345,7 @@ export default function ProjectDetailPage() {
                                 </div>
                             ) : (
                                 <div className="py-12 text-center space-y-3">
-                                    <p className="text-[var(--muted-foreground)] text-sm font-medium">
+                                    <p className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">
                                         No production deployment yet. Push to {project.defaultBranch} to deploy.
                                     </p>
                                 </div>
