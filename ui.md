@@ -895,3 +895,65 @@ Continued refining core components and typography across the platform.
 ### Settings Typography Standardization
 - **Files Updated**: `src/app/dashboard/settings/page.tsx`, `src/app/dashboard/[id]/settings/page.tsx`
 - **Standardization**: Replaced `font-medium` with `font-semibold` for primary titles and labels (e.g., "Delete Account", "Leave Team", "Delete Project") to match the platform's professional developer-grade aesthetic.
+
+## Progressive UI & Layout Standardization (Session 134)
+
+Conducted a comprehensive standardization pass for technical metadata and interactive typography.
+
+### Create Project Pipeline Refinement
+- **Files Updated**:
+  - `src/app/new/page.tsx`
+  - `src/app/dashboard/new/page.tsx`
+- **Standardization**:
+  - Replaced `font-medium` with `font-semibold` for StepIndicator labels and project environment labels to align with the professional developer-focused aesthetic.
+  - Updated search shortcut hints (⌘K / Ctrl K) to use `font-bold` instead of `font-medium` for consistent high-density technical metadata styling.
+  - Standardized advanced build settings toggle and environment variable labels to `font-semibold`.
+
+### Global Navigation Typography Standardization
+- **Files Updated**:
+  - `src/components/TeamSwitcher.tsx`
+  - `src/components/Header.tsx`
+- **Standardization**:
+  - Replace `font-medium` with `font-semibold` for Personal Workspace, Team names, and "Create Team" labels in the `TeamSwitcher` dropdown.
+  - Standardized the active breadcrumb label to `font-semibold` to maintain visual priority and professional aesthetic.
+
+### Billing & Subscription Typography Standardization
+- **Files Updated**:
+  - `src/app/billing/page.tsx`
+  - `src/components/billing/ComparePlansTable.tsx`
+  - `src/components/billing/PricingCard.tsx`
+- **Standardization**:
+  - Replace `font-medium` with `font-semibold` for invoice numbers in the billing history table.
+  - Standardized plan feature names and values in the comparison table to `font-semibold`.
+  - Updated `PricingCard` feature descriptions to use `font-semibold` for improved legibility and consistency.
+
+### Project & Deployment UI Refinement
+- **Files Updated**:
+  - `src/components/DeploymentListItem.tsx`
+  - `src/components/BranchDeploymentsSettings.tsx`
+  - `src/app/dashboard/[id]/deployments/compare/page.tsx`
+  - `src/components/EnvVariablesSection.tsx`
+  - `src/components/LogViewer.tsx`
+  - `src/components/analytics/DeploymentMetricsCharts.tsx`
+- **Standardization**:
+  - Replace `font-medium` with `font-semibold` for commit messages, branch names, and deployment comparison metrics.
+  - Standardized "Deployment required" notice and "Select a deployment" placeholders to `font-semibold`.
+  - Updated `LogViewer` to use `font-semibold` for log payload text for enhanced readability in high-density terminal views.
+  - Refined chart tooltips in `DeploymentMetricsCharts` to use `font-semibold` for labels and values.
+
+### Base UI Component Typography Standardization
+- **Files Updated**:
+  - `src/components/ui/label.tsx`
+  - `src/components/ui/button.tsx`
+  - `src/components/ui/input.tsx`
+- **Standardization**:
+  - Refactored core UI components (`Label`, `Button`, and `Input` file picker) to use `font-semibold` instead of `font-medium`.
+  - This ensures platform-wide consistency for all forms, actions, and interactive elements, reinforcing the professional developer-grade aesthetic.
+
+### Final Polish & Global Consistency
+- **Files Updated**:
+  - `src/components/LandingPage.tsx`
+  - `src/app/dashboard/new/import/page.tsx`
+- **Standardization**:
+  - Replaced remaining instances of `font-medium` with `font-semibold` for the Landing Page login link and Project Import configuration labels.
+  - Completed the platform-wide transition to `font-semibold` for all primary interactive labels and title elements.

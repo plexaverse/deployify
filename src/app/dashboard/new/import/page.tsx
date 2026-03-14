@@ -392,7 +392,7 @@ export default function ImportProjectPage() {
                                     checked={newEnvIsSecret}
                                     onCheckedChange={setNewEnvIsSecret}
                                 />
-                                <Label htmlFor="is-secret" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                                <Label htmlFor="is-secret" className="text-sm font-semibold cursor-pointer flex items-center gap-1.5">
                                     <Shield className="w-3.5 h-3.5 text-[var(--info)]" />
                                     Secret (Encrypted)
                                 </Label>

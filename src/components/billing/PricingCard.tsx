@@ -69,7 +69,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                                 <div className="mt-0.5 bg-[var(--primary)]/10 rounded-full p-1 shrink-0">
                                     <Check className="w-3 h-3 text-[var(--primary)]" strokeWidth={3} />
                                 </div>
-                                <span className="text-[var(--muted-foreground)] font-medium leading-tight">{feature}</span>
+                                <span className="text-[var(--muted-foreground)] font-semibold leading-tight">{feature}</span>
                             </li>
                         ))}
                     </ul>

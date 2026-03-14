@@ -25,14 +25,14 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
     if (active && payload && payload.length) {
         return (
             <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 shadow-xl">
-                <p className="text-sm font-medium text-[var(--foreground)] mb-2">
+                <p className="text-sm font-semibold text-[var(--foreground)] mb-2">
                     {label}
                 </p>
                  {payload.map((entry: TooltipEntry, index: number) => (
                     <div key={index} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                         <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
-                        <span className="font-mono font-medium text-[var(--foreground)]">
+                        <span className="font-mono font-semibold text-[var(--foreground)]">
                             {entry.name === 'Duration' ? formatDuration(Number(entry.value) * 1000) : entry.value}
                         </span>
                     </div>

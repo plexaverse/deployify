@@ -422,7 +422,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
                     <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
                     <div className="text-sm">
-                        <p className="font-medium text-[var(--info)] mb-1">Deployment required</p>
+                        <p className="font-semibold text-[var(--info)] mb-1">Deployment required</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changes to environment variables will apply to new deployments. Existing deployments will keep their current variables until redeployed.
                         </p>
