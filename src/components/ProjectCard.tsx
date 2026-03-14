@@ -59,7 +59,7 @@ export function ProjectCard({ project }: { project: Project }) {
             <h3 className="text-sm font-bold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors uppercase tracking-tight">
               {project.name}
             </h3>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 mt-1.5">
               <Badge
                 variant={config.variant}
                 className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 gap-1.5"
@@ -75,20 +75,20 @@ export function ProjectCard({ project }: { project: Project }) {
           </div>
         </div>
         <div className="h-10 w-20 opacity-40 group-hover:opacity-100 transition-opacity">
-           {sparklineData.length > 0 && (
-             <ResponsiveContainer width="100%" height="100%">
-               <LineChart data={sparklineData}>
-                 <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke={config.stroke}
-                    strokeWidth={2}
-                    dot={false}
-                    isAnimationActive={true}
-                  />
-               </LineChart>
-             </ResponsiveContainer>
-           )}
+          {sparklineData.length > 0 && (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={sparklineData}>
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={config.stroke}
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={true}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
