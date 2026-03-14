@@ -12,6 +12,8 @@ async def run():
         os.makedirs("verification", exist_ok=True)
 
         routes = [
+            ("login", "/login"),
+            ("dashboard_home", "/dashboard"),
             ("overview", "/dashboard/mock-id-1"),
             ("deployments", "/dashboard/mock-id-1/deployments"),
             ("analytics", "/dashboard/mock-id-1/analytics"),
