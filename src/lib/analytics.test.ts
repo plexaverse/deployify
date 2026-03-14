@@ -47,8 +47,7 @@ mock.module('@/lib/firebase', {
 mock.module('@google-cloud/bigquery', {
     namedExports: {
         BigQuery: class {
-            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-            constructor() { return mockBigQueryInstance as any; }
+            constructor() { return mockBigQueryInstance as unknown as import('@google-cloud/bigquery').BigQuery; }
             query = mockBigQueryInstance.query;
         }
     }
@@ -98,8 +97,7 @@ describe('getAnalyticsStats', () => {
                     })
                 })
             })
-            /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        }) as any);
+        }) as unknown as ReturnType<typeof mockDb.collection>);
 
         const stats = await getAnalyticsStats('proj_123', '30d');
 
