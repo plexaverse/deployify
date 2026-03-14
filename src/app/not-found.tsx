@@ -9,7 +9,7 @@ export default function NotFound() {
     <div className="min-h-screen w-full bg-[var(--background)] relative flex flex-col items-center justify-center antialiased overflow-hidden">
       <div className="max-w-md w-full p-4 z-10 relative">
         <Card className="overflow-hidden p-0 shadow-2xl border-[var(--border)] backdrop-blur-xl bg-[var(--card)]/30">
-            <div className="p-10 flex flex-col items-center text-center">
+            <div className="p-8 flex flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0 mb-6">
                     <FileQuestion className="w-8 h-8 text-[var(--primary)]" />
                 </div>
