@@ -20,7 +20,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                 <BackgroundBeams className="opacity-20" />
                 <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--error)]/30">
                     <div className="absolute top-0 left-0 w-full h-1 bg-[var(--error)]"></div>
-                    <div className="p-10 flex flex-col items-center">
+                    <div className="p-8 flex flex-col items-center">
                         <div className="w-12 h-12 rounded-2xl bg-[var(--error)]/10 flex items-center justify-center shrink-0 mb-6">
                             <AlertTriangle className="w-6 h-6 text-[var(--error)]" />
                         </div>
@@ -49,7 +49,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                 <BackgroundBeams className="opacity-20" />
                 <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--error)]/30">
                     <div className="absolute top-0 left-0 w-full h-1 bg-[var(--error)]"></div>
-                    <div className="p-10 flex flex-col items-center">
+                    <div className="p-8 flex flex-col items-center">
                         <div className="w-12 h-12 rounded-2xl bg-[var(--error)]/10 flex items-center justify-center shrink-0 mb-6">
                             <AlertTriangle className="w-6 h-6 text-[var(--error)]" />
                         </div>
@@ -70,7 +70,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                 <BackgroundBeams className="opacity-20" />
                 <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--error)]/30">
                     <div className="absolute top-0 left-0 w-full h-1 bg-[var(--error)]"></div>
-                    <div className="p-10 flex flex-col items-center">
+                    <div className="p-8 flex flex-col items-center">
                         <div className="w-12 h-12 rounded-2xl bg-[var(--error)]/10 flex items-center justify-center shrink-0 mb-6">
                             <Clock className="w-6 h-6 text-[var(--error)]" />
                         </div>
@@ -93,7 +93,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                 <BackgroundBeams className="opacity-20" />
                 <Card className="max-w-md w-full text-center relative z-10 overflow-hidden p-0 shadow-2xl border-[var(--error)]/30">
                     <div className="absolute top-0 left-0 w-full h-1 bg-[var(--error)]"></div>
-                    <div className="p-10 flex flex-col items-center">
+                    <div className="p-8 flex flex-col items-center">
                         <div className="w-12 h-12 rounded-2xl bg-[var(--error)]/10 flex items-center justify-center shrink-0 mb-6">
                             <Users className="w-6 h-6 text-[var(--error)]" />
                         </div>

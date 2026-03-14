@@ -957,3 +957,17 @@ Conducted a comprehensive standardization pass for technical metadata and intera
 - **Standardization**:
   - Replaced remaining instances of `font-medium` with `font-semibold` for the Landing Page login link and Project Import configuration labels.
   - Completed the platform-wide transition to `font-semibold` for all primary interactive labels and title elements.
+
+## Progressive UI & Layout Standardization (Session 135)
+
+Standardized internal padding for root utility pages to unify the full-page card architecture.
+
+### Root Utility Page Padding Standardization
+- **Files Updated**:
+  - `src/app/(marketing)/login/page.tsx`
+  - `src/app/error.tsx`
+  - `src/app/not-found.tsx`
+  - `src/app/join/page.tsx`
+- **Standardization**:
+  - Refactored internal padding of full-page cards from `p-10` to `p-8` to align precisely with the platform's utility page standard.
+  - Ensures a consistent inner spatial structure across all non-dashboard system views, perfectly matching the established `overflow-hidden p-0` and inner `p-8` utility card pattern.

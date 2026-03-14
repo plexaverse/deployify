@@ -19,7 +19,7 @@ export default async function LoginPage() {
             <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--foreground)" />
             <main id="main-content" className="w-full max-w-md relative z-10 flex flex-col items-center">
                 <Card className="w-full overflow-hidden p-0 backdrop-blur-xl bg-[var(--card)]/80 border-[var(--border)] shadow-2xl rounded-[2.5rem]">
-                    <div className="p-10 flex flex-col items-center text-center">
+                <div className="p-8 flex flex-col items-center text-center">
                         <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0 mb-6">
                             <Rocket className="w-8 h-8 text-[var(--primary)]" />
                         </div>
