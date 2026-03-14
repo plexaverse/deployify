@@ -39,7 +39,7 @@ export default async function DashboardLayout({
 
                 <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[var(--background)] pt-16 md:pt-0">
                     <Header />
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto p-0">
                         <PageTransition>
                             {children}
                         </PageTransition>
