@@ -371,7 +371,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                 <span className={`text-[10px] font-bold uppercase tracking-wider shrink-0 w-[70px] select-none pt-0.5 ${getSeverityColor(log.severity)}`}>
                                     {log.severity}
                                 </span>
-                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-[11px] font-medium">
+                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-[11px] font-semibold">
                                     {log.textPayload || (log.jsonPayload ? JSON.stringify(log.jsonPayload) : '')}
                                 </span>
                             </div>

@@ -172,7 +172,7 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
                 </AnimatePresence>
             </motion.div>
             <span className={cn(
-                "font-medium transition-all duration-300",
+                "font-semibold transition-all duration-300",
                 currentStep ? "text-[var(--foreground)] scale-105" : "text-[var(--muted-foreground)]"
             )}>
                 {label}
@@ -262,7 +262,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                     {search ? null : (
-                        <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-medium border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                        <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-bold border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
                             <span>{isMac ? '⌘' : 'Ctrl'}</span>
                             <span>K</span>
                         </div>
@@ -557,7 +557,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         <button
                             type="button"
                             onClick={() => setShowAdvanced(!showAdvanced)}
-                            className="flex items-center gap-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                            className="flex items-center gap-2 text-sm font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                         >
                             {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             Advanced Build Settings
@@ -689,7 +689,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                     checked={newEnvIsSecret}
                                     onCheckedChange={setNewEnvIsSecret}
                                 />
-                                <label htmlFor="isSecret" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                                <label htmlFor="isSecret" className="text-sm font-semibold cursor-pointer flex items-center gap-1.5">
                                     <Shield className="w-4 h-4 text-[var(--info)]" />
                                     Secret (Encrypted)
                                 </label>
@@ -841,7 +841,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                     </motion.div>
                     <p className="text-[var(--muted-foreground)] flex items-center gap-2">
                         <GitBranch className="w-4 h-4" />
-                        <span className="font-medium text-[var(--foreground)]">{project.name}</span>
+                        <span className="font-semibold text-[var(--foreground)]">{project.name}</span>
                         <span className="opacity-50">•</span>
                         <span>{initialDeployment.gitBranch}</span>
                         <span className="opacity-50">•</span>
@@ -917,7 +917,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                     </div>
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Environment</span>
-                                        <p className="text-sm font-medium">Production</p>
+                                        <p className="text-sm font-semibold">Production</p>
                                     </div>
                                 </div>
                             </div>
