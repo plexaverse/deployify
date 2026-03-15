@@ -52,7 +52,7 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
       {/* Header: Project Identity and Sparkline */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex justify-between w-full mb-4">
         <div className="flex items-center gap-3">
           <ProjectAvatar name={project.name} productionUrl={project.productionUrl} className="w-8 h-8" />
           <div className="min-w-0">
