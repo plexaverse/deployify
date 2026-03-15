@@ -42,6 +42,18 @@ export async function POST(req: Request) {
             );
         }
 
+        if (process.env.MOCK_DB === 'true') {
+            return NextResponse.json(
+                {
+                    orderId: 'order_mock_123',
+                    amount: tier.price * 100,
+                    currency: 'INR',
+                    keyId: 'rzp_test_mock'
+                },
+                { headers: securityHeaders }
+            );
+        }
+
         if (tier.id === 'free') {
             return NextResponse.json(
                 { error: 'Cannot checkout for free tier' },
