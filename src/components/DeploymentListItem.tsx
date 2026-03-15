@@ -50,18 +50,18 @@ export function DeploymentListItem({
                         </div>
                         <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             <div className="flex items-center gap-1">
-                                <span className="font-mono text-[var(--foreground)] uppercase">{deployment.gitBranch}</span>
+                                <span className="font-mono text-[var(--foreground)] uppercase">{deployment.gitBranch.toUpperCase()}</span>
                                 <span className="text-[var(--muted)]">@</span>
                                 <span
                                     className="hover:text-[var(--foreground)] cursor-pointer font-mono uppercase"
                                     onClick={() => onCopy(deployment.gitCommitSha, `sha-${deployment.id}`)}
                                 >
-                                    {deployment.gitCommitSha.substring(0, 7)}
+                                    {deployment.gitCommitSha.substring(0, 7).toUpperCase()}
                                 </span>
                                 {copiedId === `sha-${deployment.id}` && <Check className="w-3 h-3 text-[var(--success)]" />}
                             </div>
                             <span className="text-[var(--muted)]">•</span>
-                            <span>{formatDate(deployment.createdAt)}</span>
+                            <span>{formatDate(deployment.createdAt).toUpperCase()}</span>
                         </div>
                     </div>
                 </div>
