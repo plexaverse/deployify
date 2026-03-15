@@ -263,7 +263,7 @@ export default function LandingPage() {
               Trusted by innovative teams
             </p>
             <div
-              className="relative overflow-hidden w-full py-4 group"
+              className="relative overflow-hidden w-full py-8 group"
               style={{ maskImage: 'linear-gradient(to right, transparent, white 20%, white 80%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, white 20%, white 80%, transparent)' }}
             >
               <motion.div
@@ -278,8 +278,8 @@ export default function LandingPage() {
                     key={`${logo}-${idx}`}
                     role="listitem"
                     aria-label={`${logo} logo`}
-                    whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%)' }}
-                    className="text-2xl md:text-3xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
+                    whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%)', textShadow: "0 0 20px rgba(255,255,255,0.3)" }}
+                    className="text-2xl md:text-3xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-500 hover:text-[var(--foreground)]"
                   >
                     {logo}
                   </motion.span>
