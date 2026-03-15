@@ -101,7 +101,7 @@ export default function DashboardPage() {
                         <Input
                             ref={searchInputRef}
                             type="text"
-                            placeholder="SEARCH PROJECTS..."
+                            placeholder="Search projects..."
                             aria-label="Search projects"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
