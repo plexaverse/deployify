@@ -91,6 +91,7 @@ function createMockFirestore(): Firestore {
 
             return {
                 ...base,
+                projectId: id || 'audit-id',
                 name: 'Mock Project',
                 slug: 'mock-slug',
                 productionUrl: 'https://mock-slug.deployify.app',
@@ -107,6 +108,10 @@ function createMockFirestore(): Firestore {
                 performanceMetrics: { performanceScore: 0.95 },
                 joinedAt: { toDate: () => new Date() },
                 expiresAt: { toDate: () => new Date() },
+                envVariables: collection === Collections.PROJECTS ? [
+                    { id: 'audit-id', key: 'AUDIT_KEY', value: 'AUDIT_VALUE', target: 'both', isSecret: false }
+                ] : undefined,
+                cloudBuildId: 'audit-id',
             };
         },
         get: async () => mockDoc(id, collection),
