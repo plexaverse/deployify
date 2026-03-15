@@ -133,7 +133,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                     </div>
 
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-8 leading-relaxed">
-                            You have been invited to collaborate with <strong className="text-[var(--foreground)]">{team.name}</strong> on Deployify. Accept the invitation to get started.
+                            You have been invited to collaborate with <strong className="text-[var(--foreground)] uppercase">{team.name}</strong> on Deployify. Accept the invitation to get started.
                     </p>
 
                     <JoinButton token={token} teamName={team.name} />
