@@ -212,33 +212,35 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                         />
                     </div>
 
-                    <div className="flex items-center gap-3 px-3 py-2">
-                        <Avatar className="h-8 w-8 border border-[var(--border)] rounded-lg">
-                            <AvatarImage src={session.user.avatarUrl} alt={session.user.githubUsername} />
-                            <AvatarFallback className="rounded-lg">{session.user.githubUsername.slice(0, 2).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold truncate text-[var(--foreground)]">
-                                    {session.user.name || session.user.githubUsername}
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-3 px-3 py-2">
+                            <Avatar className="h-8 w-8 border border-[var(--border)] rounded-lg">
+                                <AvatarImage src={session.user.avatarUrl} alt={session.user.githubUsername} />
+                                <AvatarFallback className="rounded-lg">{session.user.githubUsername.slice(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <p className="text-sm font-semibold truncate text-[var(--foreground)]">
+                                        {session.user.name || session.user.githubUsername}
+                                    </p>
+                                    {session.user.subscription?.tier && session.user.subscription.tier !== 'free' && (
+                                        <PlanBadge tier={session.user.subscription.tier} />
+                                    )}
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate">
+                                    @{session.user.githubUsername}
                                 </p>
-                                {session.user.subscription?.tier && session.user.subscription.tier !== 'free' && (
-                                    <PlanBadge tier={session.user.subscription.tier} />
-                                )}
                             </div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate">
-                                @{session.user.githubUsername}
-                            </p>
                         </div>
+                        <motion.a
+                            whileTap={{ scale: 0.98 }}
+                            href="/api/auth/logout"
+                            className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            Sign out
+                        </motion.a>
                     </div>
-                    <motion.a
-                        whileTap={{ scale: 0.98 }}
-                        href="/api/auth/logout"
-                        className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Sign out
-                    </motion.a>
                 </div>
             </aside>
         </>
