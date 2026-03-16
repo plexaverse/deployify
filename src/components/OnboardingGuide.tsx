@@ -108,11 +108,11 @@ export function OnboardingGuide() {
                     <Link href="/new">
                         <MovingBorderButton
                             containerClassName="h-14 w-52"
-                            className="text-[10px] font-bold uppercase tracking-wider"
+                            className="text-[10px] font-bold uppercase tracking-wider group"
                         >
                             <span className="flex items-center gap-2">
                                 Import Project
-                                <ArrowRight className="w-4 h-4" />
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </span>
                         </MovingBorderButton>
                     </Link>

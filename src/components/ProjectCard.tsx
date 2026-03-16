@@ -50,7 +50,7 @@ export function ProjectCard({ project }: { project: Project }) {
   useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
 
   return (
-    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
+    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-3xl bg-[var(--card)]/50 backdrop-blur-xl border border-[var(--border)]/50 hover:border-[var(--foreground)]/30 shadow-sm hover:shadow-xl", config.glow)}>
       {/* Header: Project Identity and Sparkline */}
       <div className="flex justify-between w-full mb-4">
         <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export function ProjectCard({ project }: { project: Project }) {
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(latestDeployment.gitCommitSha); setCopiedId(project.id); toast.success('Copied SHA'); setTimeout(() => setCopiedId(null), 2000); }}
                 className="opacity-40 hover:opacity-100 flex items-center gap-1 transition-opacity"
-                aria-label="Copy SHA"
+                aria-label={copiedId === project.id ? "SHA Copied" : "Copy SHA"}
               >
                 <span className="font-mono">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
                 {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
