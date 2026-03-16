@@ -22,7 +22,7 @@ export default function NotFound() {
                 </p>
                 <div className="flex flex-col w-full gap-4">
                     <Link href="/" className="w-full">
-                        <Button size="lg" className="font-bold w-full" variant="outline">
+                        <Button size="lg" className="font-bold w-full text-[10px] uppercase tracking-wider" variant="outline">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Home
                         </Button>
