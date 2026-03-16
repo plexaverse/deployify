@@ -876,6 +876,22 @@ Refined the global dashboard layout and completed the standardization pass for p
 - **Audit**: Verified `src/app/dashboard/new/import/page.tsx` and confirmed it adheres to the latest standards.
 - **Tests**: Re-verified all 76 unit tests pass following layout refinements.
 
+## Progressive UI & Layout Standardization (Session 139)
+
+Conducted a final refinement pass for navigation components and landing page secondary elements to ensure absolute adherence to the platform-wide high-density technical aesthetic.
+
+### TeamSwitcher Typography Standardization
+- **File Updated**: `src/components/TeamSwitcher.tsx`
+- **Standardization**: Refactored the `TeamSwitcher` trigger and dropdown menu items to use the `text-[10px] font-bold uppercase tracking-wider` typography standard. This unifies the team selection interface with the sidebar's navigation items and the broader platform metadata language.
+
+### Landing Page Typography Standardization
+- **File Updated**: `src/components/LandingPage.tsx`
+- **Standardization**: Standardized the "Sign In" link and repository search result items to use the `text-[10px] font-bold uppercase tracking-wider` typography. This ensures that even secondary landing page elements conform to the platform's high-density technical aesthetic.
+
+### Project Creation Typography Refinement
+- **File Updated**: `src/app/new/page.tsx`
+- **Standardization**: Standardized the empty state message for repository search to use the `text-[10px] font-bold uppercase tracking-wider` typography, aligning with the "Import Repository" view and the platform's high-density technical aesthetic.
+
 ## Progressive UI & Layout Standardization (Session 133)
 
 Continued refining core components and typography across the platform.

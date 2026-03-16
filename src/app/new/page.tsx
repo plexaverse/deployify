@@ -358,7 +358,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                     {filteredRepos.length === 0 && (
                         <Card className="overflow-hidden p-0">
                             <div className="text-center py-12 text-[var(--muted-foreground)]">
-                                <p>No repositories found matching your search.</p>
+                                <p className="text-[10px] font-bold uppercase tracking-wider">No repositories found matching your search.</p>
                             </div>
                         </Card>
                     )}
