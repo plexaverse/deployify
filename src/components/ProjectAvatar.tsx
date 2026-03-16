@@ -15,20 +15,22 @@ export function ProjectAvatar({ name, productionUrl, className }: ProjectAvatarP
     const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
 
     useEffect(() => {
-        if (productionUrl) {
-            try {
-                // Ensure URL has protocol
-                const urlStr = productionUrl.startsWith('http') ? productionUrl : `https://${productionUrl}`;
-                const domain = new URL(urlStr).hostname;
-                // eslint-disable-next-line react-hooks/set-state-in-effect
-                setFaviconUrl(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
-            } catch {
-                // Invalid URL
+        const timeoutId = setTimeout(() => {
+            if (productionUrl) {
+                try {
+                    // Ensure URL has protocol
+                    const urlStr = productionUrl.startsWith('http') ? productionUrl : `https://${productionUrl}`;
+                    const domain = new URL(urlStr).hostname;
+                    setFaviconUrl(`https://www.google.com/s2/favicons?domain=${domain}&sz=64`);
+                } catch {
+                    // Invalid URL
+                    setFaviconUrl(null);
+                }
+            } else {
                 setFaviconUrl(null);
             }
-        } else {
-            setFaviconUrl(null);
-        }
+        }, 0);
+        return () => clearTimeout(timeoutId);
     }, [productionUrl]);
 
     // Generate initials (max 2 chars)

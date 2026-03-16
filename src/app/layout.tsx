@@ -25,10 +25,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let hostname = 'localhost';
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    hostname = new URL(config.appUrl).hostname;
+    new URL(config.appUrl);
   } catch (e) {
     console.error('[Layout] Failed to parse APP_URL:', config.appUrl, e);
   }

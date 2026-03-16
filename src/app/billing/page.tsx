@@ -12,8 +12,7 @@ import { UsageGauge } from '@/components/billing/UsageGauge';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { useStore } from '@/store';
 import { cn } from '@/lib/utils';
 
