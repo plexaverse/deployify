@@ -111,14 +111,14 @@ export function ProjectCard({ project }: { project: Project }) {
                 className="opacity-40 hover:opacity-100 flex items-center gap-1 transition-opacity"
                 aria-label="Copy SHA"
               >
-                <span className="font-mono">{latestDeployment.gitCommitSha.substring(0, 7)}</span>
+                <span className="font-mono">{latestDeployment.gitCommitSha.substring(0, 7).toUpperCase()}</span>
                 {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
               </button>
             </div>
             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-1">
                <div className="flex items-center gap-1.5">
                  <GitBranch className="w-3 h-3" />
-                 <span>{latestDeployment.gitBranch}</span>
+                 <span>{latestDeployment.gitBranch.toUpperCase()}</span>
                </div>
                <div className="flex items-center gap-1.5">
                  <Clock className="w-3 h-3" />

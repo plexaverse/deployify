@@ -192,7 +192,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                     label: (
                                         <div className="flex items-center gap-2">
                                             <Sun className="w-3.5 h-3.5" />
-                                            <span className="text-[10px] font-bold uppercase tracking-wider">Light</span>
+                                            <span>Light</span>
                                         </div>
                                     )
                                 },
@@ -201,7 +201,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                     label: (
                                         <div className="flex items-center gap-2">
                                             <Moon className="w-3.5 h-3.5" />
-                                            <span className="text-[10px] font-bold uppercase tracking-wider">Dark</span>
+                                            <span>Dark</span>
                                         </div>
                                     )
                                 }
@@ -230,7 +230,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                     )}
                                 </div>
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate">
-                                    @{session.user.githubUsername}
+                                    @{session.user.githubUsername.toUpperCase()}
                                 </p>
                             </div>
                         </div>

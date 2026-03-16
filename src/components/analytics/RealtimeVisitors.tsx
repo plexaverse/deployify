@@ -52,7 +52,7 @@ export function RealtimeVisitors({ projectId }: RealtimeVisitorsProps) {
             <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-[var(--info)]" />
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap">
-                    {stats.pageviews} views in last 15m
+                    {stats.pageviews} Views In Last 15m
                 </span>
             </div>
 

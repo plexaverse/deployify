@@ -22,11 +22,11 @@ interface DeploymentMetricsChartsProps {
 }
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && label) {
         return (
             <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 shadow-xl">
-                <p className="text-sm font-semibold text-[var(--foreground)] mb-2">
-                    {label}
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                    {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
                 </p>
                  {payload.map((entry: TooltipEntry, index: number) => (
                     <div key={index} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
@@ -64,11 +64,14 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
 
     if (data.length === 0) {
         return (
-            <Card className="overflow-hidden p-0">
-                <div className="p-12 text-center">
-                     <h3 className="text-lg font-semibold mb-2">No Deployment Metrics</h3>
-                     <p className="text-[var(--muted-foreground)]">
-                         Once you have successful deployments, metrics will appear here.
+            <Card className="overflow-hidden p-0 border-dashed bg-[var(--muted)]/5">
+                <div className="p-12 text-center flex flex-col items-center">
+                     <div className="w-12 h-12 rounded-2xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center mb-6 shadow-sm">
+                        <Zap className="w-6 h-6 text-[var(--muted-foreground)] opacity-50" />
+                     </div>
+                     <h3 className="text-xl font-bold mb-2 tracking-tight">No Deployment Metrics</h3>
+                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
+                         Successful production deployments are required to generate performance and build history.
                      </p>
                 </div>
             </Card>
