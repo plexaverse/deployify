@@ -11,9 +11,13 @@ export function Portal({ children }: PortalProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setMounted(true);
-        return () => setMounted(false);
+        const timeoutId = setTimeout(() => {
+            setMounted(true);
+        }, 0);
+        return () => {
+            clearTimeout(timeoutId);
+            setMounted(false);
+        };
     }, []);
 
     if (!mounted) {

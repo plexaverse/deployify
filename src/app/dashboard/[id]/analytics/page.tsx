@@ -59,8 +59,7 @@ export default function ProjectAnalyticsPage() {
 
                 const url = new URL(urlStr);
                 id = url.hostname;
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            } catch (e) {
+            } catch {
                 id = project.productionUrl;
             }
         }

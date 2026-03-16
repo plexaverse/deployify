@@ -40,8 +40,6 @@ const GCP_REGIONS = [
 ];
 
 export default function NewProjectPage() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const router = useRouter();
     const [step, setStep] = useState<1 | 2 | 3>(1);
     const [selectedRepo, setSelectedRepo] = useState<GitHubRepo | null>(null);
     const [project, setProject] = useState<Project | null>(null);
