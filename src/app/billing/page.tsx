@@ -199,7 +199,7 @@ export default function BillingPage() {
                     href="/dashboard"
                     className={cn(
                         buttonVariants({ variant: 'ghost' }),
-                        "mt-4"
+                        "mt-4 text-[10px] font-bold uppercase tracking-wider"
                     )}
                 >
                     Back to Dashboard
@@ -242,7 +242,7 @@ export default function BillingPage() {
                 <div className="flex items-center gap-4">
                     <Link
                         href="/dashboard"
-                        className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                        className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back to projects

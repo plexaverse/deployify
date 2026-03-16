@@ -57,7 +57,7 @@ export default async function LoginPage() {
                     </div>
                 </Card>
                 <p className="text-center mt-8">
-                    <Link href="/" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">← Back to home</Link>
+                    <Link href="/" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">← Back to home</Link>
                 </p>
             </main>
             <BackgroundBeams />

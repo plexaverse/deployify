@@ -111,7 +111,7 @@ export default function ProjectSettingsPage() {
             {/* Breadcrumb */}
             <Link
                 href={`/dashboard/${project.id}`}
-                className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to {project.name}

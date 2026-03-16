@@ -130,7 +130,7 @@ export default function CompareDeploymentsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => router.back()}
-                className="group text-[var(--muted-foreground)] hover:text-[var(--foreground)] -ml-2 h-auto py-0"
+                className="group text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] -ml-2 h-auto py-0"
             >
                 <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                 Back to Project

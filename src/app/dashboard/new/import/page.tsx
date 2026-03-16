@@ -173,7 +173,7 @@ export default function ImportProjectPage() {
                     href="/dashboard/new"
                     className={cn(
                         buttonVariants({ variant: 'ghost' }),
-                        "inline-flex items-center gap-2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] px-0 h-auto hover:bg-transparent transition-colors"
+                        "inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] px-0 h-auto hover:bg-transparent transition-colors"
                     )}
                 >
                     <ArrowLeft className="w-4 h-4" />
