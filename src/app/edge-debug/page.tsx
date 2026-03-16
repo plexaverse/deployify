@@ -48,8 +48,7 @@ export default function EdgeDebugPage() {
       let parsedHeaders = {}
       try {
         parsedHeaders = JSON.parse(headers)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (e) {
+      } catch {
         toast.error('Invalid JSON in headers')
         setLoading(false)
         return
@@ -67,8 +66,7 @@ export default function EdgeDebugPage() {
       } else {
         toast.success('Simulation complete')
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (e) {
+    } catch {
       toast.error('An unexpected error occurred')
     } finally {
       setLoading(false)

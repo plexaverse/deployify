@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/* eslint-disable @typescript-eslint/no-require-imports */
-
 /**
  * Deployify CLI
  *
@@ -140,8 +138,7 @@ function handleLogin() {
         const start = (process.platform == 'darwin'? 'open': process.platform == 'win32'? 'start': 'xdg-open');
         try {
             exec(`${start} "${authUrl}"`);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e) {
+        } catch {
             // Ignore error if browser can't be opened, user can click link
         }
     });

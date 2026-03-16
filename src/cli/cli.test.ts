@@ -20,8 +20,7 @@ global.fetch = mockFetch;
 
 // Import the CLI module (CommonJS)
 // @ts-expect-error - testing a CommonJS module in TS environment
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const cli = require('./index.js');
+import cli from './index.js';
 
 describe('CLI Utilities', () => {
     test('getGitStatus returns trimmed output', () => {

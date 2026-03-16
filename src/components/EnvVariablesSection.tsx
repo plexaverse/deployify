@@ -8,8 +8,6 @@ import {
     EyeOff,
     Copy,
     Check,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Loader2,
     AlertCircle,
     Info,
     Shield,
