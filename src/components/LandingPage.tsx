@@ -95,7 +95,7 @@ export default function LandingPage() {
             </motion.div>
             <div className="flex items-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/login" className="text-sm font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+                <Link href="/login" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                   Sign In
                 </Link>
               </motion.div>
@@ -555,7 +555,7 @@ export default function LandingPage() {
                         aria-selected={selectedIndex === i}
                         onMouseEnter={() => setSelectedIndex(i)}
                         onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
-                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-sm transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
+                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
                       >
                         <Github className="w-4 h-4" /> {repo}
                       </div>
