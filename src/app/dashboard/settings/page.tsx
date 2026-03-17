@@ -239,7 +239,7 @@ export default function TeamSettingsPage() {
                             </AvatarFallback>
                         </Avatar>
                         <div className="space-y-1">
-                            <h3 className="text-xl font-bold text-[var(--foreground)]">
+                            <h3 className="text-xl font-semibold text-[var(--foreground)]">
                                 {user?.name || user?.githubUsername || 'Personal Workspace'}
                             </h3>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">

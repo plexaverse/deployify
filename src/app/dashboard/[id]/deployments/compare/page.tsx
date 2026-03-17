@@ -325,7 +325,7 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                    <h3 className="font-bold text-lg text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
+                    <h3 className="font-semibold text-lg text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
                     <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
                         <GitBranch className="w-3.5 h-3.5" />
                         <span className="font-mono text-[var(--foreground)]">{deployment.gitBranch}</span>
