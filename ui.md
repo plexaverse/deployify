@@ -1113,3 +1113,27 @@ Conducted a final technical debt cleanup to ensure zero lint warnings and remove
     - Switched `require` to `import` in `cli.test.ts`.
     - Converted `catch (e)` to `catch {}` where the error object was unused.
 - **Verification**: Confirmed 0 lint warnings via `npm run lint`.
+
+## Progressive UI & Layout Standardization (Session 141)
+
+Conducted a refinement pass for component-level typography to ensure consistent visual hierarchy and professional aesthetic.
+
+### Typography Weight Standardization
+- **Core Strategy**: Replaced `font-bold` with `font-semibold` for all internal component titles and primary identifiers. This reserves `font-bold` strictly for root page titles (`text-3xl font-bold`) and high-density technical metadata labels, improving the overall typographic balance of the platform.
+- **Files Updated**:
+    - `src/components/EmptyState.tsx`: Refined the empty state title.
+    - `src/components/ui/bento-grid.tsx`: Refined the `BentoGridItem` title.
+    - `src/components/ProjectCard.tsx`: Refined the project name identifier.
+    - `src/components/analytics/DeploymentMetricsCharts.tsx`: Refined the "No Deployment Metrics" title.
+    - `src/app/dashboard/[id]/analytics/page.tsx`: Refined the "No Analytics Data" title.
+    - `src/components/CommandPalette.tsx`: Refined project names in search results.
+    - `src/components/billing/UsageGauge.tsx`: Refined usage value typography.
+    - `src/app/dashboard/settings/page.tsx`: Refined the user profile name.
+    - `src/app/dashboard/[id]/deployments/compare/page.tsx`: Refined deployment commit messages in selectors.
+    - `src/app/new/page.tsx`: Refined the post-deployment success title.
+    - `src/app/edge-debug/page.tsx`: Refined the simulation status text.
+    - `src/components/DomainsSection.tsx`: Refined the Cloudflare setup recommendation header.
+
+### Aesthetic Refinement
+- **Consistency**: Unified the interactive weight for all primary component labels at `font-semibold`, matching the standard set for settings labels and navigation items in previous sessions.
+- **Visual Priority**: Improved the visual distinction between page-level headers and internal card-level content.
