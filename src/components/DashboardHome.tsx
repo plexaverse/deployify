@@ -86,13 +86,13 @@ export default function DashboardHome() {
              <Link
                key={project.id}
                href={`/dashboard/${project.id}`}
-               className="block h-full"
+               className="block h-full group/card"
              >
                <BentoGridItem
                  title={null}
                  description={null}
                  header={<ProjectCard project={project} />}
-                 className="h-full min-h-[12rem] cursor-pointer hover:border-[var(--primary)] transition-colors"
+                 className="p-0 overflow-hidden border-0 bg-transparent shadow-none h-full min-h-[12rem] cursor-pointer transition-all duration-300 group-hover/card:scale-[0.99]"
                />
              </Link>
            ))}
