@@ -255,7 +255,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                     {search ? null : (
-                        <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-bold border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                        <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-bold uppercase tracking-wider border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
                             <span>{isMac ? '⌘' : 'Ctrl'}</span>
                             <span>K</span>
                         </div>

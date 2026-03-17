@@ -301,11 +301,11 @@ export default function ProjectDetailPage() {
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <GitBranch className="w-3 h-3" />
-                                                    <span>Branch: <span className="text-[var(--foreground)] font-mono font-bold">{project.defaultBranch}</span></span>
+                                                    <span>Branch: <span className="text-[var(--foreground)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch}</span></span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <Clock className="w-3 h-3" />
-                                                    <span>Last Push: <span className="text-[var(--foreground)] font-bold uppercase">{formatDate(project.updatedAt)}</span></span>
+                                                    <span>Last Push: <span className="text-[var(--foreground)] text-[10px] font-bold uppercase tracking-wider">{formatDate(project.updatedAt)}</span></span>
                                                 </div>
                                             </div>
                                         </div>

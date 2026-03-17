@@ -36,7 +36,7 @@ export default function GlobalError({
                     <Button
                         onClick={() => reset()}
                         size="lg"
-                        className="w-full font-bold h-12"
+                        className="w-full text-[10px] font-bold uppercase tracking-wider h-12"
                         variant="primary"
                     >
                         <RefreshCw className="mr-2 h-4 w-4" />

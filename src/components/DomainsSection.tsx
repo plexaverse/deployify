@@ -225,17 +225,17 @@ export function DomainsSection({
 
                     <div className="mb-8 flex items-center gap-4">
                         <div className="flex items-center gap-2 text-[var(--foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold">1</div>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold uppercase tracking-wider">1</div>
                             <span className="text-[10px] font-bold uppercase tracking-wider">DNS Configuration</span>
                         </div>
                         <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
                         <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] font-bold">2</div>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">2</div>
                             <span className="text-[10px] font-bold uppercase tracking-wider">Securing site</span>
                         </div>
                         <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
                         <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] font-bold">3</div>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">3</div>
                             <span className="text-[10px] font-bold uppercase tracking-wider">Ready</span>
                         </div>
                     </div>
@@ -319,15 +319,15 @@ export function DomainsSection({
                                 <table className="w-full text-[10px] font-bold uppercase tracking-wider">
                                     <tbody className="divide-y divide-[var(--border)]">
                                         <tr>
-                                            <td className="py-2 px-3 font-bold uppercase tracking-wider bg-[var(--muted)]/5 w-20">Type</td>
-                                            <td className="py-2 px-3 font-mono font-bold text-[var(--primary)]">CNAME</td>
+                                            <td className="py-2 px-3 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/5 w-20">Type</td>
+                                            <td className="py-2 px-3 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">CNAME</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 font-bold uppercase tracking-wider bg-[var(--muted)]/5">Name</td>
-                                            <td className="py-2 px-3 font-mono">@ or subdomain</td>
+                                            <td className="py-2 px-3 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Name</td>
+                                            <td className="py-2 px-3 font-mono text-[10px] font-bold uppercase tracking-wider">@ or subdomain</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 font-bold uppercase tracking-wider bg-[var(--muted)]/5">Target</td>
+                                            <td className="py-2 px-3 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Target</td>
                                             <td className="py-2 px-3">
                                                 <div className="flex items-center gap-2">
                                                     <code className="font-mono text-[var(--foreground)] bg-[var(--muted)]/10 px-1.5 py-0.5 rounded truncate">

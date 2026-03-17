@@ -37,7 +37,7 @@ export default function Error({
                     <Button
                         size="lg"
                         onClick={() => reset()}
-                        className="font-bold w-full"
+                        className="text-[10px] font-bold uppercase tracking-wider w-full"
                         variant="primary"
                     >
                         <RefreshCw className="mr-2 h-4 w-4" />

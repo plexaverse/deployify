@@ -535,10 +535,10 @@ export default function LandingPage() {
                   ) : (
                     os && (
                       <div className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity">
-                        <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold text-[var(--muted-foreground)]">
+                        <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                           {os === 'mac' ? '⌘' : 'Ctrl'}
                         </kbd>
-                        <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold text-[var(--muted-foreground)]">
+                        <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                           K
                         </kbd>
                       </div>

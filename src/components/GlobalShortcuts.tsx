@@ -99,17 +99,17 @@ export function GlobalShortcuts() {
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-[var(--foreground)]">Go to Dashboard</span>
                                 <div className="flex items-center gap-1.5">
-                                    <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold font-mono shadow-sm">G</kbd>
+                                    <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">G</kbd>
                                     <span className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">then</span>
-                                    <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold font-mono shadow-sm">H</kbd>
+                                    <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">H</kbd>
                                 </div>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-[var(--foreground)]">Go to Projects</span>
                                 <div className="flex items-center gap-1.5">
-                                    <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold font-mono shadow-sm">G</kbd>
+                                    <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">G</kbd>
                                     <span className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">then</span>
-                                    <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold font-mono shadow-sm">P</kbd>
+                                    <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">P</kbd>
                                 </div>
                             </div>
                         </div>
@@ -118,16 +118,16 @@ export function GlobalShortcuts() {
                             <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Actions</h4>
                              <div className="flex justify-between items-center text-sm">
                                 <span className="text-[var(--foreground)]">Create New Project</span>
-                                 <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold font-mono shadow-sm">C</kbd>
+                                 <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">C</kbd>
                             </div>
                              <div className="flex justify-between items-center text-sm">
                                 <span className="text-[var(--foreground)]">Show Shortcuts</span>
-                                 <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold font-mono shadow-sm">?</kbd>
+                                 <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">?</kbd>
                             </div>
                         </div>
                     </div>
                      <div className="p-4 bg-[var(--muted)]/5 border-t border-[var(--border)] text-[10px] text-[var(--muted-foreground)] text-center font-bold uppercase tracking-wider">
-                        Press <kbd className="px-1.5 py-0.5 border border-[var(--border)] rounded bg-[var(--background)] shadow-sm font-mono">Esc</kbd> to close
+                        Press <kbd className="px-1.5 py-0.5 border border-[var(--border)] rounded bg-[var(--background)] shadow-sm font-mono text-[10px] font-bold uppercase tracking-wider">Esc</kbd> to close
                     </div>
                 </Card>
             </div>
