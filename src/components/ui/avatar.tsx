@@ -49,7 +49,7 @@ const AvatarImage = React.forwardRef<
             return;
         }
 
-        const img = new Image();
+        const img = new window.Image();
         img.src = src as string;
 
         const handleLoad = () => onImageLoadingStatusChange('loaded');
@@ -78,6 +78,7 @@ const AvatarImage = React.forwardRef<
     }
 
     return (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
             ref={ref}
             src={src}

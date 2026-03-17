@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Loader2,
     Pause,
@@ -15,6 +15,7 @@ import {
     Search,
     X
 } from 'lucide-react';
+import * as React from 'react';
 import { parseLogEntry, type LogEntry } from '@/lib/logging/parser';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -168,24 +169,22 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
         setSeverityFilter(next);
     };
 
-    const filteredLogs = useMemo(() => {
-        return logs.filter(log => {
-            // Severity filter
-            if (severityFilter.size > 0 && !severityFilter.has(log.severity)) {
-                return false;
-            }
+    const filteredLogs = logs.filter(log => {
+        // Severity filter
+        if (severityFilter.size > 0 && !severityFilter.has(log.severity)) {
+            return false;
+        }
 
-            // Text search filter
-            if (searchQuery) {
-                const query = searchQuery.toLowerCase();
-                const textContent = log.textPayload?.toLowerCase() || '';
-                const jsonContent = log.jsonPayload ? JSON.stringify(log.jsonPayload).toLowerCase() : '';
-                return textContent.includes(query) || jsonContent.includes(query);
-            }
+        // Text search filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const textContent = log.textPayload?.toLowerCase() || '';
+            const jsonContent = log.jsonPayload ? JSON.stringify(log.jsonPayload).toLowerCase() : '';
+            return textContent.includes(query) || jsonContent.includes(query);
+        }
 
-            return true;
-        });
-    }, [logs, severityFilter, searchQuery]);
+        return true;
+    });
 
     const getSeverityColor = (severity: string) => {
         switch (severity?.toUpperCase()) {

@@ -187,7 +187,6 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
     const [repos, setRepos] = useState<GitHubRepo[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const searchRef = useRef<HTMLInputElement>(null);
     const [isMac, setIsMac] = useState(false);
 
@@ -211,13 +210,11 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                 const data = await response.json();
 
                 if (data.error) {
-                    setError(data.error);
                     toast.error(data.error);
                 } else {
                     setRepos(data.repos || []);
                 }
             } catch {
-                setError('Failed to fetch repositories');
                 toast.error('Failed to fetch repositories');
             } finally {
                 setLoading(false);
