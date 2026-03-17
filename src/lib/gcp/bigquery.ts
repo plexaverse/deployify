@@ -41,7 +41,6 @@ export interface BigQueryAnalyticsEvent {
  */
 export async function streamEventToBigQuery(event: BigQueryAnalyticsEvent) {
     if (process.env.NODE_ENV === 'development') {
-        console.log('[BigQuery] [Mock] Streaming event:', event);
         return;
     }
 

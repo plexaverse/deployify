@@ -1113,3 +1113,12 @@ Conducted a final technical debt cleanup to ensure zero lint warnings and remove
     - Switched `require` to `import` in `cli.test.ts`.
     - Converted `catch (e)` to `catch {}` where the error object was unused.
 - **Verification**: Confirmed 0 lint warnings via `npm run lint`.
+
+## Progressive UI & Layout Standardization (Session 142)
+
+Conducted a final refinement pass for project cards to ensure absolute adherence to the platform-wide typography standards for internal component identifiers.
+
+### ProjectCard Typography Refinement
+- **File Updated**: `src/components/ProjectCard.tsx`
+- **Standardization**: Refactored project titles from `font-bold` to `font-semibold`. This unifies the card's primary identifier with the platform's internal component title standards (reserving `font-bold` for root page titles and technical metadata tags).
+- **Verification**: Confirmed via visual audit that the typography remains high-density and professional while better aligning with the overall page hierarchy.
