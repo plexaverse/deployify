@@ -293,7 +293,7 @@ export default function ProjectDetailPage() {
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-3">
                                             <div className="space-y-1">
-                                                <p className="text-2xl font-bold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
+                                                <p className="text-2xl font-semibold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
                                                     {project.productionUrl.replace(/^https?:\/\//, '')}
                                                     <ExternalLink className="inline-block w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                                                 </p>
@@ -376,7 +376,7 @@ export default function ProjectDetailPage() {
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <div className="p-6 flex items-baseline gap-2">
-                                <span className="text-3xl font-bold">{errorCount}</span>
+                                <span className="text-3xl font-semibold">{errorCount}</span>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">events tracked</span>
                             </div>
                         </Card>

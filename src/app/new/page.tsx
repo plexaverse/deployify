@@ -142,7 +142,7 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
                     scale: currentStep ? 1.1 : 1,
                 }}
                 className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border relative",
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border relative",
                     currentStep && 'ring-2 ring-[var(--primary)]/30 ring-offset-2 ring-offset-[var(--background)]'
                 )}
             >
@@ -806,7 +806,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         animate={{
                             color: isReady ? 'var(--success)' : isError ? 'var(--error)' : 'var(--info)'
                         }}
-                        className="text-2xl font-bold flex items-center gap-3"
+                        className="text-2xl font-semibold flex items-center gap-3"
                     >
                         {isReady ? (
                             <motion.div
