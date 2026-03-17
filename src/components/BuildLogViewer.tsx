@@ -60,7 +60,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
             <div className="flex flex-col space-y-0.5 text-[var(--terminal-foreground)]/80">
                 {logs?.split('\n').map((line, i) => (
                     <div key={i} className="break-all whitespace-pre-wrap hover:bg-[var(--terminal-foreground)]/5 transition-colors duration-200 px-2 rounded-sm -mx-2 group flex gap-4">
-                        <span className="shrink-0 text-[10px] font-bold uppercase tracking-tighter opacity-30 select-none w-10 text-right">
+                        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider opacity-30 select-none w-10 text-right">
                            {(i + 1).toString().padStart(3, '0')}
                         </span>
                         <span className="flex-1">{line || '\u00A0'}</span>

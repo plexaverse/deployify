@@ -46,13 +46,13 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-1 block group-hover:text-[var(--primary)] transition-colors">
                         Available Plan
                     </span>
-                    <h3 className="text-2xl font-bold mb-3">{plan.name}</h3>
+                    <h3 className="text-2xl font-semibold mb-3">{plan.name}</h3>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] min-h-[40px] leading-relaxed">{plan.description}</p>
                 </div>
 
                 <div className="mb-10">
                     <div className="flex items-baseline gap-1">
-                        <span className="text-5xl font-bold tracking-tighter">{plan.price}</span>
+                        <span className="text-5xl font-semibold tracking-tighter">{plan.price}</span>
                         {plan.price !== 'Custom' && (
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">/ month</span>
                         )}
