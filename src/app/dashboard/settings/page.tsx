@@ -469,7 +469,7 @@ export default function TeamSettingsPage() {
                                                 <div>
                                                     <p className="font-semibold text-[var(--foreground)] flex items-center gap-2">
                                                         {invite.email}
-                                                        <Badge variant="info" className="text-[10px] px-1.5 py-0 uppercase">Invited</Badge>
+                                                        <Badge variant="info" className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0">Invited</Badge>
                                                     </p>
                                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                         Sent {new Date(invite.createdAt).toLocaleDateString().toUpperCase()}

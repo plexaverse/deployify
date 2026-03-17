@@ -45,7 +45,7 @@ export default function GlobalError({
                     {error.digest && (
                         <div className="mt-8 pt-6 border-t border-[var(--border)] w-full">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]">Error Digest</span>
-                            <code className="block mt-2 text-[10px] font-mono text-[var(--muted-foreground)] bg-[var(--muted)]/10 p-2 rounded">
+                            <code className="block mt-2 text-[10px] font-bold uppercase tracking-wider font-mono text-[var(--muted-foreground)] bg-[var(--muted)]/10 p-2 rounded">
                                 {error.digest}
                             </code>
                         </div>
