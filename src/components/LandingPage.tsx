@@ -90,7 +90,7 @@ export default function LandingPage() {
             <motion.div whileTap={{ scale: 0.95 }}>
               <Link href="/" className="flex items-center gap-2 group" aria-label="Deployify Home">
                 <Rocket className="w-6 h-6 text-[var(--foreground)] group-hover:rotate-12 transition-transform" />
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] bg-opacity-50">Deployify</span>
+                <span className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] bg-opacity-50">Deployify</span>
               </Link>
             </motion.div>
             <div className="flex items-center gap-4">
@@ -172,7 +172,7 @@ export default function LandingPage() {
                   <MovingBorderButton
                     as="div"
                     containerClassName="w-full h-auto"
-                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-base font-bold flex items-center justify-center gap-2"
+                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-base font-semibold flex items-center justify-center gap-2"
                   >
                     <Github className="w-5 h-5" />
                     Connect GitHub
@@ -185,7 +185,7 @@ export default function LandingPage() {
                   variant="outline"
                   size="lg"
                   onClick={() => toast.info('Demo video coming soon!', { description: 'We are currently polishing our walkthrough.' })}
-                  className="w-full text-lg font-bold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
+                  className="w-full text-lg font-semibold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
                   aria-label="Watch 2-minute demo video"
                 >
                   <div className="relative">
@@ -346,7 +346,7 @@ export default function LandingPage() {
                        >
                          {step.icon}
                        </motion.div>
-                       <h3 className="text-2xl font-bold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
+                       <h3 className="text-2xl font-semibold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
                     </div>
                     <div className="text-lg text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}
@@ -372,7 +372,7 @@ export default function LandingPage() {
               >
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-lg font-bold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
+                    <h3 className="text-lg font-semibold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
                   </div>
                   <X className="w-5 h-5 text-[var(--error)]" />
@@ -400,7 +400,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-lg font-bold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
+                    <h3 className="text-lg font-semibold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
                   </div>
                   <Check className="w-5 h-5 text-[var(--foreground)]" />
@@ -414,7 +414,7 @@ export default function LandingPage() {
                   ].map((item, i) => (
                     <div key={i} className="flex justify-between border-b border-[var(--border)] pb-2">
                       <span className="text-[var(--muted-foreground)]">{item.label}</span>
-                      <span className="font-mono text-[var(--foreground)] font-bold">{item.value}</span>
+                      <span className="font-mono text-[var(--foreground)] font-semibold">{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -487,7 +487,7 @@ export default function LandingPage() {
             className="mt-40 max-w-2xl mx-auto"
           >
             <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm relative group">
-              <h3 className="text-xl font-bold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
+              <h3 className="text-xl font-semibold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
               <div className="relative">
                 <label htmlFor="repo-search" className="sr-only">Search your GitHub repositories</label>
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors z-10" />
@@ -604,7 +604,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <Link href="/" className="flex items-center justify-center gap-2 mb-4 group w-fit mx-auto" aria-label="Deployify Home">
             <Rocket className="w-6 h-6 text-[var(--foreground)] group-hover:rotate-12 transition-transform" />
-            <span className="font-bold text-xl">Deployify</span>
+            <span className="font-semibold text-xl">Deployify</span>
           </Link>
           <p className="text-[var(--muted-foreground)] text-sm">
             © 2026 Deployify. Built for the modern developer.

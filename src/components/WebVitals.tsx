@@ -80,7 +80,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                                 })} />
                             </div>
                             <div className="flex items-baseline gap-1">
-                                <span className={cn("text-lg font-bold", {
+                                <span className={cn("text-lg font-semibold", {
                                     "text-[var(--success)]": variant === 'success',
                                     "text-[var(--warning)]": variant === 'warning',
                                     "text-[var(--error)]": variant === 'error',
@@ -130,7 +130,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                                     })} />
                                 </div>
                                 <div className="flex items-baseline gap-1.5 mb-3">
-                                    <span className={cn("text-2xl font-bold tracking-tight", {
+                                    <span className={cn("text-2xl font-semibold tracking-tight", {
                                         "text-[var(--success)]": variant === 'success',
                                         "text-[var(--warning)]": variant === 'warning',
                                         "text-[var(--error)]": variant === 'error',

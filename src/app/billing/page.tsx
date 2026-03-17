@@ -192,7 +192,7 @@ export default function BillingPage() {
     if (billingError || !usageData) {
         return (
             <div className="min-h-screen bg-[var(--background)] p-8 flex flex-col items-center justify-center text-center">
-                <h1 className="text-2xl font-bold mb-4">Error</h1>
+                <h1 className="text-2xl font-semibold mb-4">Error</h1>
                 <p className="text-[var(--muted-foreground)] mb-6">{billingError || 'Something went wrong'}</p>
                 <Link
                     href="/dashboard"
@@ -302,7 +302,7 @@ export default function BillingPage() {
                             <CreditCard className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
-                        <h3 className="text-3xl font-bold tracking-tight mb-4">Simple, transparent pricing</h3>
+                        <h3 className="text-3xl font-semibold tracking-tight mb-4">Simple, transparent pricing</h3>
                         <p className="text-lg text-[var(--muted-foreground)]">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
                         </p>
@@ -329,7 +329,7 @@ export default function BillingPage() {
                             <Layers className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</span>
-                        <h3 className="text-2xl font-bold">Compare features</h3>
+                        <h3 className="text-2xl font-semibold">Compare features</h3>
                     </div>
                     <ComparePlansTable plans={PLANS} currentPlanId={tier.id} />
                 </section>
