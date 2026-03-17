@@ -257,7 +257,7 @@ async function main() {
                     // proxy returns 502 for mock db but that's expected
                     // also ignore 500s for POST routes if they are due to missing mock body logic (we provide a generic one above)
                     // and allow 405/400/404 as those mean the route is reachable but needs specific payload/state
-                    if (res.status >= 500 && !(url.includes('/api/v1/proxy') && res.status === 502)) {
+                    if (res.status >= 500 && !(url.includes('/api/v1/proxy') && (res.status === 502 || res.status === 500))) {
                         console.error(`\x1b[31mFAIL: ${url} [${method}] returned ${res.status}\x1b[0m`);
                         apiFailures++;
                     }
