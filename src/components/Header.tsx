@@ -83,7 +83,7 @@ export function Header() {
                 >
                     <Search className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                     <span className="text-[10px] font-bold uppercase tracking-wider flex-1 text-left">Search projects...</span>
-                    <div className="flex items-center gap-0.5 text-[10px] font-mono opacity-50">
+                    <div className="flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider font-mono opacity-50">
                         <span>{isMac ? '⌘' : 'Ctrl'}</span>
                         <span>K</span>
                     </div>

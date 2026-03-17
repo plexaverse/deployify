@@ -587,7 +587,7 @@ export default function LandingPage() {
                 { name: 'Cloud Armor', icon: Shield },
               ].map((feat, i) => (
                 <div key={feat.name} className="group relative p-8 rounded-[2rem] border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm hover:border-[var(--muted)] transition-all duration-500 text-center overflow-hidden">
-                  <div className="absolute top-4 right-6 text-[10px] font-black text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
+                  <div className="absolute top-4 right-6 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
                   <feat.icon className="w-8 h-8 text-[var(--foreground)] mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">{feat.name}</span>
                 </div>

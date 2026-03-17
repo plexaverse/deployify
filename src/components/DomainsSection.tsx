@@ -316,7 +316,7 @@ export function DomainsSection({
                         <li>
                             Add a CNAME record in Cloudflare:
                             <div className="mt-4 ml-4 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-sm max-w-md">
-                                <table className="w-full text-[10px]">
+                                <table className="w-full text-[10px] font-bold uppercase tracking-wider">
                                     <tbody className="divide-y divide-[var(--border)]">
                                         <tr>
                                             <td className="py-2 px-3 font-bold uppercase tracking-wider bg-[var(--muted)]/5 w-20">Type</td>

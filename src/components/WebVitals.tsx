@@ -87,7 +87,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                                 })}>
                                     {stat.value}
                                 </span>
-                                <span className="text-[10px] text-[var(--muted-foreground)]">{stat.unit}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{stat.unit}</span>
                             </div>
                         </div>
                     );
