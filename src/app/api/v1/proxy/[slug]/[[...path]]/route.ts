@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getProjectBySlugGlobal } from '@/lib/db';
 import { getDb, Collections } from '@/lib/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
+import { trackError } from '@/lib/logging/tracker';
 
 // Helper for bot detection
 const isBot = (ua: string) => {
@@ -213,6 +214,20 @@ async function handleProxyRequest(
 
     } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during proxying';
+
+        // Log to central error tracker
+        await trackError({
+            message: `Internal Proxy Error: ${errorMessage}`,
+            projectId: project?.id,
+            error,
+            path: fullPath,
+            method: req.method,
+            metadata: {
+                slug,
+                targetUrl
+            }
+        });
+
         console.error(`Internal Proxy Error (${req.method}):`, error);
         return NextResponse.json({
             error: 'Internal Proxy Error',
