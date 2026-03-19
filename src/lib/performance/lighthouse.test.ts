@@ -31,12 +31,12 @@ describe('runLighthouseAudit', () => {
             }
         };
 
-        global.fetch = mock.fn(async (url: URL | string) => {
+        global.fetch = mock.fn(async (url: URL | string | Request) => {
             assert.ok(url.toString().includes('googleapis.com/pagespeedonline/v5/runPagespeed'));
             return {
                 ok: true,
                 json: async () => mockResponse
-            };
+            } as unknown as Response;
         });
 
         const metrics = await runLighthouseAudit('https://example.com');
@@ -60,7 +60,7 @@ describe('runLighthouseAudit', () => {
         global.fetch = mock.fn(async () => ({
             ok: true,
             json: async () => mockResponse
-        }));
+        } as unknown as Response));
 
         const metrics = await runLighthouseAudit('https://example.com');
 
@@ -75,7 +75,7 @@ describe('runLighthouseAudit', () => {
         global.fetch = mock.fn(async () => ({
             ok: false,
             status: 429
-        }));
+        } as unknown as Response));
 
         await assert.rejects(
             async () => await runLighthouseAudit('https://example.com'),
