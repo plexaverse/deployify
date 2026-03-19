@@ -103,7 +103,26 @@ export default function ProjectSettingsPage() {
     }
 
     if (!project) {
-        return null;
+        return (
+            <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+                <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-4">
+                    <div className="w-16 h-16 rounded-2xl bg-[var(--muted)]/10 flex items-center justify-center">
+                        <Settings className="w-8 h-8 text-[var(--muted-foreground)]" />
+                    </div>
+                    <div className="space-y-2">
+                        <h2 className="text-xl font-semibold">Project Not Found</h2>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            The project you are looking for does not exist or you don&apos;t have access.
+                        </p>
+                    </div>
+                    <Link href="/dashboard">
+                        <Button variant="outline" className="text-[10px] font-bold uppercase tracking-wider">
+                            Back to Dashboard
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     return (
