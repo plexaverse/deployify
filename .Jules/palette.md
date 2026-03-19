@@ -65,3 +65,7 @@
 ## 2026-03-22 - [Scripe.io Aesthetic and Compact Interactivity]
 **Learning:** Achieving a "premium" scripe.io aesthetic requires attention to micro-typography (e.g., `tracking-[0.2em]`) and glass-morphism (`backdrop-blur`). When implementing interactive elements (like copy buttons) within a parent navigation link, the `e.stopPropagation()` and `e.preventDefault()` patterns are essential. Additionally, avoiding `useEffect` for deterministic UI state (like mock sparklines) prevents cascading render warnings in strict environments.
 **Action:** Use wider tracking for metadata labels and prefer `useMemo` for deterministic visual data to satisfy strict linter rules.
+
+## 2026-03-25 - [Accessible Radiogroups and Directional Delight]
+**Learning:** Custom segmented controls or tab-like components often fail at accessibility by not implementing the `radiogroup` pattern, leaving keyboard and screen reader users stranded. Additionally, adding subtle directional transitions (e.g., icon translation) to primary CTA buttons provides a "high-end" feel that aligns with themes like scripe.io while reinforcing the action's intent.
+**Action:** Always implement `role="radiogroup"` with roving `tabIndex` for segmented controls, and use `group-hover` for subtle icon animations on CTAs.

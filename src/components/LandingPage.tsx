@@ -172,11 +172,11 @@ export default function LandingPage() {
                   <MovingBorderButton
                     as="div"
                     containerClassName="w-full h-auto"
-                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-base font-semibold flex items-center justify-center gap-2"
+                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-base font-semibold flex items-center justify-center gap-2 group/btn"
                   >
                     <Github className="w-5 h-5" />
                     Connect GitHub
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
                   </MovingBorderButton>
                 </Link>
               </motion.div>
