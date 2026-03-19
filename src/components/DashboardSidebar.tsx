@@ -32,7 +32,7 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ session }: DashboardSidebarProps) {
-    const { isSidebarOpen, setSidebarOpen, toggleSidebar, setMounted } = useStore();
+    const { isSidebarOpen, setSidebarOpen, toggleSidebar, setMounted, isMounted } = useStore();
     const pathname = usePathname();
     const params = useParams();
     const { theme, setTheme } = useTheme();
@@ -185,31 +185,35 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                 {/* User / Footer */}
                 <div className="p-4 border-t border-[var(--border)] space-y-4">
                     <div className="px-3">
-                        <SegmentedControl
-                            options={[
-                                {
-                                    value: 'light',
-                                    label: (
-                                        <div className="flex items-center gap-2">
-                                            <Sun className="w-3.5 h-3.5" />
-                                            <span>Light</span>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    value: 'dark',
-                                    label: (
-                                        <div className="flex items-center gap-2">
-                                            <Moon className="w-3.5 h-3.5" />
-                                            <span>Dark</span>
-                                        </div>
-                                    )
-                                }
-                            ]}
-                            value={theme || 'light'}
-                            onChange={(v) => setTheme(v)}
-                            className="w-full flex"
-                        />
+                        {isMounted ? (
+                            <SegmentedControl
+                                options={[
+                                    {
+                                        value: 'light',
+                                        label: (
+                                            <div className="flex items-center gap-2">
+                                                <Sun className="w-3.5 h-3.5" />
+                                                <span>Light</span>
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        value: 'dark',
+                                        label: (
+                                            <div className="flex items-center gap-2">
+                                                <Moon className="w-3.5 h-3.5" />
+                                                <span>Dark</span>
+                                            </div>
+                                        )
+                                    }
+                                ]}
+                                value={theme || 'light'}
+                                onChange={(v) => setTheme(v)}
+                                className="w-full flex"
+                            />
+                        ) : (
+                            <div className="h-9 w-full bg-[var(--card)] border border-[var(--border)] rounded-full animate-pulse" />
+                        )}
                     </div>
 
                     <div className="flex flex-col gap-2">
