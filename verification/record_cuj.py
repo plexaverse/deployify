@@ -30,7 +30,7 @@ def record_cuj(page: Page):
     print("Settings page loaded.")
 
     # Capture final state
-    page.screenshot(path="verification/cuj_final.png")
+    page.screenshot(path="verification/cuj_final.png", full_page=True)
     print("Screenshot captured at verification/cuj_final.png")
 
 if __name__ == "__main__":
