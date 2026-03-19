@@ -35,6 +35,8 @@ describe('syncCronJobs', () => {
     let syncCronJobs: typeof import('./scheduler').syncCronJobs;
 
     before(async () => {
+        // Explicitly disable MOCK_DB to ensure the real logic is tested
+        delete process.env.MOCK_DB;
         // Set env vars before importing module under test
         process.env.GCP_PROJECT_ID = 'test-gcp-project';
         process.env.GCP_REGION = 'us-central1';
