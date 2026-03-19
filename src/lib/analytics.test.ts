@@ -48,7 +48,7 @@ mock.module('@google-cloud/bigquery', {
     namedExports: {
         BigQuery: class {
             constructor() { return mockBigQueryInstance as unknown as import('@google-cloud/bigquery').BigQuery; }
-            query = mockBigQueryInstance.query;
+            query: unknown = mockBigQueryInstance.query;
         }
     }
 });

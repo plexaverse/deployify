@@ -94,14 +94,14 @@ describe('syncCronJobs', () => {
         assert.strictEqual(mockGetService.mock.callCount(), 1);
 
         // Verify listing jobs
-        const listCall = mockFetch.mock.calls[0];
+        const listCall = mockFetch.mock.calls[0] as unknown as { arguments: [string, RequestInit] };
         assert.match(listCall.arguments[0] as string, /projects\/.*\/locations\/us-central1\/jobs/);
 
         // Verify creating job
         assert.strictEqual(mockFetch.mock.callCount(), 2);
-        const createCall = mockFetch.mock.calls[1];
+        const createCall = mockFetch.mock.calls[1] as unknown as { arguments: [string, RequestInit] };
         assert.strictEqual(createCall.arguments[1].method, 'POST');
-        const body = JSON.parse(createCall.arguments[1].body);
+        const body = JSON.parse(createCall.arguments[1].body as string);
         assert.strictEqual(body.schedule, '0 0 * * *');
         // Verify correct URI from getService mock
         assert.strictEqual(body.httpTarget.uri, 'https://dfy-my-project-randomhash.us-central1.run.app/api/cron1');
@@ -135,8 +135,8 @@ describe('syncCronJobs', () => {
         // Verify update call (PATCH)
         assert.strictEqual(mockFetch.mock.callCount(), 2);
         const updateCall = mockFetch.mock.calls[1];
-        assert.strictEqual(updateCall.arguments[1].method, 'PATCH');
-        const body = JSON.parse(updateCall.arguments[1].body);
+        assert.strictEqual((updateCall.arguments[1] as RequestInit).method, 'PATCH');
+        const body = JSON.parse((updateCall.arguments[1] as RequestInit).body as string);
         assert.strictEqual(body.schedule, '5 * * * *');
     });
 
@@ -164,8 +164,8 @@ describe('syncCronJobs', () => {
         // Verify delete call
         assert.strictEqual(mockFetch.mock.callCount(), 2);
         const deleteCall = mockFetch.mock.calls[1];
-        assert.strictEqual(deleteCall.arguments[1].method, 'DELETE');
-        assert.strictEqual(deleteCall.arguments[0], `https://cloudscheduler.googleapis.com/v1/${existingJobName}`);
+        assert.strictEqual((deleteCall.arguments[1] as RequestInit).method, 'DELETE');
+        assert.strictEqual(deleteCall.arguments[0] as string, `https://cloudscheduler.googleapis.com/v1/${existingJobName}`);
     });
 
     it('should throw error if service not found', async () => {
@@ -189,8 +189,8 @@ test('listCronJobs', async (t) => {
     const listCronJobs = schedulerModule.listCronJobs;
 
     // We can mock global.fetch
-    const fetchMock = mock.fn();
-    global.fetch = fetchMock;
+    const fetchMock = mock.fn() as unknown as typeof fetch & { mock: { resetCalls: () => void, mockImplementation: (fn: unknown) => void } };
+    global.fetch = fetchMock as unknown as typeof fetch;
 
     t.beforeEach(() => {
         fetchMock.mock.resetCalls();
@@ -226,7 +226,7 @@ test('listCronJobs', async (t) => {
             return {
                 ok: true,
                 json: async () => mockJobsResponse
-            };
+            } as unknown as Response;
         });
 
         const jobs = await listCronJobs('my-slug', 'fake-token');
@@ -253,7 +253,7 @@ test('listCronJobs', async (t) => {
         fetchMock.mock.mockImplementation(async () => ({
             ok: true,
             json: async () => mockJobsResponse
-        }));
+        } as unknown as Response));
 
         const jobs = await listCronJobs('my-slug', 'fake-token');
         assert.strictEqual(jobs.length, 1);

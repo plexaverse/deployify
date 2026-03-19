@@ -19,7 +19,6 @@ const mockFetch = async (url: string) => {
 global.fetch = mockFetch;
 
 // Import the CLI module (CommonJS)
-// @ts-expect-error - testing a CommonJS module in TS environment
 import cli from './index.js';
 
 describe('CLI Utilities', () => {

@@ -4,14 +4,14 @@ import { parseVercelConfig } from './config';
 
 test('parseVercelConfig', async (t) => {
     // Mock fetcher function
-    const fetcher = mock.fn();
+    const fetcher = mock.fn() as unknown as typeof fetch & { mock: { resetCalls: () => void, mockImplementation: (fn: unknown) => void, callCount: () => number, calls: { arguments: unknown[] }[] } };
 
     t.beforeEach(() => {
         fetcher.mock.resetCalls();
     });
 
     await t.test('should return null for invalid repo name', async () => {
-        const result = await parseVercelConfig('invalid-repo', 'token', fetcher);
+        const result = await parseVercelConfig('invalid-repo', 'token', fetcher as unknown as (token: string, owner: string, repo: string, path: string) => Promise<string | null>);
         assert.strictEqual(result, null);
         assert.strictEqual(fetcher.mock.callCount(), 0);
     });
@@ -19,7 +19,7 @@ test('parseVercelConfig', async (t) => {
     await t.test('should return null when vercel.json is missing', async () => {
         fetcher.mock.mockImplementation(async () => null);
 
-        const result = await parseVercelConfig('owner/repo', 'token', fetcher);
+        const result = await parseVercelConfig('owner/repo', 'token', fetcher as unknown as (token: string, owner: string, repo: string, path: string) => Promise<string | null>);
         assert.strictEqual(result, null);
         assert.strictEqual(fetcher.mock.callCount(), 1);
 
@@ -30,7 +30,7 @@ test('parseVercelConfig', async (t) => {
     await t.test('should return null for invalid JSON', async () => {
         fetcher.mock.mockImplementation(async () => 'invalid-json');
 
-        const result = await parseVercelConfig('owner/repo', 'token', fetcher);
+        const result = await parseVercelConfig('owner/repo', 'token', fetcher as unknown as (token: string, owner: string, repo: string, path: string) => Promise<string | null>);
         assert.strictEqual(result, null);
     });
 
@@ -42,7 +42,7 @@ test('parseVercelConfig', async (t) => {
         };
         fetcher.mock.mockImplementation(async () => JSON.stringify(validConfig));
 
-        const result = await parseVercelConfig('owner/repo', 'token', fetcher);
+        const result = await parseVercelConfig('owner/repo', 'token', fetcher as unknown as (token: string, owner: string, repo: string, path: string) => Promise<string | null>);
         assert.deepStrictEqual(result, validConfig);
     });
 
@@ -52,7 +52,7 @@ test('parseVercelConfig', async (t) => {
         };
         fetcher.mock.mockImplementation(async () => JSON.stringify(validConfig));
 
-        const result = await parseVercelConfig('owner/repo', 'token', fetcher);
+        const result = await parseVercelConfig('owner/repo', 'token', fetcher as unknown as (token: string, owner: string, repo: string, path: string) => Promise<string | null>);
         assert.deepStrictEqual(result, validConfig);
     });
 });

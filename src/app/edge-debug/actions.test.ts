@@ -5,7 +5,8 @@ import { runSimulation } from './actions'
 
 describe('runSimulation', () => {
   before(() => {
-    process.env.NODE_ENV = 'test';
+    // NODE_ENV is read-only in some TS setups, so we don't overwrite it directly.
+    Object.defineProperty(process.env, 'NODE_ENV', { value: 'test' })
   });
 
   it('should simulate a simple middleware response', async () => {
