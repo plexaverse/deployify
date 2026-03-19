@@ -16,7 +16,7 @@ export async function runSimulation(
   code: string,
   requestDetails: { url: string; method: string; headers: Record<string, string> }
 ): Promise<SimulationResult> {
-  if (process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test') {
+  if (process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test' && !process.env.SIMULATION_ALLOWED) {
     return {
       status: 403,
       headers: {},

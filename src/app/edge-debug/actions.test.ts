@@ -1,12 +1,15 @@
 
-import { describe, it, before } from 'node:test'
+import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert'
 import { runSimulation } from './actions'
 
 describe('runSimulation', () => {
   before(() => {
-    // NODE_ENV is read-only in some TS setups, so we don't overwrite it directly.
-    Object.defineProperty(process.env, 'NODE_ENV', { value: 'test' })
+    process.env.SIMULATION_ALLOWED = 'true';
+  });
+
+  after(() => {
+    delete process.env.SIMULATION_ALLOWED;
   });
 
   it('should simulate a simple middleware response', async () => {

@@ -1,6 +1,6 @@
 
 import assert from 'node:assert';
-import { test, mock, describe, beforeEach } from 'node:test';
+import { test, mock, describe, beforeEach, before } from 'node:test';
 
 // Set up mocks before importing the module under test
 const mockDb = {
@@ -54,6 +54,10 @@ mock.module('@google-cloud/bigquery', {
 });
 
 describe('getAnalyticsStats', () => {
+    before(() => {
+        delete process.env.MOCK_DB;
+    });
+
     beforeEach(() => {
         mockDb.collection.mock.resetCalls();
         mockBigQueryInstance.query.mock.resetCalls();
