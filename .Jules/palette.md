@@ -65,3 +65,7 @@
 ## 2026-03-22 - [Scripe.io Aesthetic and Compact Interactivity]
 **Learning:** Achieving a "premium" scripe.io aesthetic requires attention to micro-typography (e.g., `tracking-[0.2em]`) and glass-morphism (`backdrop-blur`). When implementing interactive elements (like copy buttons) within a parent navigation link, the `e.stopPropagation()` and `e.preventDefault()` patterns are essential. Additionally, avoiding `useEffect` for deterministic UI state (like mock sparklines) prevents cascading render warnings in strict environments.
 **Action:** Use wider tracking for metadata labels and prefer `useMemo` for deterministic visual data to satisfy strict linter rules.
+
+## 2026-03-25 - [Accessible Segmented Control Pattern]
+**Learning:** Standard segmented controls often lack keyboard accessibility beyond basic tabbing. Implementing a roving tabindex with `role="radiogroup"` and `role="radio"` combined with Arrow key, Home, and End navigation provides a much more robust and expected experience for keyboard users. Deferring focus shifts via `setTimeout` ensures the active element is ready in the DOM after the selection state updates.
+**Action:** Always implement full radiogroup semantics and roving tabindex for segmented control components to ensure parity between mouse and keyboard experiences.
