@@ -23,10 +23,8 @@ export async function DELETE() {
         const isMockUser = session.user.id === 'audit-test';
 
         if (isProd || !isMockUser) {
-            console.log(`[Account] Deleting user account: ${session.user.id}`);
             await deleteUser(session.user.id);
         } else {
-            console.log(`[Account] Skipping DB deletion for mock user ${session.user.id} in dev mode`);
         }
 
         return NextResponse.json({

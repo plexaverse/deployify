@@ -47,7 +47,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 return NextResponse.json({ error: 'Failed to perform rollback on Cloud Run' }, { status: 500, headers: securityHeaders });
             }
         } else {
-            console.log('Simulating rollback traffic update...');
             // Wait a bit to simulate
             await new Promise(resolve => setTimeout(resolve, 1000));
         }

@@ -43,7 +43,6 @@ async function logEdgeEvent(projectId: string, req: NextRequest, path: string) {
     try {
         const db = getDb();
         await db.collection(Collections.ANALYTICS_EVENTS).add(eventData);
-        // console.log(`[Edge Analytics] Logged visit for ${projectId} at ${eventData.path}`);
 
         // BigQuery DUAL-WRITE
         const { streamEventToBigQuery } = await import('@/lib/gcp/bigquery');
@@ -68,7 +67,6 @@ async function resolveProject(slug: string) {
         const potentialNumber = parts[parts.length - 1];
         if (/^\d{10,}$/.test(potentialNumber)) {
             const strippedSlug = parts.slice(0, -1).join('-');
-            console.log(`[Proxy] Slug not found: ${slug}, trying stripped version: ${strippedSlug}`);
             project = await getProjectBySlugGlobal(strippedSlug);
         }
     }

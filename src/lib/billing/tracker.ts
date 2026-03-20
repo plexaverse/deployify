@@ -164,11 +164,9 @@ async function checkAndAlert(user: User, metric: string, usage: number, limit: n
         const alertKey = `${currentMonth}-${metric}-80`;
 
         if (user.lastUsageAlertKey === alertKey) {
-            console.log(`Alert already sent for ${alertKey}. Skipping.`);
             return;
         }
 
-        console.log(`Alerting user ${user.email} for ${metric} usage: ${percentage.toFixed(1)}%`);
 
         if (user.email) {
             const { subject, html } = usageAlertEmail(

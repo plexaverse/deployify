@@ -379,7 +379,6 @@ export async function simulateDeployment(
 
             // Simulate Email
             if (emailNotifications && userEmail && projectName) {
-                console.log(`[Simulation] Sending success email to ${userEmail} for ${projectName}`);
                 await sendEmail({
                     to: userEmail,
                     subject: `Deployment Success: ${projectName}`,

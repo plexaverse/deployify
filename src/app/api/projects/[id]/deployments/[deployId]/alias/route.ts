@@ -64,7 +64,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 return NextResponse.json({ error: 'Failed to update Cloud Run traffic tag' }, { status: 500, headers: securityHeaders });
             }
         } else {
-            console.log(`[Simulation] Setting traffic tag '${alias}' for revision '${deployment.cloudRunRevision}'`);
         }
 
         // Remove alias from other deployments to ensure uniqueness in DB
@@ -127,7 +126,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
                 return NextResponse.json({ error: 'Failed to remove Cloud Run traffic tag' }, { status: 500, headers: securityHeaders });
             }
         } else {
-             console.log(`[Simulation] Removing traffic tag '${alias}'`);
         }
 
         // Update DB

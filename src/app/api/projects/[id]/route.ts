@@ -248,7 +248,6 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
                 try {
                     await updateProject(id, revertUpdates);
-                    console.log(`Reverted project ${id} updates due to cron sync failure`);
                 } catch (revertError) {
                     console.error('CRITICAL: Failed to revert project updates:', revertError);
                     // At this point we are in an inconsistent state, but we must still inform the user

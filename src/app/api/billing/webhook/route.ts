@@ -37,7 +37,6 @@ export async function POST(req: Request) {
                 const tierId = notes?.tierId;
 
                 if (userId && tierId) {
-                    console.log(`Processing upgrade for user ${userId} to tier ${tierId}`);
                     const { updateUser } = await import('@/lib/db');
 
                     await updateUser(userId, {
@@ -50,14 +49,12 @@ export async function POST(req: Request) {
                         }
                     });
 
-                    console.log(`Successfully upgraded user ${userId} to ${tierId}`);
                 } else {
                     console.error('Missing userId or tierId in payment notes', { orderId, notes });
                 }
                 break;
             }
             default:
-                console.log('Unhandled event:', event.event);
         }
 
         return NextResponse.json({ status: 'ok' });

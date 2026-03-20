@@ -27,7 +27,6 @@ export interface SendEmailOptions {
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
     // Skip email sending if simulating locally and no API key (though config enforces it)
     if (!config.email.resendApiKey || config.email.resendApiKey === 'mock') {
-        console.log(`[Email Simulation] To: ${to}, Subject: ${subject}`);
         return { success: true, id: 'mock-email-id' };
     }
 
