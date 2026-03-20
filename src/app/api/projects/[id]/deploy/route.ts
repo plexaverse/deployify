@@ -338,7 +338,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         if (isRunningOnGCP() && deployment.cloudBuildId) {
             try {
-                console.log(`[Cancellation] Cancelling Cloud Build ${deployment.cloudBuildId} for project ${id}`);
                 await cancelBuild(deployment.cloudBuildId, project.region);
             } catch (e) {
                 console.error(`[Cancellation] Failed to cancel Cloud Build ${deployment.cloudBuildId}:`, e);

@@ -41,7 +41,6 @@ async function getMetricSum(
 
   // Simulation mode
   if (!isRunningOnGCP()) {
-    console.log(`[Simulation] Fetching metric ${metricType} for ${serviceName}`);
     // Return a random number between 100 and 10000
     return Math.floor(Math.random() * 9900) + 100;
   }

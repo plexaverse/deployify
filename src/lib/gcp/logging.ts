@@ -60,7 +60,6 @@ export async function listLogEntries(
 
   // Simulation mode
   if (!isRunningOnGCP()) {
-    console.log(`[Simulation] Fetching ${logType} logs for ${serviceName}`);
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
@@ -207,7 +206,6 @@ export async function getErrorRate(
 ): Promise<number> {
   // Simulation mode
   if (!isRunningOnGCP()) {
-    console.log(`[Simulation] Fetching error rate for ${serviceName}`);
     return Math.floor(Math.random() * 10); // Random count for simulation
   }
 

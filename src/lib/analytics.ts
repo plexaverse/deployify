@@ -62,7 +62,6 @@ export async function getAnalyticsStats(
         const bqRows = await getStatsFromBigQuery(projectId, days);
 
         if (bqRows.length > 0) {
-            console.log(`[Analytics] Using BigQuery data for ${projectId} (${bqRows.length} days)`);
 
             const totalPageviews = bqRows.reduce((acc, row) => acc + Number(row.pageviews), 0);
             const totalVisitors = bqRows.reduce((acc, row) => acc + Number(row.visitors), 0);
@@ -98,7 +97,6 @@ export async function getAnalyticsStats(
             .get();
 
         if (snapshot.empty) {
-            console.log(`No events found for project ${projectId}, returning mock data`);
             return getMockData(period);
         }
 

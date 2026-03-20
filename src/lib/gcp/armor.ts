@@ -5,7 +5,7 @@ import { config } from '@/lib/config';
  * This simulates the action as it requires setting up a Load Balancer with Cloud Armor policies
  */
 export async function enableCloudArmor(
-    serviceName: string
+    _serviceName: string
 ): Promise<void> {
     // In a real implementation, this would:
     // 1. Create a global external HTTP(S) load balancer (if not exists)
@@ -13,9 +13,8 @@ export async function enableCloudArmor(
     // 3. Create a Cloud Armor security policy
     // 4. Attach the policy to the backend service
 
-    // For now, we simulate the API call with a log
-    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
-    console.log(`[Cloud Armor] Enabling security policy for service: ${serviceName} in project ${gcpProjectId}`);
+    // For now, we simulate the API call
+    // const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
     // Simulate API latency
     await new Promise(resolve => setTimeout(resolve, 500));

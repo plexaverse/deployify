@@ -201,7 +201,6 @@ for (const f of files) {
   if (fs.existsSync(f)) {
     let content = fs.readFileSync(f, 'utf8');
     if (!content.includes('output: "standalone"') && !content.includes("output: 'standalone'")) {
-      console.log('Adding standalone output to ' + f);
       // Handle common export patterns
       const patterns = [
         /(const\\s+\\w+(?:\\s*:\\s*[^=]+)?\\s*=\\s*{)/,

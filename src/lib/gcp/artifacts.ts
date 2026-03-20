@@ -17,7 +17,6 @@ export async function deleteProjectImages(
 
     const fullName = `projects/${gcpProjectId}/locations/${region}/repositories/${repository}/packages/${serviceName}`;
 
-    console.log(`[ArtifactRegistry] Deleting package: ${fullName}`);
 
     const response = await fetch(
         `${ARTIFACT_REGISTRY_API}/${fullName}`,
@@ -82,7 +81,6 @@ export async function pruneProjectImages(
         // 3. Identify versions to delete (everything after keepCount)
         const toDelete = versions.slice(keepCount);
 
-        console.log(`[ArtifactRegistry] Pruning ${toDelete.length} old versions for ${serviceName}`);
 
         // 4. Delete each old version
         for (const version of toDelete) {

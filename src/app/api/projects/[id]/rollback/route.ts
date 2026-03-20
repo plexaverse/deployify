@@ -78,7 +78,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             }
         } else {
             // Local development simulation
-            console.log(`[SIMULATION] Rolling back project ${project.name} to revision ${revisionName}`);
 
             await logAuditEvent(
                 project.teamId || null,

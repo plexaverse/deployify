@@ -41,7 +41,6 @@ export interface BigQueryAnalyticsEvent {
  */
 export async function streamEventToBigQuery(event: BigQueryAnalyticsEvent) {
     if (process.env.NODE_ENV === 'development') {
-        console.log('[BigQuery] [Mock] Streaming event:', event);
         return;
     }
 
@@ -51,7 +50,6 @@ export async function streamEventToBigQuery(event: BigQueryAnalyticsEvent) {
 
     try {
         await table.insert(event);
-        // console.log(`[BigQuery] Successfully streamed ${event.type} for ${event.projectId} in project ${gcpProjectId}`);
     } catch (error: unknown) {
         // If dataset/table doesn't exist, this might fail
         console.error('[BigQuery] Streaming failed:', error);
@@ -80,7 +78,6 @@ export async function ensureBigQuerySchema() {
     const [datasets] = await bq.getDatasets();
     if (!datasets.some(d => d.id === datasetId)) {
         await bq.createDataset(datasetId);
-        console.log(`[BigQuery] Created dataset: ${datasetId}`);
     }
 
     const dataset = bq.dataset(datasetId);
@@ -111,6 +108,5 @@ export async function ensureBigQuerySchema() {
         ];
 
         await dataset.createTable(tableId, { schema });
-        console.log(`[BigQuery] Created table: ${tableId}`);
     }
 }
