@@ -78,7 +78,7 @@ export function CommandPalette() {
                aria-controls="command-results"
                aria-activedescendant={filtered.length > 0 ? `project-${filtered[selectedIndex]?.id}` : undefined}
                className="flex-1 bg-transparent border-0 shadow-none ring-0 p-4 text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus-visible:ring-0 focus-visible:ring-offset-0"
-               placeholder="Search projects..."
+               placeholder="SEARCH PROJECTS..."
                value={query}
                onChange={e => {
                  setQuery(e.target.value);
