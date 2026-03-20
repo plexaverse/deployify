@@ -1240,3 +1240,38 @@ Conducted a final reliability pass focused on production observability and autom
 ### Verification Script Refinement
 - **File Updated**: `verification/record_cuj.py`
 - **Standardization**: Refactored the Critical User Journey (CUJ) script to utilize Playwright's `expect` assertions and explicit visibility checks instead of legacy `wait_for_timeout` delays. This improves the reliability of automated visual audits across different environments.
+
+## Progressive UI & Layout Standardization (Session 151)
+
+Conducted a standardization pass for form labels and interactive elements across the settings and project creation flows.
+
+### Form Label Standardization
+- **Files Updated**:
+  - `src/app/dashboard/settings/page.tsx`
+  - `src/app/dashboard/new/import/page.tsx`
+  - `src/app/new/page.tsx`
+- **Standardization**: Replaced technical metadata typography (`text-[10px] font-bold uppercase tracking-wider`) with the standard `Label` component and `text-sm font-semibold` typography for primary form labels (e.g., "Email address", "Role", "Target Environment", "Scope"). This improves legibility and ensures consistent interaction patterns for user inputs across the platform.
+
+### Typography Weight & Aesthetic Refinement
+- **Files Updated**:
+  - `src/components/billing/UsageGauge.tsx`
+  - `src/components/ProjectAvatar.tsx`
+  - `src/components/LandingPage.tsx`
+- **Standardization**: Refined typography weights to align with platform standards:
+  - Updated usage metrics and project avatars from `font-bold` to `font-semibold`.
+  - Standardized the landing page hero H1 from `font-extrabold` to `font-bold`.
+  - Replaced decorative `font-black` and `font-extrabold` instances on the landing page with `font-bold`.
+  - Unified interactive labels and titles at the `font-semibold` level while reserving `font-bold` for technical metadata and root-level page headers.
+
+### Metadata Case Standardization
+- **Files Updated**:
+  - `src/app/dashboard/new/page.tsx`
+  - `src/app/new/page.tsx`
+- **Standardization**: Enforced explicit uppercase formatting for repository metadata (languages and default branches) using `.toUpperCase()`. This ensures absolute visual consistency with other technical labels (SHAs, timestamps) and maintains the platform's high-density technical aesthetic.
+
+### Final Technical Aesthetic Audit & Standardization
+- **Standardization**: Conducted a platform-wide audit to eliminate non-standard typography weights and inconsistent form labeling.
+- **Form Labels**: Standardized primary interactive labels (Email, Role, Target Environment, Scope) to `text-sm font-semibold`, replacing technical metadata styling to improve legibility while maintaining professional aesthetic.
+- **Typography Weights**: Refined internal component titles, metrics, and project identifiers to `font-semibold`, strictly reserving `font-bold` for root page titles and technical metadata tags (`text-[10px]`).
+- **Landing Page**: Standardized the hero section and feature badges to align with the platform's root title and metadata standards, removing legacy `font-extrabold` and `font-black` utility classes.
+- **Metadata Consistency**: Verified 100% adherence to explicit uppercase formatting for all technical metadata (SHAs, branches, timestamps, status badges) across the platform.

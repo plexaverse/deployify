@@ -337,7 +337,7 @@ export default function TeamSettingsPage() {
                             <Separator className="bg-[var(--border)]" />
                             <form onSubmit={handleInvite} className="p-6 flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
-                                    <Label htmlFor="email" className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2">Email address</Label>
+                                    <Label htmlFor="email" className="text-sm font-semibold block mb-2">Email address</Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -348,7 +348,7 @@ export default function TeamSettingsPage() {
                                     />
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <Label htmlFor="role" className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider block mb-2 px-1">Role</Label>
+                                    <Label htmlFor="role" className="text-sm font-semibold block mb-2 px-1">Role</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'admin', label: 'ADMIN' },

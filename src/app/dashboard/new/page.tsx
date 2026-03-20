@@ -218,12 +218,12 @@ export default function NewProjectPage() {
                                                 {repo.language && (
                                                     <span className="flex items-center gap-1.5">
                                                         <span className="w-2 h-2 rounded-full bg-[var(--info)]"></span>
-                                                        {repo.language}
+                                                        {repo.language.toUpperCase()}
                                                     </span>
                                                 )}
                                                 <span className="flex items-center gap-1.5">
                                                     <GitBranch className="w-3.5 h-3.5" />
-                                                    {repo.default_branch}
+                                                    {repo.default_branch.toUpperCase()}
                                                 </span>
                                                 <span>Updated {formatDate(repo.pushed_at)}</span>
                                             </div>
