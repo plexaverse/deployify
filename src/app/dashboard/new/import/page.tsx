@@ -399,7 +399,7 @@ export default function ImportProjectPage() {
                             </div>
 
                             <div className="space-y-2 flex-1 max-w-xs">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Target Environment</span>
+                                <Label className="text-sm font-semibold block mb-2">Target Environment</Label>
                                 <SegmentedControl
                                     value={newEnvTarget}
                                     onChange={(val) => setNewEnvTarget(val as 'both' | 'build' | 'runtime')}

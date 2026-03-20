@@ -146,7 +146,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-4xl md:text-6xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
+              className="text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
             >
               Deploy like Vercel, <br /> Pay like raw GCP.
             </motion.h1>
@@ -279,7 +279,7 @@ export default function LandingPage() {
                     role="listitem"
                     aria-label={`${logo} logo`}
                     whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%)' }}
-                    className="text-2xl md:text-3xl font-black tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
+                    className="text-2xl md:text-3xl font-bold tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
                   >
                     {logo}
                   </motion.span>
@@ -334,7 +334,7 @@ export default function LandingPage() {
                       whileInView={{ opacity: 0.3, scale: 1.2, x: 0 }}
                       viewport={{ margin: "-100px" }}
                       transition={{ duration: 1 }}
-                      className="absolute -left-12 md:-left-16 -top-2 text-5xl font-black text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
+                      className="absolute -left-12 md:-left-16 -top-2 text-5xl font-bold text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
                       aria-hidden="true"
                     >
                       0{i + 1}
@@ -396,7 +396,7 @@ export default function LandingPage() {
                 className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5 border border-[var(--primary)]/20 backdrop-blur-sm relative overflow-hidden group transition-all duration-300 shadow-[var(--shadow-lg)] hover:shadow-[var(--primary-glow)]"
               >
                 <div className="absolute top-0 right-0 p-4">
-                   <Badge className="animate-pulse uppercase tracking-tighter font-black">Save 80%</Badge>
+                   <Badge className="animate-pulse uppercase">Save 80%</Badge>
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>

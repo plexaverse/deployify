@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -328,12 +329,12 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                                     {repo.language && (
                                                         <span className="flex items-center gap-1.5">
                                                             <span className="w-2 h-2 rounded-full bg-[var(--info)]" />
-                                                            {repo.language}
+                                                            {repo.language.toUpperCase()}
                                                         </span>
                                                     )}
                                                     <span className="flex items-center gap-1">
                                                         <GitBranch className="w-3 h-3" />
-                                                        {repo.default_branch}
+                                                        {repo.default_branch.toUpperCase()}
                                                     </span>
                                                     <span>Updated {formatDate(repo.updated_at)}</span>
                                                 </div>
@@ -690,7 +691,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
 
                             <div className="flex-1 space-y-4">
                                 <div className="space-y-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Target Environment Type</span>
+                                    <Label className="text-sm font-semibold block mb-2">Target Environment Type</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'both', label: 'BUILD & RUNTIME' },
@@ -703,7 +704,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Scope</span>
+                                    <Label className="text-sm font-semibold block mb-2">Scope</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'both', label: 'ALL ENVS' },
