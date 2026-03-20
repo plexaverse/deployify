@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Project } from '@/types';
 import { cn } from '@/lib/utils';
 import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
@@ -10,7 +10,7 @@ import { ProjectAvatar } from '@/components/ProjectAvatar';
 import { toast } from 'sonner';
 
 // Mock data for the sparkline - reflects status
-const generateSparklineData = (status: string) => {
+const generateSparklineData = (status: string, seed: string) => {
   const length = 20;
   let base = 50;
   let volatility = 20;
@@ -26,9 +26,15 @@ const generateSparklineData = (status: string) => {
     volatility = 10;
   }
 
-  return Array.from({ length }, () => ({
-    value: Math.max(0, Math.floor(Math.random() * volatility) + base)
-  }));
+  // Use seed to make sparkline deterministic for the project
+  const seedNum = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  return Array.from({ length }, (_, i) => {
+    const pseudoRandom = Math.abs(Math.sin(seedNum + i) * 10000) % 1;
+    return {
+      value: Math.max(0, Math.floor(pseudoRandom * volatility) + base)
+    };
+  });
 };
 
 const statusConfig = {
@@ -44,10 +50,9 @@ export function ProjectCard({ project }: { project: Project }) {
   const latestDeployment = project.latestDeployment;
   const status = latestDeployment?.status || 'queued';
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
-  const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
+  const sparklineData = useMemo(() => generateSparklineData(status, project.id), [status, project.id]);
 
   return (
     <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>

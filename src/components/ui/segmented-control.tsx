@@ -20,20 +20,42 @@ export function SegmentedControl<T extends string = string>({ options, value, on
     const layoutId = useId();
     const isFullWidth = className?.includes('w-full');
 
+    const handleKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            const nextIndex = (currentIndex + 1) % options.length;
+            onChange(options[nextIndex].value);
+            (e.currentTarget.parentElement?.children[nextIndex] as HTMLElement)?.focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prevIndex = (currentIndex - 1 + options.length) % options.length;
+            onChange(options[prevIndex].value);
+            (e.currentTarget.parentElement?.children[prevIndex] as HTMLElement)?.focus();
+        }
+    };
+
     return (
-        <div className={cn(
-            "flex p-1 bg-[var(--card)] border border-[var(--border)] rounded-full w-fit",
-            className
-        )}>
-            {options.map((option) => {
+        <div
+            role="radiogroup"
+            className={cn(
+                "flex p-1 bg-[var(--card)]/50 backdrop-blur-md border border-[var(--border)] rounded-full w-fit",
+                className
+            )}
+        >
+            {options.map((option, index) => {
                 const isActive = value === option.value;
                 return (
-                    <button
+                    <motion.button
                         key={option.value}
                         type="button"
+                        role="radio"
+                        aria-checked={isActive}
+                        tabIndex={isActive ? 0 : -1}
+                        whileTap={{ scale: 0.96 }}
                         onClick={() => onChange(option.value)}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
                         className={cn(
-                            "relative px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors duration-200 focus:outline-none",
+                            "relative px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--card)]",
                             isFullWidth && "flex-1 flex items-center justify-center",
                             isActive ? "text-[var(--primary-foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                         )}
@@ -46,7 +68,7 @@ export function SegmentedControl<T extends string = string>({ options, value, on
                             />
                         )}
                         <span className="relative z-10">{option.label}</span>
-                    </button>
+                    </motion.button>
                 );
             })}
         </div>
