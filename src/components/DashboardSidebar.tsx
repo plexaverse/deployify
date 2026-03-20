@@ -187,6 +187,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                     <div className="px-3">
                         {isMounted ? (
                             <SegmentedControl
+                                aria-label="Select theme"
                                 options={[
                                     {
                                         value: 'light',
