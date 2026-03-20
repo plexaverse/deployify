@@ -65,3 +65,7 @@
 ## 2026-03-22 - [Scripe.io Aesthetic and Compact Interactivity]
 **Learning:** Achieving a "premium" scripe.io aesthetic requires attention to micro-typography (e.g., `tracking-[0.2em]`) and glass-morphism (`backdrop-blur`). When implementing interactive elements (like copy buttons) within a parent navigation link, the `e.stopPropagation()` and `e.preventDefault()` patterns are essential. Additionally, avoiding `useEffect` for deterministic UI state (like mock sparklines) prevents cascading render warnings in strict environments.
 **Action:** Use wider tracking for metadata labels and prefer `useMemo` for deterministic visual data to satisfy strict linter rules.
+
+## 2026-03-25 - [Accessible Custom Selection Controls]
+**Learning:** Custom selection controls like segmented pills often lack the expected keyboard interaction model (Arrow keys to navigate) and semantic roles. This creates a "broken" experience for screen reader and keyboard-only users who expect these to behave like standard radio groups.
+**Action:** Always implement the `role="radiogroup"` / `role="radio"` pattern with roving tabindex and arrow key navigation for any pill-based or segmented selection UI.
