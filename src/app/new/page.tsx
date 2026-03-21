@@ -248,7 +248,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                 <Input
                     ref={searchRef}
                     type="text"
-                    placeholder="Search your repositories..."
+                    placeholder="SEARCH REPOSITORIES..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-12 pr-16 h-14"
