@@ -1305,3 +1305,39 @@ Conducted a standardization pass for form labels and interactive elements across
 - **Details**: Final platform-wide UI/UX standardization pass for remaining typography and placeholder inconsistencies.
   - **Search Placeholders**: Standardized repository search input placeholders (`src/app/dashboard/new/page.tsx`, `src/app/new/page.tsx`, `src/components/LandingPage.tsx`) to explicitly use uppercase `SEARCH REPOSITORIES...` to match the high-density technical aesthetic established by `SEARCH PROJECTS...`.
   - **Typography Consistency**: Updated `text-[10px]` tracking in `src/components/LandingPage.tsx` from `tracking-[0.2em]` to the platform standard `tracking-wider`.
+
+## Progressive UI & Layout Standardization (Session 155)
+
+Conducted a final platform-wide refinement pass to ensure absolute casing consistency for repository metadata and technical selection components.
+
+### Repository Metadata Casing Standardization
+- **Files Updated**:
+  - `src/app/dashboard/[id]/page.tsx`
+  - `src/app/new/page.tsx`
+  - `src/app/dashboard/new/page.tsx`
+  - `src/app/dashboard/new/import/page.tsx`
+- **Standardization**: Enforced explicit uppercase formatting (`.toUpperCase()`) for all repository identifiers, branch names, and commit SHAs across project overview, repository selection, and import configuration views. This eliminates remaining lowercase instances and unifies the platform's high-density technical aesthetic.
+
+### Technical Select Component Standardization
+- **Files Updated**:
+  - `src/components/ui/native-select.tsx`
+  - `src/components/RegionSettings.tsx`
+  - `src/app/dashboard/[id]/settings/page.tsx`
+  - `src/app/dashboard/new/import/page.tsx`
+  - `src/app/new/page.tsx`
+  - `src/app/dashboard/[id]/deployments/compare/page.tsx`
+- **Standardization**:
+  - Refactored `NativeSelect` to strictly utilize the `text-[10px] font-bold uppercase tracking-wider` typography standard.
+  - Converted all framework options (Next.js, Vite, Nuxt, etc.) and region names (GCP regions) to explicit uppercase strings to align with the platform's metadata conventions.
+
+### Onboarding & Help Text Refinement
+- **Files Updated**:
+  - `src/components/OnboardingGuide.tsx`
+  - `src/app/dashboard/[id]/settings/page.tsx`
+- **Standardization**:
+  - Updated onboarding step labels and project configuration descriptions to use the `text-[10px] font-bold uppercase tracking-wider` standard.
+  - Verified that all technical instructions within settings cards follow the unified typography weight and tracking standards.
+
+### Final Verification
+- **Functional**: Confirmed 100% test pass rate (76/76) and "PERFECT" 40/40 audit status.
+- **Visual**: Verified via Playwright screenshots that all repository metadata and selection options now perfectly adhere to the high-density technical aesthetic.

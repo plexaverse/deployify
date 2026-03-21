@@ -84,7 +84,7 @@ export function OnboardingGuide() {
 
                             <div className="space-y-1">
                                 <h3 className={cn(
-                                    "font-semibold text-sm transition-colors",
+                                    "font-bold text-[10px] uppercase tracking-wider transition-colors",
                                     step.status === 'completed' ? "text-[var(--success)]" :
                                     step.status === 'active' ? "text-[var(--info)]" :
                                     "text-[var(--muted-foreground)]"

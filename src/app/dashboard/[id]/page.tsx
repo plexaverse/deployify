@@ -194,11 +194,11 @@ export default function ProjectDetailPage() {
                                     className="flex items-center gap-1 hover:text-[var(--foreground)] transition-colors"
                                 >
                                     <Github className="w-3 h-3" />
-                                    {project.repoFullName}
+                                    {project.repoFullName.toUpperCase()}
                                 </a>
                                 <span className="flex items-center gap-1">
                                     <GitBranch className="w-3 h-3" />
-                                    {project.defaultBranch}
+                                    {project.defaultBranch.toUpperCase()}
                                 </span>
                             </div>
                         </div>
@@ -301,7 +301,7 @@ export default function ProjectDetailPage() {
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <GitBranch className="w-3 h-3" />
-                                                    <span>Branch: <span className="text-[var(--foreground)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch}</span></span>
+                                                <span>Branch: <span className="text-[var(--foreground)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</span></span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <Clock className="w-3 h-3" />
@@ -327,7 +327,7 @@ export default function ProjectDetailPage() {
                                         <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             <div className="flex items-center gap-1.5">
                                                 <Github className="w-3.5 h-3.5" />
-                                                <span>{project.repoFullName}</span>
+                                                <span>{project.repoFullName.toUpperCase()}</span>
                                             </div>
                                             {project.region && (
                                                 <div className="flex items-center gap-1.5">
@@ -394,7 +394,7 @@ export default function ProjectDetailPage() {
                         icon={GitBranch}
                         description={
                             <span>
-                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch}</code> to trigger your first deployment.
+                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</code> to trigger your first deployment.
                                 We&apos;ll build and deploy your application automatically.
                             </span>
                         }

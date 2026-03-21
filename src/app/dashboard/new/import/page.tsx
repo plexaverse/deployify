@@ -193,7 +193,7 @@ export default function ImportProjectPage() {
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col items-end">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Repository</span>
-                            <span className="text-sm font-semibold truncate max-w-[200px]">{repoFullName}</span>
+                            <span className="text-sm font-semibold truncate max-w-[200px]">{repoFullName.toUpperCase()}</span>
                         </div>
                     </div>
                 </div>
@@ -230,15 +230,15 @@ export default function ImportProjectPage() {
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
                             >
-                                <option value="auto">Auto-detect</option>
-                                <option value="nextjs">Next.js</option>
-                                <option value="vite">Vite (React, Vue, Svelte)</option>
-                                <option value="astro">Astro</option>
-                                <option value="remix">Remix</option>
-                                <option value="nuxt">Nuxt</option>
-                                <option value="sveltekit">SvelteKit</option>
-                                <option value="bun">Bun</option>
-                                <option value="docker">Docker (Custom Dockerfile)</option>
+                                <option value="auto">AUTO-DETECT</option>
+                                <option value="nextjs">NEXT.JS</option>
+                                <option value="vite">VITE (REACT, VUE, SVELTE)</option>
+                                <option value="astro">ASTRO</option>
+                                <option value="remix">REMIX</option>
+                                <option value="nuxt">NUXT</option>
+                                <option value="sveltekit">SVELTEKIT</option>
+                                <option value="bun">BUN</option>
+                                <option value="docker">DOCKER (CUSTOM DOCKERFILE)</option>
                             </NativeSelect>
                         </div>
                     </div>
@@ -261,7 +261,7 @@ export default function ImportProjectPage() {
                                 >
                                     {GCP_REGIONS.map((r) => (
                                         <option key={r.value} value={r.value}>
-                                            {r.label}
+                                            {r.label.toUpperCase()}
                                         </option>
                                     ))}
                                 </NativeSelect>

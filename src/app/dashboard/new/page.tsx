@@ -203,7 +203,7 @@ export default function NewProjectPage() {
                                         <div className="relative z-10 flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
-                                                    {repo.full_name}
+                                                    {repo.full_name.toUpperCase()}
                                                 </h3>
                                                 {repo.private && (
                                                     <Badge variant="warning" className="text-[10px] px-1.5 py-0.5 uppercase font-bold tracking-wider">
@@ -225,7 +225,7 @@ export default function NewProjectPage() {
                                                     <GitBranch className="w-3.5 h-3.5" />
                                                     {repo.default_branch.toUpperCase()}
                                                 </span>
-                                                <span>Updated {formatDate(repo.pushed_at)}</span>
+                                                <span>UPDATED {formatDate(repo.pushed_at)}</span>
                                             </div>
                                         </div>
 

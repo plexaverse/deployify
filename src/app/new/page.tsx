@@ -28,16 +28,16 @@ import type { GitHubRepo, Project, Deployment, EnvVariableTarget } from '@/types
 
 // Common GCP regions
 const GCP_REGIONS = [
-    { value: '', label: 'Default region' },
-    { value: 'us-central1', label: 'Iowa (us-central1)' },
-    { value: 'us-east1', label: 'South Carolina (us-east1)' },
-    { value: 'europe-west1', label: 'Belgium (europe-west1)' },
-    { value: 'europe-west2', label: 'London (europe-west2)' },
-    { value: 'asia-east1', label: 'Taiwan (asia-east1)' },
-    { value: 'asia-northeast1', label: 'Tokyo (asia-northeast1)' },
-    { value: 'asia-southeast1', label: 'Singapore (asia-southeast1)' },
-    { value: 'asia-south1', label: 'Mumbai (asia-south1)' },
-    { value: 'australia-southeast1', label: 'Sydney (australia-southeast1)' },
+    { value: '', label: 'DEFAULT REGION' },
+    { value: 'us-central1', label: 'IOWA (US-CENTRAL1)' },
+    { value: 'us-east1', label: 'SOUTH CAROLINA (US-EAST1)' },
+    { value: 'europe-west1', label: 'BELGIUM (EUROPE-WEST1)' },
+    { value: 'europe-west2', label: 'LONDON (EUROPE-WEST2)' },
+    { value: 'asia-east1', label: 'TAIWAN (ASIA-EAST1)' },
+    { value: 'asia-northeast1', label: 'TOKYO (ASIA-NORTHEAST1)' },
+    { value: 'asia-southeast1', label: 'SINGAPORE (ASIA-SOUTHEAST1)' },
+    { value: 'asia-south1', label: 'MUMBAI (ASIA-SOUTH1)' },
+    { value: 'australia-southeast1', label: 'SYDNEY (AUSTRALIA-SOUTHEAST1)' },
 ];
 
 export default function NewProjectPage() {
@@ -315,7 +315,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                             </div>
                                             <div>
                                                 <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
-                                                    {repo.full_name}
+                                                    {repo.full_name.toUpperCase()}
                                                     {repo.private && (
                                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
                                                             Private
@@ -509,15 +509,15 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
                             >
-                                <option value="auto">Auto-detect</option>
-                                <option value="nextjs">Next.js</option>
-                                <option value="vite">Vite</option>
-                                <option value="astro">Astro</option>
-                                <option value="remix">Remix</option>
-                                <option value="nuxt">Nuxt</option>
-                                <option value="sveltekit">SvelteKit</option>
-                                <option value="bun">Bun</option>
-                                <option value="docker">Docker</option>
+                                <option value="auto">AUTO-DETECT</option>
+                                <option value="nextjs">NEXT.JS</option>
+                                <option value="vite">VITE</option>
+                                <option value="astro">ASTRO</option>
+                                <option value="remix">REMIX</option>
+                                <option value="nuxt">NUXT</option>
+                                <option value="sveltekit">SVELTEKIT</option>
+                                <option value="bun">BUN</option>
+                                <option value="docker">DOCKER</option>
                             </NativeSelect>
                             {framework === 'docker' && (
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] pt-1">
@@ -835,11 +835,11 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                     </motion.div>
                     <p className="text-[var(--muted-foreground)] flex items-center gap-2">
                         <GitBranch className="w-4 h-4" />
-                        <span className="font-semibold text-[var(--foreground)]">{project.name}</span>
+                        <span className="font-semibold text-[var(--foreground)]">{project.name.toUpperCase()}</span>
                         <span className="opacity-50">•</span>
-                        <span>{initialDeployment.gitBranch}</span>
+                        <span>{initialDeployment.gitBranch.toUpperCase()}</span>
                         <span className="opacity-50">•</span>
-                        <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono">{initialDeployment.gitCommitSha.substring(0, 7)}</code>
+                        <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono">{initialDeployment.gitCommitSha.substring(0, 7).toUpperCase()}</code>
                     </p>
                 </div>
 
@@ -907,7 +907,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Production URL</span>
-                                        <p className="text-sm font-mono truncate">{project.productionUrl?.replace(/^https?:\/\//, '')}</p>
+                                        <p className="text-sm font-mono truncate uppercase">{project.productionUrl?.replace(/^https?:\/\//, '').toUpperCase()}</p>
                                     </div>
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Environment</span>

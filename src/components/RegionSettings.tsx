@@ -10,21 +10,21 @@ import { Separator } from '@/components/ui/separator';
 
 // Common GCP regions for Cloud Run
 const GCP_REGIONS = [
-    { value: 'us-central1', label: 'Iowa (us-central1)', tier: 'Tier 1' },
-    { value: 'us-east1', label: 'South Carolina (us-east1)', tier: 'Tier 1' },
-    { value: 'us-east4', label: 'Northern Virginia (us-east4)', tier: 'Tier 1' },
-    { value: 'us-west1', label: 'Oregon (us-west1)', tier: 'Tier 1' },
-    { value: 'europe-west1', label: 'Belgium (europe-west1)', tier: 'Tier 1' },
-    { value: 'europe-west2', label: 'London (europe-west2)', tier: 'Tier 1' },
-    { value: 'europe-west4', label: 'Netherlands (europe-west4)', tier: 'Tier 1' },
-    { value: 'asia-east1', label: 'Taiwan (asia-east1)', tier: 'Tier 1' },
-    { value: 'asia-northeast1', label: 'Tokyo (asia-northeast1)', tier: 'Tier 1' },
-    { value: 'asia-southeast1', label: 'Singapore (asia-southeast1)', tier: 'Tier 1' },
-    { value: 'asia-south1', label: 'Mumbai (asia-south1)', tier: 'Tier 2' },
-    { value: 'australia-southeast1', label: 'Sydney (australia-southeast1)', tier: 'Tier 2' },
-    { value: 'southamerica-east1', label: 'São Paulo (southamerica-east1)', tier: 'Tier 2' },
-    { value: 'me-west1', label: 'Tel Aviv (me-west1)', tier: 'Tier 2' },
-    { value: 'africa-south1', label: 'Johannesburg (africa-south1)', tier: 'Tier 2' },
+    { value: 'us-central1', label: 'IOWA (US-CENTRAL1)', tier: 'TIER 1' },
+    { value: 'us-east1', label: 'SOUTH CAROLINA (US-EAST1)', tier: 'TIER 1' },
+    { value: 'us-east4', label: 'NORTHERN VIRGINIA (US-EAST4)', tier: 'TIER 1' },
+    { value: 'us-west1', label: 'OREGON (US-WEST1)', tier: 'TIER 1' },
+    { value: 'europe-west1', label: 'BELGIUM (EUROPE-WEST1)', tier: 'TIER 1' },
+    { value: 'europe-west2', label: 'LONDON (EUROPE-WEST2)', tier: 'TIER 1' },
+    { value: 'europe-west4', label: 'NETHERLANDS (EUROPE-WEST4)', tier: 'TIER 1' },
+    { value: 'asia-east1', label: 'TAIWAN (ASIA-EAST1)', tier: 'TIER 1' },
+    { value: 'asia-northeast1', label: 'TOKYO (ASIA-NORTHEAST1)', tier: 'TIER 1' },
+    { value: 'asia-southeast1', label: 'SINGAPORE (ASIA-SOUTHEAST1)', tier: 'TIER 1' },
+    { value: 'asia-south1', label: 'MUMBAI (ASIA-SOUTH1)', tier: 'TIER 2' },
+    { value: 'australia-southeast1', label: 'SYDNEY (AUSTRALIA-SOUTHEAST1)', tier: 'TIER 2' },
+    { value: 'southamerica-east1', label: 'SÃO PAULO (SOUTHAMERICA-EAST1)', tier: 'TIER 2' },
+    { value: 'me-west1', label: 'TEL AVIV (ME-WEST1)', tier: 'TIER 2' },
+    { value: 'africa-south1', label: 'JOHANNESBURG (AFRICA-SOUTH1)', tier: 'TIER 2' },
 ];
 
 interface RegionSettingsProps {
@@ -97,9 +97,9 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                         onChange={(e) => handleRegionChange(e.target.value)}
                         disabled={saving}
                     >
-                        <option value="">Use default region</option>
+                        <option value="">USE DEFAULT REGION</option>
 
-                        <optgroup label="Tier 1 Regions (Lower latency)">
+                        <optgroup label="TIER 1 REGIONS (LOWER LATENCY)">
                             {tier1Regions.map((region) => (
                                 <option key={region.value} value={region.value}>
                                     {region.label}
@@ -107,7 +107,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                             ))}
                         </optgroup>
 
-                        <optgroup label="Tier 2 Regions">
+                        <optgroup label="TIER 2 REGIONS">
                             {tier2Regions.map((region) => (
                                 <option key={region.value} value={region.value}>
                                     {region.label}

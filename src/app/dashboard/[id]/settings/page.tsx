@@ -198,17 +198,17 @@ export default function ProjectSettingsPage() {
                                     value={framework}
                                     onChange={(e) => setProjectSettingsField('framework', e.target.value)}
                                 >
-                                    <option value="nextjs">Next.js</option>
-                                    <option value="vite">Vite</option>
-                                    <option value="astro">Astro</option>
-                                    <option value="remix">Remix</option>
-                                    <option value="nuxt">Nuxt</option>
-                                    <option value="sveltekit">SvelteKit</option>
-                                    <option value="bun">Bun</option>
-                                    <option value="docker">Docker</option>
+                                    <option value="nextjs">NEXT.JS</option>
+                                    <option value="vite">VITE</option>
+                                    <option value="astro">ASTRO</option>
+                                    <option value="remix">REMIX</option>
+                                    <option value="nuxt">NUXT</option>
+                                    <option value="sveltekit">SVELTEKIT</option>
+                                    <option value="bun">BUN</option>
+                                    <option value="docker">DOCKER</option>
                                 </NativeSelect>
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                    The framework used for building. Use &quot;Docker&quot; to use your own Dockerfile.
+                                    The framework used for building. Use &quot;DOCKER&quot; to use your own Dockerfile.
                                 </p>
                             </div>
                             <div className="space-y-2">
@@ -409,7 +409,7 @@ export default function ProjectSettingsPage() {
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                         <div>
-                            <p className="font-semibold">Delete Project</p>
+                            <p className="font-semibold text-[var(--error)]">Delete Project</p>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Permanently delete this project and all its deployments.
                             </p>
