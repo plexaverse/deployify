@@ -259,7 +259,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-32 text-center"
           >
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-16">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-16">
               Trusted by innovative teams
             </p>
             <div
@@ -496,7 +496,7 @@ export default function LandingPage() {
                   role="combobox"
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search your GitHub repositories..."
+                  placeholder="SEARCH REPOSITORIES..."
                   className="w-full h-auto bg-[var(--background)]/40 border border-[var(--border)] rounded-2xl py-4 pl-12 pr-12 text-[var(--foreground)] shadow-sm focus:shadow-[var(--primary-glow)] focus:ring-2 focus:ring-[var(--foreground)]/20 transition-all"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setSelectedIndex(-1); }}

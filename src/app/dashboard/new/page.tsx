@@ -115,7 +115,7 @@ export default function NewProjectPage() {
                 <Input
                     ref={searchRef}
                     type="text"
-                    placeholder="Search repositories..."
+                    placeholder="SEARCH REPOSITORIES..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-12 pr-16 h-12"
