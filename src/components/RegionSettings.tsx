@@ -66,8 +66,8 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
     };
 
     // Group regions by tier
-    const tier1Regions = GCP_REGIONS.filter(r => r.tier === 'Tier 1');
-    const tier2Regions = GCP_REGIONS.filter(r => r.tier === 'Tier 2');
+    const tier1Regions = GCP_REGIONS.filter(r => r.tier === 'TIER 1');
+    const tier2Regions = GCP_REGIONS.filter(r => r.tier === 'TIER 2');
 
     return (
         <Card className="overflow-hidden p-0">
