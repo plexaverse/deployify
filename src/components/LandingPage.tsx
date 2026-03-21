@@ -167,16 +167,16 @@ export default function LandingPage() {
               transition={{ delay: 0.5 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <motion.div whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
+              <motion.div whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
                 <Link href="/api/auth/github">
                   <MovingBorderButton
                     as="div"
-                    containerClassName="w-full h-auto"
-                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-base font-semibold flex items-center justify-center gap-2"
+                    containerClassName="w-full h-auto group"
+                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-base font-semibold flex items-center justify-center gap-2 rounded-3xl"
                   >
                     <Github className="w-5 h-5" />
                     Connect GitHub
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </MovingBorderButton>
                 </Link>
               </motion.div>
@@ -257,19 +257,19 @@ export default function LandingPage() {
             whileInView={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.8 }}
             viewport={{ once: true }}
-            className="mt-24 text-center"
+            className="mt-32 text-center"
           >
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-12">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-16">
               Trusted by innovative teams
             </p>
             <div
-              className="relative overflow-hidden w-full py-4 group"
-              style={{ maskImage: 'linear-gradient(to right, transparent, white 20%, white 80%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, white 20%, white 80%, transparent)' }}
+              className="relative overflow-hidden w-full py-8 group"
+              style={{ maskImage: 'linear-gradient(to right, transparent, white 15%, white 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, white 15%, white 85%, transparent)' }}
             >
               <motion.div
                 animate={{ x: ["0%", "-50%"] }}
-                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                className="flex w-fit gap-16 items-center whitespace-nowrap px-8"
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                className="flex w-fit gap-24 items-center whitespace-nowrap px-12"
                 role="list"
                 aria-label="Trusted companies"
               >
@@ -278,8 +278,8 @@ export default function LandingPage() {
                     key={`${logo}-${idx}`}
                     role="listitem"
                     aria-label={`${logo} logo`}
-                    whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%)' }}
-                    className="text-2xl md:text-3xl font-bold tracking-tighter text-[var(--muted-foreground)] opacity-40 grayscale cursor-default transition-all duration-300"
+                    whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%) drop-shadow(0 0 8px rgba(255,255,255,0.1))' }}
+                    className="text-xl md:text-2xl font-bold tracking-widest text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
                   >
                     {logo}
                   </motion.span>
@@ -486,7 +486,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 max-w-2xl mx-auto"
           >
-            <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm relative group">
+            <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm relative group" role="search">
               <h3 className="text-xl font-semibold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
               <div className="relative">
                 <label htmlFor="repo-search" className="sr-only">Search your GitHub repositories</label>
@@ -522,28 +522,45 @@ export default function LandingPage() {
                   aria-activedescendant={selectedIndex >= 0 ? `repo-option-${selectedIndex}` : undefined}
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
-                  {searchQuery ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => { setSearchQuery(''); setSelectedIndex(-1); }}
-                      className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                      aria-label="Clear search"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    os && (
-                      <div className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity">
-                        <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                          {os === 'mac' ? '⌘' : 'Ctrl'}
-                        </kbd>
-                        <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                          K
-                        </kbd>
-                      </div>
-                    )
-                  )}
+                  <AnimatePresence mode="wait">
+                    {searchQuery ? (
+                      <motion.div
+                        key="clear-button"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.15 }}
+                          whileTap={{ scale: 0.95 }}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => { setSearchQuery(''); setSelectedIndex(-1); }}
+                          className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                          aria-label="Clear search"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </motion.div>
+                    ) : (
+                      os && (
+                        <motion.div
+                          key="kbd-hints"
+                          initial={{ opacity: 0, x: 5 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 5 }}
+                          className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity"
+                        >
+                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            {os === 'mac' ? '⌘' : 'Ctrl'}
+                          </kbd>
+                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            K
+                          </kbd>
+                        </motion.div>
+                      )
+                    )}
+                  </AnimatePresence>
                 </div>
                 {searchQuery.trim() && (
                   <motion.div id="repo-results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} role="listbox" className="absolute top-full left-0 right-0 mt-2 bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden z-20 shadow-2xl p-2">
