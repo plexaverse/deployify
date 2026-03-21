@@ -169,10 +169,10 @@ export default function CompareDeploymentsPage() {
                                 value={baseId}
                                 onChange={(e) => handleBaseChange(e.target.value)}
                             >
-                                <option value="">Select deployment</option>
+                                <option value="">SELECT DEPLOYMENT</option>
                                 {currentDeployments.map(d => (
                                     <option key={d.id} value={d.id}>
-                                        {d.gitCommitMessage} ({d.gitCommitSha.substring(0, 7)})
+                                        {d.gitCommitMessage.toUpperCase()} ({d.gitCommitSha.substring(0, 7).toUpperCase()})
                                     </option>
                                 ))}
                             </NativeSelect>
@@ -207,10 +207,10 @@ export default function CompareDeploymentsPage() {
                                 value={targetId}
                                 onChange={(e) => handleTargetChange(e.target.value)}
                             >
-                                <option value="">Select deployment</option>
+                                <option value="">SELECT DEPLOYMENT</option>
                                 {currentDeployments.map(d => (
                                     <option key={d.id} value={d.id}>
-                                        {d.gitCommitMessage} ({d.gitCommitSha.substring(0, 7)})
+                                        {d.gitCommitMessage.toUpperCase()} ({d.gitCommitSha.substring(0, 7).toUpperCase()})
                                     </option>
                                 ))}
                             </NativeSelect>
