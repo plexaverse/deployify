@@ -391,6 +391,8 @@ export interface StorageConfig {
     status: StorageStatus;
     connectionStringSecretId?: string; // GCP Secret Manager ID
     environment: 'production' | 'preview' | 'both';
+    lastValidatedAt?: Date;
+    lastError?: string;
     metadata?: Record<string, unknown>;
     createdAt: Date;
     updatedAt: Date;

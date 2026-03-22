@@ -9,7 +9,8 @@ import {
     AlertCircle,
     Server,
     ExternalLink,
-    Loader2
+    Loader2,
+    Activity
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -59,6 +60,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [environment, setEnvironment] = useState<'production' | 'preview' | 'both'>('both');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
+    const [validatingId, setValidatingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -97,7 +99,23 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         }
     };
 
-    const getStatusIcon = (status: string) => {
+    const handleValidate = async (storageId: string) => {
+        setValidatingId(storageId);
+        try {
+            const result = await validateStorageConnection(projectId, storageId);
+            if (result.valid) {
+                // Status is updated via store which updates projectStorageConfigs
+            }
+        } finally {
+            setValidatingId(null);
+        }
+    };
+
+    const getStatusIcon = (status: string, id: string) => {
+        if (validatingId === id) {
+            return <Loader2 className="w-4 h-4 text-[var(--info)] animate-spin" />;
+        }
+
         switch (status) {
             case 'active':
                 return <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />;
@@ -248,7 +266,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
                                             <h4 className="font-semibold text-sm">{config.name}</h4>
-                                            {getStatusIcon(config.status)}
+                                            {getStatusIcon(config.status, config.id)}
+                                            {config.status === 'error' && config.lastError && (
+                                                <span className="text-[10px] font-bold text-[var(--error)] uppercase truncate max-w-[200px]" title={config.lastError}>
+                                                    — {config.lastError}
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-2 py-0.5 rounded-full border border-[var(--border)]">
@@ -262,12 +285,22 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                 </div>
 
                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {/* Health check disabled until API is implemented in next phase */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleValidate(config.id)}
+                                        disabled={validatingId === config.id}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="Check Connection"
+                                    >
+                                        <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => setStorageToDelete(config)}
                                         className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)]"
+                                        title="Disconnect"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </Button>

@@ -1353,3 +1353,15 @@ Conducted a refinement pass to ensure absolute compliance with the platform's hi
 ### Form Label Consistency
 - **File Updated**: `src/app/dashboard/[id]/deployments/compare/page.tsx`
 - **Standardization**: Replaced legacy technical metadata styling (`text-[10px] font-bold uppercase tracking-wider`) with `text-sm font-semibold` for the "Select Source" and "Select Target" dropdown labels. This unifies interaction patterns for user inputs in the comparison flow with the rest of the dashboard settings.
+
+## Progressive UI & Layout Standardization (Session 157)
+
+Standardized the database connection validation UI and health status indicators.
+
+### Storage Section Health & Validation
+- **File Updated**: `src/components/StorageSection.tsx`
+- **Standardization**:
+  - Integrated "Check Connection" functionality with a standardized `Activity` icon button.
+  - Implemented a spinning `Loader2` state for the status icon during validation, ensuring immediate visual feedback.
+  - Enforced `text-[10px] font-bold uppercase tracking-wider` for all new status labels and tooltips.
+  - Standardized the "Disconnect" action with consistent hover states (`hover:text-[var(--error)] hover:bg-[var(--error-bg)]`) and icon sizing.
