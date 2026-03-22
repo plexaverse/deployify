@@ -171,7 +171,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
             entrypoint: 'bash',
             args: [
                 '-c',
-                `mkdir -p ${workDir}/restore_cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C ${workDir}/restore_cache || echo "No cache found or restore failed")`,
+                `mkdir -p ${workDir}/restore_cache/cache && (gsutil cp gs://${CACHE_BUCKET}/${projectSlug}.tgz cache.tgz && tar -xzf cache.tgz -C ${workDir}/restore_cache || echo "No cache found or restore failed")`,
             ],
         }] : []),
         // Create a Dockerfile if it doesn't exist (only if not using custom Dockerfile)
