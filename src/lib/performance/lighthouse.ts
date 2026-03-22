@@ -47,7 +47,10 @@ export async function runLighthouseAudit(url: string): Promise<LighthouseMetrics
             tbt
         };
     } catch (error) {
-        console.error('Lighthouse audit failed:', error);
+        const isRateLimit = error instanceof Error && error.message.includes('429');
+        if (!isRateLimit) {
+            console.error('Lighthouse audit failed:', error);
+        }
         throw error;
     }
 }
