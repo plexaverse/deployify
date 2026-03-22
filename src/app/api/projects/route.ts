@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser, getTeamMembership } from '@/lib/db';
+import { createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser, getTeamMembership, updateProject } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
 import { slugify, parseRepoFullName, generateId, validateConnectionString } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
 import { encrypt } from '@/lib/crypto';
-import type { EnvVariable } from '@/types';
+import { upsertSecret } from '@/lib/gcp/secrets';
+import type { EnvVariable, StorageConfig, StorageType } from '@/types';
 
 // GET /api/projects - List user's projects
 export async function GET(request: NextRequest) {
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
             installCommand,
             outputDirectory,
             envVariables,
+            storageConfigs: inputStorageConfigs,
             teamId
         } = body;
 
@@ -211,6 +213,37 @@ export async function POST(request: NextRequest) {
             envVariables: processedEnvVars,
             autoDeployPrs: true,
         });
+
+        // 3. Process storage configurations if provided
+        if (inputStorageConfigs && Array.isArray(inputStorageConfigs) && inputStorageConfigs.length > 0) {
+            const processedStorageConfigs: StorageConfig[] = [];
+
+            for (const config of inputStorageConfigs) {
+                const storageId = `storage_${generateId('')}`;
+                let connectionStringSecretId: string | undefined;
+
+                if (config.connectionString) {
+                    const secretId = `deployify-${project.id}-${storageId}-conn`;
+                    connectionStringSecretId = await upsertSecret(secretId, config.connectionString);
+                }
+
+                processedStorageConfigs.push({
+                    id: storageId,
+                    type: config.type as StorageType,
+                    name: config.name,
+                    status: 'active',
+                    environment: config.environment || 'both',
+                    envKey: config.envKey,
+                    connectionStringSecretId,
+                    metadata: config.metadata || {},
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                });
+            }
+
+            // Update project with storage configurations
+            await updateProject(project.id, { storageConfigs: processedStorageConfigs });
+        }
 
         await logAuditEvent(
             project.teamId || null,

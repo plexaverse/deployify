@@ -11,7 +11,9 @@ import {
     AlertCircle,
     Info,
     Shield,
-    Folder
+    Folder,
+    Database,
+    ArrowRight
 } from 'lucide-react';
 import type { EnvVariableTarget } from '@/types';
 import { useStore } from '@/store';
@@ -58,6 +60,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     const [error, setError] = useState<string | null>(null);
 
     const [envToDelete, setEnvToDelete] = useState<{ id: string, key: string } | null>(null);
+    const [suggestion, setSuggestion] = useState<{ key: string, value: string, type: string } | null>(null);
 
     useEffect(() => {
         fetchProjectEnvVariables(projectId);
@@ -96,6 +99,20 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     const handleAdd = async () => {
         if (!newKey.trim()) {
             setError('Key is required');
+            return;
+        }
+
+        // Check for connection string patterns to suggest connector model
+        const connPatterns = [
+            { pattern: /^(postgres(ql)?:\/\/|supabase:\/\/)/i, type: 'cloud-sql-postgres' },
+            { pattern: /^mysql:\/\//i, type: 'cloud-sql-mysql' },
+            { pattern: /^mongodb(\+srv)?:\/\//i, type: 'mongodb-atlas' },
+            { pattern: /^redis:\/\//i, type: 'memorystore-redis' }
+        ];
+
+        const match = connPatterns.find(p => p.pattern.test(newValue));
+        if (match && !suggestion) {
+            setSuggestion({ key: newKey, value: newValue, type: match.type });
             return;
         }
 
@@ -159,6 +176,32 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
     // Extract unique groups
     const uniqueGroups = Array.from(new Set(envVariables.map(e => e.group || 'General'))).sort();
 
+    const handleAddAsConnector = async () => {
+        if (!suggestion) return;
+
+        setIsSubmitting(true);
+        const { addStorageConfig } = useStore.getState();
+
+        try {
+            const success = await addStorageConfig(projectId, {
+                name: suggestion.key.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
+                type: suggestion.type as any,
+                envKey: suggestion.key,
+                environment: newEnvironment
+            }, suggestion.value);
+
+            if (success) {
+                setNewKey('');
+                setNewValue('');
+                setIsAdding(false);
+                setSuggestion(null);
+                if (onUpdate) onUpdate();
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     // Group variables
     const groupedVars = uniqueGroups.reduce((acc, group) => {
         acc[group] = envVariables.filter(e => (e.group || 'General') === group);
@@ -192,6 +235,42 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
             <Separator className="bg-[var(--border)]" />
 
             <div className="p-6">
+                {suggestion && (
+                    <div className="mb-6 p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl animate-fade-in">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                <Database className="w-5 h-5 text-[var(--primary)]" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <h4 className="text-sm font-semibold text-[var(--foreground)]">Detected Database Connection String</h4>
+                                <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                                    Deployify has a managed **Database Connector** model that provides secure credential storage via Secret Manager and automated health checks.
+                                </p>
+                                <div className="flex items-center gap-3 pt-3">
+                                    <Button
+                                        size="sm"
+                                        onClick={handleAddAsConnector}
+                                        disabled={isSubmitting}
+                                        className="h-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white"
+                                    >
+                                        Use Managed Connector
+                                        <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleAdd}
+                                        disabled={isSubmitting}
+                                        className="h-8 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]"
+                                    >
+                                        Keep as Plain Variable
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {error && (
                     <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-[10px] font-bold uppercase tracking-wider">
                         <AlertCircle className="w-4 h-4 flex-shrink-0" />

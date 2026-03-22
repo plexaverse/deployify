@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal, Shield } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal, Shield, Database, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -45,6 +45,7 @@ export default function ImportProjectPage() {
         installCommand, setInstallCommand,
         region, setRegion,
         envVars, setEnvVars,
+        storageConfigs, setStorageConfigs,
         newEnvKey, setNewEnvKey,
         newEnvValue, setNewEnvValue,
         newEnvTarget, setNewEnvTarget,
@@ -145,6 +146,13 @@ export default function ImportProjectPage() {
                         value: e.value,
                         target: e.target,
                         isSecret: e.isSecret
+                    })),
+                    storageConfigs: storageConfigs.map(s => ({
+                        name: s.name,
+                        type: s.type,
+                        connectionString: s.connectionString,
+                        envKey: s.envKey,
+                        environment: s.environment
                     }))
                 }),
             });
@@ -313,6 +321,145 @@ export default function ImportProjectPage() {
                                 onChange={(e) => setInstallCommand(e.target.value)}
                                 placeholder="npm install"
                             />
+                        </div>
+                    </div>
+                </Card>
+
+                {/* Database Connectors */}
+                <Card className="overflow-hidden p-0">
+                    <div className="p-6 flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Database className="w-5 h-5 text-[var(--primary)]" />
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
+                            <h2 className="text-xl font-semibold">Database Connectors</h2>
+                        </div>
+                    </div>
+                    <Separator className="bg-[var(--border)]" />
+
+                    <div className="p-6 space-y-6">
+                        <div className="space-y-3">
+                            {storageConfigs.map((config, idx) => (
+                                <div key={idx} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
+                                    <div className="flex-1 grid grid-cols-3 gap-4 items-center">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{config.name}</span>
+                                            <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{config.type.replace(/-/g, ' ')}</span>
+                                        </div>
+                                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]">
+                                            {config.envKey}
+                                        </span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                            {config.environment.toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setStorageConfigs(storageConfigs.filter((_, i) => i !== idx))}
+                                        className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)] space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Connector Name</Label>
+                                    <Input
+                                        placeholder="Primary DB"
+                                        id="new-storage-name"
+                                        className="text-[10px] font-bold uppercase tracking-wider"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Database Type</Label>
+                                    <NativeSelect
+                                        id="new-storage-type"
+                                        className="text-[10px] font-bold uppercase tracking-wider"
+                                        onChange={(e) => {
+                                            const type = e.target.value;
+                                            const envInput = document.getElementById('new-storage-env-key') as HTMLInputElement;
+                                            if (envInput) {
+                                                if (type === 'memorystore-redis') envInput.value = 'REDIS_URL';
+                                                else if (type === 'mongodb-atlas') envInput.value = 'MONGODB_URI';
+                                                else envInput.value = 'DATABASE_URL';
+                                            }
+                                        }}
+                                    >
+                                        <option value="cloud-sql-postgres">CLOUD SQL (POSTGRES)</option>
+                                        <option value="cloud-sql-mysql">CLOUD SQL (MYSQL)</option>
+                                        <option value="firestore">FIRESTORE</option>
+                                        <option value="memorystore-redis">MEMORYSTORE (REDIS)</option>
+                                        <option value="supabase">SUPABASE</option>
+                                        <option value="mongodb-atlas">MONGODB ATLAS</option>
+                                        <option value="planetscale">PLANETSCALE</option>
+                                        <option value="generic">GENERIC DATABASE</option>
+                                    </NativeSelect>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Connection String</Label>
+                                    <Input
+                                        type="password"
+                                        placeholder="postgresql://user:pass@host:port/db"
+                                        id="new-storage-conn"
+                                        className="text-[10px] font-bold uppercase tracking-wider font-mono"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Env Var Key</Label>
+                                    <Input
+                                        placeholder="DATABASE_URL"
+                                        id="new-storage-env-key"
+                                        defaultValue="DATABASE_URL"
+                                        className="text-[10px] font-bold uppercase tracking-wider font-mono"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-4 pt-2">
+                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    <AlertCircle className="w-3.5 h-3.5" />
+                                    Managed via Secret Manager
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        const name = (document.getElementById('new-storage-name') as HTMLInputElement).value;
+                                        const type = (document.getElementById('new-storage-type') as HTMLSelectElement).value;
+                                        const connectionString = (document.getElementById('new-storage-conn') as HTMLInputElement).value;
+                                        const envKey = (document.getElementById('new-storage-env-key') as HTMLInputElement).value;
+
+                                        if (!name || !connectionString || !envKey) {
+                                            toast.error('Please fill all connector fields');
+                                            return;
+                                        }
+
+                                        setStorageConfigs([...storageConfigs, {
+                                            name,
+                                            type,
+                                            connectionString,
+                                            envKey,
+                                            environment: 'both'
+                                        }]);
+
+                                        // Reset fields
+                                        (document.getElementById('new-storage-name') as HTMLInputElement).value = '';
+                                        (document.getElementById('new-storage-conn') as HTMLInputElement).value = '';
+                                    }}
+                                    className="text-[var(--primary)] px-4 text-[10px] font-bold uppercase tracking-wider"
+                                >
+                                    <Plus className="w-5 h-5 mr-2" /> Add Connector
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </Card>

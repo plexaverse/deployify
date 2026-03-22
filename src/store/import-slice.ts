@@ -16,6 +16,13 @@ export interface ImportSlice {
     installCommand: string;
     region: string;
     envVars: EnvVar[];
+    storageConfigs: {
+        name: string;
+        type: string;
+        connectionString: string;
+        envKey: string;
+        environment: 'production' | 'preview' | 'both';
+    }[];
     newEnvKey: string;
     newEnvValue: string;
     newEnvTarget: 'both' | 'build' | 'runtime';
@@ -30,6 +37,7 @@ export interface ImportSlice {
     setInstallCommand: (cmd: string) => void;
     setRegion: (region: string) => void;
     setEnvVars: (vars: EnvVar[]) => void;
+    setStorageConfigs: (configs: ImportSlice['storageConfigs']) => void;
     setNewEnvKey: (key: string) => void;
     setNewEnvValue: (value: string) => void;
     setNewEnvTarget: (target: 'both' | 'build' | 'runtime') => void;
@@ -47,6 +55,7 @@ export const createImportSlice: StateCreator<ImportSlice> = (set) => ({
     installCommand: '',
     region: '',
     envVars: [],
+    storageConfigs: [],
     newEnvKey: '',
     newEnvValue: '',
     newEnvTarget: 'both',
@@ -61,6 +70,7 @@ export const createImportSlice: StateCreator<ImportSlice> = (set) => ({
     setInstallCommand: (cmd) => set({ installCommand: cmd }),
     setRegion: (region) => set({ region }),
     setEnvVars: (vars) => set({ envVars: vars }),
+    setStorageConfigs: (storageConfigs) => set({ storageConfigs }),
     setNewEnvKey: (key) => set({ newEnvKey: key }),
     setNewEnvValue: (value) => set({ newEnvValue: value }),
     setNewEnvTarget: (target) => set({ newEnvTarget: target }),
@@ -75,6 +85,7 @@ export const createImportSlice: StateCreator<ImportSlice> = (set) => ({
         installCommand: '',
         region: '',
         envVars: [],
+        storageConfigs: [],
         newEnvKey: '',
         newEnvValue: '',
         newEnvTarget: 'both',

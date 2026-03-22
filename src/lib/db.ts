@@ -114,8 +114,14 @@ export async function getEnvVarsForDeployment(
                     if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
                 }
 
-                // Add to runtime env vars (storage is usually runtime)
+                // Add to runtime env vars
                 runtimeEnvVars[envKey] = connectionString;
+
+                // Also add to build env vars if the scope is 'both'
+                // This is useful for tools like Prisma that need a DB connection during build
+                if (storage.environment === 'both') {
+                    buildEnvVars[envKey] = connectionString;
+                }
             } catch (e) {
                 console.error(`Failed to fetch storage secret for ${storage.name}:`, e);
             }
