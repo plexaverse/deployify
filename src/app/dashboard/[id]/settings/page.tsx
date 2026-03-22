@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Settings, Bell, Shield, AlertTriangle } from 'lucide-react';
 import { EnvVariablesSection } from '@/components/EnvVariablesSection';
+import { StorageSection } from '@/components/StorageSection';
 import { DomainsSection } from '@/components/DomainsSection';
 import { RegionSettings } from '@/components/RegionSettings';
 import { ResourceSettings } from '@/components/ResourceSettings';
@@ -159,6 +160,12 @@ export default function ProjectSettingsPage() {
 
                 {/* Environment Variables Section */}
                 <EnvVariablesSection
+                    projectId={project.id}
+                    onUpdate={() => fetchProjectDetails(project.id)}
+                />
+
+                {/* Storage Section */}
+                <StorageSection
                     projectId={project.id}
                     onUpdate={() => fetchProjectDetails(project.id)}
                 />

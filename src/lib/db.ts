@@ -1,7 +1,8 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole, EnvVariable } from '@/types';
+import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
 import { generateId } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
+import { getSecretValue } from '@/lib/gcp/secrets';
 import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 
 // ============= User Operations =============
@@ -58,15 +59,16 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
 /**
  * Get environment variables for a deployment, handled filtering by environment/target and decryption
  */
-export function getEnvVarsForDeployment(
+export async function getEnvVarsForDeployment(
     project: Project,
     envTarget: 'production' | 'preview'
-): { buildEnvVars: Record<string, string>; runtimeEnvVars: Record<string, string> } {
+): Promise<{ buildEnvVars: Record<string, string>; runtimeEnvVars: Record<string, string> }> {
     const envVars = project.envVariables || [];
     const buildEnvVars: Record<string, string> = {};
     const runtimeEnvVars: Record<string, string> = {};
 
-    envVars.forEach((env: EnvVariable) => {
+    // 1. Process regular environment variables
+    for (const env of envVars) {
         // Filter by environment (Production vs Preview)
         if (env.environment && env.environment !== 'both' && env.environment !== envTarget) {
             return;
@@ -89,7 +91,32 @@ export function getEnvVarsForDeployment(
         if (env.target === 'runtime' || env.target === 'both') {
             runtimeEnvVars[env.key] = value;
         }
-    });
+    }
+
+    // 2. Process Storage configurations (Connectors)
+    const storageConfigs = project.storageConfigs || [];
+    for (const storage of storageConfigs) {
+        // Filter by environment
+        if (storage.environment && storage.environment !== 'both' && storage.environment !== envTarget) {
+            continue;
+        }
+
+        if (storage.connectionStringSecretId) {
+            try {
+                const connectionString = await getSecretValue(storage.connectionStringSecretId);
+
+                // Determine variable name based on type
+                let envKey = 'DATABASE_URL';
+                if (storage.type === 'memorystore-redis') envKey = 'REDIS_URL';
+                if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
+
+                // Add to runtime env vars (storage is usually runtime)
+                runtimeEnvVars[envKey] = connectionString;
+            } catch (e) {
+                console.error(`Failed to fetch storage secret for ${storage.name}:`, e);
+            }
+        }
+    }
 
     return { buildEnvVars, runtimeEnvVars };
 }

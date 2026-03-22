@@ -131,6 +131,7 @@ export interface Project {
     crons?: CronJobConfig[];
     envVariables?: EnvVariable[];
     domains?: Domain[];
+    storageConfigs?: StorageConfig[];
     ipRules?: {
         allow: string[];
         block: string[];
@@ -368,4 +369,29 @@ export interface Usage {
 export interface CronJobConfig {
     path: string;
     schedule: string;
+}
+
+// Storage/Database Configuration
+export type StorageType =
+    | 'cloud-sql-postgres'
+    | 'cloud-sql-mysql'
+    | 'firestore'
+    | 'memorystore-redis'
+    | 'supabase'
+    | 'mongodb-atlas'
+    | 'planetscale'
+    | 'generic';
+
+export type StorageStatus = 'provisioning' | 'active' | 'error' | 'disconnected';
+
+export interface StorageConfig {
+    id: string;
+    type: StorageType;
+    name: string;
+    status: StorageStatus;
+    connectionStringSecretId?: string; // GCP Secret Manager ID
+    environment: 'production' | 'preview' | 'both';
+    metadata?: Record<string, unknown>;
+    createdAt: Date;
+    updatedAt: Date;
 }
