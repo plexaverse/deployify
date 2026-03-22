@@ -279,7 +279,7 @@ export default function LandingPage() {
                     role="listitem"
                     aria-label={`${logo} logo`}
                     whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%) drop-shadow(0 0 8px rgba(255,255,255,0.1))' }}
-                    className="text-xl md:text-2xl font-bold tracking-widest text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
+                    className="text-xl md:text-2xl font-bold tracking-wider text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
                   >
                     {logo}
                   </motion.span>

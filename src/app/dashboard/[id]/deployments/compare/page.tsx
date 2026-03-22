@@ -164,7 +164,7 @@ export default function CompareDeploymentsPage() {
                     <Separator className="bg-[var(--border)]" />
                     <div className="p-6 space-y-6">
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-3 block">Select Source</label>
+                            <label className="text-sm font-semibold mb-3 block">Select Source</label>
                             <NativeSelect
                                 value={baseId}
                                 onChange={(e) => handleBaseChange(e.target.value)}
@@ -202,7 +202,7 @@ export default function CompareDeploymentsPage() {
                     <Separator className="bg-[var(--border)]" />
                     <div className="p-6 space-y-6">
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-3 block">Select Target</label>
+                            <label className="text-sm font-semibold mb-3 block">Select Target</label>
                             <NativeSelect
                                 value={targetId}
                                 onChange={(e) => handleTargetChange(e.target.value)}
