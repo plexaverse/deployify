@@ -38,6 +38,7 @@ export const BentoGridItem = ({
   return (
     <motion.div
       whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
       className={cn(
         "row-span-1 rounded-3xl group/bento hover:shadow-xl transition duration-200 shadow-[var(--shadow-sm)] p-6 bg-[var(--card)]/50 border border-[var(--border)] backdrop-blur-md justify-between flex flex-col space-y-4",
         className
