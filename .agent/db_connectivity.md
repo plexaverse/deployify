@@ -27,9 +27,9 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement UI/API support for GCP Memorystore (Redis) connector
 - [x] Implement UI/API support for External Connectors (Supabase, MongoDB Atlas)
 
-### Phase 4: Validation & Health (Next Steps)
-- [ ] Implement connection validation/health checks
-- [ ] Add health status UI in dashboard
+### Phase 4: Validation & Health (COMPLETED)
+- [x] Implement connection validation/health checks
+- [x] Add health status UI in dashboard
 
 ## Progress Updates
 
@@ -45,3 +45,10 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Refactored `getEnvVarsForDeployment` to be asynchronous and automatically inject storage credentials from Secret Manager.
 - Standardized environment variable keys for connectors (e.g., `DATABASE_URL`, `REDIS_URL`, `MONGODB_URI`).
 - Verified implementation with 76 passing tests and 0 lint warnings.
+
+### 2026-10-26: Health & Validation (Session 2)
+- Implemented `src/lib/gcp/storage-validator.ts` for database-specific connection checks.
+- Created `/api/projects/[id]/storage/[storageId]/validate` API route for health checks.
+- Enhanced `StorageSection.tsx` with "Check Connection" functionality and health status indicators.
+- Updated `StorageConfig` type to include `lastValidatedAt` and `lastError` for better observability.
+- Verified zero linting warnings and 76 passing tests.
