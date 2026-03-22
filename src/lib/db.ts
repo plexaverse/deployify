@@ -71,7 +71,7 @@ export async function getEnvVarsForDeployment(
     for (const env of envVars) {
         // Filter by environment (Production vs Preview)
         if (env.environment && env.environment !== 'both' && env.environment !== envTarget) {
-            return;
+            continue;
         }
 
         let value = env.value;

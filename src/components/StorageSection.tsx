@@ -9,7 +9,6 @@ import {
     AlertCircle,
     Server,
     ExternalLink,
-    Search,
     Loader2
 } from 'lucide-react';
 import { useStore } from '@/store';
@@ -59,7 +58,6 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [connectionString, setConnectionString] = useState('');
     const [environment, setEnvironment] = useState<'production' | 'preview' | 'both'>('both');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [validatingId, setValidatingId] = useState<string | null>(null);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
 
     useEffect(() => {
@@ -96,15 +94,6 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             if (success && onUpdate) onUpdate();
         } finally {
             setStorageToDelete(null);
-        }
-    };
-
-    const handleValidate = async (storageId: string) => {
-        setValidatingId(storageId);
-        try {
-            await validateStorageConnection(projectId, storageId);
-        } finally {
-            setValidatingId(null);
         }
     };
 
