@@ -1,10 +1,9 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
-import { generateId } from '@/lib/utils';
+import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole, EnvVariable } from '@/types';
+import { generateId, cleanFirestoreData } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
-
 // ============= User Operations =============
 
 export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
@@ -19,7 +18,7 @@ export async function createUser(userData: Omit<User, 'id' | 'createdAt' | 'upda
         updatedAt: now,
     };
 
-    await db.collection(Collections.USERS).doc(id).set(user);
+    await db.collection(Collections.USERS).doc(id).set(cleanFirestoreData(user));
     return user;
 }
 
@@ -50,10 +49,10 @@ export async function deleteUser(id: string): Promise<void> {
 
 export async function updateUser(id: string, data: Partial<User>): Promise<void> {
     const db = getDb();
-    await db.collection(Collections.USERS).doc(id).update({
+    await db.collection(Collections.USERS).doc(id).update(cleanFirestoreData({
         ...data,
         updatedAt: new Date(),
-    });
+    }));
 }
 
 /**
@@ -156,7 +155,7 @@ export async function createInvite(
         createdAt: now,
     };
 
-    await db.collection(Collections.INVITES).doc(id).set(invite);
+    await db.collection(Collections.INVITES).doc(id).set(cleanFirestoreData(invite));
     return invite;
 }
 
@@ -347,7 +346,7 @@ export async function createTeam(
     const batch = db.batch();
 
     // Create team
-    batch.set(db.collection(Collections.TEAMS).doc(id), team);
+    batch.set(db.collection(Collections.TEAMS).doc(id), cleanFirestoreData(team));
 
     // Create owner membership
     const membershipId = generateId('tm');
@@ -438,7 +437,7 @@ export async function deleteTeamMembership(id: string): Promise<void> {
 
 export async function updateTeamMembership(id: string, data: Partial<TeamMembership>): Promise<void> {
     const db = getDb();
-    await db.collection(Collections.TEAM_MEMBERSHIPS).doc(id).update(data);
+    await db.collection(Collections.TEAM_MEMBERSHIPS).doc(id).update(cleanFirestoreData(data));
 }
 
 export async function listTeamsForUser(userId: string): Promise<Team[]> {
@@ -531,6 +530,8 @@ export async function createProject(
     const project: Project = {
         ...projectData,
         id,
+        teamId: projectData.teamId ?? null,
+        customDomain: projectData.customDomain ?? null,
         cloudRunServiceId: null,
         productionUrl: null,
         region: projectData.region ?? null, // Use provided region or default to null
@@ -538,7 +539,7 @@ export async function createProject(
         updatedAt: now,
     };
 
-    await db.collection(Collections.PROJECTS).doc(id).set(project);
+    await db.collection(Collections.PROJECTS).doc(id).set(cleanFirestoreData(project));
     return project;
 }
 
@@ -660,10 +661,10 @@ export async function listPersonalProjects(userId: string): Promise<Project[]> {
 
 export async function updateProject(id: string, data: Partial<Project>): Promise<void> {
     const db = getDb();
-    await db.collection(Collections.PROJECTS).doc(id).update({
+    await db.collection(Collections.PROJECTS).doc(id).update(cleanFirestoreData({
         ...data,
         updatedAt: new Date(),
-    });
+    }));
 }
 
 export async function deleteProject(id: string): Promise<void> {
@@ -702,7 +703,7 @@ export async function createDeployment(
         updatedAt: now,
     };
 
-    await db.collection(Collections.DEPLOYMENTS).doc(id).set(deployment);
+    await db.collection(Collections.DEPLOYMENTS).doc(id).set(cleanFirestoreData(deployment));
     return deployment;
 }
 
@@ -809,8 +810,8 @@ export async function getLatestDeployment(
 
 export async function updateDeployment(id: string, data: Partial<Deployment>): Promise<void> {
     const db = getDb();
-    await db.collection(Collections.DEPLOYMENTS).doc(id).update({
+    await db.collection(Collections.DEPLOYMENTS).doc(id).update(cleanFirestoreData({
         ...data,
         updatedAt: new Date(),
-    });
+    }));
 }

@@ -43,7 +43,10 @@ export async function getGcpAccessToken(): Promise<string> {
         const token = await client.getAccessToken();
         if (token.token) return token.token;
     } catch (e) {
-        console.error('Local GCP authentication failed:', e instanceof Error ? e.message : e);
+        console.warn('Local GCP authentication failed, using mock token in development:', e instanceof Error ? e.message : e);
+        if (process.env.NODE_ENV === 'development' || !isRunningOnGCP()) {
+            return 'mock-local-gcp-token';
+        }
     }
 
     throw new Error('GCP authentication failed. Ensure you are on GCP or have run "gcloud auth application-default login"');

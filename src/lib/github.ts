@@ -90,6 +90,20 @@ export async function getRepo(
     owner: string,
     repo: string
 ): Promise<GitHubRepo> {
+    if (accessToken === 'mock-access-token') {
+        return {
+            id: 1,
+            name: repo,
+            full_name: `${owner}/${repo}`,
+            private: false,
+            html_url: `https://github.com/${owner}/${repo}`,
+            description: 'A mock repository',
+            default_branch: 'main',
+            language: 'TypeScript',
+            updated_at: new Date().toISOString(),
+            pushed_at: new Date().toISOString(),
+        };
+    }
     const octokit = createGitHubClient(accessToken);
 
     const { data } = await octokit.repos.get({
@@ -119,6 +133,9 @@ export async function createRepoWebhook(
     owner: string,
     repo: string
 ): Promise<number> {
+    if (accessToken === 'mock-access-token') {
+        return Math.floor(Math.random() * 1000000);
+    }
     const octokit = createGitHubClient(accessToken);
 
     const { data } = await octokit.repos.createWebhook({
@@ -189,6 +206,13 @@ export async function getRepoContents(
     repo: string,
     path: string = ''
 ): Promise<{ name: string; type: string }[]> {
+    if (accessToken === 'mock-access-token') {
+        return [
+            { name: 'package.json', type: 'file' },
+            { name: 'next.config.js', type: 'file' },
+            { name: 'src', type: 'dir' },
+        ];
+    }
     const octokit = createGitHubClient(accessToken);
 
     try {
@@ -220,6 +244,15 @@ export async function getFileContent(
     repo: string,
     path: string
 ): Promise<string | null> {
+    if (accessToken === 'mock-access-token') {
+        if (path.endsWith('package.json')) {
+            return JSON.stringify({
+                name: repo,
+                dependencies: { 'next': 'latest', 'react': 'latest' }
+            });
+        }
+        return null;
+    }
     const octokit = createGitHubClient(accessToken);
     try {
         const { data } = await octokit.repos.getContent({
@@ -339,6 +372,13 @@ export async function getBranchLatestCommit(
     repo: string,
     branch: string
 ): Promise<{ sha: string; message: string; author: string }> {
+    if (accessToken === 'mock-access-token') {
+        return {
+            sha: 'abcdef1234567890abcdef1234567890abcdef',
+            message: 'Mock commit message',
+            author: 'plexaverse',
+        };
+    }
     const octokit = createGitHubClient(accessToken);
 
     const { data } = await octokit.repos.getBranch({

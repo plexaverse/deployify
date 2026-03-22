@@ -94,7 +94,7 @@ export interface TeamInvite {
 export interface Project {
     id: string;
     userId: string;
-    teamId?: string;
+    teamId: string | null;
     name: string;
     slug: string;
     repoFullName: string; // owner/repo

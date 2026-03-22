@@ -1,5 +1,5 @@
 import { getDb, Collections } from '@/lib/firebase';
-import { generateId } from '@/lib/utils';
+import { generateId, cleanFirestoreData } from '@/lib/utils';
 
 export interface AuditEvent {
     id: string;
@@ -29,7 +29,7 @@ export async function logAuditEvent(
         createdAt: now,
     };
 
-    await db.collection(Collections.AUDIT_LOGS).doc(id).set(event);
+    await db.collection(Collections.AUDIT_LOGS).doc(id).set(cleanFirestoreData(event));
 }
 
 export async function listAuditLogs(

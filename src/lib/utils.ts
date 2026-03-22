@@ -148,3 +148,18 @@ export function validateConnectionString(url: string): { valid: boolean; type?: 
 
     return { valid: true }; // Unknown type, skip validation
 }
+
+/**
+ * Clean an object by removing all properties with undefined values.
+ * Firestore does not allow undefined values in documents.
+ */
+export function cleanFirestoreData<T extends object>(data: T): T {
+    const clean: any = {};
+    Object.keys(data).forEach(key => {
+        const value = (data as any)[key];
+        if (value !== undefined) {
+            clean[key] = value;
+        }
+    });
+    return clean;
+}
