@@ -156,7 +156,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 }
 
                 // Extract environment variables by target
-                const { buildEnvVars, runtimeEnvVars } = getEnvVarsForDeployment(project, envTarget);
+                const { buildEnvVars, runtimeEnvVars } = await getEnvVarsForDeployment(project, envTarget);
 
                 // Decrypt GitHub token if present
                 const projectGitToken = project.githubToken ? decrypt(project.githubToken) : undefined;

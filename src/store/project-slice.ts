@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats, CronJobConfig } from '@/types';
+import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats, CronJobConfig, StorageConfig } from '@/types';
 import { toast } from 'sonner';
 
 export interface ProjectSlice {
@@ -26,6 +26,7 @@ export interface ProjectSlice {
     cloudArmorEnabled: boolean;
     projectEnvVariables: EnvVariable[];
     projectDomains: Domain[];
+    projectStorageConfigs: StorageConfig[];
 
     // Saving States
     isSavingProjectSettings: boolean;
@@ -33,6 +34,7 @@ export interface ProjectSlice {
     isSavingSecurity: boolean;
     isLoadingEnv: boolean;
     isLoadingDomains: boolean;
+    isLoadingStorage: boolean;
 
     setActiveProjectId: (id: string | null) => void;
     setCurrentProject: (project: Project | null) => void;
@@ -77,6 +79,12 @@ export interface ProjectSlice {
     updateProjectResources: (projectId: string, resources: NonNullable<Project['resources']>) => Promise<boolean>;
     updateBranchSettings: (projectId: string, settings: { autodeployBranches: string[], branchEnvironments: NonNullable<Project['branchEnvironments']> }) => Promise<boolean>;
     updateProjectCrons: (projectId: string, crons: CronJobConfig[]) => Promise<boolean>;
+
+    // Storage Actions
+    fetchProjectStorage: (projectId: string) => Promise<void>;
+    addStorageConfig: (projectId: string, config: Partial<StorageConfig>, connectionString?: string) => Promise<boolean>;
+    deleteStorageConfig: (projectId: string, storageId: string) => Promise<boolean>;
+    validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -102,6 +110,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     cloudArmorEnabled: false,
     projectEnvVariables: [],
     projectDomains: [],
+    projectStorageConfigs: [],
 
     // Saving States Initial
     isSavingProjectSettings: false,
@@ -109,6 +118,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     isSavingSecurity: false,
     isLoadingEnv: false,
     isLoadingDomains: false,
+    isLoadingStorage: false,
     isLoadingAnalytics: false,
 
     setActiveProjectId: (id) => set({ activeProjectId: id }),
@@ -528,6 +538,78 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         } catch (error) {
             console.error('Failed to update project crons:', error);
             return false;
+        }
+    },
+
+    fetchProjectStorage: async (projectId) => {
+        set({ isLoadingStorage: true });
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage`);
+            if (response.ok) {
+                const data = await response.json();
+                set({ projectStorageConfigs: data.storageConfigs || [] });
+            }
+        } catch (error) {
+            console.error('Failed to fetch storage configs:', error);
+        } finally {
+            set({ isLoadingStorage: false });
+        }
+    },
+
+    addStorageConfig: async (projectId, storageConfig, connectionString) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...storageConfig, connectionString }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to add storage configuration');
+            }
+
+            const { projectStorageConfigs } = get();
+            set({ projectStorageConfigs: [...projectStorageConfigs, data.storageConfig] });
+            toast.success('Storage configuration added successfully');
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to add storage configuration');
+            return false;
+        }
+    },
+
+    deleteStorageConfig: async (projectId, storageId) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage?storageId=${storageId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to delete storage configuration');
+            }
+
+            const { projectStorageConfigs } = get();
+            set({ projectStorageConfigs: projectStorageConfigs.filter((s) => s.id !== storageId) });
+            toast.success('Storage configuration deleted');
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to delete storage configuration');
+            return false;
+        }
+    },
+
+    validateStorageConnection: async (projectId, storageId) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/validate`, {
+                method: 'POST',
+            });
+            const data = await response.json();
+            return { valid: response.ok, error: data.error };
+        } catch (error) {
+            return { valid: false, error: error instanceof Error ? error.message : 'Connection validation failed' };
         }
     },
 

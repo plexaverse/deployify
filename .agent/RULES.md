@@ -92,6 +92,7 @@ Project       // Deployment project config (repo, build commands, region, emailN
 Deployment    // Individual deployment record (status, commit, URLs)
 EnvVar        // Environment variable (key, value, target: production/preview/all)
 Domain        // Custom domain (status: pending/active/error)
+StorageConfig // Database connector (type, name, secretId, environment)
 ```
 
 ### Deployment Statuses
@@ -162,8 +163,9 @@ Domain        // Custom domain (status: pending/active/error)
 
 ### 6. Secrets Handling
 - Use `isSecret: true` for sensitive values in environment variables.
-- Encrypt values using `encrypt()` from `@/lib/crypto` before saving to DB (in `POST/PUT` handlers).
-- Decrypt values using `decrypt()` only when needed (e.g. build config generation).
+- Use the **Connector Model** for databases: Sensitive connection strings are stored in **GCP Secret Manager** via `src/lib/gcp/secrets.ts`.
+- Encrypt non-connector secrets using `encrypt()` from `@/lib/crypto` before saving to Firestore.
+- Decrypt values using `decrypt()` or fetch from Secret Manager only when needed during deployment.
 - Mask secrets in UI (`••••••••`) unless explicitly revealed.
 
 ### 7. Code Quality
