@@ -105,10 +105,14 @@ export async function getEnvVarsForDeployment(
             try {
                 const connectionString = await getSecretValue(storage.connectionStringSecretId);
 
-                // Determine variable name based on type
-                let envKey = 'DATABASE_URL';
-                if (storage.type === 'memorystore-redis') envKey = 'REDIS_URL';
-                if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
+                // Determine variable name based on custom key or type defaults
+                let envKey = storage.envKey;
+
+                if (!envKey) {
+                    envKey = 'DATABASE_URL';
+                    if (storage.type === 'memorystore-redis') envKey = 'REDIS_URL';
+                    if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
+                }
 
                 // Add to runtime env vars (storage is usually runtime)
                 runtimeEnvVars[envKey] = connectionString;

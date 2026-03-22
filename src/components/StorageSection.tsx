@@ -49,6 +49,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         isLoadingStorage: isLoading,
         fetchProjectStorage,
         addStorageConfig,
+        updateStorageConfig,
         deleteStorageConfig,
         validateStorageConnection
     } = useStore();
@@ -57,14 +58,27 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [name, setName] = useState('');
     const [type, setType] = useState<StorageType>('cloud-sql-postgres');
     const [connectionString, setConnectionString] = useState('');
+    const [envKey, setEnvKey] = useState('');
     const [environment, setEnvironment] = useState<'production' | 'preview' | 'both'>('both');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [validatingId, setValidatingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
     }, [projectId, fetchProjectStorage]);
+
+    useEffect(() => {
+        if (!isAdding && !editingId) return;
+
+        // Auto-set envKey based on type if it's empty
+        if (!envKey) {
+            if (type === 'memorystore-redis') setEnvKey('REDIS_URL');
+            else if (type === 'mongodb-atlas') setEnvKey('MONGODB_URI');
+            else setEnvKey('DATABASE_URL');
+        }
+    }, [type, isAdding, editingId, envKey]);
 
     const handleAdd = async () => {
         if (!name.trim()) return;
@@ -74,18 +88,58 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             const success = await addStorageConfig(projectId, {
                 name,
                 type,
-                environment
+                environment,
+                envKey
             }, connectionString);
 
             if (success) {
-                setIsAdding(false);
-                setName('');
-                setConnectionString('');
+                resetForm();
                 if (onUpdate) onUpdate();
             }
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleUpdate = async () => {
+        if (!editingId || !name.trim()) return;
+
+        setIsSubmitting(true);
+        try {
+            const success = await updateStorageConfig(projectId, editingId, {
+                name,
+                type,
+                environment,
+                envKey
+            }, connectionString);
+
+            if (success) {
+                resetForm();
+                if (onUpdate) onUpdate();
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const resetForm = () => {
+        setIsAdding(false);
+        setEditingId(null);
+        setName('');
+        setConnectionString('');
+        setEnvKey('');
+        setType('cloud-sql-postgres');
+        setEnvironment('both');
+    };
+
+    const startEditing = (config: StorageConfig) => {
+        setEditingId(config.id);
+        setName(config.name);
+        setType(config.type);
+        setEnvironment(config.environment);
+        setEnvKey(config.envKey || '');
+        setConnectionString(''); // Don't show old connection string
+        setIsAdding(false);
     };
 
     const handleDelete = async () => {
@@ -155,7 +209,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             <Separator className="bg-[var(--border)]" />
 
             <div className="p-6">
-                {isAdding && (
+                {(isAdding || editingId) && (
                     <div className="mb-8 p-6 border border-[var(--border)] rounded-xl bg-[var(--background)] animate-fade-in space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
@@ -191,19 +245,33 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Connection String / Secret</Label>
-                            <Input
-                                type="password"
-                                value={connectionString}
-                                onChange={(e) => setConnectionString(e.target.value)}
-                                placeholder="postgresql://user:password@host:port/db"
-                                className="font-mono text-xs"
-                            />
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
-                                <AlertCircle className="w-3.5 h-3.5" />
-                                This value will be stored securely in Google Cloud Secret Manager.
-                            </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Connection String / Secret</Label>
+                                <Input
+                                    type="password"
+                                    value={connectionString}
+                                    onChange={(e) => setConnectionString(e.target.value)}
+                                    placeholder={editingId ? "Leave blank to keep current secret" : "postgresql://user:password@host:port/db"}
+                                    className="font-mono text-xs"
+                                />
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
+                                    <AlertCircle className="w-3.5 h-3.5" />
+                                    Stored securely in Google Cloud Secret Manager.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Environment Variable Key</Label>
+                                <Input
+                                    value={envKey}
+                                    onChange={(e) => setEnvKey(e.target.value)}
+                                    placeholder="DATABASE_URL"
+                                    className="font-mono text-xs"
+                                />
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    This key will be injected into your application at runtime.
+                                </p>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -222,20 +290,20 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                         <div className="flex justify-end gap-3 pt-2">
                             <Button
                                 variant="ghost"
-                                onClick={() => setIsAdding(false)}
+                                onClick={resetForm}
                                 disabled={isSubmitting}
                                 className="text-[10px] font-bold uppercase tracking-wider"
                             >
                                 Cancel
                             </Button>
                             <MovingBorderButton
-                                onClick={handleAdd}
+                                onClick={editingId ? handleUpdate : handleAdd}
                                 disabled={isSubmitting || !name}
                                 loading={isSubmitting}
                                 containerClassName="h-10 w-44"
                                 className="text-[10px] font-bold uppercase tracking-wider"
                             >
-                                Create Connector
+                                {editingId ? 'Update Connector' : 'Create Connector'}
                             </MovingBorderButton>
                         </div>
                     </div>
@@ -278,6 +346,9 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 {config.type.replace(/-/g, ' ')}
                                             </span>
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                {config.envKey || (config.type === 'memorystore-redis' ? 'REDIS_URL' : config.type === 'mongodb-atlas' ? 'MONGODB_URI' : 'DATABASE_URL')}
+                                            </span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 {config.environment === 'both' ? 'ALL ENVIRONMENTS' : config.environment}
                                             </span>
                                         </div>
@@ -294,6 +365,15 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                         title="Check Connection"
                                     >
                                         <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => startEditing(config)}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="Edit Connector"
+                                    >
+                                        <Server className="w-4 h-4" />
                                     </Button>
                                     <Button
                                         variant="ghost"
