@@ -49,6 +49,9 @@ function main() {
         case 'status':
             handleStatus().catch(err => console.error('Status check failed:', err.message));
             break;
+        case 'storage':
+            handleStorage(args).catch(err => console.error('Storage command failed:', err.message));
+            break;
         case 'help':
         case '--help':
         case '-h':
@@ -73,6 +76,7 @@ Commands:
   link      Link the current directory to a Deployify project
   deploy    Deploy the current directory (must be a git repo) to Deployify
   status    Check the status of the latest deployment
+  storage   Manage project database connectors
   help      Show this help message
 `);
 }
@@ -434,6 +438,61 @@ async function triggerDeployment(instanceUrl, token, projectId, branch) {
     const body = branch ? { branch } : {};
     const response = await fetchJson(`${instanceUrl}/api/projects/${projectId}/deploy`, token, { method: 'POST', body });
     return response;
+}
+
+async function handleStorage(args) {
+    if (!fs.existsSync(CONFIG_PATH)) {
+        throw new Error('You must login first. Run: deployify login');
+    }
+
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    const { instanceUrl, token } = config;
+
+    const subcommand = args[1];
+    const projectId = await getProjectId(instanceUrl, token);
+
+    if (!projectId) {
+        throw new Error('Project not linked. Run: deployify link');
+    }
+
+    if (!subcommand || subcommand === 'list') {
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage`, token);
+        if (data.storageConfigs && data.storageConfigs.length > 0) {
+            console.log(`\nStorage Connectors for ${projectId}:`);
+            console.log('--------------------------------------------------');
+            data.storageConfigs.forEach(s => {
+                const status = s.status === 'active' ? '✅ ACTIVE' : s.status === 'error' ? '❌ ERROR' : '⏳ ' + s.status.toUpperCase();
+                console.log(`ID:     ${s.id}`);
+                console.log(`Name:   ${s.name}`);
+                console.log(`Type:   ${s.type.toUpperCase()}`);
+                console.log(`Key:    ${s.envKey || 'DATABASE_URL'}`);
+                console.log(`Status: ${status}`);
+                if (s.lastError) console.log(`Error:  ${s.lastError}`);
+                console.log('--------------------------------------------------');
+            });
+        } else {
+            console.log('No storage connectors found for this project.');
+        }
+    } else if (subcommand === 'validate') {
+        const storageId = args[2];
+        if (!storageId) {
+            throw new Error('Storage ID required: deployify storage validate <storage_id>');
+        }
+        console.log(`Validating connection for ${storageId}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/validate`, token, { method: 'POST' });
+        if (data.valid) {
+            console.log('✅ Connection successful!');
+            if (data.latency) console.log(`Latency: ${data.latency}ms`);
+        } else {
+            console.log('❌ Connection failed');
+            if (data.error) console.log(`Error: ${data.error}`);
+        }
+    } else {
+        console.log(`Unknown storage subcommand: ${subcommand}`);
+        console.log('Usage:');
+        console.log('  deployify storage list');
+        console.log('  deployify storage validate <storage_id>');
+    }
 }
 
 async function fetchJson(url, token, options = {}) {

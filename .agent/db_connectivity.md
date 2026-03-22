@@ -33,6 +33,12 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement connection validation/health checks
 - [x] Add health status UI in dashboard
 
+### Phase 5: Advanced Integration & Tooling (COMPLETED)
+- [x] Integrate Storage Connectors into Project Import flow
+- [x] Add CLI support for listing and validating connectors
+- [x] Implement build-time credential injection for tools like Prisma
+- [x] Add "Convert to Connector" suggestions in Env Var UI
+
 ## Progress Updates
 
 ### 2026-10-26: Initial Setup
@@ -62,3 +68,11 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Fixed a bug where validation status updates were not correctly reflected in the local store.
 - Added comprehensive unit tests for `storage-validator.ts`.
 - Verified 100% functional integrity with 80 passing tests and zero lint warnings.
+
+### 2026-11-12: Advanced Integration (Session 4)
+- Completed Phase 5: Advanced Integration & Tooling.
+- Integrated database connectors into the Project Import flow (`src/app/dashboard/new/import/page.tsx` and `POST /api/projects`).
+- Implemented `storage list` and `storage validate` commands in the Deployify CLI (`src/cli/index.js`).
+- Enhanced `getEnvVarsForDeployment` to inject credentials into build environment variables for tools like Prisma.
+- Added a "Convert to Connector" suggestion in the Environment Variables UI to encourage secure database connectivity.
+- Verified all changes with 80 passing tests and perfect API audit.
