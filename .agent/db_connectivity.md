@@ -21,11 +21,13 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement credential injection logic in deployment flow
 - [x] Implement Secret Manager integration for secure storage
 
-### Phase 3: Connectors (Partial)
+### Phase 3: Connectors (COMPLETED)
 - [x] Implement UI/API support for GCP Cloud SQL connector
 - [x] Implement UI/API support for GCP Firestore connector
 - [x] Implement UI/API support for GCP Memorystore (Redis) connector
 - [x] Implement UI/API support for External Connectors (Supabase, MongoDB Atlas)
+- [x] Add support for custom Environment Variable keys
+- [x] Implement editing functionality for existing connectors
 
 ### Phase 4: Validation & Health (COMPLETED)
 - [x] Implement connection validation/health checks
@@ -52,3 +54,11 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Enhanced `StorageSection.tsx` with "Check Connection" functionality and health status indicators.
 - Updated `StorageConfig` type to include `lastValidatedAt` and `lastError` for better observability.
 - Verified zero linting warnings and 76 passing tests.
+
+### 2026-10-26: Refinement & Editing (Session 3)
+- Implemented editing functionality for storage connectors in `StorageSection.tsx` and `PATCH /api/projects/[id]/storage`.
+- Added support for custom environment variable keys (`envKey`) in `StorageConfig` and deployment injection logic.
+- Enhanced UI with auto-defaulting `envKey` based on database type.
+- Fixed a bug where validation status updates were not correctly reflected in the local store.
+- Added comprehensive unit tests for `storage-validator.ts`.
+- Verified 100% functional integrity with 80 passing tests and zero lint warnings.

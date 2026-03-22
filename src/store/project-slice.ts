@@ -83,6 +83,7 @@ export interface ProjectSlice {
     // Storage Actions
     fetchProjectStorage: (projectId: string) => Promise<void>;
     addStorageConfig: (projectId: string, config: Partial<StorageConfig>, connectionString?: string) => Promise<boolean>;
+    updateStorageConfig: (projectId: string, storageId: string, config: Partial<StorageConfig>, connectionString?: string) => Promise<boolean>;
     deleteStorageConfig: (projectId: string, storageId: string) => Promise<boolean>;
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
 }
@@ -580,6 +581,34 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         }
     },
 
+    updateStorageConfig: async (projectId, storageId, storageConfig, connectionString) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ storageId, ...storageConfig, connectionString }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to update storage configuration');
+            }
+
+            const { projectStorageConfigs } = get();
+            set({
+                projectStorageConfigs: projectStorageConfigs.map((s) =>
+                    s.id === storageId ? data.storageConfig : s
+                )
+            });
+            toast.success('Storage configuration updated');
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to update storage configuration');
+            return false;
+        }
+    },
+
     deleteStorageConfig: async (projectId, storageId) => {
         try {
             const response = await fetch(`/api/projects/${projectId}/storage?storageId=${storageId}`, {
@@ -607,7 +636,22 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 method: 'POST',
             });
             const data = await response.json();
-            return { valid: response.ok, error: data.error };
+
+            if (response.ok && data.success) {
+                const { projectStorageConfigs } = get();
+                set({
+                    projectStorageConfigs: projectStorageConfigs.map((s) =>
+                        s.id === storageId ? {
+                            ...s,
+                            status: data.status,
+                            lastValidatedAt: data.lastValidatedAt ? new Date(data.lastValidatedAt) : new Date(),
+                            lastError: data.error
+                        } : s
+                    )
+                });
+            }
+
+            return { valid: response.ok && data.valid, error: data.error };
         } catch (error) {
             return { valid: false, error: error instanceof Error ? error.message : 'Connection validation failed' };
         }

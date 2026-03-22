@@ -62,7 +62,8 @@ export async function POST(
             valid: result.valid,
             error: result.error,
             latency: result.latency,
-            status: newStatus
+            status: newStatus,
+            lastValidatedAt: now.toISOString()
         });
     } catch (error) {
         console.error('Failed to validate storage connection:', error);

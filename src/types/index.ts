@@ -390,6 +390,7 @@ export interface StorageConfig {
     name: string;
     status: StorageStatus;
     connectionStringSecretId?: string; // GCP Secret Manager ID
+    envKey?: string; // Custom environment variable key for the connection string
     environment: 'production' | 'preview' | 'both';
     lastValidatedAt?: Date;
     lastError?: string;
