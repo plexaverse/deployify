@@ -106,6 +106,17 @@ function createMockFirestore(): Firestore {
                 type: 'production',
                 buildDurationMs: 45000,
                 performanceMetrics: { performanceScore: 0.95 },
+                storageConfigs: [
+                    {
+                        id: 'storage_1',
+                        type: 'firestore',
+                        name: 'Primary Firestore',
+                        status: 'active',
+                        environment: 'both',
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    }
+                ],
                 joinedAt: { toDate: () => new Date() },
                 expiresAt: { toDate: () => new Date() },
                 envVariables: collection === Collections.PROJECTS ? [

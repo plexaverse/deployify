@@ -3,6 +3,8 @@ import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
 import { getOperationStatus as getCloudSqlOperationStatus } from '@/lib/gcp/cloudsql';
+import { getOperationStatus as getMemorystoreOperationStatus } from '@/lib/gcp/memorystore';
+import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
 
 /**
@@ -56,8 +58,18 @@ export async function GET(
         // Poll GCP for status
         let statusResult;
         try {
-            // For now, Cloud SQL and others share similar operation structures or we mock them
-            statusResult = await getCloudSqlOperationStatus(operationName);
+            if (storage.type.startsWith('cloud-sql')) {
+                statusResult = await getCloudSqlOperationStatus(operationName);
+            } else if (storage.type === 'memorystore-redis') {
+                statusResult = await getMemorystoreOperationStatus(operationName);
+            } else if (storage.type === 'firestore') {
+                statusResult = await getFirestoreOperationStatus(operationName);
+            } else {
+                return NextResponse.json({
+                    success: false,
+                    error: `Unsupported storage type for sync: ${storage.type}`
+                }, { status: 400 });
+            }
         } catch (error) {
             console.error('Failed to get operation status:', error);
             return NextResponse.json({ error: 'Failed to poll GCP status' }, { status: 500 });
