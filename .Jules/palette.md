@@ -69,3 +69,7 @@
 ## 2026-03-25 - [Framer Motion Filter Syntax and Build Safety]
 **Learning:** When using Framer Motion's `whileHover` or `animate` props to apply complex visual effects like drop shadows alongside grayscale, it is safer to use the full `filter` string property (e.g., `filter: 'grayscale(0%) drop-shadow(...)'`) rather than attempting to use shorthand keys like `dropShadow`. TypeScript often lacks definitions for these shorthands in the motion target types, leading to build-time failures even if they work in development.
 **Action:** Always use the composite `filter` string for complex CSS filters in Framer Motion to ensure build stability.
+
+## 2026-03-27 - [Deterministic Visuals and Layout Redundancy]
+**Learning:** Using `Math.random()` for decorative UI elements (like sparklines) causes jarring visual jumps during re-renders and navigations, undermining the "premium" feel. Furthermore, nesting interactive cards within generic grid wrappers can lead to "double-border" or "nested-padding" visual noise if not carefully coordinated.
+**Action:** Always use `useMemo` with a deterministic seed (e.g., `project.id`) for pseudo-random visual data. When wrapping complex cards in a `BentoGrid`, apply `p-0 overflow-hidden border-0 bg-transparent shadow-none` to the wrapper to delegate all styling to the child component.

@@ -154,11 +154,12 @@ export function validateConnectionString(url: string): { valid: boolean; type?: 
  * Firestore does not allow undefined values in documents.
  */
 export function cleanFirestoreData<T extends object>(data: T): T {
-    const clean: any = {};
+    const clean = {} as T;
     Object.keys(data).forEach(key => {
-        const value = (data as any)[key];
+        const k = key as keyof T;
+        const value = data[k];
         if (value !== undefined) {
-            clean[key] = value;
+            clean[k] = value;
         }
     });
     return clean;
