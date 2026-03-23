@@ -532,6 +532,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 value={rootDirectory}
                                 onChange={(e) => setRootDirectory(e.target.value)}
                                 placeholder="./"
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -573,7 +574,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                                 type="text"
                                                 value={buildCommand}
                                                 onChange={(e) => setBuildCommand(e.target.value)}
-                                                placeholder="npm run build"
+                                                placeholder="NPM RUN BUILD"
+                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -583,7 +585,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                                 type="text"
                                                 value={installCommand}
                                                 onChange={(e) => setInstallCommand(e.target.value)}
-                                                placeholder="npm install"
+                                                placeholder="NPM INSTALL"
+                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -593,7 +596,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                                 type="text"
                                                 value={outputDirectory}
                                                 onChange={(e) => setOutputDirectory(e.target.value)}
-                                                placeholder=".next"
+                                                placeholder=".NEXT"
+                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                     </div>
@@ -655,14 +659,14 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 placeholder="KEY"
                                 value={newEnvKey}
                                 onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                                        className="font-mono text-[10px] font-bold uppercase tracking-wider"
+                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <Input
                                 type={newEnvIsSecret ? "password" : "text"}
                                 placeholder="VALUE"
                                 value={newEnvValue}
                                 onChange={(e) => setNewEnvValue(e.target.value)}
-                                        className="font-mono text-[10px] font-bold uppercase tracking-wider"
+                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <Button
                                 variant="ghost"

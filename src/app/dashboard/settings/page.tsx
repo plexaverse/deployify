@@ -341,7 +341,8 @@ export default function TeamSettingsPage() {
                                     <Input
                                         id="email"
                                         type="email"
-                                        placeholder="colleague@example.com"
+                                        placeholder="COLLEAGUE@EXAMPLE.COM"
+                                        className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         required

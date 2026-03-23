@@ -229,7 +229,8 @@ export default function ImportProjectPage() {
                                 type="text"
                                 value={projectName}
                                 onChange={(e) => setProjectName(e.target.value)}
-                                placeholder="my-project"
+                                placeholder="MY-PROJECT"
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -259,6 +260,7 @@ export default function ImportProjectPage() {
                                     value={rootDirectory}
                                     onChange={(e) => setRootDirectory(e.target.value)}
                                     placeholder="./"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -299,7 +301,8 @@ export default function ImportProjectPage() {
                                 type="text"
                                 value={buildCommand}
                                 onChange={(e) => setBuildCommand(e.target.value)}
-                                placeholder="npm run build"
+                                placeholder="NPM RUN BUILD"
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -308,7 +311,8 @@ export default function ImportProjectPage() {
                                 type="text"
                                 value={outputDirectory}
                                 onChange={(e) => setOutputDirectory(e.target.value)}
-                                placeholder=".next"
+                                placeholder=".NEXT"
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                     </div>
@@ -319,7 +323,8 @@ export default function ImportProjectPage() {
                                 type="text"
                                 value={installCommand}
                                 onChange={(e) => setInstallCommand(e.target.value)}
-                                placeholder="npm install"
+                                placeholder="NPM INSTALL"
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                     </div>
@@ -371,9 +376,9 @@ export default function ImportProjectPage() {
                                 <div className="space-y-2">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider">Connector Name</Label>
                                     <Input
-                                        placeholder="Primary DB"
+                                        placeholder="PRIMARY DB"
                                         id="new-storage-name"
-                                        className="text-[10px] font-bold uppercase tracking-wider"
+                                        className="text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -408,9 +413,9 @@ export default function ImportProjectPage() {
                                     <Label className="text-[10px] font-bold uppercase tracking-wider">Connection String</Label>
                                     <Input
                                         type="password"
-                                        placeholder="postgresql://user:pass@host:port/db"
+                                        placeholder="POSTGRESQL://USER:PASS@HOST:PORT/DB"
                                         id="new-storage-conn"
-                                        className="text-[10px] font-bold uppercase tracking-wider font-mono"
+                                        className="text-[10px] font-bold uppercase tracking-wider font-mono placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -419,7 +424,7 @@ export default function ImportProjectPage() {
                                         placeholder="DATABASE_URL"
                                         id="new-storage-env-key"
                                         defaultValue="DATABASE_URL"
-                                        className="text-[10px] font-bold uppercase tracking-wider font-mono"
+                                        className="text-[10px] font-bold uppercase tracking-wider font-mono placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
                                 </div>
                             </div>
@@ -512,14 +517,14 @@ export default function ImportProjectPage() {
                                 value={newEnvKey}
                                 onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="KEY"
-                                        className="font-mono text-[10px] font-bold uppercase tracking-wider"
+                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <Input
                                 type={newEnvIsSecret ? 'password' : 'text'}
                                 value={newEnvValue}
                                 onChange={(e) => setNewEnvValue(e.target.value)}
                                 placeholder="VALUE"
-                                        className="font-mono text-[10px] font-bold uppercase tracking-wider"
+                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <Button
                                 variant="ghost"

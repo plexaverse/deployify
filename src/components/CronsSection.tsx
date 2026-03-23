@@ -149,8 +149,8 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                 type="text"
                                 value={newPath}
                                 onChange={(e) => setNewPath(e.target.value)}
-                                placeholder="/api/cron/daily-report"
-                                className="font-mono text-sm"
+                                placeholder="/API/CRON/DAILY-REPORT"
+                                className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Relative path to call (GET request).
@@ -173,7 +173,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                     value={customSchedule}
                                     onChange={(e) => setCustomSchedule(e.target.value)}
                                     placeholder="0 0 * * *"
-                                    className="font-mono text-sm"
+                                    className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Standard cron format: minute hour day(month) month day(week)

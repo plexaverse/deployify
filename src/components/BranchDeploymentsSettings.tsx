@@ -121,8 +121,8 @@ export function BranchDeploymentsSettings({
                         type="text"
                         value={newBranch}
                         onChange={(e) => setNewBranch(e.target.value)}
-                        placeholder="e.g., staging, develop"
-                        className="flex-1"
+                        placeholder="E.G., STAGING, DEVELOP"
+                        className="flex-1 placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();

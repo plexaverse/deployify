@@ -226,6 +226,7 @@ export default function ProjectSettingsPage() {
                                     value={rootDirectory}
                                     onChange={(e) => setProjectSettingsField('rootDirectory', e.target.value)}
                                     placeholder="./"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The directory within your project where code is located.
@@ -241,7 +242,8 @@ export default function ProjectSettingsPage() {
                                     type="text"
                                     value={buildCommand}
                                     onChange={(e) => setProjectSettingsField('buildCommand', e.target.value)}
-                                    placeholder="npm run build"
+                                    placeholder="NPM RUN BUILD"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The command used to build your project.
@@ -254,7 +256,8 @@ export default function ProjectSettingsPage() {
                                     type="text"
                                     value={outputDirectory}
                                     onChange={(e) => setProjectSettingsField('outputDirectory', e.target.value)}
-                                    placeholder=".next"
+                                    placeholder=".NEXT"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The directory where build artifacts are located.
@@ -270,7 +273,8 @@ export default function ProjectSettingsPage() {
                                     type="text"
                                     value={installCommand}
                                     onChange={(e) => setProjectSettingsField('installCommand', e.target.value)}
-                                    placeholder="npm install"
+                                    placeholder="NPM INSTALL"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The command used to install dependencies.
@@ -343,7 +347,8 @@ export default function ProjectSettingsPage() {
                                 type="text"
                                 value={webhookUrl}
                                 onChange={(e) => setProjectSettingsField('webhookUrl', e.target.value)}
-                                placeholder="https://discord.com/api/webhooks/..."
+                                placeholder="HTTPS://DISCORD.COM/API/WEBHOOKS/..."
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Receive notifications when a build fails. Supports Discord, Slack, and other webhook-compatible services.

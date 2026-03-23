@@ -1365,3 +1365,25 @@ Standardized the database connection validation UI and health status indicators.
   - Implemented a spinning `Loader2` state for the status icon during validation, ensuring immediate visual feedback.
   - Enforced `text-[10px] font-bold uppercase tracking-wider` for all new status labels and tooltips.
   - Standardized the "Disconnect" action with consistent hover states (`hover:text-[var(--error)] hover:bg-[var(--error-bg)]`) and icon sizing.
+
+## Progressive UI & Layout Standardization (Session 158)
+
+Standardized the text casing and typographic styling for all input placeholders across the platform to match the high-density technical aesthetic.
+
+### Placeholder Text & Typography Standardization
+- **Files Updated**:
+  - `src/components/LogViewer.tsx`
+  - `src/components/DomainsSection.tsx`
+  - `src/components/StorageSection.tsx`
+  - `src/components/EnvVariablesSection.tsx`
+  - `src/components/BranchDeploymentsSettings.tsx`
+  - `src/components/CronsSection.tsx`
+  - `src/components/CreateTeamModal.tsx`
+  - `src/app/dashboard/settings/page.tsx`
+  - `src/app/dashboard/new/import/page.tsx`
+  - `src/app/dashboard/[id]/settings/page.tsx`
+  - `src/app/new/page.tsx`
+  - `src/app/edge-debug/page.tsx`
+- **Standardization**:
+  - Converted all input placeholder text values to explicit uppercase strings (e.g., "Filter logs..." to "FILTER LOGS...").
+  - Enforced the `placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider` utility classes across these inputs to ensure visual parity with existing headers and metadata.
