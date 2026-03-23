@@ -60,6 +60,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [connectionString, setConnectionString] = useState('');
     const [envKey, setEnvKey] = useState('');
     const [environment, setEnvironment] = useState<'production' | 'preview' | 'both'>('both');
+    const [provision, setProvision] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -89,8 +90,9 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 name,
                 type,
                 environment,
-                envKey
-            }, connectionString);
+                envKey,
+                metadata: { provisioned: provision }
+            }, provision ? '' : connectionString, provision);
 
             if (success) {
                 resetForm();
@@ -130,6 +132,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setEnvKey('');
         setType('cloud-sql-postgres');
         setEnvironment('both');
+        setProvision(false);
     };
 
     const startEditing = (config: StorageConfig) => {
@@ -234,33 +237,61 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     </optgroup>
                                     <optgroup label="MANAGED EXTERNAL">
                                         {STORAGE_TYPES.filter(t => t.category === 'EXTERNAL').map(t => (
-                                            <option key={t.value} value={t.value}>{t.label}</option>
+                                            <option key={t.value} value={t.value} disabled={provision}>{t.label}</option>
                                         ))}
                                     </optgroup>
                                     <optgroup label="OTHER">
                                         {STORAGE_TYPES.filter(t => t.category === 'OTHER').map(t => (
-                                            <option key={t.value} value={t.value}>{t.label}</option>
+                                            <option key={t.value} value={t.value} disabled={provision}>{t.label}</option>
                                         ))}
                                     </optgroup>
                                 </NativeSelect>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {!editingId && (
                             <div className="space-y-2">
-                                <Label className="text-sm font-semibold">Connection String / Secret</Label>
-                                <Input
-                                    type="password"
-                                    value={connectionString}
-                                    onChange={(e) => setConnectionString(e.target.value)}
-                                    placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
-                                    className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Setup Method</Label>
+                                <SegmentedControl
+                                    options={[
+                                        { value: 'connect', label: 'CONNECT EXISTING' },
+                                        { value: 'provision', label: 'PROVISION NEW' }
+                                    ]}
+                                    value={provision ? 'provision' : 'connect'}
+                                    onChange={(v) => {
+                                        setProvision(v === 'provision');
+                                        if (v === 'provision' && (type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'generic')) {
+                                            setType('cloud-sql-postgres');
+                                        }
+                                    }}
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
-                                    <AlertCircle className="w-3.5 h-3.5" />
-                                    Stored securely in Google Cloud Secret Manager.
-                                </p>
                             </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {!provision ? (
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-semibold">Connection String / Secret</Label>
+                                    <Input
+                                        type="password"
+                                        value={connectionString}
+                                        onChange={(e) => setConnectionString(e.target.value)}
+                                        placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
+                                        className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    />
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
+                                        <AlertCircle className="w-3.5 h-3.5" />
+                                        Stored securely in Google Cloud Secret Manager.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg flex items-start gap-3">
+                                    <Activity className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
+                                    <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                        Deployify will automatically provision a new <strong>{type.replace(/-/g, ' ')}</strong> instance in your project&apos;s default region and manage all credentials.
+                                    </div>
+                                </div>
+                            )}
                             <div className="space-y-2">
                                 <Label className="text-sm font-semibold">Environment Variable Key</Label>
                                 <Input

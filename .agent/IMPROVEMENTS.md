@@ -174,7 +174,7 @@
 
 #### 22. **Integrated DB Configuration (Connector Model)**
 - **Improvement**: Implement a managed "Connector" model for databases to improve DX and security.
-- **Status**: ✅ Implemented (GCP Secret Manager integration, UI Storage Section, automated credential injection in `src/lib/db.ts`, connection health validation in `src/lib/gcp/storage-validator.ts`, custom Environment Variable keys, and connector editing functionality.)
+- **Status**: ✅ Implemented (GCP Secret Manager integration, UI Storage Section, automated credential injection in `src/lib/db.ts`, connection health validation in `src/lib/gcp/storage-validator.ts`, custom Environment Variable keys, and connector editing functionality. Added **Automatic Provisioning** (Alpha) for Cloud SQL, Firestore, and Memorystore, and an experimental **Data Lab** query browser.)
 
 ### Reliability Improvements
 
