@@ -250,10 +250,10 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)]" />
                             <Input
                                 type="text"
-                                placeholder="Filter logs..."
+                                placeholder="FILTER LOGS..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-8 pl-8 pr-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20"
+                                className="h-8 pl-8 pr-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             {searchQuery && (
                                 <Button

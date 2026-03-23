@@ -288,7 +288,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 value={newKey}
                                 onChange={(e) => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="API_KEY"
-                                className="font-mono text-sm"
+                                className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -297,8 +297,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 type={newIsSecret ? 'password' : 'text'}
                                 value={newValue}
                                 onChange={(e) => setNewValue(e.target.value)}
-                                placeholder="secret-value"
-                                className="font-mono text-sm"
+                                placeholder="SECRET-VALUE"
+                                className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2 md:col-span-2">
@@ -309,7 +309,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                     list="existing-groups"
                                     value={newGroup}
                                     onChange={(e) => setNewGroup(e.target.value)}
-                                    placeholder="e.g. Database, Auth, General"
+                                    placeholder="E.G. DATABASE, AUTH, GENERAL"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <datalist id="existing-groups">
                                     {uniqueGroups.map(group => (

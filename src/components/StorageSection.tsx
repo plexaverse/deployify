@@ -217,7 +217,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="e.g. Primary Postgres"
+                                    placeholder="E.G. PRIMARY POSTGRES"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -252,8 +253,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     type="password"
                                     value={connectionString}
                                     onChange={(e) => setConnectionString(e.target.value)}
-                                    placeholder={editingId ? "Leave blank to keep current secret" : "postgresql://user:password@host:port/db"}
-                                    className="font-mono text-xs"
+                                    placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
+                                    className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
                                     <AlertCircle className="w-3.5 h-3.5" />
@@ -266,7 +267,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     value={envKey}
                                     onChange={(e) => setEnvKey(e.target.value)}
                                     placeholder="DATABASE_URL"
-                                    className="font-mono text-xs"
+                                    className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     This key will be injected into your application at runtime.

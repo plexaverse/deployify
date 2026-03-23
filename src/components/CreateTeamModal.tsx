@@ -88,7 +88,8 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 type="text"
                                 value={name}
                                 onChange={handleNameChange}
-                                placeholder="Acme Corp"
+                                placeholder="ACME CORP"
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 required
                             />
                         </div>
@@ -98,8 +99,8 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 type="text"
                                 value={slug}
                                 onChange={(e) => setSlug(e.target.value)}
-                                placeholder="acme-corp"
-                                className="font-mono text-sm"
+                                placeholder="ACME-CORP"
+                                className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 required
                                 pattern="^[a-z0-9-]+$"
                                 title="Only lowercase letters, numbers, and hyphens allowed"

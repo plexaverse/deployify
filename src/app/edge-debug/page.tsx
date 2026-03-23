@@ -157,7 +157,8 @@ export default function EdgeDebugPage() {
                             type="text"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
-                            placeholder="https://example.com/path"
+                            placeholder="HTTPS://EXAMPLE.COM/PATH"
+                            className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                         />
                     </div>
 

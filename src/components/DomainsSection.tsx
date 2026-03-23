@@ -176,7 +176,8 @@ export function DomainsSection({
                             type="text"
                             value={newDomain}
                             onChange={(e) => setNewDomain(e.target.value)}
-                            placeholder="app.example.com"
+                            placeholder="APP.EXAMPLE.COM"
+                            className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                         />
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Enter your domain or subdomain (e.g., app.example.com)
