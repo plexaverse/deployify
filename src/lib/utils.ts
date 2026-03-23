@@ -158,7 +158,7 @@ export function cleanFirestoreData<T extends object>(data: T): T {
     Object.keys(data).forEach(key => {
         const value = (data as Record<string, unknown>)[key];
         if (value !== undefined) {
-            clean[key] = value;
+            clean[key as keyof T] = value as T[keyof T];
         }
     });
     return clean as T;
