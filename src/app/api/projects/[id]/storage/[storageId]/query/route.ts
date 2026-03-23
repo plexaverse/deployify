@@ -105,10 +105,10 @@ export async function POST(
                         const connection = await mysql.createConnection(connectionString);
                         try {
                             const [rows] = await connection.execute('SHOW TABLES');
-                            // @ts-expect-error - Dynamic mysql result
                             return NextResponse.json({
                                 success: true,
-                                results: [{ tables: rows.map(r => Object.values(r)[0]) }],
+                                // @ts-expect-error - Dynamic mysql result
+                                results: [{ tables: rows.map(r => Object.values(r as Record<string, unknown>)[0]) }],
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
