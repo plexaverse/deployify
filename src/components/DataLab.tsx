@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
@@ -19,24 +20,32 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isExecuting, setIsExecuting] = useState(false);
     const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
+    const [schema, setSchema] = useState<{ tables?: string[], collections?: string[] } | null>(null);
+    const [isDiscovering, setIsDiscovering] = useState(false);
 
-    const executeQuery = async () => {
-        if (!selectedId || !query.trim()) return;
+    const executeQuery = async (overrideQuery?: string) => {
+        const queryToRun = overrideQuery || query;
+        if (!selectedId || !queryToRun.trim()) return;
 
         setIsExecuting(true);
-        setError(null);
-        setResults(null);
+        if (!overrideQuery) setError(null);
+        if (!overrideQuery) setResults(null);
 
         try {
             const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/query`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query }),
+                body: JSON.stringify({ query: queryToRun }),
             });
 
             const data = await response.json();
             if (data.success) {
-                setResults(data.results);
+                if (queryToRun === 'DISCOVER_SCHEMA') {
+                    setSchema(data.results[0]);
+                } else {
+                    setResults(data.results);
+                }
             } else {
                 setError(data.error || 'Failed to execute query');
             }
@@ -47,7 +56,45 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         }
     };
 
+    const discoverSchema = async () => {
+        setIsDiscovering(true);
+        await executeQuery('DISCOVER_SCHEMA');
+        setIsDiscovering(false);
+    };
+
     const selectedConnector = connectors.find(c => c.id === selectedId);
+
+    const renderResultsTable = () => {
+        if (!results || results.length === 0) return null;
+        const columns = Object.keys(results[0]);
+
+        return (
+            <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--background)]">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
+                            {columns.map(col => (
+                                <th key={col} className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap">
+                                    {col}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {results.map((row, i) => (
+                            <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
+                                {columns.map(col => (
+                                    <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate">
+                                        {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
 
     return (
         <Card className="overflow-hidden p-0 border-[var(--primary)]/20 shadow-xl shadow-[var(--primary)]/5">
@@ -80,9 +127,21 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         </select>
                     </div>
                     <div className="md:col-span-2 space-y-2">
-                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                            {selectedConnector?.type.includes('sql') ? 'SQL Query (Read-Only)' : 'NoSQL Filter / JSON'}
-                        </Label>
+                        <div className="flex items-center justify-between">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                {selectedConnector?.type.includes('sql') ? 'SQL Query (Read-Only)' : 'NoSQL Filter / JSON'}
+                            </Label>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]"
+                                onClick={discoverSchema}
+                                disabled={isDiscovering}
+                            >
+                                {isDiscovering ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Search className="w-3 h-3 mr-1.5" />}
+                                Discover Schema
+                            </Button>
+                        </div>
                         <div className="relative">
                             <textarea
                                 value={query}
@@ -92,7 +151,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                             />
                             <div className="absolute bottom-4 right-4">
                                 <MovingBorderButton
-                                    onClick={executeQuery}
+                                    onClick={() => executeQuery()}
                                     disabled={isExecuting || !query.trim()}
                                     containerClassName="h-10 w-32"
                                     className="text-[10px] font-bold uppercase tracking-wider"
@@ -105,6 +164,32 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     </div>
                 </div>
 
+                {schema && (
+                    <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-fade-in">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Info className="w-4 h-4 text-[var(--primary)]" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Schema Insight</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {(schema.tables || schema.collections || []).map(item => (
+                                <button
+                                    key={item}
+                                    onClick={() => {
+                                        if (selectedConnector?.type.includes('sql')) {
+                                            setQuery(`SELECT * FROM ${item} LIMIT 10`);
+                                        } else {
+                                            setQuery(`{ "collection": "${item}", "limit": 10 }`);
+                                        }
+                                    }}
+                                    className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-mono hover:border-[var(--primary)] transition-colors"
+                                >
+                                    {item}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {error && (
                     <div className="p-4 rounded-lg bg-[var(--error)]/10 border border-[var(--error)]/20 flex items-start gap-3 text-[var(--error)]">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -113,17 +198,43 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                 )}
 
                 {results && (
-                    <div className="space-y-3">
+                    <div className="space-y-3 animate-fade-in">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
                                 <CheckCircle2 className="w-4 h-4" />
                                 Query Executed Successfully ({results.length} results)
                             </div>
+                            <div className="flex items-center gap-1 bg-[var(--muted)]/20 p-1 rounded-lg border border-[var(--border)]">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setViewMode('table')}
+                                    className={`h-7 px-3 text-[10px] font-bold uppercase tracking-wider ${viewMode === 'table' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                >
+                                    <Table className="w-3.5 h-3.5 mr-1.5" />
+                                    Table
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setViewMode('json')}
+                                    className={`h-7 px-3 text-[10px] font-bold uppercase tracking-wider ${viewMode === 'json' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                >
+                                    <Terminal className="w-3.5 h-3.5 mr-1.5" />
+                                    JSON
+                                </Button>
+                            </div>
                         </div>
-                        <div className="max-h-[300px] overflow-auto rounded-xl border border-[var(--border)] bg-[var(--muted)]/10 p-4">
-                            <pre className="text-[10px] font-mono text-[var(--foreground)]">
-                                {JSON.stringify(results, null, 2)}
-                            </pre>
+                        <div className="max-h-[400px] overflow-auto">
+                            {viewMode === 'table' ? (
+                                renderResultsTable()
+                            ) : (
+                                <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/10 p-4">
+                                    <pre className="text-[10px] font-mono text-[var(--foreground)]">
+                                        {JSON.stringify(results, null, 2)}
+                                    </pre>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

@@ -4,6 +4,8 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getDb } from '@/lib/firebase';
 import type { StorageConfig } from '@/types';
+import { Client as PgClient } from 'pg';
+import mysql from 'mysql2/promise';
 
 /**
  * Experimental read-only query browser proxy
@@ -51,6 +53,19 @@ export async function POST(
 
         // 2. Execute Query (Mocked or Real)
         if (process.env.MOCK_DB === 'true') {
+            // Handle Schema Discovery Mock
+            if (query === 'DISCOVER_SCHEMA') {
+                const mockSchema = storageConfig.type === 'firestore'
+                    ? { collections: ['users', 'projects', 'deployments', 'analytics'] }
+                    : { tables: ['users', 'projects', 'deployments', 'domains', 'env_vars'] };
+
+                return NextResponse.json({
+                    success: true,
+                    results: [mockSchema],
+                    executionTimeMs: 5
+                });
+            }
+
             // Simulated results for demonstration
             const mockResults = [
                 { id: 1, name: 'Sample User', email: 'user@example.com', created_at: new Date().toISOString() },
@@ -65,19 +80,80 @@ export async function POST(
             });
         }
 
+        const startTime = Date.now();
+
         // Real Connectivity Logic (Experimental Proxy)
-        // For production, this would use a secure pool of connections within the VPC
-        // Here we demonstrate the *intent* of real connectivity for the Lead Developer Pass
         try {
             if (storageConfig.type.includes('sql')) {
-                // Example with hypothetical 'pg' or 'mysql' driver
-                // const client = new Client(connectionString);
-                // await client.connect();
-                // const res = await client.query(query);
-                // return NextResponse.json({ success: true, results: res.rows });
-                throw new Error('Real SQL proxying requires direct VPC access, which is currently being provisioned.');
+                const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
+
+                if (query === 'DISCOVER_SCHEMA') {
+                    if (isPostgres) {
+                        const client = new PgClient({ connectionString });
+                        try {
+                            await client.connect();
+                            const res = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+                            return NextResponse.json({
+                                success: true,
+                                results: [{ tables: res.rows.map(r => r.table_name) }],
+                                executionTimeMs: Date.now() - startTime
+                            });
+                        } finally {
+                            await client.end();
+                        }
+                    } else {
+                        const connection = await mysql.createConnection(connectionString);
+                        try {
+                            const [rows] = await connection.execute('SHOW TABLES');
+                            // @ts-expect-error - Dynamic mysql result
+                            return NextResponse.json({
+                                success: true,
+                                results: [{ tables: rows.map(r => Object.values(r)[0]) }],
+                                executionTimeMs: Date.now() - startTime
+                            });
+                        } finally {
+                            await connection.end();
+                        }
+                    }
+                }
+
+                if (isPostgres) {
+                    const client = new PgClient({ connectionString });
+                    try {
+                        await client.connect();
+                        const res = await client.query(query);
+                        return NextResponse.json({
+                            success: true,
+                            results: res.rows,
+                            executionTimeMs: Date.now() - startTime
+                        });
+                    } finally {
+                        await client.end();
+                    }
+                } else {
+                    const connection = await mysql.createConnection(connectionString);
+                    try {
+                        const [rows] = await connection.execute(query);
+                        return NextResponse.json({
+                            success: true,
+                            results: rows,
+                            executionTimeMs: Date.now() - startTime
+                        });
+                    } finally {
+                        await connection.end();
+                    }
+                }
             } else if (storageConfig.type === 'firestore') {
                 const db = getDb();
+
+                if (query === 'DISCOVER_SCHEMA') {
+                    const collections = await db.listCollections();
+                    return NextResponse.json({
+                        success: true,
+                        results: [{ collections: collections.map(c => c.id) }],
+                        executionTimeMs: Date.now() - startTime
+                    });
+                }
                 let queryObj: ReturnType<typeof db.collection> | ReturnType<typeof db.collection>['where'];
 
                 try {

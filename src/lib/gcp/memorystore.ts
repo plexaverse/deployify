@@ -47,3 +47,29 @@ export async function createInstance(
         connectionString,
     };
 }
+
+/**
+ * Check the status of a long-running operation
+ */
+export async function getOperationStatus(
+    operationName: string
+): Promise<{ status: 'PENDING' | 'RUNNING' | 'DONE'; error?: string }> {
+    if (process.env.MOCK_DB === 'true') {
+        return { status: 'DONE' };
+    }
+
+    const accessToken = await getGcpAccessToken();
+    const response = await fetch(`${MEMORYSTORE_API}/${operationName}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to get operation status: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return {
+        status: data.done ? 'DONE' : 'RUNNING',
+        error: data.error?.message,
+    };
+}
