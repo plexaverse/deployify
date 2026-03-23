@@ -78,7 +78,7 @@ export async function POST(
                 throw new Error('Real SQL proxying requires direct VPC access, which is currently being provisioned.');
             } else if (storageConfig.type === 'firestore') {
                 const db = getDb();
-                let queryObj;
+                let queryObj: ReturnType<typeof db.collection> | ReturnType<typeof db.collection>['where'];
 
                 try {
                     const parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
