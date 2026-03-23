@@ -49,7 +49,7 @@ export async function POST(
         updatedConfigs[storageIndex] = {
             ...storage,
             status: newStatus,
-            lastValidatedAt: now.toISOString() as any, // Typed as Date but serialized as string
+            lastValidatedAt: now.toISOString() as unknown as Date, // Typed as Date but serialized as string
             lastError: result.error,
             updatedAt: now,
         };

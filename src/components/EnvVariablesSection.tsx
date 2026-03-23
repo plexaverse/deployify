@@ -15,7 +15,7 @@ import {
     Database,
     ArrowRight
 } from 'lucide-react';
-import type { EnvVariableTarget } from '@/types';
+import type { EnvVariableTarget, StorageType } from '@/types';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
@@ -185,7 +185,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         try {
             const success = await addStorageConfig(projectId, {
                 name: suggestion.key.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
-                type: suggestion.type as any,
+                type: suggestion.type as StorageType,
                 envKey: suggestion.key,
                 environment: newEnvironment
             }, suggestion.value);
