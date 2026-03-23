@@ -86,6 +86,7 @@ export interface ProjectSlice {
     updateStorageConfig: (projectId: string, storageId: string, config: Partial<StorageConfig>, connectionString?: string) => Promise<boolean>;
     deleteStorageConfig: (projectId: string, storageId: string) => Promise<boolean>;
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
+    syncStorageStatus: (projectId: string, storageId: string) => Promise<{ status: string; error?: string }>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -654,6 +655,34 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return { valid: response.ok && data.valid, error: data.error };
         } catch (error) {
             return { valid: false, error: error instanceof Error ? error.message : 'Connection validation failed' };
+        }
+    },
+
+    syncStorageStatus: async (projectId, storageId) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/sync`);
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                const { projectStorageConfigs } = get();
+                set({
+                    projectStorageConfigs: projectStorageConfigs.map((s) =>
+                        s.id === storageId ? {
+                            ...s,
+                            status: data.status,
+                            lastError: data.error,
+                            updatedAt: new Date()
+                        } : s
+                    )
+                });
+                if (data.status === 'active') {
+                    toast.success('Storage provisioned and active!');
+                }
+            }
+
+            return { status: data.status, error: data.error };
+        } catch (error) {
+            return { status: 'error', error: error instanceof Error ? error.message : 'Sync failed' };
         }
     },
 

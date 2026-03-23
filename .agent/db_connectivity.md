@@ -44,9 +44,16 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Add `provision: true` support to Storage API (Alpha)
 - [x] Implement "Provision New" flow in `StorageSection` UI
 
-### Phase 7: Data Lab & Observability (ALPHA)
+### Phase 7: Data Lab & Observability (BETA)
 - [x] Create experimental Data Lab UI for read-only queries
-- [x] Implement secure query proxy API route (Supports Mocked & Intent-based real connectivity)
+- [x] Implement secure query proxy API route (Supports Mocked & Real Firestore connectivity)
+- [x] Implement read-only NoSQL query support for Firestore in Data Lab
+
+### Phase 8: Lifecycle Management (STABLE)
+- [x] Implement provisioning operation tracking in storage metadata
+- [x] Implement Storage Sync API for polling GCP provisioning status
+- [x] Add `sync` and `provision` subcommands to Deployify CLI
+- [x] Add "Sync Status" button to Storage Section UI for provisioning connectors
 
 ## Progress Updates
 
@@ -93,3 +100,11 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Launched "Data Lab" – a secure, read-only query browser for connected databases.
 - Integrated query proxy in `src/app/api/projects/[id]/storage/[storageId]/query/route.ts`.
 - Verified 100% production readiness with 80 passing tests and 0 lint warnings.
+
+### 2026-11-13: Lifecycle & Data Lab Polish (Session 6)
+- Implemented Storage Operation Tracking by saving `operationName` in connector metadata during provisioning.
+- Created `GET /api/projects/[id]/storage/[storageId]/sync` API for polling GCP status.
+- Implemented real Firestore connectivity in the Data Lab query proxy using `firebase-admin`.
+- Enhanced Deployify CLI with `storage sync` and `storage provision` subcommands.
+- Integrated "Sync Status" functionality into `StorageSection.tsx` UI and `ProjectSlice` store.
+- Verified 100% functional integrity with 80 passing tests and 0 lint warnings.

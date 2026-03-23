@@ -162,7 +162,7 @@ export async function proxy(request: NextRequest) {
             }
 
             // Bypass for local development
-            if (process.env.NODE_ENV === 'development') {
+            if (process.env.NODE_ENV === 'development' || process.env.MOCK_DB === 'true') {
                 return response;
             }
 

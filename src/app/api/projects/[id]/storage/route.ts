@@ -76,6 +76,7 @@ export async function POST(
         let finalConnectionString = connectionString;
         let connectionStringSecretId: string | undefined;
         let status: StorageConfig['status'] = 'active';
+        let operationName: string | undefined;
 
         // Handle Automatic Provisioning
         if (provision) {
@@ -97,6 +98,7 @@ export async function POST(
                     provisionResult = await createFirestoreDatabase(name.toLowerCase().replace(/\s+/g, '-'), targetRegion);
                     finalConnectionString = provisionResult.connectionString;
                 }
+                operationName = provisionResult?.operationName;
             } catch (error) {
                 console.error('Provisioning failed:', error);
                 return NextResponse.json({ error: `Provisioning failed: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
@@ -121,8 +123,7 @@ export async function POST(
                 ...(metadata || {}),
                 provisioned: provision,
                 region: region || project.region || 'us-central1',
-                // For long-running operations tracking (if we had a background worker)
-                // operationName: provisionResult?.operationName
+                operationName,
             },
             createdAt: new Date(),
             updatedAt: new Date(),
