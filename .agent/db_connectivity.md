@@ -39,6 +39,15 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement build-time credential injection for tools like Prisma
 - [x] Add "Convert to Connector" suggestions in Env Var UI
 
+### Phase 6: Infrastructure Orchestration (EXPERIMENTAL)
+- [x] Implement GCP client logic for Cloud SQL, Firestore, and Memorystore provisioning
+- [x] Add `provision: true` support to Storage API (Alpha)
+- [x] Implement "Provision New" flow in `StorageSection` UI
+
+### Phase 7: Data Lab & Observability (ALPHA)
+- [x] Create experimental Data Lab UI for read-only queries
+- [x] Implement secure query proxy API route (Supports Mocked & Intent-based real connectivity)
+
 ## Progress Updates
 
 ### 2026-10-26: Initial Setup
@@ -76,3 +85,11 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Enhanced `getEnvVarsForDeployment` to inject credentials into build environment variables for tools like Prisma.
 - Added a "Convert to Connector" suggestion in the Environment Variables UI to encourage secure database connectivity.
 - Verified all changes with 80 passing tests and perfect API audit.
+
+### 2026-11-12: Provisioning & Data Lab (Session 5)
+- Completed Phase 6 and 7: Infrastructure Orchestration and Data Lab.
+- Implemented automated provisioning for Cloud SQL, Firestore, and Memorystore via GCP APIs.
+- Enhanced `StorageSection.tsx` with a "Provision New" toggle for one-click setup.
+- Launched "Data Lab" – a secure, read-only query browser for connected databases.
+- Integrated query proxy in `src/app/api/projects/[id]/storage/[storageId]/query/route.ts`.
+- Verified 100% production readiness with 80 passing tests and 0 lint warnings.

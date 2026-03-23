@@ -82,7 +82,7 @@ export interface ProjectSlice {
 
     // Storage Actions
     fetchProjectStorage: (projectId: string) => Promise<void>;
-    addStorageConfig: (projectId: string, config: Partial<StorageConfig>, connectionString?: string) => Promise<boolean>;
+    addStorageConfig: (projectId: string, config: Partial<StorageConfig>, connectionString?: string, provision?: boolean) => Promise<boolean>;
     updateStorageConfig: (projectId: string, storageId: string, config: Partial<StorageConfig>, connectionString?: string) => Promise<boolean>;
     deleteStorageConfig: (projectId: string, storageId: string) => Promise<boolean>;
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
@@ -557,12 +557,12 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         }
     },
 
-    addStorageConfig: async (projectId, storageConfig, connectionString) => {
+    addStorageConfig: async (projectId, storageConfig, connectionString, provision) => {
         try {
             const response = await fetch(`/api/projects/${projectId}/storage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...storageConfig, connectionString }),
+                body: JSON.stringify({ ...storageConfig, connectionString, provision }),
             });
 
             const data = await response.json();

@@ -4,6 +4,9 @@ import { updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { upsertSecret, deleteSecret } from '@/lib/gcp/secrets';
+import { createInstance as createCloudSqlInstance } from '@/lib/gcp/cloudsql';
+import { createInstance as createMemorystoreInstance } from '@/lib/gcp/memorystore';
+import { createDatabase as createFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
 
 // Generate unique ID for storage configs
@@ -63,30 +66,64 @@ export async function POST(
 
         const { project } = access;
         const body = await request.json();
-        const { type, name, environment = 'both', connectionString, envKey, metadata } = body;
+        const { type, name, environment = 'both', connectionString, envKey, metadata, provision = false, region } = body;
 
         if (!type || !name) {
             return NextResponse.json({ error: 'Type and name are required' }, { status: 400 });
         }
 
         const storageId = generateStorageId();
+        let finalConnectionString = connectionString;
         let connectionStringSecretId: string | undefined;
+        let status: StorageConfig['status'] = 'active';
 
-        if (connectionString) {
+        // Handle Automatic Provisioning
+        if (provision) {
+            const targetRegion = region || project.region || 'us-central1';
+            status = 'provisioning';
+
+            try {
+                let provisionResult;
+                if (type === 'cloud-sql-postgres') {
+                    provisionResult = await createCloudSqlInstance(name.toLowerCase().replace(/\s+/g, '-'), 'postgres', targetRegion);
+                    finalConnectionString = provisionResult.connectionString;
+                } else if (type === 'cloud-sql-mysql') {
+                    provisionResult = await createCloudSqlInstance(name.toLowerCase().replace(/\s+/g, '-'), 'mysql', targetRegion);
+                    finalConnectionString = provisionResult.connectionString;
+                } else if (type === 'memorystore-redis') {
+                    provisionResult = await createMemorystoreInstance(name.toLowerCase().replace(/\s+/g, '-'), targetRegion);
+                    finalConnectionString = provisionResult.connectionString;
+                } else if (type === 'firestore') {
+                    provisionResult = await createFirestoreDatabase(name.toLowerCase().replace(/\s+/g, '-'), targetRegion);
+                    finalConnectionString = provisionResult.connectionString;
+                }
+            } catch (error) {
+                console.error('Provisioning failed:', error);
+                return NextResponse.json({ error: `Provisioning failed: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
+            }
+        }
+
+        if (finalConnectionString) {
             // Store connection string in GCP Secret Manager
             const secretId = `deployify-${id}-${storageId}-conn`;
-            connectionStringSecretId = await upsertSecret(secretId, connectionString);
+            connectionStringSecretId = await upsertSecret(secretId, finalConnectionString);
         }
 
         const newStorageConfig: StorageConfig = {
             id: storageId,
             type,
             name,
-            status: 'active',
+            status,
             environment,
             envKey,
             connectionStringSecretId,
-            metadata: metadata || {},
+            metadata: {
+                ...(metadata || {}),
+                provisioned: provision,
+                region: region || project.region || 'us-central1',
+                // For long-running operations tracking (if we had a background worker)
+                // operationName: provisionResult?.operationName
+            },
             createdAt: new Date(),
             updatedAt: new Date(),
         };
