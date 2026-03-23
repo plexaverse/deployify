@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -60,6 +60,31 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         setIsDiscovering(true);
         await executeQuery('DISCOVER_SCHEMA');
         setIsDiscovering(false);
+    };
+
+    const downloadCSV = () => {
+        if (!results || results.length === 0) return;
+
+        const columns = Object.keys(results[0]);
+        const header = columns.join(',');
+        const rows = results.map(row =>
+            columns.map(col => {
+                const val = row[col];
+                const stringVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                return `"${stringVal.replace(/"/g, '""')}"`;
+            }).join(',')
+        );
+
+        const csvContent = [header, ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `datalab-export-${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const selectedConnector = connectors.find(c => c.id === selectedId);
@@ -146,7 +171,13 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                             <textarea
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder={selectedConnector?.type.includes('sql') ? "SELECT * FROM users LIMIT 10" : "{ \"collection\": \"users\", \"limit\": 10 }"}
+                                placeholder={
+                                    selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale'
+                                        ? "SELECT * FROM users LIMIT 10"
+                                        : selectedConnector?.type === 'memorystore-redis'
+                                            ? "GET user:1  OR  { \"command\": \"hgetall\", \"args\": [\"user:1\"] }"
+                                            : "{ \"collection\": \"users\", \"limit\": 10 }"
+                                }
                                 className="w-full h-32 p-4 rounded-xl bg-[var(--background)] border border-[var(--border)] font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none"
                             />
                             <div className="absolute bottom-4 right-4">
@@ -175,7 +206,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 <button
                                     key={item}
                                     onClick={() => {
-                                        if (selectedConnector?.type.includes('sql')) {
+                                        if (selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') {
                                             setQuery(`SELECT * FROM ${item} LIMIT 10`);
                                         } else {
                                             setQuery(`{ "collection": "${item}", "limit": 10 }`);
@@ -200,9 +231,20 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                 {results && (
                     <div className="space-y-3 animate-fade-in">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
-                                <CheckCircle2 className="w-4 h-4" />
-                                Query Executed Successfully ({results.length} results)
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Query Executed Successfully ({results.length} results)
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={downloadCSV}
+                                    className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                >
+                                    <Download className="w-3.5 h-3.5 mr-1.5" />
+                                    Export CSV
+                                </Button>
                             </div>
                             <div className="flex items-center gap-1 bg-[var(--muted)]/20 p-1 rounded-lg border border-[var(--border)]">
                                 <Button

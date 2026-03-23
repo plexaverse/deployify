@@ -6,6 +6,8 @@ import { getDb } from '@/lib/firebase';
 import type { StorageConfig } from '@/types';
 import { Client as PgClient } from 'pg';
 import mysql from 'mysql2/promise';
+import { MongoClient } from 'mongodb';
+import Redis from 'ioredis';
 
 /**
  * Experimental read-only query browser proxy
@@ -55,9 +57,11 @@ export async function POST(
         if (process.env.MOCK_DB === 'true') {
             // Handle Schema Discovery Mock
             if (query === 'DISCOVER_SCHEMA') {
-                const mockSchema = storageConfig.type === 'firestore'
+                const mockSchema = storageConfig.type === 'firestore' || storageConfig.type === 'mongodb-atlas'
                     ? { collections: ['users', 'projects', 'deployments', 'analytics'] }
-                    : { tables: ['users', 'projects', 'deployments', 'domains', 'env_vars'] };
+                    : storageConfig.type === 'memorystore-redis'
+                        ? { keys: ['user:1', 'user:2', 'session:active', 'cache:config'] }
+                        : { tables: ['users', 'projects', 'deployments', 'domains', 'env_vars'] };
 
                 return NextResponse.json({
                     success: true,
@@ -84,7 +88,7 @@ export async function POST(
 
         // Real Connectivity Logic (Experimental Proxy)
         try {
-            if (storageConfig.type.includes('sql')) {
+            if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
                 const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
 
                 if (query === 'DISCOVER_SCHEMA') {
@@ -142,6 +146,79 @@ export async function POST(
                     } finally {
                         await connection.end();
                     }
+                }
+            } else if (storageConfig.type === 'mongodb-atlas') {
+                const client = new MongoClient(connectionString);
+                try {
+                    await client.connect();
+                    const dbName = new URL(connectionString).pathname.split('/')[1] || 'test';
+                    const db = client.db(dbName);
+
+                    if (query === 'DISCOVER_SCHEMA') {
+                        const collections = await db.listCollections().toArray();
+                        return NextResponse.json({
+                            success: true,
+                            results: [{ collections: collections.map(c => c.name) }],
+                            executionTimeMs: Date.now() - startTime
+                        });
+                    }
+
+                    const parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
+                    const { collection, filter = {}, limit = 10 } = parsedQuery;
+
+                    if (!collection) {
+                        throw new Error('Collection name is required for MongoDB query');
+                    }
+
+                    const results = await db.collection(collection).find(filter).limit(limit).toArray();
+                    return NextResponse.json({
+                        success: true,
+                        results,
+                        executionTimeMs: Date.now() - startTime
+                    });
+                } finally {
+                    await client.close();
+                }
+            } else if (storageConfig.type === 'memorystore-redis') {
+                const redis = new Redis(connectionString);
+                try {
+                    if (query === 'DISCOVER_SCHEMA') {
+                        const info = await redis.info();
+                        const keysCount = await redis.dbsize();
+                        return NextResponse.json({
+                            success: true,
+                            results: [{
+                                info: info.split('\n').filter(line => line.includes('redis_version') || line.includes('used_memory_human')).join(', '),
+                                keysCount
+                            }],
+                            executionTimeMs: Date.now() - startTime
+                        });
+                    }
+
+                    // Redis query can be a command or a JSON for complex scans
+                    let results: unknown;
+                    if (query.trim().startsWith('{')) {
+                        const { command, args = [] } = JSON.parse(query);
+                        // @ts-expect-error - Dynamic redis command
+                        results = await redis[command](...args);
+                    } else {
+                        const [cmd, ...args] = query.split(' ');
+                        // @ts-expect-error - Dynamic redis command
+                        if (typeof redis[cmd.toLowerCase()] === 'function') {
+                            // @ts-expect-error - Dynamic redis command
+                            results = await redis[cmd.toLowerCase()](...args);
+                        } else {
+                            throw new Error(`Unsupported Redis command: ${cmd}`);
+                        }
+                    }
+
+                    return NextResponse.json({
+                        success: true,
+                        results: Array.isArray(results) ? results : [results],
+                        executionTimeMs: Date.now() - startTime
+                    });
+                } finally {
+                    redis.disconnect();
                 }
             } else if (storageConfig.type === 'firestore') {
                 const db = getDb();
