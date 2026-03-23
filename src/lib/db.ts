@@ -1,5 +1,5 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole, EnvVariable } from '@/types';
+import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
 import { generateId, cleanFirestoreData } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
 import { getSecretValue } from '@/lib/gcp/secrets';

@@ -185,7 +185,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         try {
             const success = await addStorageConfig(projectId, {
                 name: suggestion.key.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
-                type: suggestion.type as any,
+                type: suggestion.type as 'postgres' | 'redis' | 'mongodb' | 'mysql' | 'firestore' | 'other',
                 envKey: suggestion.key,
                 environment: newEnvironment
             }, suggestion.value);
