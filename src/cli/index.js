@@ -487,11 +487,45 @@ async function handleStorage(args) {
             console.log('❌ Connection failed');
             if (data.error) console.log(`Error: ${data.error}`);
         }
+    } else if (subcommand === 'sync') {
+        const storageId = args[2];
+        if (!storageId) {
+            throw new Error('Storage ID required: deployify storage sync <storage_id>');
+        }
+        console.log(`Syncing provisioning status for ${storageId}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/sync`, token);
+        if (data.success) {
+            console.log(`Status: ${data.status.toUpperCase()}`);
+            if (data.error) console.log(`Error: ${data.error}`);
+        } else {
+            console.log(`❌ Sync failed: ${data.error || 'Unknown error'}`);
+        }
+    } else if (subcommand === 'provision') {
+        const type = args[2];
+        const name = args[3];
+        if (!type || !name) {
+            throw new Error('Usage: deployify storage provision <type> <name>');
+        }
+        console.log(`Provisioning new ${type} storage: ${name}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage`, token, {
+            method: 'POST',
+            body: { type, name, provision: true }
+        });
+        if (data.success) {
+            console.log('✅ Provisioning started!');
+            console.log(`Storage ID: ${data.storageConfig.id}`);
+            console.log(`Status:     ${data.storageConfig.status.toUpperCase()}`);
+            console.log('\nYou can poll for status using: deployify storage sync ' + data.storageConfig.id);
+        } else {
+            console.log(`❌ Provisioning failed: ${data.error || 'Unknown error'}`);
+        }
     } else {
         console.log(`Unknown storage subcommand: ${subcommand}`);
         console.log('Usage:');
         console.log('  deployify storage list');
         console.log('  deployify storage validate <storage_id>');
+        console.log('  deployify storage sync <storage_id>');
+        console.log('  deployify storage provision <type> <name>');
     }
 }
 

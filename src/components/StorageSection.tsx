@@ -51,7 +51,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         addStorageConfig,
         updateStorageConfig,
         deleteStorageConfig,
-        validateStorageConnection
+        validateStorageConnection,
+        syncStorageStatus
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -65,6 +66,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [validatingId, setValidatingId] = useState<string | null>(null);
+    const [syncingId, setSyncingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -165,6 +167,15 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             }
         } finally {
             setValidatingId(null);
+        }
+    };
+
+    const handleSync = async (storageId: string) => {
+        setSyncingId(storageId);
+        try {
+            await syncStorageStatus(projectId, storageId);
+        } finally {
+            setSyncingId(null);
         }
     };
 
@@ -388,16 +399,29 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                 </div>
 
                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => handleValidate(config.id)}
-                                        disabled={validatingId === config.id}
-                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
-                                        title="Check Connection"
-                                    >
-                                        <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
-                                    </Button>
+                                    {config.status === 'provisioning' ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleSync(config.id)}
+                                            disabled={syncingId === config.id}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Sync Status"
+                                        >
+                                            <Activity className={`w-4 h-4 ${syncingId === config.id ? 'animate-spin' : ''}`} />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleValidate(config.id)}
+                                            disabled={validatingId === config.id}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Check Connection"
+                                        >
+                                            <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"

@@ -96,7 +96,7 @@ export async function getSession(): Promise<Session | null> {
 
     if (!token) {
         // Fallback for local development if no session exists
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development' || process.env.MOCK_DB === 'true') {
             return MOCK_SESSION;
         }
         return null;
