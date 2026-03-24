@@ -143,6 +143,7 @@ export async function POST(
                             await client.end();
                         }
                     } else {
+                        // @ts-expect-error - Overloaded mysql connection config
                         const connection = await mysql.createConnection(sqlConfig);
                         try {
                             const [rows] = await connection.execute('SHOW TABLES');
@@ -172,6 +173,7 @@ export async function POST(
                         await client.end();
                     }
                 } else {
+                    // @ts-expect-error - Overloaded mysql connection config
                     const connection = await mysql.createConnection(sqlConfig);
                     try {
                         const [rows] = await connection.execute(query);
