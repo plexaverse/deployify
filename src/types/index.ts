@@ -393,6 +393,8 @@ export interface StorageConfig {
     envKey?: string; // Custom environment variable key for the connection string
     environment: 'production' | 'preview' | 'both';
     lastValidatedAt?: Date;
+    lastRotatedAt?: Date;
+    lastSyncedAt?: Date;
     lastError?: string;
     metadata?: Record<string, unknown>;
     createdAt: Date;

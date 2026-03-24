@@ -10,7 +10,8 @@ import {
     Server,
     ExternalLink,
     Loader2,
-    Activity
+    Activity,
+    RefreshCw
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -52,7 +53,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         updateStorageConfig,
         deleteStorageConfig,
         validateStorageConnection,
-        syncStorageStatus
+        syncStorageStatus,
+        rotateStorageCredentials
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -68,6 +70,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [validatingId, setValidatingId] = useState<string | null>(null);
     const [syncingId, setSyncingId] = useState<string | null>(null);
+    const [isRotating, setIsRotating] = useState<string | null>(null);
+    const [rotateConnectionString, setRotateConnectionString] = useState('');
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -177,6 +181,20 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             await syncStorageStatus(projectId, storageId);
         } finally {
             setSyncingId(null);
+        }
+    };
+
+    const handleRotate = async (storageId: string) => {
+        if (!rotateConnectionString.trim()) return;
+        setIsSubmitting(true);
+        try {
+            const success = await rotateStorageCredentials(projectId, storageId, rotateConnectionString);
+            if (success) {
+                setIsRotating(null);
+                setRotateConnectionString('');
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -391,7 +409,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center shrink-0">
                                         <Database className="w-5 h-5 text-[var(--muted-foreground)]" />
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-1 w-full">
                                         <div className="flex items-center gap-2">
                                             <h4 className="font-semibold text-sm">{config.name}</h4>
                                             {config.connectionStringSecretId && (
@@ -411,17 +429,67 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-2 py-0.5 rounded-full border border-[var(--border)]">
-                                                {config.type.replace(/-/g, ' ')}
-                                            </span>
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                                {config.envKey || (config.type === 'memorystore-redis' ? 'REDIS_URL' : config.type === 'mongodb-atlas' ? 'MONGODB_URI' : 'DATABASE_URL')}
-                                            </span>
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                                {config.environment === 'both' ? 'ALL ENVIRONMENTS' : config.environment}
-                                            </span>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-2 py-0.5 rounded-full border border-[var(--border)]">
+                                                    {config.type.replace(/-/g, ' ')}
+                                                </span>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    {config.envKey || (config.type === 'memorystore-redis' ? 'REDIS_URL' : config.type === 'mongodb-atlas' ? 'MONGODB_URI' : 'DATABASE_URL')}
+                                                </span>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    {config.environment === 'both' ? 'ALL ENVIRONMENTS' : config.environment}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                {config.lastSyncedAt && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
+                                                        SYNCED: {new Date(config.lastSyncedAt).toLocaleTimeString()}
+                                                    </span>
+                                                )}
+                                                {config.lastRotatedAt && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                                                        ROTATED: {new Date(config.lastRotatedAt).toLocaleDateString()}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
+                                        {isRotating === config.id && (
+                                            <div className="mt-3 p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-fade-in">
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-[10px] font-bold uppercase tracking-wider">New Connection String</Label>
+                                                    <Input
+                                                        type="password"
+                                                        value={rotateConnectionString}
+                                                        onChange={(e) => setRotateConnectionString(e.target.value)}
+                                                        placeholder="PASTE NEW CONNECTION STRING..."
+                                                        className="font-mono text-[11px] h-8 placeholder:text-[9px]"
+                                                    />
+                                                </div>
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setIsRotating(null);
+                                                            setRotateConnectionString('');
+                                                        }}
+                                                        disabled={isSubmitting}
+                                                        className="h-7 text-[9px] font-bold uppercase tracking-wider"
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => handleRotate(config.id)}
+                                                        disabled={isSubmitting || !rotateConnectionString}
+                                                        className="h-7 text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                                    >
+                                                        Rotate Credentials
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -449,6 +517,15 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setIsRotating(isRotating === config.id ? null : config.id)}
+                                        className={`h-8 w-8 ${isRotating === config.id ? 'text-[var(--primary)] bg-[var(--primary)]/10' : 'text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10'}`}
+                                        title="Rotate Credentials"
+                                    >
+                                        <RefreshCw className={`w-4 h-4 ${isRotating === config.id ? 'animate-spin' : ''}`} />
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"

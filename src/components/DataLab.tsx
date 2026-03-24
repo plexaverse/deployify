@@ -23,7 +23,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
     const [schema, setSchema] = useState<{ tables?: string[], collections?: string[] } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
-    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: any[] } | null>(null);
+    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: { date: string, avgLatency: number }[] } | null>(null);
     const [showInsights, setShowInsights] = useState(false);
     const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
 

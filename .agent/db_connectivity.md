@@ -73,10 +73,10 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 ### Phase 11: Security & IAM Hardening (COMPLETED)
 - [x] Implement IAM-Based Authentication for Cloud SQL (No-Password connectivity)
 - [x] Update Storage Validator to support IAM-based reachability checks
-- [ ] Implement secure credential rotation flow for External Connectors
+- [x] Implement secure credential rotation flow for External Connectors
 
-### Phase 12: External Sync & Observability (IN PROGRESS)
-- [ ] Implement "Auto-Sync" for External Connectors (Supabase, MongoDB Atlas API)
+### Phase 12: External Sync & Observability (COMPLETED)
+- [x] Implement "Auto-Sync" for External Connectors (Supabase, MongoDB Atlas API)
 - [x] Add Query Performance tracking to Data Lab (Latency logging)
 - [x] Implement "Performance Insight" dashboard in Data Lab UI
 
@@ -156,3 +156,11 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Enhanced Data Lab UI with a "Performance Insight" dashboard and trend charts.
 - Updated `storage-validator.ts` to support IAM-based reachability checks.
 - Verified 100% functional integrity with 80 passing tests and 45 perfect API routes.
+
+### 2026-11-17: Rotation & Sync Lifecycle (Session 10)
+- Implemented credential rotation for storage connectors via `POST /api/projects/[id]/storage/[storageId]/rotate`.
+- Enhanced storage sync API to handle external connectors and record `lastSyncedAt`.
+- Updated `StorageConfig` type to include `lastRotatedAt` and `lastSyncedAt` metadata.
+- Integrated "Rotate Credentials" functionality into `StorageSection.tsx` UI with a high-density technical aesthetic.
+- Displayed `SYNCED` and `ROTATED` technical labels in the UI.
+- Verified zero lint warnings and perfect API audit (46/46 routes).
