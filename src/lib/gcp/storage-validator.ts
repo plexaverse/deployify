@@ -134,8 +134,8 @@ async function validatePostgres(connectionString: string): Promise<ValidationRes
     // Support IAM authentication (no password)
     const isIamAuth = connectionString.includes('enable_iam_auth=true');
     if (isIamAuth) {
-        // Skip TCP check if using Cloud SQL Unix Socket via Auth Proxy path in host
-        if (connectionString.includes('/cloudsql/')) {
+        // Skip TCP check if using Cloud SQL Unix Socket via Auth Proxy path in host or if explicit iam auth is set
+        if (connectionString.includes('/cloudsql/') || connectionString.includes('host=')) {
             return { valid: true };
         }
     }
@@ -161,7 +161,7 @@ async function validateMysql(connectionString: string): Promise<ValidationResult
     // Support IAM authentication
     const isIamAuth = connectionString.includes('enable_iam_auth=true');
     if (isIamAuth) {
-        if (connectionString.includes('/cloudsql/')) {
+        if (connectionString.includes('/cloudsql/') || connectionString.includes('socketPath=')) {
             return { valid: true };
         }
     }

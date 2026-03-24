@@ -178,7 +178,7 @@
 
 #### 23. **IAM-Based DB Connectivity & Observability**
 - **Improvement**: Transition to passwordless IAM authentication for GCP databases and implement query performance tracking in Data Lab.
-- **Status**: 🚧 In Progress (Implementing Phase 11 & 12 of the DB Connectivity Roadmap)
+- **Status**: ✅ Implemented (IAM auth for Cloud SQL, Performance Metrics API, and Insight Dashboard in Data Lab UI)
 
 ### Reliability Improvements
 

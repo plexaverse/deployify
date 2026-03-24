@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
+import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDb, Collections } from '@/lib/firebase';
 import type { StorageConfig } from '@/types';
 import { Client as PgClient } from 'pg';
@@ -91,10 +92,45 @@ export async function POST(
             const resultPromise = (async () => {
             if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
                 const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
+                const isIamAuth = connectionString.includes('enable_iam_auth=true');
+
+                // Determine SQL connection configuration (Handle IAM Auth)
+                let sqlConfig: any = connectionString;
+                if (isIamAuth && process.env.MOCK_DB !== 'true') {
+                    try {
+                        const url = new URL(connectionString);
+                        const accessToken = await getGcpAccessToken();
+                        const socketPath = url.searchParams.get('host');
+
+                        if (isPostgres) {
+                            sqlConfig = {
+                                host: socketPath || url.hostname,
+                                port: url.port ? parseInt(url.port, 10) : 5432,
+                                user: url.username || 'deployify-sa',
+                                password: accessToken,
+                                database: url.pathname.split('/')[1] || 'postgres',
+                                ssl: socketPath ? false : { rejectUnauthorized: false }
+                            };
+                        } else {
+                            sqlConfig = {
+                                host: url.hostname,
+                                port: url.port ? parseInt(url.port, 10) : 3306,
+                                socketPath: socketPath || undefined,
+                                user: url.username || 'deployify-sa',
+                                password: accessToken,
+                                database: url.pathname.split('/')[1] || 'mysql',
+                                ssl: socketPath ? false : { rejectUnauthorized: false }
+                            };
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse IAM connection string:', e);
+                        // Fallback to raw string if parsing fails
+                    }
+                }
 
                 if (query === 'DISCOVER_SCHEMA') {
                     if (isPostgres) {
-                        const client = new PgClient({ connectionString });
+                        const client = new PgClient(sqlConfig);
                         try {
                             await client.connect();
                             const res = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
@@ -107,7 +143,7 @@ export async function POST(
                             await client.end();
                         }
                     } else {
-                        const connection = await mysql.createConnection(connectionString);
+                        const connection = await mysql.createConnection(sqlConfig);
                         try {
                             const [rows] = await connection.execute('SHOW TABLES');
                             return NextResponse.json({
@@ -123,7 +159,7 @@ export async function POST(
                 }
 
                 if (isPostgres) {
-                    const client = new PgClient({ connectionString });
+                    const client = new PgClient(sqlConfig);
                     try {
                         await client.connect();
                         const res = await client.query(query);
@@ -136,7 +172,7 @@ export async function POST(
                         await client.end();
                     }
                 } else {
-                    const connection = await mysql.createConnection(connectionString);
+                    const connection = await mysql.createConnection(sqlConfig);
                     try {
                         const [rows] = await connection.execute(query);
                         return NextResponse.json({
