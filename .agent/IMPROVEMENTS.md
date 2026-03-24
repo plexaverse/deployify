@@ -184,6 +184,10 @@
 - **Improvement**: Implement secure credential rotation and synchronization for external database connectors (e.g., Supabase, MongoDB Atlas).
 - **Status**: ✅ Implemented (Rotation API, Enhanced Sync API, and `lastRotatedAt`/`lastSyncedAt` UI indicators)
 
+#### 25. **Data Lab Persistence & Schema Intelligence**
+- **Improvement**: Enhance the Data Lab with query history, saved queries, and deeper schema insights including column metadata.
+- **Status**: ✅ Implemented (History/Saved Queries API & UI, SQL column discovery, and standardized technical aesthetic)
+
 ### Reliability Improvements
 
 #### 22. **Robust Deployment Status Sync**

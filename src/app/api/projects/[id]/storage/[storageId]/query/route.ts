@@ -62,7 +62,14 @@ export async function POST(
                     ? { collections: ['users', 'projects', 'deployments', 'analytics'] }
                     : storageConfig.type === 'memorystore-redis'
                         ? { keys: ['user:1', 'user:2', 'session:active', 'cache:config'] }
-                        : { tables: ['users', 'projects', 'deployments', 'domains', 'env_vars'] };
+                        : {
+                            tables: ['users', 'projects', 'deployments', 'domains', 'env_vars'],
+                            columns: {
+                                'users': [{ name: 'id', type: 'uuid' }, { name: 'email', type: 'varchar' }, { name: 'created_at', type: 'timestamp' }],
+                                'projects': [{ name: 'id', type: 'uuid' }, { name: 'name', type: 'varchar' }, { name: 'slug', type: 'varchar' }],
+                                'deployments': [{ name: 'id', type: 'uuid' }, { name: 'projectId', type: 'uuid' }, { name: 'status', type: 'varchar' }]
+                            }
+                        };
 
                 return NextResponse.json({
                     success: true,
@@ -133,10 +140,23 @@ export async function POST(
                         const client = new PgClient(sqlConfig);
                         try {
                             await client.connect();
-                            const res = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+                            // Fetch tables
+                            const tablesRes = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+                            const tables = tablesRes.rows.map(r => r.table_name);
+
+                            // Fetch columns for each table
+                            const columns: Record<string, { name: string, type: string }[]> = {};
+                            for (const table of tables) {
+                                const colsRes = await client.query(
+                                    "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1",
+                                    [table]
+                                );
+                                columns[table] = colsRes.rows.map(r => ({ name: r.column_name, type: r.data_type }));
+                            }
+
                             return NextResponse.json({
                                 success: true,
-                                results: [{ tables: res.rows.map(r => r.table_name) }],
+                                results: [{ tables, columns }],
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
@@ -146,11 +166,22 @@ export async function POST(
                         // @ts-expect-error - Overloaded mysql connection config
                         const connection = await mysql.createConnection(sqlConfig);
                         try {
-                            const [rows] = await connection.execute('SHOW TABLES');
+                            // Fetch tables
+                            const [tableRows] = await connection.execute('SHOW TABLES');
+                            // @ts-expect-error - Dynamic mysql result
+                            const tables = tableRows.map(r => Object.values(r as Record<string, unknown>)[0]);
+
+                            // Fetch columns for each table
+                            const columns: Record<string, { name: string, type: string }[]> = {};
+                            for (const table of tables) {
+                                const [colsRows] = await connection.execute(`DESCRIBE ${table}`);
+                                // @ts-expect-error - Dynamic mysql result
+                                columns[table] = colsRows.map(r => ({ name: r.Field, type: r.Type }));
+                            }
+
                             return NextResponse.json({
                                 success: true,
-                                // @ts-expect-error - Dynamic mysql result
-                                results: [{ tables: rows.map(r => Object.values(r as Record<string, unknown>)[0]) }],
+                                results: [{ tables, columns }],
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
@@ -313,14 +344,29 @@ export async function POST(
             // Log performance metrics for observability
             if (process.env.MOCK_DB !== 'true') {
                 const db = getDb();
+                const now = new Date();
+
+                // Record execution metrics
                 await db.collection(Collections.STORAGE_METRICS).add({
                     projectId: id,
                     storageId,
+                    userId: session.user.id,
                     type: storageConfig.type,
                     executionTimeMs,
                     success: response.status === 200,
-                    timestamp: new Date()
+                    timestamp: now
                 });
+
+                // Record to query history
+                if (query !== 'DISCOVER_SCHEMA') {
+                    await db.collection(Collections.QUERY_HISTORY).add({
+                        projectId: id,
+                        storageId,
+                        userId: session.user.id,
+                        query,
+                        timestamp: now
+                    });
+                }
             }
 
             return response;
@@ -328,15 +374,30 @@ export async function POST(
             const executionTimeMs = Date.now() - startTime;
             if (process.env.MOCK_DB !== 'true') {
                 const db = getDb();
+                const now = new Date();
+
                 await db.collection(Collections.STORAGE_METRICS).add({
                     projectId: id,
                     storageId,
+                    userId: session.user.id,
                     type: storageConfig.type,
                     executionTimeMs,
                     success: false,
                     error: error instanceof Error ? error.message : 'Unknown connectivity error',
-                    timestamp: new Date()
+                    timestamp: now
                 });
+
+                // Record failed query to history as well
+                if (query !== 'DISCOVER_SCHEMA') {
+                    await db.collection(Collections.QUERY_HISTORY).add({
+                        projectId: id,
+                        storageId,
+                        userId: session.user.id,
+                        query,
+                        error: error instanceof Error ? error.message : 'Unknown error',
+                        timestamp: now
+                    });
+                }
             }
 
             return NextResponse.json({
