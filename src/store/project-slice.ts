@@ -87,6 +87,7 @@ export interface ProjectSlice {
     deleteStorageConfig: (projectId: string, storageId: string) => Promise<boolean>;
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
     syncStorageStatus: (projectId: string, storageId: string) => Promise<{ status: string; error?: string }>;
+    rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -670,19 +671,54 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                         s.id === storageId ? {
                             ...s,
                             status: data.status,
+                            lastSyncedAt: data.lastSyncedAt ? new Date(data.lastSyncedAt) : s.lastSyncedAt,
                             lastError: data.error,
                             updatedAt: new Date()
                         } : s
                     )
                 });
                 if (data.status === 'active') {
-                    toast.success('Storage provisioned and active!');
+                    toast.success('Storage synchronized');
                 }
             }
 
             return { status: data.status, error: data.error };
         } catch (error) {
             return { status: 'error', error: error instanceof Error ? error.message : 'Sync failed' };
+        }
+    },
+
+    rotateStorageCredentials: async (projectId, storageId, connectionString) => {
+        const toastId = toast.loading('Rotating credentials...');
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/rotate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ connectionString }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to rotate credentials');
+            }
+
+            const { projectStorageConfigs } = get();
+            set({
+                projectStorageConfigs: projectStorageConfigs.map((s) =>
+                    s.id === storageId ? {
+                        ...data.storageConfig,
+                        lastRotatedAt: data.lastRotatedAt ? new Date(data.lastRotatedAt) : new Date(),
+                        updatedAt: new Date()
+                    } : s
+                )
+            });
+
+            toast.success('Credentials rotated successfully', { id: toastId });
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to rotate credentials', { id: toastId });
+            return false;
         }
     },
 

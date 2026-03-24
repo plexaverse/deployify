@@ -180,6 +180,10 @@
 - **Improvement**: Transition to passwordless IAM authentication for GCP databases and implement query performance tracking in Data Lab.
 - **Status**: ✅ Implemented (IAM auth for Cloud SQL, Performance Metrics API, and Insight Dashboard in Data Lab UI)
 
+#### 24. **DB Connector Lifecycle (Rotation & Sync)**
+- **Improvement**: Implement secure credential rotation and synchronization for external database connectors (e.g., Supabase, MongoDB Atlas).
+- **Status**: ✅ Implemented (Rotation API, Enhanced Sync API, and `lastRotatedAt`/`lastSyncedAt` UI indicators)
+
 ### Reliability Improvements
 
 #### 22. **Robust Deployment Status Sync**

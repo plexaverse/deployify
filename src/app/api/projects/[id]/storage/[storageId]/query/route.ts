@@ -95,7 +95,7 @@ export async function POST(
                 const isIamAuth = connectionString.includes('enable_iam_auth=true');
 
                 // Determine SQL connection configuration (Handle IAM Auth)
-                let sqlConfig: any = connectionString;
+                let sqlConfig: string | Record<string, unknown> = connectionString;
                 if (isIamAuth && process.env.MOCK_DB !== 'true') {
                     try {
                         const url = new URL(connectionString);
@@ -143,6 +143,7 @@ export async function POST(
                             await client.end();
                         }
                     } else {
+                        // @ts-expect-error - Overloaded mysql connection config
                         const connection = await mysql.createConnection(sqlConfig);
                         try {
                             const [rows] = await connection.execute('SHOW TABLES');
@@ -172,6 +173,7 @@ export async function POST(
                         await client.end();
                     }
                 } else {
+                    // @ts-expect-error - Overloaded mysql connection config
                     const connection = await mysql.createConnection(sqlConfig);
                     try {
                         const [rows] = await connection.execute(query);

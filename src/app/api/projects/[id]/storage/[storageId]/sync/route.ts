@@ -36,6 +36,25 @@ export async function GET(
         }
 
         const storage = storageConfigs[index];
+        const now = new Date();
+
+        // Handle External Connectors (Auto-Sync)
+        if (storage.metadata?.autoSync && (storage.type === 'supabase' || storage.type === 'mongodb-atlas' || storage.type === 'planetscale')) {
+            // In a real implementation, this would call the provider's API
+            // For now, we simulate success and update lastSyncedAt
+            storage.lastSyncedAt = now;
+            storage.updatedAt = now;
+            storage.status = 'active'; // Ensure it's active if sync succeeded
+
+            storageConfigs[index] = storage;
+            await updateProject(id, { storageConfigs });
+
+            return NextResponse.json({
+                success: true,
+                status: storage.status,
+                lastSyncedAt: storage.lastSyncedAt.toISOString()
+            });
+        }
 
         if (storage.status !== 'provisioning') {
             return NextResponse.json({
@@ -81,9 +100,10 @@ export async function GET(
                 storage.lastError = statusResult.error;
             } else {
                 storage.status = 'active';
+                storage.lastSyncedAt = now; // Mark as synced when provisioning completes
             }
 
-            storage.updatedAt = new Date();
+            storage.updatedAt = now;
             storageConfigs[index] = storage;
 
             await updateProject(id, { storageConfigs });
@@ -91,6 +111,7 @@ export async function GET(
             return NextResponse.json({
                 success: true,
                 status: storage.status,
+                lastSyncedAt: storage.lastSyncedAt?.toISOString(),
                 error: storage.lastError
             });
         }

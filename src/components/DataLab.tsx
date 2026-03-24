@@ -23,13 +23,11 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
     const [schema, setSchema] = useState<{ tables?: string[], collections?: string[] } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
-    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: any[] } | null>(null);
+    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: { date: string, avgLatency: number }[] } | null>(null);
     const [showInsights, setShowInsights] = useState(false);
-    const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
 
     const fetchMetrics = useCallback(async () => {
         if (!selectedId) return;
-        setIsLoadingMetrics(true);
         try {
             const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/metrics`);
             const data = await response.json();
@@ -38,8 +36,6 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             }
         } catch (error) {
             console.error('Failed to fetch storage metrics:', error);
-        } finally {
-            setIsLoadingMetrics(false);
         }
     }, [projectId, selectedId]);
 
