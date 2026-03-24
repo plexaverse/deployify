@@ -130,6 +130,7 @@ export async function POST(
 
                 if (query === 'DISCOVER_SCHEMA') {
                     if (isPostgres) {
+                        // @ts-expect-error - Overload mismatch with union type
                         const client = new PgClient(sqlConfig);
                         try {
                             await client.connect();
@@ -143,6 +144,7 @@ export async function POST(
                             await client.end();
                         }
                     } else {
+                        // @ts-expect-error - Overload mismatch with union type
                         const connection = await mysql.createConnection(sqlConfig);
                         try {
                             const [rows] = await connection.execute('SHOW TABLES');
@@ -159,6 +161,7 @@ export async function POST(
                 }
 
                 if (isPostgres) {
+                    // @ts-expect-error - Overload mismatch with union type
                     const client = new PgClient(sqlConfig);
                     try {
                         await client.connect();
@@ -172,6 +175,7 @@ export async function POST(
                         await client.end();
                     }
                 } else {
+                    // @ts-expect-error - Overload mismatch with union type
                     const connection = await mysql.createConnection(sqlConfig);
                     try {
                         const [rows] = await connection.execute(query);
