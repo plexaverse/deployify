@@ -109,8 +109,8 @@ function createMockFirestore(): Firestore {
                 storageConfigs: [
                     {
                         id: 'storage_1',
-                        type: 'firestore',
-                        name: 'Primary Firestore',
+                        type: 'cloud-sql-postgres',
+                        name: 'Primary Postgres',
                         status: 'active',
                         environment: 'both',
                         createdAt: new Date(),
@@ -181,4 +181,6 @@ export const Collections = {
     ANALYTICS_EVENTS: 'analytics_events',
     ERRORS: 'errors',
     STORAGE_METRICS: 'storage_metrics',
+    SAVED_QUERIES: 'saved_queries',
+    QUERY_HISTORY: 'query_history',
 } as const;
