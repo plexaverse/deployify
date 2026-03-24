@@ -178,7 +178,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             ? "GET user:1  OR  { \"command\": \"hgetall\", \"args\": [\"user:1\"] }"
                                             : "{ \"collection\": \"users\", \"limit\": 10 }"
                                 }
-                                className="w-full h-32 p-4 rounded-xl bg-[var(--background)] border border-[var(--border)] font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none"
+                                className="w-full h-32 p-4 rounded-xl bg-[var(--background)] border border-[var(--border)] font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none"
                             />
                             <div className="absolute bottom-4 right-4">
                                 <MovingBorderButton
@@ -224,7 +224,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                 {error && (
                     <div className="p-4 rounded-lg bg-[var(--error)]/10 border border-[var(--error)]/20 flex items-start gap-3 text-[var(--error)]">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span className="text-xs font-semibold uppercase tracking-wider">{error}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">{error}</span>
                     </div>
                 )}
 
