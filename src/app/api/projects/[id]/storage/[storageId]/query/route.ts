@@ -130,8 +130,7 @@ export async function POST(
 
                 if (query === 'DISCOVER_SCHEMA') {
                     if (isPostgres) {
-                        // @ts-expect-error - Overload mismatch with union type
-                        const client = new PgClient(sqlConfig);
+                        const client = new PgClient(sqlConfig as string);
                         try {
                             await client.connect();
                             const res = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
@@ -161,8 +160,7 @@ export async function POST(
                 }
 
                 if (isPostgres) {
-                    // @ts-expect-error - Overload mismatch with union type
-                    const client = new PgClient(sqlConfig);
+                    const client = new PgClient(sqlConfig as string);
                     try {
                         await client.connect();
                         const res = await client.query(query);
