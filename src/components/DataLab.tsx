@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -23,7 +23,29 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
     const [schema, setSchema] = useState<{ tables?: string[], collections?: string[] } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
-    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number } | null>(null);
+    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: any[] } | null>(null);
+    const [showInsights, setShowInsights] = useState(false);
+    const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
+
+    const fetchMetrics = useCallback(async () => {
+        if (!selectedId) return;
+        setIsLoadingMetrics(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/metrics`);
+            const data = await response.json();
+            if (data.success) {
+                setPerformanceData(data.stats);
+            }
+        } catch (error) {
+            console.error('Failed to fetch storage metrics:', error);
+        } finally {
+            setIsLoadingMetrics(false);
+        }
+    }, [projectId, selectedId]);
+
+    useEffect(() => {
+        fetchMetrics();
+    }, [fetchMetrics]);
 
     const executeQuery = async (overrideQuery?: string) => {
         const queryToRun = overrideQuery || query;
@@ -46,11 +68,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     setSchema(data.results[0]);
                 } else {
                     setResults(data.results);
-                    // Update performance insight (Mocked for UI)
-                    setPerformanceData({
-                        avgLatency: data.executionTimeMs || Math.floor(Math.random() * 40) + 10,
-                        successRate: 98.5
-                    });
+                    // Re-fetch historical metrics after execution
+                    fetchMetrics();
                 }
             } else {
                 setError(data.error || 'Failed to execute query');
@@ -139,18 +158,29 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         <h3 className="text-xl font-semibold">Managed Query Browser</h3>
                     </div>
                 </div>
-                {performanceData && (
-                    <div className="flex items-center gap-6">
-                        <div className="text-right">
-                            <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Latency</span>
-                            <span className="text-sm font-semibold text-[var(--primary)]">{performanceData.avgLatency}ms</span>
-                        </div>
-                        <div className="text-right">
-                            <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Success Rate</span>
-                            <span className="text-sm font-semibold text-[var(--success)]">{performanceData.successRate}%</span>
-                        </div>
-                    </div>
-                )}
+                <div className="flex items-center gap-6">
+                    {performanceData && (
+                        <>
+                            <div className="text-right hidden md:block">
+                                <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Latency</span>
+                                <span className="text-sm font-semibold text-[var(--primary)]">{performanceData.avgLatency}ms</span>
+                            </div>
+                            <div className="text-right hidden md:block">
+                                <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Success Rate</span>
+                                <span className="text-sm font-semibold text-[var(--success)]">{performanceData.successRate}%</span>
+                            </div>
+                        </>
+                    )}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowInsights(!showInsights)}
+                        className={`h-8 px-3 text-[10px] font-bold uppercase tracking-wider ${showInsights ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                    >
+                        <BarChart2 className="w-4 h-4 mr-2" />
+                        Performance Insights
+                    </Button>
+                </div>
             </div>
 
             <Separator className="bg-[var(--border)]" />
@@ -212,6 +242,62 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         </div>
                     </div>
                 </div>
+
+                {showInsights && performanceData && (
+                    <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-fade-in grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="md:col-span-1 space-y-4">
+                            <div className="flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Historical Performance</span>
+                            </div>
+                            <div className="space-y-3">
+                                <div>
+                                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Uptime / Success</span>
+                                    <span className="text-lg font-semibold text-[var(--success)]">{performanceData.successRate}%</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Execution</span>
+                                    <span className="text-lg font-semibold text-[var(--primary)]">{performanceData.avgLatency}ms</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Queries (Last 100)</span>
+                                    <span className="text-lg font-semibold text-[var(--foreground)]">{performanceData.totalQueries}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="md:col-span-3 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Time Trend</span>
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded">Last 7 Days</span>
+                            </div>
+                            <div className="h-24 flex items-end gap-1.5">
+                                {(performanceData.timeseries || []).map((day, i) => (
+                                    <div key={i} className="flex-1 group relative">
+                                        <div
+                                            className="w-full bg-[var(--primary)]/40 hover:bg-[var(--primary)] transition-colors rounded-t-sm"
+                                            style={{ height: `${Math.min(100, (day.avgLatency / 100) * 100)}%` }}
+                                        />
+                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--popover)] text-[10px] font-bold px-2 py-1 rounded shadow-lg border border-[var(--border)] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                                            {day.date}: {Math.round(day.avgLatency)}ms
+                                        </div>
+                                    </div>
+                                ))}
+                                {(!performanceData.timeseries || performanceData.timeseries.length === 0) && (
+                                    <div className="w-full h-full flex items-center justify-center border border-dashed border-[var(--border)] rounded-lg">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Insufficient Data</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex justify-between">
+                                {(performanceData.timeseries || []).map((day, i) => (
+                                    <span key={i} className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
+                                        {new Date(day.date).toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase()}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {schema && (
                     <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-fade-in">
