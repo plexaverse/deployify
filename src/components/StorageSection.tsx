@@ -62,6 +62,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [envKey, setEnvKey] = useState('');
     const [environment, setEnvironment] = useState<'production' | 'preview' | 'both'>('both');
     const [provision, setProvision] = useState(false);
+    const [autoSync, setAutoSync] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -281,8 +282,9 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {!provision ? (
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-semibold">Connection String / Secret</Label>
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-semibold">Connection String / Secret</Label>
                                     <Input
                                         type="password"
                                         value={connectionString}
@@ -290,10 +292,25 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                         placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
                                         className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
-                                        <AlertCircle className="w-3.5 h-3.5" />
-                                        Stored securely in Google Cloud Secret Manager.
-                                    </p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
+                                            <AlertCircle className="w-3.5 h-3.5" />
+                                            Stored securely in Google Cloud Secret Manager.
+                                        </p>
+                                    </div>
+                                    {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale') && !editingId && (
+                                        <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                            <div className="space-y-0.5">
+                                                <Label className="text-xs font-semibold">API Auto-Sync</Label>
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                checked={autoSync}
+                                                onChange={(e) => setAutoSync(e.target.checked)}
+                                                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg flex items-start gap-3">
@@ -377,6 +394,16 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
                                             <h4 className="font-semibold text-sm">{config.name}</h4>
+                                            {config.connectionStringSecretId && (
+                                                <div className="hidden" id={`cs-${config.id}`}>
+                                                    {/* This is a placeholder for checking IAM status in UI */}
+                                                </div>
+                                            )}
+                                            {config.type.includes('cloud-sql') && (
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">
+                                                    IAM AUTH
+                                                </span>
+                                            )}
                                             {getStatusIcon(config.status, config.id)}
                                             {config.status === 'error' && config.lastError && (
                                                 <span className="text-[10px] font-bold text-[var(--error)] uppercase truncate max-w-[200px]" title={config.lastError}>

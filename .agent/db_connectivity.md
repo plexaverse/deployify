@@ -70,6 +70,16 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Add CSV Export functionality to Data Lab UI
 - [x] Enhance Data Lab UI with type-specific placeholders and schema insights for all types
 
+### Phase 11: Security & IAM Hardening (IN PROGRESS)
+- [ ] Implement IAM-Based Authentication for Cloud SQL (No-Password connectivity)
+- [ ] Update Storage Validator to support IAM-based reachability checks
+- [ ] Implement secure credential rotation flow for External Connectors
+
+### Phase 12: External Sync & Observability (PLANNED)
+- [ ] Implement "Auto-Sync" for External Connectors (Supabase, MongoDB Atlas API)
+- [ ] Add Query Performance tracking to Data Lab (Latency logging)
+- [ ] Implement "Performance Insight" dashboard in Data Lab UI
+
 ## Progress Updates
 
 ### 2026-10-26: Initial Setup
@@ -139,3 +149,8 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Enhanced UI with type-specific placeholders and refined schema insights for all connector types.
 - Installed `mongodb` and `ioredis` for real connectivity.
 - Verified 100% functional integrity with 80 passing tests and 0 lint warnings.
+
+### 2026-11-16: Architectural Refinement (Session 9)
+- Initiated Phase 11: Security & IAM Hardening.
+- Initiated Phase 12: External Sync & Observability.
+- Planning IAM-based Cloud SQL connectivity and Data Lab performance tracking.

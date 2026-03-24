@@ -66,7 +66,7 @@ export async function POST(
 
         const { project } = access;
         const body = await request.json();
-        const { type, name, environment = 'both', connectionString, envKey, metadata, provision = false, region } = body;
+        const { type, name, environment = 'both', connectionString, envKey, metadata, provision = false, autoSync = false, region } = body;
 
         if (!type || !name) {
             return NextResponse.json({ error: 'Type and name are required' }, { status: 400 });
@@ -122,6 +122,7 @@ export async function POST(
             metadata: {
                 ...(metadata || {}),
                 provisioned: provision,
+                autoSync,
                 region: region || project.region || 'us-central1',
                 operationName,
             },

@@ -131,6 +131,15 @@ async function validatePostgres(connectionString: string): Promise<ValidationRes
         return { valid: false, error: 'Invalid Postgres connection string format' };
     }
 
+    // Support IAM authentication (no password)
+    const isIamAuth = connectionString.includes('enable_iam_auth=true');
+    if (isIamAuth) {
+        // Skip TCP check if using Cloud SQL Unix Socket via Auth Proxy path in host
+        if (connectionString.includes('/cloudsql/')) {
+            return { valid: true };
+        }
+    }
+
     const { host, port } = parseConnectionString(connectionString, 5432);
     const reachable = await checkTcpReachability(host, port);
 
@@ -147,6 +156,14 @@ async function validatePostgres(connectionString: string): Promise<ValidationRes
 async function validateMysql(connectionString: string): Promise<ValidationResult> {
     if (!connectionString.startsWith('mysql://')) {
         return { valid: false, error: 'Invalid MySQL connection string format' };
+    }
+
+    // Support IAM authentication
+    const isIamAuth = connectionString.includes('enable_iam_auth=true');
+    if (isIamAuth) {
+        if (connectionString.includes('/cloudsql/')) {
+            return { valid: true };
+        }
     }
 
     const { host, port } = parseConnectionString(connectionString, 3306);
