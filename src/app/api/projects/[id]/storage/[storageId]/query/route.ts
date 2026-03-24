@@ -95,7 +95,7 @@ export async function POST(
                 const isIamAuth = connectionString.includes('enable_iam_auth=true');
 
                 // Determine SQL connection configuration (Handle IAM Auth)
-                let sqlConfig: any = connectionString;
+                let sqlConfig: string | Record<string, unknown> = connectionString;
                 if (isIamAuth && process.env.MOCK_DB !== 'true') {
                     try {
                         const url = new URL(connectionString);
@@ -130,7 +130,7 @@ export async function POST(
 
                 if (query === 'DISCOVER_SCHEMA') {
                     if (isPostgres) {
-                        const client = new PgClient(sqlConfig);
+                        const client = new PgClient(sqlConfig as string);
                         try {
                             await client.connect();
                             const res = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
@@ -143,6 +143,7 @@ export async function POST(
                             await client.end();
                         }
                     } else {
+                        // @ts-expect-error - Overload mismatch with union type
                         const connection = await mysql.createConnection(sqlConfig);
                         try {
                             const [rows] = await connection.execute('SHOW TABLES');
@@ -159,7 +160,7 @@ export async function POST(
                 }
 
                 if (isPostgres) {
-                    const client = new PgClient(sqlConfig);
+                    const client = new PgClient(sqlConfig as string);
                     try {
                         await client.connect();
                         const res = await client.query(query);
@@ -172,6 +173,7 @@ export async function POST(
                         await client.end();
                     }
                 } else {
+                    // @ts-expect-error - Overload mismatch with union type
                     const connection = await mysql.createConnection(sqlConfig);
                     try {
                         const [rows] = await connection.execute(query);

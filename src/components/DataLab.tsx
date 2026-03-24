@@ -23,9 +23,9 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
     const [schema, setSchema] = useState<{ tables?: string[], collections?: string[] } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
-    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: any[] } | null>(null);
+    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: Record<string, unknown>[] } | null>(null);
     const [showInsights, setShowInsights] = useState(false);
-    const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
+    const [, setIsLoadingMetrics] = useState(false);
 
     const fetchMetrics = useCallback(async () => {
         if (!selectedId) return;
@@ -275,10 +275,10 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     <div key={i} className="flex-1 group relative">
                                         <div
                                             className="w-full bg-[var(--primary)]/40 hover:bg-[var(--primary)] transition-colors rounded-t-sm"
-                                            style={{ height: `${Math.min(100, (day.avgLatency / 100) * 100)}%` }}
+                                            style={{ height: `${Math.min(100, ((day.avgLatency as number) / 100) * 100)}%` }}
                                         />
                                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--popover)] text-[10px] font-bold px-2 py-1 rounded shadow-lg border border-[var(--border)] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                            {day.date}: {Math.round(day.avgLatency)}ms
+                                            {(day.date as string)}: {Math.round(day.avgLatency as number)}ms
                                         </div>
                                     </div>
                                 ))}
@@ -291,7 +291,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                             <div className="flex justify-between">
                                 {(performanceData.timeseries || []).map((day, i) => (
                                     <span key={i} className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
-                                        {new Date(day.date).toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase()}
+                                        {new Date(day.date as string).toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase()}
                                     </span>
                                 ))}
                             </div>

@@ -51,6 +51,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         addStorageConfig,
         updateStorageConfig,
         deleteStorageConfig,
+        rotateStorageCredentials,
         validateStorageConnection,
         syncStorageStatus
     } = useStore();
@@ -65,6 +66,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [autoSync, setAutoSync] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
+    const [storageToRotate, setStorageToRotate] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [validatingId, setValidatingId] = useState<string | null>(null);
     const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -156,6 +158,22 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             if (success && onUpdate) onUpdate();
         } finally {
             setStorageToDelete(null);
+        }
+    };
+
+    const handleRotate = async () => {
+        if (!storageToRotate || !connectionString.trim()) return;
+
+        setIsSubmitting(true);
+        try {
+            const success = await rotateStorageCredentials(projectId, storageToRotate.id, connectionString);
+            if (success) {
+                setStorageToRotate(null);
+                setConnectionString('');
+                if (onUpdate) onUpdate();
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -421,19 +439,29 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 {config.environment === 'both' ? 'ALL ENVIRONMENTS' : config.environment}
                                             </span>
+                                            {!!config.metadata?.lastSyncedAt && (
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
+                                                    SYNCED: {new Date(config.metadata.lastSyncedAt as string).toLocaleTimeString()}
+                                                </span>
+                                            )}
+                                            {!!config.metadata?.lastRotatedAt && (
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]">
+                                                    ROTATED: {new Date(config.metadata.lastRotatedAt as string).toLocaleDateString()}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {config.status === 'provisioning' ? (
+                                    {config.status === 'provisioning' || config.metadata?.autoSync === true ? (
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             onClick={() => handleSync(config.id)}
                                             disabled={syncingId === config.id}
                                             className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
-                                            title="Sync Status"
+                                            title={config.metadata?.autoSync ? "Sync Now" : "Sync Status"}
                                         >
                                             <Activity className={`w-4 h-4 ${syncingId === config.id ? 'animate-spin' : ''}`} />
                                         </Button>
@@ -449,6 +477,15 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setStorageToRotate(config)}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--info)] hover:bg-[var(--info-bg)]"
+                                        title="Rotate Credentials"
+                                    >
+                                        <Activity className="w-4 h-4 rotate-90" />
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -496,6 +533,38 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 }
                 confirmText="Disconnect"
                 variant="destructive"
+            />
+
+            <ConfirmationModal
+                isOpen={!!storageToRotate}
+                onClose={() => {
+                    setStorageToRotate(null);
+                    setConnectionString('');
+                }}
+                onConfirm={handleRotate}
+                title="Rotate Credentials"
+                description={
+                    <div className="space-y-4 pt-2">
+                        <p>
+                            Enter the new connection string for <strong>{storageToRotate?.name}</strong>.
+                            This will update the secret in GCP Secret Manager immediately.
+                        </p>
+                        <div className="space-y-2">
+                            <Label className="text-sm font-semibold">New Connection String</Label>
+                            <Input
+                                type="password"
+                                value={connectionString}
+                                onChange={(e) => setConnectionString(e.target.value)}
+                                placeholder="POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"
+                                className="font-mono text-sm"
+                            />
+                        </div>
+                    </div>
+                }
+                confirmText="Rotate Credentials"
+                variant="info"
+                disabled={!connectionString.trim() || isSubmitting}
+                loading={isSubmitting}
             />
         </Card>
     );
