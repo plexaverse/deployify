@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
-import { getDb } from '@/lib/firebase';
+import { getDb, Collections } from '@/lib/firebase';
 import type { StorageConfig } from '@/types';
 import { Client as PgClient } from 'pg';
 import mysql from 'mysql2/promise';
@@ -88,6 +88,7 @@ export async function POST(
 
         // Real Connectivity Logic (Experimental Proxy)
         try {
+            const resultPromise = (async () => {
             if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
                 const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
 
@@ -266,7 +267,40 @@ export async function POST(
             }
 
             return NextResponse.json({ error: 'Unsupported connector type for Data Lab proxy' }, { status: 400 });
+            })();
+
+            const response = await resultPromise;
+            const executionTimeMs = Date.now() - startTime;
+
+            // Log performance metrics for observability
+            if (process.env.MOCK_DB !== 'true') {
+                const db = getDb();
+                await db.collection(Collections.STORAGE_METRICS).add({
+                    projectId: id,
+                    storageId,
+                    type: storageConfig.type,
+                    executionTimeMs,
+                    success: response.status === 200,
+                    timestamp: new Date()
+                });
+            }
+
+            return response;
         } catch (error) {
+            const executionTimeMs = Date.now() - startTime;
+            if (process.env.MOCK_DB !== 'true') {
+                const db = getDb();
+                await db.collection(Collections.STORAGE_METRICS).add({
+                    projectId: id,
+                    storageId,
+                    type: storageConfig.type,
+                    executionTimeMs,
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown connectivity error',
+                    timestamp: new Date()
+                });
+            }
+
             return NextResponse.json({
                 error: `Connectivity Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 details: 'This feature is in experimental rollout and requires internal network clearance.'

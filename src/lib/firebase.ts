@@ -180,4 +180,5 @@ export const Collections = {
     INVITES: 'invites',
     ANALYTICS_EVENTS: 'analytics_events',
     ERRORS: 'errors',
+    STORAGE_METRICS: 'storage_metrics',
 } as const;

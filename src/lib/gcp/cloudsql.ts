@@ -41,7 +41,17 @@ export async function createInstance(
             databaseVersion: dbType === 'postgres' ? 'POSTGRES_15' : 'MYSQL_8_0',
             settings: {
                 tier: 'db-f1-micro',
-                ipConfiguration: { ipv4Enabled: true },
+                ipConfiguration: {
+                    ipv4Enabled: true,
+                },
+                databaseFlags: [
+                    { name: 'cloudsql.iam_authentication', value: 'on' }
+                ],
+                insightsConfig: {
+                    queryInsightsEnabled: true,
+                    recordApplicationTags: true,
+                    recordClientAddress: true
+                }
             },
         }),
     });
@@ -51,7 +61,8 @@ export async function createInstance(
     }
 
     const data = await response.json();
-    const connectionString = `${dbType === 'postgres' ? 'postgresql' : 'mysql'}://deployify_user:password@/${instanceName}?host=/cloudsql/${gcpProjectId}:${region}:${instanceName}`;
+    // Use IAM-based connection string (no password, using service account identity)
+    const connectionString = `${dbType === 'postgres' ? 'postgresql' : 'mysql'}://deployify-sa@/${instanceName}?host=/cloudsql/${gcpProjectId}:${region}:${instanceName}&enable_iam_auth=true`;
 
     // In a production scenario, we would now trigger another operation to create the DB and User
     // For this implementation, we assume the default 'postgres' or 'mysql' DB exists or will be created by the app.
