@@ -288,7 +288,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                         value={connectionString}
                                         onChange={(e) => setConnectionString(e.target.value)}
                                         placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
-                                        className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
                                         <AlertCircle className="w-3.5 h-3.5" />
@@ -309,7 +309,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     value={envKey}
                                     onChange={(e) => setEnvKey(e.target.value)}
                                     placeholder="DATABASE_URL"
-                                    className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     This key will be injected into your application at runtime.
@@ -451,7 +451,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     <div className="text-sm">
                         <p className="font-semibold text-[var(--info)] mb-1">Managed Connectivity</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
-                            Deployify automatically injects the appropriate environment variables (like <code className="text-xs bg-[var(--muted)]/20 px-1 rounded">DATABASE_URL</code>) into your services based on these connectors.
+                            Deployify automatically injects the appropriate environment variables (like <code className="text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 px-1 rounded">DATABASE_URL</code>) into your services based on these connectors.
                         </p>
                     </div>
                 </div>

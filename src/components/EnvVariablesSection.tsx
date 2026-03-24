@@ -243,7 +243,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             </div>
                             <div className="flex-1 space-y-1">
                                 <h4 className="text-sm font-semibold text-[var(--foreground)]">Detected Database Connection String</h4>
-                                <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                                     Deployify has a managed **Database Connector** model that provides secure credential storage via Secret Manager and automated health checks.
                                 </p>
                                 <div className="flex items-center gap-3 pt-3">
