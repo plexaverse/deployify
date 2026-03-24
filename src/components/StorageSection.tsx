@@ -439,12 +439,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 {config.environment === 'both' ? 'ALL ENVIRONMENTS' : config.environment}
                                             </span>
-                                            {config.metadata?.lastSyncedAt && (
+                                            {!!config.metadata?.lastSyncedAt && (
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
                                                     SYNCED: {new Date(config.metadata.lastSyncedAt as string).toLocaleTimeString()}
                                                 </span>
                                             )}
-                                            {config.metadata?.lastRotatedAt && (
+                                            {!!config.metadata?.lastRotatedAt && (
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]">
                                                     ROTATED: {new Date(config.metadata.lastRotatedAt as string).toLocaleDateString()}
                                                 </span>
