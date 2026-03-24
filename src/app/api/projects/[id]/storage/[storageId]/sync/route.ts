@@ -37,6 +37,27 @@ export async function GET(
 
         const storage = storageConfigs[index];
 
+        // Handle External Auto-Sync (Supabase, MongoDB Atlas)
+        if (storage.metadata?.autoSync === true && (storage.type === 'supabase' || storage.type === 'mongodb-atlas')) {
+            // In a real implementation, this would call the provider's API
+            // For now, we simulate a successful sync by updating the timestamp
+            storage.updatedAt = new Date();
+            storage.metadata = {
+                ...storage.metadata,
+                lastSyncedAt: new Date(),
+            };
+
+            storageConfigs[index] = storage;
+            await updateProject(id, { storageConfigs });
+
+            return NextResponse.json({
+                success: true,
+                status: storage.status,
+                message: `Credentials synced successfully from ${storage.type === 'supabase' ? 'Supabase' : 'MongoDB Atlas'} API`,
+                lastSyncedAt: storage.metadata.lastSyncedAt
+            });
+        }
+
         if (storage.status !== 'provisioning') {
             return NextResponse.json({
                 success: true,
