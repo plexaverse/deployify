@@ -8,6 +8,7 @@ import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { QueryEditor } from '@/components/ui/query-editor';
 import type { StorageConfig } from '@/types';
 
 interface DataLabProps {
@@ -22,6 +23,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isExecuting, setIsExecuting] = useState(false);
     const [isExplaining, setIsExplaining] = useState(false);
     const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
+    const [rowCount, setRowCount] = useState<number | null>(null);
+    const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
     const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string }[]> } | null>(null);
@@ -41,6 +44,10 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [newQueryName, setNewQueryName] = useState('');
     const [isQueryPublic, setIsQueryPublic] = useState(false);
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved'>('editor');
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
 
     const fetchHistory = useCallback(async () => {
         if (!selectedId) return;
@@ -98,8 +105,13 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             setIsExecuting(true);
         }
 
-        if (!overrideQuery) setError(null);
-        if (!overrideQuery) setResults(null);
+        if (!overrideQuery) {
+            setError(null);
+            setResults(null);
+            setRowCount(null);
+            setExecutionTime(null);
+            setCurrentPage(1);
+        }
 
         try {
             const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/query`, {
@@ -114,6 +126,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     setSchema(data.results[0]);
                 } else {
                     setResults(data.results);
+                    setRowCount(data.rowCount);
+                    setExecutionTime(data.executionTimeMs);
                     // Re-fetch historical metrics and history after execution
                     if (!explain) {
                         fetchMetrics();
@@ -203,31 +217,63 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const renderResultsTable = () => {
         if (!results || results.length === 0) return null;
         const columns = Object.keys(results[0]);
+        const startIndex = (currentPage - 1) * pageSize;
+        const paginatedResults = results.slice(startIndex, startIndex + pageSize);
 
         return (
-            <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--background)]">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
-                            {columns.map(col => (
-                                <th key={col} className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap">
-                                    {col}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {results.map((row, i) => (
-                            <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
+            <div className="space-y-4">
+                <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--background)]">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
                                 {columns.map(col => (
-                                    <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate">
-                                        {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
-                                    </td>
+                                    <th key={col} className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap">
+                                        {col}
+                                    </th>
                                 ))}
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {paginatedResults.map((row, i) => (
+                                <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
+                                    {columns.map(col => (
+                                        <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate">
+                                            {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {results.length > pageSize && (
+                    <div className="flex items-center justify-between px-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            Showing {startIndex + 1}-{Math.min(startIndex + pageSize, results.length)} of {results.length}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={currentPage === 1}
+                                onClick={() => setCurrentPage(prev => prev - 1)}
+                                className="h-7 text-[10px] font-bold uppercase tracking-wider"
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={startIndex + pageSize >= results.length}
+                                onClick={() => setCurrentPage(prev => prev + 1)}
+                                className="h-7 text-[10px] font-bold uppercase tracking-wider"
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     };
@@ -333,9 +379,9 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                             </Button>
                         </div>
                         <div className="relative">
-                            <textarea
+                            <QueryEditor
                                 value={query}
-                                onChange={(e) => setQuery(e.target.value)}
+                                onChange={setQuery}
                                 placeholder={
                                     selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale'
                                         ? "SELECT * FROM users LIMIT 10"
@@ -343,7 +389,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             ? "GET user:1  OR  { \"command\": \"hgetall\", \"args\": [\"user:1\"] }"
                                             : "{ \"collection\": \"users\", \"limit\": 10 }"
                                 }
-                                className="w-full h-32 p-4 rounded-xl bg-[var(--background)] border border-[var(--border)] font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 resize-none"
+                                className="h-40"
                             />
                             <div className="absolute bottom-4 right-4 flex items-center gap-2">
                                 <Button
@@ -644,11 +690,23 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                 {results && (
                     <div className="space-y-3 animate-fade-in">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
                                     <CheckCircle2 className="w-4 h-4" />
-                                    Query Executed Successfully ({results.length} results)
+                                    Query Success
                                 </div>
+                                {rowCount !== null && (
+                                    <div className="text-right">
+                                        <span className="block text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] opacity-60">Rows</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">{rowCount}</span>
+                                    </div>
+                                )}
+                                {executionTime !== null && (
+                                    <div className="text-right">
+                                        <span className="block text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] opacity-60">Latency</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{executionTime}ms</span>
+                                    </div>
+                                )}
                                 <Button
                                     variant="ghost"
                                     size="sm"

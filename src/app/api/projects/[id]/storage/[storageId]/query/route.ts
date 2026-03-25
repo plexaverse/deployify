@@ -44,6 +44,8 @@ export async function POST(
             return NextResponse.json({ error: 'Query is required' }, { status: 400 });
         }
 
+        const MAX_ROWS = 500;
+
         // Strict Read-Only Enforcement for SQL
         if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
             // Remove comments and whitespace to get the true command
@@ -89,6 +91,7 @@ export async function POST(
 
         // 2. Execute Query (Mocked or Real)
         if (process.env.MOCK_DB === 'true') {
+            const startTime = Date.now();
             // Handle Schema Discovery Mock
             if (query === 'DISCOVER_SCHEMA') {
                 const mockSchema = storageConfig.type === 'firestore' || storageConfig.type === 'mongodb-atlas'
@@ -107,7 +110,8 @@ export async function POST(
                 return NextResponse.json({
                     success: true,
                     results: [mockSchema],
-                    executionTimeMs: 5
+                    rowCount: 1,
+                    executionTimeMs: Date.now() - startTime
                 });
             }
 
@@ -118,9 +122,13 @@ export async function POST(
                 { id: 3, name: 'John Smith', email: 'john@example.com', created_at: new Date().toISOString() },
             ];
 
+            const limit = query.toLowerCase().includes('limit') ? parseInt(query.match(/limit (\d+)/i)?.[1] || '3') : 3;
+            const finalResults = mockResults.slice(0, Math.min(limit, MAX_ROWS));
+
             return NextResponse.json({
                 success: true,
-                results: mockResults.slice(0, query.toLowerCase().includes('limit') ? parseInt(query.match(/limit (\d+)/i)?.[1] || '3') : 3),
+                results: finalResults,
+                rowCount: finalResults.length,
                 executionTimeMs: Math.floor(Math.random() * 50) + 10,
             });
         }
@@ -129,7 +137,7 @@ export async function POST(
 
         // Real Connectivity Logic (Experimental Proxy)
         try {
-            const resultPromise = (async () => {
+            const dataPromise = (async () => {
             if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
                 const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
                 const isIamAuth = connectionString.includes('enable_iam_auth=true');
@@ -187,11 +195,7 @@ export async function POST(
                                 columns[table] = colsRes.rows.map(r => ({ name: r.column_name, type: r.data_type }));
                             }
 
-                            return NextResponse.json({
-                                success: true,
-                                results: [{ tables, columns }],
-                                executionTimeMs: Date.now() - startTime
-                            });
+                            return { results: [{ tables, columns }] };
                         } finally {
                             await client.end();
                         }
@@ -212,11 +216,7 @@ export async function POST(
                                 columns[table] = colsRows.map(r => ({ name: r.Field, type: r.Type }));
                             }
 
-                            return NextResponse.json({
-                                success: true,
-                                results: [{ tables, columns }],
-                                executionTimeMs: Date.now() - startTime
-                            });
+                            return { results: [{ tables, columns }] };
                         } finally {
                             await connection.end();
                         }
@@ -228,11 +228,7 @@ export async function POST(
                     try {
                         await client.connect();
                         const res = await client.query(query);
-                        return NextResponse.json({
-                            success: true,
-                            results: res.rows,
-                            executionTimeMs: Date.now() - startTime
-                        });
+                        return { results: res.rows.slice(0, MAX_ROWS) };
                     } finally {
                         await client.end();
                     }
@@ -241,11 +237,7 @@ export async function POST(
                     const connection = await mysql.createConnection(sqlConfig);
                     try {
                         const [rows] = await connection.execute(query);
-                        return NextResponse.json({
-                            success: true,
-                            results: rows,
-                            executionTimeMs: Date.now() - startTime
-                        });
+                        return { results: (Array.isArray(rows) ? rows : [rows]).slice(0, MAX_ROWS) };
                     } finally {
                         await connection.end();
                     }
@@ -278,11 +270,7 @@ export async function POST(
                             }
                         }
 
-                        return NextResponse.json({
-                            success: true,
-                            results: [{ collections: collectionNames, columns }],
-                            executionTimeMs: Date.now() - startTime
-                        });
+                        return { results: [{ collections: collectionNames, columns }] };
                     }
 
                     const parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
@@ -292,12 +280,8 @@ export async function POST(
                         throw new Error('Collection name is required for MongoDB query');
                     }
 
-                    const results = await db.collection(collection).find(filter).limit(limit).toArray();
-                    return NextResponse.json({
-                        success: true,
-                        results,
-                        executionTimeMs: Date.now() - startTime
-                    });
+                    const results = await db.collection(collection).find(filter).limit(Math.min(limit, MAX_ROWS)).toArray();
+                    return { results };
                 } finally {
                     await client.close();
                 }
@@ -310,16 +294,12 @@ export async function POST(
                         // Scan for a sample of keys to infer patterns
                         const [, keys] = await redis.scan(0, 'COUNT', 20);
 
-                        return NextResponse.json({
-                            success: true,
-                            results: [{
-                                info: info.split('\n').filter(line => line.includes('redis_version') || line.includes('used_memory_human')).join(', '),
-                                keysCount,
-                                sampleKeys: keys,
-                                patterns: Array.from(new Set(keys.map(k => k.split(':')[0] + ':*')))
-                            }],
-                            executionTimeMs: Date.now() - startTime
-                        });
+                        return { results: [{
+                            info: info.split('\n').filter(line => line.includes('redis_version') || line.includes('used_memory_human')).join(', '),
+                            keysCount,
+                            sampleKeys: keys,
+                            patterns: Array.from(new Set(keys.map(k => k.split(':')[0] + ':*')))
+                        }] };
                     }
 
                     // Redis query can be a command or a JSON for complex scans
@@ -339,11 +319,8 @@ export async function POST(
                         }
                     }
 
-                    return NextResponse.json({
-                        success: true,
-                        results: Array.isArray(results) ? results : [results],
-                        executionTimeMs: Date.now() - startTime
-                    });
+                    const finalResults = Array.isArray(results) ? results : [results];
+                    return { results: finalResults.slice(0, MAX_ROWS) };
                 } finally {
                     redis.disconnect();
                 }
@@ -371,11 +348,7 @@ export async function POST(
                         }
                     }
 
-                    return NextResponse.json({
-                        success: true,
-                        results: [{ collections: collectionIds, columns }],
-                        executionTimeMs: Date.now() - startTime
-                    });
+                    return { results: [{ collections: collectionIds, columns }] };
                 }
                 let queryObj: ReturnType<typeof db.collection> | ReturnType<typeof db.collection>['where'];
 
@@ -398,24 +371,28 @@ export async function POST(
                         });
                     }
 
-                    const snapshot = await queryObj.limit(limit).get();
+                    const snapshot = await queryObj.limit(Math.min(limit, MAX_ROWS)).get();
                     const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                    return NextResponse.json({
-                        success: true,
-                        results,
-                        executionTimeMs: Math.floor(Math.random() * 50) + 10,
-                    });
+                    return { results };
                 } catch (e) {
                     throw new Error(`Firestore query parse error: ${e instanceof Error ? e.message : 'Invalid JSON'}`);
                 }
             }
 
-            return NextResponse.json({ error: 'Unsupported connector type for Data Lab proxy' }, { status: 400 });
+            throw new Error('Unsupported connector type for Data Lab proxy');
             })();
 
-            const response = await resultPromise;
+            const data = await dataPromise;
             const executionTimeMs = Date.now() - startTime;
+            const rowCount = Array.isArray(data.results) ? data.results.length : 0;
+
+            const finalResponse = {
+                success: true,
+                results: data.results,
+                rowCount,
+                executionTimeMs
+            };
 
             // Log performance metrics for observability
             if (process.env.MOCK_DB !== 'true') {
@@ -429,7 +406,8 @@ export async function POST(
                     userId: session.user.id,
                     type: storageConfig.type,
                     executionTimeMs,
-                    success: response.status === 200,
+                    success: true,
+                    rowCount,
                     isSlow: executionTimeMs > 1000,
                     query: query !== 'DISCOVER_SCHEMA' ? query : undefined,
                     timestamp: now
@@ -447,7 +425,7 @@ export async function POST(
                 }
             }
 
-            return response;
+            return NextResponse.json(finalResponse);
         } catch (error) {
             const executionTimeMs = Date.now() - startTime;
             if (process.env.MOCK_DB !== 'true') {
