@@ -28,26 +28,28 @@ export async function GET(
             return NextResponse.json({
                 success: true,
                 queries: [
-                    { id: 'q1', name: 'GET ALL USERS', query: 'SELECT * FROM users LIMIT 10', createdAt: new Date().toISOString() },
-                    { id: 'q2', name: 'ACTIVE PROJECTS', query: 'SELECT * FROM projects WHERE status = "ready"', createdAt: new Date().toISOString() },
+                    { id: 'q1', name: 'GET ALL USERS', query: 'SELECT * FROM users LIMIT 10', createdAt: new Date().toISOString(), isPublic: true },
+                    { id: 'q2', name: 'ACTIVE PROJECTS', query: 'SELECT * FROM projects WHERE status = "ready"', createdAt: new Date().toISOString(), isPublic: false },
                 ]
             });
         }
 
         const db = getDb();
+        // Fetch queries that are either owned by the user OR are public within the project/storage
         const queriesSnapshot = await db
             .collection(Collections.SAVED_QUERIES)
             .where('projectId', '==', id)
             .where('storageId', '==', storageId)
-            .where('userId', '==', session.user.id)
             .orderBy('createdAt', 'desc')
             .get();
 
-        const queries = queriesSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate().toISOString() : doc.data().createdAt
-        }));
+        const queries = queriesSnapshot.docs
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate().toISOString() : doc.data().createdAt
+            }))
+            .filter((q: any) => q.userId === session.user.id || q.isPublic === true);
 
         return NextResponse.json({ success: true, queries });
     } catch (error) {
@@ -74,7 +76,7 @@ export async function POST(
         }
 
         const body = await request.json();
-        const { name, query } = body;
+        const { name, query, isPublic = false } = body;
 
         if (!name || !query) {
             return NextResponse.json({ error: 'Name and query are required' }, { status: 400 });
@@ -88,6 +90,7 @@ export async function POST(
             userId: session.user.id,
             name,
             query,
+            isPublic,
             createdAt: now,
             updatedAt: now
         };

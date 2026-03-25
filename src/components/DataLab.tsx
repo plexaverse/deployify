@@ -31,6 +31,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isSavingQuery, setIsSavingQuery] = useState(false);
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [newQueryName, setNewQueryName] = useState('');
+    const [isQueryPublic, setIsQueryPublic] = useState(false);
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved'>('editor');
 
     const fetchHistory = useCallback(async () => {
@@ -126,12 +127,13 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/queries`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newQueryName, query }),
+                body: JSON.stringify({ name: newQueryName, query, isPublic: isQueryPublic }),
             });
             const data = await response.json();
             if (data.success) {
                 setShowSaveModal(false);
                 setNewQueryName('');
+                setIsQueryPublic(false);
                 fetchSavedQueries();
             }
         } catch (error) {
@@ -368,16 +370,21 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             <div className="w-7 h-7 rounded bg-[var(--primary)]/10 flex items-center justify-center">
                                                 <Terminal className="w-3.5 h-3.5 text-[var(--primary)]" />
                                             </div>
-                                            <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[150px]">{q.name}</span>
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[150px]">{q.name}</span>
+                                                {q.isPublic && <span className="text-[8px] font-bold uppercase text-[var(--success)] tracking-tight">Team Shared</span>}
+                                            </div>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => deleteSavedQuery(q.id)}
-                                            className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)] opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </Button>
+                                        {(!q.isPublic || (q as any).userId === connectors[0]?.userId) && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => deleteSavedQuery(q.id)}
+                                                className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </Button>
+                                        )}
                                     </div>
                                     <pre className="text-[9px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
                                         {q.query}
@@ -655,6 +662,18 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     placeholder="E.G. ACTIVE USERS"
                                     className="placeholder:text-[9px]"
                                     autoFocus
+                                />
+                            </div>
+                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                <div className="space-y-0.5">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Share with Team</Label>
+                                    <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60">Allow other team members to use this query</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={isQueryPublic}
+                                    onChange={(e) => setIsQueryPublic(e.target.checked)}
+                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
                             </div>
                             <div className="space-y-2">
