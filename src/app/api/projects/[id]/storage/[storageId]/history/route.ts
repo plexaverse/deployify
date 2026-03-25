@@ -27,9 +27,9 @@ export async function GET(
             return NextResponse.json({
                 success: true,
                 history: [
-                    { id: 'h1', query: 'SELECT * FROM users LIMIT 10', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-                    { id: 'h2', query: 'DISCOVER_SCHEMA', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString() },
-                    { id: 'h3', query: 'SELECT name, email FROM projects', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString() },
+                    { id: 'h1', query: 'SELECT * FROM users LIMIT 10', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), executionTimeMs: 45, rowCount: 10 },
+                    { id: 'h2', query: 'DISCOVER_SCHEMA', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), executionTimeMs: 120, rowCount: 1 },
+                    { id: 'h3', query: 'SELECT name, email FROM projects', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), executionTimeMs: 32, rowCount: 5 },
                 ]
             });
         }
