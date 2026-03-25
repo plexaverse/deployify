@@ -248,9 +248,28 @@ export async function POST(
 
                     if (query === 'DISCOVER_SCHEMA') {
                         const collections = await db.listCollections().toArray();
+                        const collectionNames = collections.map(c => c.name);
+
+                        // Sample fields from collections (limit to first 5 collections to avoid timeouts)
+                        const columns: Record<string, { name: string, type: string }[]> = {};
+                        for (const name of collectionNames.slice(0, 5)) {
+                            const sample = await db.collection(name).find().limit(5).toArray();
+                            if (sample.length > 0) {
+                                const fields = new Map<string, string>();
+                                sample.forEach(doc => {
+                                    Object.entries(doc).forEach(([key, val]) => {
+                                        if (!fields.has(key)) {
+                                            fields.set(key, typeof val);
+                                        }
+                                    });
+                                });
+                                columns[name] = Array.from(fields.entries()).map(([k, t]) => ({ name: k, type: t }));
+                            }
+                        }
+
                         return NextResponse.json({
                             success: true,
-                            results: [{ collections: collections.map(c => c.name) }],
+                            results: [{ collections: collectionNames, columns }],
                             executionTimeMs: Date.now() - startTime
                         });
                     }
@@ -277,11 +296,16 @@ export async function POST(
                     if (query === 'DISCOVER_SCHEMA') {
                         const info = await redis.info();
                         const keysCount = await redis.dbsize();
+                        // Scan for a sample of keys to infer patterns
+                        const [cursor, keys] = await redis.scan(0, 'COUNT', 20);
+
                         return NextResponse.json({
                             success: true,
                             results: [{
                                 info: info.split('\n').filter(line => line.includes('redis_version') || line.includes('used_memory_human')).join(', '),
-                                keysCount
+                                keysCount,
+                                sampleKeys: keys,
+                                patterns: Array.from(new Set(keys.map(k => k.split(':')[0] + ':*')))
                             }],
                             executionTimeMs: Date.now() - startTime
                         });
@@ -317,9 +341,28 @@ export async function POST(
 
                 if (query === 'DISCOVER_SCHEMA') {
                     const collections = await db.listCollections();
+                    const collectionIds = collections.map(c => c.id);
+
+                    // Sample fields from Firestore (first 5 collections)
+                    const columns: Record<string, { name: string, type: string }[]> = {};
+                    for (const id of collectionIds.slice(0, 5)) {
+                        const snapshot = await db.collection(id).limit(5).get();
+                        if (!snapshot.empty) {
+                            const fields = new Map<string, string>();
+                            snapshot.docs.forEach(doc => {
+                                Object.entries(doc.data()).forEach(([key, val]) => {
+                                    if (!fields.has(key)) {
+                                        fields.set(key, typeof val);
+                                    }
+                                });
+                            });
+                            columns[id] = Array.from(fields.entries()).map(([k, t]) => ({ name: k, type: t }));
+                        }
+                    }
+
                     return NextResponse.json({
                         success: true,
-                        results: [{ collections: collections.map(c => c.id) }],
+                        results: [{ collections: collectionIds, columns }],
                         executionTimeMs: Date.now() - startTime
                     });
                 }
