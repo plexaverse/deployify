@@ -98,6 +98,13 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement NoSQL Schema Intelligence (Inferred fields from document sampling)
 - [x] Update Data Lab UI for Team-wide queries and enhanced NoSQL insights
 
+### Phase 16: Query Performance Analysis & Optimization (IN PROGRESS)
+- [ ] Implement SQL `EXPLAIN` support in Data Lab Proxy
+- [ ] Add "Explain Plan" visualization in Data Lab UI
+- [ ] Implement slow query detection and latency flagging in storage metrics
+- [ ] Add "Performance Hotspots" list to Insights dashboard
+- [ ] Standardize new UI elements to high-density technical aesthetic
+
 ## Progress Updates
 
 ### 2026-10-26: Initial Setup
@@ -205,3 +212,7 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Implemented Redis Schema Discovery using key pattern scanning (`SCAN 0 COUNT 100`).
 - Updated Data Lab UI with "Share with Team" toggle and technical "TEAM SHARED" metadata labels.
 - Verified 100% functional integrity with 80 passing tests, perfect 49/49 API audit, and UI verification via Playwright.
+
+### 2026-11-21: Query Performance Analysis (Session 14)
+- Started Phase 16: Query Performance Analysis & Optimization.
+- Planning implementation of SQL `EXPLAIN` support and slow query hotspots.

@@ -49,7 +49,7 @@ export async function GET(
                 ...doc.data(),
                 createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate().toISOString() : doc.data().createdAt
             }))
-            .filter((q: any) => q.userId === session.user.id || q.isPublic === true);
+            .filter((q: { userId?: string, isPublic?: boolean }) => q.userId === session.user.id || q.isPublic === true);
 
         return NextResponse.json({ success: true, queries });
     } catch (error) {

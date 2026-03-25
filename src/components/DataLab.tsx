@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -20,12 +20,19 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [selectedId, setSelectedId] = useState(connectors[0]?.id || '');
     const [query, setQuery] = useState('');
     const [isExecuting, setIsExecuting] = useState(false);
+    const [isExplaining, setIsExplaining] = useState(false);
     const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
     const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string }[]> } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
-    const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: { date: string, avgLatency: number }[] } | null>(null);
+    const [performanceData, setPerformanceData] = useState<{
+        avgLatency: number,
+        successRate: number,
+        totalQueries?: number,
+        timeseries?: { date: string, avgLatency: number }[],
+        hotspots?: { query: string, avgLatency: number, count: number }[]
+    } | null>(null);
     const [showInsights, setShowInsights] = useState(false);
     const [history, setHistory] = useState<{ id: string, query: string, timestamp: string, error?: string }[]>([]);
     const [savedQueries, setSavedQueries] = useState<{ id: string, name: string, query: string, isPublic?: boolean, userId?: string }[]>([]);
@@ -80,11 +87,17 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         fetchSavedQueries();
     }, [fetchMetrics, fetchHistory, fetchSavedQueries]);
 
-    const executeQuery = async (overrideQuery?: string) => {
-        const queryToRun = overrideQuery || query;
+    const executeQuery = async (overrideQuery?: string, explain = false) => {
+        let queryToRun = overrideQuery || query;
         if (!selectedId || !queryToRun.trim()) return;
 
-        setIsExecuting(true);
+        if (explain) {
+            queryToRun = `EXPLAIN ${queryToRun}`;
+            setIsExplaining(true);
+        } else {
+            setIsExecuting(true);
+        }
+
         if (!overrideQuery) setError(null);
         if (!overrideQuery) setResults(null);
 
@@ -102,8 +115,10 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                 } else {
                     setResults(data.results);
                     // Re-fetch historical metrics and history after execution
-                    fetchMetrics();
-                    fetchHistory();
+                    if (!explain) {
+                        fetchMetrics();
+                        fetchHistory();
+                    }
                 }
             } else {
                 setError(data.error || 'Failed to execute query');
@@ -112,6 +127,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             setError('Network error: Failed to connect to proxy');
         } finally {
             setIsExecuting(false);
+            setIsExplaining(false);
         }
     };
 
@@ -340,6 +356,18 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     <Save className="w-4 h-4 mr-2" />
                                     Save
                                 </Button>
+                                {(selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => executeQuery(undefined, true)}
+                                        disabled={isExplaining || isExecuting || !query.trim()}
+                                        className="h-10 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    >
+                                        {isExplaining ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Info className="w-4 h-4 mr-2" />}
+                                        Explain
+                                    </Button>
+                                )}
                                 <MovingBorderButton
                                     onClick={() => executeQuery()}
                                     disabled={isExecuting || !query.trim()}
@@ -460,7 +488,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                 )}
 
                 {showInsights && performanceData && (
-                    <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-fade-in grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-fade-in space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div className="md:col-span-1 space-y-4">
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
@@ -512,6 +541,40 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 ))}
                             </div>
                         </div>
+                      </div>
+
+                      {performanceData.hotspots && performanceData.hotspots.length > 0 && (
+                          <div className="pt-4 border-t border-[var(--primary)]/10 space-y-3">
+                              <div className="flex items-center gap-2">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-[var(--error)]" />
+                                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Performance Hotspots (Slow Queries)</span>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2">
+                                  {performanceData.hotspots.map((h, i) => (
+                                      <div key={i} className="p-2 rounded bg-[var(--background)] border border-[var(--border)] flex items-center justify-between group">
+                                          <div className="flex items-center gap-3 overflow-hidden">
+                                              <span className="text-[9px] font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded shrink-0">{h.count}X</span>
+                                              <code className="text-[10px] font-mono truncate text-[var(--foreground)]">{h.query}</code>
+                                          </div>
+                                          <div className="flex items-center gap-3 shrink-0">
+                                              <span className="text-[10px] font-bold text-[var(--error)]">{h.avgLatency}ms</span>
+                                              <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => {
+                                                      setQuery(h.query);
+                                                      setActiveTab('editor');
+                                                  }}
+                                                  className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                              >
+                                                  Optimize
+                                              </Button>
+                                          </div>
+                                      </div>
+                                  ))}
+                              </div>
+                          </div>
+                      )}
                     </div>
                 )}
 
