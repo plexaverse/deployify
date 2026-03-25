@@ -50,16 +50,27 @@ export async function POST(
             const cleanQuery = query.replace(/\/\*[\s\S]*?\*\/|--.*$/gm, '').trim();
             const normalizedQuery = cleanQuery.toUpperCase();
 
-            const forbiddenKeywords = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'REPLACE', 'TRUNCATE', 'GRANT', 'REVOKE'];
+            const forbiddenKeywords = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'REPLACE', 'TRUNCATE', 'GRANT', 'REVOKE', 'SET', 'EXECUTE', 'PREPARE'];
             const allowedPrefixes = ['SELECT', 'SHOW', 'DESCRIBE', 'EXPLAIN', 'DISCOVER_SCHEMA'];
 
             // Check for forbidden keywords with word boundaries to avoid false positives in identifiers/literals
-            const hasForbidden = forbiddenKeywords.some(keyword => {
-                const regex = new RegExp(`\\b\${keyword}\\b`, 'i');
+            const hasForbidden = forbiddenKeywords.some(kw => {
+                const regex = new RegExp(`\\b${kw}\\b`, 'i');
                 return regex.test(normalizedQuery);
             });
 
             const hasAllowedPrefix = allowedPrefixes.some(prefix => normalizedQuery.startsWith(prefix));
+
+            // Extra safety for EXPLAIN ANALYZE which can execute data-modifying statements in some DBs
+            if (normalizedQuery.startsWith('EXPLAIN')) {
+                const hasForbiddenInExplain = forbiddenKeywords.some(kw => {
+                    const regex = new RegExp(`\\b${kw}\\b`, 'i');
+                    return regex.test(normalizedQuery);
+                });
+                if (hasForbiddenInExplain) {
+                    return NextResponse.json({ error: 'Forbidden: Explain cannot contain data-modifying statements' }, { status: 403 });
+                }
+            }
 
             if (hasForbidden || !hasAllowedPrefix) {
                 return NextResponse.json({ error: 'Forbidden: Only read-only queries are allowed in Data Lab' }, { status: 403 });
@@ -297,7 +308,7 @@ export async function POST(
                         const info = await redis.info();
                         const keysCount = await redis.dbsize();
                         // Scan for a sample of keys to infer patterns
-                        const [cursor, keys] = await redis.scan(0, 'COUNT', 20);
+                        const [, keys] = await redis.scan(0, 'COUNT', 20);
 
                         return NextResponse.json({
                             success: true,
@@ -419,6 +430,8 @@ export async function POST(
                     type: storageConfig.type,
                     executionTimeMs,
                     success: response.status === 200,
+                    isSlow: executionTimeMs > 1000,
+                    query: query !== 'DISCOVER_SCHEMA' ? query : undefined,
                     timestamp: now
                 });
 
@@ -448,6 +461,8 @@ export async function POST(
                     type: storageConfig.type,
                     executionTimeMs,
                     success: false,
+                    isSlow: executionTimeMs > 1000,
+                    query: query !== 'DISCOVER_SCHEMA' ? query : undefined,
                     error: error instanceof Error ? error.message : 'Unknown connectivity error',
                     timestamp: now
                 });

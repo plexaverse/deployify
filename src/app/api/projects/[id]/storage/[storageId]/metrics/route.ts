@@ -35,7 +35,11 @@ export async function GET(
                         date: new Date(Date.now() - (6 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                         avgLatency: Math.floor(Math.random() * 20) + 20,
                         successRate: 95 + Math.random() * 5
-                    }))
+                    })),
+                    hotspots: [
+                        { query: 'SELECT * FROM large_table', avgLatency: 1200, count: 5 },
+                        { query: 'SELECT * FROM users JOIN orders ON users.id = orders.userId', avgLatency: 850, count: 12 }
+                    ]
                 }
             });
         }
@@ -88,13 +92,37 @@ export async function GET(
             }))
             .sort((a, b) => a.date.localeCompare(b.date));
 
+        // Identify hotspots (slowest unique queries)
+        const hotspotsMap = new Map<string, { totalLatency: number, count: number }>();
+        docs.forEach(d => {
+            if (d.query && (d.executionTimeMs >= 1000)) {
+                const q = d.query as string;
+                if (!hotspotsMap.has(q)) {
+                    hotspotsMap.set(q, { totalLatency: 0, count: 0 });
+                }
+                const stats = hotspotsMap.get(q)!;
+                stats.totalLatency += d.executionTimeMs;
+                stats.count++;
+            }
+        });
+
+        const hotspots = Array.from(hotspotsMap.entries())
+            .map(([query, data]) => ({
+                query,
+                avgLatency: Math.round(data.totalLatency / data.count),
+                count: data.count
+            }))
+            .sort((a, b) => b.avgLatency - a.avgLatency)
+            .slice(0, 5);
+
         return NextResponse.json({
             success: true,
             stats: {
                 avgLatency: Math.round(avgLatency),
                 successRate: parseFloat(successRate.toFixed(1)),
                 totalQueries,
-                timeseries
+                timeseries,
+                hotspots
             }
         });
     } catch (error) {
