@@ -318,7 +318,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale') && !editingId && (
                                         <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                             <div className="space-y-0.5">
-                                                <Label className="text-xs font-semibold">API Auto-Sync</Label>
+                                                <Label className="text-sm font-semibold">API Auto-Sync</Label>
                                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
                                             </div>
                                             <input

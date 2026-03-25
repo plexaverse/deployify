@@ -1461,3 +1461,13 @@ Enhanced Data Lab with persistence features and deeper schema intelligence.
     - Standardized "Re-run" and "Load & Run" buttons with the platform's standard `text-[9px] font-bold uppercase tracking-wider` styling.
     - Applied the `overflow-hidden p-0` card pattern to saved query items.
     - Unified all new icons and interactive states with the established developer-centric aesthetic.
+
+## Progressive UI & Layout Standardization (Session 164)
+
+Standardized the API Auto-Sync label in Storage Section.
+
+### API Auto-Sync Standardization
+- **File Updated**: `src/components/StorageSection.tsx`
+- **Standardization**:
+    - Replaced the deprecated `text-xs` utility class with the standardized `text-sm font-semibold` typography for the "API Auto-Sync" label.
+    - Confirmed zero instances of `text-xs` utility classes remaining across the entire `src/` directory.
