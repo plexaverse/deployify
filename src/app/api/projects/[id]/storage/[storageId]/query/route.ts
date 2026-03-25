@@ -10,6 +10,8 @@ import mysql from 'mysql2/promise';
 import { MongoClient } from 'mongodb';
 import Redis from 'ioredis';
 
+const MAX_ROWS = 500;
+
 /**
  * Experimental read-only query browser proxy
  */
@@ -118,9 +120,14 @@ export async function POST(
                 { id: 3, name: 'John Smith', email: 'john@example.com', created_at: new Date().toISOString() },
             ];
 
+            const limitMatch = query.match(/limit (\d+)/i);
+            const requestedLimit = limitMatch ? parseInt(limitMatch[1]) : 100;
+            const finalLimit = Math.min(requestedLimit, MAX_ROWS);
+
             return NextResponse.json({
                 success: true,
-                results: mockResults.slice(0, query.toLowerCase().includes('limit') ? parseInt(query.match(/limit (\d+)/i)?.[1] || '3') : 3),
+                results: mockResults.slice(0, finalLimit),
+                rowCount: Math.min(mockResults.length, finalLimit),
                 executionTimeMs: Math.floor(Math.random() * 50) + 10,
             });
         }
@@ -228,9 +235,11 @@ export async function POST(
                     try {
                         await client.connect();
                         const res = await client.query(query);
+                        const rows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
                         return NextResponse.json({
                             success: true,
-                            results: res.rows,
+                            results: rows,
+                            rowCount: rows.length,
                             executionTimeMs: Date.now() - startTime
                         });
                     } finally {
@@ -241,9 +250,11 @@ export async function POST(
                     const connection = await mysql.createConnection(sqlConfig);
                     try {
                         const [rows] = await connection.execute(query);
+                        const finalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
                         return NextResponse.json({
                             success: true,
-                            results: rows,
+                            results: finalRows,
+                            rowCount: finalRows.length,
                             executionTimeMs: Date.now() - startTime
                         });
                     } finally {
@@ -292,10 +303,11 @@ export async function POST(
                         throw new Error('Collection name is required for MongoDB query');
                     }
 
-                    const results = await db.collection(collection).find(filter).limit(limit).toArray();
+                    const results = await db.collection(collection).find(filter).limit(Math.min(limit, MAX_ROWS)).toArray();
                     return NextResponse.json({
                         success: true,
                         results,
+                        rowCount: results.length,
                         executionTimeMs: Date.now() - startTime
                     });
                 } finally {
@@ -339,9 +351,11 @@ export async function POST(
                         }
                     }
 
+                    const finalResults = Array.isArray(results) ? results.slice(0, MAX_ROWS) : [results];
                     return NextResponse.json({
                         success: true,
-                        results: Array.isArray(results) ? results : [results],
+                        results: finalResults,
+                        rowCount: finalResults.length,
                         executionTimeMs: Date.now() - startTime
                     });
                 } finally {
@@ -398,13 +412,14 @@ export async function POST(
                         });
                     }
 
-                    const snapshot = await queryObj.limit(limit).get();
+                    const snapshot = await queryObj.limit(Math.min(limit, MAX_ROWS)).get();
                     const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                     return NextResponse.json({
                         success: true,
                         results,
-                        executionTimeMs: Math.floor(Math.random() * 50) + 10,
+                        rowCount: results.length,
+                        executionTimeMs: Date.now() - startTime,
                     });
                 } catch (e) {
                     throw new Error(`Firestore query parse error: ${e instanceof Error ? e.message : 'Invalid JSON'}`);
@@ -422,6 +437,10 @@ export async function POST(
                 const db = getDb();
                 const now = new Date();
 
+                // Clone the response to read body without consuming it for the final return
+                const responseClone = response.clone();
+                const responseData = await responseClone.json();
+
                 // Record execution metrics
                 await db.collection(Collections.STORAGE_METRICS).add({
                     projectId: id,
@@ -431,6 +450,7 @@ export async function POST(
                     executionTimeMs,
                     success: response.status === 200,
                     isSlow: executionTimeMs > 1000,
+                    rowCount: responseData.rowCount || 0,
                     query: query !== 'DISCOVER_SCHEMA' ? query : undefined,
                     timestamp: now
                 });
@@ -442,6 +462,8 @@ export async function POST(
                         storageId,
                         userId: session.user.id,
                         query,
+                        executionTimeMs,
+                        rowCount: responseData.rowCount || 0,
                         timestamp: now
                     });
                 }

@@ -22,6 +22,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isExecuting, setIsExecuting] = useState(false);
     const [isExplaining, setIsExplaining] = useState(false);
     const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
+    const [rowCount, setRowCount] = useState<number | null>(null);
+    const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
     const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string }[]> } | null>(null);
@@ -34,7 +36,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         hotspots?: { query: string, avgLatency: number, count: number }[]
     } | null>(null);
     const [showInsights, setShowInsights] = useState(false);
-    const [history, setHistory] = useState<{ id: string, query: string, timestamp: string, error?: string }[]>([]);
+    const [history, setHistory] = useState<{ id: string, query: string, timestamp: string, executionTimeMs?: number, rowCount?: number, error?: string }[]>([]);
     const [savedQueries, setSavedQueries] = useState<{ id: string, name: string, query: string, isPublic?: boolean, userId?: string }[]>([]);
     const [isSavingQuery, setIsSavingQuery] = useState(false);
     const [showSaveModal, setShowSaveModal] = useState(false);
@@ -99,7 +101,11 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         }
 
         if (!overrideQuery) setError(null);
-        if (!overrideQuery) setResults(null);
+        if (!overrideQuery) {
+            setResults(null);
+            setRowCount(null);
+            setExecutionTime(null);
+        }
 
         try {
             const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/query`, {
@@ -114,6 +120,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     setSchema(data.results[0]);
                 } else {
                     setResults(data.results);
+                    setRowCount(data.rowCount);
+                    setExecutionTime(data.executionTimeMs);
                     // Re-fetch historical metrics and history after execution
                     if (!explain) {
                         fetchMetrics();
@@ -196,6 +204,28 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const downloadJSON = () => {
+        if (!results || results.length === 0) return;
+
+        const jsonContent = JSON.stringify(results, null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `datalab-export-${new Date().toISOString().split('T')[0]}.json`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const clearResults = () => {
+        setResults(null);
+        setRowCount(null);
+        setExecutionTime(null);
+        setError(null);
     };
 
     const selectedConnector = connectors.find(c => c.id === selectedId);
@@ -462,9 +492,21 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                     <code className="text-[10px] font-mono text-[var(--foreground)] line-clamp-1">{h.query}</code>
                                                     {h.error && <span className="text-[8px] font-bold uppercase bg-[var(--error)]/10 text-[var(--error)] px-1 rounded">Error</span>}
                                                 </div>
-                                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
-                                                    {new Date(h.timestamp).toLocaleString()}
-                                                </span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                                        {new Date(h.timestamp).toLocaleString()}
+                                                    </span>
+                                                    {h.executionTimeMs !== undefined && (
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]/60">
+                                                            {h.executionTimeMs}ms
+                                                        </span>
+                                                    )}
+                                                    {h.rowCount !== undefined && (
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]/60">
+                                                            {h.rowCount} rows
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                         <Button
@@ -645,19 +687,50 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     <div className="space-y-3 animate-fade-in">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    Query Executed Successfully ({results.length} results)
+                                <div className="flex flex-col">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        Query Executed Successfully
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-1">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            Rows: <span className="text-[var(--success)]">{rowCount ?? results.length}</span>
+                                        </span>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            Time: <span className="text-[var(--primary)]">{executionTime}ms</span>
+                                        </span>
+                                    </div>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={downloadCSV}
-                                    className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
-                                >
-                                    <Download className="w-3.5 h-3.5 mr-1.5" />
-                                    Export CSV
-                                </Button>
+                                <Separator orientation="vertical" className="h-8 bg-[var(--border)]" />
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={downloadCSV}
+                                        className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                    >
+                                        <Download className="w-3.5 h-3.5 mr-1.5" />
+                                        CSV
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={downloadJSON}
+                                        className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                    >
+                                        <Terminal className="w-3.5 h-3.5 mr-1.5" />
+                                        JSON
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={clearResults}
+                                        className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error)]/10"
+                                    >
+                                        <X className="w-3.5 h-3.5 mr-1.5" />
+                                        Clear
+                                    </Button>
+                                </div>
                             </div>
                             <div className="flex items-center gap-1 bg-[var(--muted)]/20 p-1 rounded-lg border border-[var(--border)]">
                                 <Button
