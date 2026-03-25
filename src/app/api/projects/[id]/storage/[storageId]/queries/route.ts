@@ -44,12 +44,15 @@ export async function GET(
             .get();
 
         const queries = queriesSnapshot.docs
-            .map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate().toISOString() : doc.data().createdAt
-            }))
-            .filter((q: { userId?: string, isPublic?: boolean }) => q.userId === session.user.id || q.isPublic === true);
+            .map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt
+                } as { id: string; userId?: string; isPublic?: boolean; name: string; query: string; createdAt: string };
+            })
+            .filter(q => q.userId === session.user.id || q.isPublic === true);
 
         return NextResponse.json({ success: true, queries });
     } catch (error) {
