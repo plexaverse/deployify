@@ -16,6 +16,7 @@ interface DataLabProps {
 }
 
 export function DataLab({ projectId, connectors }: DataLabProps) {
+    const currentUserId = connectors[0]?.metadata?.userId as string | undefined;
     const [selectedId, setSelectedId] = useState(connectors[0]?.id || '');
     const [query, setQuery] = useState('');
     const [isExecuting, setIsExecuting] = useState(false);
@@ -27,7 +28,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [performanceData, setPerformanceData] = useState<{ avgLatency: number, successRate: number, totalQueries?: number, timeseries?: { date: string, avgLatency: number }[] } | null>(null);
     const [showInsights, setShowInsights] = useState(false);
     const [history, setHistory] = useState<{ id: string, query: string, timestamp: string, error?: string }[]>([]);
-    const [savedQueries, setSavedQueries] = useState<{ id: string, name: string, query: string }[]>([]);
+    const [savedQueries, setSavedQueries] = useState<{ id: string, name: string, query: string, isPublic?: boolean, userId?: string }[]>([]);
     const [isSavingQuery, setIsSavingQuery] = useState(false);
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [newQueryName, setNewQueryName] = useState('');
@@ -375,7 +376,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                 {q.isPublic && <span className="text-[8px] font-bold uppercase text-[var(--success)] tracking-tight">Team Shared</span>}
                                             </div>
                                         </div>
-                                        {(!q.isPublic || (q as any).userId === connectors[0]?.userId) && (
+                                        {(!q.isPublic || q.userId === currentUserId) && (
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
