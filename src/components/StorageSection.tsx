@@ -98,7 +98,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 type,
                 environment,
                 envKey,
-                metadata: { provisioned: provision }
+                metadata: { provisioned: provision, autoSync }
             }, provision ? '' : connectionString, provision);
 
             if (success) {

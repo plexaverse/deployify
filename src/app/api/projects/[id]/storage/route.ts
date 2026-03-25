@@ -66,7 +66,10 @@ export async function POST(
 
         const { project } = access;
         const body = await request.json();
-        const { type, name, environment = 'both', connectionString, envKey, metadata, provision = false, autoSync = false, region } = body;
+        const { type, name, environment = 'both', connectionString, envKey, metadata, provision = false, region } = body;
+
+        // autoSync can be passed at top level or inside metadata
+        const autoSync = body.autoSync || metadata?.autoSync || false;
 
         if (!type || !name) {
             return NextResponse.json({ error: 'Type and name are required' }, { status: 400 });

@@ -44,6 +44,28 @@ export async function POST(
             return NextResponse.json({ error: 'Query is required' }, { status: 400 });
         }
 
+        // Strict Read-Only Enforcement for SQL
+        if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
+            // Remove comments and whitespace to get the true command
+            const cleanQuery = query.replace(/\/\*[\s\S]*?\*\/|--.*$/gm, '').trim();
+            const normalizedQuery = cleanQuery.toUpperCase();
+
+            const forbiddenKeywords = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'REPLACE', 'TRUNCATE', 'GRANT', 'REVOKE'];
+            const allowedPrefixes = ['SELECT', 'SHOW', 'DESCRIBE', 'EXPLAIN', 'DISCOVER_SCHEMA'];
+
+            // Check for forbidden keywords with word boundaries to avoid false positives in identifiers/literals
+            const hasForbidden = forbiddenKeywords.some(keyword => {
+                const regex = new RegExp(`\\b\${keyword}\\b`, 'i');
+                return regex.test(normalizedQuery);
+            });
+
+            const hasAllowedPrefix = allowedPrefixes.some(prefix => normalizedQuery.startsWith(prefix));
+
+            if (hasForbidden || !hasAllowedPrefix) {
+                return NextResponse.json({ error: 'Forbidden: Only read-only queries are allowed in Data Lab' }, { status: 403 });
+            }
+        }
+
         // 1. Get credentials securely
         let connectionString = '';
         if (storageConfig.connectionStringSecretId) {
