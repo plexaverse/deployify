@@ -430,7 +430,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                 <Terminal className="w-3.5 h-3.5 text-[var(--primary)]" />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[11px] font-bold uppercase tracking-wider truncate max-w-[150px]">{q.name}</span>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider truncate max-w-[150px]">{q.name}</span>
                                                 {q.isPublic && <span className="text-[8px] font-bold uppercase text-[var(--success)] tracking-tight">Team Shared</span>}
                                             </div>
                                         </div>
@@ -445,7 +445,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             </Button>
                                         )}
                                     </div>
-                                    <pre className="text-[9px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
+                                    <pre className="text-[10px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
                                         {q.query}
                                     </pre>
                                     <Button
@@ -456,7 +456,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             setActiveTab('editor');
                                             executeQuery(q.query);
                                         }}
-                                        className="w-full h-8 text-[9px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        className="w-full h-8 text-[10px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                     >
                                         <Play className="w-3 h-3 mr-2" />
                                         Load & Run
@@ -517,7 +517,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                 setActiveTab('editor');
                                                 executeQuery(h.query);
                                             }}
-                                            className="h-8 px-3 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
                                             <ChevronRight className="w-3.5 h-3.5 mr-1" />
                                             Re-run
@@ -555,7 +555,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         <div className="md:col-span-3 space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Time Trend</span>
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded">Last 7 Days</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded">Last 7 Days</span>
                             </div>
                             <div className="h-24 flex items-end gap-1.5">
                                 {(performanceData.timeseries || []).map((day, i) => (
@@ -595,7 +595,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                   {performanceData.hotspots.map((h, i) => (
                                       <div key={i} className="p-2 rounded bg-[var(--background)] border border-[var(--border)] flex items-center justify-between group">
                                           <div className="flex items-center gap-3 overflow-hidden">
-                                              <span className="text-[9px] font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded shrink-0">{h.count}X</span>
+                                              <span className="text-[10px] font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded shrink-0">{h.count}X</span>
                                               <code className="text-[10px] font-mono truncate text-[var(--foreground)]">{h.query}</code>
                                           </div>
                                           <div className="flex items-center gap-3 shrink-0">
@@ -628,7 +628,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div className="space-y-3">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Entities</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Entities</span>
                                 <div className="flex flex-wrap gap-2">
                                     {(schema.tables || schema.collections || []).map(item => (
                                         <button
@@ -651,7 +651,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
 
                             {schema.columns && Object.keys(schema.columns).length > 0 && (
                                 <div className="space-y-3 border-l border-[var(--border)] pl-4">
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Structure Preview</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Structure Preview</span>
                                     <div className="max-h-40 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                                         {Object.entries(schema.columns).map(([table, cols]) => (
                                             <div key={table} className="space-y-1.5">
@@ -662,7 +662,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (
                                                         <div key={c.name} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)]">
-                                                            <span className="text-[9px] font-mono">{c.name}</span>
+                                                            <span className="text-[10px] font-mono">{c.name}</span>
                                                             <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
                                                         </div>
                                                     ))}
@@ -693,10 +693,10 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                         Query Executed Successfully
                                     </div>
                                     <div className="flex items-center gap-3 mt-1">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             Rows: <span className="text-[var(--success)]">{rowCount ?? results.length}</span>
                                         </span>
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             Time: <span className="text-[var(--primary)]">{executionTime}ms</span>
                                         </span>
                                     </div>
@@ -797,14 +797,14 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     value={newQueryName}
                                     onChange={(e) => setNewQueryName(e.target.value)}
                                     placeholder="E.G. ACTIVE USERS"
-                                    className="placeholder:text-[9px]"
+                                    className="placeholder:text-[10px]"
                                     autoFocus
                                 />
                             </div>
                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider">Share with Team</Label>
-                                    <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60">Allow other team members to use this query</p>
+                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">Allow other team members to use this query</p>
                                 </div>
                                 <input
                                     type="checkbox"

@@ -55,7 +55,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
     return (
         <div
             ref={containerRef}
-            className={cn("h-full overflow-y-auto p-6 font-mono text-[11px] leading-relaxed bg-[var(--terminal-bg)] selection:bg-[var(--primary)]/30", className)}
+            className={cn("h-full overflow-y-auto p-6 font-mono text-[10px] leading-relaxed bg-[var(--terminal-bg)] selection:bg-[var(--primary)]/30", className)}
         >
             <div className="flex flex-col space-y-0.5 text-[var(--terminal-foreground)]/80">
                 {logs?.split('\n').map((line, i) => (

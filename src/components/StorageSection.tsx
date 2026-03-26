@@ -418,7 +418,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 </div>
                                             )}
                                             {config.type.includes('cloud-sql') && (
-                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">
                                                     IAM AUTH
                                                 </span>
                                             )}
@@ -463,7 +463,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                         value={rotateConnectionString}
                                                         onChange={(e) => setRotateConnectionString(e.target.value)}
                                                         placeholder="PASTE NEW CONNECTION STRING..."
-                                                        className="font-mono text-[11px] h-8 placeholder:text-[9px]"
+                                                        className="font-mono text-[10px] h-8 placeholder:text-[10px]"
                                                     />
                                                 </div>
                                                 <div className="flex justify-end gap-2">
@@ -475,7 +475,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                             setRotateConnectionString('');
                                                         }}
                                                         disabled={isSubmitting}
-                                                        className="h-7 text-[9px] font-bold uppercase tracking-wider"
+                                                        className="h-7 text-[10px] font-bold uppercase tracking-wider"
                                                     >
                                                         Cancel
                                                     </Button>
@@ -483,7 +483,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                         size="sm"
                                                         onClick={() => handleRotate(config.id)}
                                                         disabled={isSubmitting || !rotateConnectionString}
-                                                        className="h-7 text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                                        className="h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                                                     >
                                                         Rotate Credentials
                                                     </Button>
