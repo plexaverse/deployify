@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Project } from '@/types';
 import { cn } from '@/lib/utils';
 import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
@@ -10,7 +10,8 @@ import { ProjectAvatar } from '@/components/ProjectAvatar';
 import { toast } from 'sonner';
 
 // Mock data for the sparkline - reflects status
-const generateSparklineData = (status: string) => {
+// Deterministic generation to avoid hydrate mismatch and satisfy strict rules
+const generateSparklineData = (status: string, seed: string) => {
   const length = 20;
   let base = 50;
   let volatility = 20;
@@ -26,8 +27,11 @@ const generateSparklineData = (status: string) => {
     volatility = 10;
   }
 
-  return Array.from({ length }, () => ({
-    value: Math.max(0, Math.floor(Math.random() * volatility) + base)
+  // Use simple hash from seed for deterministic "randomness"
+  const seedNum = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  return Array.from({ length }, (_, i) => ({
+    value: Math.max(0, Math.floor(Math.abs(Math.sin(seedNum + i)) * volatility) + base)
   }));
 };
 
@@ -44,13 +48,12 @@ export function ProjectCard({ project }: { project: Project }) {
   const latestDeployment = project.latestDeployment;
   const status = latestDeployment?.status || 'queued';
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
-  const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
+  const sparklineData = useMemo(() => generateSparklineData(status, project.id), [status, project.id]);
 
   return (
-    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
+    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-3xl p-6 bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
       {/* Header: Project Identity and Sparkline */}
       <div className="flex justify-between w-full mb-4">
         <div className="flex items-center gap-3">
@@ -107,9 +110,9 @@ export function ProjectCard({ project }: { project: Project }) {
               <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(latestDeployment.gitCommitSha); setCopiedId(project.id); toast.success('Copied SHA'); setTimeout(() => setCopiedId(null), 2000); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(latestDeployment.gitCommitSha); setCopiedId(project.id); toast.success(`SHA ${latestDeployment.gitCommitSha.substring(0, 7).toUpperCase()} copied`); setTimeout(() => setCopiedId(null), 2000); }}
                 className="opacity-40 hover:opacity-100 flex items-center gap-1 transition-opacity"
-                aria-label="Copy SHA"
+                aria-label={copiedId === project.id ? "SHA Copied" : "Copy SHA"}
               >
                 <span className="font-mono">{latestDeployment.gitCommitSha.substring(0, 7).toUpperCase()}</span>
                 {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
