@@ -40,10 +40,38 @@ export async function POST(
         }
 
         const body = await request.json();
-        const { query } = body;
+        let { query } = body;
+        const { variables = {} } = body;
 
         if (!query) {
             return NextResponse.json({ error: 'Query is required' }, { status: 400 });
+        }
+
+        // Apply variable substitution
+        if (Object.keys(variables).length > 0) {
+            const isSqlLike = storageConfig.type.includes('sql') || storageConfig.type === 'planetscale';
+            // Sort variables by length descending to prevent partial replacements (e.g., :id before :id_2)
+            const sortedVarNames = Object.keys(variables).sort((a, b) => b.length - a.length);
+            for (const key of sortedVarNames) {
+                const val = variables[key];
+                let replaceVal: string;
+
+                if (isSqlLike) {
+                    const escapedVal = typeof val === 'string' ? val.replace(/'/g, "''") : val;
+                    replaceVal = typeof val === 'string' ? `'${escapedVal}'` : String(val);
+                } else {
+                    // For NoSQL/Redis, we use raw values for commands or JSON-friendly values
+                    if (typeof val === 'object' && val !== null) {
+                        replaceVal = JSON.stringify(val);
+                    } else {
+                        replaceVal = String(val);
+                    }
+                }
+
+                // Replace all instances of :variable_name with the value
+                const regex = new RegExp(`:${key}\\b`, 'g');
+                query = query.replace(regex, replaceVal);
+            }
         }
 
         // Strict Read-Only Enforcement for SQL
