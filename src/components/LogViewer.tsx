@@ -338,7 +338,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
             <div
                 ref={containerRef}
                 onScroll={handleScroll}
-                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[12px] leading-relaxed relative"
+                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[10px] leading-relaxed relative"
             >
                 {logs.length === 0 && isLoading ? (
                     <div className="space-y-2 p-2">
@@ -371,7 +371,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                 <span className={`text-[10px] font-bold uppercase tracking-wider shrink-0 w-[70px] select-none pt-0.5 ${getSeverityColor(log.severity)}`}>
                                     {log.severity}
                                 </span>
-                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-[11px] font-semibold">
+                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-[10px] font-semibold">
                                     {log.textPayload || (log.jsonPayload ? JSON.stringify(log.jsonPayload) : '')}
                                 </span>
                             </div>
