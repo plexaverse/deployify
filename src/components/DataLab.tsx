@@ -29,7 +29,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
-    const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string }[]> } | null>(null);
+    const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
     const [performanceData, setPerformanceData] = useState<{
         avgLatency: number,
@@ -556,7 +556,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] font-bold uppercase tracking-wider truncate max-w-[150px]">{q.name}</span>
-                                                {q.isPublic && <span className="text-[8px] font-bold uppercase text-[var(--success)] tracking-tight">Team Shared</span>}
+                                                {q.isPublic && <span className="text-[10px] font-bold uppercase text-[var(--success)] tracking-tight">Team Shared</span>}
                                             </div>
                                         </div>
                                         {(!q.isPublic || q.userId === currentUserId) && (
@@ -626,19 +626,19 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             <div className="space-y-1 flex-1">
                                                 <div className="flex items-center gap-3">
                                                     <code className="text-[10px] font-mono text-[var(--foreground)] line-clamp-1">{h.query}</code>
-                                                    {h.error && <span className="text-[8px] font-bold uppercase bg-[var(--error)]/10 text-[var(--error)] px-1 rounded">Error</span>}
+                                                    {h.error && <span className="text-[10px] font-bold uppercase bg-[var(--error)]/10 text-[var(--error)] px-1 rounded">Error</span>}
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
                                                         {new Date(h.timestamp).toLocaleString()}
                                                     </span>
                                                     {h.executionTimeMs !== undefined && (
-                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]/60">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]/60">
                                                             {h.executionTimeMs}ms
                                                         </span>
                                                     )}
                                                     {h.rowCount !== undefined && (
-                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]/60">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]/60">
                                                             {h.rowCount} rows
                                                         </span>
                                                     )}
@@ -713,7 +713,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                             </div>
                             <div className="flex justify-between">
                                 {(performanceData.timeseries || []).map((day, i) => (
-                                    <span key={i} className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
+                                    <span key={i} className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
                                         {new Date(day.date).toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase()}
                                     </span>
                                 ))}
@@ -743,7 +743,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                       setQuery(h.query);
                                                       setActiveTab('editor');
                                                   }}
-                                                  className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                                  className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
                                               >
                                                   Optimize
                                               </Button>
@@ -812,7 +812,9 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                     {cols.map(c => (
                                                         <div key={c.name} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)]">
                                                             <span className="text-[10px] font-mono">{c.name}</span>
-                                                            <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
+                                                            {c.isPrimary && <span className="text-[10px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
+                                                            {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
+                                                            <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
                                                         </div>
                                                     ))}
                                                 </div>

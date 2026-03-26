@@ -128,9 +128,9 @@ export async function POST(
                         : {
                             tables: ['users', 'projects', 'deployments', 'domains', 'env_vars'],
                             columns: {
-                                'users': [{ name: 'id', type: 'uuid' }, { name: 'email', type: 'varchar' }, { name: 'created_at', type: 'timestamp' }],
-                                'projects': [{ name: 'id', type: 'uuid' }, { name: 'name', type: 'varchar' }, { name: 'slug', type: 'varchar' }],
-                                'deployments': [{ name: 'id', type: 'uuid' }, { name: 'projectId', type: 'uuid' }, { name: 'status', type: 'varchar' }]
+                                'users': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'email', type: 'varchar' }, { name: 'created_at', type: 'timestamp' }],
+                                'projects': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'userId', type: 'uuid', isForeign: true }, { name: 'name', type: 'varchar' }, { name: 'slug', type: 'varchar' }],
+                                'deployments': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'projectId', type: 'uuid', isForeign: true }, { name: 'status', type: 'varchar' }]
                             }
                         };
 
@@ -212,14 +212,35 @@ export async function POST(
                             const tablesRes = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
                             const tables = tablesRes.rows.map(r => r.table_name);
 
-                            // Fetch columns for each table
-                            const columns: Record<string, { name: string, type: string }[]> = {};
+                            // Fetch columns for each table with PK/FK intelligence
+                            const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
                             for (const table of tables) {
                                 const colsRes = await client.query(
-                                    "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1",
+                                    `SELECT
+                                        c.column_name,
+                                        c.data_type,
+                                        EXISTS (
+                                            SELECT 1 FROM information_schema.table_constraints tc
+                                            JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+                                            WHERE tc.table_name = c.table_name AND kcu.column_name = c.column_name AND tc.constraint_type = 'PRIMARY KEY'
+                                            AND tc.table_schema = c.table_schema
+                                        ) as is_primary,
+                                        EXISTS (
+                                            SELECT 1 FROM information_schema.table_constraints tc
+                                            JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+                                            WHERE tc.table_name = c.table_name AND kcu.column_name = c.column_name AND tc.constraint_type = 'FOREIGN KEY'
+                                            AND tc.table_schema = c.table_schema
+                                        ) as is_foreign
+                                    FROM information_schema.columns c
+                                    WHERE c.table_name = $1 AND c.table_schema = 'public'`,
                                     [table]
                                 );
-                                columns[table] = colsRes.rows.map(r => ({ name: r.column_name, type: r.data_type }));
+                                columns[table] = colsRes.rows.map(r => ({
+                                    name: r.column_name,
+                                    type: r.data_type,
+                                    isPrimary: r.is_primary,
+                                    isForeign: r.is_foreign
+                                }));
                             }
 
                             return NextResponse.json({
@@ -239,12 +260,29 @@ export async function POST(
                             // @ts-expect-error - Dynamic mysql result
                             const tables = tableRows.map(r => Object.values(r as Record<string, unknown>)[0]);
 
-                            // Fetch columns for each table
-                            const columns: Record<string, { name: string, type: string }[]> = {};
+                            // Fetch columns for each table with PK/FK intelligence
+                            const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
                             for (const table of tables) {
-                                const [colsRows] = await connection.execute(`DESCRIBE ${table}`);
+                                const [colsRows] = await connection.execute(
+                                    `SELECT
+                                        c.COLUMN_NAME as name,
+                                        c.DATA_TYPE as type,
+                                        (c.COLUMN_KEY = 'PRI') as isPrimary,
+                                        EXISTS (
+                                            SELECT 1 FROM information_schema.KEY_COLUMN_USAGE kcu
+                                            WHERE kcu.TABLE_SCHEMA = c.TABLE_SCHEMA AND kcu.TABLE_NAME = c.TABLE_NAME AND kcu.COLUMN_NAME = c.COLUMN_NAME AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+                                        ) as isForeign
+                                    FROM information_schema.COLUMNS c
+                                    WHERE c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = ?`,
+                                    [table]
+                                );
                                 // @ts-expect-error - Dynamic mysql result
-                                columns[table] = colsRows.map(r => ({ name: r.Field, type: r.Type }));
+                                columns[table] = colsRows.map(r => ({
+                                    name: r.name,
+                                    type: r.type,
+                                    isPrimary: !!r.isPrimary,
+                                    isForeign: !!r.isForeign
+                                }));
                             }
 
                             return NextResponse.json({
