@@ -78,7 +78,7 @@ export async function POST(
                     // MySQL/PlanetScale uses ? (positional)
                     const mysqlParams: unknown[] = [];
                     const pattern = new RegExp(`:(${sortedNames.join('|')})\\b`, 'g');
-                    query = query.replace(pattern, (_match, name) => {
+                    query = query.replace(pattern, (_match: string, name: string) => {
                         mysqlParams.push(variables[name]);
                         return '?';
                     });
@@ -339,6 +339,7 @@ export async function POST(
                     // @ts-expect-error - Overloaded mysql connection config
                     const connection = await mysql.createConnection(sqlConfig);
                     try {
+                        // @ts-expect-error - Dynamic mysql params
                         const [rows] = await connection.execute(query, sqlParams);
                         const finalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
                         return NextResponse.json({
