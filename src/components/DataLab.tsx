@@ -29,7 +29,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
-    const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string }[]> } | null>(null);
+    const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean, references?: string }[]> } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
     const [performanceData, setPerformanceData] = useState<{
         avgLatency: number,
@@ -810,9 +810,20 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (
-                                                        <div key={c.name} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)]">
-                                                            <span className="text-[10px] font-mono">{c.name}</span>
+                                                        <div key={c.name} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)] relative group/col">
+                                                            <span className="text-[10px] font-mono flex items-center gap-1">
+                                                                {c.isPrimary && <span className="text-[8px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-1 rounded leading-tight">PK</span>}
+                                                                {c.isForeign && <span className="text-[8px] font-bold text-[var(--success)] bg-[var(--success)]/10 px-1 rounded leading-tight">FK</span>}
+                                                                {c.name}
+                                                            </span>
                                                             <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
+
+                                                            {c.isForeign && c.references && (
+                                                                <div className="absolute bottom-full left-0 mb-2 p-2 bg-[var(--popover)] border border-[var(--border)] rounded shadow-xl opacity-0 group-hover/col:opacity-100 transition-opacity z-20 pointer-events-none whitespace-nowrap">
+                                                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-0.5">References</span>
+                                                                    <span className="text-[10px] font-mono text-[var(--success)]">{c.references}</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
