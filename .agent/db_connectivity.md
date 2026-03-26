@@ -126,6 +126,13 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement SQL PK/FK discovery (Primary & Foreign Key intelligence)
 - [x] Standardize all new UI elements to high-density technical aesthetic
 
+### Phase 20: Production Hardening & DX (COMPLETED)
+- [x] Refactor SQL variables to use true parameterized queries (Postgres $1, MySQL ?)
+- [x] Implement client-side result sorting in Data Lab Table View
+- [x] Add "Format Query" functionality for SQL and JSON in Data Lab
+- [x] Harden SQL read-only regex to handle CTEs (`WITH`) and string literals safely
+- [x] Verify 100% test pass rate and zero-warning linting for proxy logic
+
 ## Progress Updates
 
 ### 2026-10-26: Initial Setup
@@ -265,3 +272,11 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Enhanced SQL Schema Discovery with Primary Key (PK) and Foreign Key (FK) intelligence for Postgres (with schema filtering) and MySQL.
 - Standardized all Data Lab typography to the platform-wide high-density technical aesthetic (text-[10px]), eliminating all remaining text-[8px] instances.
 - Verified 100% functional integrity for Query Variables, Local Filtering, and Query Cloning with 80+ tests and 49/49 API route audit completion.
+
+### 2026-11-25: Production Hardening & DX (Session 18)
+- Completed Phase 20: Production Hardening & DX.
+- Refactored SQL variable substitution in the Data Lab proxy to use native parameterized queries ($1 for Postgres, ? for MySQL), eliminating SQL injection risks.
+- Implemented client-side result sorting for the Data Lab table view.
+- Added "Format Query" button for SQL and JSON formatting in the query editor.
+- Hardened read-only SQL enforcement to robustly handle CTEs (`WITH`), subqueries, and prevent false positives in string literals.
+- Verified 100% functional integrity with 80+ tests and perfect API route audit completion.

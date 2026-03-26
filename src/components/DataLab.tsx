@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -51,6 +52,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [filterQuery, setFilterQuery] = useState('');
     const [queryVariables, setQueryVariables] = useState<Record<string, string>>({});
     const [detectedVars, setDetectedVars] = useState<string[]>([]);
+    const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
 
     useEffect(() => {
         // Detect :variable patterns
@@ -307,30 +309,92 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         setError(null);
         setFilterQuery('');
         setCurrentPage(1);
+        setSortConfig(null);
+    };
+
+    const formatQuery = () => {
+        if (!query.trim()) return;
+        try {
+            if (query.trim().startsWith('{')) {
+                // JSON Formatting
+                setQuery(JSON.stringify(JSON.parse(query), null, 4));
+            } else {
+                // Basic SQL Formatting (Keywords to Uppercase and simple spacing)
+                const keywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'ON', 'INSERT', 'UPDATE', 'DELETE', 'VALUES', 'SET', 'CREATE', 'DROP', 'ALTER', 'TABLE', 'INTO', 'DESC', 'ASC', 'UNION', 'ALL', 'EXPLAIN', 'ANALYZE'];
+                let formatted = query.trim();
+
+                // 1. Uppercase keywords
+                keywords.forEach(kw => {
+                    const regex = new RegExp(`\\b${kw}\\b`, 'gi');
+                    formatted = formatted.replace(regex, kw.toUpperCase());
+                });
+
+                // 2. Simple newlines before major keywords if not already there
+                const newlineKeywords = ['FROM', 'WHERE', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'UNION'];
+                newlineKeywords.forEach(kw => {
+                    const regex = new RegExp(`\\s*\\b${kw}\\b`, 'g');
+                    formatted = formatted.replace(regex, `\n${kw}`);
+                });
+
+                setQuery(formatted.trim());
+            }
+        } catch (e) {
+            console.error('Failed to format query:', e);
+        }
+    };
+
+    const toggleSort = (key: string) => {
+        setSortConfig(prev => {
+            if (prev?.key === key) {
+                if (prev.direction === 'asc') return { key, direction: 'desc' };
+                return null;
+            }
+            return { key, direction: 'asc' };
+        });
     };
 
     const selectedConnector = connectors.find(c => c.id === selectedId);
 
-    const filteredResults = useMemo(() => {
+    const processedResults = useMemo(() => {
         if (!results) return null;
-        if (!filterQuery.trim()) return results;
 
-        const lowQuery = filterQuery.toLowerCase();
-        return results.filter(row =>
-            Object.values(row).some(val =>
-                String(val).toLowerCase().includes(lowQuery)
-            )
-        );
-    }, [results, filterQuery]);
+        // 1. Filter
+        let data = [...results];
+        if (filterQuery.trim()) {
+            const lowQuery = filterQuery.toLowerCase();
+            data = data.filter(row =>
+                Object.values(row).some(val =>
+                    String(val).toLowerCase().includes(lowQuery)
+                )
+            );
+        }
+
+        // 2. Sort
+        if (sortConfig) {
+            data.sort((a, b) => {
+                const aVal = a[sortConfig.key];
+                const bVal = b[sortConfig.key];
+
+                if (aVal === bVal) return 0;
+                if (aVal === null || aVal === undefined) return 1;
+                if (bVal === null || bVal === undefined) return -1;
+
+                const comparison = aVal < bVal ? -1 : 1;
+                return sortConfig.direction === 'asc' ? comparison : -comparison;
+            });
+        }
+
+        return data;
+    }, [results, filterQuery, sortConfig]);
 
     const paginatedResults = useMemo(() => {
-        if (!filteredResults) return null;
+        if (!processedResults) return null;
         const start = (currentPage - 1) * ROWS_PER_PAGE;
         const end = start + ROWS_PER_PAGE;
-        return filteredResults.slice(start, end);
-    }, [filteredResults, currentPage]);
+        return processedResults.slice(start, end);
+    }, [processedResults, currentPage]);
 
-    const totalPages = filteredResults ? Math.ceil(filteredResults.length / ROWS_PER_PAGE) : 0;
+    const totalPages = processedResults ? Math.ceil(processedResults.length / ROWS_PER_PAGE) : 0;
 
     const renderResultsTable = () => {
         if (!paginatedResults || paginatedResults.length === 0) return null;
@@ -342,8 +406,24 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     <thead>
                         <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
                             {columns.map(col => (
-                                <th key={col} className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap">
-                                    {col}
+                                <th
+                                    key={col}
+                                    onClick={() => toggleSort(col)}
+                                    className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap cursor-pointer hover:text-[var(--primary)] transition-colors group"
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        {col}
+                                        <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <TrendingUp className={cn(
+                                                "w-2.5 h-2.5",
+                                                sortConfig?.key === col && sortConfig.direction === 'asc' ? "text-[var(--primary)] opacity-100" : "opacity-30"
+                                            )} />
+                                            <TrendingUp className={cn(
+                                                "w-2.5 h-2.5 rotate-180",
+                                                sortConfig?.key === col && sortConfig.direction === 'desc' ? "text-[var(--primary)] opacity-100" : "opacity-30"
+                                            )} />
+                                        </div>
+                                    </div>
                                 </th>
                             ))}
                         </tr>
@@ -478,6 +558,17 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                         }
                                     />
                                     <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={formatQuery}
+                                    disabled={!query.trim()}
+                                    className="h-10 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    title="Format Query"
+                                >
+                                    <AlignLeft className="w-4 h-4 mr-2" />
+                                    Format
+                                </Button>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -872,7 +963,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                         </span>
                                         {filterQuery && (
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                                Filtered: <span className="text-[var(--success)]">{filteredResults?.length}</span>
+                                                Filtered: <span className="text-[var(--success)]">{processedResults?.length}</span>
                                             </span>
                                         )}
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
