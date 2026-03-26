@@ -47,7 +47,7 @@ export async function POST(
         }
 
         // Strict Read-Only Enforcement for SQL
-        if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
+        if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale' || storageConfig.type === 'generic') {
             // Remove comments and whitespace to get the true command
             const cleanQuery = query.replace(/\/\*[\s\S]*?\*\/|--.*$/gm, '').trim();
             const normalizedQuery = cleanQuery.toUpperCase();
@@ -100,9 +100,9 @@ export async function POST(
                         : {
                             tables: ['users', 'projects', 'deployments', 'domains', 'env_vars'],
                             columns: {
-                                'users': [{ name: 'id', type: 'uuid' }, { name: 'email', type: 'varchar' }, { name: 'created_at', type: 'timestamp' }],
-                                'projects': [{ name: 'id', type: 'uuid' }, { name: 'name', type: 'varchar' }, { name: 'slug', type: 'varchar' }],
-                                'deployments': [{ name: 'id', type: 'uuid' }, { name: 'projectId', type: 'uuid' }, { name: 'status', type: 'varchar' }]
+                                'users': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'email', type: 'varchar' }, { name: 'created_at', type: 'timestamp' }],
+                                'projects': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'name', type: 'varchar' }, { name: 'slug', type: 'varchar' }],
+                                'deployments': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'projectId', type: 'uuid', references: 'projects(id)' }, { name: 'status', type: 'varchar' }]
                             }
                         };
 
@@ -137,8 +137,8 @@ export async function POST(
         // Real Connectivity Logic (Experimental Proxy)
         try {
             const resultPromise = (async () => {
-            if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
-                const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
+            if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale' || storageConfig.type === 'generic') {
+                const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase' || (storageConfig.type === 'generic' && connectionString.startsWith('postgres'));
                 const isIamAuth = connectionString.includes('enable_iam_auth=true');
 
                 // Determine SQL connection configuration (Handle IAM Auth)
@@ -184,14 +184,41 @@ export async function POST(
                             const tablesRes = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
                             const tables = tablesRes.rows.map(r => r.table_name);
 
-                            // Fetch columns for each table
-                            const columns: Record<string, { name: string, type: string }[]> = {};
+                            // Fetch columns for each table with PK/FK metadata
+                            const columns: Record<string, { name: string, type: string, isPrimary?: boolean, references?: string }[]> = {};
                             for (const table of tables) {
-                                const colsRes = await client.query(
-                                    "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1",
-                                    [table]
-                                );
-                                columns[table] = colsRes.rows.map(r => ({ name: r.column_name, type: r.data_type }));
+                                const colsRes = await client.query(`
+                                    SELECT
+                                        cols.column_name as name,
+                                        cols.data_type as type,
+                                        EXISTS (
+                                            SELECT 1 FROM information_schema.table_constraints tc
+                                            JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
+                                            WHERE tc.table_name = cols.table_name AND kcu.column_name = cols.column_name AND tc.constraint_type = 'PRIMARY KEY'
+                                        ) as is_primary,
+                                        (
+                                            SELECT ccu.table_name FROM information_schema.key_column_usage kcu
+                                            JOIN information_schema.table_constraints tc ON kcu.constraint_name = tc.constraint_name
+                                            JOIN information_schema.constraint_column_usage ccu ON kcu.constraint_name = ccu.constraint_name
+                                            WHERE kcu.table_name = cols.table_name AND kcu.column_name = cols.column_name AND tc.constraint_type = 'FOREIGN KEY'
+                                            LIMIT 1
+                                        ) as references_table,
+                                        (
+                                            SELECT ccu.column_name FROM information_schema.key_column_usage kcu
+                                            JOIN information_schema.table_constraints tc ON kcu.constraint_name = tc.constraint_name
+                                            JOIN information_schema.constraint_column_usage ccu ON kcu.constraint_name = ccu.constraint_name
+                                            WHERE kcu.table_name = cols.table_name AND kcu.column_name = cols.column_name AND tc.constraint_type = 'FOREIGN KEY'
+                                            LIMIT 1
+                                        ) as references_column
+                                    FROM information_schema.columns cols
+                                    WHERE cols.table_name = $1 AND cols.table_schema = 'public'
+                                `, [table]);
+                                columns[table] = colsRes.rows.map(r => ({
+                                    name: r.name,
+                                    type: r.type,
+                                    isPrimary: r.is_primary,
+                                    references: r.references_table ? `${r.references_table}(${r.references_column})` : undefined
+                                }));
                             }
 
                             return NextResponse.json({
@@ -211,12 +238,30 @@ export async function POST(
                             // @ts-expect-error - Dynamic mysql result
                             const tables = tableRows.map(r => Object.values(r as Record<string, unknown>)[0]);
 
-                            // Fetch columns for each table
-                            const columns: Record<string, { name: string, type: string }[]> = {};
+                            // Fetch columns for each table with PK/FK metadata
+                            const columns: Record<string, { name: string, type: string, isPrimary?: boolean, references?: string }[]> = {};
                             for (const table of tables) {
-                                const [colsRows] = await connection.execute(`DESCRIBE ${table}`);
+                                const [colsRows] = await connection.execute(`
+                                    SELECT
+                                        c.COLUMN_NAME as name,
+                                        c.DATA_TYPE as type,
+                                        c.COLUMN_KEY = 'PRI' as is_primary,
+                                        kcu.REFERENCED_TABLE_NAME as references_table,
+                                        kcu.REFERENCED_COLUMN_NAME as references_column
+                                    FROM information_schema.COLUMNS c
+                                    LEFT JOIN information_schema.KEY_COLUMN_USAGE kcu
+                                        ON c.TABLE_NAME = kcu.TABLE_NAME
+                                        AND c.COLUMN_NAME = kcu.COLUMN_NAME
+                                        AND c.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+                                    WHERE c.TABLE_NAME = ? AND c.TABLE_SCHEMA = DATABASE()
+                                `, [table]);
                                 // @ts-expect-error - Dynamic mysql result
-                                columns[table] = colsRows.map(r => ({ name: r.Field, type: r.Type }));
+                                columns[table] = colsRows.map(r => ({
+                                    name: r.name,
+                                    type: r.type,
+                                    isPrimary: !!r.is_primary,
+                                    references: r.references_table ? `${r.references_table}(${r.references_column})` : undefined
+                                }));
                             }
 
                             return NextResponse.json({

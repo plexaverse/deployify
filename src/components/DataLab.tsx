@@ -29,7 +29,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
-    const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string }[]> } | null>(null);
+    const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string, isPrimary?: boolean, references?: string }[]> } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
     const [performanceData, setPerformanceData] = useState<{
         avgLatency: number,
@@ -47,6 +47,28 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isQueryPublic, setIsQueryPublic] = useState(false);
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved'>('editor');
     const [currentPage, setCurrentPage] = useState(1);
+    const [queryParams, setQueryParams] = useState<Record<string, string>>({});
+
+    const detectedParams = useMemo(() => {
+        const matches = query.match(/:\w+/g);
+        return matches ? Array.from(new Set(matches.map(m => m.substring(1)))) : [];
+    }, [query]);
+
+    useEffect(() => {
+        // Initialize or remove query params based on detection
+        setQueryParams(prev => {
+            const next = { ...prev };
+            // Remove params no longer in query
+            Object.keys(next).forEach(key => {
+                if (!detectedParams.includes(key)) delete next[key];
+            });
+            // Add new params with empty value
+            detectedParams.forEach(param => {
+                if (next[param] === undefined) next[param] = '';
+            });
+            return next;
+        });
+    }, [detectedParams]);
 
     const fetchHistory = useCallback(async () => {
         if (!selectedId) return;
@@ -96,6 +118,18 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const executeQuery = async (overrideQuery?: string, explain = false) => {
         let queryToRun = overrideQuery || query;
         if (!selectedId || !queryToRun.trim()) return;
+
+        // Apply parameters if not DISCOVER_SCHEMA
+        if (queryToRun !== 'DISCOVER_SCHEMA') {
+            Object.entries(queryParams).forEach(([key, val]) => {
+                const regex = new RegExp(`:${key}\\b`, 'g');
+                // For SQL, we should ideally use parameterized queries in the backend,
+                // but for this experimental proxy we'll do safe string replacement for now.
+                // In a production SQL driver, we would pass these as separate values.
+                const escapedVal = typeof val === 'string' ? `'${val.replace(/'/g, "''")}'` : val;
+                queryToRun = queryToRun.replace(regex, escapedVal);
+            });
+        }
 
         if (explain) {
             queryToRun = `EXPLAIN ${queryToRun}`;
@@ -461,6 +495,28 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 </MovingBorderButton>
                             </div>
                         </div>
+
+                        {detectedParams.length > 0 && (
+                            <div className="p-4 rounded-xl bg-[var(--muted)]/20 border border-[var(--border)] animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Terminal className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">Query Parameters</span>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    {detectedParams.map(param => (
+                                        <div key={param} className="space-y-1.5">
+                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">:{param}</Label>
+                                            <Input
+                                                value={queryParams[param] || ''}
+                                                onChange={(e) => setQueryParams(prev => ({ ...prev, [param]: e.target.value }))}
+                                                placeholder={`VALUE FOR ${param.toUpperCase()}`}
+                                                className="h-8 text-[10px] font-mono"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 ) : activeTab === 'saved' ? (
@@ -726,9 +782,17 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (
-                                                        <div key={c.name} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)]">
-                                                            <span className="text-[10px] font-mono">{c.name}</span>
+                                                        <div key={c.name} className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded border transition-colors ${c.isPrimary ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30' : 'bg-[var(--muted)]/20 border-[var(--border)]'}`}>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-[10px] font-mono font-bold">{c.name}</span>
+                                                                {c.isPrimary && <span className="text-[7px] font-black text-[var(--primary)] bg-[var(--primary)]/10 px-0.5 rounded">PK</span>}
+                                                            </div>
                                                             <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
+                                                            {c.references && (
+                                                                <div className="flex items-center gap-1 text-[7px] font-black text-[var(--success)] bg-[var(--success)]/10 px-1 rounded ml-1">
+                                                                    <span>FK → {c.references.toUpperCase()}</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>

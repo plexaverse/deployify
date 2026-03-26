@@ -118,6 +118,12 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement "Export Types (TS)" for schema discovery
 - [x] Standardize all new UI elements to high-density technical aesthetic
 
+### Phase 19: Advanced Schema Intelligence & Dynamic Queries (COMPLETED)
+- [x] Implement Primary/Foreign Key discovery for SQL connectors
+- [x] Enable Data Lab support for 'generic' SQL connectors
+- [x] Implement Dynamic Query Parameters (`:variable` syntax) in Data Lab
+- [x] Enhance Schema Insight UI with PK/FK visualization
+
 ## Progress Updates
 
 ### 2026-10-26: Initial Setup
@@ -249,3 +255,11 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - Added result pagination (10 rows/page) to the Data Lab Table View for better performance with large result sets.
 - Implemented "Export Types (TS)" feature that generates TypeScript interfaces from discovered schemas.
 - Verified with 80 passing tests, perfect 49/49 API audit, and zero lint warnings.
+
+### 2026-11-24: Advanced Schema Intelligence & Dynamic Queries (Session 17)
+- Completed Phase 19: Advanced Schema Intelligence & Dynamic Queries.
+- Implemented Primary Key and Foreign Key discovery for Postgres and MySQL in the Query Proxy API.
+- Enabled Data Lab support and read-only enforcement for 'generic' SQL connectors.
+- Implemented Dynamic Query Parameters using `:variable` syntax in the Data Lab UI.
+- Enhanced Schema Insight UI to visually distinguish Primary Keys and display Foreign Key relationships.
+- Verified 100% functional integrity with 80 passing tests and 0 lint warnings.
