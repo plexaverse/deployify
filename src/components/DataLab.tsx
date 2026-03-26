@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -45,8 +45,36 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [newQueryName, setNewQueryName] = useState('');
     const [isQueryPublic, setIsQueryPublic] = useState(false);
+    const [isCloning, setIsCloning] = useState(false);
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved'>('editor');
     const [currentPage, setCurrentPage] = useState(1);
+    const [filterQuery, setFilterQuery] = useState('');
+    const [queryVariables, setQueryVariables] = useState<Record<string, string>>({});
+    const [detectedVars, setDetectedVars] = useState<string[]>([]);
+
+    useEffect(() => {
+        // Detect :variable patterns
+        const matches = query.match(/:[a-zA-Z0-9_]+/g);
+        if (matches) {
+            const uniqueVars = Array.from(new Set(matches.map(m => m.substring(1))));
+            setDetectedVars(uniqueVars);
+
+            // Initialize new variables in state if not present
+            setQueryVariables(prev => {
+                const next = { ...prev };
+                let changed = false;
+                uniqueVars.forEach(v => {
+                    if (next[v] === undefined) {
+                        next[v] = '';
+                        changed = true;
+                    }
+                });
+                return changed ? next : prev;
+            });
+        } else {
+            setDetectedVars([]);
+        }
+    }, [query]);
 
     const fetchHistory = useCallback(async () => {
         if (!selectedId) return;
@@ -116,7 +144,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/query`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: queryToRun }),
+                body: JSON.stringify({ query: queryToRun, variables: queryVariables }),
             });
 
             const data = await response.json();
@@ -264,24 +292,45 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         document.body.removeChild(link);
     };
 
+    const cloneQuery = (q: typeof savedQueries[0]) => {
+        setQuery(q.query);
+        setNewQueryName(`COPY OF ${q.name.toUpperCase()}`);
+        setIsQueryPublic(!!q.isPublic);
+        setIsCloning(true);
+        setShowSaveModal(true);
+    };
+
     const clearResults = () => {
         setResults(null);
         setRowCount(null);
         setExecutionTime(null);
         setError(null);
+        setFilterQuery('');
         setCurrentPage(1);
     };
 
     const selectedConnector = connectors.find(c => c.id === selectedId);
 
-    const paginatedResults = useMemo(() => {
+    const filteredResults = useMemo(() => {
         if (!results) return null;
+        if (!filterQuery.trim()) return results;
+
+        const lowQuery = filterQuery.toLowerCase();
+        return results.filter(row =>
+            Object.values(row).some(val =>
+                String(val).toLowerCase().includes(lowQuery)
+            )
+        );
+    }, [results, filterQuery]);
+
+    const paginatedResults = useMemo(() => {
+        if (!filteredResults) return null;
         const start = (currentPage - 1) * ROWS_PER_PAGE;
         const end = start + ROWS_PER_PAGE;
-        return results.slice(start, end);
-    }, [results, currentPage]);
+        return filteredResults.slice(start, end);
+    }, [filteredResults, currentPage]);
 
-    const totalPages = results ? Math.ceil(results.length / ROWS_PER_PAGE) : 0;
+    const totalPages = filteredResults ? Math.ceil(filteredResults.length / ROWS_PER_PAGE) : 0;
 
     const renderResultsTable = () => {
         if (!paginatedResults || paginatedResults.length === 0) return null;
@@ -415,19 +464,20 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 Discover Schema
                             </Button>
                         </div>
-                        <div className="relative">
-                            <QueryEditor
-                                value={query}
-                                onChange={setQuery}
-                                placeholder={
-                                    selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale'
-                                        ? "SELECT * FROM users LIMIT 10"
-                                        : selectedConnector?.type === 'memorystore-redis'
-                                            ? "GET user:1  OR  { \"command\": \"hgetall\", \"args\": [\"user:1\"] }"
-                                            : "{ \"collection\": \"users\", \"limit\": 10 }"
-                                }
-                            />
-                            <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                            <div className="relative space-y-4">
+                                <div className="relative">
+                                    <QueryEditor
+                                        value={query}
+                                        onChange={setQuery}
+                                        placeholder={
+                                            selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale'
+                                                ? "SELECT * FROM users WHERE id = :id"
+                                                : selectedConnector?.type === 'memorystore-redis'
+                                                    ? "GET :key  OR  { \"command\": \"hgetall\", \"args\": [\":key\"] }"
+                                                    : "{ \"collection\": \"users\", \"filter\": { \"id\": \":id\" } }"
+                                        }
+                                    />
+                                    <div className="absolute bottom-4 right-4 flex items-center gap-2">
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -450,16 +500,39 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                         Explain
                                     </Button>
                                 )}
-                                <MovingBorderButton
-                                    onClick={() => executeQuery()}
-                                    disabled={isExecuting || !query.trim()}
-                                    containerClassName="h-10 w-32"
-                                    className="text-[10px] font-bold uppercase tracking-wider"
-                                >
-                                    {isExecuting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-                                    Run Query
-                                </MovingBorderButton>
+                                        <MovingBorderButton
+                                            onClick={() => executeQuery()}
+                                            disabled={isExecuting || !query.trim()}
+                                            containerClassName="h-10 w-32"
+                                            className="text-[10px] font-bold uppercase tracking-wider"
+                                        >
+                                            {isExecuting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                                            Run Query
+                                        </MovingBorderButton>
+                                    </div>
                             </div>
+
+                                {detectedVars.length > 0 && (
+                                    <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5 animate-in slide-in-from-top-2">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query Variables</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            {detectedVars.map(v => (
+                                                <div key={v} className="space-y-1.5">
+                                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">:{v}</Label>
+                                                    <Input
+                                                        value={queryVariables[v] || ''}
+                                                        onChange={(e) => setQueryVariables(prev => ({ ...prev, [v]: e.target.value }))}
+                                                        placeholder={`VALUE FOR :${v.toUpperCase()}`}
+                                                        className="h-8 text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                         </div>
                     </div>
                 </div>
@@ -500,19 +573,30 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     <pre className="text-[10px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
                                         {q.query}
                                     </pre>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            setQuery(q.query);
-                                            setActiveTab('editor');
-                                            executeQuery(q.query);
-                                        }}
-                                        className="w-full h-8 text-[10px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10"
-                                    >
-                                        <Play className="w-3 h-3 mr-2" />
-                                        Load & Run
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                setQuery(q.query);
+                                                setActiveTab('editor');
+                                                executeQuery(q.query);
+                                            }}
+                                            className="flex-1 h-8 text-[10px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        >
+                                            <Play className="w-3 h-3 mr-2" />
+                                            Load & Run
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => cloneQuery(q)}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Clone Query"
+                                        >
+                                            <Copy className="w-3.5 h-3.5" />
+                                        </Button>
+                                    </div>
                                 </Card>
                             ))
                         )}
@@ -750,6 +834,29 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
 
                 {results && (
                     <div className="space-y-3 animate-fade-in">
+                        <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5 flex items-center gap-3">
+                            <Search className="w-4 h-4 text-[var(--muted-foreground)]" />
+                            <Input
+                                value={filterQuery}
+                                onChange={(e) => {
+                                    setFilterQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                placeholder="FILTER RESULTS LOCALLY..."
+                                className="h-8 border-none bg-transparent focus-visible:ring-0 text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                            />
+                            {filterQuery && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setFilterQuery('')}
+                                    className="h-6 w-6 text-[var(--muted-foreground)]"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </Button>
+                            )}
+                        </div>
+
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="flex flex-col">
@@ -759,8 +866,13 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     </div>
                                     <div className="flex items-center gap-3 mt-1">
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                            Rows: <span className="text-[var(--success)]">{rowCount ?? results.length}</span>
+                                            Total: <span className="text-[var(--foreground)]">{rowCount ?? results.length}</span>
                                         </span>
+                                        {filterQuery && (
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                Filtered: <span className="text-[var(--success)]">{filteredResults?.length}</span>
+                                            </span>
+                                        )}
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             Time: <span className="text-[var(--primary)]">{executionTime}ms</span>
                                         </span>
@@ -878,11 +990,15 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
-                                    <Save className="w-4 h-4 text-[var(--primary)]" />
+                                    {isCloning ? <Copy className="w-4 h-4 text-[var(--primary)]" /> : <Save className="w-4 h-4 text-[var(--primary)]" />}
                                 </div>
-                                <h3 className="text-lg font-semibold">Save Query</h3>
+                                <h3 className="text-lg font-semibold">{isCloning ? 'Clone Query' : 'Save Query'}</h3>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => setShowSaveModal(false)} className="h-8 w-8">
+                            <Button variant="ghost" size="icon" onClick={() => {
+                                setShowSaveModal(false);
+                                setIsCloning(false);
+                                setNewQueryName('');
+                            }} className="h-8 w-8">
                                 <X className="w-4 h-4" />
                             </Button>
                         </div>
@@ -917,7 +1033,11 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                             </div>
                         </div>
                         <div className="p-6 bg-[var(--muted)]/5 border-t border-[var(--border)] flex justify-end gap-3">
-                            <Button variant="ghost" size="sm" onClick={() => setShowSaveModal(false)} className="text-[10px] font-bold uppercase tracking-wider">
+                            <Button variant="ghost" size="sm" onClick={() => {
+                                setShowSaveModal(false);
+                                setIsCloning(false);
+                                setNewQueryName('');
+                            }} className="text-[10px] font-bold uppercase tracking-wider">
                                 Cancel
                             </Button>
                             <Button
@@ -926,8 +1046,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 disabled={isSavingQuery || !newQueryName.trim()}
                                 className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                             >
-                                {isSavingQuery ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />}
-                                Save Query
+                                {isSavingQuery ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : (isCloning ? <Copy className="w-3.5 h-3.5 mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />)}
+                                {isCloning ? 'Clone Query' : 'Save Query'}
                             </Button>
                         </div>
                     </Card>
