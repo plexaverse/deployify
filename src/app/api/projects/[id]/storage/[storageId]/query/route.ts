@@ -47,58 +47,82 @@ export async function POST(
             return NextResponse.json({ error: 'Query is required' }, { status: 400 });
         }
 
+        const isSqlLike = storageConfig.type.includes('sql') || storageConfig.type === 'planetscale';
+        const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
+        let sqlParams: unknown[] = [];
+
         // Apply variable substitution
-        if (Object.keys(variables).length > 0) {
-            const isSqlLike = storageConfig.type.includes('sql') || storageConfig.type === 'planetscale';
-            // Sort variables by length descending to prevent partial replacements (e.g., :id before :id_2)
-            const sortedVarNames = Object.keys(variables).sort((a, b) => b.length - a.length);
-            for (const key of sortedVarNames) {
-                const val = variables[key];
-                let replaceVal: string;
+        if (Object.keys(variables).length > 0 && query !== 'DISCOVER_SCHEMA') {
+            if (isSqlLike) {
+                // For SQL, we use true parameterized queries
+                const varNames = Object.keys(variables);
+                const sortedNames = [...varNames].sort((a, b) => b.length - a.length);
 
-                if (isSqlLike) {
-                    const escapedVal = typeof val === 'string' ? val.replace(/'/g, "''") : val;
-                    replaceVal = typeof val === 'string' ? `'${escapedVal}'` : String(val);
-                } else {
-                    // For NoSQL/Redis, we use raw values for commands or JSON-friendly values
-                    if (typeof val === 'object' && val !== null) {
-                        replaceVal = JSON.stringify(val);
-                    } else {
-                        replaceVal = String(val);
+                if (isPostgres) {
+                    // Postgres uses $1, $2, etc.
+                    const usedVars: string[] = [];
+                    for (const name of sortedNames) {
+                        const regex = new RegExp(`:${name}\\b`, 'g');
+                        if (regex.test(query)) {
+                            let idx = usedVars.indexOf(name);
+                            if (idx === -1) {
+                                usedVars.push(name);
+                                idx = usedVars.length - 1;
+                                sqlParams.push(variables[name]);
+                            }
+                            // Replace all occurrences of this variable with the same $idx
+                            query = query.replace(regex, `$${idx + 1}`);
+                        }
                     }
+                } else {
+                    // MySQL/PlanetScale uses ? (positional)
+                    const mysqlParams: unknown[] = [];
+                    const pattern = new RegExp(`:(${sortedNames.join('|')})\\b`, 'g');
+                    query = query.replace(pattern, (_match: string, name: string) => {
+                        mysqlParams.push(variables[name]);
+                        return '?';
+                    });
+                    sqlParams = mysqlParams;
                 }
-
-                // Replace all instances of :variable_name with the value
-                const regex = new RegExp(`:${key}\\b`, 'g');
-                query = query.replace(regex, replaceVal);
+            } else {
+                // For NoSQL/Redis, keep string replacement as they use JSON/command strings
+                const sortedVarNames = Object.keys(variables).sort((a, b) => b.length - a.length);
+                for (const key of sortedVarNames) {
+                    const val = variables[key];
+                    const replaceVal = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val);
+                    const regex = new RegExp(`:${key}\\b`, 'g');
+                    query = query.replace(regex, replaceVal);
+                }
             }
         }
 
         // Strict Read-Only Enforcement for SQL
         if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
             // Remove comments and whitespace to get the true command
-            const cleanQuery = query.replace(/\/\*[\s\S]*?\*\/|--.*$/gm, '').trim();
+            const cleanQuery = query.replace(/\/\*[\s\S]*?\*\/|--.*$/gm, '').replace(/#.*$/gm, '').trim();
             const normalizedQuery = cleanQuery.toUpperCase();
 
-            const forbiddenKeywords = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'REPLACE', 'TRUNCATE', 'GRANT', 'REVOKE', 'SET', 'EXECUTE', 'PREPARE'];
-            const allowedPrefixes = ['SELECT', 'SHOW', 'DESCRIBE', 'EXPLAIN', 'DISCOVER_SCHEMA'];
+            const forbiddenKeywords = [
+                'INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'REPLACE', 'TRUNCATE',
+                'GRANT', 'REVOKE', 'SET', 'EXECUTE', 'PREPARE', 'CALL', 'MERGE', 'RENAME', 'COMMENT'
+            ];
+            const allowedPrefixes = ['SELECT', 'SHOW', 'DESCRIBE', 'EXPLAIN', 'DISCOVER_SCHEMA', 'WITH'];
 
-            // Check for forbidden keywords with word boundaries to avoid false positives in identifiers/literals
+            // Check for forbidden keywords with word boundaries
+            // We only check if they are NOT inside strings/literals by removing string literals for the check
+            const queryWithoutLiterals = normalizedQuery.replace(/'[^']*'/g, "''").replace(/"[^"]*"/g, '""');
+
             const hasForbidden = forbiddenKeywords.some(kw => {
                 const regex = new RegExp(`\\b${kw}\\b`, 'i');
-                return regex.test(normalizedQuery);
+                return regex.test(queryWithoutLiterals);
             });
 
             const hasAllowedPrefix = allowedPrefixes.some(prefix => normalizedQuery.startsWith(prefix));
 
-            // Extra safety for EXPLAIN ANALYZE which can execute data-modifying statements in some DBs
-            if (normalizedQuery.startsWith('EXPLAIN')) {
-                const hasForbiddenInExplain = forbiddenKeywords.some(kw => {
-                    const regex = new RegExp(`\\b${kw}\\b`, 'i');
-                    return regex.test(normalizedQuery);
-                });
-                if (hasForbiddenInExplain) {
-                    return NextResponse.json({ error: 'Forbidden: Explain cannot contain data-modifying statements' }, { status: 403 });
+            // Extra safety for EXPLAIN/WITH which can wrap data-modifying statements
+            if (normalizedQuery.startsWith('EXPLAIN') || normalizedQuery.startsWith('WITH')) {
+                if (hasForbidden) {
+                    return NextResponse.json({ error: 'Forbidden: This query contains data-modifying statements' }, { status: 403 });
                 }
             }
 
@@ -300,7 +324,7 @@ export async function POST(
                     const client = new PgClient(sqlConfig);
                     try {
                         await client.connect();
-                        const res = await client.query(query);
+                        const res = await client.query(query, sqlParams);
                         const rows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
                         return NextResponse.json({
                             success: true,
@@ -315,7 +339,8 @@ export async function POST(
                     // @ts-expect-error - Overloaded mysql connection config
                     const connection = await mysql.createConnection(sqlConfig);
                     try {
-                        const [rows] = await connection.execute(query);
+                        // @ts-expect-error - Dynamic mysql params
+                        const [rows] = await connection.execute(query, sqlParams);
                         const finalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
                         return NextResponse.json({
                             success: true,
