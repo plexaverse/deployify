@@ -135,7 +135,7 @@ export async function POST(
             );
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise<NextResponse>((resolve, reject) => {
             doc.on('end', () => {
                 try {
                     const pdfBuffer = Buffer.concat(chunks);
