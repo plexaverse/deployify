@@ -324,12 +324,12 @@ export async function POST(
                                     WHERE c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = ?`,
                                     [table]
                                 );
-                                // @ts-expect-error - Dynamic mysql result
                                 // Fetch row count for MySQL
                                 const [countRows] = await connection.execute('SELECT TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?', [table]);
                                 // @ts-expect-error - Dynamic result
                                 const rowCountEstimate = countRows[0]?.TABLE_ROWS;
 
+                                // @ts-expect-error - Dynamic mysql result
                                 columns[table] = colsRows.map(r => ({
                                     name: r.name,
                                     type: r.type,

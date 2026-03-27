@@ -627,7 +627,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                         cy="50%"
                                         outerRadius={140}
                                         fill="var(--primary)"
-                                        label={({ name, percent }) => `${name.toUpperCase()} (${(percent * 100).toFixed(0)}%)`}
+                                        label={({ name, percent }) => `${(name || 'Unknown').toUpperCase()} (${((percent || 0) * 100).toFixed(0)}%)`}
                                         labelLine={false}
                                     >
                                         {processedResults.map((_, index) => (
@@ -1249,9 +1249,9 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                                 {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
                                                                 <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
                                                             </div>
-                                                            {idx === 0 && (c as { rowCountEstimate?: number }).rowCountEstimate !== undefined && (
+                                                            {idx === 0 && (c as any).rowCountEstimate !== undefined && (
                                                                 <span className="text-[10px] font-bold text-[var(--primary)] ml-auto opacity-70">
-                                                                    ~{(c as { rowCountEstimate: number }).rowCountEstimate.toLocaleString()} ROWS
+                                                                    ~{(c as any).rowCountEstimate.toLocaleString()} ROWS
                                                                 </span>
                                                             )}
                                                             {c.distribution && (
