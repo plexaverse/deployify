@@ -647,7 +647,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] font-bold uppercase tracking-wider truncate max-w-[150px]">{q.name}</span>
-                                                {q.isPublic && <span className="text-[10px] font-bold uppercase text-[var(--success)] tracking-tight">Team Shared</span>}
+                                                {q.isPublic && <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">Team Shared</span>}
                                             </div>
                                         </div>
                                         {(!q.isPublic || q.userId === currentUserId) && (

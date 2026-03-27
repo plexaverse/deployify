@@ -231,7 +231,7 @@ export default function TeamSettingsPage() {
                     </div>
                     <Separator className="bg-[var(--border)]" />
 
-                    <div className="p-6 flex items-center gap-6">
+                    <div className="p-6 flex items-center gap-3">
                         <Avatar className="w-20 h-20 border-2 border-[var(--border)]">
                             <AvatarImage src={user?.avatarUrl} alt={user?.name || user?.githubUsername} />
                             <AvatarFallback>
@@ -392,10 +392,10 @@ export default function TeamSettingsPage() {
                         <Separator className="bg-[var(--border)]" />
                         <div className="divide-y divide-[var(--border)]">
                             {isLoading ? (
-                                <div className="p-12 space-y-4">
+                                <div className="p-8 space-y-4">
                                     {[1, 2, 3].map(i => (
                                         <div key={i} className="flex items-center gap-4">
-                                            <Skeleton className="w-10 h-10 rounded-full" />
+                                            <Skeleton className="w-10 h-10 rounded-xl" />
                                             <div className="flex-1 space-y-2">
                                                 <Skeleton className="h-4 w-32" />
                                                 <Skeleton className="h-3 w-48" />
@@ -464,7 +464,7 @@ export default function TeamSettingsPage() {
                                     {invites.map((invite) => (
                                         <div key={invite.id} className="p-4 flex items-center justify-between bg-[var(--muted)]/5 hover:bg-[var(--card-hover)] transition-colors">
                                             <div className="flex items-center gap-3 opacity-75">
-                                                <div className="w-10 h-10 rounded-full bg-[var(--muted)]/20 flex items-center justify-center border border-dashed border-[var(--border)]">
+                                                <div className="w-10 h-10 rounded-xl bg-[var(--muted)]/20 flex items-center justify-center border border-dashed border-[var(--border)]">
                                                     <Mail className="w-4 h-4 text-[var(--muted-foreground)]" />
                                                 </div>
                                                 <div>
@@ -495,7 +495,7 @@ export default function TeamSettingsPage() {
                                     ))}
 
                                     {members.length === 0 && invites.length === 0 && (
-                                        <div className="p-12 text-center text-[var(--muted-foreground)]">No members or invites found</div>
+                                        <div className="p-8 text-center text-[var(--muted-foreground)]">No members or invites found</div>
                                     )}
                                 </>
                             )}

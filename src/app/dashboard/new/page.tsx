@@ -157,7 +157,7 @@ export default function NewProjectPage() {
                 <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (
                         <Card key={i} className="overflow-hidden p-0">
-                            <div className="p-6 flex items-center gap-4">
+                            <div className="p-6 flex items-center gap-3">
                                 <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
                                 <div className="flex-1 space-y-2">
                                     <Skeleton className="h-4 w-1/3" />
@@ -187,7 +187,7 @@ export default function NewProjectPage() {
                                     className="group relative hover:border-[var(--primary)] transition-all cursor-pointer overflow-hidden p-0"
                                     onClick={() => handleImport(repo)}
                                 >
-                                    <div className="p-6 flex items-center gap-4 relative">
+                                    <div className="p-6 flex items-center gap-3 relative">
                                         <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                                         {/* Icon */}

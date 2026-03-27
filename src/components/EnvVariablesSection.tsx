@@ -238,7 +238,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 {suggestion && (
                     <div className="mb-6 p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl animate-fade-in">
                         <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                 <Database className="w-5 h-5 text-[var(--primary)]" />
                             </div>
                             <div className="flex-1 space-y-1">

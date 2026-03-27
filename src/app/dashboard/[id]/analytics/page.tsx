@@ -149,7 +149,7 @@ export default function ProjectAnalyticsPage() {
                         ) : stats ? (
                             <AnalyticsCharts data={stats} period={period} />
                         ) : (
-                            <div className="p-12 text-center flex flex-col items-center">
+                            <div className="p-8 text-center flex flex-col items-center">
                                 <div className="w-12 h-12 rounded-2xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center mb-6 shadow-sm">
                                     <BarChart3 className="w-6 h-6 text-[var(--muted-foreground)] opacity-50" />
                                 </div>
