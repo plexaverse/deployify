@@ -110,7 +110,7 @@ export async function POST(
 
             // Handle multi-statement queries by splitting by semicolon
             // We only split if semicolon is NOT inside a string literal
-            const statements = cleanQuery.split(/;(?=(?:[^']*'[^']*')*[^']*$)/).map(s => s.trim()).filter(s => s.length > 0);
+            const statements = cleanQuery.split(/;(?=(?:[^']*'[^']*')*[^']*$)/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
 
             for (const statement of statements) {
                 const normalizedStatement = statement.toUpperCase();

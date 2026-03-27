@@ -186,14 +186,14 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 const isNumeric = col.type.toLowerCase().includes('int') || col.type.toLowerCase().includes('float') || col.type.toLowerCase().includes('number') || col.type.toLowerCase().includes('decimal');
                                 if (isNumeric) {
                                     const values = samples
-                                        .filter(s => s._table === table || !s._table) // Handle cases where proxy might label table
-                                        .map(s => s[col.name])
-                                        .filter(v => typeof v === 'number');
+                                        .filter((s: any) => s._table === table || !s._table) // Handle cases where proxy might label table
+                                        .map((s: any) => s[col.name])
+                                        .filter((v: any) => typeof v === 'number');
 
                                     if (values.length > 0) {
                                         // Simple frequency map for distribution
                                         const freq: Record<string, number> = {};
-                                        values.forEach(v => {
+                                        values.forEach((v: any) => {
                                             const key = String(v);
                                             freq[key] = (freq[key] || 0) + 1;
                                         });
@@ -507,7 +507,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         );
 
         const ChartComponent = chartConfig.type === 'bar' ? BarChart : chartConfig.type === 'line' ? LineChart : AreaChart;
-        const DataComponent = chartConfig.type === 'bar' ? Bar : chartConfig.type === 'line' ? Line : Area;
+        const DataComponent = (chartConfig.type === 'bar' ? Bar : chartConfig.type === 'line' ? Line : Area) as any;
 
         return (
             <div className="space-y-6">
@@ -590,7 +590,6 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 }}
                             />
                             <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', paddingTop: '20px' }} />
-                            {/* @ts-expect-error - Dynamic recharts component */}
                             <DataComponent
                                 type="monotone"
                                 dataKey={chartConfig.yAxis}
