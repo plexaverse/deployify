@@ -20,6 +20,7 @@ export async function POST(
     { params }: { params: Promise<{ id: string; storageId: string }> }
 ) {
     try {
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || request.ip || 'unknown';
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -546,6 +547,7 @@ export async function POST(
                     projectId: id,
                     storageId,
                     userId: session.user.id,
+                    ip,
                     type: storageConfig.type,
                     executionTimeMs,
                     success: response.status === 200,
@@ -561,6 +563,7 @@ export async function POST(
                         projectId: id,
                         storageId,
                         userId: session.user.id,
+                        ip,
                         query,
                         executionTimeMs,
                         rowCount: responseData.rowCount || 0,
@@ -580,6 +583,7 @@ export async function POST(
                     projectId: id,
                     storageId,
                     userId: session.user.id,
+                    ip,
                     type: storageConfig.type,
                     executionTimeMs,
                     success: false,
@@ -595,6 +599,7 @@ export async function POST(
                         projectId: id,
                         storageId,
                         userId: session.user.id,
+                        ip,
                         query,
                         error: error instanceof Error ? error.message : 'Unknown error',
                         timestamp: now

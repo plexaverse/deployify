@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, BarChart3, LineChart as LineChartIcon, FileJson } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,35 @@ interface DataLabProps {
 
 const ROWS_PER_PAGE = 10;
 
+const QUERY_TEMPLATES: Record<string, { name: string, query: string }[]> = {
+    sql: [
+        { name: 'List Tables', query: 'SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\'' },
+        { name: 'Columns Info', query: 'SELECT column_name, data_type FROM information_schema.columns WHERE table_name = \'users\'' },
+        { name: 'Row Count', query: 'SELECT count(*) FROM users' },
+        { name: 'Latest Rows', query: 'SELECT * FROM users ORDER BY created_at DESC LIMIT 10' }
+    ],
+    mysql: [
+        { name: 'List Tables', query: 'SHOW TABLES' },
+        { name: 'Row Count', query: 'SELECT count(*) FROM users' },
+        { name: 'Describe Table', query: 'DESCRIBE users' }
+    ],
+    mongodb: [
+        { name: 'Find All', query: '{ "collection": "users", "limit": 10 }' },
+        { name: 'Find Filtered', query: '{ "collection": "users", "filter": { "status": "active" } }' },
+        { name: 'Count Documents', query: '{ "collection": "users", "count": true }' }
+    ],
+    redis: [
+        { name: 'Scan Keys', query: 'SCAN 0 COUNT 100' },
+        { name: 'Get Key', query: 'GET user:1' },
+        { name: 'Database Size', query: 'DBSIZE' },
+        { name: 'Server Info', query: 'INFO' }
+    ],
+    firestore: [
+        { name: 'List Users', query: '{ "collection": "users", "limit": 10 }' },
+        { name: 'Filter Email', query: '{ "collection": "users", "where": [["email", "==", "user@example.com"]] }' }
+    ]
+};
+
 export function DataLab({ projectId, connectors }: DataLabProps) {
     const currentUserId = connectors[0]?.metadata?.userId as string | undefined;
     const [selectedId, setSelectedId] = useState(connectors[0]?.id || '');
@@ -29,7 +59,9 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [rowCount, setRowCount] = useState<number | null>(null);
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
+    const [viewMode, setViewMode] = useState<'table' | 'json' | 'chart'>('table');
+    const [showTemplates, setShowTemplates] = useState(false);
+    const [chartConfig, setChartConfig] = useState<{ type: 'bar' | 'line', xAxis: string, yAxis: string }>({ type: 'bar', xAxis: '', yAxis: '' });
     const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
     const [performanceData, setPerformanceData] = useState<{
@@ -355,6 +387,30 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
 
     const selectedConnector = connectors.find(c => c.id === selectedId);
 
+    const numericColumns = useMemo(() => {
+        if (!results || results.length === 0) return [];
+        const first = results[0];
+        return Object.keys(first).filter(key => typeof first[key] === 'number');
+    }, [results]);
+
+    const stringColumns = useMemo(() => {
+        if (!results || results.length === 0) return [];
+        const first = results[0];
+        return Object.keys(first).filter(key => typeof first[key] === 'string' || typeof first[key] === 'number');
+    }, [results]);
+
+    useEffect(() => {
+        if (results && results.length > 0 && !chartConfig.xAxis) {
+            const firstNumeric = numericColumns[0] || '';
+            const firstString = stringColumns.find(c => c !== firstNumeric) || stringColumns[0] || Object.keys(results[0])[0];
+            setChartConfig(prev => ({
+                ...prev,
+                xAxis: firstString,
+                yAxis: firstNumeric
+            }));
+        }
+    }, [results, numericColumns, stringColumns, chartConfig.xAxis]);
+
     const processedResults = useMemo(() => {
         if (!results) return null;
 
@@ -395,6 +451,113 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     }, [processedResults, currentPage]);
 
     const totalPages = processedResults ? Math.ceil(processedResults.length / ROWS_PER_PAGE) : 0;
+
+    const renderResultsChart = () => {
+        if (!processedResults || processedResults.length === 0) return null;
+        if (!chartConfig.xAxis || !chartConfig.yAxis) {
+            return (
+                <div className="h-64 flex flex-col items-center justify-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5 space-y-2">
+                    <BarChart2 className="w-8 h-8 text-[var(--muted-foreground)]/30" />
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Select axes to visualize data</p>
+                </div>
+            );
+        }
+
+        const ChartComponent = chartConfig.type === 'bar' ? BarChart : LineChart;
+        const DataComponent = chartConfig.type === 'bar' ? Bar : Line;
+
+        return (
+            <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-4 p-3 bg-[var(--muted)]/10 rounded-lg border border-[var(--border)]">
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Chart Type</label>
+                        <div className="flex gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setChartConfig(prev => ({ ...prev, type: 'bar' }))}
+                                className={cn("h-7 px-2 text-[10px] font-bold uppercase tracking-wider", chartConfig.type === 'bar' ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted-foreground)]")}
+                            >
+                                <BarChart3 className="w-3.5 h-3.5 mr-1" /> Bar
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setChartConfig(prev => ({ ...prev, type: 'line' }))}
+                                className={cn("h-7 px-2 text-[10px] font-bold uppercase tracking-wider", chartConfig.type === 'line' ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted-foreground)]")}
+                            >
+                                <LineChartIcon className="w-3.5 h-3.5 mr-1" /> Line
+                            </Button>
+                        </div>
+                    </div>
+                    <Separator orientation="vertical" className="h-8 hidden md:block" />
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">X-Axis (Label)</label>
+                        <select
+                            value={chartConfig.xAxis}
+                            onChange={(e) => setChartConfig(prev => ({ ...prev, xAxis: e.target.value }))}
+                            className="h-7 px-2 rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-bold uppercase tracking-wider focus:outline-none"
+                        >
+                            {stringColumns.map(c => <option key={c} value={c}>{c.toUpperCase()}</option>)}
+                        </select>
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">Y-Axis (Value)</label>
+                        <select
+                            value={chartConfig.yAxis}
+                            onChange={(e) => setChartConfig(prev => ({ ...prev, yAxis: e.target.value }))}
+                            className="h-7 px-2 rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-bold uppercase tracking-wider focus:outline-none"
+                        >
+                            <option value="">SELECT COLUMN</option>
+                            {numericColumns.map(c => <option key={c} value={c}>{c.toUpperCase()}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="h-80 w-full bg-[var(--background)] rounded-xl border border-[var(--border)] p-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ChartComponent data={processedResults} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                            <XAxis
+                                dataKey={chartConfig.xAxis}
+                                stroke="var(--muted-foreground)"
+                                fontSize={10}
+                                tickLine={false}
+                                axisLine={false}
+                                tickFormatter={(val) => String(val).toUpperCase()}
+                            />
+                            <YAxis
+                                stroke="var(--muted-foreground)"
+                                fontSize={10}
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <RechartsTooltip
+                                contentStyle={{
+                                    backgroundColor: 'var(--popover)',
+                                    borderColor: 'var(--border)',
+                                    borderRadius: '8px',
+                                    fontSize: '10px',
+                                    fontWeight: 'bold',
+                                    textTransform: 'uppercase'
+                                }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', paddingTop: '10px' }} />
+                            <DataComponent
+                                type="monotone"
+                                dataKey={chartConfig.yAxis}
+                                fill="var(--primary)"
+                                stroke="var(--primary)"
+                                radius={[4, 4, 0, 0]}
+                                strokeWidth={2}
+                                dot={{ fill: 'var(--primary)', strokeWidth: 2 }}
+                            />
+                        </ChartComponent>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+        );
+    };
 
     const renderResultsTable = () => {
         if (!paginatedResults || paginatedResults.length === 0) return null;
@@ -533,17 +696,53 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 {selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale' ? 'SQL Query (Read-Only)' : 'NoSQL Filter / JSON'}
                             </Label>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]"
-                                onClick={discoverSchema}
-                                disabled={isDiscovering}
-                            >
-                                {isDiscovering ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Search className="w-3 h-3 mr-1.5" />}
-                                Discover Schema
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className={cn("h-6 text-[10px] font-bold uppercase tracking-wider", showTemplates ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]")}
+                                    onClick={() => setShowTemplates(!showTemplates)}
+                                >
+                                    <FileJson className="w-3 h-3 mr-1.5" />
+                                    Templates
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]"
+                                    onClick={discoverSchema}
+                                    disabled={isDiscovering}
+                                >
+                                    {isDiscovering ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Search className="w-3 h-3 mr-1.5" />}
+                                    Discover Schema
+                                </Button>
+                            </div>
                         </div>
+
+                            {showTemplates && (
+                                <div className="p-3 bg-[var(--muted)]/5 border border-[var(--border)] rounded-xl animate-in slide-in-from-top-2 flex flex-wrap gap-2">
+                                    {(() => {
+                                        let typeKey = 'sql';
+                                        if (selectedConnector?.type.includes('mysql') || selectedConnector?.type === 'planetscale') typeKey = 'mysql';
+                                        else if (selectedConnector?.type === 'mongodb-atlas') typeKey = 'mongodb';
+                                        else if (selectedConnector?.type === 'memorystore-redis') typeKey = 'redis';
+                                        else if (selectedConnector?.type === 'firestore') typeKey = 'firestore';
+
+                                        return QUERY_TEMPLATES[typeKey]?.map(t => (
+                                            <button
+                                                key={t.name}
+                                                onClick={() => {
+                                                    setQuery(t.query);
+                                                    setShowTemplates(false);
+                                                }}
+                                                className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-[var(--background)] border border-[var(--border)] rounded hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all"
+                                            >
+                                                {t.name}
+                                            </button>
+                                        ));
+                                    })()}
+                                </div>
+                            )}
                             <div className="relative space-y-4">
                                 <div className="relative">
                                     <QueryEditor
@@ -1021,9 +1220,18 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     <Terminal className="w-3.5 h-3.5 mr-1.5" />
                                     JSON
                                 </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setViewMode('chart')}
+                                    className={`h-7 px-3 text-[10px] font-bold uppercase tracking-wider ${viewMode === 'chart' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                >
+                                    <BarChart2 className="w-3.5 h-3.5 mr-1.5" />
+                                    Chart
+                                </Button>
                             </div>
                         </div>
-                        <div className="max-h-[400px] overflow-auto">
+                        <div className="max-h-[500px] overflow-auto">
                             {viewMode === 'table' ? (
                                 <>
                                     {renderResultsTable()}
@@ -1057,6 +1265,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                         </div>
                                     )}
                                 </>
+                            ) : viewMode === 'chart' ? (
+                                renderResultsChart()
                             ) : (
                                 <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/10 p-4">
                                     <pre className="text-[10px] font-mono text-[var(--foreground)]">

@@ -11,7 +11,8 @@ import {
     ExternalLink,
     Loader2,
     Activity,
-    RefreshCw
+    RefreshCw,
+    ShieldCheck
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -550,13 +551,24 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     </div>
                 )}
 
-                <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl">
-                    <ExternalLink className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
-                    <div className="text-sm">
-                        <p className="font-semibold text-[var(--info)] mb-1">Managed Connectivity</p>
-                        <p className="text-[var(--muted-foreground)] leading-relaxed">
-                            Deployify automatically injects the appropriate environment variables (like <code className="text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 px-1 rounded">DATABASE_URL</code>) into your services based on these connectors.
-                        </p>
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl">
+                        <ExternalLink className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                            <p className="font-semibold text-[var(--info)] mb-1">Managed Connectivity</p>
+                            <p className="text-[var(--muted-foreground)] leading-relaxed">
+                                Deployify automatically injects the appropriate environment variables (like <code className="text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 px-1 rounded">DATABASE_URL</code>) into your services based on these connectors.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl">
+                        <ShieldCheck className="w-5 h-5 text-[var(--primary)] flex-shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                            <p className="font-semibold text-[var(--primary)] mb-1">Egress Security</p>
+                            <p className="text-[var(--muted-foreground)] leading-relaxed">
+                                For strict database firewalls, configure your GCP project with <strong>Cloud NAT</strong> to use a static egress IP. Otherwise, allow connections from <strong>0.0.0.0/0</strong> (not recommended for production).
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
