@@ -1,8 +1,22 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    LineChart,
+    Line,
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend
+} from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -29,8 +43,19 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [rowCount, setRowCount] = useState<number | null>(null);
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState<'table' | 'json'>('table');
-    const [schema, setSchema] = useState<{ tables?: string[], collections?: string[], columns?: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> } | null>(null);
+    const [viewMode, setViewMode] = useState<'table' | 'json' | 'chart'>('table');
+    const [chartConfig, setChartConfig] = useState<{ type: 'bar' | 'line' | 'area', xAxis: string, yAxis: string }>({ type: 'bar', xAxis: '', yAxis: '' });
+    const [schema, setSchema] = useState<{
+        tables?: string[],
+        collections?: string[],
+        columns?: Record<string, {
+            name: string,
+            type: string,
+            isPrimary?: boolean,
+            isForeign?: boolean,
+            distribution?: { label: string, value: number }[]
+        }[]>
+    } | null>(null);
     const [isDiscovering, setIsDiscovering] = useState(false);
     const [performanceData, setPerformanceData] = useState<{
         avgLatency: number,
@@ -152,7 +177,36 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             const data = await response.json();
             if (data.success) {
                 if (queryToRun === 'DISCOVER_SCHEMA') {
-                    setSchema(data.results[0]);
+                    const schemaData = data.results[0];
+                    // Enhance with distributions for numeric columns if sample results exist
+                    if (schemaData.columns && data.results.length > 1) {
+                        const samples = data.results.slice(1);
+                        Object.keys(schemaData.columns).forEach(table => {
+                            schemaData.columns[table] = schemaData.columns[table].map((col: { name: string, type: string, isPrimary?: boolean, isForeign?: boolean, distribution?: { label: string, value: number }[] }) => {
+                                const isNumeric = col.type.toLowerCase().includes('int') || col.type.toLowerCase().includes('float') || col.type.toLowerCase().includes('number') || col.type.toLowerCase().includes('decimal');
+                                if (isNumeric) {
+                                    const values = samples
+                                        .filter((s: any) => s._table === table || !s._table) // Handle cases where proxy might label table
+                                        .map((s: any) => s[col.name])
+                                        .filter((v: any) => typeof v === 'number');
+
+                                    if (values.length > 0) {
+                                        // Simple frequency map for distribution
+                                        const freq: Record<string, number> = {};
+                                        values.forEach((v: any) => {
+                                            const key = String(v);
+                                            freq[key] = (freq[key] || 0) + 1;
+                                        });
+                                        col.distribution = Object.entries(freq)
+                                            .map(([label, value]) => ({ label, value }))
+                                            .slice(0, 10); // Limit to 10 points
+                                    }
+                                }
+                                return col;
+                            });
+                        });
+                    }
+                    setSchema(schemaData);
                 } else {
                     setResults(data.results);
                     setRowCount(data.rowCount);
@@ -440,6 +494,115 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         ))}
                     </tbody>
                 </table>
+            </div>
+        );
+    };
+
+    const renderChart = () => {
+        if (!processedResults || processedResults.length === 0) return null;
+
+        const columns = Object.keys(processedResults[0]);
+        const numericColumns = columns.filter(col =>
+            processedResults.some(row => typeof row[col] === 'number')
+        );
+
+        const ChartComponent = chartConfig.type === 'bar' ? BarChart : chartConfig.type === 'line' ? LineChart : AreaChart;
+        const DataComponent = (chartConfig.type === 'bar' ? Bar : chartConfig.type === 'line' ? Line : Area) as any;
+
+        return (
+            <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">X-Axis (Labels)</Label>
+                        <select
+                            value={chartConfig.xAxis}
+                            onChange={(e) => setChartConfig(prev => ({ ...prev, xAxis: e.target.value }))}
+                            className="w-full h-8 px-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[10px] font-bold uppercase"
+                        >
+                            <option value="">SELECT X-AXIS</option>
+                            {columns.map(col => <option key={col} value={col}>{col.toUpperCase()}</option>)}
+                        </select>
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Y-Axis (Numeric)</Label>
+                        <select
+                            value={chartConfig.yAxis}
+                            onChange={(e) => setChartConfig(prev => ({ ...prev, yAxis: e.target.value }))}
+                            className="w-full h-8 px-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[10px] font-bold uppercase"
+                        >
+                            <option value="">SELECT Y-AXIS</option>
+                            {numericColumns.map(col => <option key={col} value={col}>{col.toUpperCase()}</option>)}
+                        </select>
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Chart Type</Label>
+                        <div className="flex gap-1 bg-[var(--muted)]/20 p-1 rounded-lg border border-[var(--border)] h-8">
+                            {(['bar', 'line', 'area'] as const).map(t => (
+                                <Button
+                                    key={t}
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setChartConfig(prev => ({ ...prev, type: t }))}
+                                    className={`flex-1 h-full text-[8px] font-bold uppercase tracking-wider px-1 ${chartConfig.type === t ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                >
+                                    {t}
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {!chartConfig.xAxis || !chartConfig.yAxis ? (
+                    <div className="flex flex-col items-center justify-center py-12 space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                        <PieChart className="w-8 h-8 text-[var(--muted-foreground)]/30" />
+                        <div className="text-center space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configure axes to visualize data</p>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Select X and Y axes from the results</p>
+                        </div>
+                    </div>
+                ) : (
+                <div className="h-[400px] w-full bg-[var(--background)] rounded-xl border border-[var(--border)] p-6">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ChartComponent data={processedResults}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} vertical={false} />
+                            <XAxis
+                                dataKey={chartConfig.xAxis}
+                                stroke="var(--muted-foreground)"
+                                fontSize={10}
+                                tickLine={false}
+                                axisLine={false}
+                                tickFormatter={(val) => String(val).toUpperCase()}
+                            />
+                            <YAxis
+                                stroke="var(--muted-foreground)"
+                                fontSize={10}
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'var(--popover)',
+                                    borderColor: 'var(--border)',
+                                    borderRadius: '8px',
+                                    fontSize: '10px',
+                                    fontWeight: 'bold',
+                                    textTransform: 'uppercase'
+                                }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', paddingTop: '20px' }} />
+                            <DataComponent
+                                type="monotone"
+                                dataKey={chartConfig.yAxis}
+                                fill="var(--primary)"
+                                stroke="var(--primary)"
+                                fillOpacity={0.3}
+                                strokeWidth={2}
+                                radius={[4, 4, 0, 0]}
+                            />
+                        </ChartComponent>
+                    </ResponsiveContainer>
+                </div>
+                )}
             </div>
         );
     };
@@ -901,11 +1064,22 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (
-                                                        <div key={c.name} className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)]">
-                                                            <span className="text-[10px] font-mono">{c.name}</span>
-                                                            {c.isPrimary && <span className="text-[10px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
-                                                            {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
-                                                            <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
+                                                        <div key={c.name} className="flex items-center gap-2 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)]">
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-[10px] font-mono">{c.name}</span>
+                                                                {c.isPrimary && <span className="text-[10px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
+                                                                {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
+                                                                <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
+                                                            </div>
+                                                            {c.distribution && (
+                                                                <div className="w-8 h-4 shrink-0">
+                                                                    <ResponsiveContainer width="100%" height="100%">
+                                                                        <BarChart data={c.distribution}>
+                                                                            <Bar dataKey="value" fill="var(--primary)" opacity={0.5} />
+                                                                        </BarChart>
+                                                                    </ResponsiveContainer>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -1021,10 +1195,21 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     <Terminal className="w-3.5 h-3.5 mr-1.5" />
                                     JSON
                                 </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setViewMode('chart')}
+                                    className={`h-7 px-3 text-[10px] font-bold uppercase tracking-wider ${viewMode === 'chart' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                >
+                                    <PieChart className="w-3.5 h-3.5 mr-1.5" />
+                                    Chart
+                                </Button>
                             </div>
                         </div>
-                        <div className="max-h-[400px] overflow-auto">
-                            {viewMode === 'table' ? (
+                        <div className="min-h-[300px] max-h-[600px] overflow-auto">
+                            {viewMode === 'chart' ? (
+                                renderChart()
+                            ) : viewMode === 'table' ? (
                                 <>
                                     {renderResultsTable()}
                                     {totalPages > 1 && (

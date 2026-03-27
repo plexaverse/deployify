@@ -100,34 +100,39 @@ export async function POST(
         if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
             // Remove comments and whitespace to get the true command
             const cleanQuery = query.replace(/\/\*[\s\S]*?\*\/|--.*$/gm, '').replace(/#.*$/gm, '').trim();
-            const normalizedQuery = cleanQuery.toUpperCase();
 
             const forbiddenKeywords = [
                 'INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'REPLACE', 'TRUNCATE',
-                'GRANT', 'REVOKE', 'SET', 'EXECUTE', 'PREPARE', 'CALL', 'MERGE', 'RENAME', 'COMMENT'
+                'GRANT', 'REVOKE', 'SET', 'EXECUTE', 'PREPARE', 'CALL', 'MERGE', 'RENAME', 'COMMENT',
+                'VACUUM', 'COPY', 'LOAD', 'INTO OUTFILE', 'INTO DUMPFILE', 'LOCK', 'UNLOCK'
             ];
             const allowedPrefixes = ['SELECT', 'SHOW', 'DESCRIBE', 'EXPLAIN', 'DISCOVER_SCHEMA', 'WITH'];
 
-            // Check for forbidden keywords with word boundaries
-            // We only check if they are NOT inside strings/literals by removing string literals for the check
-            const queryWithoutLiterals = normalizedQuery.replace(/'[^']*'/g, "''").replace(/"[^"]*"/g, '""');
+            // Handle multi-statement queries by splitting by semicolon
+            // We only split if semicolon is NOT inside a string literal
+            const statements = cleanQuery.split(/;(?=(?:[^']*'[^']*')*[^']*$)/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
 
-            const hasForbidden = forbiddenKeywords.some(kw => {
-                const regex = new RegExp(`\\b${kw}\\b`, 'i');
-                return regex.test(queryWithoutLiterals);
-            });
+            for (const statement of statements) {
+                const normalizedStatement = statement.toUpperCase();
+                const statementWithoutLiterals = normalizedStatement.replace(/'[^']*'/g, "''").replace(/"[^"]*"/g, '""');
 
-            const hasAllowedPrefix = allowedPrefixes.some(prefix => normalizedQuery.startsWith(prefix));
+                const hasForbidden = forbiddenKeywords.some(kw => {
+                    const regex = new RegExp(`\\b${kw}\\b`, 'i');
+                    return regex.test(statementWithoutLiterals);
+                });
 
-            // Extra safety for EXPLAIN/WITH which can wrap data-modifying statements
-            if (normalizedQuery.startsWith('EXPLAIN') || normalizedQuery.startsWith('WITH')) {
-                if (hasForbidden) {
-                    return NextResponse.json({ error: 'Forbidden: This query contains data-modifying statements' }, { status: 403 });
+                const hasAllowedPrefix = allowedPrefixes.some(prefix => normalizedStatement.startsWith(prefix));
+
+                // Extra safety for EXPLAIN/WITH which can wrap data-modifying statements
+                if (normalizedStatement.startsWith('EXPLAIN') || normalizedStatement.startsWith('WITH')) {
+                    if (hasForbidden) {
+                        return NextResponse.json({ error: 'Forbidden: This query contains data-modifying statements' }, { status: 403 });
+                    }
                 }
-            }
 
-            if (hasForbidden || !hasAllowedPrefix) {
-                return NextResponse.json({ error: 'Forbidden: Only read-only queries are allowed in Data Lab' }, { status: 403 });
+                if (hasForbidden || !hasAllowedPrefix) {
+                    return NextResponse.json({ error: 'Forbidden: Only read-only queries are allowed in Data Lab' }, { status: 403 });
+                }
             }
         }
 
@@ -158,9 +163,19 @@ export async function POST(
                             }
                         };
 
+                // For mock mode, provide some samples for sparklines
+                const mockSamples = [
+                    { _table: 'users', id: 1, email: 'a@b.com' },
+                    { _table: 'users', id: 2, email: 'c@d.com' },
+                    { _table: 'users', id: 1, email: 'e@f.com' }, // Multiples for distribution
+                    { _table: 'projects', id: 10, userId: 1 },
+                    { _table: 'projects', id: 11, userId: 1 },
+                    { _table: 'projects', id: 12, userId: 2 },
+                ];
+
                 return NextResponse.json({
                     success: true,
-                    results: [mockSchema],
+                    results: [mockSchema, ...mockSamples],
                     executionTimeMs: 5
                 });
             }
