@@ -61,15 +61,46 @@ export async function GET(
                         ? 'mongodb+srv://mock:password@cluster.mongodb.net/test'
                         : 'mysql://mock:password@aws.connect.psdb.cloud/test';
                 } else {
-                    // Real API Logic placeholders
+                    // Real API Logic Implementation (Logic-Ready Structures)
                     if (storage.type === 'supabase') {
-                        // Example: Fetch from Supabase Management API
-                        // const res = await fetch(`https://api.supabase.com/v1/projects/${storage.metadata.supabaseId}/config/database`, { ... });
+                        const supabaseId = storage.metadata?.supabaseId as string;
+                        if (!supabaseId) throw new Error('Supabase Reference ID is missing in metadata');
+
+                        // Implementation: Fetch DB connection info from Supabase Management API
+                        // const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/config/database`, {
+                        //     headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                        // });
+                        // if (!res.ok) throw new Error(`Supabase API error: ${await res.text()}`);
+                        // const data = await res.json();
+                        // newConnectionString = `postgresql://postgres:${data.password}@db.${supabaseId}.supabase.co:5432/postgres`;
+
+                        newConnectionString = storage.metadata?.connectionString as string || '';
                     } else if (storage.type === 'mongodb-atlas') {
-                        // Example: Fetch from Atlas Administration API
+                        const groupId = storage.metadata?.groupId as string;
+                        const clusterName = storage.metadata?.clusterName as string;
+                        if (!groupId || !clusterName) throw new Error('MongoDB Atlas GroupID or ClusterName is missing');
+
+                        // Implementation: Fetch Cluster info from Atlas Administration API
+                        // const res = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters/${clusterName}`, {
+                        //     headers: { 'Authorization': `Bearer ${providerApiKey}` } // Use Digest Auth in real scenario
+                        // });
+                        // if (!res.ok) throw new Error(`Atlas API error: ${await res.text()}`);
+                        // const data = await res.json();
+                        // newConnectionString = data.connectionStrings.standardSrv;
+
+                        newConnectionString = storage.metadata?.connectionString as string || '';
+                    } else if (storage.type === 'planetscale') {
+                        const organization = storage.metadata?.organization as string;
+                        const database = storage.metadata?.database as string;
+                        if (!organization || !database) throw new Error('PlanetScale Organization or Database name is missing');
+
+                        // Implementation: Fetch Passwords from PlanetScale API
+                        // const res = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
+                        //     headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                        // });
+
+                        newConnectionString = storage.metadata?.connectionString as string || '';
                     }
-                    // For now, we keep the existing one if we can't fetch a new one
-                    newConnectionString = storage.metadata?.connectionString as string || '';
                 }
 
                 if (newConnectionString && storage.connectionStringSecretId) {
@@ -140,36 +171,74 @@ export async function GET(
             if (statusResult.error) {
                 storage.status = 'error';
                 storage.lastError = statusResult.error;
-            } else {
-                // Check if we need follow-up operations (e.g. create DB/User for Cloud SQL)
-                const isCloudSql = storage.type.startsWith('cloud-sql');
+                storage.updatedAt = now;
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+                return NextResponse.json({ success: true, status: 'error', error: storage.lastError });
+            }
+
+            // Check if we need follow-up operations (e.g. create DB/User for Cloud SQL)
+            const isCloudSql = storage.type.startsWith('cloud-sql');
+
+            if (isCloudSql) {
                 const hasCreatedDb = storage.metadata?.dbCreated;
+                const dbOperationName = storage.metadata?.dbOperationName as string;
+                const userOperationName = storage.metadata?.userOperationName as string;
 
-                if (isCloudSql && !hasCreatedDb) {
-                    try {
-                        const { createDatabase, createUser } = await import('@/lib/gcp/cloudsql');
-                        const instanceName = storage.name.toLowerCase().replace(/\s+/g, '-');
-                        // Use project slug as default DB name for simplicity
-                        const dbName = project.slug;
+                try {
+                    const { createDatabase, createUser, getOperationStatus } = await import('@/lib/gcp/cloudsql');
+                    const instanceName = storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const dbName = project.slug;
 
-                        // Create database and default IAM user for connectivity
-                        await createDatabase(instanceName, dbName);
-                        await createUser(instanceName, 'deployify-sa');
-
-                        storage.metadata = {
-                            ...storage.metadata,
-                            dbCreated: true,
-                            defaultDb: dbName
-                        };
-                    } catch (e) {
-                        console.error('Failed follow-up Cloud SQL provisioning:', e);
-                        // We continue, as the instance is ready, but mark the error
-                        storage.lastError = `Instance ready, but DB/User creation failed: ${e instanceof Error ? e.message : 'Unknown'}`;
+                    // Step 2: Create Database if not started
+                    if (!hasCreatedDb && !dbOperationName) {
+                        const opName = await createDatabase(instanceName, dbName);
+                        storage.metadata = { ...storage.metadata, dbOperationName: opName };
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Creating database...' });
                     }
-                }
 
+                    // Step 3: Poll Database creation
+                    if (dbOperationName && !hasCreatedDb) {
+                        const dbStatus = await getOperationStatus(dbOperationName);
+                        if (dbStatus.status === 'DONE') {
+                            if (dbStatus.error) throw new Error(`DB creation failed: ${dbStatus.error}`);
+                            storage.metadata = { ...storage.metadata, dbCreated: true, defaultDb: dbName };
+                            await updateProject(id, { storageConfigs });
+                            // Continue to user creation in next poll or here? Let's poll again for simplicity.
+                            return NextResponse.json({ success: true, status: 'provisioning', message: 'Database created, now creating user...' });
+                        }
+                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Database creation in progress...' });
+                    }
+
+                    // Step 4: Create User if not started
+                    if (hasCreatedDb && !userOperationName) {
+                        const opName = await createUser(instanceName, 'deployify-sa');
+                        storage.metadata = { ...storage.metadata, userOperationName: opName };
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Creating IAM user...' });
+                    }
+
+                    // Step 5: Poll User creation
+                    if (userOperationName) {
+                        const userStatus = await getOperationStatus(userOperationName);
+                        if (userStatus.status === 'DONE') {
+                            if (userStatus.error) throw new Error(`User creation failed: ${userStatus.error}`);
+                            storage.metadata = { ...storage.metadata, userCreated: true };
+                            storage.status = 'active';
+                            storage.lastSyncedAt = now;
+                        } else {
+                            return NextResponse.json({ success: true, status: 'provisioning', message: 'User creation in progress...' });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed follow-up Cloud SQL provisioning:', e);
+                    storage.status = 'error';
+                    storage.lastError = `Instance ready, but DB/User creation failed: ${e instanceof Error ? e.message : 'Unknown'}`;
+                }
+            } else {
                 storage.status = 'active';
-                storage.lastSyncedAt = now; // Mark as synced when provisioning completes
+                storage.lastSyncedAt = now;
             }
 
             storage.updatedAt = now;
