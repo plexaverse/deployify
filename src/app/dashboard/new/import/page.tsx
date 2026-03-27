@@ -210,7 +210,7 @@ export default function ImportProjectPage() {
             <div className="space-y-8">
                 {/* General Settings */}
                 <Card className="overflow-hidden p-0">
-                    <div className="p-6 flex items-center gap-4">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--info)]/10 flex items-center justify-center shrink-0">
                             <Settings className="w-5 h-5 text-[var(--info)]" />
                         </div>
@@ -282,7 +282,7 @@ export default function ImportProjectPage() {
 
                 {/* Build Settings */}
                 <Card className="overflow-hidden p-0">
-                    <div className="p-6 flex items-center gap-4">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <Settings className="w-5 h-5 text-[var(--primary)]" />
                         </div>
@@ -332,7 +332,7 @@ export default function ImportProjectPage() {
 
                 {/* Database Connectors */}
                 <Card className="overflow-hidden p-0">
-                    <div className="p-6 flex items-center gap-4">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                             <Database className="w-5 h-5 text-[var(--primary)]" />
                         </div>
@@ -471,7 +471,7 @@ export default function ImportProjectPage() {
 
                 {/* Environment Variables */}
                 <Card className="overflow-hidden p-0">
-                    <div className="p-6 flex items-center gap-4">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--success)]/10 flex items-center justify-center shrink-0">
                             <Terminal className="w-5 h-5 text-[var(--success)]" />
                         </div>

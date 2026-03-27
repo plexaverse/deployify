@@ -99,7 +99,7 @@ export default function EdgeDebugPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-200px)]">
             {/* Left Column: Code Editor */}
             <Card className="overflow-hidden p-0 flex flex-col h-full">
-                <div className="p-6 flex items-center gap-4">
+                <div className="p-6 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                         <Terminal className="w-5 h-5 text-[var(--primary)]" />
                     </div>
@@ -124,7 +124,7 @@ export default function EdgeDebugPage() {
 
                 {/* Request Config */}
                 <Card className="overflow-hidden p-0">
-                    <div className="p-6 flex items-center gap-4">
+                    <div className="p-6 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-[var(--info-bg)] text-[var(--info)] flex items-center justify-center border border-[var(--info)]/30 shrink-0">
                             <Cpu className="w-5 h-5" />
                         </div>
@@ -181,7 +181,7 @@ export default function EdgeDebugPage() {
                 {/* Output */}
                  <div className="space-y-4 flex-1 flex flex-col">
                     <Card className="overflow-hidden p-0 flex flex-col flex-1">
-                        <div className="p-6 flex items-center gap-4">
+                        <div className="p-6 flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                 <Layout className="w-5 h-5 text-[var(--primary)]" />
                             </div>

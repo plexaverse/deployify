@@ -33,7 +33,7 @@ export function DeploymentListItem({
     };
 
     return (
-        <div className="p-4 md:p-6 hover:bg-[var(--card-hover)] transition-colors group">
+        <div className="p-6 hover:bg-[var(--card-hover)] transition-colors group">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                     <div className="mt-1">

@@ -41,7 +41,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
     if (!logs && !loading && !error) {
         return (
             <div className={cn("flex flex-col items-center justify-center h-full text-[var(--muted-foreground)] bg-[var(--terminal-bg)] p-8 gap-4", className)}>
-                <div className="w-12 h-12 rounded-xl bg-[var(--muted)]/10 flex items-center justify-center opacity-50">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--muted)]/10 flex items-center justify-center opacity-50">
                     <RefreshCw className="w-6 h-6 animate-spin" />
                 </div>
                 <div className="space-y-1 text-center">

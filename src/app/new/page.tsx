@@ -480,7 +480,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
             className="w-full space-y-8"
         >
             <Card className="overflow-hidden p-0">
-                <div className="p-6 flex items-center gap-4">
+                <div className="p-6 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                         <Settings className="w-5 h-5 text-[var(--primary)]" />
                     </div>
@@ -609,7 +609,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
             </Card>
 
             <Card className="overflow-hidden p-0">
-                <div className="p-6 flex items-center gap-4">
+                <div className="p-6 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--success)]/10 flex items-center justify-center shrink-0">
                         <Terminal className="w-5 h-5 text-[var(--success)]" />
                     </div>
