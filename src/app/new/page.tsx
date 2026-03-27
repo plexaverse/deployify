@@ -4,9 +4,24 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-    ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X,
-    Settings, Terminal, Plus, Trash2, CheckCircle2, AlertCircle, ChevronRight,
-    Shield, ChevronDown, ChevronUp, Rocket
+  ArrowLeft,
+  Search,
+  Lock,
+  Globe,
+  Loader2,
+  GitBranch,
+  X,
+  Settings,
+  Terminal,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  ChevronRight,
+  Shield,
+  ChevronDown,
+  ChevronUp,
+  Rocket,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,156 +43,164 @@ import type { GitHubRepo, Project, Deployment, EnvVariableTarget } from '@/types
 
 // Common GCP regions
 const GCP_REGIONS = [
-    { value: '', label: 'DEFAULT REGION' },
-    { value: 'us-central1', label: 'IOWA (US-CENTRAL1)' },
-    { value: 'us-east1', label: 'SOUTH CAROLINA (US-EAST1)' },
-    { value: 'europe-west1', label: 'BELGIUM (EUROPE-WEST1)' },
-    { value: 'europe-west2', label: 'LONDON (EUROPE-WEST2)' },
-    { value: 'asia-east1', label: 'TAIWAN (ASIA-EAST1)' },
-    { value: 'asia-northeast1', label: 'TOKYO (ASIA-NORTHEAST1)' },
-    { value: 'asia-southeast1', label: 'SINGAPORE (ASIA-SOUTHEAST1)' },
-    { value: 'asia-south1', label: 'MUMBAI (ASIA-SOUTH1)' },
-    { value: 'australia-southeast1', label: 'SYDNEY (AUSTRALIA-SOUTHEAST1)' },
+  { value: '', label: 'DEFAULT REGION' },
+  { value: 'us-central1', label: 'IOWA (US-CENTRAL1)' },
+  { value: 'us-east1', label: 'SOUTH CAROLINA (US-EAST1)' },
+  { value: 'europe-west1', label: 'BELGIUM (EUROPE-WEST1)' },
+  { value: 'europe-west2', label: 'LONDON (EUROPE-WEST2)' },
+  { value: 'asia-east1', label: 'TAIWAN (ASIA-EAST1)' },
+  { value: 'asia-northeast1', label: 'TOKYO (ASIA-NORTHEAST1)' },
+  { value: 'asia-southeast1', label: 'SINGAPORE (ASIA-SOUTHEAST1)' },
+  { value: 'asia-south1', label: 'MUMBAI (ASIA-SOUTH1)' },
+  { value: 'australia-southeast1', label: 'SYDNEY (AUSTRALIA-SOUTHEAST1)' },
 ];
 
 export default function NewProjectPage() {
-    const [step, setStep] = useState<1 | 2 | 3>(1);
-    const [selectedRepo, setSelectedRepo] = useState<GitHubRepo | null>(null);
-    const [project, setProject] = useState<Project | null>(null);
-    const [deployment, setDeployment] = useState<Deployment | null>(null);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [selectedRepo, setSelectedRepo] = useState<GitHubRepo | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
+  const [deployment, setDeployment] = useState<Deployment | null>(null);
 
-    // Step 2 State (lifted up to persist between step switches if needed, mostly for Step 3 access)
-    // Actually better to keep Step 2 state inside Step 2, but we need project/deployment for Step 3.
-    // So project and deployment are lifted.
+  // Step 2 State (lifted up to persist between step switches if needed, mostly for Step 3 access)
+  // Actually better to keep Step 2 state inside Step 2, but we need project/deployment for Step 3.
+  // So project and deployment are lifted.
 
-    const handleRepoSelect = (repo: GitHubRepo) => {
-        setSelectedRepo(repo);
-        setStep(2);
-        toast.success(`Selected ${repo.full_name}`);
-    };
+  const handleRepoSelect = (repo: GitHubRepo) => {
+    setSelectedRepo(repo);
+    setStep(2);
+    toast.success(`Selected ${repo.full_name}`);
+  };
 
-    const handleDeploymentStarted = (proj: Project, deploy: Deployment) => {
-        setProject(proj);
-        setDeployment(deploy);
-        setStep(3);
-    };
+  const handleDeploymentStarted = (proj: Project, deploy: Deployment) => {
+    setProject(proj);
+    setDeployment(deploy);
+    setStep(3);
+  };
 
-    return (
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
-            <BackgroundBeams className="opacity-40" />
+  return (
+    <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+      <BackgroundBeams className="opacity-40" />
 
-            {/* Header */}
-            <div className="space-y-4 relative z-10">
-                <Link
-                    href="/dashboard"
-                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back to projects
-                </Link>
+      {/* Header */}
+      <div className="space-y-4 relative z-10">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to projects
+        </Link>
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                            <Rocket className="w-8 h-8 text-[var(--primary)]" />
-                        </div>
-                        <div className="space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
-                            <h1 className="text-3xl font-bold tracking-tight">Create New Project</h1>
-                        </div>
-                    </div>
-
-                    {/* Stepper Indicator */}
-                    <div className="flex items-center gap-4 text-sm">
-                        <StepIndicator current={step} number={1} label="Select" />
-                        <div className="w-8 h-[1px] bg-[var(--border)]" />
-                        <StepIndicator current={step} number={2} label="Configure" />
-                        <div className="w-8 h-[1px] bg-[var(--border)]" />
-                        <StepIndicator current={step} number={3} label="Deploy" />
-                    </div>
-                </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+              <Rocket className="w-8 h-8 text-[var(--primary)]" />
             </div>
-
-            {/* Content */}
-            <div className="relative z-10">
-                <AnimatePresence mode="wait">
-                    {step === 1 && (
-                        <Step1SelectRepo key="step1" onSelect={handleRepoSelect} />
-                    )}
-                    {step === 2 && selectedRepo && (
-                        <Step2Configure
-                            key="step2"
-                            repo={selectedRepo}
-                            onBack={() => setStep(1)}
-                            onDeploy={handleDeploymentStarted}
-                        />
-                    )}
-                    {step === 3 && project && deployment && (
-                        <Step3Deploy
-                            key="step3"
-                            project={project}
-                            initialDeployment={deployment}
-                        />
-                    )}
-                </AnimatePresence>
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                Project Creation
+              </span>
+              <h1 className="text-3xl font-bold tracking-tight">Create New Project</h1>
             </div>
+          </div>
+
+          {/* Stepper Indicator */}
+          <div className="flex items-center gap-4 text-sm">
+            <StepIndicator current={step} number={1} label="Select" />
+            <div className="w-8 h-[1px] bg-[var(--border)]" />
+            <StepIndicator current={step} number={2} label="Configure" />
+            <div className="w-8 h-[1px] bg-[var(--border)]" />
+            <StepIndicator current={step} number={3} label="Deploy" />
+          </div>
         </div>
-    );
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        <AnimatePresence mode="wait">
+          {step === 1 && <Step1SelectRepo key="step1" onSelect={handleRepoSelect} />}
+          {step === 2 && selectedRepo && (
+            <Step2Configure
+              key="step2"
+              repo={selectedRepo}
+              onBack={() => setStep(1)}
+              onDeploy={handleDeploymentStarted}
+            />
+          )}
+          {step === 3 && project && deployment && (
+            <Step3Deploy key="step3" project={project} initialDeployment={deployment} />
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 }
 
-function StepIndicator({ current, number, label }: { current: number, number: number, label: string }) {
-    const active = current >= number;
-    const completed = current > number;
-    const currentStep = current === number;
+function StepIndicator({
+  current,
+  number,
+  label,
+}: {
+  current: number;
+  number: number;
+  label: string;
+}) {
+  const active = current >= number;
+  const completed = current > number;
+  const currentStep = current === number;
 
-    return (
-        <div className={cn(
-            "flex items-center gap-3 transition-colors duration-300",
-            active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
-        )}>
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-3 transition-colors duration-300',
+        active ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
+      )}
+    >
+      <motion.div
+        initial={false}
+        animate={{
+          backgroundColor: active ? 'var(--primary)' : 'transparent',
+          borderColor: active ? 'var(--primary)' : 'var(--border)',
+          scale: currentStep ? 1.1 : 1,
+        }}
+        className={cn(
+          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border relative',
+          currentStep && 'ring-2 ring-[var(--primary)]/30 ring-offset-2 ring-offset-[var(--background)]'
+        )}
+      >
+        <AnimatePresence mode="wait">
+          {completed ? (
             <motion.div
-                initial={false}
-                animate={{
-                    backgroundColor: active ? 'var(--primary)' : 'transparent',
-                    borderColor: active ? 'var(--primary)' : 'var(--border)',
-                    scale: currentStep ? 1.1 : 1,
-                }}
-                className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold border relative",
-                    currentStep && 'ring-2 ring-[var(--primary)]/30 ring-offset-2 ring-offset-[var(--background)]'
-                )}
+              key="check"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
             >
-                <AnimatePresence mode="wait">
-                    {completed ? (
-                        <motion.div
-                            key="check"
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                        >
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[var(--primary-foreground)]" />
-                        </motion.div>
-                    ) : (
-                        <motion.span
-                            key="number"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className={active ? 'text-[var(--primary-foreground)]' : 'text-[var(--muted-foreground)]'}
-                        >
-                            {number}
-                        </motion.span>
-                    )}
-                </AnimatePresence>
+              <CheckCircle2 className="w-3.5 h-3.5 text-[var(--primary-foreground)]" />
             </motion.div>
-            <span className={cn(
-                "font-semibold transition-all duration-300",
-                currentStep ? "text-[var(--foreground)] scale-105" : "text-[var(--muted-foreground)]"
-            )}>
-                {label}
-            </span>
-        </div>
-    );
+          ) : (
+            <motion.span
+              key="number"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={active ? 'text-[var(--primary-foreground)]' : 'text-[var(--muted-foreground)]'}
+            >
+              {number}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.div>
+      <span
+        className={cn(
+          'font-semibold transition-all duration-300',
+          currentStep ? 'text-[var(--foreground)] scale-105' : 'text-[var(--muted-foreground)]'
+        )}
+      >
+        {label}
+      </span>
+    </div>
+  );
 }
 
 // ----------------------------------------------------------------------
@@ -185,773 +208,836 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
 // ----------------------------------------------------------------------
 
 function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void }) {
-    const [repos, setRepos] = useState<GitHubRepo[]>([]);
-    const [search, setSearch] = useState('');
-    const [loading, setLoading] = useState(true);
-    const searchRef = useRef<HTMLInputElement>(null);
-    const [isMac, setIsMac] = useState(false);
+  const [repos, setRepos] = useState<GitHubRepo[]>([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const [isMac, setIsMac] = useState(false);
 
-    useEffect(() => {
-        setIsMac(navigator.userAgent.indexOf('Mac') !== -1);
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') {
-                e.preventDefault();
-                searchRef.current?.focus();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
-
-    useEffect(() => {
-        async function fetchRepos() {
-            try {
-                const response = await fetch('/api/repos');
-                const data = await response.json();
-
-                if (data.error) {
-                    toast.error(data.error);
-                } else {
-                    setRepos(data.repos || []);
-                }
-            } catch {
-                toast.error('Failed to fetch repositories');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchRepos();
-    }, []);
-
-    const filteredRepos = repos.filter(repo =>
-        repo.full_name.toLowerCase().includes(search.toLowerCase()) ||
-        repo.description?.toLowerCase().includes(search.toLowerCase())
-    );
-
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleDateString('en-US', {
-            month: 'short', day: 'numeric', year: 'numeric'
-        }).toUpperCase();
+  useEffect(() => {
+    setIsMac(navigator.userAgent.indexOf('Mac') !== -1);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
     };
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="w-full space-y-8"
-        >
-            <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
-                <Input
-                    ref={searchRef}
-                    type="text"
-                    placeholder="SEARCH REPOSITORIES..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-12 pr-16 h-14"
-                    autoFocus
-                />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-                    {search ? null : (
-                        <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-bold uppercase tracking-wider border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
-                            <span>{isMac ? '⌘' : 'Ctrl'}</span>
-                            <span>K</span>
-                        </div>
-                    )}
-                </div>
-                {search && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                            setSearch('');
-                            searchRef.current?.focus();
-                        }}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)] z-10"
-                    >
-                        <X className="w-4 h-4" />
-                    </Button>
-                )}
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    async function fetchRepos() {
+      try {
+        const response = await fetch('/api/repos');
+        const data = await response.json();
+
+        if (data.error) {
+          toast.error(data.error);
+        } else {
+          setRepos(data.repos || []);
+        }
+      } catch {
+        toast.error('Failed to fetch repositories');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchRepos();
+  }, []);
+
+  const filteredRepos = repos.filter(
+    (repo) =>
+      repo.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      repo.description?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr)
+      .toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+      .toUpperCase();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="w-full space-y-8"
+    >
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
+        <Input
+          ref={searchRef}
+          type="text"
+          placeholder="SEARCH REPOSITORIES..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-12 pr-16 h-14"
+          autoFocus
+        />
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+          {search ? null : (
+            <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-bold uppercase tracking-wider border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+              <span>{isMac ? '⌘' : 'Ctrl'}</span>
+              <span>K</span>
             </div>
+          )}
+        </div>
+        {search && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setSearch('');
+              searchRef.current?.focus();
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)] z-10"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
 
-            {loading ? (
-                <div className="space-y-4">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <Card key={i} className="overflow-hidden p-0">
-                            <div className="p-6">
-                                <Skeleton className="h-24 w-full rounded-xl" />
-                            </div>
-                        </Card>
-                    ))}
+      {loading ? (
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i} className="overflow-hidden p-0">
+              <div className="p-6">
+                <Skeleton className="h-24 w-full rounded-xl" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {filteredRepos.map((repo) => (
+            <motion.div
+              key={repo.id}
+              whileHover={{ y: -2, scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Card
+                onClick={() => onSelect(repo)}
+                className="group relative hover:border-[var(--primary)] transition-all cursor-pointer overflow-hidden p-0"
+              >
+                <div className="p-6 relative z-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)]">
+                        {repo.private ? (
+                          <Lock className="w-5 h-5 text-[var(--warning)]" />
+                        ) : (
+                          <Globe className="w-5 h-5 text-[var(--success)]" />
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
+                          {repo.full_name.toUpperCase()}
+                          {repo.private && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
+                              Private
+                            </span>
+                          )}
+                        </h3>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1 line-clamp-1">
+                          {repo.description || 'No description'}
+                        </p>
+                        <div className="flex items-center gap-4 mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                          {repo.language && (
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-[var(--info)]" />
+                              {repo.language.toUpperCase()}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <GitBranch className="w-3 h-3" />
+                            {repo.default_branch.toUpperCase()}
+                          </span>
+                          <span>Updated {formatDate(repo.updated_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-all self-center pr-2 translate-x-4 group-hover:translate-x-0">
+                      <ChevronRight className="w-5 h-5 text-[var(--primary)]" />
+                    </div>
+                  </div>
                 </div>
-            ) : (
-                <div className="grid gap-4">
-                    {filteredRepos.map((repo) => (
-                        <motion.div
-                            key={repo.id}
-                            whileHover={{ y: -2, scale: 1.01 }}
-                            whileTap={{ scale: 0.98 }}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <Card
-                                onClick={() => onSelect(repo)}
-                                className="group relative hover:border-[var(--primary)] transition-all cursor-pointer overflow-hidden p-0"
-                            >
-                                <div className="p-6 relative z-10">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="relative z-10 flex items-start justify-between">
-                                        <div className="flex items-start gap-4">
-                                            <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)]">
-                                                {repo.private ? (
-                                                    <Lock className="w-5 h-5 text-[var(--warning)]" />
-                                                ) : (
-                                                    <Globe className="w-5 h-5 text-[var(--success)]" />
-                                                )}
-                                            </div>
-                                            <div>
-                                                <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
-                                                    {repo.full_name.toUpperCase()}
-                                                    {repo.private && (
-                                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
-                                                            Private
-                                                        </span>
-                                                    )}
-                                                </h3>
-                                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1 line-clamp-1">
-                                                    {repo.description || 'No description'}
-                                                </p>
-                                                <div className="flex items-center gap-4 mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                                    {repo.language && (
-                                                        <span className="flex items-center gap-1.5">
-                                                            <span className="w-2 h-2 rounded-full bg-[var(--info)]" />
-                                                            {repo.language.toUpperCase()}
-                                                        </span>
-                                                    )}
-                                                    <span className="flex items-center gap-1">
-                                                        <GitBranch className="w-3 h-3" />
-                                                        {repo.default_branch.toUpperCase()}
-                                                    </span>
-                                                    <span>Updated {formatDate(repo.updated_at)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="opacity-0 group-hover:opacity-100 transition-all self-center pr-2 translate-x-4 group-hover:translate-x-0">
-                                            <ChevronRight className="w-5 h-5 text-[var(--primary)]" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card>
-                        </motion.div>
-                    ))}
+              </Card>
+            </motion.div>
+          ))}
 
-                    {filteredRepos.length === 0 && (
-                        <Card className="overflow-hidden p-0">
-                            <div className="text-center py-12 text-[var(--muted-foreground)]">
-                                <p className="text-[10px] font-bold uppercase tracking-wider">No repositories found matching your search.</p>
-                            </div>
-                        </Card>
-                    )}
-                </div>
-            )}
-        </motion.div>
-    );
+          {filteredRepos.length === 0 && (
+            <Card className="overflow-hidden p-0">
+              <div className="text-center py-12 text-[var(--muted-foreground)]">
+                <p className="text-[10px] font-bold uppercase tracking-wider">
+                  No repositories found matching your search.
+                </p>
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
 }
 
 // ----------------------------------------------------------------------
 // Step 2: Configure Project
 // ----------------------------------------------------------------------
 
-function Step2Configure({ repo, onBack, onDeploy }: {
-    repo: GitHubRepo,
-    onBack: () => void,
-    onDeploy: (project: Project, deployment: Deployment) => void
+function Step2Configure({
+  repo,
+  onBack,
+  onDeploy,
+}: {
+  repo: GitHubRepo;
+  onBack: () => void;
+  onDeploy: (project: Project, deployment: Deployment) => void;
 }) {
-    const [projectName, setProjectName] = useState(repo.name);
-    const [framework, setFramework] = useState('auto');
-    const [rootDirectory, setRootDirectory] = useState('');
-    const [region, setRegion] = useState('');
-    const [deploying, setDeploying] = useState(false);
-    const [showAdvanced, setShowAdvanced] = useState(false);
+  const [projectName, setProjectName] = useState(repo.name);
+  const [framework, setFramework] = useState('auto');
+  const [rootDirectory, setRootDirectory] = useState('');
+  const [region, setRegion] = useState('');
+  const [deploying, setDeploying] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-    // Advanced Settings
-    const [buildCommand, setBuildCommand] = useState('');
-    const [installCommand, setInstallCommand] = useState('');
-    const [outputDirectory, setOutputDirectory] = useState('');
+  // Advanced Settings
+  const [buildCommand, setBuildCommand] = useState('');
+  const [installCommand, setInstallCommand] = useState('');
+  const [outputDirectory, setOutputDirectory] = useState('');
 
-    // Env Vars
-    const [envVars, setEnvVars] = useState<{
-        key: string;
-        value: string;
-        target: 'both' | 'build' | 'runtime';
-        isSecret: boolean;
-        environment: 'both' | 'production' | 'preview';
-    }[]>([]);
-    const [newEnvKey, setNewEnvKey] = useState('');
-    const [newEnvValue, setNewEnvValue] = useState('');
-    const [newEnvTarget, setNewEnvTarget] = useState<'both' | 'build' | 'runtime'>('both');
-    const [newEnvIsSecret, setNewEnvIsSecret] = useState(false);
-    const [newEnvEnvironment, setNewEnvEnvironment] = useState<'both' | 'production' | 'preview'>('both');
+  // Env Vars
+  const [envVars, setEnvVars] = useState<
+    {
+      key: string;
+      value: string;
+      target: 'both' | 'build' | 'runtime';
+      isSecret: boolean;
+      environment: 'both' | 'production' | 'preview';
+    }[]
+  >([]);
+  const [newEnvKey, setNewEnvKey] = useState('');
+  const [newEnvValue, setNewEnvValue] = useState('');
+  const [newEnvTarget, setNewEnvTarget] = useState<'both' | 'build' | 'runtime'>('both');
+  const [newEnvIsSecret, setNewEnvIsSecret] = useState(false);
+  const [newEnvEnvironment, setNewEnvEnvironment] = useState<'both' | 'production' | 'preview'>(
+    'both'
+  );
 
-    const handleAddEnv = () => {
-        if (!newEnvKey.trim() || !newEnvValue.trim()) return;
-        const key = newEnvKey.toUpperCase().replace(/[^A-Z0-9_]/g, '_');
-        if (envVars.some(e => e.key === key)) {
-            toast.error('Variable already exists');
-            return;
-        }
-        setEnvVars([...envVars, {
-            key,
-            value: newEnvValue,
-            target: newEnvTarget,
-            isSecret: newEnvIsSecret,
-            environment: newEnvEnvironment
-        }]);
-        setNewEnvKey('');
-        setNewEnvValue('');
-        setNewEnvIsSecret(false);
-        setNewEnvTarget('both');
-        setNewEnvEnvironment('both');
-    };
+  const handleAddEnv = () => {
+    if (!newEnvKey.trim() || !newEnvValue.trim()) return;
+    const key = newEnvKey.toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+    if (envVars.some((e) => e.key === key)) {
+      toast.error('Variable already exists');
+      return;
+    }
+    setEnvVars([
+      ...envVars,
+      {
+        key,
+        value: newEnvValue,
+        target: newEnvTarget,
+        isSecret: newEnvIsSecret,
+        environment: newEnvEnvironment,
+      },
+    ]);
+    setNewEnvKey('');
+    setNewEnvValue('');
+    setNewEnvIsSecret(false);
+    setNewEnvTarget('both');
+    setNewEnvEnvironment('both');
+  };
 
-    const handleDeploy = async () => {
-        if (!projectName) return;
-        setDeploying(true);
-        const toastId = toast.loading('Creating project...');
+  const handleDeploy = async () => {
+    if (!projectName) return;
+    setDeploying(true);
+    const toastId = toast.loading('Creating project...');
 
-        try {
-            // 1. Create Project
-            const createRes = await fetch('/api/projects', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    repoFullName: repo.full_name,
-                    name: projectName,
-                    framework,
-                    rootDirectory,
-                    region: region || undefined,
-                    buildCommand: buildCommand || undefined,
-                    installCommand: installCommand || undefined,
-                    outputDirectory: outputDirectory || undefined,
-                    envVariables: envVars.map(e => ({
-                        key: e.key,
-                        value: e.value,
-                        target: e.target,
-                        isSecret: e.isSecret,
-                        environment: e.environment
-                    }))
-                }),
-            });
+    try {
+      // 1. Create Project
+      const createRes = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          repoFullName: repo.full_name,
+          name: projectName,
+          framework,
+          rootDirectory,
+          region: region || undefined,
+          buildCommand: buildCommand || undefined,
+          installCommand: installCommand || undefined,
+          outputDirectory: outputDirectory || undefined,
+          envVariables: envVars.map((e) => ({
+            key: e.key,
+            value: e.value,
+            target: e.target,
+            isSecret: e.isSecret,
+            environment: e.environment,
+          })),
+        }),
+      });
 
-            const createData = await createRes.json();
-            if (!createRes.ok) throw new Error(createData.error || 'Failed to create project');
+      const createData = await createRes.json();
+      if (!createRes.ok) throw new Error(createData.error || 'Failed to create project');
 
-            const newProject = createData.project;
-            toast.success('Project created!', { id: toastId });
+      const newProject = createData.project;
+      toast.success('Project created!', { id: toastId });
 
-            // 2. Trigger Deployment
-            const deployToastId = toast.loading('Starting deployment...');
-            const deployRes = await fetch(`/api/projects/${newProject.id}/deploy`, {
-                method: 'POST',
-            });
+      // 2. Trigger Deployment
+      const deployToastId = toast.loading('Starting deployment...');
+      const deployRes = await fetch(`/api/projects/${newProject.id}/deploy`, {
+        method: 'POST',
+      });
 
-            const deployData = await deployRes.json();
-            if (!deployRes.ok) throw new Error(deployData.error || 'Failed to start deployment');
+      const deployData = await deployRes.json();
+      if (!deployRes.ok) throw new Error(deployData.error || 'Failed to start deployment');
 
-            toast.success('Deployment started!', { id: deployToastId });
-            onDeploy(newProject, deployData.deployment);
+      toast.success('Deployment started!', { id: deployToastId });
+      onDeploy(newProject, deployData.deployment);
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : 'Something went wrong');
+      setDeploying(false);
+    }
+  };
 
-        } catch (error) {
-            console.error(error);
-            toast.error(error instanceof Error ? error.message : 'Something went wrong');
-            setDeploying(false);
-        }
-    };
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="w-full space-y-8"
+    >
+      <Card className="overflow-hidden p-0">
+        <div className="p-6 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+            <Settings className="w-5 h-5 text-[var(--primary)]" />
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+              Project Creation
+            </span>
+            <h2 className="text-xl font-semibold">Project Settings</h2>
+          </div>
+        </div>
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="w-full space-y-8"
-        >
-            <Card className="overflow-hidden p-0">
-                <div className="p-6 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                        <Settings className="w-5 h-5 text-[var(--primary)]" />
-                    </div>
-                    <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                        <h2 className="text-xl font-semibold">Project Settings</h2>
-                    </div>
-                </div>
+        <Separator className="bg-[var(--border)]" />
 
-                <Separator className="bg-[var(--border)]" />
-
-                <div className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label htmlFor="projectName" className="text-sm font-semibold block mb-2">Project Name</label>
-                            <Input
-                                id="projectName"
-                                type="text"
-                                value={projectName}
-                                onChange={(e) => setProjectName(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Framework Preset</label>
-                            <NativeSelect
-                                value={framework}
-                                onChange={(e) => setFramework(e.target.value)}
-                            >
-                                <option value="auto">AUTO-DETECT</option>
-                                <option value="nextjs">NEXT.JS</option>
-                                <option value="vite">VITE</option>
-                                <option value="astro">ASTRO</option>
-                                <option value="remix">REMIX</option>
-                                <option value="nuxt">NUXT</option>
-                                <option value="sveltekit">SVELTEKIT</option>
-                                <option value="bun">BUN</option>
-                                <option value="docker">DOCKER</option>
-                            </NativeSelect>
-                            {framework === 'docker' && (
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] pt-1">
-                                    Deployify will use the <code>Dockerfile</code> in your repository root.
-                                </p>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Root Directory</label>
-                            <Input
-                                type="text"
-                                value={rootDirectory}
-                                onChange={(e) => setRootDirectory(e.target.value)}
-                                placeholder="./"
-                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Region</label>
-                            <NativeSelect
-                                value={region}
-                                onChange={(e) => setRegion(e.target.value)}
-                            >
-                                {GCP_REGIONS.map((r) => (
-                                    <option key={r.value} value={r.value}>{r.label}</option>
-                                ))}
-                            </NativeSelect>
-                        </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-[var(--border)]">
-                        <button
-                            type="button"
-                            onClick={() => setShowAdvanced(!showAdvanced)}
-                            className="flex items-center gap-2 text-sm font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-                        >
-                            {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                            Advanced Build Settings
-                        </button>
-
-                        <AnimatePresence>
-                            {showAdvanced && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-                                        <div className="space-y-2">
-                                            <label htmlFor="buildCommand" className="text-sm font-semibold block mb-2">Build Command</label>
-                                            <Input
-                                                id="buildCommand"
-                                                type="text"
-                                                value={buildCommand}
-                                                onChange={(e) => setBuildCommand(e.target.value)}
-                                                placeholder="NPM RUN BUILD"
-                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label htmlFor="installCommand" className="text-sm font-semibold block mb-2">Install Command</label>
-                                            <Input
-                                                id="installCommand"
-                                                type="text"
-                                                value={installCommand}
-                                                onChange={(e) => setInstallCommand(e.target.value)}
-                                                placeholder="NPM INSTALL"
-                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label htmlFor="outputDirectory" className="text-sm font-semibold block mb-2">Output Directory</label>
-                                            <Input
-                                                id="outputDirectory"
-                                                type="text"
-                                                value={outputDirectory}
-                                                onChange={(e) => setOutputDirectory(e.target.value)}
-                                                placeholder=".NEXT"
-                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
-                                            />
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </div>
-            </Card>
-
-            <Card className="overflow-hidden p-0">
-                <div className="p-6 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--success)]/10 flex items-center justify-center shrink-0">
-                        <Terminal className="w-5 h-5 text-[var(--success)]" />
-                    </div>
-                    <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
-                        <h2 className="text-xl font-semibold">Environment Variables</h2>
-                    </div>
-                </div>
-
-                <Separator className="bg-[var(--border)]" />
-
-                <div className="p-6 space-y-6">
-                    <div className="space-y-3">
-                        {envVars.map((env) => (
-                            <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
-                                <div className="flex-1 grid grid-cols-5 gap-4 items-center">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{env.key}</span>
-                                        {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
-                                    </div>
-                                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] truncate">
-                                        {env.isSecret ? '••••••••' : env.value}
-                                    </span>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
-                                        {(env.target === 'both' ? 'Build & Runtime' : env.target).toUpperCase()}
-                                    </span>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
-                                        {(env.environment === 'both' ? 'All Envs' : env.environment).toUpperCase()}
-                                    </span>
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setEnvVars(envVars.filter(e => e.key !== env.key))}
-                                    className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="space-y-4 p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)]">
-                        <div className="flex gap-2">
-                            <Input
-                                type="text"
-                                placeholder="KEY"
-                                value={newEnvKey}
-                                onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
-                            />
-                            <Input
-                                type={newEnvIsSecret ? "password" : "text"}
-                                placeholder="VALUE"
-                                value={newEnvValue}
-                                onChange={(e) => setNewEnvValue(e.target.value)}
-                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
-                            />
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleAddEnv}
-                                disabled={!newEnvKey || !newEnvValue}
-                                className="text-[var(--primary)] px-4 text-[10px] font-bold uppercase tracking-wider"
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add
-                            </Button>
-                        </div>
-
-                        <div className="flex flex-col md:flex-row md:items-start gap-8 pt-4">
-                            <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]/50">
-                                <Switch
-                                    id="isSecret"
-                                    checked={newEnvIsSecret}
-                                    onCheckedChange={setNewEnvIsSecret}
-                                />
-                                <label htmlFor="isSecret" className="text-sm font-semibold cursor-pointer flex items-center gap-1.5">
-                                    <Shield className="w-4 h-4 text-[var(--info)]" />
-                                    Secret (Encrypted)
-                                </label>
-                            </div>
-
-                            <div className="flex-1 space-y-4">
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-semibold block mb-2">Target Environment Type</Label>
-                                    <SegmentedControl
-                                        options={[
-                                            { value: 'both', label: 'BUILD & RUNTIME' },
-                                            { value: 'build', label: 'BUILD ONLY' },
-                                            { value: 'runtime', label: 'RUNTIME ONLY' }
-                                        ]}
-                                        value={newEnvTarget}
-                                        onChange={(v) => setNewEnvTarget(v as EnvVariableTarget)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-semibold block mb-2">Scope</Label>
-                                    <SegmentedControl
-                                        options={[
-                                            { value: 'both', label: 'ALL ENVS' },
-                                            { value: 'production', label: 'PRODUCTION ONLY' },
-                                            { value: 'preview', label: 'PREVIEW ONLY' }
-                                        ]}
-                                        value={newEnvEnvironment}
-                                        onChange={(v) => setNewEnvEnvironment(v as 'both' | 'production' | 'preview')}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Card>
-
-            <div className="flex justify-between items-center pt-4">
-                <Button
-                    variant="ghost"
-                    onClick={onBack}
-                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-[10px] font-bold uppercase tracking-wider"
-                >
-                    Back to Select
-                </Button>
-                <MovingBorderButton
-                    onClick={handleDeploy}
-                    disabled={deploying || !projectName}
-                    containerClassName="h-12 w-48"
-                    className="text-[10px] font-bold uppercase tracking-wider"
-                >
-                    {deploying ? <Loader2 className="mr-2 w-5 h-5 animate-spin" /> : null}
-                    {deploying ? 'Deploying...' : 'Deploy Project'}
-                </MovingBorderButton>
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="projectName" className="block mb-2">
+                Project Name
+              </Label>
+              <Input
+                id="projectName"
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+              />
             </div>
-        </motion.div>
-    );
+            <div className="space-y-2">
+              <Label htmlFor="framework-preset" className="block mb-2">
+                Framework Preset
+              </Label>
+              <NativeSelect
+                id="framework-preset"
+                value={framework}
+                onChange={(e) => setFramework(e.target.value)}
+              >
+                <option value="auto">AUTO-DETECT</option>
+                <option value="nextjs">NEXT.JS</option>
+                <option value="vite">VITE</option>
+                <option value="astro">ASTRO</option>
+                <option value="remix">REMIX</option>
+                <option value="nuxt">NUXT</option>
+                <option value="sveltekit">SVELTEKIT</option>
+                <option value="bun">BUN</option>
+                <option value="docker">DOCKER</option>
+              </NativeSelect>
+              {framework === 'docker' && (
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] pt-1">
+                  Deployify will use the <code>Dockerfile</code> in your repository root.
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="root-directory" className="block mb-2">
+                Root Directory
+              </Label>
+              <Input
+                id="root-directory"
+                type="text"
+                value={rootDirectory}
+                onChange={(e) => setRootDirectory(e.target.value)}
+                placeholder="./"
+                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="region-select" className="block mb-2">
+                Region
+              </Label>
+              <NativeSelect
+                id="region-select"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+              >
+                {GCP_REGIONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-[var(--border)]">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-2 text-sm font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+            >
+              {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              Advanced Build Settings
+            </button>
+
+            <AnimatePresence>
+              {showAdvanced && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+                    <div className="space-y-2">
+                      <label htmlFor="buildCommand" className="text-sm font-semibold block mb-2">
+                        Build Command
+                      </label>
+                      <Input
+                        id="buildCommand"
+                        type="text"
+                        value={buildCommand}
+                        onChange={(e) => setBuildCommand(e.target.value)}
+                        placeholder="NPM RUN BUILD"
+                        className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="installCommand" className="text-sm font-semibold block mb-2">
+                        Install Command
+                      </label>
+                      <Input
+                        id="installCommand"
+                        type="text"
+                        value={installCommand}
+                        onChange={(e) => setInstallCommand(e.target.value)}
+                        placeholder="NPM INSTALL"
+                        className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="outputDirectory" className="text-sm font-semibold block mb-2">
+                        Output Directory
+                      </label>
+                      <Input
+                        id="outputDirectory"
+                        type="text"
+                        value={outputDirectory}
+                        onChange={(e) => setOutputDirectory(e.target.value)}
+                        placeholder=".NEXT"
+                        className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="overflow-hidden p-0">
+        <div className="p-6 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-[var(--success)]/10 flex items-center justify-center shrink-0">
+            <Terminal className="w-5 h-5 text-[var(--success)]" />
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+              Environment
+            </span>
+            <h2 className="text-xl font-semibold">Environment Variables</h2>
+          </div>
+        </div>
+
+        <Separator className="bg-[var(--border)]" />
+
+        <div className="p-6 space-y-6">
+          <div className="space-y-3">
+            {envVars.map((env) => (
+              <div
+                key={env.key}
+                className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]"
+              >
+                <div className="flex-1 grid grid-cols-5 gap-4 items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                      {env.key}
+                    </span>
+                    {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
+                  </div>
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] truncate">
+                    {env.isSecret ? '••••••••' : env.value}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                    {(env.target === 'both' ? 'Build & Runtime' : env.target).toUpperCase()}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                    {(env.environment === 'both' ? 'All Envs' : env.environment).toUpperCase()}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setEnvVars(envVars.filter((e) => e.key !== env.key))}
+                  className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                  aria-label={`Delete environment variable ${env.key}`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-4 p-4 bg-[var(--muted)]/5 rounded-lg border border-[var(--border)]">
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="KEY"
+                value={newEnvKey}
+                onChange={(e) =>
+                  setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))
+                }
+                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+              />
+              <Input
+                type={newEnvIsSecret ? 'password' : 'text'}
+                placeholder="VALUE"
+                value={newEnvValue}
+                onChange={(e) => setNewEnvValue(e.target.value)}
+                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAddEnv}
+                disabled={!newEnvKey || !newEnvValue}
+                className="text-[var(--primary)] px-4 text-[10px] font-bold uppercase tracking-wider"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add
+              </Button>
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-start gap-8 pt-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]/50">
+                <Switch id="isSecret" checked={newEnvIsSecret} onCheckedChange={setNewEnvIsSecret} />
+                <label
+                  htmlFor="isSecret"
+                  className="text-sm font-semibold cursor-pointer flex items-center gap-1.5"
+                >
+                  <Shield className="w-4 h-4 text-[var(--info)]" />
+                  Secret (Encrypted)
+                </label>
+              </div>
+
+              <div className="flex-1 space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold block mb-2">
+                    Target Environment Type
+                  </Label>
+                  <SegmentedControl
+                    options={[
+                      { value: 'both', label: 'BUILD & RUNTIME' },
+                      { value: 'build', label: 'BUILD ONLY' },
+                      { value: 'runtime', label: 'RUNTIME ONLY' },
+                    ]}
+                    value={newEnvTarget}
+                    onChange={(v) => setNewEnvTarget(v as EnvVariableTarget)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold block mb-2">Scope</Label>
+                  <SegmentedControl
+                    options={[
+                      { value: 'both', label: 'ALL ENVS' },
+                      { value: 'production', label: 'PRODUCTION ONLY' },
+                      { value: 'preview', label: 'PREVIEW ONLY' },
+                    ]}
+                    value={newEnvEnvironment}
+                    onChange={(v) => setNewEnvEnvironment(v as 'both' | 'production' | 'preview')}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="flex justify-between items-center pt-4">
+        <Button
+          variant="ghost"
+          onClick={onBack}
+          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-[10px] font-bold uppercase tracking-wider"
+        >
+          Back to Select
+        </Button>
+        <MovingBorderButton
+          onClick={handleDeploy}
+          disabled={deploying || !projectName}
+          containerClassName="h-12 w-48"
+          className="text-[10px] font-bold uppercase tracking-wider"
+        >
+          {deploying ? <Loader2 className="mr-2 w-5 h-5 animate-spin" /> : null}
+          {deploying ? 'Deploying...' : 'Deploy Project'}
+        </MovingBorderButton>
+      </div>
+    </motion.div>
+  );
 }
 
 // ----------------------------------------------------------------------
 // Step 3: Deployment Logs
 // ----------------------------------------------------------------------
 
-function Step3Deploy({ project, initialDeployment }: { project: Project, initialDeployment: Deployment }) {
-    const router = useRouter();
-    const [status, setStatus] = useState<string>(initialDeployment.status);
-    const [logs, setLogs] = useState<string>('Initializing build environment...');
-    const [error, setError] = useState<string | null>(null);
+function Step3Deploy({
+  project,
+  initialDeployment,
+}: {
+  project: Project;
+  initialDeployment: Deployment;
+}) {
+  const router = useRouter();
+  const [status, setStatus] = useState<string>(initialDeployment.status);
+  const [logs, setLogs] = useState<string>('Initializing build environment...');
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Poll status and logs
-        const interval = setInterval(async () => {
-            if (['ready', 'error', 'cancelled'].includes(status)) {
-                clearInterval(interval);
-                return;
+  useEffect(() => {
+    // Poll status and logs
+    const interval = setInterval(async () => {
+      if (['ready', 'error', 'cancelled'].includes(status)) {
+        clearInterval(interval);
+        return;
+      }
+
+      try {
+        const [statusRes, logsRes] = await Promise.all([
+          fetch(`/api/projects/${project.id}/deployments/${initialDeployment.id}`),
+          fetch(`/api/projects/${project.id}/deployments/${initialDeployment.id}/logs`),
+        ]);
+
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          if (statusData.deployment) {
+            setStatus(statusData.deployment.status);
+            if (statusData.deployment.errorMessage) {
+              setError(statusData.deployment.errorMessage);
             }
+          }
+        }
 
-            try {
-                const [statusRes, logsRes] = await Promise.all([
-                    fetch(`/api/projects/${project.id}/deployments/${initialDeployment.id}`),
-                    fetch(`/api/projects/${project.id}/deployments/${initialDeployment.id}/logs`)
-                ]);
+        if (logsRes.ok) {
+          const logsData = await logsRes.json();
+          if (logsData.logs) {
+            setLogs(logsData.logs);
+          }
+        }
+      } catch (e) {
+        console.error('Polling error', e);
+      }
+    }, 3000);
 
-                if (statusRes.ok) {
-                    const statusData = await statusRes.json();
-                    if (statusData.deployment) {
-                        setStatus(statusData.deployment.status);
-                        if (statusData.deployment.errorMessage) {
-                            setError(statusData.deployment.errorMessage);
-                        }
-                    }
-                }
+    return () => clearInterval(interval);
+  }, [project.id, initialDeployment.id, status]);
 
-                if (logsRes.ok) {
-                    const logsData = await logsRes.json();
-                    if (logsData.logs) {
-                         setLogs(logsData.logs);
-                    }
-                }
-            } catch (e) {
-                console.error('Polling error', e);
-            }
-        }, 3000);
+  const isReady = status === 'ready';
+  const isError = status === 'error' || status === 'cancelled';
 
-        return () => clearInterval(interval);
-    }, [project.id, initialDeployment.id, status]);
-
-    const isReady = status === 'ready';
-    const isError = status === 'error' || status === 'cancelled';
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full flex flex-col gap-8"
-        >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-2">
-                    <motion.div
-                        initial={false}
-                        animate={{
-                            color: isReady ? 'var(--success)' : isError ? 'var(--error)' : 'var(--info)'
-                        }}
-                        className="text-2xl font-semibold flex items-center gap-3"
-                    >
-                        {isReady ? (
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: 'spring', damping: 12 }}
-                            >
-                                <CheckCircle2 className="w-10 h-10" />
-                            </motion.div>
-                        ) : isError ? (
-                            <AlertCircle className="w-10 h-10" />
-                        ) : (
-                            <div className="relative">
-                                <Loader2 className="w-10 h-10 animate-spin" />
-                                <motion.div
-                                    animate={{ opacity: [0.2, 0.5, 0.2] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                    className="absolute inset-0 bg-[var(--info)] rounded-full blur-xl"
-                                />
-                            </div>
-                        )}
-                        <span>
-                            {isReady ? 'Deployed Successfully' : isError ? 'Deployment Failed' : 'Building & Deploying...'}
-                        </span>
-                    </motion.div>
-                    <p className="text-[var(--muted-foreground)] flex items-center gap-2">
-                        <GitBranch className="w-4 h-4" />
-                        <span className="font-semibold text-[var(--foreground)]">{project.name.toUpperCase()}</span>
-                        <span className="opacity-50">•</span>
-                        <span>{initialDeployment.gitBranch.toUpperCase()}</span>
-                        <span className="opacity-50">•</span>
-                        <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono">{initialDeployment.gitCommitSha.substring(0, 7).toUpperCase()}</code>
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    {isReady && (
-                        <>
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 }}
-                            >
-                                <a
-                                    href={project.productionUrl || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <MovingBorderButton
-                                        containerClassName="h-11 w-40"
-                                        className="text-[10px] font-bold uppercase tracking-wider"
-                                    >
-                                        <Globe className="w-4 h-4 mr-2" />
-                                        Visit App
-                                    </MovingBorderButton>
-                                </a>
-                            </motion.div>
-                            <Button
-                                variant="secondary"
-                                onClick={() => router.push(`/dashboard/${project.id}`)}
-                                className="h-11 px-6 rounded-xl text-[10px] font-bold uppercase tracking-wider"
-                            >
-                                Dashboard
-                            </Button>
-                        </>
-                    )}
-                    {isError && (
-                        <Button
-                            variant="primary"
-                            onClick={() => window.location.reload()}
-                            className="h-11 px-8 rounded-xl text-[10px] font-bold uppercase tracking-wider"
-                        >
-                            Try Again
-                        </Button>
-                    )}
-                </div>
-            </div>
-
-            {isReady && (
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="w-full flex flex-col gap-8"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-2">
+          <motion.div
+            initial={false}
+            animate={{
+              color: isReady ? 'var(--success)' : isError ? 'var(--error)' : 'var(--info)',
+            }}
+            className="text-2xl font-semibold flex items-center gap-3"
+          >
+            {isReady ? (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', damping: 12 }}
+              >
+                <CheckCircle2 className="w-10 h-10" />
+              </motion.div>
+            ) : isError ? (
+              <AlertCircle className="w-10 h-10" />
+            ) : (
+              <div className="relative">
+                <Loader2 className="w-10 h-10 animate-spin" />
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.1, type: 'spring', damping: 15 }}
-                >
-                    <Card className="overflow-hidden p-0 bg-gradient-to-br from-[var(--success-bg)]/30 to-[var(--background)] border-[var(--success)]/20 shadow-xl shadow-[var(--success-bg)]/20">
-                        <div className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <div className="space-y-4 flex-1">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-3 rounded-2xl bg-[var(--success)] text-[var(--primary-foreground)] shadow-lg shadow-[var(--success)]/20">
-                                        <Rocket className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Your project is live!</h3>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Everything is configured and running on Cloud Run.</p>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Production URL</span>
-                                        <p className="text-sm font-mono truncate uppercase">{project.productionUrl?.replace(/^https?:\/\//, '').toUpperCase()}</p>
-                                    </div>
-                                    <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Environment</span>
-                                        <p className="text-sm font-semibold">Production</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                </motion.div>
+                  animate={{ opacity: [0.2, 0.5, 0.2] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="absolute inset-0 bg-[var(--info)] rounded-full blur-xl"
+                />
+              </div>
             )}
+            <span>
+              {isReady
+                ? 'Deployed Successfully'
+                : isError
+                  ? 'Deployment Failed'
+                  : 'Building & Deploying...'}
+            </span>
+          </motion.div>
+          <p className="text-[var(--muted-foreground)] flex items-center gap-2">
+            <GitBranch className="w-4 h-4" />
+            <span className="font-semibold text-[var(--foreground)]">{project.name.toUpperCase()}</span>
+            <span className="opacity-50">•</span>
+            <span>{initialDeployment.gitBranch.toUpperCase()}</span>
+            <span className="opacity-50">•</span>
+            <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono">
+              {initialDeployment.gitCommitSha.substring(0, 7).toUpperCase()}
+            </code>
+          </p>
+        </div>
 
-            <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
-                <div className="bg-[var(--terminal-header-bg)] p-3 flex items-center justify-between border-b border-[var(--terminal-border)]">
-                    <div className="flex items-center gap-4">
-                        <div className="flex gap-1.5">
-                            <div className="w-3 h-3 rounded-full bg-[var(--error)]/20 border border-[var(--error)]/50" />
-                            <div className="w-3 h-3 rounded-full bg-[var(--warning)]/20 border border-[var(--warning)]/50" />
-                            <div className="w-3 h-3 rounded-full bg-[var(--success)]/20 border border-[var(--success)]/50" />
-                        </div>
-                        <div className="flex items-center gap-2 text-[var(--terminal-foreground)]/40">
-                            <Terminal className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Build Logs</span>
-                        </div>
-                    </div>
-                    <div className="text-[var(--terminal-foreground)]/20 text-[10px] font-bold uppercase tracking-wider">build-log.txt</div>
+        <div className="flex items-center gap-3">
+          {isReady && (
+            <>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <a href={project.productionUrl || '#'} target="_blank" rel="noopener noreferrer">
+                  <MovingBorderButton
+                    containerClassName="h-11 w-40"
+                    className="text-[10px] font-bold uppercase tracking-wider"
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Visit App
+                  </MovingBorderButton>
+                </a>
+              </motion.div>
+              <Button
+                variant="secondary"
+                onClick={() => router.push(`/dashboard/${project.id}`)}
+                className="h-11 px-6 rounded-xl text-[10px] font-bold uppercase tracking-wider"
+              >
+                Dashboard
+              </Button>
+            </>
+          )}
+          {isError && (
+            <Button
+              variant="primary"
+              onClick={() => window.location.reload()}
+              className="h-11 px-8 rounded-xl text-[10px] font-bold uppercase tracking-wider"
+            >
+              Try Again
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {isReady && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.1, type: 'spring', damping: 15 }}
+        >
+          <Card className="overflow-hidden p-0 bg-gradient-to-br from-[var(--success-bg)]/30 to-[var(--background)] border-[var(--success)]/20 shadow-xl shadow-[var(--success-bg)]/20">
+            <div className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-4 flex-1">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-2xl bg-[var(--success)] text-[var(--primary-foreground)] shadow-lg shadow-[var(--success)]/20">
+                    <Rocket className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg">Your project is live!</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                      Everything is configured and running on Cloud Run.
+                    </p>
+                  </div>
                 </div>
-
-                <div className="flex-1 overflow-hidden relative">
-                    <BuildLogViewer
-                        logs={logs}
-                        loading={!isReady && !isError && !logs}
-                        error={error}
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">
+                      Production URL
+                    </span>
+                    <p className="text-sm font-mono truncate uppercase">
+                      {project.productionUrl?.replace(/^https?:\/\//, '').toUpperCase()}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">
+                      Environment
+                    </span>
+                    <p className="text-sm font-semibold">Production</p>
+                  </div>
                 </div>
-
-                {!isReady && !isError && (
-                    <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--terminal-bg)] to-transparent pointer-events-none" />
-                )}
+              </div>
             </div>
+          </Card>
         </motion.div>
-    );
+      )}
+
+      <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
+        <div className="bg-[var(--terminal-header-bg)] p-3 flex items-center justify-between border-b border-[var(--terminal-border)]">
+          <div className="flex items-center gap-4">
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-[var(--error)]/20 border border-[var(--error)]/50" />
+              <div className="w-3 h-3 rounded-full bg-[var(--warning)]/20 border border-[var(--warning)]/50" />
+              <div className="w-3 h-3 rounded-full bg-[var(--success)]/20 border border-[var(--success)]/50" />
+            </div>
+            <div className="flex items-center gap-2 text-[var(--terminal-foreground)]/40">
+              <Terminal className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Build Logs</span>
+            </div>
+          </div>
+          <div className="text-[var(--terminal-foreground)]/20 text-[10px] font-bold uppercase tracking-wider">
+            build-log.txt
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-hidden relative">
+          <BuildLogViewer logs={logs} loading={!isReady && !isError && !logs} error={error} />
+        </div>
+
+        {!isReady && !isError && (
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--terminal-bg)] to-transparent pointer-events-none" />
+        )}
+      </div>
+    </motion.div>
+  );
 }
