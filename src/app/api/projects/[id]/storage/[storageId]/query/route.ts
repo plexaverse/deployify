@@ -278,11 +278,16 @@ export async function POST(
                                     WHERE c.table_name = $1 AND c.table_schema = 'public'`,
                                     [table]
                                 );
+                                // Fetch row count estimate for Postgres
+                                const countRes = await client.query("SELECT n_live_tup FROM pg_stat_user_tables WHERE relname = $1", [table]);
+                                const rowCountEstimate = countRes.rows[0]?.n_live_tup;
+
                                 columns[table] = colsRes.rows.map(r => ({
                                     name: r.column_name,
                                     type: r.data_type,
                                     isPrimary: r.is_primary,
-                                    isForeign: r.is_foreign
+                                    isForeign: r.is_foreign,
+                                    rowCountEstimate
                                 }));
                             }
 
@@ -320,11 +325,17 @@ export async function POST(
                                     [table]
                                 );
                                 // @ts-expect-error - Dynamic mysql result
+                                // Fetch row count for MySQL
+                                const [countRows] = await connection.execute('SELECT TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?', [table]);
+                                // @ts-expect-error - Dynamic result
+                                const rowCountEstimate = countRows[0]?.TABLE_ROWS;
+
                                 columns[table] = colsRows.map(r => ({
                                     name: r.name,
                                     type: r.type,
                                     isPrimary: !!r.isPrimary,
-                                    isForeign: !!r.isForeign
+                                    isForeign: !!r.isForeign,
+                                    rowCountEstimate
                                 }));
                             }
 
