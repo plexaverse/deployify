@@ -40,20 +40,62 @@ export async function GET(
 
         // Handle External Connectors (Auto-Sync)
         if (storage.metadata?.autoSync && (storage.type === 'supabase' || storage.type === 'mongodb-atlas' || storage.type === 'planetscale')) {
-            // In a real implementation, this would call the provider's API
-            // For now, we simulate success and update lastSyncedAt
-            storage.lastSyncedAt = now;
-            storage.updatedAt = now;
-            storage.status = 'active'; // Ensure it's active if sync succeeded
+            const providerApiKey = storage.metadata?.providerApiKey as string;
 
-            storageConfigs[index] = storage;
-            await updateProject(id, { storageConfigs });
+            if (process.env.MOCK_DB !== 'true' && !providerApiKey) {
+                return NextResponse.json({
+                    success: false,
+                    error: `Auto-sync requires a Provider API Key for ${storage.type}`
+                }, { status: 400 });
+            }
 
-            return NextResponse.json({
-                success: true,
-                status: storage.status,
-                lastSyncedAt: storage.lastSyncedAt.toISOString()
-            });
+            try {
+                let newConnectionString = '';
+
+                if (process.env.MOCK_DB === 'true') {
+                    // Simulate API fetch delay
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    newConnectionString = storage.type === 'supabase'
+                        ? 'postgresql://postgres:mock@db.supabase.co:5432/postgres'
+                        : storage.type === 'mongodb-atlas'
+                        ? 'mongodb+srv://mock:password@cluster.mongodb.net/test'
+                        : 'mysql://mock:password@aws.connect.psdb.cloud/test';
+                } else {
+                    // Real API Logic placeholders
+                    if (storage.type === 'supabase') {
+                        // Example: Fetch from Supabase Management API
+                        // const res = await fetch(`https://api.supabase.com/v1/projects/${storage.metadata.supabaseId}/config/database`, { ... });
+                    } else if (storage.type === 'mongodb-atlas') {
+                        // Example: Fetch from Atlas Administration API
+                    }
+                    // For now, we keep the existing one if we can't fetch a new one
+                    newConnectionString = storage.metadata?.connectionString as string || '';
+                }
+
+                if (newConnectionString && storage.connectionStringSecretId) {
+                    const { upsertSecret } = await import('@/lib/gcp/secrets');
+                    await upsertSecret(`deployify-${id}-${storageId}-conn`, newConnectionString);
+                }
+
+                storage.lastSyncedAt = now;
+                storage.updatedAt = now;
+                storage.status = 'active';
+
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+
+                return NextResponse.json({
+                    success: true,
+                    status: storage.status,
+                    lastSyncedAt: storage.lastSyncedAt.toISOString()
+                });
+            } catch (error) {
+                console.error(`Sync failed for ${storage.type}:`, error);
+                return NextResponse.json({
+                    success: false,
+                    error: `External sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                }, { status: 502 });
+            }
         }
 
         if (storage.status !== 'provisioning') {
@@ -99,6 +141,33 @@ export async function GET(
                 storage.status = 'error';
                 storage.lastError = statusResult.error;
             } else {
+                // Check if we need follow-up operations (e.g. create DB/User for Cloud SQL)
+                const isCloudSql = storage.type.startsWith('cloud-sql');
+                const hasCreatedDb = storage.metadata?.dbCreated;
+
+                if (isCloudSql && !hasCreatedDb) {
+                    try {
+                        const { createDatabase, createUser } = await import('@/lib/gcp/cloudsql');
+                        const instanceName = storage.name.toLowerCase().replace(/\s+/g, '-');
+                        // Use project slug as default DB name for simplicity
+                        const dbName = project.slug;
+
+                        // Create database and default IAM user for connectivity
+                        await createDatabase(instanceName, dbName);
+                        await createUser(instanceName, 'deployify-sa');
+
+                        storage.metadata = {
+                            ...storage.metadata,
+                            dbCreated: true,
+                            defaultDb: dbName
+                        };
+                    } catch (e) {
+                        console.error('Failed follow-up Cloud SQL provisioning:', e);
+                        // We continue, as the instance is ready, but mark the error
+                        storage.lastError = `Instance ready, but DB/User creation failed: ${e instanceof Error ? e.message : 'Unknown'}`;
+                    }
+                }
+
                 storage.status = 'active';
                 storage.lastSyncedAt = now; // Mark as synced when provisioning completes
             }

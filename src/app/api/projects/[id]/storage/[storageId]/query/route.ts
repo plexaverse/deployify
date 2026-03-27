@@ -188,6 +188,10 @@ export async function POST(
 
         // Real Connectivity Logic (Experimental Proxy)
         try {
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Query execution timeout after 25s')), 25000)
+            );
+
             const resultPromise = (async () => {
             if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
                 const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
@@ -273,7 +277,7 @@ export async function POST(
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
-                            await client.end();
+                            await client.end().catch(() => {});
                         }
                     } else {
                         // @ts-expect-error - Overloaded mysql connection config
@@ -315,7 +319,7 @@ export async function POST(
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
-                            await connection.end();
+                            await connection.end().catch(() => {});
                         }
                     }
                 }
@@ -333,7 +337,7 @@ export async function POST(
                             executionTimeMs: Date.now() - startTime
                         });
                     } finally {
-                        await client.end();
+                        await client.end().catch(() => {});
                     }
                 } else {
                     // @ts-expect-error - Overloaded mysql connection config
@@ -349,7 +353,7 @@ export async function POST(
                             executionTimeMs: Date.now() - startTime
                         });
                     } finally {
-                        await connection.end();
+                        await connection.end().catch(() => {});
                     }
                 }
             } else if (storageConfig.type === 'mongodb-atlas') {
@@ -402,7 +406,7 @@ export async function POST(
                         executionTimeMs: Date.now() - startTime
                     });
                 } finally {
-                    await client.close();
+                    await client.close().catch(() => {});
                 }
             } else if (storageConfig.type === 'memorystore-redis') {
                 const redis = new Redis(connectionString);
@@ -520,7 +524,8 @@ export async function POST(
             return NextResponse.json({ error: 'Unsupported connector type for Data Lab proxy' }, { status: 400 });
             })();
 
-            const response = await resultPromise;
+            // Race query against timeout
+            const response = await Promise.race([resultPromise, timeoutPromise]) as NextResponse;
             const executionTimeMs = Date.now() - startTime;
 
             // Log performance metrics for observability

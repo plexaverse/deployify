@@ -133,6 +133,13 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Harden SQL read-only regex to handle CTEs (`WITH`) and string literals safely
 - [x] Verify 100% test pass rate and zero-warning linting for proxy logic
 
+### Phase 21: Production-Grade Connectivity & Provisioning (IN PROGRESS)
+- [ ] Implement real API integration logic for External Connector Sync (Supabase, MongoDB Atlas)
+- [ ] Transition External Connector Sync from simulated to logic-ready structures
+- [ ] Implement Advanced Cloud SQL Provisioning (Database & User creation sub-operations)
+- [ ] Hardened Data Lab Proxy resource management (Pooling & Timeout handling)
+- [ ] Verify functional integrity with exhaustive test suite and API audit
+
 ## Progress Updates
 
 ### 2026-10-26: Initial Setup
