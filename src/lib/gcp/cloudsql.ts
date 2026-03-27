@@ -64,13 +64,69 @@ export async function createInstance(
     // Use IAM-based connection string (no password, using service account identity)
     const connectionString = `${dbType === 'postgres' ? 'postgresql' : 'mysql'}://deployify-sa@/${instanceName}?host=/cloudsql/${gcpProjectId}:${region}:${instanceName}&enable_iam_auth=true`;
 
-    // In a production scenario, we would now trigger another operation to create the DB and User
-    // For this implementation, we assume the default 'postgres' or 'mysql' DB exists or will be created by the app.
-
+    // Advanced Provisioning: In a real scenario, we would trigger follow-up operations for DB and User.
+    // We return the primary operation name for the instance creation.
     return {
         operationName: data.name,
         connectionString,
     };
+}
+
+/**
+ * Create a database within an existing instance
+ */
+export async function createDatabase(
+    instanceName: string,
+    databaseName: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/db-${databaseName}`;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/databases`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: databaseName }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to create database: ${await response.text()}`);
+    const data = await response.json();
+    return data.name;
+}
+
+/**
+ * Create a user within an existing instance
+ */
+export async function createUser(
+    instanceName: string,
+    username: string,
+    password?: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/user-${username}`;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/users`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: username,
+            password: password || undefined,
+            type: password ? 'BUILT_IN' : 'CLOUD_IAM_USER',
+        }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to create user: ${await response.text()}`);
+    const data = await response.json();
+    return data.name;
 }
 
 /**
