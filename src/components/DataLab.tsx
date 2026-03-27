@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart, LayoutTemplate } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
     ResponsiveContainer,
@@ -75,9 +75,12 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved'>('editor');
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
+    const [copiedCell, setCopiedCell] = useState<string | null>(null);
+    const [isExportingPDF, setIsExportingPDF] = useState(false);
     const [queryVariables, setQueryVariables] = useState<Record<string, string>>({});
     const [detectedVars, setDetectedVars] = useState<string[]>([]);
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
+    const [showTemplates, setShowTemplates] = useState(false);
 
     useEffect(() => {
         // Detect :variable patterns
@@ -310,6 +313,40 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         document.body.removeChild(link);
     };
 
+    const downloadPDF = async () => {
+        if (!processedResults || processedResults.length === 0 || !selectedConnector) return;
+        setIsExportingPDF(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/export/pdf`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    results: processedResults,
+                    query: query || 'N/A',
+                    storageName: selectedConnector.name,
+                    storageType: selectedConnector.type
+                }),
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `datalab-report-${projectId}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                console.error('Failed to export PDF');
+            }
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+        } finally {
+            setIsExportingPDF(false);
+        }
+    };
+
     const exportTypeScript = () => {
         if (!schema || !schema.columns) return;
 
@@ -409,6 +446,43 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
 
     const selectedConnector = connectors.find(c => c.id === selectedId);
 
+    const templates = useMemo(() => {
+        const type = selectedConnector?.type || 'generic';
+        if (type.includes('sql') || type === 'planetscale') {
+            return [
+                { name: 'SELECT ALL', query: 'SELECT * FROM table_name LIMIT 10' },
+                { name: 'WHERE FILTER', query: 'SELECT * FROM table_name WHERE column = :value' },
+                { name: 'ORDER BY', query: 'SELECT * FROM table_name ORDER BY created_at DESC LIMIT 10' },
+                { name: 'GROUP BY', query: 'SELECT column, COUNT(*) FROM table_name GROUP BY column' },
+                { name: 'JOIN TABLES', query: 'SELECT t1.*, t2.* FROM table1 t1 JOIN table2 t2 ON t1.id = t2.t1_id LIMIT 10' },
+                { name: 'EXPLAIN ANALYZE', query: 'EXPLAIN ANALYZE SELECT * FROM table_name' }
+            ];
+        }
+        if (type === 'mongodb-atlas') {
+            return [
+                { name: 'FIND ALL', query: '{ "collection": "users", "limit": 10 }' },
+                { name: 'FILTER BY FIELD', query: '{ "collection": "users", "filter": { "email": ":email" } }' },
+                { name: 'SORT RESULTS', query: '{ "collection": "users", "sort": { "createdAt": -1 }, "limit": 10 }' },
+                { name: 'AGGREGATE', query: '{ "collection": "users", "aggregate": [{ "$group": { "_id": "$status", "count": { "$sum": 1 } } }] }' }
+            ];
+        }
+        if (type === 'firestore') {
+            return [
+                { name: 'COLLECTION GET', query: '{ "collection": "users", "limit": 10 }' },
+                { name: 'WHERE CLAUSE', query: '{ "collection": "users", "where": [["status", "==", "active"]] }' }
+            ];
+        }
+        if (type === 'memorystore-redis') {
+            return [
+                { name: 'GET KEY', query: 'GET :key' },
+                { name: 'HGETALL', query: '{ "command": "hgetall", "args": [":key"] }' },
+                { name: 'SCAN KEYS', query: 'SCAN 0 COUNT 20' },
+                { name: 'EXPIRE', query: 'EXPIRE :key 3600' }
+            ];
+        }
+        return [];
+    }, [selectedConnector]);
+
     const processedResults = useMemo(() => {
         if (!results) return null;
 
@@ -484,12 +558,30 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     </thead>
                     <tbody>
                         {paginatedResults.map((row, i) => (
-                            <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
-                                {columns.map(col => (
-                                    <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate">
-                                        {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
-                                    </td>
-                                ))}
+                            <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors group/row">
+                                {columns.map(col => {
+                                    const value = typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col]);
+                                    return (
+                                        <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
+                                            {value}
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(value);
+                                                    setCopiedCell(`${i}-${col}`);
+                                                    setTimeout(() => setCopiedCell(null), 2000);
+                                                }}
+                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded bg-[var(--background)] border border-[var(--border)] opacity-0 group-hover/cell:opacity-100 transition-opacity hover:text-[var(--primary)]"
+                                                title="Copy cell value"
+                                            >
+                                                {copiedCell === `${i}-${col}` ? (
+                                                    <CheckCircle2 className="w-3 h-3 text-[var(--success)]" />
+                                                ) : (
+                                                    <Copy className="w-3 h-3" />
+                                                )}
+                                            </button>
+                                        </td>
+                                    );
+                                })}
                             </tr>
                         ))}
                     </tbody>
@@ -543,7 +635,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setChartConfig(prev => ({ ...prev, type: t }))}
-                                    className={`flex-1 h-full text-[8px] font-bold uppercase tracking-wider px-1 ${chartConfig.type === t ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                        className={`flex-1 h-full text-[10px] font-bold uppercase tracking-wider px-1 ${chartConfig.type === t ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
                                 >
                                     {t}
                                 </Button>
@@ -721,6 +813,48 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                         }
                                     />
                                     <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                                <div className="relative">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setShowTemplates(!showTemplates)}
+                                        className={cn(
+                                            "h-10 px-4 text-[10px] font-bold uppercase tracking-wider transition-colors",
+                                            showTemplates ? "text-[var(--primary)] bg-[var(--primary)]/10" : "text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        )}
+                                        title="Query Templates"
+                                    >
+                                        <LayoutTemplate className="w-4 h-4 mr-2" />
+                                        Templates
+                                    </Button>
+                                    {showTemplates && (
+                                        <div className="absolute bottom-full mb-2 right-0 w-64 bg-[var(--popover)] border border-[var(--border)] rounded-xl shadow-2xl p-2 z-50 animate-in slide-in-from-bottom-2 fade-in">
+                                            <div className="p-2 border-b border-[var(--border)] mb-1">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">QUICK TEMPLATES</span>
+                                            </div>
+                                            <div className="space-y-1">
+                                                {templates.map(t => (
+                                                    <button
+                                                        key={t.name}
+                                                        onClick={() => {
+                                                            setQuery(t.query);
+                                                            setShowTemplates(false);
+                                                        }}
+                                                        className="w-full text-left p-2 hover:bg-[var(--primary)]/10 rounded-lg transition-colors group"
+                                                    >
+                                                        <span className="block text-[10px] font-bold uppercase tracking-wider group-hover:text-[var(--primary)]">{t.name}</span>
+                                                        <code className="block text-[9px] font-mono text-[var(--muted-foreground)] truncate">{t.query}</code>
+                                                    </button>
+                                                ))}
+                                                {templates.length === 0 && (
+                                                    <div className="p-4 text-center">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">NO TEMPLATES AVAILABLE</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -1164,6 +1298,16 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     >
                                         <Terminal className="w-3.5 h-3.5 mr-1.5" />
                                         JSON
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={downloadPDF}
+                                        disabled={isExportingPDF}
+                                        className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                    >
+                                        {isExportingPDF ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <FileCode className="w-3.5 h-3.5 mr-1.5" />}
+                                        PDF
                                     </Button>
                                     <Button
                                         variant="ghost"
