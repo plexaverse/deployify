@@ -69,3 +69,7 @@
 ## 2026-03-25 - [Framer Motion Filter Syntax and Build Safety]
 **Learning:** When using Framer Motion's `whileHover` or `animate` props to apply complex visual effects like drop shadows alongside grayscale, it is safer to use the full `filter` string property (e.g., `filter: 'grayscale(0%) drop-shadow(...)'`) rather than attempting to use shorthand keys like `dropShadow`. TypeScript often lacks definitions for these shorthands in the motion target types, leading to build-time failures even if they work in development.
 **Action:** Always use the composite `filter` string for complex CSS filters in Framer Motion to ensure build stability.
+
+## 2026-03-28 - [Accessible Form Controls and Roving Tabindex]
+**Learning:** Custom form controls like segmented controls are often implemented as simple button groups, which lacks the semantic structure for screen readers and breaks standard keyboard expectations (arrows for navigation). Additionally, unassociated labels in complex forms reduce the clickable area and accessibility.
+**Action:** Always implement role="radiogroup" and role="radio" with roving tabIndex for segmented controls, and ensure every form input has a corresponding Label with a matching id.
