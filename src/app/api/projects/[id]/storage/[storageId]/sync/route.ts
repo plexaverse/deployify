@@ -64,7 +64,13 @@ export async function GET(
                     // Real API Logic Implementation (Logic-Ready Structures)
                     if (storage.type === 'supabase') {
                         const supabaseId = storage.metadata?.supabaseId as string;
-                        if (!supabaseId) throw new Error('Supabase Reference ID is missing in metadata');
+                        if (!supabaseId) {
+                            storage.status = 'error';
+                            storage.lastError = 'Supabase Reference ID is missing in metadata';
+                            storageConfigs[index] = storage;
+                            await updateProject(id, { storageConfigs });
+                            throw new Error(storage.lastError);
+                        }
 
                         // Implementation: Fetch DB connection info from Supabase Management API
                         // const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/config/database`, {
@@ -78,7 +84,13 @@ export async function GET(
                     } else if (storage.type === 'mongodb-atlas') {
                         const groupId = storage.metadata?.groupId as string;
                         const clusterName = storage.metadata?.clusterName as string;
-                        if (!groupId || !clusterName) throw new Error('MongoDB Atlas GroupID or ClusterName is missing');
+                        if (!groupId || !clusterName) {
+                            storage.status = 'error';
+                            storage.lastError = 'MongoDB Atlas GroupID or ClusterName is missing';
+                            storageConfigs[index] = storage;
+                            await updateProject(id, { storageConfigs });
+                            throw new Error(storage.lastError);
+                        }
 
                         // Implementation: Fetch Cluster info from Atlas Administration API
                         // const res = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters/${clusterName}`, {
@@ -92,7 +104,13 @@ export async function GET(
                     } else if (storage.type === 'planetscale') {
                         const organization = storage.metadata?.organization as string;
                         const database = storage.metadata?.database as string;
-                        if (!organization || !database) throw new Error('PlanetScale Organization or Database name is missing');
+                        if (!organization || !database) {
+                            storage.status = 'error';
+                            storage.lastError = 'PlanetScale Organization or Database name is missing';
+                            storageConfigs[index] = storage;
+                            await updateProject(id, { storageConfigs });
+                            throw new Error(storage.lastError);
+                        }
 
                         // Implementation: Fetch Passwords from PlanetScale API
                         // const res = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
@@ -106,11 +124,14 @@ export async function GET(
                 if (newConnectionString && storage.connectionStringSecretId) {
                     const { upsertSecret } = await import('@/lib/gcp/secrets');
                     await upsertSecret(`deployify-${id}-${storageId}-conn`, newConnectionString);
+                } else if (!newConnectionString && process.env.MOCK_DB !== 'true') {
+                    throw new Error('Connection string could not be resolved from provider API');
                 }
 
                 storage.lastSyncedAt = now;
                 storage.updatedAt = now;
                 storage.status = 'active';
+                storage.lastError = undefined;
 
                 storageConfigs[index] = storage;
                 await updateProject(id, { storageConfigs });
@@ -122,8 +143,18 @@ export async function GET(
                 });
             } catch (error) {
                 console.error(`Sync failed for ${storage.type}:`, error);
+
+                // Persist error status if not already handled
+                if (storage.status !== 'error') {
+                    storage.status = 'error';
+                    storage.lastError = error instanceof Error ? error.message : 'Unknown external sync error';
+                    storageConfigs[index] = storage;
+                    await updateProject(id, { storageConfigs });
+                }
+
                 return NextResponse.json({
                     success: false,
+                    status: 'error',
                     error: `External sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`
                 }, { status: 502 });
             }

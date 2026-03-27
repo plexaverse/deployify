@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart, LayoutTemplate } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
     ResponsiveContainer,
     BarChart,
@@ -15,7 +16,10 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend
+    Legend,
+    PieChart as RechartsPieChart,
+    Pie,
+    Cell
 } from 'recharts';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +37,45 @@ interface DataLabProps {
 
 const ROWS_PER_PAGE = 10;
 
+const QUERY_TEMPLATES: Record<string, { name: string, query: string }[]> = {
+    'cloud-sql-postgres': [
+        { name: 'LIST ALL TABLES', query: "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name ASC" },
+        { name: 'ROW COUNTS (ESTIMATED)', query: "SELECT relname AS table_name, n_live_tup AS row_count FROM pg_stat_user_tables ORDER BY n_live_tup DESC" },
+        { name: 'CHECK TABLE SIZE', query: "SELECT relname AS table_name, pg_size_pretty(pg_total_relation_size(relid)) AS total_size FROM pg_stat_user_tables ORDER BY pg_total_relation_size(relid) DESC" },
+        { name: 'ACTIVE CONNECTIONS', query: "SELECT count(*) FROM pg_stat_activity WHERE state = 'active'" }
+    ],
+    'supabase': [
+        { name: 'LIST ALL TABLES', query: "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name ASC" },
+        { name: 'ROW COUNTS (ESTIMATED)', query: "SELECT relname AS table_name, n_live_tup AS row_count FROM pg_stat_user_tables ORDER BY n_live_tup DESC" }
+    ],
+    'cloud-sql-mysql': [
+        { name: 'LIST ALL TABLES', query: "SHOW TABLES" },
+        { name: 'TABLE STATUS & ROWS', query: "SHOW TABLE STATUS" },
+        { name: 'PROCESS LIST', query: "SHOW PROCESSLIST" },
+        { name: 'CHECK VARIABLES', query: "SHOW VARIABLES LIKE '%max_connections%'" }
+    ],
+    'planetscale': [
+        { name: 'LIST ALL TABLES', query: "SHOW TABLES" },
+        { name: 'TABLE STATUS', query: "SHOW TABLE STATUS" }
+    ],
+    'mongodb-atlas': [
+        { name: 'LIST COLLECTIONS', query: 'DISCOVER_SCHEMA' },
+        { name: 'FIND RECENT DOCS', query: '{ "collection": "users", "limit": 10, "sort": { "createdAt": -1 } }' },
+        { name: 'COUNT DOCUMENTS', query: '{ "collection": "users", "count": true }' }
+    ],
+    'firestore': [
+        { name: 'LIST COLLECTIONS', query: 'DISCOVER_SCHEMA' },
+        { name: 'QUERY WITH FILTER', query: '{ "collection": "users", "where": [["status", "==", "active"]], "limit": 10 }' }
+    ],
+    'memorystore-redis': [
+        { name: 'SCAN ALL KEYS', query: 'SCAN 0 COUNT 100' },
+        { name: 'GET KEY VALUE', query: 'GET :key' },
+        { name: 'INFO STATS', query: 'INFO' }
+    ]
+};
+
+const CHART_COLORS = ['#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4'];
+
 export function DataLab({ projectId, connectors }: DataLabProps) {
     const currentUserId = connectors[0]?.metadata?.userId as string | undefined;
     const [selectedId, setSelectedId] = useState(connectors[0]?.id || '');
@@ -44,7 +87,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json' | 'chart'>('table');
-    const [chartConfig, setChartConfig] = useState<{ type: 'bar' | 'line' | 'area', xAxis: string, yAxis: string }>({ type: 'bar', xAxis: '', yAxis: '' });
+    const [chartConfig, setChartConfig] = useState<{ type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string }>({ type: 'bar', xAxis: '', yAxis: '' });
     const [schema, setSchema] = useState<{
         tables?: string[],
         collections?: string[],
@@ -186,14 +229,14 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 const isNumeric = col.type.toLowerCase().includes('int') || col.type.toLowerCase().includes('float') || col.type.toLowerCase().includes('number') || col.type.toLowerCase().includes('decimal');
                                 if (isNumeric) {
                                     const values = samples
-                                        .filter((s: any) => s._table === table || !s._table) // Handle cases where proxy might label table
-                                        .map((s: any) => s[col.name])
-                                        .filter((v: any) => typeof v === 'number');
+                                        .filter((s: Record<string, unknown>) => s._table === table || !s._table) // Handle cases where proxy might label table
+                                        .map((s: Record<string, unknown>) => s[col.name])
+                                        .filter((v: unknown): v is number => typeof v === 'number');
 
                                     if (values.length > 0) {
                                         // Simple frequency map for distribution
                                         const freq: Record<string, number> = {};
-                                        values.forEach((v: any) => {
+                                        values.forEach((v: number) => {
                                             const key = String(v);
                                             freq[key] = (freq[key] || 0) + 1;
                                         });
@@ -366,6 +409,12 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         setSortConfig(null);
     };
 
+    const copyCell = (value: unknown) => {
+        const str = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        navigator.clipboard.writeText(str);
+        toast.success('Cell value copied');
+    };
+
     const formatQuery = () => {
         if (!query.trim()) return;
         try {
@@ -484,10 +533,19 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     </thead>
                     <tbody>
                         {paginatedResults.map((row, i) => (
-                            <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
+                            <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors group/row">
                                 {columns.map(col => (
-                                    <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate">
-                                        {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
+                                    <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate relative">
+                                        <div className="flex items-center justify-between">
+                                            <span>{typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}</span>
+                                            <button
+                                                onClick={() => copyCell(row[col])}
+                                                className="opacity-0 group-hover/row:opacity-100 transition-opacity p-1 hover:bg-[var(--primary)]/10 rounded ml-2"
+                                                title="Copy Cell Value"
+                                            >
+                                                <Copy className="w-2.5 h-2.5 text-[var(--primary)]" />
+                                            </button>
+                                        </div>
                                     </td>
                                 ))}
                             </tr>
@@ -506,8 +564,97 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             processedResults.some(row => typeof row[col] === 'number')
         );
 
+        if (chartConfig.type === 'pie') {
+            return (
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Category (Labels)</Label>
+                            <select
+                                value={chartConfig.xAxis}
+                                onChange={(e) => setChartConfig(prev => ({ ...prev, xAxis: e.target.value }))}
+                                className="w-full h-8 px-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[10px] font-bold uppercase"
+                            >
+                                <option value="">SELECT CATEGORY</option>
+                                {columns.map(col => <option key={col} value={col}>{col.toUpperCase()}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Value (Numeric)</Label>
+                            <select
+                                value={chartConfig.yAxis}
+                                onChange={(e) => setChartConfig(prev => ({ ...prev, yAxis: e.target.value }))}
+                                className="w-full h-8 px-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[10px] font-bold uppercase"
+                            >
+                                <option value="">SELECT VALUE</option>
+                                {numericColumns.map(col => <option key={col} value={col}>{col.toUpperCase()}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Chart Type</Label>
+                            <div className="flex gap-1 bg-[var(--muted)]/20 p-1 rounded-lg border border-[var(--border)] h-8">
+                                {(['bar', 'line', 'area', 'pie'] as const).map(t => (
+                                    <Button
+                                        key={t}
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setChartConfig(prev => ({ ...prev, type: t }))}
+                                        className={`flex-1 h-full text-[8px] font-bold uppercase tracking-wider px-1 ${chartConfig.type === t ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                    >
+                                        {t}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {!chartConfig.xAxis || !chartConfig.yAxis ? (
+                        <div className="flex flex-col items-center justify-center py-12 space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                            <PieChart className="w-8 h-8 text-[var(--muted-foreground)]/30" />
+                            <div className="text-center space-y-1">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configure axes to visualize data</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="h-[400px] w-full bg-[var(--background)] rounded-xl border border-[var(--border)] p-6">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <RechartsPieChart>
+                                    <Pie
+                                        data={processedResults}
+                                        dataKey={chartConfig.yAxis}
+                                        nameKey={chartConfig.xAxis}
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={140}
+                                        fill="var(--primary)"
+                                        label={({ name, percent }) => `${name.toUpperCase()} (${(percent * 100).toFixed(0)}%)`}
+                                        labelLine={false}
+                                    >
+                                        {processedResults.map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{
+                                            backgroundColor: 'var(--popover)',
+                                            borderColor: 'var(--border)',
+                                            borderRadius: '8px',
+                                            fontSize: '10px',
+                                            fontWeight: 'bold',
+                                            textTransform: 'uppercase'
+                                        }}
+                                    />
+                                    <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', paddingTop: '20px' }} />
+                                </RechartsPieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
         const ChartComponent = chartConfig.type === 'bar' ? BarChart : chartConfig.type === 'line' ? LineChart : AreaChart;
-        const DataComponent = (chartConfig.type === 'bar' ? Bar : chartConfig.type === 'line' ? Line : Area) as any;
+        const DataComponent = (chartConfig.type === 'bar' ? Bar : chartConfig.type === 'line' ? Line : Area) as React.ElementType;
 
         return (
             <div className="space-y-6">
@@ -537,7 +684,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     <div className="space-y-1.5">
                         <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Chart Type</Label>
                         <div className="flex gap-1 bg-[var(--muted)]/20 p-1 rounded-lg border border-[var(--border)] h-8">
-                            {(['bar', 'line', 'area'] as const).map(t => (
+                            {(['bar', 'line', 'area', 'pie'] as const).map(t => (
                                 <Button
                                     key={t}
                                     variant="ghost"
@@ -679,17 +826,48 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             <div className="p-6 space-y-6">
                 {activeTab === 'editor' ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Select Connector</Label>
-                        <select
-                            value={selectedId}
-                            onChange={(e) => setSelectedId(e.target.value)}
-                            className="w-full h-10 px-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
-                        >
-                            {connectors.map(c => (
-                                <option key={c.id} value={c.id}>{c.name} ({c.type.toUpperCase()})</option>
-                            ))}
-                        </select>
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Select Connector</Label>
+                            <select
+                                value={selectedId}
+                                onChange={(e) => setSelectedId(e.target.value)}
+                                className="w-full h-10 px-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+                            >
+                                {connectors.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name} ({c.type.toUpperCase()})</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {selectedConnector && QUERY_TEMPLATES[selectedConnector.type] && (
+                            <div className="space-y-3 animate-in fade-in slide-in-from-left-2">
+                                <div className="flex items-center gap-2">
+                                    <LayoutTemplate className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query Templates</span>
+                                </div>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {QUERY_TEMPLATES[selectedConnector.type].map((template, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => {
+                                                if (template.query === 'DISCOVER_SCHEMA') {
+                                                    discoverSchema();
+                                                } else {
+                                                    setQuery(template.query);
+                                                }
+                                            }}
+                                            className="w-full p-2.5 text-left rounded-lg bg-[var(--background)] border border-[var(--border)] hover:border-[var(--primary)]/30 hover:bg-[var(--primary)]/5 transition-all group"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider">{template.name}</span>
+                                                <ChevronRight className="w-3 h-3 text-[var(--muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="md:col-span-2 space-y-2">
                         <div className="flex items-center justify-between">
@@ -1063,7 +1241,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                     <span className="text-[10px] font-bold uppercase tracking-wider">{table}</span>
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
-                                                    {cols.map(c => (
+                                                    {cols.map((c, idx) => (
                                                         <div key={c.name} className="flex items-center gap-2 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)]">
                                                             <div className="flex items-center gap-1">
                                                                 <span className="text-[10px] font-mono">{c.name}</span>
@@ -1071,6 +1249,11 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                                 {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
                                                                 <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
                                                             </div>
+                                                            {idx === 0 && (c as { rowCountEstimate?: number }).rowCountEstimate !== undefined && (
+                                                                <span className="text-[10px] font-bold text-[var(--primary)] ml-auto opacity-70">
+                                                                    ~{(c as { rowCountEstimate: number }).rowCountEstimate.toLocaleString()} ROWS
+                                                                </span>
+                                                            )}
                                                             {c.distribution && (
                                                                 <div className="w-8 h-4 shrink-0">
                                                                     <ResponsiveContainer width="100%" height="100%">
