@@ -357,7 +357,7 @@ export async function POST(
                     }
                 }
             } else if (storageConfig.type === 'mongodb-atlas') {
-                const client = new MongoClient(connectionString);
+                const client = new MongoClient(connectionString, { serverSelectionTimeoutMS: 10000 });
                 try {
                     await client.connect();
                     const dbName = new URL(connectionString).pathname.split('/')[1] || 'test';
@@ -370,17 +370,21 @@ export async function POST(
                         // Sample fields from collections (limit to first 5 collections to avoid timeouts)
                         const columns: Record<string, { name: string, type: string }[]> = {};
                         for (const name of collectionNames.slice(0, 5)) {
-                            const sample = await db.collection(name).find().limit(5).toArray();
-                            if (sample.length > 0) {
-                                const fields = new Map<string, string>();
-                                sample.forEach(doc => {
-                                    Object.entries(doc).forEach(([key, val]) => {
-                                        if (!fields.has(key)) {
-                                            fields.set(key, typeof val);
-                                        }
+                            try {
+                                const sample = await db.collection(name).find().limit(5).toArray();
+                                if (sample.length > 0) {
+                                    const fields = new Map<string, string>();
+                                    sample.forEach(doc => {
+                                        Object.entries(doc).forEach(([key, val]) => {
+                                            if (!fields.has(key)) {
+                                                fields.set(key, typeof val);
+                                            }
+                                        });
                                     });
-                                });
-                                columns[name] = Array.from(fields.entries()).map(([k, t]) => ({ name: k, type: t }));
+                                    columns[name] = Array.from(fields.entries()).map(([k, t]) => ({ name: k, type: t }));
+                                }
+                            } catch (e) {
+                                console.warn(`Failed to sample collection ${name}:`, e);
                             }
                         }
 
@@ -409,7 +413,7 @@ export async function POST(
                     await client.close().catch(() => {});
                 }
             } else if (storageConfig.type === 'memorystore-redis') {
-                const redis = new Redis(connectionString);
+                const redis = new Redis(connectionString, { commandTimeout: 10000, connectTimeout: 10000 });
                 try {
                     if (query === 'DISCOVER_SCHEMA') {
                         const info = await redis.info();
