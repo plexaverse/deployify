@@ -37,7 +37,7 @@ export function OnboardingGuide() {
     ];
 
     return (
-        <div className="relative w-full min-h-[500px] rounded-xl bg-[var(--card)] overflow-hidden border border-[var(--border)] flex flex-col items-center justify-center text-center p-8 md:p-12 shadow-glow">
+        <div className="relative w-full min-h-[500px] rounded-xl bg-[var(--card)] overflow-hidden border border-[var(--border)] flex flex-col items-center justify-center text-center p-8 shadow-glow">
             <BackgroundBeams className="opacity-50" />
 
             <div className="relative z-10 max-w-4xl w-full mx-auto space-y-12">
@@ -74,7 +74,7 @@ export function OnboardingGuide() {
                             className="relative flex flex-col items-center gap-4 group"
                         >
                             <div className={cn(
-                                "w-12 h-12 rounded-full flex items-center justify-center border-2 z-10 transition-colors duration-300 bg-[var(--card)]",
+                                "w-12 h-12 rounded-2xl flex items-center justify-center border-2 z-10 transition-colors duration-300 bg-[var(--card)]",
                                 step.status === 'completed' ? "border-[var(--success)] text-[var(--success)]" :
                                 step.status === 'active' ? "border-[var(--info)] text-[var(--info)] shadow-[0_0_15px_var(--info-bg)]" :
                                 "border-[var(--border)] text-[var(--muted)]"

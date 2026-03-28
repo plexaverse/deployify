@@ -306,7 +306,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                     <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <div className="relative z-10 flex items-start justify-between">
                                         <div className="flex items-start gap-4">
-                                            <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)]">
+                                            <div className="w-10 h-10 rounded-xl bg-[var(--muted)]/20 flex items-center justify-center border border-[var(--border)]">
                                                 {repo.private ? (
                                                     <Lock className="w-5 h-5 text-[var(--warning)]" />
                                                 ) : (

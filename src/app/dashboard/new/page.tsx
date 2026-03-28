@@ -158,7 +158,7 @@ export default function NewProjectPage() {
                     {[1, 2, 3, 4, 5].map((i) => (
                         <Card key={i} className="overflow-hidden p-0">
                             <div className="p-6 flex items-center gap-3">
-                                <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+                                <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
                                 <div className="flex-1 space-y-2">
                                     <Skeleton className="h-4 w-1/3" />
                                     <Skeleton className="h-3 w-1/2" />
