@@ -223,6 +223,22 @@ export async function syncDeploymentStatus(
                 });
             }
 
+            // Send PR Comment if applicable
+            if (pullRequestNumber && repoFullName && accessToken) {
+                const { owner, repo } = parseRepoFullName(repoFullName);
+                const commentBody = `
+### 🚨 Deploy Preview Failed!
+
+| Project | Status |
+| :--- | :--- |
+| **${projectName || projectSlug}** | ❌ ${errorMessage} |
+
+> Built with Deployify
+                `.trim();
+
+                await createPRComment(accessToken, owner, repo, pullRequestNumber, commentBody);
+            }
+
             if (emailNotifications && userEmail) {
                 const name = projectName || projectSlug;
                 await sendEmail({
