@@ -156,6 +156,11 @@ export async function POST(
                         ? { keys: ['user:1', 'user:2', 'session:active', 'cache:config'] }
                         : {
                             tables: ['users', 'projects', 'deployments', 'domains', 'env_vars'],
+                            tableStats: {
+                                'users': { estimatedRows: 1250 },
+                                'projects': { estimatedRows: 450 },
+                                'deployments': { estimatedRows: 8900 }
+                            },
                             columns: {
                                 'users': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'email', type: 'varchar' }, { name: 'created_at', type: 'timestamp' }],
                                 'projects': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'userId', type: 'uuid', isForeign: true }, { name: 'name', type: 'varchar' }, { name: 'slug', type: 'varchar' }],
@@ -255,9 +260,15 @@ export async function POST(
                             const tablesRes = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
                             const tables = tablesRes.rows.map(r => r.table_name);
 
-                            // Fetch columns for each table with PK/FK intelligence
+                            // Fetch columns for each table with PK/FK intelligence and estimated row counts
                             const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
+                            const tableStats: Record<string, { estimatedRows: number }> = {};
+
                             for (const table of tables) {
+                                // Estimated row count for Postgres
+                                const countRes = await client.query('SELECT reltuples AS estimate FROM pg_class WHERE relname = $1', [table]);
+                                tableStats[table] = { estimatedRows: Math.max(0, parseInt(countRes.rows[0]?.estimate || '0')) };
+
                                 const colsRes = await client.query(
                                     `SELECT
                                         c.column_name,
@@ -288,7 +299,7 @@ export async function POST(
 
                             return NextResponse.json({
                                 success: true,
-                                results: [{ tables, columns }],
+                                results: [{ tables, columns, tableStats }],
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
@@ -303,9 +314,16 @@ export async function POST(
                             // @ts-expect-error - Dynamic mysql result
                             const tables = tableRows.map(r => Object.values(r as Record<string, unknown>)[0]);
 
-                            // Fetch columns for each table with PK/FK intelligence
+                            // Fetch columns for each table with PK/FK intelligence and estimated row counts
                             const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
+                            const tableStats: Record<string, { estimatedRows: number }> = {};
+
                             for (const table of tables) {
+                                // Estimated row count for MySQL
+                                const [countRows] = await connection.execute('SELECT TABLE_ROWS as estimate FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?', [table]);
+                                // @ts-expect-error - Dynamic mysql result
+                                tableStats[table] = { estimatedRows: parseInt(countRows[0]?.estimate || '0') };
+
                                 const [colsRows] = await connection.execute(
                                     `SELECT
                                         c.COLUMN_NAME as name,
@@ -330,7 +348,7 @@ export async function POST(
 
                             return NextResponse.json({
                                 success: true,
-                                results: [{ tables, columns }],
+                                results: [{ tables, columns, tableStats }],
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {

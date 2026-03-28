@@ -1566,3 +1566,9 @@ Conducted a final polish pass for standard internal padding, sizing rules, and t
   - Standardized icon wrapping sizes across new project flows (`StorageSection.tsx`, `dashboard/new/page.tsx`, `new/page.tsx`), swapping invalid `w-10 h-10 rounded-lg` with the strictly defined `w-10 h-10 rounded-xl` standard.
   - Updated empty state icon inside `OnboardingGuide.tsx` from `w-12 h-12 rounded-full` to the established `w-12 h-12 rounded-2xl` standard.
   - Successfully ran tests (80/80 passing) and linting (0 warnings) verifying robust, non-breaking application of standardization standards.
+
+### Session 171: Advanced Data Lab Visuals & Intelligence
+- **Pie Chart Integration**: Implemented Pie Chart visualization in `DataLab.tsx` with Recharts, enabling categorical data analysis with configurable axes and distinct color palettes.
+- **SQL Intelligence**: Enhanced SQL proxy schema discovery with estimated row counts (reltuples for Postgres, TABLE_ROWS for MySQL) to provide scale insights without performance degradation.
+- **Bulk Productivity**: Added "Copy Results" (CSV/JSON) bulk actions to the Data Lab results header.
+- **Technical Aesthetic**: Standardized all new labels and buttons to `text-[10px] font-bold uppercase tracking-wider`.
