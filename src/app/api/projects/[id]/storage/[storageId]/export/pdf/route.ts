@@ -13,7 +13,7 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, storageId } = await params;
+        const { id } = await params;
         const access = await checkProjectAccess(session.user.id, id);
 
         if (!access.allowed) {
