@@ -156,7 +156,21 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement estimated row counts in SQL schema discovery
 - [x] Implement "Copy Results" (JSON & CSV) functionality in Data Lab UI
 
+## Phase 25: Data Lab Intelligent DX & Sampling (COMPLETED)
+- [x] Implement real-world data sampling in SQL schema discovery for distribution sparklines
+- [x] Add "Entity Search" to Data Lab Schema Insight for large databases
+- [x] Implement "Smart Autocomplete" in Query Editor for tables, columns, and keywords
+- [x] Add dialect-specific "Copy as Code" snippets to Data Lab
+
 ## Progress Updates
+
+### 2026-11-29: Data Lab Intelligent DX & Sampling
+- Completed Phase 25: Data Lab Intelligent DX & Sampling.
+- Enhanced SQL Schema Discovery with real-world sampling (10 rows/table) to power accurate distribution sparklines.
+- Implemented "Entity Search" in the Schema Insight section to handle databases with high entity counts.
+- Implemented "Smart Autocomplete" in the Query Editor, providing reactive suggestions for discovered tables, columns, and SQL keywords.
+- Added "Copy as Code" functionality, generating production-ready Node.js snippets for current queries based on the database dialect.
+- Standardized all new UI elements to the platform's high-density technical aesthetic.
 
 ### 2026-11-28: Data Lab Collaborative Intelligence & Advanced Visuals
 - Completed Phase 24: Data Lab Collaborative Intelligence & Advanced Visuals.

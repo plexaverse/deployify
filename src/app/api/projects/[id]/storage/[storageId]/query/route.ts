@@ -180,7 +180,8 @@ export async function POST(
 
                 return NextResponse.json({
                     success: true,
-                    results: [mockSchema, ...mockSamples],
+                    schema: mockSchema,
+                    samples: mockSamples,
                     executionTimeMs: 5
                 });
             }
@@ -263,6 +264,7 @@ export async function POST(
                             // Fetch columns for each table with PK/FK intelligence and estimated row counts
                             const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
                             const tableStats: Record<string, { estimatedRows: number }> = {};
+                            const samples: Record<string, unknown>[] = [];
 
                             for (const table of tables) {
                                 // Estimated row count for Postgres
@@ -295,11 +297,20 @@ export async function POST(
                                     isPrimary: r.is_primary,
                                     isForeign: r.is_foreign
                                 }));
+
+                                // Fetch samples for distribution calculation
+                                try {
+                                    const sampleRes = await client.query(`SELECT * FROM "${table}" LIMIT 10`);
+                                    samples.push(...sampleRes.rows.map(r => ({ ...r, _table: table })));
+                                } catch (e) {
+                                    console.warn(`Failed to sample table ${table}:`, e);
+                                }
                             }
 
                             return NextResponse.json({
                                 success: true,
-                                results: [{ tables, columns, tableStats }],
+                                schema: { tables, columns, tableStats },
+                                samples,
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
@@ -317,6 +328,7 @@ export async function POST(
                             // Fetch columns for each table with PK/FK intelligence and estimated row counts
                             const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
                             const tableStats: Record<string, { estimatedRows: number }> = {};
+                            const samples: Record<string, unknown>[] = [];
 
                             for (const table of tables) {
                                 // Estimated row count for MySQL
@@ -344,11 +356,21 @@ export async function POST(
                                     isPrimary: !!r.isPrimary,
                                     isForeign: !!r.isForeign
                                 }));
+
+                                // Fetch samples for distribution calculation
+                                try {
+                                    const [sampleRows] = await connection.execute(`SELECT * FROM \`${table}\` LIMIT 10`);
+                                    // @ts-expect-error - Dynamic mysql result
+                                    samples.push(...sampleRows.map(r => ({ ...r, _table: table })));
+                                } catch (e) {
+                                    console.warn(`Failed to sample table ${table}:`, e);
+                                }
                             }
 
                             return NextResponse.json({
                                 success: true,
-                                results: [{ tables, columns, tableStats }],
+                                    schema: { tables, columns, tableStats },
+                                    samples,
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
@@ -423,7 +445,7 @@ export async function POST(
 
                         return NextResponse.json({
                             success: true,
-                            results: [{ collections: collectionNames, columns }],
+                            schema: { collections: collectionNames, columns },
                             executionTimeMs: Date.now() - startTime
                         });
                     }
@@ -456,12 +478,12 @@ export async function POST(
 
                         return NextResponse.json({
                             success: true,
-                            results: [{
+                            schema: {
                                 info: info.split('\n').filter(line => line.includes('redis_version') || line.includes('used_memory_human')).join(', '),
                                 keysCount,
                                 sampleKeys: keys,
                                 patterns: Array.from(new Set(keys.map(k => k.split(':')[0] + ':*')))
-                            }],
+                            },
                             executionTimeMs: Date.now() - startTime
                         });
                     }
@@ -519,7 +541,7 @@ export async function POST(
 
                     return NextResponse.json({
                         success: true,
-                        results: [{ collections: collectionIds, columns }],
+                        schema: { collections: collectionIds, columns },
                         executionTimeMs: Date.now() - startTime
                     });
                 }
