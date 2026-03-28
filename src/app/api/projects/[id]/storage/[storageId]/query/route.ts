@@ -188,9 +188,9 @@ export async function POST(
 
             // Handle multiple statements in mock mode (SQL only)
             if (isSqlLike && query.includes(';')) {
-                const statements = query.split(';').filter(s => s.trim().length > 0);
+                const statements = query.split(';').filter((s: string) => s.trim().length > 0);
                 if (statements.length > 1) {
-                    const resultSets = statements.map((s, i) => ({
+                    const resultSets = statements.map((s: string, i: number) => ({
                         results: [
                             { id: i + 1, statement: s.trim().substring(0, 30), type: 'MOCK_SET' },
                             { id: i + 10, statement: 'SECOND_ROW', type: 'MOCK_SET' }
@@ -458,18 +458,16 @@ export async function POST(
                     }
                 } else {
                     // For MySQL, we need to use query instead of execute for multiple statements
-                    // @ts-expect-error - Overloaded mysql connection config
                     const connection = await mysql.createConnection({
                         ...(typeof sqlConfig === 'string' ? { uri: sqlConfig } : sqlConfig),
                         multipleStatements: true
                     });
                     try {
-                        // @ts-expect-error - Dynamic mysql params
                         const [rows] = await connection.query(query, sqlParams);
 
                         // MySQL multi-result sets are returned as an array of arrays
                         if (Array.isArray(rows) && rows.length > 0 && Array.isArray(rows[0])) {
-                            const resultSets = (rows as any[]).filter(r => Array.isArray(r)).map(r => ({
+                            const resultSets = (rows as unknown[][]).filter(r => Array.isArray(r)).map(r => ({
                                 results: r.slice(0, MAX_ROWS),
                                 rowCount: r.length
                             }));
