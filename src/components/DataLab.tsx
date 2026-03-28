@@ -80,8 +80,9 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved'>('editor');
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
+    const [entitySearchQuery, setEntitySearchQuery] = useState('');
     const [copiedCell, setCopiedCell] = useState<string | null>(null);
-    const [copiedResults, setCopiedResults] = useState<'csv' | 'json' | null>(null);
+    const [copiedResults, setCopiedResults] = useState<'csv' | 'json' | 'code' | null>(null);
     const [isExportingPDF, setIsExportingPDF] = useState(false);
     const [queryVariables, setQueryVariables] = useState<Record<string, string>>({});
     const [detectedVars, setDetectedVars] = useState<string[]>([]);
@@ -186,16 +187,17 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             const data = await response.json();
             if (data.success) {
                 if (queryToRun === 'DISCOVER_SCHEMA') {
-                    const schemaData = data.results[0];
+                    const schemaData = data.schema;
+                    const samples = data.samples || [];
+
                     // Enhance with distributions for numeric columns if sample results exist
-                    if (schemaData.columns && data.results.length > 1) {
-                        const samples = data.results.slice(1);
+                    if (schemaData.columns && samples.length > 0) {
                         Object.keys(schemaData.columns).forEach(table => {
                             schemaData.columns[table] = schemaData.columns[table].map((col: { name: string, type: string, isPrimary?: boolean, isForeign?: boolean, distribution?: { label: string, value: number }[] }) => {
                                 const isNumeric = col.type.toLowerCase().includes('int') || col.type.toLowerCase().includes('float') || col.type.toLowerCase().includes('number') || col.type.toLowerCase().includes('decimal');
                                 if (isNumeric) {
                                     const values = samples
-                                        .filter((s: Record<string, unknown>) => s._table === table || !('_table' in s) || !s._table) // Handle cases where proxy might label table
+                                        .filter((s: Record<string, unknown>) => s._table === table || !('_table' in s) || !s._table)
                                         .map((s: Record<string, unknown>) => s[col.name])
                                         .filter((v: unknown) => typeof v === 'number');
 
@@ -320,6 +322,76 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         const jsonContent = JSON.stringify(processedResults, null, 2);
         navigator.clipboard.writeText(jsonContent);
         setCopiedResults('json');
+        setTimeout(() => setCopiedResults(null), 2000);
+    };
+
+    const copyAsCode = () => {
+        if (!query || !selectedConnector) return;
+
+        let code = '';
+        const type = selectedConnector.type;
+
+        if (type === 'cloud-sql-postgres' || type === 'supabase') {
+            code = `import { Client } from 'pg';
+
+const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
+async function runQuery() {
+    await client.connect();
+    const res = await client.query(\`${query.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, [${detectedVars.map(v => `process.env.${v.toUpperCase()}`).join(', ')}]);
+    console.log(res.rows);
+    await client.end();
+}
+
+runQuery();`;
+        } else if (type === 'cloud-sql-mysql' || type === 'planetscale') {
+            code = `import mysql from 'mysql2/promise';
+
+async function runQuery() {
+    const connection = await mysql.createConnection(process.env.DATABASE_URL);
+    const [rows] = await connection.execute(\`${query.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, [${detectedVars.map(v => `process.env.${v.toUpperCase()}`).join(', ')}]);
+    console.log(rows);
+    await connection.end();
+}
+
+runQuery();`;
+        } else if (type === 'mongodb-atlas') {
+            code = `import { MongoClient } from 'mongodb';
+
+const client = new MongoClient(process.env.MONGODB_URI);
+
+async function runQuery() {
+    await client.connect();
+    const db = client.db();
+    const query = ${query};
+    const results = await db.collection(query.collection).find(query.filter || {}).limit(query.limit || 10).toArray();
+    console.log(results);
+    await client.close();
+}
+
+runQuery();`;
+        } else if (type === 'memorystore-redis') {
+            code = `import Redis from 'ioredis';
+
+const redis = new Redis(process.env.REDIS_URL);
+
+async function runQuery() {
+    const result = await redis.call('get', 'key'); // Example for basic GET
+    console.log(result);
+    redis.disconnect();
+}
+
+runQuery();`;
+        } else {
+            code = `// Connector type ${type} code snippet not available.
+// Query: ${query}`;
+        }
+
+        navigator.clipboard.writeText(code);
+        setCopiedResults('code');
         setTimeout(() => setCopiedResults(null), 2000);
     };
 
@@ -470,6 +542,14 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     };
 
     const selectedConnector = connectors.find(c => c.id === selectedId);
+
+    const editorSuggestions = useMemo(() => {
+        if (!schema) return [];
+        const tables = schema.tables || schema.collections || [];
+        const columns = schema.columns ? Object.values(schema.columns).flat().map(c => c.name) : [];
+        const sqlKeywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'ON', 'INSERT', 'UPDATE', 'DELETE', 'VALUES', 'SET', 'CREATE', 'DROP', 'ALTER', 'TABLE', 'INTO', 'DESC', 'ASC', 'UNION', 'ALL', 'EXPLAIN', 'ANALYZE'];
+        return Array.from(new Set([...tables, ...columns, ...sqlKeywords]));
+    }, [schema]);
 
     const templates = useMemo(() => {
         const type = selectedConnector?.type || 'generic';
@@ -860,6 +940,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     <QueryEditor
                                         value={query}
                                         onChange={setQuery}
+                                        suggestions={editorSuggestions}
                                         placeholder={
                                             selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale'
                                                 ? "SELECT * FROM users WHERE id = :id"
@@ -1221,9 +1302,21 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div className="space-y-3">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Entities</span>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Entities</span>
+                                    <div className="relative w-48">
+                                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--muted-foreground)]" />
+                                        <input
+                                            type="text"
+                                            value={entitySearchQuery}
+                                            onChange={(e) => setEntitySearchQuery(e.target.value)}
+                                            placeholder="SEARCH ENTITIES..."
+                                            className="w-full h-7 pl-7 pr-2 rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-bold uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-[var(--primary)]/50 placeholder:text-[var(--muted-foreground)]/50"
+                                        />
+                                    </div>
+                                </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {(schema.tables || schema.collections || []).map(item => (
+                                    {(schema.tables || schema.collections || []).filter(item => item.toLowerCase().includes(entitySearchQuery.toLowerCase())).map(item => (
                                         <button
                                             key={item}
                                             onClick={() => {
@@ -1365,6 +1458,17 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                         >
                                             {copiedResults === 'json' ? <CheckCircle2 className="w-3 h-3 text-[var(--success)] mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                                             JSON
+                                        </Button>
+                                        <Separator orientation="vertical" className="h-3 bg-[var(--border)] mx-0.5" />
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={copyAsCode}
+                                            className="h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                            title="Copy as Node.js Code"
+                                        >
+                                            {copiedResults === 'code' ? <CheckCircle2 className="w-3 h-3 text-[var(--success)] mr-1" /> : <FileCode className="w-3 h-3 mr-1" />}
+                                            CODE
                                         </Button>
                                     </div>
                                     <Button

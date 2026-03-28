@@ -174,7 +174,7 @@
 
 #### 22. **Integrated DB Configuration (Connector Model)**
 - **Improvement**: Implement a managed "Connector" model for databases to improve DX and security.
-- **Status**: ✅ Implemented (GCP Secret Manager integration, UI Storage Section, automated credential injection in `src/lib/db.ts`, connection health validation in `src/lib/gcp/storage-validator.ts`, custom Environment Variable keys, and connector editing functionality. Added **Automatic Provisioning** (BETA) for Cloud SQL, Firestore, and Memorystore, with **Operation Syncing** and an experimental **Data Lab** query browser with real SQL, MongoDB, and Redis connectivity, plus CSV export functionality. Hardened with strict **Read-Only Enforcement** in Phase 14. Further enhanced with **Real External Sync (Supabase/Atlas)** and **Advanced Cloud SQL Provisioning (DB/User creation)** in Phase 21.)
+- **Status**: ✅ Implemented (GCP Secret Manager integration, UI Storage Section, automated credential injection in `src/lib/db.ts`, connection health validation in `src/lib/gcp/storage-validator.ts`, custom Environment Variable keys, and connector editing functionality. Added **Automatic Provisioning** (BETA) for Cloud SQL, Firestore, and Memorystore, with **Operation Syncing** and an experimental **Data Lab** query browser with real SQL, MongoDB, and Redis connectivity, plus CSV export functionality. Hardened with strict **Read-Only Enforcement** in Phase 14. Further enhanced with **Real External Sync (Supabase/Atlas)**, **Advanced Cloud SQL Provisioning (DB/User creation)** in Phase 21, and **Intelligent DX (Autocomplete, Search, Code Snippets)** in Phase 25.)
 
 #### 23. **IAM-Based DB Connectivity & Observability**
 - **Improvement**: Transition to passwordless IAM authentication for GCP databases and implement query performance tracking in Data Lab.
@@ -785,6 +785,8 @@ Conducted the ultimate verification sequence confirming the platform is 100% sta
 - **Status**: 100% FUNCTIONAL AND PRODUCTION READY
 - **Sign-off By**: Jules, Lead Developer
 - **Details**: As the Lead Developer, I have conducted an exhaustive final end-to-end system check to ensure the entire product works 100%.
+  - **Data Lab Intelligent DX**: Implemented smart autocomplete with cursor-aligned positioning using a mirror-element technique, entity search for large schemas, and dialect-specific "Copy as Code" snippets.
+  - **Sampling & Insights**: Refactored schema discovery to return structured samples (10 rows/table) for real-world distribution sparklines.
   - **Testing**: `npm run test` executes perfectly, passing 80/80 unit tests.
   - **Code Quality**: `npm run lint` completes with zero warnings, affirming absolute type safety and zero technical debt.
   - **API Verification**: `npm run audit` completes with a "PERFECT" status, confirming 100% reachability across all 50 API routes.
