@@ -691,7 +691,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     fill="var(--primary)"
                                     dataKey={chartConfig.yAxis}
                                     nameKey={chartConfig.xAxis}
-                                    label={({ name, percent }) => `${String(name).toUpperCase()} ${(percent * 100).toFixed(0)}%`}
+                                    label={({ name, percent }) => `${String(name).toUpperCase()} ${((percent || 0) * 100).toFixed(0)}%`}
                                 >
                                     {processedResults.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
