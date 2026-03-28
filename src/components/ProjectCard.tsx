@@ -107,9 +107,9 @@ export function ProjectCard({ project }: { project: Project }) {
               <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
               <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(latestDeployment.gitCommitSha); setCopiedId(project.id); toast.success('Copied SHA'); setTimeout(() => setCopiedId(null), 2000); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigator.clipboard.writeText(latestDeployment.gitCommitSha); setCopiedId(project.id); toast.success(`Copied SHA: ${latestDeployment.gitCommitSha.substring(0, 7).toUpperCase()}`); setTimeout(() => setCopiedId(null), 2000); }}
                 className="opacity-40 hover:opacity-100 flex items-center gap-1 transition-opacity"
-                aria-label="Copy SHA"
+                aria-label={copiedId === project.id ? "SHA Copied" : "Copy SHA"}
               >
                 <span className="font-mono">{latestDeployment.gitCommitSha.substring(0, 7).toUpperCase()}</span>
                 {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
