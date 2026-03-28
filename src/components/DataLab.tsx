@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart, LayoutTemplate } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
     ResponsiveContainer,
@@ -11,6 +11,9 @@ import {
     Line,
     AreaChart,
     Area,
+    PieChart,
+    Pie,
+    Cell,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -32,6 +35,7 @@ interface DataLabProps {
 }
 
 const ROWS_PER_PAGE = 10;
+const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
 
 export function DataLab({ projectId, connectors }: DataLabProps) {
     const currentUserId = connectors[0]?.metadata?.userId as string | undefined;
@@ -44,10 +48,11 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json' | 'chart'>('table');
-    const [chartConfig, setChartConfig] = useState<{ type: 'bar' | 'line' | 'area', xAxis: string, yAxis: string }>({ type: 'bar', xAxis: '', yAxis: '' });
+    const [chartConfig, setChartConfig] = useState<{ type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string }>({ type: 'bar', xAxis: '', yAxis: '' });
     const [schema, setSchema] = useState<{
         tables?: string[],
         collections?: string[],
+        tableStats?: Record<string, { estimatedRows: number }>,
         columns?: Record<string, {
             name: string,
             type: string,
@@ -76,6 +81,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
     const [copiedCell, setCopiedCell] = useState<string | null>(null);
+    const [copiedResults, setCopiedResults] = useState<'csv' | 'json' | null>(null);
     const [isExportingPDF, setIsExportingPDF] = useState(false);
     const [queryVariables, setQueryVariables] = useState<Record<string, string>>({});
     const [detectedVars, setDetectedVars] = useState<string[]>([]);
@@ -273,20 +279,23 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         }
     };
 
-    const downloadCSV = () => {
-        if (!results || results.length === 0) return;
-
-        const columns = Object.keys(results[0]);
+    const getCSVContent = (data: Record<string, unknown>[]) => {
+        if (data.length === 0) return '';
+        const columns = Object.keys(data[0]);
         const header = columns.join(',');
-        const rows = results.map(row =>
+        const rows = data.map(row =>
             columns.map(col => {
                 const val = row[col];
                 const stringVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
                 return `"${stringVal.replace(/"/g, '""')}"`;
             }).join(',')
         );
+        return [header, ...rows].join('\n');
+    };
 
-        const csvContent = [header, ...rows].join('\n');
+    const downloadCSV = () => {
+        if (!results || results.length === 0) return;
+        const csvContent = getCSVContent(results);
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -296,6 +305,22 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const copyResultsCSV = () => {
+        if (!processedResults || processedResults.length === 0) return;
+        const csvContent = getCSVContent(processedResults);
+        navigator.clipboard.writeText(csvContent);
+        setCopiedResults('csv');
+        setTimeout(() => setCopiedResults(null), 2000);
+    };
+
+    const copyResultsJSON = () => {
+        if (!processedResults || processedResults.length === 0) return;
+        const jsonContent = JSON.stringify(processedResults, null, 2);
+        navigator.clipboard.writeText(jsonContent);
+        setCopiedResults('json');
+        setTimeout(() => setCopiedResults(null), 2000);
     };
 
     const downloadJSON = () => {
@@ -629,7 +654,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     <div className="space-y-1.5">
                         <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Chart Type</Label>
                         <div className="flex gap-1 bg-[var(--muted)]/20 p-1 rounded-lg border border-[var(--border)] h-8">
-                            {(['bar', 'line', 'area'] as const).map(t => (
+                            {(['bar', 'line', 'area', 'pie'] as const).map(t => (
                                 <Button
                                     key={t}
                                     variant="ghost"
@@ -646,7 +671,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
 
                 {!chartConfig.xAxis || !chartConfig.yAxis ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
-                        <PieChart className="w-8 h-8 text-[var(--muted-foreground)]/30" />
+                        <PieChartIcon className="w-8 h-8 text-[var(--muted-foreground)]/30" />
                         <div className="text-center space-y-1">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configure axes to visualize data</p>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Select X and Y axes from the results</p>
@@ -655,6 +680,36 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                 ) : (
                 <div className="h-[400px] w-full bg-[var(--background)] rounded-xl border border-[var(--border)] p-6">
                     <ResponsiveContainer width="100%" height="100%">
+                        {chartConfig.type === 'pie' ? (
+                            <PieChart>
+                                <Pie
+                                    data={processedResults}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={140}
+                                    fill="var(--primary)"
+                                    dataKey={chartConfig.yAxis}
+                                    nameKey={chartConfig.xAxis}
+                                    label={({ name, percent }) => `${String(name).toUpperCase()} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {processedResults.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: 'var(--popover)',
+                                        borderColor: 'var(--border)',
+                                        borderRadius: '8px',
+                                        fontSize: '10px',
+                                        fontWeight: 'bold',
+                                        textTransform: 'uppercase'
+                                    }}
+                                />
+                                <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', paddingTop: '20px' }} />
+                            </PieChart>
+                        ) : (
                         <ChartComponent data={processedResults}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} vertical={false} />
                             <XAxis
@@ -692,6 +747,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 radius={[4, 4, 0, 0]}
                             />
                         </ChartComponent>
+                        )}
                     </ResponsiveContainer>
                 </div>
                 )}
@@ -1179,7 +1235,14 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                             }}
                                             className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
                                         >
-                                            {item}
+                                            <div className="flex items-center gap-2">
+                                                <span>{item}</span>
+                                                {schema.tableStats?.[item] !== undefined && (
+                                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)]/50 uppercase tracking-wider">
+                                                        ({schema.tableStats[item].estimatedRows.toLocaleString()} ROWS)
+                                                    </span>
+                                                )}
+                                            </div>
                                             <ChevronRight className="w-3 h-3 text-[var(--muted-foreground)] group-hover:text-[var(--primary)]" />
                                         </button>
                                     ))}
@@ -1281,6 +1344,29 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 </div>
                                 <Separator orientation="vertical" className="h-8 bg-[var(--border)]" />
                                 <div className="flex items-center gap-1">
+                                    <div className="flex items-center bg-[var(--muted)]/20 rounded-lg p-0.5 border border-[var(--border)] mr-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={copyResultsCSV}
+                                            className="h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                            title="Copy Results as CSV"
+                                        >
+                                            {copiedResults === 'csv' ? <CheckCircle2 className="w-3 h-3 text-[var(--success)] mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
+                                            CSV
+                                        </Button>
+                                        <Separator orientation="vertical" className="h-3 bg-[var(--border)] mx-0.5" />
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={copyResultsJSON}
+                                            className="h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                            title="Copy Results as JSON"
+                                        >
+                                            {copiedResults === 'json' ? <CheckCircle2 className="w-3 h-3 text-[var(--success)] mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
+                                            JSON
+                                        </Button>
+                                    </div>
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -1345,7 +1431,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                     onClick={() => setViewMode('chart')}
                                     className={`h-7 px-3 text-[10px] font-bold uppercase tracking-wider ${viewMode === 'chart' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
                                 >
-                                    <PieChart className="w-3.5 h-3.5 mr-1.5" />
+                                    <PieChartIcon className="w-3.5 h-3.5 mr-1.5" />
                                     Chart
                                 </Button>
                             </div>
