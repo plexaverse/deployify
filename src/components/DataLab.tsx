@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SchemaMap } from '@/components/SchemaMap';
 import {
     ResponsiveContainer,
     BarChart,
@@ -44,7 +45,10 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isExecuting, setIsExecuting] = useState(false);
     const [isExplaining, setIsExplaining] = useState(false);
     const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
+    const [resultSets, setResultSets] = useState<{ results: Record<string, unknown>[], rowCount: number }[] | null>(null);
+    const [activeResultSet, setActiveResultSet] = useState(0);
     const [rowCount, setRowCount] = useState<number | null>(null);
+    const [schemaView, setSchemaView] = useState<'list' | 'graph'>('list');
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'table' | 'json' | 'chart'>('table');
@@ -58,6 +62,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             type: string,
             isPrimary?: boolean,
             isForeign?: boolean,
+                referencesTable?: string,
+                referencesColumn?: string,
             distribution?: { label: string, value: number }[]
         }[]>
     } | null>(null);
@@ -219,8 +225,16 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     }
                     setSchema(schemaData);
                 } else {
-                    setResults(data.results);
-                    setRowCount(data.rowCount);
+                    if (data.resultSets) {
+                        setResultSets(data.resultSets);
+                        setResults(data.resultSets[0].results);
+                        setRowCount(data.resultSets[0].rowCount);
+                        setActiveResultSet(0);
+                    } else {
+                        setResultSets(null);
+                        setResults(data.results);
+                        setRowCount(data.rowCount);
+                    }
                     setExecutionTime(data.executionTimeMs);
                     // Re-fetch historical metrics and history after execution
                     if (!explain) {
@@ -492,6 +506,8 @@ runQuery();`;
 
     const clearResults = () => {
         setResults(null);
+        setResultSets(null);
+        setActiveResultSet(0);
         setRowCount(null);
         setExecutionTime(null);
         setError(null);
@@ -666,9 +682,29 @@ runQuery();`;
                             <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors group/row">
                                 {columns.map(col => {
                                     const value = typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col]);
+                                    // Try to find FK metadata for this column
+                                    const fkInfo = schema?.columns ? Object.values(schema.columns).flat().find(c => c.name === col && c.isForeign && c.referencesTable) : null;
+
                                     return (
                                         <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
-                                            {value}
+                                            <div className="flex items-center gap-1.5">
+                                                {value}
+                                                {fkInfo && (
+                                                    <button
+                                                        onClick={() => {
+                                                            const q = selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale'
+                                                                ? `SELECT * FROM ${fkInfo.referencesTable} WHERE ${fkInfo.referencesColumn} = ${typeof row[col] === 'string' ? `'${row[col]}'` : row[col]} LIMIT 1`
+                                                                : `{ "collection": "${fkInfo.referencesTable}", "filter": { "${fkInfo.referencesColumn}": ${JSON.stringify(row[col])} }, "limit": 1 }`;
+                                                            setQuery(q);
+                                                            executeQuery(q);
+                                                        }}
+                                                        className="p-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-colors"
+                                                        title={`Fetch related from ${fkInfo.referencesTable}`}
+                                                    >
+                                                        <LinkIcon className="w-2.5 h-2.5" />
+                                                    </button>
+                                                )}
+                                            </div>
                                             <button
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(value);
@@ -733,7 +769,7 @@ runQuery();`;
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Chart Type</Label>
-                        <div className="flex gap-1 bg-[var(--muted)]/20 p-1 rounded-lg border border-[var(--border)] h-8">
+                        <div className="flex gap-1 bg-[var(--muted)]/20 p-1 rounded-xl border border-[var(--border)] h-8">
                             {(['bar', 'line', 'area', 'pie'] as const).map(t => (
                                 <Button
                                     key={t}
@@ -750,7 +786,7 @@ runQuery();`;
                 </div>
 
                 {!chartConfig.xAxis || !chartConfig.yAxis ? (
-                    <div className="flex flex-col items-center justify-center py-12 space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                    <div className="flex flex-col items-center justify-center py-8 space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                         <PieChartIcon className="w-8 h-8 text-[var(--muted-foreground)]/30" />
                         <div className="text-center space-y-1">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configure axes to visualize data</p>
@@ -977,7 +1013,7 @@ runQuery();`;
                                                             setQuery(t.query);
                                                             setShowTemplates(false);
                                                         }}
-                                                        className="w-full text-left p-2 hover:bg-[var(--primary)]/10 rounded-lg transition-colors group"
+                                                        className="w-full text-left p-2 hover:bg-[var(--primary)]/10 rounded-xl transition-colors group"
                                                     >
                                                         <span className="block text-[10px] font-bold uppercase tracking-wider group-hover:text-[var(--primary)]">{t.name}</span>
                                                         <code className="block text-[10px] font-mono text-[var(--muted-foreground)] truncate">{t.query}</code>
@@ -1064,7 +1100,7 @@ runQuery();`;
                 ) : activeTab === 'saved' ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
                         {savedQueries.length === 0 ? (
-                            <div className="col-span-full py-12 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                            <div className="col-span-full py-8 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <Save className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto" />
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No saved queries yet</p>
@@ -1076,7 +1112,7 @@ runQuery();`;
                                 <Card key={q.id} className="p-4 bg-[var(--background)] border-[var(--border)] hover:border-[var(--primary)]/30 transition-all group">
                                     <div className="flex items-start justify-between mb-3">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-7 h-7 rounded bg-[var(--primary)]/10 flex items-center justify-center">
+                                        <div className="w-7 h-7 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
                                                 <Terminal className="w-3.5 h-3.5 text-[var(--primary)]" />
                                             </div>
                                             <div className="flex flex-col">
@@ -1129,7 +1165,7 @@ runQuery();`;
                 ) : (
                     <div className="space-y-2 animate-fade-in">
                         {history.length === 0 ? (
-                            <div className="py-12 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                            <div className="py-8 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <History className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto" />
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query history is empty</p>
@@ -1284,9 +1320,37 @@ runQuery();`;
                 {schema && (
                     <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-fade-in">
                         <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <Info className="w-4 h-4 text-[var(--primary)]" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Schema Insight</span>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <Info className="w-4 h-4 text-[var(--primary)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Schema Insight</span>
+                                </div>
+                                <div className="flex items-center gap-1 bg-[var(--muted)]/20 p-0.5 rounded-lg border border-[var(--border)]">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setSchemaView('list')}
+                                        className={cn(
+                                            "h-6 px-2 text-[10px] font-bold uppercase tracking-wider",
+                                            schemaView === 'list' ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)]"
+                                        )}
+                                    >
+                                        <Table className="w-3 h-3 mr-1.5" />
+                                        List
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setSchemaView('graph')}
+                                        className={cn(
+                                            "h-6 px-2 text-[10px] font-bold uppercase tracking-wider",
+                                            schemaView === 'graph' ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)]"
+                                        )}
+                                    >
+                                        <Network className="w-3 h-3 mr-1.5" />
+                                        Graph
+                                    </Button>
+                                </div>
                             </div>
                             {schema.columns && (
                                 <Button
@@ -1300,6 +1364,14 @@ runQuery();`;
                                 </Button>
                             )}
                         </div>
+
+                        {schemaView === 'graph' && schema.tables && schema.columns ? (
+                            <SchemaMap
+                                tables={schema.tables}
+                                columns={schema.columns as any}
+                                onTableClick={(table) => setQuery(`SELECT * FROM ${table} LIMIT 10`)}
+                            />
+                        ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
@@ -1379,6 +1451,7 @@ runQuery();`;
                                 </div>
                             )}
                         </div>
+                        )}
                     </div>
                 )}
 
@@ -1416,6 +1489,29 @@ runQuery();`;
 
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
+                                {resultSets && resultSets.length > 1 && (
+                                    <div className="flex items-center gap-1 bg-[var(--muted)]/20 p-1 rounded-xl border border-[var(--border)] mr-2">
+                                        {resultSets.map((_, idx) => (
+                                            <Button
+                                                key={idx}
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setActiveResultSet(idx);
+                                                    setResults(resultSets[idx].results);
+                                                    setRowCount(resultSets[idx].rowCount);
+                                                    setCurrentPage(1);
+                                                }}
+                                                className={cn(
+                                                    "h-7 px-3 text-[10px] font-bold uppercase tracking-wider",
+                                                    activeResultSet === idx ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)]"
+                                                )}
+                                            >
+                                                SET {idx + 1}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="flex flex-col">
                                     <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
                                         <CheckCircle2 className="w-4 h-4" />
@@ -1601,7 +1697,7 @@ runQuery();`;
                     <Card className="w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                                     {isCloning ? <Copy className="w-4 h-4 text-[var(--primary)]" /> : <Save className="w-4 h-4 text-[var(--primary)]" />}
                                 </div>
                                 <h3 className="text-lg font-semibold">{isCloning ? 'Clone Query' : 'Save Query'}</h3>
@@ -1625,7 +1721,7 @@ runQuery();`;
                                     autoFocus
                                 />
                             </div>
-                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider">Share with Team</Label>
                                     <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">Allow other team members to use this query</p>
@@ -1639,7 +1735,7 @@ runQuery();`;
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">SQL/JSON Code</Label>
-                                <pre className="p-3 bg-[var(--muted)]/20 rounded-lg text-[10px] font-mono line-clamp-4 text-[var(--muted-foreground)]">
+                                <pre className="p-3 bg-[var(--muted)]/20 rounded-xl text-[10px] font-mono line-clamp-4 text-[var(--muted-foreground)]">
                                     {query}
                                 </pre>
                             </div>

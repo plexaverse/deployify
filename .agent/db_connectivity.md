@@ -162,7 +162,19 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement "Smart Autocomplete" in Query Editor for tables, columns, and keywords
 - [x] Add dialect-specific "Copy as Code" snippets to Data Lab
 
+## Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence (IN PROGRESS)
+- [ ] Implement Multi-Result Set support for complex SQL queries
+- [ ] Implement Visual Schema Graph (SVG-based ER diagram)
+- [ ] Add interactive "Fetch Related" navigation for Foreign Keys
+- [ ] Standardize remaining Data Lab UI elements to high-density standards
+
 ## Progress Updates
+
+### 2026-11-30: Data Lab Schema Mapping & Multi-Result Intelligence
+- Initiated Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence.
+- Planned implementation of multi-result set handling for complex queries.
+- Designing an interactive SVG-based schema map for visual table relationship discovery.
+- Adding "Fetch Related" quick-navigation for Foreign Key columns in the results table.
 
 ### 2026-11-29: Data Lab Intelligent DX & Sampling
 - Completed Phase 25: Data Lab Intelligent DX & Sampling.

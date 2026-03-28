@@ -115,6 +115,7 @@ function createMockFirestore(): Firestore {
                         environment: 'both',
                         createdAt: new Date(),
                         updatedAt: new Date(),
+                                connectionStringSecretId: 'mock-secret-id'
                     }
                 ],
                 joinedAt: { toDate: () => new Date() },
