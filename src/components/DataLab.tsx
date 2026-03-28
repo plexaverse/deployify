@@ -189,14 +189,14 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                 const isNumeric = col.type.toLowerCase().includes('int') || col.type.toLowerCase().includes('float') || col.type.toLowerCase().includes('number') || col.type.toLowerCase().includes('decimal');
                                 if (isNumeric) {
                                     const values = samples
-                                        .filter((s: any) => s._table === table || !s._table) // Handle cases where proxy might label table
-                                        .map((s: any) => s[col.name])
-                                        .filter((v: any) => typeof v === 'number');
+                                        .filter((s: Record<string, unknown>) => s._table === table || !('_table' in s) || !s._table) // Handle cases where proxy might label table
+                                        .map((s: Record<string, unknown>) => s[col.name])
+                                        .filter((v: unknown) => typeof v === 'number');
 
                                     if (values.length > 0) {
                                         // Simple frequency map for distribution
                                         const freq: Record<string, number> = {};
-                                        values.forEach((v: any) => {
+                                        values.forEach((v: unknown) => {
                                             const key = String(v);
                                             freq[key] = (freq[key] || 0) + 1;
                                         });
@@ -599,7 +599,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         );
 
         const ChartComponent = chartConfig.type === 'bar' ? BarChart : chartConfig.type === 'line' ? LineChart : AreaChart;
-        const DataComponent = (chartConfig.type === 'bar' ? Bar : chartConfig.type === 'line' ? Line : Area) as any;
+        const DataComponent = (chartConfig.type === 'bar' ? Bar : chartConfig.type === 'line' ? Line : Area) as unknown as React.ElementType;
 
         return (
             <div className="space-y-6">
