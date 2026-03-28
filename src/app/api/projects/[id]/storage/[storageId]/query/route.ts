@@ -186,6 +186,25 @@ export async function POST(
                 });
             }
 
+            // Handle multiple statements in mock mode (SQL only)
+            if (isSqlLike && query.includes(';')) {
+                const statements = query.split(';').filter((s: string) => s.trim().length > 0);
+                if (statements.length > 1) {
+                    const resultSets = statements.map((s: string, i: number) => ({
+                        results: [
+                            { id: i + 1, statement: s.trim().substring(0, 30), type: 'MOCK_SET' },
+                            { id: i + 10, statement: 'SECOND_ROW', type: 'MOCK_SET' }
+                        ],
+                        rowCount: 2
+                    }));
+                    return NextResponse.json({
+                        success: true,
+                        resultSets,
+                        executionTimeMs: 10
+                    });
+                }
+            }
+
             // Simulated results for demonstration
             const mockResults = [
                 { id: 1, name: 'Sample User', email: 'user@example.com', created_at: new Date().toISOString() },
@@ -243,7 +262,8 @@ export async function POST(
                                 user: url.username || 'deployify-sa',
                                 password: accessToken,
                                 database: url.pathname.split('/')[1] || 'mysql',
-                                ssl: socketPath ? false : { rejectUnauthorized: false }
+                                ssl: socketPath ? false : { rejectUnauthorized: false },
+                                multipleStatements: true
                             };
                         }
                     } catch (e) {
@@ -286,7 +306,23 @@ export async function POST(
                                             JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
                                             WHERE tc.table_name = c.table_name AND kcu.column_name = c.column_name AND tc.constraint_type = 'FOREIGN KEY'
                                             AND tc.table_schema = c.table_schema
-                                        ) as is_foreign
+                                        ) as is_foreign,
+                                        (
+                                            SELECT ccu.table_name
+                                            FROM information_schema.key_column_usage kcu
+                                            JOIN information_schema.table_constraints tc ON tc.constraint_name = kcu.constraint_name
+                                            JOIN information_schema.constraint_column_usage ccu ON ccu.constraint_name = tc.constraint_name
+                                            WHERE kcu.table_name = c.table_name AND kcu.column_name = c.column_name AND tc.constraint_type = 'FOREIGN KEY'
+                                            LIMIT 1
+                                        ) as references_table,
+                                        (
+                                            SELECT ccu.column_name
+                                            FROM information_schema.key_column_usage kcu
+                                            JOIN information_schema.table_constraints tc ON tc.constraint_name = kcu.constraint_name
+                                            JOIN information_schema.constraint_column_usage ccu ON ccu.constraint_name = tc.constraint_name
+                                            WHERE kcu.table_name = c.table_name AND kcu.column_name = c.column_name AND tc.constraint_type = 'FOREIGN KEY'
+                                            LIMIT 1
+                                        ) as references_column
                                     FROM information_schema.columns c
                                     WHERE c.table_name = $1 AND c.table_schema = 'public'`,
                                     [table]
@@ -295,7 +331,9 @@ export async function POST(
                                     name: r.column_name,
                                     type: r.data_type,
                                     isPrimary: r.is_primary,
-                                    isForeign: r.is_foreign
+                                    isForeign: r.is_foreign,
+                                    referencesTable: r.references_table,
+                                    referencesColumn: r.references_column
                                 }));
 
                                 // Fetch samples for distribution calculation
@@ -341,10 +379,18 @@ export async function POST(
                                         c.COLUMN_NAME as name,
                                         c.DATA_TYPE as type,
                                         (c.COLUMN_KEY = 'PRI') as isPrimary,
-                                        EXISTS (
-                                            SELECT 1 FROM information_schema.KEY_COLUMN_USAGE kcu
+                                        (
+                                            SELECT kcu.REFERENCED_TABLE_NAME
+                                            FROM information_schema.KEY_COLUMN_USAGE kcu
                                             WHERE kcu.TABLE_SCHEMA = c.TABLE_SCHEMA AND kcu.TABLE_NAME = c.TABLE_NAME AND kcu.COLUMN_NAME = c.COLUMN_NAME AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
-                                        ) as isForeign
+                                            LIMIT 1
+                                        ) as referencesTable,
+                                        (
+                                            SELECT kcu.REFERENCED_COLUMN_NAME
+                                            FROM information_schema.KEY_COLUMN_USAGE kcu
+                                            WHERE kcu.TABLE_SCHEMA = c.TABLE_SCHEMA AND kcu.TABLE_NAME = c.TABLE_NAME AND kcu.COLUMN_NAME = c.COLUMN_NAME AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+                                            LIMIT 1
+                                        ) as referencesColumn
                                     FROM information_schema.COLUMNS c
                                     WHERE c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = ?`,
                                     [table]
@@ -354,7 +400,9 @@ export async function POST(
                                     name: r.name,
                                     type: r.type,
                                     isPrimary: !!r.isPrimary,
-                                    isForeign: !!r.isForeign
+                                    isForeign: !!r.referencesTable,
+                                    referencesTable: r.referencesTable,
+                                    referencesColumn: r.referencesColumn
                                 }));
 
                                 // Fetch samples for distribution calculation
@@ -384,6 +432,20 @@ export async function POST(
                     try {
                         await client.connect();
                         const res = await client.query(query, sqlParams);
+
+                        // Handle multiple result sets
+                        if (Array.isArray(res)) {
+                            const resultSets = res.map(r => ({
+                                results: Array.isArray(r.rows) ? r.rows.slice(0, MAX_ROWS) : [],
+                                rowCount: Array.isArray(r.rows) ? r.rows.length : 0
+                            }));
+                            return NextResponse.json({
+                                success: true,
+                                resultSets,
+                                executionTimeMs: Date.now() - startTime
+                            });
+                        }
+
                         const rows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
                         return NextResponse.json({
                             success: true,
@@ -395,11 +457,27 @@ export async function POST(
                         await client.end().catch(() => {});
                     }
                 } else {
-                    // @ts-expect-error - Overloaded mysql connection config
-                    const connection = await mysql.createConnection(sqlConfig);
+                    // For MySQL, we need to use query instead of execute for multiple statements
+                    const connection = await mysql.createConnection({
+                        ...(typeof sqlConfig === 'string' ? { uri: sqlConfig } : sqlConfig),
+                        multipleStatements: true
+                    });
                     try {
-                        // @ts-expect-error - Dynamic mysql params
-                        const [rows] = await connection.execute(query, sqlParams);
+                        const [rows] = await connection.query(query, sqlParams);
+
+                        // MySQL multi-result sets are returned as an array of arrays
+                        if (Array.isArray(rows) && rows.length > 0 && Array.isArray(rows[0])) {
+                            const resultSets = (rows as unknown[][]).filter(r => Array.isArray(r)).map(r => ({
+                                results: r.slice(0, MAX_ROWS),
+                                rowCount: r.length
+                            }));
+                            return NextResponse.json({
+                                success: true,
+                                resultSets,
+                                executionTimeMs: Date.now() - startTime
+                            });
+                        }
+
                         const finalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
                         return NextResponse.json({
                             success: true,
