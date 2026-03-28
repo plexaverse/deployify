@@ -406,7 +406,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                 className="group flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--card)]/50 hover:bg-[var(--card-hover)] transition-all"
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center shrink-0">
+                                    <div className="w-10 h-10 rounded-xl bg-[var(--muted)]/20 flex items-center justify-center shrink-0">
                                         <Database className="w-5 h-5 text-[var(--muted-foreground)]" />
                                     </div>
                                     <div className="space-y-1 w-full">

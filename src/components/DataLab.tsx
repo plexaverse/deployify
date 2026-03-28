@@ -843,7 +843,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                                                         className="w-full text-left p-2 hover:bg-[var(--primary)]/10 rounded-lg transition-colors group"
                                                     >
                                                         <span className="block text-[10px] font-bold uppercase tracking-wider group-hover:text-[var(--primary)]">{t.name}</span>
-                                                        <code className="block text-[9px] font-mono text-[var(--muted-foreground)] truncate">{t.query}</code>
+                                                        <code className="block text-[10px] font-mono text-[var(--muted-foreground)] truncate">{t.query}</code>
                                                     </button>
                                                 ))}
                                                 {templates.length === 0 && (
