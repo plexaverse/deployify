@@ -162,13 +162,29 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement "Smart Autocomplete" in Query Editor for tables, columns, and keywords
 - [x] Add dialect-specific "Copy as Code" snippets to Data Lab
 
-## Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence (IN PROGRESS)
-- [ ] Implement Multi-Result Set support for complex SQL queries
-- [ ] Implement Visual Schema Graph (SVG-based ER diagram)
-- [ ] Add interactive "Fetch Related" navigation for Foreign Keys
-- [ ] Standardize remaining Data Lab UI elements to high-density standards
+## Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence (COMPLETED)
+- [x] Implement Multi-Result Set support for complex SQL queries
+- [x] Implement Visual Schema Graph (SVG-based ER diagram)
+- [x] Add interactive "Fetch Related" navigation for Foreign Keys
+- [x] Standardize remaining Data Lab UI elements to high-density standards
+
+## Phase 27: Multi-Result Export & System Polish (COMPLETED)
+- [x] Implement "Export All Results" functionality for Multi-Result Sets (JSON format)
+- [x] Enhance Schema Insight to display column counts alongside row estimates
 
 ## Progress Updates
+
+### 2026-12-01: Multi-Result Export & System Polish Complete
+- Completed Phase 27: Multi-Result Export & System Polish.
+- Added "ALL JSON" export button in Data Lab when multiple result sets are returned, allowing a full dump of multi-statement query results.
+- Enhanced the Schema Insight entity list to display column counts `[X COLS]` for each table/collection to provide more structural context at a glance.
+
+### 2026-12-01: Data Lab Schema Mapping & Multi-Result Intelligence Complete
+- Completed Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence.
+- Verified Multi-Result Set support for complex SQL queries returning multiple statements.
+- Verified Visual Schema Graph (SVG-based ER diagram) in the Schema Insight tab.
+- Verified interactive "Fetch Related" navigation for Foreign Keys in table view.
+- Standardized remaining Data Lab UI elements in `SchemaMap.tsx` to the high-density technical aesthetic (`text-[10px]`).
 
 ### 2026-11-30: Data Lab Schema Mapping & Multi-Result Intelligence
 - Initiated Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence.

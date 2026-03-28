@@ -128,7 +128,7 @@ export function SchemaMap({ tables, columns, onTableClick }: SchemaMapProps) {
                                         x="10"
                                         y="0"
                                         className={cn(
-                                            "text-[9px] font-mono",
+                                            "text-[10px] font-mono",
                                             col.isPrimary ? "fill-[var(--primary)] font-bold" : "fill-[var(--muted-foreground)]"
                                         )}
                                     >
@@ -140,7 +140,7 @@ export function SchemaMap({ tables, columns, onTableClick }: SchemaMapProps) {
                                         x={node.width - 10}
                                         y="0"
                                         textAnchor="end"
-                                        className="text-[8px] fill-[var(--muted-foreground)] opacity-50 uppercase font-bold"
+                                        className="text-[10px] fill-[var(--muted-foreground)] opacity-50 uppercase font-bold"
                                     >
                                         {col.type}
                                     </text>

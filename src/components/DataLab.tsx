@@ -422,6 +422,23 @@ runQuery();`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    };
+
+    const downloadAllJSON = () => {
+        if (!resultSets || resultSets.length === 0) return;
+
+        const jsonContent = JSON.stringify(resultSets, null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `datalab-export-all-${new Date().toISOString().split('T')[0]}.json`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
     };
 
     const downloadPDF = async () => {
@@ -494,6 +511,7 @@ runQuery();`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
     };
 
     const cloneQuery = (q: typeof savedQueries[0]) => {
@@ -1402,6 +1420,11 @@ runQuery();`;
                                         >
                                             <div className="flex items-center gap-2">
                                                 <span>{item}</span>
+                                                {schema.columns?.[item] && (
+                                                    <span className="text-[10px] font-bold text-[var(--primary)]/60 uppercase tracking-wider ml-1">
+                                                        [{schema.columns[item].length} COLS]
+                                                    </span>
+                                                )}
                                                 {schema.tableStats?.[item] !== undefined && (
                                                     <span className="text-[10px] font-bold text-[var(--muted-foreground)]/50 uppercase tracking-wider">
                                                         ({schema.tableStats[item].estimatedRows.toLocaleString()} ROWS)
@@ -1585,6 +1608,17 @@ runQuery();`;
                                         <Terminal className="w-3.5 h-3.5 mr-1.5" />
                                         JSON
                                     </Button>
+                                    {resultSets && resultSets.length > 1 && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={downloadAllJSON}
+                                            className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                        >
+                                            <Download className="w-3.5 h-3.5 mr-1.5" />
+                                            ALL JSON
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="sm"
