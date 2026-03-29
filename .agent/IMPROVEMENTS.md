@@ -192,6 +192,10 @@
 - **Improvement**: Implement dashboard widget persistence and SQL performance suggestions (Virtual DBA) in Data Lab.
 - **Status**: ✅ Implemented (Dashboard Persistence API, collaborative widget grid, and EXPLAIN plan analyzer for Postgres/MySQL index suggestions in Phase 28)
 
+#### 27. **Data Lab Dashboard Advanced Customization & Public Sharing**
+- **Improvement**: Add auto-refresh, public sharing, and individual widget management to Data Lab Dashboards.
+- **Status**: ✅ Implemented (Public sharing URLs, configurable auto-refresh intervals, and individual widget API enhancements in Phase 29)
+
 ### Reliability Improvements
 
 #### 22. **Robust Deployment Status Sync**

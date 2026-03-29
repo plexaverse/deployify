@@ -85,7 +85,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isQueryPublic, setIsQueryPublic] = useState(false);
     const [isCloning, setIsCloning] = useState(false);
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved' | 'dashboards'>('editor');
-    const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string }[]>([]);
+    const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string, isPublic?: boolean, refreshInterval?: number }[]>([]);
     const [isSavingDashboard, setIsSavingDashboard] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
@@ -586,7 +586,9 @@ runQuery();`;
                     name,
                     query,
                     chartConfig: viewMode === 'chart' ? chartConfig : null,
-                    storageId: selectedId
+                    storageId: selectedId,
+                    isPublic: false,
+                    refreshInterval: 0
                 }),
             });
             const data = await response.json();
@@ -597,6 +599,21 @@ runQuery();`;
             console.error('Failed to add to dashboard:', error);
         } finally {
             setIsSavingDashboard(false);
+        }
+    };
+
+    const updateDashboardWidget = async (widgetId: string, updates: Record<string, unknown>) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/dashboards/${widgetId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates),
+            });
+            if (response.ok) {
+                fetchDashboards();
+            }
+        } catch (error) {
+            console.error('Failed to update dashboard widget:', error);
         }
     };
 
@@ -1241,18 +1258,58 @@ runQuery();`;
                             dashboards.map(widget => {
                                 const widgetConnector = connectors.find(c => c.id === widget.storageId);
                                 return (
-                                    <Card key={widget.id} className="overflow-hidden border-[var(--border)] hover:border-[var(--primary)]/30 transition-all bg-[var(--background)] flex flex-col min-h-[400px]">
+                                    <Card key={widget.id} className="overflow-hidden border-[var(--border)] hover:border-[var(--primary)]/30 transition-all bg-[var(--background)] flex flex-col min-h-[400px] relative group">
                                         <div className="p-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/5">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded bg-[var(--primary)]/10 flex items-center justify-center">
+                                            <div className="flex items-center gap-2 overflow-hidden mr-2">
+                                                <div className="w-6 h-6 rounded bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                                     <BarChart2 className="w-3 h-3 text-[var(--primary)]" />
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider">{widget.name}</span>
-                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">{widgetConnector?.name || 'UNKNOWN STORAGE'}</span>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider truncate">{widget.name}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60 truncate">{widgetConnector?.name || 'UNKNOWN STORAGE'}</span>
+                                                        {widget.isPublic && (
+                                                            <span className="text-[10px] font-bold uppercase text-[var(--success)] shrink-0">Shared</span>
+                                                        )}
+                                                        {widget.refreshInterval && widget.refreshInterval > 0 && (
+                                                            <span className="text-[10px] font-bold uppercase text-[var(--primary)] shrink-0 flex items-center">
+                                                                <RefreshCw className="w-2.5 h-2.5 mr-1 animate-spin-slow" />
+                                                                {widget.refreshInterval}s
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <select
+                                                    value={widget.refreshInterval || 0}
+                                                    onChange={(e) => updateDashboardWidget(widget.id, { refreshInterval: parseInt(e.target.value) })}
+                                                    className="h-6 px-1 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[9px] font-bold uppercase tracking-tighter"
+                                                    title="Auto-refresh interval"
+                                                >
+                                                    <option value={0}>OFF</option>
+                                                    <option value={30}>30S</option>
+                                                    <option value={60}>60S</option>
+                                                    <option value={300}>5M</option>
+                                                </select>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        const shareUrl = `${window.location.origin}/share/dashboard/${widget.id}?p=${projectId}`;
+                                                        navigator.clipboard.writeText(shareUrl);
+                                                        setCopiedCell(`share-${widget.id}`);
+                                                        updateDashboardWidget(widget.id, { isPublic: true });
+                                                        setTimeout(() => setCopiedCell(null), 2000);
+                                                    }}
+                                                    className={cn(
+                                                        "h-7 w-7 transition-colors",
+                                                        widget.isPublic ? "text-[var(--success)]" : "text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                    )}
+                                                    title="Share publicly"
+                                                >
+                                                    {copiedCell === `share-${widget.id}` ? <CheckCircle2 className="w-3.5 h-3.5" /> : <LinkIcon className="w-3.5 h-3.5" />}
+                                                </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -1269,6 +1326,7 @@ runQuery();`;
                                                         executeQuery(widget.query);
                                                     }}
                                                     className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                    title="Open in Editor"
                                                 >
                                                     <Terminal className="w-3.5 h-3.5" />
                                                 </Button>
@@ -1277,12 +1335,13 @@ runQuery();`;
                                                     size="icon"
                                                     onClick={() => deleteDashboardWidget(widget.id)}
                                                     className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                                                    title="Delete Widget"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </Button>
                                             </div>
                                         </div>
-                                        <div className="p-4 flex-1">
+                                        <div className="p-4 flex-1 overflow-auto">
                                             <DashboardWidget widget={widget} projectId={projectId} />
                                         </div>
                                     </Card>
@@ -1920,34 +1979,40 @@ runQuery();`;
     );
 }
 
-function DashboardWidget({ widget, projectId }: { widget: { id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string }, projectId: string }) {
+function DashboardWidget({ widget, projectId }: { widget: { id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string, refreshInterval?: number }, projectId: string }) {
     const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
     const [isExecuting, setIsExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const execute = async () => {
-            setIsExecuting(true);
-            try {
-                const response = await fetch(`/api/projects/${projectId}/storage/${widget.storageId}/query`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: widget.query }),
-                });
-                const data = await response.json();
-                if (data.success) {
-                    setResults(data.results);
-                } else {
-                    setError(data.error);
-                }
-            } catch {
-                setError('Failed to fetch widget data');
-            } finally {
-                setIsExecuting(false);
+    const execute = useCallback(async () => {
+        setIsExecuting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${widget.storageId}/query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: widget.query }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setResults(data.results);
+            } else {
+                setError(data.error);
             }
-        };
-        execute();
+        } catch {
+            setError('Failed to fetch widget data');
+        } finally {
+            setIsExecuting(false);
+        }
     }, [projectId, widget.storageId, widget.query]);
+
+    useEffect(() => {
+        execute();
+
+        if (widget.refreshInterval && widget.refreshInterval > 0) {
+            const interval = setInterval(execute, widget.refreshInterval * 1000);
+            return () => clearInterval(interval);
+        }
+    }, [widget.refreshInterval, execute]);
 
     if (isExecuting) {
         return (
