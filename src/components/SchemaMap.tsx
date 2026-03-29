@@ -11,6 +11,7 @@ interface Column {
     isForeign?: boolean;
     referencesTable?: string;
     referencesColumn?: string;
+    distribution?: { label: string, value: number }[];
 }
 
 interface SchemaMapProps {

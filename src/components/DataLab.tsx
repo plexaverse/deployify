@@ -1368,7 +1368,7 @@ runQuery();`;
                         {schemaView === 'graph' && schema.tables && schema.columns ? (
                             <SchemaMap
                                 tables={schema.tables}
-                                columns={schema.columns as any}
+                                columns={schema.columns}
                                 onTableClick={(table) => setQuery(`SELECT * FROM ${table} LIMIT 10`)}
                             />
                         ) : (
