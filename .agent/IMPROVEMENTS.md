@@ -188,6 +188,10 @@
 - **Improvement**: Enhance the Data Lab with query history, saved queries, and deeper schema insights including column metadata.
 - **Status**: ✅ Implemented (History/Saved Queries API & UI, SQL column discovery, and standardized technical aesthetic)
 
+#### 26. **Data Lab Collaborative Dashboards & SQL Optimization Intelligence**
+- **Improvement**: Implement dashboard widget persistence and SQL performance suggestions (Virtual DBA) in Data Lab.
+- **Status**: ✅ Implemented (Dashboard Persistence API, collaborative widget grid, and EXPLAIN plan analyzer for Postgres/MySQL index suggestions in Phase 28)
+
 ### Reliability Improvements
 
 #### 22. **Robust Deployment Status Sync**

@@ -186,6 +186,35 @@ export async function POST(
                 });
             }
 
+            // Handle EXPLAIN mock results
+            if (isSqlLike && query.toUpperCase().startsWith('EXPLAIN')) {
+                const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
+                const mockExplainResults = isPostgres
+                    ? [
+                        { 'QUERY PLAN': 'Limit  (cost=0.00..0.01 rows=3 width=112)' },
+                        { 'QUERY PLAN': '  ->  Seq Scan on users  (cost=0.00..34.50 rows=1250 width=112)' },
+                        { 'QUERY PLAN': '        Filter: (id = 1)' }
+                    ]
+                    : [
+                        { id: 1, select_type: 'SIMPLE', table: 'users', partitions: null, type: 'ALL', possible_keys: null, key: null, key_len: null, ref: null, rows: 1250, filtered: 10.00, Extra: 'Using where' }
+                    ];
+
+                const optimizationSuggestions: string[] = [];
+                if (isPostgres) {
+                    optimizationSuggestions.push('POSTGRES: Full table scan detected on "users". Consider adding an index for the columns in the FILTER clause to improve performance.');
+                } else {
+                    optimizationSuggestions.push('MYSQL: Full table scan (type: ALL) detected on "users". Consider adding an index to avoid scanning all 1250 rows.');
+                }
+
+                return NextResponse.json({
+                    success: true,
+                    results: mockExplainResults,
+                    rowCount: mockExplainResults.length,
+                    optimizationSuggestions,
+                    executionTimeMs: 2
+                });
+            }
+
             // Handle multiple statements in mock mode (SQL only)
             if (isSqlLike && query.includes(';')) {
                 const statements = query.split(';').filter((s: string) => s.trim().length > 0);
@@ -447,10 +476,24 @@ export async function POST(
                         }
 
                         const rows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
+                        const optimizationSuggestions: string[] = [];
+
+                        if (query.toUpperCase().startsWith('EXPLAIN')) {
+                            rows.forEach(row => {
+                                const plan = String(row['QUERY PLAN'] || '');
+                                if (plan.includes('Seq Scan')) {
+                                    const tableMatch = plan.match(/on (\w+)/);
+                                    const table = tableMatch ? tableMatch[1] : 'table';
+                                    optimizationSuggestions.push(`POSTGRES: Full table scan detected on "${table}". Consider adding an index for the columns in the FILTER clause to improve performance.`);
+                                }
+                            });
+                        }
+
                         return NextResponse.json({
                             success: true,
                             results: rows,
                             rowCount: rows.length,
+                            optimizationSuggestions: optimizationSuggestions.length > 0 ? optimizationSuggestions : undefined,
                             executionTimeMs: Date.now() - startTime
                         });
                     } finally {
@@ -479,10 +522,24 @@ export async function POST(
                         }
 
                         const finalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
+                        const optimizationSuggestions: string[] = [];
+
+                        if (query.toUpperCase().startsWith('EXPLAIN')) {
+                            finalRows.forEach((row: any) => {
+                                if (row.type === 'ALL') {
+                                    optimizationSuggestions.push(`MYSQL: Full table scan (type: ALL) detected on "${row.table}". Consider adding an index to avoid scanning all ${row.rows} rows.`);
+                                }
+                                if (row.possible_keys === null && row.key === null && row.rows > 100) {
+                                    optimizationSuggestions.push(`MYSQL: No possible keys found for table "${row.table}". Performance will degrade as data grows.`);
+                                }
+                            });
+                        }
+
                         return NextResponse.json({
                             success: true,
                             results: finalRows,
                             rowCount: finalRows.length,
+                            optimizationSuggestions: optimizationSuggestions.length > 0 ? optimizationSuggestions : undefined,
                             executionTimeMs: Date.now() - startTime
                         });
                     } finally {

@@ -75,6 +75,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         timeseries?: { date: string, avgLatency: number }[],
         hotspots?: { query: string, avgLatency: number, count: number }[]
     } | null>(null);
+    const [optimizationSuggestions, setOptimizationSuggestions] = useState<string[] | null>(null);
     const [showInsights, setShowInsights] = useState(false);
     const [history, setHistory] = useState<{ id: string, query: string, timestamp: string, executionTimeMs?: number, rowCount?: number, error?: string }[]>([]);
     const [savedQueries, setSavedQueries] = useState<{ id: string, name: string, query: string, isPublic?: boolean, userId?: string }[]>([]);
@@ -83,7 +84,9 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [newQueryName, setNewQueryName] = useState('');
     const [isQueryPublic, setIsQueryPublic] = useState(false);
     const [isCloning, setIsCloning] = useState(false);
-    const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved'>('editor');
+    const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved' | 'dashboards'>('editor');
+    const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: any, storageId: string }[]>([]);
+    const [isSavingDashboard, setIsSavingDashboard] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
     const [entitySearchQuery, setEntitySearchQuery] = useState('');
@@ -158,11 +161,24 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         }
     }, [projectId, selectedId]);
 
+    const fetchDashboards = useCallback(async () => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/dashboards`);
+            const data = await response.json();
+            if (data.success) {
+                setDashboards(data.widgets);
+            }
+        } catch (error) {
+            console.error('Failed to fetch dashboards:', error);
+        }
+    }, [projectId]);
+
     useEffect(() => {
         fetchMetrics();
         fetchHistory();
         fetchSavedQueries();
-    }, [fetchMetrics, fetchHistory, fetchSavedQueries]);
+        fetchDashboards();
+    }, [fetchMetrics, fetchHistory, fetchSavedQueries, fetchDashboards]);
 
     const executeQuery = async (overrideQuery?: string, explain = false) => {
         let queryToRun = overrideQuery || query;
@@ -235,6 +251,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         setResults(data.results);
                         setRowCount(data.rowCount);
                     }
+                    setOptimizationSuggestions(data.optimizationSuggestions || null);
                     setExecutionTime(data.executionTimeMs);
                     // Re-fetch historical metrics and history after execution
                     if (!explain) {
@@ -511,6 +528,7 @@ runQuery();`;
         setRowCount(null);
         setExecutionTime(null);
         setError(null);
+        setOptimizationSuggestions(null);
         setFilterQuery('');
         setCurrentPage(1);
         setSortConfig(null);
@@ -555,6 +573,44 @@ runQuery();`;
             }
             return { key, direction: 'asc' };
         });
+    };
+
+    const addToDashboard = async (name: string) => {
+        if (!selectedId || !query) return;
+        setIsSavingDashboard(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/dashboards`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    query,
+                    chartConfig: viewMode === 'chart' ? chartConfig : null,
+                    storageId: selectedId
+                }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                fetchDashboards();
+            }
+        } catch (error) {
+            console.error('Failed to add to dashboard:', error);
+        } finally {
+            setIsSavingDashboard(false);
+        }
+    };
+
+    const deleteDashboardWidget = async (widgetId: string) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/dashboards/${widgetId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                fetchDashboards();
+            }
+        } catch (error) {
+            console.error('Failed to delete dashboard widget:', error);
+        }
     };
 
     const selectedConnector = connectors.find(c => c.id === selectedId);
@@ -938,6 +994,15 @@ runQuery();`;
                     <History className="w-3.5 h-3.5 mr-2" />
                     Query History
                 </Button>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveTab('dashboards')}
+                    className={`h-8 px-3 text-[10px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'dashboards' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
+                >
+                    <BarChart2 className="w-3.5 h-3.5 mr-2" />
+                    Dashboards
+                </Button>
             </div>
 
             <div className="p-6 space-y-6">
@@ -1162,6 +1227,69 @@ runQuery();`;
                             ))
                         )}
                     </div>
+                ) : activeTab === 'dashboards' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                        {dashboards.length === 0 ? (
+                            <div className="col-span-full py-12 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                                <BarChart2 className="w-10 h-10 text-[var(--muted-foreground)]/30 mx-auto" />
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No dashboard widgets yet</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Add query results or charts to your dashboard for quick visualization</p>
+                                </div>
+                            </div>
+                        ) : (
+                            dashboards.map(widget => {
+                                const widgetConnector = connectors.find(c => c.id === widget.storageId);
+                                return (
+                                    <Card key={widget.id} className="overflow-hidden border-[var(--border)] hover:border-[var(--primary)]/30 transition-all bg-[var(--background)] flex flex-col min-h-[400px]">
+                                        <div className="p-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/5">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-6 h-6 rounded bg-[var(--primary)]/10 flex items-center justify-center">
+                                                    <BarChart2 className="w-3 h-3 text-[var(--primary)]" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider">{widget.name}</span>
+                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">{widgetConnector?.name || 'UNKNOWN STORAGE'}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        setSelectedId(widget.storageId);
+                                                        setQuery(widget.query);
+                                                        if (widget.chartConfig) {
+                                                            setViewMode('chart');
+                                                            setChartConfig(widget.chartConfig);
+                                                        } else {
+                                                            setViewMode('table');
+                                                        }
+                                                        setActiveTab('editor');
+                                                        executeQuery(widget.query);
+                                                    }}
+                                                    className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                >
+                                                    <Terminal className="w-3.5 h-3.5" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => deleteDashboardWidget(widget.id)}
+                                                    className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 flex-1">
+                                            <DashboardWidget widget={widget} projectId={projectId} />
+                                        </div>
+                                    </Card>
+                                );
+                            })
+                        )}
+                    </div>
                 ) : (
                     <div className="space-y-2 animate-fade-in">
                         {history.length === 0 ? (
@@ -1326,6 +1454,16 @@ runQuery();`;
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Schema Insight</span>
                                 </div>
                                 <div className="flex items-center gap-1 bg-[var(--muted)]/20 p-0.5 rounded-lg border border-[var(--border)]">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => addToDashboard(`DASHBOARD WIDGET ${dashboards.length + 1}`)}
+                                        disabled={isSavingDashboard}
+                                        className="h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    >
+                                        {isSavingDashboard ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <BarChart2 className="w-3.5 h-3.5 mr-1.5" />}
+                                        Add to Dashboard
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -1636,6 +1774,23 @@ runQuery();`;
                                 </Button>
                             </div>
                         </div>
+                        {optimizationSuggestions && (
+                            <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-in slide-in-from-top-2 mb-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Optimization Suggestions (Virtual DBA)</span>
+                                </div>
+                                <div className="space-y-2">
+                                    {optimizationSuggestions.map((s, i) => (
+                                        <div key={i} className="flex items-start gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] p-2 rounded border border-[var(--border)]">
+                                            <Info className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                                            {s}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="min-h-[300px] max-h-[600px] overflow-auto">
                             {viewMode === 'chart' ? (
                                 renderChart()
@@ -1762,5 +1917,172 @@ runQuery();`;
                 </div>
             )}
         </Card>
+    );
+}
+
+function DashboardWidget({ widget, projectId }: { widget: any, projectId: string }) {
+    const [results, setResults] = useState<any[] | null>(null);
+    const [isExecuting, setIsExecuting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const execute = async () => {
+            setIsExecuting(true);
+            try {
+                const response = await fetch(`/api/projects/${projectId}/storage/${widget.storageId}/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: widget.query }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setResults(data.results);
+                } else {
+                    setError(data.error);
+                }
+            } catch (e) {
+                setError('Failed to fetch widget data');
+            } finally {
+                setIsExecuting(false);
+            }
+        };
+        execute();
+    }, [projectId, widget.storageId, widget.query]);
+
+    if (isExecuting) {
+        return (
+            <div className="h-full flex flex-col items-center justify-center space-y-3">
+                <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Executing Query...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="h-full flex flex-col items-center justify-center space-y-3 text-[var(--error)]">
+                <AlertCircle className="w-6 h-6" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">{error}</span>
+            </div>
+        );
+    }
+
+    if (!results || results.length === 0) {
+        return (
+            <div className="h-full flex flex-col items-center justify-center space-y-3 text-[var(--muted-foreground)]">
+                <Search className="w-6 h-6 opacity-20" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">No results found</span>
+            </div>
+        );
+    }
+
+    if (widget.chartConfig) {
+        const ChartComponent = widget.chartConfig.type === 'bar' ? BarChart : widget.chartConfig.type === 'line' ? LineChart : AreaChart;
+        const DataComponent = (widget.chartConfig.type === 'bar' ? Bar : widget.chartConfig.type === 'line' ? Line : Area) as any;
+
+        return (
+            <div className="h-full w-full min-h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                    {widget.chartConfig.type === 'pie' ? (
+                        <PieChart>
+                            <Pie
+                                data={results}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={80}
+                                fill="var(--primary)"
+                                dataKey={widget.chartConfig.yAxis}
+                                nameKey={widget.chartConfig.xAxis}
+                            >
+                                {results.map((_: any, index: number) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'var(--popover)',
+                                    borderColor: 'var(--border)',
+                                    borderRadius: '8px',
+                                    fontSize: '10px',
+                                    fontWeight: 'bold',
+                                    textTransform: 'uppercase'
+                                }}
+                            />
+                        </PieChart>
+                    ) : (
+                        <ChartComponent data={results}>
+                            <XAxis
+                                dataKey={widget.chartConfig.xAxis}
+                                stroke="var(--muted-foreground)"
+                                fontSize={10}
+                                tickLine={false}
+                                axisLine={false}
+                                tickFormatter={(val: any) => String(val).toUpperCase()}
+                            />
+                            <YAxis
+                                stroke="var(--muted-foreground)"
+                                fontSize={10}
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'var(--popover)',
+                                    borderColor: 'var(--border)',
+                                    borderRadius: '8px',
+                                    fontSize: '10px',
+                                    fontWeight: 'bold',
+                                    textTransform: 'uppercase'
+                                }}
+                            />
+                            <DataComponent
+                                type="monotone"
+                                dataKey={widget.chartConfig.yAxis}
+                                fill="var(--primary)"
+                                stroke="var(--primary)"
+                                fillOpacity={0.3}
+                                strokeWidth={2}
+                                radius={[4, 4, 0, 0]}
+                            />
+                        </ChartComponent>
+                    )}
+                </ResponsiveContainer>
+            </div>
+        );
+    }
+
+    const columns = Object.keys(results[0]).slice(0, 5); // Limit columns for dashboard view
+    return (
+        <div className="overflow-x-auto rounded-lg border border-[var(--border)] h-full">
+            <table className="w-full text-left border-collapse">
+                <thead>
+                    <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
+                        {columns.map(col => (
+                            <th key={col} className="p-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                {col}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {results.slice(0, 5).map((row, i) => (
+                        <tr key={i} className="border-b border-[var(--border)] last:border-0">
+                            {columns.map(col => (
+                                <td key={col} className="p-2 text-[10px] font-mono truncate max-w-[120px]">
+                                    {typeof row[col] === 'object' ? '{...}' : String(row[col])}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            {results.length > 5 && (
+                <div className="p-2 text-center border-t border-[var(--border)]">
+                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                        + {results.length - 5} MORE ROWS
+                    </span>
+                </div>
+            )}
+        </div>
     );
 }

@@ -83,16 +83,25 @@ export async function GET(
                     } else if (storage.type === 'mongodb-atlas') {
                         const groupId = storage.metadata?.groupId as string;
                         const clusterName = storage.metadata?.clusterName as string;
-                        if (!groupId || !clusterName) throw new Error('MongoDB Atlas GroupID or ClusterName is missing');
+
+                        // Enhanced Metadata Validation
+                        if (!groupId) throw new Error('MongoDB Atlas Group ID (Project ID) is missing in connector metadata');
+                        if (!clusterName) throw new Error('MongoDB Atlas Cluster Name is missing in connector metadata');
 
                         // Implementation: Fetch Cluster info from Atlas Administration API
+                        console.log(`Syncing MongoDB Atlas cluster: ${clusterName} in group: ${groupId}`);
                         const res = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters/${clusterName}`, {
-                            headers: { 'Authorization': `Bearer ${providerApiKey}` } // Atlas uses API keys (often as basic auth user:key)
+                            headers: {
+                                'Authorization': `Bearer ${providerApiKey}`,
+                                'Accept': 'application/json'
+                            }
                         });
 
                         if (!res.ok) {
                             const errorText = await res.text();
-                            throw new Error(`Atlas API error: ${errorText}`);
+                            const statusCode = res.status;
+                            console.error(`Atlas API error [${statusCode}]: ${errorText}`);
+                            throw new Error(`MongoDB Atlas API error (${statusCode}): ${errorText || 'Failed to fetch cluster details'}`);
                         }
 
                         const data = await res.json();
