@@ -24,7 +24,7 @@ export async function GET(
         }
 
         const db = getDb();
-        const widgets: any[] = [];
+        const widgets: Record<string, unknown>[] = [];
 
         if (process.env.MOCK_DB === 'true') {
             widgets.push({

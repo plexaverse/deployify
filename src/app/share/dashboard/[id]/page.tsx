@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { Database, Search, AlertCircle, Loader2, BarChart2, RefreshCw, Clock, Globe } from 'lucide-react';
 import {
@@ -25,12 +25,24 @@ import { Separator } from '@/components/ui/separator';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
 
+interface WidgetData {
+    name?: string;
+    refreshInterval?: number;
+    chartConfig?: {
+        type: 'bar' | 'line' | 'area' | 'pie';
+        xAxis: string;
+        yAxis: string;
+    };
+    storageId: string;
+    query: string;
+}
+
 export default function SharedDashboardPage() {
     const { id: widgetId } = useParams();
     const searchParams = useSearchParams();
     const projectId = searchParams.get('p');
 
-    const [widget, setWidget] = useState<any>(null);
+    const [widget, setWidget] = useState<WidgetData | null>(null);
     const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isExecuting, setIsExecuting] = useState(false);
@@ -60,7 +72,7 @@ export default function SharedDashboardPage() {
     }, [projectId, widgetId]);
 
     const executeQuery = useCallback(async () => {
-        if (!widget || !projectId) return;
+        if (!widget || !projectId || !widgetId) return;
 
         setIsExecuting(true);
         try {
@@ -81,7 +93,7 @@ export default function SharedDashboardPage() {
         } finally {
             setIsExecuting(false);
         }
-    }, [projectId, widget]);
+    }, [projectId, widget, widgetId]);
 
     useEffect(() => {
         fetchWidget();
@@ -150,7 +162,7 @@ export default function SharedDashboardPage() {
                                 </span>
                             </div>
                         )}
-                        {widget?.refreshInterval > 0 && (
+                        {widget?.refreshInterval && widget.refreshInterval > 0 && (
                             <div className="flex items-center gap-2 text-[var(--primary)] mt-1">
                                 <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
                                 <span className="text-[10px] font-bold uppercase tracking-wider">
@@ -213,14 +225,15 @@ export default function SharedDashboardPage() {
     );
 }
 
-function SharedChart({ results, config }: { results: any[], config: any }) {
-    const ChartComponent = config.type === 'bar' ? BarChart : config.type === 'line' ? LineChart : AreaChart;
-    const DataComponent = (config.type === 'bar' ? Bar : config.type === 'line' ? Line : Area) as any;
+function SharedChart({ results, config }: { results: Record<string, unknown>[], config: NonNullable<WidgetData['chartConfig']> }) {
+    const type = config.type;
+    const ChartComponent = type === 'bar' ? BarChart : type === 'line' ? LineChart : AreaChart;
+    const DataComponent = (type === 'bar' ? Bar : type === 'line' ? Line : Area) as unknown as React.ElementType;
 
     return (
         <div className="h-[450px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-                {config.type === 'pie' ? (
+                {type === 'pie' ? (
                     <PieChart>
                         <Pie
                             data={results}
@@ -257,7 +270,7 @@ function SharedChart({ results, config }: { results: any[], config: any }) {
                             fontSize={10}
                             tickLine={false}
                             axisLine={false}
-                            tickFormatter={(val) => String(val).toUpperCase()}
+                            tickFormatter={(val: unknown) => String(val).toUpperCase()}
                         />
                         <YAxis
                             stroke="var(--muted-foreground)"
@@ -292,7 +305,7 @@ function SharedChart({ results, config }: { results: any[], config: any }) {
     );
 }
 
-function SharedTable({ results }: { results: any[] }) {
+function SharedTable({ results }: { results: Record<string, unknown>[] }) {
     const columns = Object.keys(results[0]).slice(0, 10);
     return (
         <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
