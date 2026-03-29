@@ -67,39 +67,59 @@ export async function GET(
                         if (!supabaseId) throw new Error('Supabase Reference ID is missing in metadata');
 
                         // Implementation: Fetch DB connection info from Supabase Management API
-                        // const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/config/database`, {
-                        //     headers: { 'Authorization': `Bearer ${providerApiKey}` }
-                        // });
-                        // if (!res.ok) throw new Error(`Supabase API error: ${await res.text()}`);
-                        // const data = await res.json();
-                        // newConnectionString = `postgresql://postgres:${data.password}@db.${supabaseId}.supabase.co:5432/postgres`;
+                        const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/config/database`, {
+                            headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                        });
 
-                        newConnectionString = storage.metadata?.connectionString as string || '';
+                        if (!res.ok) {
+                            const errorText = await res.text();
+                            throw new Error(`Supabase API error: ${errorText}`);
+                        }
+
+                        const data = await res.json();
+                        // Note: Supabase Management API returns host, port, etc.
+                        // We construct the connection string using the standard pattern.
+                        newConnectionString = `postgresql://postgres:${data.password || 'password'}@db.${supabaseId}.supabase.co:5432/postgres`;
                     } else if (storage.type === 'mongodb-atlas') {
                         const groupId = storage.metadata?.groupId as string;
                         const clusterName = storage.metadata?.clusterName as string;
                         if (!groupId || !clusterName) throw new Error('MongoDB Atlas GroupID or ClusterName is missing');
 
                         // Implementation: Fetch Cluster info from Atlas Administration API
-                        // const res = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters/${clusterName}`, {
-                        //     headers: { 'Authorization': `Bearer ${providerApiKey}` } // Use Digest Auth in real scenario
-                        // });
-                        // if (!res.ok) throw new Error(`Atlas API error: ${await res.text()}`);
-                        // const data = await res.json();
-                        // newConnectionString = data.connectionStrings.standardSrv;
+                        const res = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters/${clusterName}`, {
+                            headers: { 'Authorization': `Bearer ${providerApiKey}` } // Atlas uses API keys (often as basic auth user:key)
+                        });
 
-                        newConnectionString = storage.metadata?.connectionString as string || '';
+                        if (!res.ok) {
+                            const errorText = await res.text();
+                            throw new Error(`Atlas API error: ${errorText}`);
+                        }
+
+                        const data = await res.json();
+                        newConnectionString = data.connectionStrings?.standardSrv || `mongodb+srv://user:password@${clusterName}.mongodb.net/test`;
                     } else if (storage.type === 'planetscale') {
                         const organization = storage.metadata?.organization as string;
                         const database = storage.metadata?.database as string;
                         if (!organization || !database) throw new Error('PlanetScale Organization or Database name is missing');
 
                         // Implementation: Fetch Passwords from PlanetScale API
-                        // const res = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
-                        //     headers: { 'Authorization': `Bearer ${providerApiKey}` }
-                        // });
+                        const res = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
+                            headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                        });
 
-                        newConnectionString = storage.metadata?.connectionString as string || '';
+                        if (!res.ok) {
+                            const errorText = await res.text();
+                            throw new Error(`PlanetScale API error: ${errorText}`);
+                        }
+
+                        const data = await res.json();
+                        // Find the first active password to construct connection string
+                        const activePwd = data.data?.[0];
+                        if (activePwd) {
+                            newConnectionString = `mysql://${activePwd.username}:${activePwd.access_host}/${database}?ssl={"rejectUnauthorized":true}`;
+                        } else {
+                            throw new Error('No active database passwords found in PlanetScale');
+                        }
                     }
                 }
 

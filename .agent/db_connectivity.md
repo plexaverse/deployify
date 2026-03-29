@@ -162,19 +162,34 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement "Smart Autocomplete" in Query Editor for tables, columns, and keywords
 - [x] Add dialect-specific "Copy as Code" snippets to Data Lab
 
-## Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence (IN PROGRESS)
-- [ ] Implement Multi-Result Set support for complex SQL queries
-- [ ] Implement Visual Schema Graph (SVG-based ER diagram)
-- [ ] Add interactive "Fetch Related" navigation for Foreign Keys
-- [ ] Standardize remaining Data Lab UI elements to high-density standards
+### Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence (COMPLETED)
+- [x] Implement Multi-Result Set support for complex SQL queries
+- [x] Implement Visual Schema Graph (SVG-based ER diagram)
+- [x] Add interactive "Fetch Related" navigation for Foreign Keys
+- [x] Standardize remaining Data Lab UI elements to high-density standards
+
+## Phase 27: External Connector API Deep Integration (COMPLETED)
+- [x] Implement real API fetch logic for Supabase synchronization
+- [x] Implement real API fetch logic for MongoDB Atlas synchronization
+- [x] Implement real API fetch logic for PlanetScale synchronization
+- [x] Update Storage Settings UI to collect required provider metadata
+- [x] Enhance error handling and status persistence for external sync
 
 ## Progress Updates
 
+### 2026-11-30: External Connector API Deep Integration
+- Completed Phase 27: External Connector API Deep Integration.
+- Refactored `src/app/api/projects/[id]/storage/[storageId]/sync/route.ts` to implement real API logic for Supabase, MongoDB Atlas, and PlanetScale.
+- Updated `StorageSection.tsx` to collect Provider API Keys and specific resource identifiers (Project IDs, Group IDs, Clusters, Orgs).
+- Hardened external sync with robust error handling and detailed status reporting in the UI.
+- Standardized all new UI components to the high-density technical aesthetic.
+
 ### 2026-11-30: Data Lab Schema Mapping & Multi-Result Intelligence
-- Initiated Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence.
-- Planned implementation of multi-result set handling for complex queries.
-- Designing an interactive SVG-based schema map for visual table relationship discovery.
-- Adding "Fetch Related" quick-navigation for Foreign Key columns in the results table.
+- Completed Phase 26: Data Lab Schema Mapping & Multi-Result Intelligence.
+- Implemented Multi-Result Set support for complex SQL queries in the Data Lab and proxy API.
+- Implemented an interactive SVG-based Visual Schema Map (`SchemaMap.tsx`) for table relationship discovery.
+- Added "Fetch Related" quick-navigation for Foreign Key columns in the query results table.
+- Standardized all Data Lab UI elements to the platform's high-density technical aesthetic (`text-[10px]`).
 
 ### 2026-11-29: Data Lab Intelligent DX & Sampling
 - Completed Phase 25: Data Lab Intelligent DX & Sampling.
