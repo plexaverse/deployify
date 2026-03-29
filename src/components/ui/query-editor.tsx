@@ -19,6 +19,7 @@ export function QueryEditor({ value, onChange, placeholder, className, suggestio
     const [selectedIndex, setSelectedIndex] = React.useState(0);
     const [cursorPos, setCursorPos] = React.useState({ top: 0, left: 0 });
     const mirrorRef = useRef<HTMLDivElement>(null);
+    const [textareaWidth, setTextareaWidth] = React.useState<number | undefined>(undefined);
 
     const lineCount = value.split('\n').length;
 
@@ -136,9 +137,25 @@ export function QueryEditor({ value, onChange, placeholder, className, suggestio
         }, 0);
     };
 
-    useEffect(() => {
+useEffect(() => {
         handleScroll();
     }, [value]);
+
+    useEffect(() => {
+        if (textareaRef.current) {
+            setTextareaWidth(textareaRef.current.clientWidth);
+        }
+
+        const handleResize = () => {
+            if (textareaRef.current) {
+                setTextareaWidth(textareaRef.current.clientWidth);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
 
     return (
         <div className={cn(
@@ -192,7 +209,7 @@ export function QueryEditor({ value, onChange, placeholder, className, suggestio
             <div
                 ref={mirrorRef}
                 className="absolute invisible whitespace-pre p-4 font-mono text-sm leading-5"
-                style={{ width: textareaRef.current?.clientWidth, top: 0, left: 40 }}
+                style={{ width: textareaWidth, top: 0, left: 40 }}
             />
         </div>
     );
