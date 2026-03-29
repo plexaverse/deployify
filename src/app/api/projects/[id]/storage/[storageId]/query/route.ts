@@ -475,11 +475,12 @@ export async function POST(
                             });
                         }
 
-                        const rows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
+                        const rawRows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
+                        const rows = rawRows as unknown as Record<string, unknown>[];
                         const optimizationSuggestions: string[] = [];
 
                         if (query.toUpperCase().startsWith('EXPLAIN')) {
-                            (rows as Record<string, unknown>[]).forEach(row => {
+                            rows.forEach(row => {
                                 const plan = String(row['QUERY PLAN'] || '');
                                 if (plan.includes('Seq Scan')) {
                                     const tableMatch = plan.match(/on (\w+)/);
@@ -521,11 +522,12 @@ export async function POST(
                             });
                         }
 
-                        const finalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
+                        const rawFinalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
+                        const finalRows = rawFinalRows as unknown as Record<string, unknown>[];
                         const optimizationSuggestions: string[] = [];
 
                         if (query.toUpperCase().startsWith('EXPLAIN')) {
-                            (finalRows as Record<string, unknown>[]).forEach(row => {
+                            finalRows.forEach(row => {
                                 if (row.type === 'ALL') {
                                     optimizationSuggestions.push(`MYSQL: Full table scan (type: ALL) detected on "${row.table}". Consider adding an index to avoid scanning all ${row.rows} rows.`);
                                 }

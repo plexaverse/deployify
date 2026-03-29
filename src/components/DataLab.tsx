@@ -85,7 +85,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isQueryPublic, setIsQueryPublic] = useState(false);
     const [isCloning, setIsCloning] = useState(false);
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved' | 'dashboards'>('editor');
-    const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: Record<string, unknown> | null, storageId: string }[]>([]);
+    const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string }[]>([]);
     const [isSavingDashboard, setIsSavingDashboard] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
@@ -1920,7 +1920,7 @@ runQuery();`;
     );
 }
 
-function DashboardWidget({ widget, projectId }: { widget: { id: string, name: string, query: string, chartConfig: Record<string, unknown> | null, storageId: string }, projectId: string }) {
+function DashboardWidget({ widget, projectId }: { widget: { id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string }, projectId: string }) {
     const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
     const [isExecuting, setIsExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
