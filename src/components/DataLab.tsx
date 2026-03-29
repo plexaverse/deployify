@@ -888,11 +888,11 @@ runQuery();`;
                         <>
                             <div className="text-right hidden md:block">
                                 <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Latency</span>
-                                <span className="text-sm font-semibold text-[var(--primary)]">{performanceData.avgLatency}ms</span>
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--primary)]">{performanceData.avgLatency}ms</span>
                             </div>
                             <div className="text-right hidden md:block">
                                 <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Success Rate</span>
-                                <span className="text-sm font-semibold text-[var(--success)]">{performanceData.successRate}%</span>
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--success)]">{performanceData.successRate}%</span>
                             </div>
                         </>
                     )}
@@ -948,7 +948,7 @@ runQuery();`;
                         <select
                             value={selectedId}
                             onChange={(e) => setSelectedId(e.target.value)}
-                            className="w-full h-10 px-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+                                    className="w-full h-10 px-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)] text-[10px] font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
                         >
                             {connectors.map(c => (
                                 <option key={c.id} value={c.id}>{c.name} ({c.type.toUpperCase()})</option>
@@ -1087,7 +1087,7 @@ runQuery();`;
                                                         value={queryVariables[v] || ''}
                                                         onChange={(e) => setQueryVariables(prev => ({ ...prev, [v]: e.target.value }))}
                                                         placeholder={`VALUE FOR :${v.toUpperCase()}`}
-                                                        className="h-8 text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                                        className="h-8 text-[10px] font-mono placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                                     />
                                                 </div>
                                             ))}
@@ -1473,7 +1473,7 @@ runQuery();`;
                                     setCurrentPage(1);
                                 }}
                                 placeholder="FILTER RESULTS LOCALLY..."
-                                className="h-8 border-none bg-transparent focus-visible:ring-0 text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="h-8 border-none bg-transparent focus-visible:ring-0 text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             {filterQuery && (
                                 <Button

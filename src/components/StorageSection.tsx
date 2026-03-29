@@ -65,6 +65,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [environment, setEnvironment] = useState<'production' | 'preview' | 'both'>('both');
     const [provision, setProvision] = useState(false);
     const [autoSync, setAutoSync] = useState(false);
+    const [supabaseId, setSupabaseId] = useState('');
+    const [mongodbGroupId, setMongodbGroupId] = useState('');
+    const [mongodbClusterName, setMongodbClusterName] = useState('');
+    const [planetscaleOrg, setPlanetscaleOrg] = useState('');
+    const [planetscaleDb, setPlanetscaleDb] = useState('');
+    const [providerApiKey, setProviderApiKey] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -93,12 +99,26 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
         setIsSubmitting(true);
         try {
+            const metadata: Record<string, unknown> = { provisioned: provision, autoSync };
+            if (autoSync) {
+                metadata.providerApiKey = providerApiKey;
+                if (type === 'supabase') metadata.supabaseId = supabaseId;
+                if (type === 'mongodb-atlas') {
+                    metadata.groupId = mongodbGroupId;
+                    metadata.clusterName = mongodbClusterName;
+                }
+                if (type === 'planetscale') {
+                    metadata.organization = planetscaleOrg;
+                    metadata.database = planetscaleDb;
+                }
+            }
+
             const success = await addStorageConfig(projectId, {
                 name,
                 type,
                 environment,
                 envKey,
-                metadata: { provisioned: provision, autoSync }
+                metadata
             }, provision ? '' : connectionString, provision);
 
             if (success) {
@@ -140,6 +160,13 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setType('cloud-sql-postgres');
         setEnvironment('both');
         setProvision(false);
+        setAutoSync(false);
+        setProviderApiKey('');
+        setSupabaseId('');
+        setMongodbGroupId('');
+        setMongodbClusterName('');
+        setPlanetscaleOrg('');
+        setPlanetscaleDb('');
     };
 
     const startEditing = (config: StorageConfig) => {
@@ -316,17 +343,92 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                         </p>
                                     </div>
                                     {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale') && !editingId && (
-                                        <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
-                                            <div className="space-y-0.5">
-                                                <Label className="text-sm font-semibold">API Auto-Sync</Label>
-                                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                                <div className="space-y-0.5">
+                                                    <Label className="text-sm font-semibold">API Auto-Sync</Label>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={autoSync}
+                                                    onChange={(e) => setAutoSync(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                />
                                             </div>
-                                            <input
-                                                type="checkbox"
-                                                checked={autoSync}
-                                                onChange={(e) => setAutoSync(e.target.checked)}
-                                                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
-                                            />
+
+                                            {autoSync && (
+                                                <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Provider API Key</Label>
+                                                        <Input
+                                                            type="password"
+                                                            value={providerApiKey}
+                                                            onChange={(e) => setProviderApiKey(e.target.value)}
+                                                            placeholder="ENTER PROVIDER API KEY..."
+                                                            className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                        />
+                                                    </div>
+
+                                                    {type === 'supabase' && (
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Supabase Project ID</Label>
+                                                            <Input
+                                                                value={supabaseId}
+                                                                onChange={(e) => setSupabaseId(e.target.value)}
+                                                                placeholder="E.G. ABCDEFGHIJKLMNOP"
+                                                                className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {type === 'mongodb-atlas' && (
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Group ID</Label>
+                                                                <Input
+                                                                    value={mongodbGroupId}
+                                                                    onChange={(e) => setMongodbGroupId(e.target.value)}
+                                                                    placeholder="ATLAS GROUP ID"
+                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Cluster Name</Label>
+                                                                <Input
+                                                                    value={mongodbClusterName}
+                                                                    onChange={(e) => setMongodbClusterName(e.target.value)}
+                                                                    placeholder="CLUSTER0"
+                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {type === 'planetscale' && (
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Organization</Label>
+                                                                <Input
+                                                                    value={planetscaleOrg}
+                                                                    onChange={(e) => setPlanetscaleOrg(e.target.value)}
+                                                                    placeholder="ORG NAME"
+                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Database</Label>
+                                                                <Input
+                                                                    value={planetscaleDb}
+                                                                    onChange={(e) => setPlanetscaleDb(e.target.value)}
+                                                                    placeholder="DB NAME"
+                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
