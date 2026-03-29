@@ -20,28 +20,61 @@ export async function POST(
     { params }: { params: Promise<{ id: string; storageId: string }> }
 ) {
     try {
-        const session = await getSession();
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const { id, storageId } = await params;
-        const access = await checkProjectAccess(session.user.id, id);
+        const body = await request.json();
+        let { query } = body;
+        const { variables = {}, widgetId } = body;
 
-        if (!access.allowed) {
-            return NextResponse.json({ error: access.error }, { status: access.status });
+        let session = null;
+        let storageConfig: StorageConfig | undefined;
+
+        // 1. Authorization Logic
+        if (widgetId) {
+            // Public Widget Path: No session required, but must be a valid public widget
+            const db = getDb();
+            const widgetDoc = await db.collection(Collections.PROJECTS).doc(id).collection('storage_dashboards').doc(widgetId).get();
+
+            if (!widgetDoc.exists) {
+                return NextResponse.json({ error: 'Widget not found' }, { status: 404 });
+            }
+
+            const widgetData = widgetDoc.data();
+            if (!widgetData?.isPublic) {
+                return NextResponse.json({ error: 'Forbidden: Widget is not public' }, { status: 403 });
+            }
+
+            // Enforce the saved query for public access
+            query = widgetData.query;
+
+            // Still need storage config
+            if (process.env.MOCK_DB === 'true' && id === 'audit-id') {
+                storageConfig = { id: 'mock-storage-id', type: 'cloud-sql-postgres', name: 'MOCK STORAGE' } as StorageConfig;
+            } else {
+                const projectDoc = await db.collection(Collections.PROJECTS).doc(id).get();
+                const projectData = projectDoc.data();
+                storageConfig = projectData?.storageConfigs?.find((s: StorageConfig) => s.id === storageId);
+            }
+        } else {
+            // Standard Path: Session required
+            session = await getSession();
+            if (!session) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+
+            if (process.env.MOCK_DB === 'true' && id === 'audit-id') {
+                storageConfig = { id: 'mock-storage-id', type: 'cloud-sql-postgres', name: 'MOCK STORAGE' } as StorageConfig;
+            } else {
+                const access = await checkProjectAccess(session.user.id, id);
+                if (!access.allowed) {
+                    return NextResponse.json({ error: access.error }, { status: access.status });
+                }
+                storageConfig = access.project?.storageConfigs?.find((s: StorageConfig) => s.id === storageId);
+            }
         }
-
-        const { project } = access;
-        const storageConfig = project.storageConfigs?.find((s: StorageConfig) => s.id === storageId);
 
         if (!storageConfig) {
             return NextResponse.json({ error: 'Storage connector not found' }, { status: 404 });
         }
-
-        const body = await request.json();
-        let { query } = body;
-        const { variables = {} } = body;
 
         if (!query) {
             return NextResponse.json({ error: 'Query is required' }, { status: 400 });
@@ -737,7 +770,7 @@ export async function POST(
                 await db.collection(Collections.STORAGE_METRICS).add({
                     projectId: id,
                     storageId,
-                    userId: session.user.id,
+                    userId: session?.user?.id || 'public',
                     type: storageConfig.type,
                     executionTimeMs,
                     success: response.status === 200,
@@ -752,7 +785,7 @@ export async function POST(
                     await db.collection(Collections.QUERY_HISTORY).add({
                         projectId: id,
                         storageId,
-                        userId: session.user.id,
+                        userId: session?.user?.id || 'public',
                         query,
                         executionTimeMs,
                         rowCount: responseData.rowCount || 0,
@@ -771,7 +804,7 @@ export async function POST(
                 await db.collection(Collections.STORAGE_METRICS).add({
                     projectId: id,
                     storageId,
-                    userId: session.user.id,
+                    userId: session?.user?.id || 'public',
                     type: storageConfig.type,
                     executionTimeMs,
                     success: false,
@@ -786,7 +819,7 @@ export async function POST(
                     await db.collection(Collections.QUERY_HISTORY).add({
                         projectId: id,
                         storageId,
-                        userId: session.user.id,
+                        userId: session?.user?.id || 'public',
                         query,
                         error: error instanceof Error ? error.message : 'Unknown error',
                         timestamp: now

@@ -181,7 +181,22 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Enhance Data Lab UI with "Dashboards" tab and widget grid
 - [x] Refine MongoDB Atlas sync with metadata validation
 
+## Phase 29: Data Lab Dashboard Advanced Customization & Public Sharing (COMPLETED)
+- [x] Implement individual dashboard widget APIs (GET/PATCH)
+- [x] Add support for `isPublic` flag and public sharing URLs
+- [x] Implement auto-refresh intervals for dashboard widgets
+- [x] Create a public-facing shared insight viewer page
+- [x] Implement secure public query execution restricted to saved widget queries
+
 ## Progress Updates
+
+### 2027-04-06: Data Lab Dashboard Advanced Customization & Public Sharing
+- Completed Phase 29: Data Lab Dashboard Advanced Customization & Public Sharing.
+- Enhanced dashboard widget APIs with PATCH for partial updates and GET for individual widget retrieval (including public access).
+- Added public sharing functionality to the Data Lab UI with "Copy Share Link" support.
+- Implemented configurable auto-refresh intervals (30s, 60s, 5m) for dashboard widgets.
+- Created `src/app/share/dashboard/[id]/page.tsx` for secure, read-only public viewing of shared data insights.
+- Hardened Query API security by allowing unauthenticated access only via `widgetId` for public widgets, enforcing the execution of strictly saved queries.
 
 ### 2027-04-05: Data Lab Collaborative Dashboards & SQL Optimization Intelligence
 - Completed Phase 28: Data Lab Collaborative Dashboards & SQL Optimization Intelligence.

@@ -24,8 +24,22 @@ export async function GET(
         }
 
         const db = getDb();
-        const snapshot = await db.collection(Collections.PROJECTS).doc(id).collection('storage_dashboards').orderBy('createdAt', 'desc').get();
-        const widgets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const widgets: Record<string, unknown>[] = [];
+
+        if (process.env.MOCK_DB === 'true') {
+            widgets.push({
+                id: 'mock-widget-1',
+                name: 'MOCK WIDGET',
+                query: 'SELECT * FROM users',
+                storageId: 'mock-storage-id',
+                isPublic: true,
+                refreshInterval: 0,
+                createdAt: new Date()
+            });
+        } else {
+            const snapshot = await db.collection(Collections.PROJECTS).doc(id).collection('storage_dashboards').orderBy('createdAt', 'desc').get();
+            widgets.push(...snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        }
 
         return NextResponse.json({
             success: true,
@@ -55,7 +69,7 @@ export async function POST(
         }
 
         const body = await request.json();
-        const { name, query, chartConfig, storageId } = body;
+        const { name, query, chartConfig, storageId, isPublic, refreshInterval } = body;
 
         if (!name || !query || !storageId) {
             return NextResponse.json({ error: 'Name, query, and storageId are required' }, { status: 400 });
@@ -67,6 +81,8 @@ export async function POST(
             query,
             chartConfig: chartConfig || null,
             storageId,
+            isPublic: !!isPublic,
+            refreshInterval: refreshInterval || 0, // 0 means no auto-refresh
             userId: session.user.id,
             createdAt: new Date(),
             updatedAt: new Date()
