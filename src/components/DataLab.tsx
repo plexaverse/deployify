@@ -85,7 +85,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isQueryPublic, setIsQueryPublic] = useState(false);
     const [isCloning, setIsCloning] = useState(false);
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved' | 'dashboards'>('editor');
-    const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: any, storageId: string }[]>([]);
+    const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: Record<string, unknown> | null, storageId: string }[]>([]);
     const [isSavingDashboard, setIsSavingDashboard] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
@@ -1920,8 +1920,8 @@ runQuery();`;
     );
 }
 
-function DashboardWidget({ widget, projectId }: { widget: any, projectId: string }) {
-    const [results, setResults] = useState<any[] | null>(null);
+function DashboardWidget({ widget, projectId }: { widget: { id: string, name: string, query: string, chartConfig: Record<string, unknown> | null, storageId: string }, projectId: string }) {
+    const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
     const [isExecuting, setIsExecuting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -1940,7 +1940,7 @@ function DashboardWidget({ widget, projectId }: { widget: any, projectId: string
                 } else {
                     setError(data.error);
                 }
-            } catch (e) {
+            } catch {
                 setError('Failed to fetch widget data');
             } finally {
                 setIsExecuting(false);
@@ -1977,13 +1977,14 @@ function DashboardWidget({ widget, projectId }: { widget: any, projectId: string
     }
 
     if (widget.chartConfig) {
-        const ChartComponent = widget.chartConfig.type === 'bar' ? BarChart : widget.chartConfig.type === 'line' ? LineChart : AreaChart;
-        const DataComponent = (widget.chartConfig.type === 'bar' ? Bar : widget.chartConfig.type === 'line' ? Line : Area) as any;
+        const type = widget.chartConfig.type;
+        const ChartComponent = type === 'bar' ? BarChart : type === 'line' ? LineChart : AreaChart;
+        const DataComponent = (type === 'bar' ? Bar : type === 'line' ? Line : Area) as React.ElementType;
 
         return (
             <div className="h-full w-full min-h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                    {widget.chartConfig.type === 'pie' ? (
+                    {type === 'pie' ? (
                         <PieChart>
                             <Pie
                                 data={results}
@@ -1991,10 +1992,10 @@ function DashboardWidget({ widget, projectId }: { widget: any, projectId: string
                                 cy="50%"
                                 outerRadius={80}
                                 fill="var(--primary)"
-                                dataKey={widget.chartConfig.yAxis}
-                                nameKey={widget.chartConfig.xAxis}
+                                dataKey={String(widget.chartConfig.yAxis)}
+                                nameKey={String(widget.chartConfig.xAxis)}
                             >
-                                {results.map((_: any, index: number) => (
+                                {results.map((_, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
@@ -2012,12 +2013,12 @@ function DashboardWidget({ widget, projectId }: { widget: any, projectId: string
                     ) : (
                         <ChartComponent data={results}>
                             <XAxis
-                                dataKey={widget.chartConfig.xAxis}
+                                dataKey={String(widget.chartConfig.xAxis)}
                                 stroke="var(--muted-foreground)"
                                 fontSize={10}
                                 tickLine={false}
                                 axisLine={false}
-                                tickFormatter={(val: any) => String(val).toUpperCase()}
+                                tickFormatter={(val: unknown) => String(val).toUpperCase()}
                             />
                             <YAxis
                                 stroke="var(--muted-foreground)"
@@ -2037,7 +2038,7 @@ function DashboardWidget({ widget, projectId }: { widget: any, projectId: string
                             />
                             <DataComponent
                                 type="monotone"
-                                dataKey={widget.chartConfig.yAxis}
+                                dataKey={String(widget.chartConfig.yAxis)}
                                 fill="var(--primary)"
                                 stroke="var(--primary)"
                                 fillOpacity={0.3}

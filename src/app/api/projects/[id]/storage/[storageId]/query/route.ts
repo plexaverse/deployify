@@ -479,7 +479,7 @@ export async function POST(
                         const optimizationSuggestions: string[] = [];
 
                         if (query.toUpperCase().startsWith('EXPLAIN')) {
-                            rows.forEach(row => {
+                            (rows as Record<string, unknown>[]).forEach(row => {
                                 const plan = String(row['QUERY PLAN'] || '');
                                 if (plan.includes('Seq Scan')) {
                                     const tableMatch = plan.match(/on (\w+)/);
@@ -525,11 +525,11 @@ export async function POST(
                         const optimizationSuggestions: string[] = [];
 
                         if (query.toUpperCase().startsWith('EXPLAIN')) {
-                            finalRows.forEach((row: any) => {
+                            (finalRows as Record<string, unknown>[]).forEach(row => {
                                 if (row.type === 'ALL') {
                                     optimizationSuggestions.push(`MYSQL: Full table scan (type: ALL) detected on "${row.table}". Consider adding an index to avoid scanning all ${row.rows} rows.`);
                                 }
-                                if (row.possible_keys === null && row.key === null && row.rows > 100) {
+                                if (row.possible_keys === null && row.key === null && typeof row.rows === 'number' && row.rows > 100) {
                                     optimizationSuggestions.push(`MYSQL: No possible keys found for table "${row.table}". Performance will degrade as data grows.`);
                                 }
                             });
