@@ -1572,3 +1572,9 @@ Conducted a final polish pass for standard internal padding, sizing rules, and t
 - **SQL Intelligence**: Enhanced SQL proxy schema discovery with estimated row counts (reltuples for Postgres, TABLE_ROWS for MySQL) to provide scale insights without performance degradation.
 - **Bulk Productivity**: Added "Copy Results" (CSV/JSON) bulk actions to the Data Lab results header.
 - **Technical Aesthetic**: Standardized all new labels and buttons to `text-[10px] font-bold uppercase tracking-wider`.
+
+### Session 172: Schema Map Typography Refinement
+- **File Updated**: `src/components/SchemaMap.tsx`
+- **Standardization**:
+  - Replaced legacy `text-[8px]` and `text-[9px]` instances with the standardized `text-[10px]` size.
+  - Enforced `font-bold tracking-wider` for table column types and metadata ensuring visual consistency across the visual DB representation graph.
