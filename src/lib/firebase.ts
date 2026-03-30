@@ -130,6 +130,7 @@ function createMockFirestore(): Firestore {
         set: async () => ({}),
         update: async () => ({}),
         delete: async () => ({}),
+        _path: { segments: [collection || 'mock', id || 'mock-id'] },
     });
 
     const mockCollection = (name: string): unknown => ({
@@ -145,6 +146,7 @@ function createMockFirestore(): Firestore {
     });
 
     return {
+        _path: { segments: ['mock'] },
         collection: (name: string) => mockCollection(name),
         doc: (path: string) => {
             const segments = path.split('/');

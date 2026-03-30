@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Settings, Bell, Shield, AlertTriangle } from 'lucide-react';
 import { EnvVariablesSection } from '@/components/EnvVariablesSection';
-import { StorageSection } from '@/components/StorageSection';
-import { DataLab } from '@/components/DataLab';
 import { DomainsSection } from '@/components/DomainsSection';
 import { RegionSettings } from '@/components/RegionSettings';
 import { ResourceSettings } from '@/components/ResourceSettings';
@@ -164,20 +162,6 @@ export default function ProjectSettingsPage() {
                     projectId={project.id}
                     onUpdate={() => fetchProjectDetails(project.id)}
                 />
-
-                {/* Storage Section */}
-                <StorageSection
-                    projectId={project.id}
-                    onUpdate={() => fetchProjectDetails(project.id)}
-                />
-
-                {/* Data Lab Section (Only show if connectors exist) */}
-                {project.storageConfigs && project.storageConfigs.length > 0 && (
-                    <DataLab
-                        projectId={project.id}
-                        connectors={project.storageConfigs}
-                    />
-                )}
 
                 {/* Region Settings */}
                 <RegionSettings
