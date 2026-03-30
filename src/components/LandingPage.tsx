@@ -224,8 +224,10 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.01 }}
               transition={{ delay: 0.6 }}
-              className="mt-12 max-w-md mx-auto p-1 rounded-2xl bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm flex items-center gap-3 pr-4 group"
+              onClick={() => handleCopy('pnpm dlx deployify login', 'login-cmd')}
+              className="mt-12 max-w-md mx-auto p-1 rounded-2xl bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm flex items-center gap-3 pr-4 group cursor-pointer hover:bg-[var(--card-hover)]/50 transition-colors"
             >
               <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider font-mono text-[var(--foreground)]">
                 $
@@ -235,7 +237,10 @@ export default function LandingPage() {
               </code>
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => handleCopy('pnpm dlx deployify login', 'login-cmd')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopy('pnpm dlx deployify login', 'login-cmd');
+                }}
                 className={cn(
                   buttonVariants({ variant: 'ghost', size: 'icon' }),
                   "rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
@@ -511,6 +516,7 @@ export default function LandingPage() {
                       setSearchQuery(filteredRepos[selectedIndex]);
                       setSelectedIndex(-1);
                     } else if (e.key === 'Escape') {
+                      e.stopPropagation();
                       setSearchQuery('');
                       setSelectedIndex(-1);
                     }
@@ -535,7 +541,11 @@ export default function LandingPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => { setSearchQuery(''); setSelectedIndex(-1); }}
+                          onClick={() => {
+                            setSearchQuery('');
+                            setSelectedIndex(-1);
+                            searchInputRef.current?.focus();
+                          }}
                           className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                           aria-label="Clear search"
                         >
