@@ -695,8 +695,25 @@ runQuery();`;
                 });
 
                 if (formatted.startsWith('SELECT')) {
-                    formatted = formatted.replace(/SELECT\s+(.+?)\s+FROM/s, (_match, items) => {
-                        const indentedItems = items.split(',').map((s: string) => `    ${s.trim()}`).join(',\n');
+                    formatted = formatted.replace(/SELECT\s+([\s\S]+?)\s+FROM/, (_match, items) => {
+                        // Improved splitting logic that respects parentheses to avoid breaking functions (COALESCE, CONCAT, etc.)
+                        const parts: string[] = [];
+                        let current = '';
+                        let depth = 0;
+                        for (let i = 0; i < items.length; i++) {
+                            const char = items[i];
+                            if (char === '(') depth++;
+                            if (char === ')') depth--;
+                            if (char === ',' && depth === 0) {
+                                parts.push(current.trim());
+                                current = '';
+                            } else {
+                                current += char;
+                            }
+                        }
+                        parts.push(current.trim());
+
+                        const indentedItems = parts.map(s => `    ${s}`).join(',\n');
                         return `SELECT\n${indentedItems}\nFROM`;
                     });
                 }
