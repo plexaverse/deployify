@@ -16,7 +16,7 @@ export async function POST(req: Request) {
             );
         }
 
-        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+        if (process.env.MOCK_DB !== 'true' && (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET)) {
             console.error('Razorpay keys are missing');
             return NextResponse.json(
                 { error: 'Payment gateway not configured' },

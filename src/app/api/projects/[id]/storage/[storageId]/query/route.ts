@@ -483,22 +483,21 @@ export async function POST(
                                 );
                                 // Fetch indices for MySQL
                                 const [indexRows] = await connection.execute(`SHOW INDEX FROM \`${table}\``);
-                                // @ts-expect-error - Dynamic mysql result
                                 const tableIndices = indexRows as Record<string, unknown>[];
 
-                                // @ts-expect-error - Dynamic mysql result
-                                columns[table] = colsRows.map(r => {
+                                columns[table] = (colsRows as Record<string, unknown>[]).map(r_raw => {
+                                    const r = r_raw as Record<string, unknown>;
                                     const colIndices = Array.from(new Set(tableIndices
                                         .filter(idx => idx.Column_name === r.name)
                                         .map(idx => String(idx.Key_name))));
 
                                     return {
-                                        name: r.name,
-                                        type: r.type,
+                                        name: String(r.name),
+                                        type: String(r.type),
                                         isPrimary: !!r.isPrimary,
                                         isForeign: !!r.referencesTable,
-                                        referencesTable: r.referencesTable,
-                                        referencesColumn: r.referencesColumn,
+                                        referencesTable: r.referencesTable ? String(r.referencesTable) : undefined,
+                                        referencesColumn: r.referencesColumn ? String(r.referencesColumn) : undefined,
                                         indices: colIndices.length > 0 ? colIndices : undefined
                                     };
                                 });
@@ -506,8 +505,7 @@ export async function POST(
                                 // Fetch samples for distribution calculation
                                 try {
                                     const [sampleRows] = await connection.execute(`SELECT * FROM \`${table}\` LIMIT 10`);
-                                    // @ts-expect-error - Dynamic mysql result
-                                    samples.push(...sampleRows.map(r => ({ ...r, _table: table })));
+                                    samples.push(...(sampleRows as Record<string, unknown>[]).map(r => ({ ...r, _table: table })));
                                 } catch (e) {
                                     console.warn(`Failed to sample table ${table}:`, e);
                                 }
