@@ -658,13 +658,13 @@ export async function POST(
                     try {
                         parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
                     } catch {
-                        return NextResponse.json({ success: false, error: 'Invalid MongoDB query format. Expected JSON.' }, { status: 400 });
+                        return NextResponse.json({ success: false, error: 'MongoDB Parsing Error: Invalid query format. Expected JSON.' }, { status: 400 });
                     }
 
                     const { collection, filter = {}, limit = 10 } = parsedQuery;
 
                     if (!collection) {
-                        return NextResponse.json({ success: false, error: 'Collection name is required for MongoDB query' }, { status: 400 });
+                        return NextResponse.json({ success: false, error: 'MongoDB Execution Error: Collection name is required' }, { status: 400 });
                     }
 
                     const results = await db.collection(collection).find(filter).limit(Math.min(limit, MAX_ROWS)).toArray();
@@ -717,7 +717,7 @@ export async function POST(
                                 // @ts-expect-error - Dynamic redis command
                                 results = await redis[cmd.toLowerCase()](...args);
                             } else {
-                                return NextResponse.json({ success: false, error: `Unsupported Redis command: ${cmd}` }, { status: 400 });
+                                return NextResponse.json({ success: false, error: `Redis Execution Error: Unsupported command '${cmd}'` }, { status: 400 });
                             }
                         }
                     } catch (e) {
@@ -776,13 +776,13 @@ export async function POST(
                     try {
                         parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
                     } catch {
-                        return NextResponse.json({ success: false, error: 'Invalid Firestore query format. Expected JSON.' }, { status: 400 });
+                        return NextResponse.json({ success: false, error: 'Firestore Parsing Error: Invalid query format. Expected JSON.' }, { status: 400 });
                     }
 
                     const { collection, limit = 10, where } = parsedQuery;
 
                     if (!collection) {
-                        return NextResponse.json({ success: false, error: 'Collection name is required for Firestore query' }, { status: 400 });
+                        return NextResponse.json({ success: false, error: 'Firestore Execution Error: Collection name is required' }, { status: 400 });
                     }
 
                     queryObj = db.collection(collection);

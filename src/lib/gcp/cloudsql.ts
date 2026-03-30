@@ -149,8 +149,11 @@ export async function getOperationStatus(
     }
 
     const data = await response.json();
+    // Cloud SQL Operations API returns statuses like 'PENDING', 'RUNNING', 'DONE' natively,
+    // but we enforce the type explicitly to match the standardized 'PENDING' | 'RUNNING' | 'DONE'
+    const status = data.status === 'DONE' ? 'DONE' : (data.status === 'PENDING' ? 'PENDING' : 'RUNNING');
     return {
-        status: data.status,
-        error: data.error?.message,
+        status,
+        error: data.error ? `Cloud SQL Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
 }
