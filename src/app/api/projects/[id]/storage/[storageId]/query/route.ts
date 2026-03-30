@@ -198,6 +198,10 @@ export async function POST(
                                 'users': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'email', type: 'varchar' }, { name: 'created_at', type: 'timestamp' }],
                                 'projects': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'userId', type: 'uuid', isForeign: true }, { name: 'name', type: 'varchar' }, { name: 'slug', type: 'varchar' }],
                                 'deployments': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'projectId', type: 'uuid', isForeign: true }, { name: 'status', type: 'varchar' }]
+                            },
+                            indices: {
+                                'users': [{ name: 'users_pkey', columns: ['id'], isUnique: true }, { name: 'users_email_key', columns: ['email'], isUnique: true }],
+                                'projects': [{ name: 'projects_pkey', columns: ['id'], isUnique: true }, { name: 'projects_slug_key', columns: ['slug'], isUnique: true }]
                             }
                         };
 
@@ -345,6 +349,7 @@ export async function POST(
 
                             // Fetch columns for each table with PK/FK intelligence and estimated row counts
                             const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
+                            const indices: Record<string, { name: string, columns: string[], isUnique: boolean }[]> = {};
                             const tableStats: Record<string, { estimatedRows: number }> = {};
                             const samples: Record<string, unknown>[] = [];
 
@@ -352,6 +357,36 @@ export async function POST(
                                 // Estimated row count for Postgres
                                 const countRes = await client.query('SELECT reltuples AS estimate FROM pg_class WHERE relname = $1', [table]);
                                 tableStats[table] = { estimatedRows: Math.max(0, parseInt(countRes.rows[0]?.estimate || '0')) };
+
+                                // Fetch indices for Postgres
+                                const indicesRes = await client.query(
+                                    `SELECT
+                                        i.relname as index_name,
+                                        a.attname as column_name,
+                                        ix.indisunique as is_unique
+                                    FROM
+                                        pg_class t,
+                                        pg_class i,
+                                        pg_index ix,
+                                        pg_attribute a
+                                    WHERE
+                                        t.oid = ix.indrelid
+                                        AND i.oid = ix.indexrelid
+                                        AND a.attrelid = t.oid
+                                        AND a.attnum = ANY(ix.indkey)
+                                        AND t.relkind = 'r'
+                                        AND t.relname = $1`,
+                                    [table]
+                                );
+
+                                const indexMap = new Map<string, { name: string, columns: string[], isUnique: boolean }>();
+                                indicesRes.rows.forEach(r => {
+                                    if (!indexMap.has(r.index_name)) {
+                                        indexMap.set(r.index_name, { name: r.index_name, columns: [], isUnique: r.is_unique });
+                                    }
+                                    indexMap.get(r.index_name)?.columns.push(r.column_name);
+                                });
+                                indices[table] = Array.from(indexMap.values());
 
                                 const colsRes = await client.query(
                                     `SELECT
@@ -409,7 +444,7 @@ export async function POST(
 
                             return NextResponse.json({
                                 success: true,
-                                schema: { tables, columns, tableStats },
+                                schema: { tables, columns, indices, tableStats },
                                 samples,
                                 executionTimeMs: Date.now() - startTime
                             });
@@ -427,6 +462,7 @@ export async function POST(
 
                             // Fetch columns for each table with PK/FK intelligence and estimated row counts
                             const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
+                            const indices: Record<string, { name: string, columns: string[], isUnique: boolean }[]> = {};
                             const tableStats: Record<string, { estimatedRows: number }> = {};
                             const samples: Record<string, unknown>[] = [];
 
@@ -435,6 +471,30 @@ export async function POST(
                                 const [countRows] = await connection.execute('SELECT TABLE_ROWS as estimate FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?', [table]);
                                 // @ts-expect-error - Dynamic mysql result
                                 tableStats[table] = { estimatedRows: parseInt(countRows[0]?.estimate || '0') };
+
+                                // Fetch indices for MySQL
+                                const [indicesRows] = await connection.execute(
+                                    `SELECT
+                                        INDEX_NAME as indexName,
+                                        NON_UNIQUE as nonUnique,
+                                        COLUMN_NAME as columnName
+                                    FROM
+                                        information_schema.STATISTICS
+                                    WHERE
+                                        TABLE_SCHEMA = DATABASE()
+                                        AND TABLE_NAME = ?`,
+                                    [table]
+                                );
+
+                                const indexMap = new Map<string, { name: string, columns: string[], isUnique: boolean }>();
+                                // @ts-expect-error - Dynamic mysql result
+                                indicesRows.forEach(r => {
+                                    if (!indexMap.has(r.indexName)) {
+                                        indexMap.set(r.indexName, { name: r.indexName, columns: [], isUnique: !r.nonUnique });
+                                    }
+                                    indexMap.get(r.indexName)?.columns.push(r.columnName);
+                                });
+                                indices[table] = Array.from(indexMap.values());
 
                                 const [colsRows] = await connection.execute(
                                     `SELECT
@@ -479,7 +539,7 @@ export async function POST(
 
                             return NextResponse.json({
                                 success: true,
-                                    schema: { tables, columns, tableStats },
+                                    schema: { tables, columns, indices, tableStats },
                                     samples,
                                 executionTimeMs: Date.now() - startTime
                             });

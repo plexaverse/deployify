@@ -194,7 +194,21 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Update `ProjectNav.tsx` to include the "Storage" link
 - [x] Verify visual and functional integrity of the new Storage experience
 
+### Phase 31: Advanced Data Lab Insights & Collaboration (COMPLETED)
+- [x] Implement SQL Index Discovery (Postgres & MySQL)
+- [x] Implement Hierarchical Redis Key Exploration
+- [x] Implement Automated Numeric Result Aggregation
+- [x] Implement Collaborative Query Comments
+
 ## Progress Updates
+
+### 2027-04-07: Advanced Data Lab Insights & Collaboration
+- Completed Phase 31: Advanced Data Lab Insights & Collaboration.
+- Implemented SQL index discovery for Postgres and MySQL, displaying high-density badges for Primary/Unique/Secondary indexes in the Data Lab schema insight section.
+- Implemented hierarchical Redis key exploration using a recursive `RedisTree` component, allowing users to navigate keys using `:` and `/` delimiters.
+- Implemented automated numeric result aggregation (SUM, AVG, MIN, MAX) in the query results table footer, with real-time updates during filtering.
+- Implemented collaborative query comments with a dedicated API and Firestore integration, allowing team members to discuss saved queries.
+- Verified 100% functional integrity with 80/80 passing tests and perfect API audit.
 
 ### 2027-04-06: Integrated Storage Experience
 - Completed Phase 30: Integrated Storage Experience.

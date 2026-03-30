@@ -196,6 +196,10 @@
 - **Improvement**: Add auto-refresh, public sharing, and individual widget management to Data Lab Dashboards.
 - **Status**: ✅ Implemented (Public sharing URLs, configurable auto-refresh intervals, and individual widget API enhancements in Phase 29)
 
+#### 28. **Advanced Data Lab Insights & Collaboration**
+- **Improvement**: Implement SQL index discovery, Redis tree navigation, numeric aggregations, and collaborative comments.
+- **Status**: ✅ Implemented (Phase 31: SQL Indexing, RedisTree, Result Aggregations, and Commenting API/UI)
+
 ### Reliability Improvements
 
 #### 22. **Robust Deployment Status Sync**

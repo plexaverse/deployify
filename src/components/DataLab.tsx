@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, Sigma, MessageSquare, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SchemaMap } from '@/components/SchemaMap';
+import { RedisTree } from '@/components/RedisTree';
 import {
     ResponsiveContainer,
     BarChart,
@@ -57,13 +58,15 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         tables?: string[],
         collections?: string[],
         tableStats?: Record<string, { estimatedRows: number }>,
+        indices?: Record<string, { name: string, columns: string[], isUnique: boolean }[]>,
+        sampleKeys?: string[],
         columns?: Record<string, {
             name: string,
             type: string,
             isPrimary?: boolean,
             isForeign?: boolean,
-                referencesTable?: string,
-                referencesColumn?: string,
+            referencesTable?: string,
+            referencesColumn?: string,
             distribution?: { label: string, value: number }[]
         }[]>
     } | null>(null);
@@ -87,6 +90,10 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved' | 'dashboards'>('editor');
     const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string, isPublic?: boolean, refreshInterval?: number }[]>([]);
     const [isSavingDashboard, setIsSavingDashboard] = useState(false);
+    const [activeQueryComments, setActiveQueryComments] = useState<string | null>(null);
+    const [comments, setComments] = useState<Record<string, { id: string, text: string, userName: string, userAvatar: string, createdAt: string }[]>>({});
+    const [newComment, setNewComment] = useState('');
+    const [isPostingComment, setIsPostingComment] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
     const [entitySearchQuery, setEntitySearchQuery] = useState('');
@@ -309,6 +316,39 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             }
         } catch (error) {
             console.error('Failed to delete saved query:', error);
+        }
+    };
+
+    const fetchComments = async (queryId: string) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/queries/${queryId}/comments`);
+            const data = await response.json();
+            if (data.success) {
+                setComments(prev => ({ ...prev, [queryId]: data.comments }));
+            }
+        } catch (error) {
+            console.error('Failed to fetch comments:', error);
+        }
+    };
+
+    const postComment = async (queryId: string) => {
+        if (!newComment.trim()) return;
+        setIsPostingComment(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/queries/${queryId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: newComment }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setNewComment('');
+                fetchComments(queryId);
+            }
+        } catch (error) {
+            console.error('Failed to post comment:', error);
+        } finally {
+            setIsPostingComment(false);
         }
     };
 
@@ -718,13 +758,36 @@ runQuery();`;
 
     const totalPages = processedResults ? Math.ceil(processedResults.length / ROWS_PER_PAGE) : 0;
 
+    const aggregations = useMemo(() => {
+        if (!processedResults || processedResults.length === 0) return null;
+        const columns = Object.keys(processedResults[0]);
+        const result: Record<string, { sum: number, avg: number, min: number, max: number }> = {};
+
+        columns.forEach(col => {
+            const values = processedResults
+                .map(row => row[col])
+                .filter(v => typeof v === 'number') as number[];
+
+            if (values.length > 0) {
+                const sum = values.reduce((a, b) => a + b, 0);
+                result[col] = {
+                    sum,
+                    avg: sum / values.length,
+                    min: Math.min(...values),
+                    max: Math.max(...values)
+                };
+            }
+        });
+        return result;
+    }, [processedResults]);
+
     const renderResultsTable = () => {
         if (!paginatedResults || paginatedResults.length === 0) return null;
         const columns = Object.keys(paginatedResults[0]);
 
         return (
             <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--background)]">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse table-fixed">
                     <thead>
                         <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
                             {columns.map(col => (
@@ -759,7 +822,7 @@ runQuery();`;
                                     const fkInfo = schema?.columns ? Object.values(schema.columns).flat().find(c => c.name === col && c.isForeign && c.referencesTable) : null;
 
                                     return (
-                                        <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
+                                        <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap truncate group/cell relative">
                                             <div className="flex items-center gap-1.5">
                                                 {value}
                                                 {fkInfo && (
@@ -799,6 +862,36 @@ runQuery();`;
                             </tr>
                         ))}
                     </tbody>
+                    {aggregations && Object.keys(aggregations).length > 0 && (
+                        <tfoot>
+                            <tr className="bg-[var(--muted)]/10 border-t border-[var(--border)]">
+                                {columns.map(col => (
+                                    <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap">
+                                        {aggregations[col] && (
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between gap-2 text-[var(--primary)] font-bold">
+                                                    <span>SUM</span>
+                                                    <span>{aggregations[col].sum.toLocaleString()}</span>
+                                                </div>
+                                                <div className="flex justify-between gap-2 text-[var(--muted-foreground)]">
+                                                    <span>AVG</span>
+                                                    <span>{aggregations[col].avg.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                                                </div>
+                                                <div className="flex justify-between gap-2 text-[var(--muted-foreground)] opacity-60">
+                                                    <span>MIN</span>
+                                                    <span>{aggregations[col].min}</span>
+                                                </div>
+                                                <div className="flex justify-between gap-2 text-[var(--muted-foreground)] opacity-60">
+                                                    <span>MAX</span>
+                                                    <span>{aggregations[col].max}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </td>
+                                ))}
+                            </tr>
+                        </tfoot>
+                    )}
                 </table>
             </div>
         );
@@ -1213,9 +1306,71 @@ runQuery();`;
                                             </Button>
                                         )}
                                     </div>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                if (activeQueryComments === q.id) {
+                                                    setActiveQueryComments(null);
+                                                } else {
+                                                    setActiveQueryComments(q.id);
+                                                    fetchComments(q.id);
+                                                }
+                                            }}
+                                            className={cn(
+                                                "h-6 px-2 text-[10px] font-bold uppercase tracking-wider",
+                                                activeQueryComments === q.id ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-[var(--muted-foreground)]"
+                                            )}
+                                        >
+                                            <MessageSquare className="w-3 h-3 mr-1.5" />
+                                            {comments[q.id]?.length || 0} Comments
+                                        </Button>
+                                    </div>
                                     <pre className="text-[10px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
                                         {q.query}
                                     </pre>
+                                    {activeQueryComments === q.id && (
+                                        <div className="mb-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
+                                            <div className="max-h-40 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                                {comments[q.id]?.map(c => (
+                                                    <div key={c.id} className="flex gap-2">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img src={c.userAvatar} alt={c.userName} className="w-5 h-5 rounded-full shrink-0" />
+                                                        <div className="flex-1 space-y-0.5">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[9px] font-bold uppercase tracking-tight">{c.userName}</span>
+                                                                <span className="text-[8px] text-[var(--muted-foreground)]">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                            <p className="text-[10px] text-[var(--muted-foreground)] leading-tight">{c.text}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {(!comments[q.id] || comments[q.id].length === 0) && (
+                                                    <p className="text-[10px] text-[var(--muted-foreground)]/50 italic text-center py-2">No comments yet</p>
+                                                )}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    value={newComment}
+                                                    onChange={(e) => setNewComment(e.target.value)}
+                                                    placeholder="ADD A COMMENT..."
+                                                    className="h-7 text-[10px] uppercase font-bold tracking-wider"
+                                                    onKeyDown={(e) => e.key === 'Enter' && postComment(q.id)}
+                                                />
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    disabled={isPostingComment || !newComment.trim()}
+                                                    onClick={() => postComment(q.id)}
+                                                    className="h-7 w-7 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                                >
+                                                    {isPostingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                                                </Button>
+                                            </div>
+                                            <Separator className="bg-[var(--border)]/50" />
+                                        </div>
+                                    )}
                                     <div className="flex gap-2">
                                         <Button
                                             variant="outline"
@@ -1568,6 +1723,30 @@ runQuery();`;
                                 columns={schema.columns}
                                 onTableClick={(table) => setQuery(`SELECT * FROM ${table} LIMIT 10`)}
                             />
+                        ) : selectedConnector?.type === 'memorystore-redis' && schema.sampleKeys ? (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Sigma className="w-4 h-4 text-[var(--primary)]" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Redis Key Explorer (Hierarchical)</span>
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">
+                                        {schema.sampleKeys.length} SAMPLE KEYS
+                                    </span>
+                                </div>
+                                <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--background)] max-h-[400px] overflow-auto custom-scrollbar">
+                                    <RedisTree
+                                        keys={schema.sampleKeys}
+                                        onKeyClick={(key) => {
+                                            if (key.includes(':')) {
+                                                setQuery(`GET ${key}`);
+                                            } else {
+                                                setQuery(`{ "command": "get", "args": ["${key}"] }`);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
                         ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div className="space-y-3">
@@ -1617,9 +1796,18 @@ runQuery();`;
                                     <div className="max-h-40 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                                         {Object.entries(schema.columns).map(([table, cols]) => (
                                             <div key={table} className="space-y-1.5">
-                                                <div className="flex items-center gap-2">
-                                                    <Table className="w-3 h-3 text-[var(--primary)]" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider">{table}</span>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Table className="w-3 h-3 text-[var(--primary)]" />
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider">{table}</span>
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        {schema.indices?.[table]?.map(idx => (
+                                                            <div key={idx.name} className="flex items-center gap-1 px-1 rounded bg-[var(--primary)]/10 text-[var(--primary)] text-[8px] font-bold uppercase tracking-tighter" title={`Index: ${idx.columns.join(', ')}`}>
+                                                                {idx.isUnique ? 'UNIQUE' : 'INDEX'}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (

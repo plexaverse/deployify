@@ -14,7 +14,7 @@ function initializeFirebase(): App {
     }
 
     // Skip real initialization if mock mode is on
-    if (process.env.MOCK_DB === 'true') {
+    if (process.env.MOCK_DB === 'true' || config.firebase.projectId === 'mock-project') {
         return initializeApp({
             projectId: config.firebase.projectId || 'mock-project',
         });
@@ -186,4 +186,5 @@ export const Collections = {
     STORAGE_METRICS: 'storage_metrics',
     SAVED_QUERIES: 'saved_queries',
     QUERY_HISTORY: 'query_history',
+    QUERY_COMMENTS: 'query_comments',
 } as const;
