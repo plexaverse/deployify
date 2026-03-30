@@ -140,7 +140,7 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Hardened Data Lab Proxy resource management (Pooling & Timeout handling)
 - [x] Verify functional integrity with exhaustive test suite and API audit
 
-## Phase 22: Advanced Data Visualization & Schema Insights (COMPLETED)
+### Phase 22: Advanced Data Visualization & Schema Insights (COMPLETED)
 - [x] Implement integrated charting for query results in Data Lab
 - [x] Implement data distribution sparklines in Schema Insights
 - [x] Harden SQL security with expanded forbidden keywords and multi-statement checks
@@ -151,7 +151,7 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Add "Copy Cell" functionality to results table
 - [x] Standardize final Data Lab UI typography to platform-wide high-density aesthetic
 
-## Phase 24: Data Lab Collaborative Intelligence & Advanced Visuals (COMPLETED)
+### Phase 24: Data Lab Collaborative Intelligence & Advanced Visuals (COMPLETED)
 - [x] Implement Pie Chart support in Data Lab
 - [x] Implement estimated row counts in SQL schema discovery
 - [x] Implement "Copy Results" (JSON & CSV) functionality in Data Lab UI
@@ -175,7 +175,7 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Update Storage Settings UI to collect required provider metadata
 - [x] Enhance error handling and status persistence for external sync
 
-## Phase 28: Data Lab Collaborative Dashboards & SQL Optimization Intelligence (COMPLETED)
+### Phase 28: Data Lab Collaborative Dashboards & SQL Optimization Intelligence (COMPLETED)
 - [x] Implement Dashboard Persistence API for saving query widgets
 - [x] Implement SQL Optimization Intelligence in Data Lab (Index suggestions)
 - [x] Enhance Data Lab UI with "Dashboards" tab and widget grid
@@ -188,7 +188,20 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Create a public-facing shared insight viewer page
 - [x] Implement secure public query execution restricted to saved widget queries
 
+### Phase 30: Integrated Storage Experience (COMPLETED)
+- [x] Create a dedicated Storage page at `src/app/dashboard/[id]/storage/page.tsx`
+- [x] Migrate `StorageSection` and `DataLab` from Settings to the Storage Tab
+- [x] Update `ProjectNav.tsx` to include the "Storage" link
+- [x] Verify visual and functional integrity of the new Storage experience
+
 ## Progress Updates
+
+### 2027-04-06: Integrated Storage Experience
+- Completed Phase 30: Integrated Storage Experience.
+- Transitioned Storage management and the Data Lab to a dedicated "Storage" tab in the project dashboard.
+- Migrated `StorageSection.tsx` and `DataLab.tsx` from the project settings page to a new focused route at `/dashboard/[id]/storage`.
+- Updated `ProjectNav.tsx` with a high-density "STORAGE" navigation link.
+- Verified that the new focused experience improves DX by isolating infrastructure connectivity from general project settings.
 
 ### 2027-04-06: Data Lab Dashboard Advanced Customization & Public Sharing
 - Completed Phase 29: Data Lab Dashboard Advanced Customization & Public Sharing.
