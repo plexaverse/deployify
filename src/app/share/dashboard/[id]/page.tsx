@@ -147,7 +147,7 @@ export default function SharedDashboardPage() {
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Shared Insight</span>
                                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--success)]/10 border border-[var(--success)]/20">
                                     <Globe className="w-2.5 h-2.5 text-[var(--success)]" />
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--success)]">Public</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">Public</span>
                                 </div>
                             </div>
                             <h1 className="text-2xl font-bold tracking-tight uppercase">{widget?.name}</h1>
