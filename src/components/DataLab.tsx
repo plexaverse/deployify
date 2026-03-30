@@ -103,6 +103,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [detectedVars, setDetectedVars] = useState<string[]>([]);
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [schemaDocs, setSchemaDocs] = useState<{ id: string, entity: string, description: string, type: 'table' | 'column' }[]>([]);
+    const [isSavingDoc, setIsSavingDoc] = useState<string | null>(null);
 
     useEffect(() => {
         // Detect :variable patterns
@@ -179,12 +181,94 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         }
     }, [projectId]);
 
+    const fetchSchemaDocs = useCallback(async () => {
+        if (!selectedId) return;
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/schema-docs`);
+            const data = await response.json();
+            if (data.success) {
+                setSchemaDocs(data.docs);
+            }
+        } catch (error) {
+            console.error('Failed to fetch schema docs:', error);
+        }
+    }, [projectId, selectedId]);
+
     useEffect(() => {
         fetchMetrics();
         fetchHistory();
         fetchSavedQueries();
         fetchDashboards();
-    }, [fetchMetrics, fetchHistory, fetchSavedQueries, fetchDashboards]);
+        fetchSchemaDocs();
+    }, [fetchMetrics, fetchHistory, fetchSavedQueries, fetchDashboards, fetchSchemaDocs]);
+
+    const saveSchemaDoc = async (entity: string, type: 'table' | 'column', description: string) => {
+        setIsSavingDoc(`${type}_${entity}`);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/schema-docs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entity, type, description }),
+            });
+            if (response.ok) {
+                fetchSchemaDocs();
+            }
+        } catch (error) {
+            console.error('Failed to save schema doc:', error);
+        } finally {
+            setIsSavingDoc(null);
+        }
+    };
+
+    const applyFilter = (col: string, val: unknown) => {
+        if (!selectedConnector) return;
+        const type = selectedConnector.type;
+
+        if (type.includes('sql') || type === 'planetscale') {
+            let newQuery = query.trim();
+            const filterVal = val === null ? 'IS NULL' : (typeof val === 'string' ? `= '${val}'` : `= ${val}`);
+            const filterClause = `${col} ${filterVal}`;
+
+            // Handle SQL syntax priority (WHERE must come before GROUP BY, ORDER BY, LIMIT)
+            const upperQuery = newQuery.toUpperCase();
+            const clauses = ['GROUP BY', 'ORDER BY', 'HAVING', 'LIMIT'];
+            let insertionPoint = newQuery.length;
+
+            for (const clause of clauses) {
+                const idx = upperQuery.indexOf(clause);
+                if (idx !== -1 && idx < insertionPoint) {
+                    insertionPoint = idx;
+                }
+            }
+
+            if (!upperQuery.includes('WHERE')) {
+                const before = newQuery.substring(0, insertionPoint).trim();
+                const after = newQuery.substring(insertionPoint).trim();
+                newQuery = `${before} WHERE ${filterClause}${after ? ' ' + after : ''}`;
+            } else if (!upperQuery.includes(`${col.toUpperCase()} ${filterVal.toUpperCase()}`)) {
+                const before = newQuery.substring(0, insertionPoint).trim();
+                const after = newQuery.substring(insertionPoint).trim();
+                newQuery = `${before} AND ${filterClause}${after ? ' ' + after : ''}`;
+            }
+
+            setQuery(newQuery);
+            executeQuery(newQuery);
+        } else {
+            // NoSQL (JSON) mutation
+            try {
+                const qObj = JSON.parse(query);
+                if (type === 'mongodb-atlas' || type === 'firestore') {
+                    qObj.filter = qObj.filter || {};
+                    qObj.filter[col] = val;
+                }
+                const newQ = JSON.stringify(qObj, null, 4);
+                setQuery(newQ);
+                executeQuery(newQ);
+            } catch (e) {
+                console.error('Failed to apply NoSQL filter:', e);
+            }
+        }
+    };
 
     const executeQuery = async (overrideQuery?: string, explain = false) => {
         let queryToRun = overrideQuery || query;
@@ -580,21 +664,63 @@ runQuery();`;
                 // JSON Formatting
                 setQuery(JSON.stringify(JSON.parse(query), null, 4));
             } else {
-                // Basic SQL Formatting (Keywords to Uppercase and simple spacing)
-                const keywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'ON', 'INSERT', 'UPDATE', 'DELETE', 'VALUES', 'SET', 'CREATE', 'DROP', 'ALTER', 'TABLE', 'INTO', 'DESC', 'ASC', 'UNION', 'ALL', 'EXPLAIN', 'ANALYZE'];
-                let formatted = query.trim();
+                // Enhanced SQL Formatting (Safely handling string literals)
+                const keywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'ON', 'INSERT', 'UPDATE', 'DELETE', 'VALUES', 'SET', 'CREATE', 'DROP', 'ALTER', 'TABLE', 'INTO', 'DESC', 'ASC', 'UNION', 'ALL', 'EXPLAIN', 'ANALYZE', 'WITH'];
 
-                // 1. Uppercase keywords
+                // 1. Extract and preserve string literals
+                const literals: string[] = [];
+                let formatted = query.replace(/'[^']*'/g, (match) => {
+                    literals.push(match);
+                    return `__LITERAL_${literals.length - 1}__`;
+                });
+
+                // 2. Collapse whitespace and uppercase keywords
+                formatted = formatted.trim().replace(/\s+/g, ' ');
                 keywords.forEach(kw => {
                     const regex = new RegExp(`\\b${kw}\\b`, 'gi');
                     formatted = formatted.replace(regex, kw.toUpperCase());
                 });
 
-                // 2. Simple newlines before major keywords if not already there
-                const newlineKeywords = ['FROM', 'WHERE', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'UNION'];
-                newlineKeywords.forEach(kw => {
+                // 3. Professional Multi-line Formatting with Indentation
+                const majorKeywords = ['SELECT', 'FROM', 'WHERE', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'UNION', 'WITH', 'VALUES', 'SET'];
+                majorKeywords.forEach(kw => {
                     const regex = new RegExp(`\\s*\\b${kw}\\b`, 'g');
                     formatted = formatted.replace(regex, `\n${kw}`);
+                });
+
+                const subKeywords = ['AND', 'OR', 'ON'];
+                subKeywords.forEach(kw => {
+                    const regex = new RegExp(`\\s*\\b${kw}\\b`, 'g');
+                    formatted = formatted.replace(regex, `\n    ${kw}`);
+                });
+
+                if (formatted.startsWith('SELECT')) {
+                    formatted = formatted.replace(/SELECT\s+([\s\S]+?)\s+FROM/, (_match, items) => {
+                        // Improved splitting logic that respects parentheses to avoid breaking functions (COALESCE, CONCAT, etc.)
+                        const parts: string[] = [];
+                        let current = '';
+                        let depth = 0;
+                        for (let i = 0; i < items.length; i++) {
+                            const char = items[i];
+                            if (char === '(') depth++;
+                            if (char === ')') depth--;
+                            if (char === ',' && depth === 0) {
+                                parts.push(current.trim());
+                                current = '';
+                            } else {
+                                current += char;
+                            }
+                        }
+                        parts.push(current.trim());
+
+                        const indentedItems = parts.map(s => `    ${s}`).join(',\n');
+                        return `SELECT\n${indentedItems}\nFROM`;
+                    });
+                }
+
+                // 4. Restore preserved literals
+                literals.forEach((lit, i) => {
+                    formatted = formatted.replace(`__LITERAL_${i}__`, lit);
                 });
 
                 setQuery(formatted.trim());
@@ -675,8 +801,21 @@ runQuery();`;
         if (!schema) return [];
         const tables = schema.tables || schema.collections || [];
         const columns = schema.columns ? Object.values(schema.columns).flat().map(c => c.name) : [];
-        const sqlKeywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'ON', 'INSERT', 'UPDATE', 'DELETE', 'VALUES', 'SET', 'CREATE', 'DROP', 'ALTER', 'TABLE', 'INTO', 'DESC', 'ASC', 'UNION', 'ALL', 'EXPLAIN', 'ANALYZE'];
-        return Array.from(new Set([...tables, ...columns, ...sqlKeywords]));
+        const sqlKeywords = ['SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'ORDER BY', 'GROUP BY', 'LIMIT', 'JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'ON', 'INSERT', 'UPDATE', 'DELETE', 'VALUES', 'SET', 'CREATE', 'DROP', 'ALTER', 'TABLE', 'INTO', 'DESC', 'ASC', 'UNION', 'ALL', 'EXPLAIN', 'ANALYZE', 'WITH'];
+
+        // Add JOIN suggestions based on relationships
+        const joinSuggestions: string[] = [];
+        if (schema.columns) {
+            Object.entries(schema.columns).forEach(([table, cols]) => {
+                cols.forEach(col => {
+                    if (col.isForeign && col.referencesTable) {
+                        joinSuggestions.push(`JOIN ${col.referencesTable} ON ${table}.${col.name} = ${col.referencesTable}.${col.referencesColumn}`);
+                    }
+                });
+            });
+        }
+
+        return Array.from(new Set([...tables, ...columns, ...sqlKeywords, ...joinSuggestions]));
     }, [schema]);
 
     const templates = useMemo(() => {
@@ -836,21 +975,30 @@ runQuery();`;
                                                     </button>
                                                 )}
                                             </div>
-                                            <button
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(value);
-                                                    setCopiedCell(`${i}-${col}`);
-                                                    setTimeout(() => setCopiedCell(null), 2000);
-                                                }}
-                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded bg-[var(--background)] border border-[var(--border)] opacity-0 group-hover/cell:opacity-100 transition-opacity hover:text-[var(--primary)]"
-                                                title="Copy cell value"
-                                            >
-                                                {copiedCell === `${i}-${col}` ? (
-                                                    <CheckCircle2 className="w-3 h-3 text-[var(--success)]" />
-                                                ) : (
-                                                    <Copy className="w-3 h-3" />
-                                                )}
-                                            </button>
+                                            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/cell:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => applyFilter(col, row[col])}
+                                                    className="p-1 rounded bg-[var(--background)] border border-[var(--border)] hover:text-[var(--primary)]"
+                                                    title="Filter by this value"
+                                                >
+                                                    <Search className="w-3 h-3" />
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(value);
+                                                        setCopiedCell(`${i}-${col}`);
+                                                        setTimeout(() => setCopiedCell(null), 2000);
+                                                    }}
+                                                    className="p-1 rounded bg-[var(--background)] border border-[var(--border)] hover:text-[var(--primary)]"
+                                                    title="Copy cell value"
+                                                >
+                                                    {copiedCell === `${i}-${col}` ? (
+                                                        <CheckCircle2 className="w-3 h-3 text-[var(--success)]" />
+                                                    ) : (
+                                                        <Copy className="w-3 h-3" />
+                                                    )}
+                                                </button>
+                                            </div>
                                         </td>
                                     );
                                 })}
@@ -1768,28 +1916,83 @@ runQuery();`;
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Structure Preview</span>
                                     <div className="max-h-40 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                                         {Object.entries(schema.columns).map(([table, cols]) => (
-                                            <div key={table} className="space-y-1.5">
-                                                <div className="flex items-center gap-2">
-                                                    <Table className="w-3 h-3 text-[var(--primary)]" />
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider">{table}</span>
+                                            <div key={table} className="space-y-1.5 p-2 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5 group/table-item">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Table className="w-3 h-3 text-[var(--primary)]" />
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider">{table}</span>
+                                                    </div>
+                                                    {isSavingDoc === `table_${table}` && (
+                                                        <Loader2 className="w-2.5 h-2.5 animate-spin text-[var(--primary)]" />
+                                                    )}
                                                 </div>
+                                                <input
+                                                    type="text"
+                                                    defaultValue={schemaDocs.find(d => d.entity === table && d.type === 'table')?.description || ''}
+                                                    onBlur={(e) => {
+                                                        const desc = e.target.value.trim();
+                                                        if (desc !== (schemaDocs.find(d => d.entity === table && d.type === 'table')?.description || '')) {
+                                                            saveSchemaDoc(table, 'table', desc);
+                                                        }
+                                                    }}
+                                                    placeholder="ADD TABLE DESCRIPTION..."
+                                                    className="w-full bg-transparent border-none text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4 pl-5"
+                                                />
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (
-                                                        <div key={c.name} className="flex items-center gap-2 px-1.5 py-0.5 rounded bg-[var(--muted)]/20 border border-[var(--border)]">
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="text-[10px] font-mono">{c.name}</span>
-                                                                {c.isPrimary && <span className="text-[10px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
-                                                                {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
-                                                                {c.indices && c.indices.map(idx => (
-                                                                    <span key={idx} className="text-[10px] font-bold text-[var(--warning)] mr-0.5" title={idx}>IDX</span>
-                                                                ))}
-                                                                <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
+                                                        <div key={c.name} className="flex flex-col gap-1 p-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] group/col-item relative">
+                                                            <div className="flex items-center justify-between gap-4">
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-[10px] font-mono font-bold">{c.name}</span>
+                                                                    {c.isPrimary && <span className="text-[10px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
+                                                                    {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
+                                                                    {c.indices && c.indices.map(idx => (
+                                                                        <span key={idx} className="text-[10px] font-bold text-[var(--warning)] mr-0.5" title={idx}>IDX</span>
+                                                                    ))}
+                                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    {c.isForeign && c.referencesTable && (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const join = `JOIN ${c.referencesTable} ON ${table}.${c.name} = ${c.referencesTable}.${c.referencesColumn}`;
+                                                                                navigator.clipboard.writeText(join);
+                                                                                setCopiedCell(`join-${table}-${c.name}`);
+                                                                                setTimeout(() => setCopiedCell(null), 2000);
+                                                                            }}
+                                                                            className="p-1 rounded bg-[var(--background)] border border-[var(--border)] hover:text-[var(--primary)] opacity-0 group-hover/col-item:opacity-100 transition-opacity"
+                                                                            title="Copy JOIN snippet"
+                                                                        >
+                                                                            {copiedCell === `join-${table}-${c.name}` ? <CheckCircle2 className="w-3 h-3 text-[var(--success)]" /> : <LinkIcon className="w-3 h-3" />}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </div>
+
+                                                            {/* Documentation Field */}
+                                                            <div className="relative group/doc">
+                                                                <input
+                                                                    type="text"
+                                                                    defaultValue={schemaDocs.find(d => d.entity === `${table}.${c.name}` && d.type === 'column')?.description || ''}
+                                                                    onBlur={(e) => {
+                                                                        const desc = e.target.value.trim();
+                                                                        if (desc !== (schemaDocs.find(d => d.entity === `${table}.${c.name}` && d.type === 'column')?.description || '')) {
+                                                                            saveSchemaDoc(`${table}.${c.name}`, 'column', desc);
+                                                                        }
+                                                                    }}
+                                                                    placeholder="ADD COLUMN DESCRIPTION..."
+                                                                    className="w-full bg-transparent border-none text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4"
+                                                                />
+                                                                {isSavingDoc === `column_${table}.${c.name}` && (
+                                                                    <Loader2 className="absolute right-0 top-0 w-2.5 h-2.5 animate-spin text-[var(--primary)]" />
+                                                                )}
+                                                            </div>
+
                                                             {c.distribution && (
-                                                                <div className="w-8 h-4 shrink-0">
+                                                                <div className="w-full h-6 mt-1">
                                                                     <ResponsiveContainer width="100%" height="100%">
                                                                         <BarChart data={c.distribution}>
-                                                                            <Bar dataKey="value" fill="var(--primary)" opacity={0.5} />
+                                                                            <Bar dataKey="value" fill="var(--primary)" opacity={0.3} />
                                                                         </BarChart>
                                                                     </ResponsiveContainer>
                                                                 </div>

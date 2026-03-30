@@ -197,4 +197,5 @@ export const Collections = {
     SAVED_QUERIES: 'saved_queries',
     QUERY_HISTORY: 'query_history',
     QUERY_COMMENTS: 'query_comments',
+    SCHEMA_DOCS: 'schema_docs',
 } as const;
