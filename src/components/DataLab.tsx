@@ -1284,7 +1284,7 @@ runQuery();`;
                                                 <select
                                                     value={widget.refreshInterval || 0}
                                                     onChange={(e) => updateDashboardWidget(widget.id, { refreshInterval: parseInt(e.target.value) })}
-                                                    className="h-6 px-1 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[9px] font-bold uppercase tracking-tighter"
+                                                    className="h-6 px-1 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[10px] font-bold uppercase tracking-tighter"
                                                     title="Auto-refresh interval"
                                                 >
                                                     <option value={0}>OFF</option>
