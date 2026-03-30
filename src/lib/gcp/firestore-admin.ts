@@ -62,12 +62,14 @@ export async function getOperationStatus(
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to get operation status: ${await response.text()}`);
+        throw new Error(`Failed to get Firestore operation status: ${await response.text()}`);
     }
 
     const data = await response.json();
+    // Firestore uses the standard Operation resource with a "done" boolean.
+    // We map it to the unified PENDING | RUNNING | DONE status for compatibility.
     return {
         status: data.done ? 'DONE' : 'RUNNING',
-        error: data.error?.message,
+        error: data.error ? `Firestore Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
 }

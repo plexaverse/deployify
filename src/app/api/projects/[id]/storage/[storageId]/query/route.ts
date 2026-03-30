@@ -654,11 +654,17 @@ export async function POST(
                         });
                     }
 
-                    const parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
+                    let parsedQuery;
+                    try {
+                        parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
+                    } catch {
+                        return NextResponse.json({ success: false, error: 'Invalid MongoDB query format. Expected JSON.' }, { status: 400 });
+                    }
+
                     const { collection, filter = {}, limit = 10 } = parsedQuery;
 
                     if (!collection) {
-                        throw new Error('Collection name is required for MongoDB query');
+                        return NextResponse.json({ success: false, error: 'Collection name is required for MongoDB query' }, { status: 400 });
                     }
 
                     const results = await db.collection(collection).find(filter).limit(Math.min(limit, MAX_ROWS)).toArray();
@@ -668,6 +674,11 @@ export async function POST(
                         rowCount: results.length,
                         executionTimeMs: Date.now() - startTime
                     });
+                } catch (e) {
+                    return NextResponse.json({
+                        success: false,
+                        error: `MongoDB Execution Error: ${e instanceof Error ? e.message : 'Unknown error'}`
+                    }, { status: 500 });
                 } finally {
                     await client.close().catch(() => {});
                 }
@@ -694,19 +705,23 @@ export async function POST(
 
                     // Redis query can be a command or a JSON for complex scans
                     let results: unknown;
-                    if (query.trim().startsWith('{')) {
-                        const { command, args = [] } = JSON.parse(query);
-                        // @ts-expect-error - Dynamic redis command
-                        results = await redis[command](...args);
-                    } else {
-                        const [cmd, ...args] = query.split(' ');
-                        // @ts-expect-error - Dynamic redis command
-                        if (typeof redis[cmd.toLowerCase()] === 'function') {
+                    try {
+                        if (query.trim().startsWith('{')) {
+                            const { command, args = [] } = JSON.parse(query);
                             // @ts-expect-error - Dynamic redis command
-                            results = await redis[cmd.toLowerCase()](...args);
+                            results = await redis[command](...args);
                         } else {
-                            throw new Error(`Unsupported Redis command: ${cmd}`);
+                            const [cmd, ...args] = query.split(' ');
+                            // @ts-expect-error - Dynamic redis command
+                            if (typeof redis[cmd.toLowerCase()] === 'function') {
+                                // @ts-expect-error - Dynamic redis command
+                                results = await redis[cmd.toLowerCase()](...args);
+                            } else {
+                                return NextResponse.json({ success: false, error: `Unsupported Redis command: ${cmd}` }, { status: 400 });
+                            }
                         }
+                    } catch (e) {
+                        return NextResponse.json({ success: false, error: `Redis Parsing Error: ${e instanceof Error ? e.message : 'Invalid command format'}` }, { status: 400 });
                     }
 
                     const finalResults = Array.isArray(results) ? results.slice(0, MAX_ROWS) : [results];
@@ -716,6 +731,11 @@ export async function POST(
                         rowCount: finalResults.length,
                         executionTimeMs: Date.now() - startTime
                     });
+                } catch (e) {
+                    return NextResponse.json({
+                        success: false,
+                        error: `Redis Execution Error: ${e instanceof Error ? e.message : 'Unknown error'}`
+                    }, { status: 500 });
                 } finally {
                     redis.disconnect();
                 }
@@ -752,11 +772,17 @@ export async function POST(
                 let queryObj: ReturnType<typeof db.collection> | ReturnType<typeof db.collection>['where'];
 
                 try {
-                    const parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
+                    let parsedQuery;
+                    try {
+                        parsedQuery = typeof query === 'string' ? JSON.parse(query) : query;
+                    } catch {
+                        return NextResponse.json({ success: false, error: 'Invalid Firestore query format. Expected JSON.' }, { status: 400 });
+                    }
+
                     const { collection, limit = 10, where } = parsedQuery;
 
                     if (!collection) {
-                        throw new Error('Collection name is required for Firestore query');
+                        return NextResponse.json({ success: false, error: 'Collection name is required for Firestore query' }, { status: 400 });
                     }
 
                     queryObj = db.collection(collection);
@@ -780,7 +806,10 @@ export async function POST(
                         executionTimeMs: Date.now() - startTime,
                     });
                 } catch (e) {
-                    throw new Error(`Firestore query parse error: ${e instanceof Error ? e.message : 'Invalid JSON'}`);
+                    return NextResponse.json({
+                        success: false,
+                        error: `Firestore Execution Error: ${e instanceof Error ? e.message : 'Unknown error'}`
+                    }, { status: 500 });
                 }
             }
 
