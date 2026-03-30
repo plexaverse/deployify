@@ -195,9 +195,22 @@ export async function POST(
                                 'deployments': { estimatedRows: 8900 }
                             },
                             columns: {
-                                'users': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'email', type: 'varchar' }, { name: 'created_at', type: 'timestamp' }],
-                                'projects': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'userId', type: 'uuid', isForeign: true }, { name: 'name', type: 'varchar' }, { name: 'slug', type: 'varchar' }],
-                                'deployments': [{ name: 'id', type: 'uuid', isPrimary: true }, { name: 'projectId', type: 'uuid', isForeign: true }, { name: 'status', type: 'varchar' }]
+                                'users': [
+                                    { name: 'id', type: 'uuid', isPrimary: true, indices: ['users_pkey'] },
+                                    { name: 'email', type: 'varchar', indices: ['users_email_idx'] },
+                                    { name: 'created_at', type: 'timestamp' }
+                                ],
+                                'projects': [
+                                    { name: 'id', type: 'uuid', isPrimary: true, indices: ['projects_pkey'] },
+                                    { name: 'userId', type: 'uuid', isForeign: true, indices: ['projects_user_id_idx'] },
+                                    { name: 'name', type: 'varchar' },
+                                    { name: 'slug', type: 'varchar', indices: ['projects_slug_unique'] }
+                                ],
+                                'deployments': [
+                                    { name: 'id', type: 'uuid', isPrimary: true, indices: ['deployments_pkey'] },
+                                    { name: 'projectId', type: 'uuid', isForeign: true, indices: ['deployments_project_id_idx'] },
+                                    { name: 'status', type: 'varchar' }
+                                ]
                             }
                         };
 
@@ -344,7 +357,7 @@ export async function POST(
                             const tables = tablesRes.rows.map(r => r.table_name);
 
                             // Fetch columns for each table with PK/FK intelligence and estimated row counts
-                            const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
+                            const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean, indices?: string[] }[]> = {};
                             const tableStats: Record<string, { estimatedRows: number }> = {};
                             const samples: Record<string, unknown>[] = [];
 
@@ -389,14 +402,25 @@ export async function POST(
                                     WHERE c.table_name = $1 AND c.table_schema = 'public'`,
                                     [table]
                                 );
-                                columns[table] = colsRes.rows.map(r => ({
-                                    name: r.column_name,
-                                    type: r.data_type,
-                                    isPrimary: r.is_primary,
-                                    isForeign: r.is_foreign,
-                                    referencesTable: r.references_table,
-                                    referencesColumn: r.references_column
-                                }));
+                                // Fetch indices for Postgres
+                                const indexRes = await client.query('SELECT indexname, indexdef FROM pg_indexes WHERE tablename = $1', [table]);
+                                const tableIndices = indexRes.rows;
+
+                                columns[table] = colsRes.rows.map(r => {
+                                    const colIndices = tableIndices
+                                        .filter(idx => idx.indexdef.includes(`(${r.column_name})`) || idx.indexdef.includes(`, ${r.column_name})`) || idx.indexdef.includes(`(${r.column_name},`))
+                                        .map(idx => idx.indexname);
+
+                                    return {
+                                        name: r.column_name,
+                                        type: r.data_type,
+                                        isPrimary: r.is_primary,
+                                        isForeign: r.is_foreign,
+                                        referencesTable: r.references_table,
+                                        referencesColumn: r.references_column,
+                                        indices: colIndices.length > 0 ? colIndices : undefined
+                                    };
+                                });
 
                                 // Fetch samples for distribution calculation
                                 try {
@@ -426,7 +450,7 @@ export async function POST(
                             const tables = tableRows.map(r => Object.values(r as Record<string, unknown>)[0]);
 
                             // Fetch columns for each table with PK/FK intelligence and estimated row counts
-                            const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean }[]> = {};
+                            const columns: Record<string, { name: string, type: string, isPrimary?: boolean, isForeign?: boolean, indices?: string[] }[]> = {};
                             const tableStats: Record<string, { estimatedRows: number }> = {};
                             const samples: Record<string, unknown>[] = [];
 
@@ -457,15 +481,27 @@ export async function POST(
                                     WHERE c.TABLE_SCHEMA = DATABASE() AND c.TABLE_NAME = ?`,
                                     [table]
                                 );
+                                // Fetch indices for MySQL
+                                const [indexRows] = await connection.execute(`SHOW INDEX FROM \`${table}\``);
                                 // @ts-expect-error - Dynamic mysql result
-                                columns[table] = colsRows.map(r => ({
-                                    name: r.name,
-                                    type: r.type,
-                                    isPrimary: !!r.isPrimary,
-                                    isForeign: !!r.referencesTable,
-                                    referencesTable: r.referencesTable,
-                                    referencesColumn: r.referencesColumn
-                                }));
+                                const tableIndices = indexRows as Record<string, unknown>[];
+
+                                // @ts-expect-error - Dynamic mysql result
+                                columns[table] = colsRows.map(r => {
+                                    const colIndices = Array.from(new Set(tableIndices
+                                        .filter(idx => idx.Column_name === r.name)
+                                        .map(idx => String(idx.Key_name))));
+
+                                    return {
+                                        name: r.name,
+                                        type: r.type,
+                                        isPrimary: !!r.isPrimary,
+                                        isForeign: !!r.referencesTable,
+                                        referencesTable: r.referencesTable,
+                                        referencesColumn: r.referencesColumn,
+                                        indices: colIndices.length > 0 ? colIndices : undefined
+                                    };
+                                });
 
                                 // Fetch samples for distribution calculation
                                 try {

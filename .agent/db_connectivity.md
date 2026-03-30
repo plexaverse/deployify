@@ -145,7 +145,7 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Implement data distribution sparklines in Schema Insights
 - [x] Harden SQL security with expanded forbidden keywords and multi-statement checks
 
-## Phase 23: Data Lab Productivity, Reporting & Advanced DX (COMPLETED)
+### Phase 23: Data Lab Productivity, Reporting & Advanced DX (COMPLETED)
 - [x] Implement "Export to PDF" for Query Results in Data Lab
 - [x] Add "Query Templates" functionality for all storage types
 - [x] Add "Copy Cell" functionality to results table
@@ -194,7 +194,20 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Update `ProjectNav.tsx` to include the "Storage" link
 - [x] Verify visual and functional integrity of the new Storage experience
 
+### Phase 31: Advanced Data Lab Insights & Collaboration (COMPLETED)
+- [x] Implement Enhanced SQL Index Discovery (Postgres & MySQL)
+- [x] Implement Hierarchical Redis Explorer (Tree view with pattern grouping)
+- [x] Implement Automated Numeric Aggregations (SUM, AVG, MIN/MAX in results)
+- [x] Implement Collaborative Query Comments (Discussion system for saved queries)
+
 ## Progress Updates
+
+### 2027-04-07: Advanced Data Lab Insights & Collaboration
+- Completed Phase 31: Advanced Data Lab Insights & Collaboration.
+- Enhanced SQL Schema Discovery to fetch and display non-constraint indexes for Postgres and MySQL as high-density technical badges.
+- Implemented a hierarchical Redis Key Explorer that groups keys into a tree structure based on delimiters, replacing the flat list for better navigation.
+- Added automated numeric aggregations to the Data Lab results table, calculating SUM, AVG, MIN, and MAX for numeric columns in real-time.
+- Launched a collaborative comments system for saved queries, allowing team members to discuss and document shared insights directly within the Data Lab.
 
 ### 2027-04-06: Integrated Storage Experience
 - Completed Phase 30: Integrated Storage Experience.

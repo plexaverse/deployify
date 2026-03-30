@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SchemaMap } from '@/components/SchemaMap';
+import { RedisTree } from '@/components/RedisTree';
 import {
     ResponsiveContainer,
     BarChart,
@@ -62,8 +63,9 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             type: string,
             isPrimary?: boolean,
             isForeign?: boolean,
-                referencesTable?: string,
-                referencesColumn?: string,
+            referencesTable?: string,
+            referencesColumn?: string,
+            indices?: string[],
             distribution?: { label: string, value: number }[]
         }[]>
     } | null>(null);
@@ -84,6 +86,10 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [newQueryName, setNewQueryName] = useState('');
     const [isQueryPublic, setIsQueryPublic] = useState(false);
     const [isCloning, setIsCloning] = useState(false);
+    const [selectedQueryComments, setSelectedQueryComments] = useState<string | null>(null);
+    const [comments, setComments] = useState<Record<string, { id: string, text: string, userName: string, createdAt: string }[]>>({});
+    const [newComment, setNewComment] = useState('');
+    const [isPostingComment, setIsPostingComment] = useState(false);
     const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved' | 'dashboards'>('editor');
     const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string, isPublic?: boolean, refreshInterval?: number }[]>([]);
     const [isSavingDashboard, setIsSavingDashboard] = useState(false);
@@ -309,6 +315,39 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             }
         } catch (error) {
             console.error('Failed to delete saved query:', error);
+        }
+    };
+
+    const fetchComments = async (queryId: string) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/queries/${queryId}/comments`);
+            const data = await response.json();
+            if (data.success) {
+                setComments(prev => ({ ...prev, [queryId]: data.comments }));
+            }
+        } catch (error) {
+            console.error('Failed to fetch comments:', error);
+        }
+    };
+
+    const postComment = async (queryId: string) => {
+        if (!newComment.trim()) return;
+        setIsPostingComment(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/queries/${queryId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: newComment }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setNewComment('');
+                fetchComments(queryId);
+            }
+        } catch (error) {
+            console.error('Failed to post comment:', error);
+        } finally {
+            setIsPostingComment(false);
         }
     };
 
@@ -719,8 +758,27 @@ runQuery();`;
     const totalPages = processedResults ? Math.ceil(processedResults.length / ROWS_PER_PAGE) : 0;
 
     const renderResultsTable = () => {
-        if (!paginatedResults || paginatedResults.length === 0) return null;
+        if (!paginatedResults || paginatedResults.length === 0 || !processedResults) return null;
         const columns = Object.keys(paginatedResults[0]);
+
+        // Calculate aggregations for numeric columns
+        const aggregations: Record<string, { sum: number, avg: number, min: number, max: number, count: number }> = {};
+        columns.forEach(col => {
+            const values = processedResults
+                .map(row => row[col])
+                .filter(val => typeof val === 'number') as number[];
+
+            if (values.length > 0) {
+                const sum = values.reduce((a, b) => a + b, 0);
+                aggregations[col] = {
+                    sum,
+                    avg: sum / values.length,
+                    min: Math.min(...values),
+                    max: Math.max(...values),
+                    count: values.length
+                };
+            }
+        });
 
         return (
             <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--background)]">
@@ -799,6 +857,34 @@ runQuery();`;
                             </tr>
                         ))}
                     </tbody>
+                    {Object.keys(aggregations).length > 0 && (
+                        <tfoot className="bg-[var(--primary)]/5 border-t border-[var(--border)]">
+                            <tr>
+                                {columns.map(col => (
+                                    <td key={col} className="p-3">
+                                        {aggregations[col] ? (
+                                            <div className="space-y-1">
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">SUM</span>
+                                                    <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{aggregations[col].sum.toLocaleString()}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">AVG</span>
+                                                    <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{aggregations[col].avg.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">MIN/MAX</span>
+                                                    <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{aggregations[col].min} / {aggregations[col].max}</span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="h-4" />
+                                        )}
+                                    </td>
+                                ))}
+                            </tr>
+                        </tfoot>
+                    )}
                 </table>
             </div>
         );
@@ -1202,16 +1288,32 @@ runQuery();`;
                                                 {q.isPublic && <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">Team Shared</span>}
                                             </div>
                                         </div>
-                                        {(!q.isPublic || q.userId === currentUserId) && (
+                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => deleteSavedQuery(q.id)}
-                                                className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() => {
+                                                    if (selectedQueryComments === q.id) setSelectedQueryComments(null);
+                                                    else {
+                                                        setSelectedQueryComments(q.id);
+                                                        fetchComments(q.id);
+                                                    }
+                                                }}
+                                                className={cn("h-7 w-7", selectedQueryComments === q.id ? "text-[var(--primary)] bg-[var(--primary)]/10" : "text-[var(--muted-foreground)] hover:text-[var(--primary)]")}
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
+                                                <MessageSquare className="w-3.5 h-3.5" />
                                             </Button>
-                                        )}
+                                            {(!q.isPublic || q.userId === currentUserId) && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => deleteSavedQuery(q.id)}
+                                                    className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                     <pre className="text-[10px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
                                         {q.query}
@@ -1240,6 +1342,44 @@ runQuery();`;
                                             <Copy className="w-3.5 h-3.5" />
                                         </Button>
                                     </div>
+
+                                    {selectedQueryComments === q.id && (
+                                        <div className="mt-4 pt-4 border-t border-[var(--border)] space-y-3 animate-in slide-in-from-top-2">
+                                            <div className="max-h-40 overflow-y-auto space-y-2 custom-scrollbar pr-2">
+                                                {(comments[q.id] || []).map(c => (
+                                                    <div key={c.id} className="p-2 rounded bg-[var(--muted)]/10 border border-[var(--border)] space-y-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{c.userName}</span>
+                                                            <span className="text-[10px] text-[var(--muted-foreground)]/60">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                        <p className="text-[10px] text-[var(--foreground)]">{c.text}</p>
+                                                    </div>
+                                                ))}
+                                                {(!comments[q.id] || comments[q.id].length === 0) && (
+                                                    <div className="text-center py-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/40">No comments yet</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    value={newComment}
+                                                    onChange={(e) => setNewComment(e.target.value)}
+                                                    placeholder="ADD COMMENT..."
+                                                    className="h-8 text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px]"
+                                                    onKeyDown={(e) => e.key === 'Enter' && postComment(q.id)}
+                                                />
+                                                <Button
+                                                    size="icon"
+                                                    onClick={() => postComment(q.id)}
+                                                    disabled={isPostingComment || !newComment.trim()}
+                                                    className="h-8 w-8 shrink-0 bg-[var(--primary)]"
+                                                >
+                                                    {isPostingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </Card>
                             ))
                         )}
@@ -1585,29 +1725,41 @@ runQuery();`;
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {(schema.tables || schema.collections || []).filter(item => item.toLowerCase().includes(entitySearchQuery.toLowerCase())).map(item => (
-                                        <button
-                                            key={item}
-                                            onClick={() => {
-                                                if (selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') {
-                                                    setQuery(`SELECT * FROM ${item} LIMIT 10`);
-                                                } else {
-                                                    setQuery(`{ "collection": "${item}", "limit": 10 }`);
-                                                }
-                                            }}
-                                            className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <span>{item}</span>
-                                                {schema.tableStats?.[item] !== undefined && (
-                                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)]/50 uppercase tracking-wider">
-                                                        ({schema.tableStats[item].estimatedRows.toLocaleString()} ROWS)
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <ChevronRight className="w-3 h-3 text-[var(--muted-foreground)] group-hover:text-[var(--primary)]" />
-                                        </button>
-                                    ))}
+                                    {selectedConnector?.type === 'memorystore-redis' && (schema as { sampleKeys?: string[] })?.sampleKeys ? (
+                                        <div className="w-full">
+                                            <RedisTree
+                                                keys={(schema as { sampleKeys: string[] }).sampleKeys}
+                                                onKeyClick={(key) => {
+                                                    setQuery(`GET ${key}`);
+                                                    executeQuery(`GET ${key}`);
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        (schema.tables || schema.collections || []).filter(item => item.toLowerCase().includes(entitySearchQuery.toLowerCase())).map(item => (
+                                            <button
+                                                key={item}
+                                                onClick={() => {
+                                                    if (selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') {
+                                                        setQuery(`SELECT * FROM ${item} LIMIT 10`);
+                                                    } else {
+                                                        setQuery(`{ "collection": "${item}", "limit": 10 }`);
+                                                    }
+                                                }}
+                                                className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <span>{item}</span>
+                                                    {schema.tableStats?.[item] !== undefined && (
+                                                        <span className="text-[10px] font-bold text-[var(--muted-foreground)]/50 uppercase tracking-wider">
+                                                            ({schema.tableStats[item].estimatedRows.toLocaleString()} ROWS)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <ChevronRight className="w-3 h-3 text-[var(--muted-foreground)] group-hover:text-[var(--primary)]" />
+                                            </button>
+                                        ))
+                                    )}
                                 </div>
                             </div>
 
@@ -1628,6 +1780,9 @@ runQuery();`;
                                                                 <span className="text-[10px] font-mono">{c.name}</span>
                                                                 {c.isPrimary && <span className="text-[10px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
                                                                 {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
+                                                                {c.indices && c.indices.map(idx => (
+                                                                    <span key={idx} className="text-[10px] font-bold text-[var(--warning)] mr-0.5" title={idx}>IDX</span>
+                                                                ))}
                                                                 <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
                                                             </div>
                                                             {c.distribution && (
