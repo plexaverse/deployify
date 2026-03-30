@@ -116,6 +116,16 @@ function createMockFirestore(): Firestore {
                         createdAt: new Date(),
                         updatedAt: new Date(),
                                 connectionStringSecretId: 'mock-secret-id'
+                    },
+                    {
+                        id: 'storage_redis',
+                        type: 'memorystore-redis',
+                        name: 'Cache Layer',
+                        status: 'active',
+                        environment: 'both',
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        connectionStringSecretId: 'mock-redis-id'
                     }
                 ],
                 joinedAt: { toDate: () => new Date() },
@@ -186,4 +196,5 @@ export const Collections = {
     STORAGE_METRICS: 'storage_metrics',
     SAVED_QUERIES: 'saved_queries',
     QUERY_HISTORY: 'query_history',
+    QUERY_COMMENTS: 'query_comments',
 } as const;
