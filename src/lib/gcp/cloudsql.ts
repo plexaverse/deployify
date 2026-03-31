@@ -99,6 +99,84 @@ export async function createDatabase(
 }
 
 /**
+ * List backup runs for a Cloud SQL instance
+ */
+export async function listBackups(instanceName: string): Promise<Record<string, unknown>[]> {
+    if (process.env.MOCK_DB === 'true') {
+        return [
+            { id: '1001', status: 'SUCCESSFUL', startTime: new Date(Date.now() - 3600000).toISOString(), description: 'AUTOMATED DAILY BACKUP' },
+            { id: '1002', status: 'SUCCESSFUL', startTime: new Date(Date.now() - 86400000).toISOString(), description: 'PRE-MIGRATION SNAPSHOT' },
+            { id: '1003', status: 'FAILED', startTime: new Date(Date.now() - 172800000).toISOString(), error: { message: 'Storage quota exceeded' } }
+        ];
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/backupRuns`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) throw new Error(`Failed to list backups: ${await response.text()}`);
+    const data = await response.json();
+    return data.items || [];
+}
+
+/**
+ * Create a manual backup run
+ */
+export async function createBackup(instanceName: string, description?: string): Promise<string> {
+    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/backup-${Date.now()}`;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/backupRuns`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            description: description || `Manual backup triggered via Deployify at ${new Date().toISOString()}`
+        }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to create backup: ${await response.text()}`);
+    const data = await response.json();
+    return data.name;
+}
+
+/**
+ * Restore a Cloud SQL instance from a backup
+ */
+export async function restoreBackup(instanceName: string, backupId: string): Promise<string> {
+    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/restore-${backupId}`;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/restoreBackup`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            restoreBackupContext: {
+                backupRunId: backupId,
+                project: gcpProjectId,
+                instanceId: instanceName
+            }
+        }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to restore backup: ${await response.text()}`);
+    const data = await response.json();
+    return data.name;
+}
+
+/**
  * Update a Cloud SQL instance tier
  */
 export async function updateInstanceTier(
