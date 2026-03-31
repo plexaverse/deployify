@@ -13,7 +13,7 @@ import Redis from 'ioredis';
 const MAX_ROWS = 500;
 
 /**
- * Experimental read-only query browser proxy
+ * Production-ready read-only query browser proxy
  */
 export async function POST(
     request: NextRequest,
@@ -301,7 +301,7 @@ export async function POST(
 
         const startTime = Date.now();
 
-        // Real Connectivity Logic (Experimental Proxy)
+        // Real Connectivity Logic (Production Proxy)
         try {
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Query execution timeout after 25s')), 25000)
@@ -893,7 +893,7 @@ export async function POST(
             return NextResponse.json({
                 success: false,
                 error: `Connectivity Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                details: 'This feature is in experimental rollout and requires internal network clearance.'
+                details: 'If this error persists, verify your network configuration and database credentials.'
             }, { status: 503 });
         }
 

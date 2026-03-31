@@ -1186,7 +1186,7 @@ runQuery();`;
                         <Terminal className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Data Lab (Experimental)</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Data Lab</span>
                         <h3 className="text-xl font-semibold">Managed Query Browser</h3>
                     </div>
                 </div>

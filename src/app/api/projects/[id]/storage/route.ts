@@ -4,9 +4,9 @@ import { updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { upsertSecret, deleteSecret } from '@/lib/gcp/secrets';
-import { createInstance as createCloudSqlInstance } from '@/lib/gcp/cloudsql';
-import { createInstance as createMemorystoreInstance } from '@/lib/gcp/memorystore';
-import { createDatabase as createFirestoreDatabase } from '@/lib/gcp/firestore-admin';
+import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloudSqlInstance } from '@/lib/gcp/cloudsql';
+import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance } from '@/lib/gcp/memorystore';
+import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
 
 // Generate unique ID for storage configs
@@ -81,7 +81,9 @@ export async function POST(
         let status: StorageConfig['status'] = 'active';
         let operationName: string | undefined;
 
-        // Handle Automatic Provisioning
+        /**
+         * Standard Provisioning Flow
+         */
         if (provision) {
             const targetRegion = region || project.region || 'us-central1';
             status = 'provisioning';
@@ -185,6 +187,7 @@ export async function DELETE(
         const { project } = access;
         const { searchParams } = new URL(request.url);
         const storageId = searchParams.get('storageId');
+        const deleteResource = searchParams.get('deleteResource') === 'true';
 
         if (!storageId) {
             return NextResponse.json({ error: 'Storage ID is required' }, { status: 400 });
@@ -197,13 +200,33 @@ export async function DELETE(
             return NextResponse.json({ error: 'Storage configuration not found' }, { status: 404 });
         }
 
-        // 1. Delete from Secret Manager if applicable
+        // 1. Delete actual GCP Resource if requested and provisioned
+        if (deleteResource && storageConfig.metadata?.provisioned) {
+            try {
+                const resourceName = storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+                const region = (storageConfig.metadata?.region as string) || project.region || 'us-central1';
+
+                if (storageConfig.type.includes('cloud-sql')) {
+                    await deleteCloudSqlInstance(resourceName);
+                } else if (storageConfig.type === 'memorystore-redis') {
+                    await deleteMemorystoreInstance(resourceName, region);
+                } else if (storageConfig.type === 'firestore') {
+                    await deleteFirestoreDatabase(resourceName);
+                }
+            } catch (error) {
+                console.error('Failed to delete GCP resource:', error);
+                // We continue with local deletion even if resource deletion fails,
+                // but we could also return an error if strictness is required.
+            }
+        }
+
+        // 2. Delete from Secret Manager if applicable
         if (storageConfig.connectionStringSecretId) {
             const secretId = `deployify-${id}-${storageId}-conn`;
             await deleteSecret(secretId);
         }
 
-        // 2. Remove from Project in Firestore
+        // 3. Remove from Project in Firestore
         const filteredConfigs = storageConfigs.filter((s: StorageConfig) => s.id !== storageId);
         await updateProject(id, { storageConfigs: filteredConfigs });
 
