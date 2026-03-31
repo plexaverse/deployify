@@ -1,5 +1,6 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
+import type { Backup } from '@/types';
 
 const CLOUD_SQL_API = 'https://sqladmin.googleapis.com/v1';
 
@@ -101,12 +102,12 @@ export async function createDatabase(
 /**
  * List backup runs for a Cloud SQL instance
  */
-export async function listBackups(instanceName: string): Promise<Record<string, unknown>[]> {
+export async function listBackups(instanceName: string): Promise<Backup[]> {
     if (process.env.MOCK_DB === 'true') {
         return [
             { id: '1001', status: 'SUCCESSFUL', startTime: new Date(Date.now() - 3600000).toISOString(), description: 'AUTOMATED DAILY BACKUP' },
             { id: '1002', status: 'SUCCESSFUL', startTime: new Date(Date.now() - 86400000).toISOString(), description: 'PRE-MIGRATION SNAPSHOT' },
-            { id: '1003', status: 'FAILED', startTime: new Date(Date.now() - 172800000).toISOString(), error: { message: 'Storage quota exceeded' } }
+            { id: '1003', status: 'FAILED', startTime: new Date(Date.now() - 172800000).toISOString() }
         ];
     }
 
@@ -119,7 +120,14 @@ export async function listBackups(instanceName: string): Promise<Record<string, 
 
     if (!response.ok) throw new Error(`Failed to list backups: ${await response.text()}`);
     const data = await response.json();
-    return data.items || [];
+    return (data.items || []).map((item: any) => ({
+        id: item.id,
+        status: item.status,
+        description: item.description,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        type: item.type
+    }));
 }
 
 /**

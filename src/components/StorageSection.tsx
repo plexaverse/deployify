@@ -32,7 +32,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
-import type { StorageType, StorageConfig } from '@/types';
+import type { StorageType, StorageConfig, Backup } from '@/types';
 
 interface StorageSectionProps {
     projectId: string;
@@ -91,7 +91,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [isLoadingMetrics, setIsLoadingMetrics] = useState<Record<string, boolean>>({});
     const [rotateConnectionString, setRotateConnectionString] = useState('');
     const [isManagingBackups, setIsManagingBackups] = useState<StorageConfig | null>(null);
-    const [backups, setBackups] = useState<Record<string, unknown>[]>([]);
+    const [backups, setBackups] = useState<Backup[]>([]);
     const [isLoadingBackups, setIsLoadingBackups] = useState(false);
     const [backupDescription, setBackupDescription] = useState('');
 
