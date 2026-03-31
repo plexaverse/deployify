@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { cn } from '@/lib/utils';
 import {
     Database,
     Plus,
@@ -15,7 +16,8 @@ import {
     TrendingUp,
     Cpu,
     HardDrive,
-    Zap
+    Zap,
+    History as HistoryIcon
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -30,7 +32,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
-import type { StorageType, StorageConfig } from '@/types';
+import type { StorageType, StorageConfig, Backup } from '@/types';
 
 interface StorageSectionProps {
     projectId: string;
@@ -88,6 +90,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [metrics, setMetrics] = useState<Record<string, { cpuUtilization: number, memoryUtilization: number, diskUtilization?: number }>>({});
     const [isLoadingMetrics, setIsLoadingMetrics] = useState<Record<string, boolean>>({});
     const [rotateConnectionString, setRotateConnectionString] = useState('');
+    const [isManagingBackups, setIsManagingBackups] = useState<StorageConfig | null>(null);
+    const [backups, setBackups] = useState<Backup[]>([]);
+    const [isLoadingBackups, setIsLoadingBackups] = useState(false);
+    const [backupDescription, setBackupDescription] = useState('');
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -287,6 +293,64 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 setIsRotating(null);
                 setRotateConnectionString('');
             }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const fetchBackups = useCallback(async (storageId: string) => {
+        setIsLoadingBackups(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/backups`);
+            const data = await response.json();
+            if (data.success) {
+                setBackups(data.backups);
+            }
+        } catch (e) {
+            console.error('Failed to fetch backups:', e);
+        } finally {
+            setIsLoadingBackups(false);
+        }
+    }, [projectId]);
+
+    const handleCreateBackup = async () => {
+        if (!isManagingBackups) return;
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${isManagingBackups.id}/backups`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ description: backupDescription }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setBackupDescription('');
+                fetchBackups(isManagingBackups.id);
+            }
+        } catch (e) {
+            console.error('Failed to create backup:', e);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleRestoreBackup = async (backupId: string) => {
+        if (!isManagingBackups) return;
+        if (!confirm('Are you sure you want to restore this backup? This will overwrite current data and the instance will be unavailable during the process.')) return;
+
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${isManagingBackups.id}/backups/${backupId}/restore`, {
+                method: 'POST',
+            });
+            const data = await response.json();
+            if (data.success) {
+                setIsManagingBackups(null);
+                // Trigger sync to show provisioning status
+                await syncStorageStatus(projectId, isManagingBackups.id);
+            }
+        } catch (e) {
+            console.error('Failed to restore backup:', e);
         } finally {
             setIsSubmitting(false);
         }
@@ -752,6 +816,20 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <TrendingUp className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    {!!config.metadata?.provisioned && config.status === 'active' && config.type.includes('cloud-sql') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsManagingBackups(config);
+                                                fetchBackups(config.id);
+                                            }}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Manage Backups"
+                                        >
+                                            <HistoryIcon className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -842,6 +920,82 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 }
                 confirmText="Apply Scaling"
                 loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingBackups}
+                onClose={() => setIsManagingBackups(null)}
+                title="Database Backup Management"
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Trigger Manual Backup</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={backupDescription}
+                                    onChange={(e) => setBackupDescription(e.target.value)}
+                                    placeholder="BACKUP DESCRIPTION..."
+                                    className="h-9 text-[10px] font-bold uppercase placeholder:text-[10px]"
+                                />
+                                <Button
+                                    onClick={handleCreateBackup}
+                                    disabled={isSubmitting}
+                                    className="h-9 px-4 text-[10px] font-bold uppercase bg-[var(--primary)]"
+                                >
+                                    {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1.5" />}
+                                    Create
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Backup History</Label>
+                            <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                {isLoadingBackups ? (
+                                    <div className="py-8 flex flex-col items-center justify-center gap-2">
+                                        <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching backups...</span>
+                                    </div>
+                                ) : backups.length === 0 ? (
+                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No backups found</span>
+                                    </div>
+                                ) : (
+                                    backups.map(b => (
+                                        <div key={b.id} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between group">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                        b.status === 'SUCCESSFUL' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
+                                                    )}>
+                                                        {b.status}
+                                                    </span>
+                                                    <span className="text-[10px] font-mono font-bold">{b.id}</span>
+                                                </div>
+                                                <p className="text-[10px] font-bold uppercase text-[var(--foreground)]">{b.description || 'AUTOMATED BACKUP'}</p>
+                                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(b.startTime).toLocaleString()}</p>
+                                            </div>
+                                            {b.status === 'SUCCESSFUL' && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleRestoreBackup(b.id)}
+                                                    disabled={isSubmitting}
+                                                    className="h-7 text-[10px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    Restore
+                                                </Button>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
             />
 
             <ConfirmationModal

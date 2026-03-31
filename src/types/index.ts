@@ -52,6 +52,15 @@ export interface User {
     updatedAt: Date;
 }
 
+export interface Backup {
+    id: string;
+    status: 'SUCCESSFUL' | 'FAILED' | 'SKIPPED' | 'RUNNING' | string;
+    description?: string;
+    startTime: string;
+    endTime?: string;
+    type?: string;
+}
+
 export type TeamRole = 'owner' | 'admin' | 'member' | 'viewer';
 
 export interface Team {
