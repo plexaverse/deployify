@@ -4,8 +4,8 @@ import { updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { upsertSecret, deleteSecret } from '@/lib/gcp/secrets';
-import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloudSqlInstance } from '@/lib/gcp/cloudsql';
-import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance } from '@/lib/gcp/memorystore';
+import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloudSqlInstance, updateInstanceTier as updateCloudSqlTier } from '@/lib/gcp/cloudsql';
+import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance, updateInstanceSize as updateMemorystoreSize } from '@/lib/gcp/memorystore';
 import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
 
@@ -287,6 +287,8 @@ export async function PATCH(
 
         const storage = storageConfigs[index];
         let connectionStringSecretId = storage.connectionStringSecretId;
+        let operationName = storage.metadata?.operationName;
+        let status = storage.status;
 
         if (connectionString) {
             // Update connection string in GCP Secret Manager
@@ -294,14 +296,38 @@ export async function PATCH(
             connectionStringSecretId = await upsertSecret(secretId, connectionString);
         }
 
+        // Handle Scaling (GCP Resource Update)
+        if (storage.metadata?.provisioned && metadata) {
+            const resourceName = storage.name.toLowerCase().replace(/\s+/g, '-');
+            const region = (storage.metadata?.region as string) || project.region || 'us-central1';
+
+            try {
+                if (storage.type.includes('cloud-sql') && metadata.tier && metadata.tier !== storage.metadata?.tier) {
+                    operationName = await updateCloudSqlTier(resourceName, metadata.tier);
+                    status = 'provisioning';
+                } else if (storage.type === 'memorystore-redis' && metadata.memorySizeGb && metadata.memorySizeGb !== storage.metadata?.memorySizeGb) {
+                    operationName = await updateMemorystoreSize(resourceName, region, metadata.memorySizeGb);
+                    status = 'provisioning';
+                }
+            } catch (e) {
+                console.error('Failed to trigger resource scaling:', e);
+                // Continue with local metadata update, but log error
+            }
+        }
+
         const updatedStorageConfig: StorageConfig = {
             ...storage,
             type: type || storage.type,
             name: name || storage.name,
+            status,
             environment: environment || storage.environment,
             envKey: envKey !== undefined ? envKey : storage.envKey,
             connectionStringSecretId,
-            metadata: metadata || storage.metadata,
+            metadata: {
+                ...(storage.metadata || {}),
+                ...(metadata || {}),
+                operationName
+            },
             updatedAt: new Date(),
         };
 
@@ -329,3 +355,6 @@ export async function PATCH(
         return NextResponse.json({ error: 'Failed to update storage configuration' }, { status: 500 });
     }
 }
+
+// PATCH - Scale an existing storage configuration (internal helper for scaling logic)
+// We extend the existing PATCH handler to also support scaling metadata updates.

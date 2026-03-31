@@ -115,7 +115,8 @@ function createMockFirestore(): Firestore {
                         environment: 'both',
                         createdAt: new Date(),
                         updatedAt: new Date(),
-                                connectionStringSecretId: 'mock-secret-id'
+                        connectionStringSecretId: 'mock-secret-id',
+                        metadata: { provisioned: true, region: 'us-central1' }
                     },
                     {
                         id: 'storage_redis',
@@ -125,7 +126,8 @@ function createMockFirestore(): Firestore {
                         environment: 'both',
                         createdAt: new Date(),
                         updatedAt: new Date(),
-                        connectionStringSecretId: 'mock-redis-id'
+                        connectionStringSecretId: 'mock-redis-id',
+                        metadata: { provisioned: true, region: 'us-central1' }
                     }
                 ],
                 joinedAt: { toDate: () => new Date() },

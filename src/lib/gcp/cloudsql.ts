@@ -99,6 +99,41 @@ export async function createDatabase(
 }
 
 /**
+ * Update a Cloud SQL instance tier
+ */
+export async function updateInstanceTier(
+    instanceName: string,
+    tier: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/operations/update-${instanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}`, {
+        method: 'PATCH',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            settings: {
+                tier,
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update Cloud SQL instance tier: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
+
+/**
  * Create a user within an existing instance
  */
 export async function createUser(
