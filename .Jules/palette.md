@@ -69,3 +69,7 @@
 ## 2026-03-25 - [Framer Motion Filter Syntax and Build Safety]
 **Learning:** When using Framer Motion's `whileHover` or `animate` props to apply complex visual effects like drop shadows alongside grayscale, it is safer to use the full `filter` string property (e.g., `filter: 'grayscale(0%) drop-shadow(...)'`) rather than attempting to use shorthand keys like `dropShadow`. TypeScript often lacks definitions for these shorthands in the motion target types, leading to build-time failures even if they work in development.
 **Action:** Always use the composite `filter` string for complex CSS filters in Framer Motion to ensure build stability.
+
+## 2026-03-31 - [Tactile Feedback for Interactive Grids]
+**Learning:** For interactive grids following the scripe.io aesthetic, providing immediate physical-like feedback on press (e.g., `whileTap={{ scale: 0.98 }}`) makes the interface feel significantly more responsive and "alive" compared to simple hover states. This is especially effective on mobile and for larger clickable areas like BentoGrid items.
+**Action:** Implement subtle scale-down press feedback for all primary interactive container components to enhance the tactile feel.
