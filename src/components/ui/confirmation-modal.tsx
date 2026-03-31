@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
   title: string;
   description: React.ReactNode;
   confirmText?: string;
@@ -22,7 +22,7 @@ interface ConfirmationModalProps {
 export function ConfirmationModal({
   isOpen,
   onClose,
-  onConfirm,
+  onConfirm = () => {},
   title,
   description,
   confirmText = 'Confirm',
