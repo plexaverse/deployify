@@ -1936,7 +1936,7 @@ runQuery();`;
                                                         }
                                                     }}
                                                     placeholder="ADD TABLE DESCRIPTION..."
-                                                    className="w-full bg-transparent border-none text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4 pl-5"
+                                                    className="w-full bg-transparent border-none text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4 pl-5"
                                                 />
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (
@@ -1981,7 +1981,7 @@ runQuery();`;
                                                                         }
                                                                     }}
                                                                     placeholder="ADD COLUMN DESCRIPTION..."
-                                                                    className="w-full bg-transparent border-none text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4"
+                                                                    className="w-full bg-transparent border-none text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4"
                                                                 />
                                                                 {isSavingDoc === `column_${table}.${c.name}` && (
                                                                     <Loader2 className="absolute right-0 top-0 w-2.5 h-2.5 animate-spin text-[var(--primary)]" />
