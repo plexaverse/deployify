@@ -623,7 +623,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 )}
                                             </div>
                                         </div>
-                                        {config.metadata?.provisioned && config.status === 'active' && (
+                                        {!!config.metadata?.provisioned && config.status === 'active' && (
                                             <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in">
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
                                                     <div className="flex items-center justify-between mb-1">
@@ -737,7 +737,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
                                         </Button>
                                     )}
-                                    {config.metadata?.provisioned && config.status === 'active' && (config.type.includes('cloud-sql') || config.type === 'memorystore-redis') && (
+                                    {!!config.metadata?.provisioned && config.status === 'active' && (config.type.includes('cloud-sql') || config.type === 'memorystore-redis') && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
