@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     Database,
     Plus,
@@ -11,7 +11,11 @@ import {
     ExternalLink,
     Loader2,
     Activity,
-    RefreshCw
+    RefreshCw,
+    TrendingUp,
+    Cpu,
+    HardDrive,
+    Zap
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -78,6 +82,11 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [validatingId, setValidatingId] = useState<string | null>(null);
     const [syncingId, setSyncingId] = useState<string | null>(null);
     const [isRotating, setIsRotating] = useState<string | null>(null);
+    const [isScaling, setIsScaling] = useState<StorageConfig | null>(null);
+    const [scaleTier, setScaleTier] = useState('');
+    const [scaleSizeGb, setScaleSizeGb] = useState(1);
+    const [metrics, setMetrics] = useState<Record<string, { cpuUtilization: number, memoryUtilization: number, diskUtilization?: number }>>({});
+    const [isLoadingMetrics, setIsLoadingMetrics] = useState<Record<string, boolean>>({});
     const [rotateConnectionString, setRotateConnectionString] = useState('');
 
     useEffect(() => {
@@ -125,6 +134,29 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             if (success) {
                 resetForm();
                 if (onUpdate) onUpdate();
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleScale = async () => {
+        if (!isScaling) return;
+        setIsSubmitting(true);
+        try {
+            const metadata: Record<string, unknown> = {};
+            if (isScaling.type.includes('cloud-sql')) {
+                metadata.tier = scaleTier;
+            } else if (isScaling.type === 'memorystore-redis') {
+                metadata.memorySizeGb = scaleSizeGb;
+            }
+
+            const success = await updateStorageConfig(projectId, isScaling.id, {
+                metadata
+            });
+
+            if (success) {
+                setIsScaling(null);
             }
         } finally {
             setIsSubmitting(false);
@@ -212,6 +244,39 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             setSyncingId(null);
         }
     };
+
+    const fetchMetrics = useCallback(async (storageId: string) => {
+        setIsLoadingMetrics(prev => ({ ...prev, [storageId]: true }));
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/resource-metrics`);
+            const data = await response.json();
+            if (data.success) {
+                setMetrics(prev => ({ ...prev, [storageId]: data.metrics }));
+            }
+        } catch (e) {
+            console.error('Failed to fetch metrics:', e);
+        } finally {
+            setIsLoadingMetrics(prev => ({ ...prev, [storageId]: false }));
+        }
+    }, [projectId]);
+
+    useEffect(() => {
+        const provisionedConfigs = storageConfigs.filter(c => c.metadata?.provisioned && c.status === 'active');
+
+        // Initial fetch for those that don't have metrics yet
+        provisionedConfigs.forEach(c => {
+            if (!metrics[c.id] && !isLoadingMetrics[c.id]) {
+                fetchMetrics(c.id);
+            }
+        });
+
+        // Refresh metrics every 60s
+        const interval = setInterval(() => {
+            provisionedConfigs.forEach(c => fetchMetrics(c.id));
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, [storageConfigs, fetchMetrics, metrics, isLoadingMetrics]);
 
     const handleRotate = async (storageId: string) => {
         if (!rotateConnectionString.trim()) return;
@@ -558,6 +623,57 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 )}
                                             </div>
                                         </div>
+                                        {!!config.metadata?.provisioned && config.status === 'active' && (
+                                            <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in">
+                                                <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Cpu className="w-3 h-3 text-[var(--primary)]" />
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU</span>
+                                                        </div>
+                                                        <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{metrics[config.id]?.cpuUtilization || 0}%</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-[var(--primary)] transition-all duration-500"
+                                                            style={{ width: `${metrics[config.id]?.cpuUtilization || 0}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Zap className="w-3 h-3 text-[var(--success)]" />
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory</span>
+                                                        </div>
+                                                        <span className="text-[10px] font-mono font-bold text-[var(--success)]">{metrics[config.id]?.memoryUtilization || 0}%</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-[var(--success)] transition-all duration-500"
+                                                            style={{ width: `${metrics[config.id]?.memoryUtilization || 0}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                {metrics[config.id]?.diskUtilization !== undefined && (
+                                                    <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)] col-span-2 md:col-span-1">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <HardDrive className="w-3 h-3 text-[var(--warning)]" />
+                                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Disk</span>
+                                                            </div>
+                                                            <span className="text-[10px] font-mono font-bold text-[var(--warning)]">{metrics[config.id]?.diskUtilization}%</span>
+                                                        </div>
+                                                        <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-[var(--warning)] transition-all duration-500"
+                                                                style={{ width: `${metrics[config.id]?.diskUtilization}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         {isRotating === config.id && (
                                             <div className="mt-3 p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-fade-in">
                                                 <div className="space-y-1.5">
@@ -621,6 +737,21 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
                                         </Button>
                                     )}
+                                    {!!config.metadata?.provisioned && config.status === 'active' && (config.type.includes('cloud-sql') || config.type === 'memorystore-redis') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsScaling(config);
+                                                setScaleTier((config.metadata?.tier as string) || 'db-f1-micro');
+                                                setScaleSizeGb((config.metadata?.memorySizeGb as number) || 1);
+                                            }}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Scale Instance"
+                                        >
+                                            <TrendingUp className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -664,6 +795,54 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     </div>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={!!isScaling}
+                onClose={() => setIsScaling(null)}
+                onConfirm={handleScale}
+                title="Scale Storage Instance"
+                description={
+                    <div className="space-y-4">
+                        <p className="text-sm">
+                            Adjust the resource allocation for <strong>{isScaling?.name}</strong>. This update will trigger a GCP operation and the instance status will show as provisioning while the scaling is in progress.
+                        </p>
+
+                        {isScaling?.type.includes('cloud-sql') ? (
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Machine Tier</Label>
+                                <NativeSelect
+                                    value={scaleTier}
+                                    onChange={(e) => setScaleTier(e.target.value)}
+                                >
+                                    <option value="db-f1-micro">Shared CPU (db-f1-micro) - Free Tier</option>
+                                    <option value="db-g1-small">Shared CPU (db-g1-small)</option>
+                                    <option value="db-custom-1-3840">1 vCPU, 3.75 GB RAM</option>
+                                    <option value="db-custom-2-7680">2 vCPU, 7.5 GB RAM</option>
+                                    <option value="db-custom-4-15360">4 vCPU, 15 GB RAM</option>
+                                </NativeSelect>
+                            </div>
+                        ) : isScaling?.type === 'memorystore-redis' ? (
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory Capacity (GB)</Label>
+                                <div className="flex items-center gap-4">
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="10"
+                                        step="1"
+                                        value={scaleSizeGb}
+                                        onChange={(e) => setScaleSizeGb(parseInt(e.target.value))}
+                                        className="flex-1 accent-[var(--primary)]"
+                                    />
+                                    <span className="text-sm font-mono font-bold w-12 text-center">{scaleSizeGb} GB</span>
+                                </div>
+                            </div>
+                        ) : null}
+                    </div>
+                }
+                confirmText="Apply Scaling"
+                loading={isSubmitting}
+            />
 
             <ConfirmationModal
                 isOpen={!!storageToDelete}

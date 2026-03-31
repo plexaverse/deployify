@@ -220,7 +220,22 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Promote Data Lab and Storage components to Stable (remove experimental labels)
 - [x] Verify 100% functional integrity and update documentation
 
+### Phase 35: Advanced Storage Observability & Scaling (COMPLETED)
+- [x] Implement GCP Monitoring utility for CPU/Memory/Disk metrics
+- [x] Create API route for real-time storage resource metrics
+- [x] Implement instance scaling logic for Cloud SQL and Memorystore
+- [x] Enhance Storage UI with resource usage gauges and scaling controls
+- [x] Verify 100% functional integrity and update documentation
+
 ## Progress Updates
+
+### 2027-04-11: Advanced Storage Observability & Scaling
+- Completed Phase 35: Advanced Storage Observability & Scaling.
+- Implemented `src/lib/gcp/monitoring.ts` to interface with GCP Monitoring API for real-time infrastructure metrics.
+- Launched `GET /api/projects/[id]/storage/[storageId]/resource-metrics` API route.
+- Enhanced `StorageSection.tsx` with high-density resource usage gauges for CPU, Memory, and Disk utilization.
+- Implemented a "Scale Instance" feature allowing developers to upgrade Cloud SQL tiers and Memorystore capacity directly from the dashboard.
+- Verified 100% functional integrity with system audits and frontend Playwright verification.
 
 ### 2027-04-10: Storage Lifecycle Automation & Data Lab Stability
 - Completed Phase 34: Storage Lifecycle Automation & Data Lab Stability.

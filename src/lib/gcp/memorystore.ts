@@ -103,3 +103,38 @@ export async function deleteInstance(
     const data = await response.json();
     return data.name;
 }
+
+/**
+ * Update a Memorystore (Redis) instance size
+ */
+export async function updateInstanceSize(
+    instanceName: string,
+    region: string,
+    memorySizeGb: number
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/locations/${region}/operations/update-${instanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/locations/${region}/instances/${instanceName}`;
+
+    const response = await fetch(`${MEMORYSTORE_API}/${name}?updateMask=memorySizeGb`, {
+        method: 'PATCH',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            memorySizeGb,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update Memorystore instance size: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
