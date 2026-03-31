@@ -150,7 +150,7 @@ export async function getOperationStatus(
 
     const data = await response.json();
     return {
-        status: data.status,
-        error: data.error?.message,
+        status: data.status as 'PENDING' | 'RUNNING' | 'DONE',
+        error: data.error ? `Cloud SQL Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
 }
