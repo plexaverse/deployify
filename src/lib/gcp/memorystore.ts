@@ -75,3 +75,31 @@ export async function getOperationStatus(
         error: data.error ? `Memorystore Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
 }
+
+/**
+ * Delete a Memorystore (Redis) instance
+ */
+export async function deleteInstance(
+    instanceName: string,
+    region: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/locations/${region}/operations/delete-${instanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/locations/${region}/instances/${instanceName}`;
+
+    const response = await fetch(`${MEMORYSTORE_API}/${name}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to delete Memorystore instance: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}

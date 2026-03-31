@@ -154,3 +154,29 @@ export async function getOperationStatus(
         error: data.error ? `Cloud SQL Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
 }
+
+/**
+ * Delete a Cloud SQL instance
+ */
+export async function deleteInstance(instanceName: string): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/operations/delete-${instanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to delete Cloud SQL instance: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}

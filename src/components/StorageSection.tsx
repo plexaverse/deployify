@@ -74,6 +74,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [deleteResource, setDeleteResource] = useState(false);
     const [validatingId, setValidatingId] = useState<string | null>(null);
     const [syncingId, setSyncingId] = useState<string | null>(null);
     const [isRotating, setIsRotating] = useState<string | null>(null);
@@ -183,10 +184,11 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         if (!storageToDelete) return;
 
         try {
-            const success = await deleteStorageConfig(projectId, storageToDelete.id);
+            const success = await deleteStorageConfig(projectId, storageToDelete.id, deleteResource);
             if (success && onUpdate) onUpdate();
         } finally {
             setStorageToDelete(null);
+            setDeleteResource(false);
         }
     };
 
@@ -665,15 +667,34 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
             <ConfirmationModal
                 isOpen={!!storageToDelete}
-                onClose={() => setStorageToDelete(null)}
+                onClose={() => {
+                    setStorageToDelete(null);
+                    setDeleteResource(false);
+                }}
                 onConfirm={handleDelete}
                 title="Delete Storage Connector"
                 description={
-                    <span>
-                        Are you sure you want to delete <strong>{storageToDelete?.name}</strong>? This will remove the automated credential injection but will NOT delete your actual database in GCP or external providers.
-                    </span>
+                    <div className="space-y-4">
+                        <p>
+                            Are you sure you want to delete <strong>{storageToDelete?.name}</strong>? This will remove the automated credential injection from your deployments.
+                        </p>
+                        {!!storageToDelete?.metadata?.provisioned && (
+                            <div className="p-3 rounded-lg bg-[var(--error)]/5 border border-[var(--error)]/20 flex items-center justify-between">
+                                <div className="space-y-0.5">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Delete actual GCP Resource</Label>
+                                    <p className="text-[10px] font-bold uppercase text-[var(--error)]/60">Permantently destroy the provisioned instance</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={deleteResource}
+                                    onChange={(e) => setDeleteResource(e.target.checked)}
+                                    className="w-4 h-4 rounded border-[var(--error)]/30 text-[var(--error)] focus:ring-[var(--error)]"
+                                />
+                            </div>
+                        )}
+                    </div>
                 }
-                confirmText="Disconnect"
+                confirmText={deleteResource ? "Delete Resource & Disconnect" : "Disconnect"}
                 variant="destructive"
             />
         </Card>

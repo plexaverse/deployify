@@ -84,7 +84,7 @@ export interface ProjectSlice {
     fetchProjectStorage: (projectId: string) => Promise<void>;
     addStorageConfig: (projectId: string, config: Partial<StorageConfig>, connectionString?: string, provision?: boolean) => Promise<boolean>;
     updateStorageConfig: (projectId: string, storageId: string, config: Partial<StorageConfig>, connectionString?: string) => Promise<boolean>;
-    deleteStorageConfig: (projectId: string, storageId: string) => Promise<boolean>;
+    deleteStorageConfig: (projectId: string, storageId: string, deleteResource?: boolean) => Promise<boolean>;
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
     syncStorageStatus: (projectId: string, storageId: string) => Promise<{ status: string; error?: string }>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
@@ -611,9 +611,9 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         }
     },
 
-    deleteStorageConfig: async (projectId, storageId) => {
+    deleteStorageConfig: async (projectId, storageId, deleteResource = false) => {
         try {
-            const response = await fetch(`/api/projects/${projectId}/storage?storageId=${storageId}`, {
+            const response = await fetch(`/api/projects/${projectId}/storage?storageId=${storageId}${deleteResource ? '&deleteResource=true' : ''}`, {
                 method: 'DELETE',
             });
 

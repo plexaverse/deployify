@@ -73,3 +73,30 @@ export async function getOperationStatus(
         error: data.error ? `Firestore Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
 }
+
+/**
+ * Delete a Firestore database
+ */
+export async function deleteDatabase(databaseId: string): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/databases/${databaseId}/operations/delete`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/databases/${databaseId}`;
+
+    const response = await fetch(`${FIRESTORE_API}/${name}?allow_missing=true`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to delete Firestore database: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
