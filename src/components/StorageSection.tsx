@@ -678,7 +678,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                         <p>
                             Are you sure you want to delete <strong>{storageToDelete?.name}</strong>? This will remove the automated credential injection from your deployments.
                         </p>
-                        {storageToDelete?.metadata?.provisioned && (
+                        {!!storageToDelete?.metadata?.provisioned && (
                             <div className="p-3 rounded-lg bg-[var(--error)]/5 border border-[var(--error)]/20 flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Delete actual GCP Resource</Label>
