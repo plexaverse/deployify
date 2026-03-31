@@ -17,14 +17,14 @@ export async function GET(
     try {
         const session = await getSession();
         if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
         }
 
         const { id, storageId } = await params;
         const access = await checkProjectAccess(session.user.id, id);
 
         if (!access.allowed) {
-            return NextResponse.json({ error: access.error }, { status: access.status });
+            return NextResponse.json({ success: false, error: access.error }, { status: access.status });
         }
 
         const { project } = access;
@@ -32,7 +32,7 @@ export async function GET(
         const index = storageConfigs.findIndex((s: StorageConfig) => s.id === storageId);
 
         if (index === -1) {
-            return NextResponse.json({ error: 'Storage connector not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Storage connector not found' }, { status: 404 });
         }
 
         const storage = storageConfigs[index];
@@ -193,7 +193,7 @@ export async function GET(
             }
         } catch (error) {
             console.error('Failed to get operation status:', error);
-            return NextResponse.json({ error: 'Failed to poll GCP status' }, { status: 500 });
+            return NextResponse.json({ success: false, error: 'Failed to poll GCP status' }, { status: 500 });
         }
 
         if (statusResult.status === 'DONE') {
@@ -291,6 +291,6 @@ export async function GET(
 
     } catch (error) {
         console.error('Storage sync error:', error);
-        return NextResponse.json({ error: 'Internal server error during sync' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Internal server error during sync' }, { status: 500 });
     }
 }

@@ -35,12 +35,12 @@ export async function POST(
             const widgetDoc = await db.collection(Collections.PROJECTS).doc(id).collection('storage_dashboards').doc(widgetId).get();
 
             if (!widgetDoc.exists) {
-                return NextResponse.json({ error: 'Widget not found' }, { status: 404 });
+                return NextResponse.json({ success: false, error: 'Widget not found' }, { status: 404 });
             }
 
             const widgetData = widgetDoc.data();
             if (!widgetData?.isPublic) {
-                return NextResponse.json({ error: 'Forbidden: Widget is not public' }, { status: 403 });
+                return NextResponse.json({ success: false, error: 'Forbidden: Widget is not public' }, { status: 403 });
             }
 
             // Enforce the saved query for public access
@@ -58,7 +58,7 @@ export async function POST(
             // Standard Path: Session required
             session = await getSession();
             if (!session) {
-                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+                return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
             }
 
             if (process.env.MOCK_DB === 'true' && id === 'audit-id') {
@@ -66,18 +66,18 @@ export async function POST(
             } else {
                 const access = await checkProjectAccess(session.user.id, id);
                 if (!access.allowed) {
-                    return NextResponse.json({ error: access.error }, { status: access.status });
+                    return NextResponse.json({ success: false, error: access.error }, { status: access.status });
                 }
                 storageConfig = access.project?.storageConfigs?.find((s: StorageConfig) => s.id === storageId);
             }
         }
 
         if (!storageConfig) {
-            return NextResponse.json({ error: 'Storage connector not found' }, { status: 404 });
+            return NextResponse.json({ success: false, error: 'Storage connector not found' }, { status: 404 });
         }
 
         if (!query) {
-            return NextResponse.json({ error: 'Query is required' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Query is required' }, { status: 400 });
         }
 
         const isSqlLike = storageConfig.type.includes('sql') || storageConfig.type === 'planetscale';
@@ -159,12 +159,12 @@ export async function POST(
                 // Extra safety for EXPLAIN/WITH which can wrap data-modifying statements
                 if (normalizedStatement.startsWith('EXPLAIN') || normalizedStatement.startsWith('WITH')) {
                     if (hasForbidden) {
-                        return NextResponse.json({ error: 'Forbidden: This query contains data-modifying statements' }, { status: 403 });
+                        return NextResponse.json({ success: false, error: 'Forbidden: This query contains data-modifying statements' }, { status: 403 });
                     }
                 }
 
                 if (hasForbidden || !hasAllowedPrefix) {
-                    return NextResponse.json({ error: 'Forbidden: Only read-only queries are allowed in Data Lab' }, { status: 403 });
+                    return NextResponse.json({ success: false, error: 'Forbidden: Only read-only queries are allowed in Data Lab' }, { status: 403 });
                 }
             }
         }
@@ -176,7 +176,7 @@ export async function POST(
         }
 
         if (!connectionString && process.env.MOCK_DB !== 'true') {
-            return NextResponse.json({ error: 'Connection string not configured' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Connection string not configured' }, { status: 400 });
         }
 
         // 2. Execute Query (Mocked or Real)
@@ -813,7 +813,7 @@ export async function POST(
                 }
             }
 
-            return NextResponse.json({ error: 'Unsupported connector type for Data Lab proxy' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Unsupported connector type for Data Lab proxy' }, { status: 400 });
             })();
 
             // Race query against timeout
@@ -891,6 +891,7 @@ export async function POST(
             }
 
             return NextResponse.json({
+                success: false,
                 error: `Connectivity Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 details: 'This feature is in experimental rollout and requires internal network clearance.'
             }, { status: 503 });
@@ -898,6 +899,6 @@ export async function POST(
 
     } catch (error) {
         console.error('Data Lab execution error:', error);
-        return NextResponse.json({ error: 'Failed to execute query' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Failed to execute query' }, { status: 500 });
     }
 }
