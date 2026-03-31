@@ -994,7 +994,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                         </div>
                     </div>
                 }
-                confirmText=""
+                showConfirm={false}
                 showCancel={false}
             />
 

@@ -15,6 +15,8 @@ interface ConfirmationModalProps {
   cancelText?: string;
   variant?: 'default' | 'destructive';
   loading?: boolean;
+  showConfirm?: boolean;
+  showCancel?: boolean;
 }
 
 export function ConfirmationModal({
@@ -27,6 +29,8 @@ export function ConfirmationModal({
   cancelText = 'Cancel',
   variant = 'default',
   loading = false,
+  showConfirm = true,
+  showCancel = true,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -75,23 +79,29 @@ export function ConfirmationModal({
           </div>
 
           {/* Footer */}
-          <div className="p-4 border-t border-[var(--border)] bg-[var(--background)] flex justify-end gap-3 shrink-0">
-            <Button
-              variant="ghost"
-              onClick={onClose}
-              disabled={loading}
-            >
-              {cancelText}
-            </Button>
-            <Button
-              variant={variant === 'destructive' ? 'destructive' : 'primary'}
-              onClick={onConfirm}
-              loading={loading}
-              className="min-w-[100px]"
-            >
-              {confirmText}
-            </Button>
-          </div>
+          {(showConfirm || showCancel) && (
+            <div className="p-4 border-t border-[var(--border)] bg-[var(--background)] flex justify-end gap-3 shrink-0">
+              {showCancel && (
+                <Button
+                  variant="ghost"
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  {cancelText}
+                </Button>
+              )}
+              {showConfirm && (
+                <Button
+                  variant={variant === 'destructive' ? 'destructive' : 'primary'}
+                  onClick={onConfirm}
+                  loading={loading}
+                  className="min-w-[100px]"
+                >
+                  {confirmText}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </Portal>
