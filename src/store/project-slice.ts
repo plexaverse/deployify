@@ -88,6 +88,7 @@ export interface ProjectSlice {
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
     syncStorageStatus: (projectId: string, storageId: string) => Promise<{ status: string; error?: string }>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
+    runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<boolean>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -334,6 +335,29 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         } catch (error) {
             console.error('Failed to delete project:', error);
             toast.error('Failed to delete project', { id: toastId });
+            return false;
+        }
+    },
+
+    runProjectMigration: async (projectId, storageId, command) => {
+        const toastId = toast.loading('Triggering migration...');
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/migrations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to trigger migration');
+            }
+
+            toast.success('Migration operation triggered successfully', { id: toastId });
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to trigger migration', { id: toastId });
             return false;
         }
     },

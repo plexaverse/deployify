@@ -61,6 +61,16 @@ export interface Backup {
     type?: string;
 }
 
+export interface Migration {
+    id: string;
+    name: string;
+    appliedAt: string;
+    status: 'SUCCESS' | 'FAILED' | 'PENDING';
+    durationMs?: number;
+    checksum?: string;
+    provider?: 'prisma' | 'drizzle' | 'typeorm' | 'knex' | 'manual';
+}
+
 export type TeamRole = 'owner' | 'admin' | 'member' | 'viewer';
 
 export interface Team {

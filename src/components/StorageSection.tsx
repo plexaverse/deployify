@@ -17,7 +17,8 @@ import {
     Cpu,
     HardDrive,
     Zap,
-    History as HistoryIcon
+    History as HistoryIcon,
+    GitBranch
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -32,7 +33,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
-import type { StorageType, StorageConfig, Backup } from '@/types';
+import type { StorageType, StorageConfig, Backup, Migration } from '@/types';
 
 interface StorageSectionProps {
     projectId: string;
@@ -94,6 +95,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [backups, setBackups] = useState<Backup[]>([]);
     const [isLoadingBackups, setIsLoadingBackups] = useState(false);
     const [backupDescription, setBackupDescription] = useState('');
+    const [isManagingMigrations, setIsManagingMigrations] = useState<StorageConfig | null>(null);
+    const [migrations, setMigrations] = useState<Migration[]>([]);
+    const [isLoadingMigrations, setIsLoadingMigrations] = useState(false);
+    const [migrationCommand, setMigrationCommand] = useState('prisma migrate deploy');
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -143,6 +148,31 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             }
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const fetchMigrations = useCallback(async (storageId: string) => {
+        setIsLoadingMigrations(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/migrations`);
+            const data = await response.json();
+            if (data.success) {
+                setMigrations(data.migrations);
+            }
+        } catch (e) {
+            console.error('Failed to fetch migrations:', e);
+        } finally {
+            setIsLoadingMigrations(false);
+        }
+    }, [projectId]);
+
+    const handleRunMigration = async () => {
+        if (!isManagingMigrations) return;
+        const success = await useStore.getState().runProjectMigration(projectId, isManagingMigrations.id, migrationCommand);
+        if (success) {
+            // Trigger sync to show provisioning/busy status if applicable
+            await syncStorageStatus(projectId, isManagingMigrations.id);
+            fetchMigrations(isManagingMigrations.id);
         }
     };
 
@@ -831,6 +861,20 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <HistoryIcon className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    {config.status === 'active' && (config.type.includes('sql') || config.type === 'planetscale') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsManagingMigrations(config);
+                                                fetchMigrations(config.id);
+                                            }}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Manage Migrations"
+                                        >
+                                            <GitBranch className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -988,6 +1032,73 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                     Restore
                                                 </Button>
                                             )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingMigrations}
+                onClose={() => setIsManagingMigrations(null)}
+                title="Database Migration Management"
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Run Manual Migration</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={migrationCommand}
+                                    onChange={(e) => setMigrationCommand(e.target.value)}
+                                    placeholder="E.G. prisma migrate deploy"
+                                    className="h-9 text-[10px] font-mono font-bold placeholder:text-[10px]"
+                                />
+                                <Button
+                                    onClick={handleRunMigration}
+                                    disabled={isLoading}
+                                    className="h-9 px-4 text-[10px] font-bold uppercase bg-[var(--primary)]"
+                                >
+                                    Run
+                                </Button>
+                            </div>
+                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
+                                This will trigger a migration operation. Ensure your schema is up to date in the repository.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration History</Label>
+                            <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                {isLoadingMigrations ? (
+                                    <div className="py-8 flex flex-col items-center justify-center gap-2">
+                                        <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching migrations...</span>
+                                    </div>
+                                ) : migrations.length === 0 ? (
+                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No migration history found</span>
+                                    </div>
+                                ) : (
+                                    migrations.map(m => (
+                                        <div key={m.id} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                        m.status === 'SUCCESS' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
+                                                    )}>
+                                                        {m.status}
+                                                    </span>
+                                                    <span className="text-[10px] font-mono font-bold">{m.provider?.toUpperCase()}</span>
+                                                </div>
+                                                <p className="text-[10px] font-bold uppercase text-[var(--foreground)] truncate max-w-[300px]" title={m.name}>{m.name}</p>
+                                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(m.appliedAt).toLocaleString()}</p>
+                                            </div>
                                         </div>
                                     ))
                                 )}
