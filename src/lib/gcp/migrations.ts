@@ -1,6 +1,10 @@
 import { Client as PgClient } from 'pg';
 import mysql from 'mysql2/promise';
 import { Migration, StorageType } from '@/types';
+import { getGcpAccessToken } from './auth';
+import { config } from '@/lib/config';
+
+const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
 
 /**
  * List applied migrations from a database by discovering common migration tables
@@ -98,17 +102,132 @@ export async function listMigrations(
 }
 
 /**
- * Simulate running a migration (In a real system, this would trigger a CI/CD job)
+ * Trigger a migration execution using GCP Cloud Build
  */
 export async function runMigration(
-    instanceName: string,
-    command: string
+    projectId: string,
+    repoFullName: string,
+    commitSha: string,
+    connectionString: string,
+    envKey: string,
+    command: string,
+    projectRegion?: string | null
 ): Promise<{ operationName: string }> {
     if (process.env.MOCK_DB === 'true') {
-        return { operationName: `projects/mock/operations/migrate-${instanceName}-${Date.now()}` };
+        return { operationName: `projects/mock/locations/global/builds/migrate-${projectId}-${Date.now()}` };
     }
 
-    // In a real implementation, we might use Cloud Build to run the migration container
-    // For this evolution, we provide the structure for the operation.
-    return { operationName: `projects/real/operations/migrate-${instanceName}` };
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const region = projectRegion || config.gcp.region || 'asia-south1';
+    const accessToken = await getGcpAccessToken();
+
+    // Get repository name from full name (owner/repo -> repo)
+    const repoName = repoFullName.split('/')[1] || repoFullName;
+
+    const buildConfig = {
+        source: {
+            connectedRepository: {
+                repository: `projects/${gcpProjectId}/locations/${region}/connections/deployify-github/repositories/${repoName}`,
+                revision: commitSha,
+            },
+        },
+        steps: [
+            {
+                name: 'node:20-alpine',
+                entrypoint: 'sh',
+                args: [
+                    '-c',
+                    `npm install && ${command}`
+                ],
+                env: [
+                    `${envKey}=${connectionString}`
+                ]
+            }
+        ],
+        options: {
+            // logging: 'CLOUD_LOGGING_ONLY', // Removed to allow GCS logging for real-time dashboard logs
+        },
+        tags: ['deployify-migration', projectId],
+    };
+
+    const response = await fetch(
+        `${CLOUD_BUILD_API}/projects/${gcpProjectId}/locations/${region}/builds`,
+        {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(buildConfig),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`Failed to trigger migration build: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return { operationName: data.name };
+}
+
+/**
+ * Get the status and logs of a migration operation
+ */
+export async function getMigrationStatus(
+    operationName: string
+): Promise<{
+    status: 'QUEUED' | 'WORKING' | 'SUCCESS' | 'FAILURE' | 'CANCELLED' | 'TIMEOUT';
+    logs?: string;
+    error?: string;
+}> {
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            status: 'SUCCESS',
+            logs: '[MOCK] Migration started...\n[MOCK] Applying changes...\n[MOCK] Migration completed successfully.'
+        };
+    }
+
+    const accessToken = await getGcpAccessToken();
+
+    // operationName is projects/{project}/locations/{location}/builds/{id}
+    const response = await fetch(`${CLOUD_BUILD_API}/${operationName}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to get migration status: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    const status = data.status;
+
+    // Fetch logs if available
+    let logs = '';
+    if (data.logUrl) {
+        try {
+            // Re-use logic from getBuildLogsContent
+            const bucketMatch = data.logsBucket?.match(/gs:\/\/(.+)/);
+            const bucket = bucketMatch ? bucketMatch[1] : null;
+            const buildId = data.id;
+
+            if (bucket && buildId) {
+                const logFilename = `log-${buildId}.txt`;
+                const storageResponse = await fetch(
+                    `https://storage.googleapis.com/storage/v1/b/${bucket}/o/${logFilename}?alt=media`,
+                    { headers: { Authorization: `Bearer ${accessToken}` } }
+                );
+                if (storageResponse.ok) {
+                    logs = await storageResponse.text();
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch migration logs:', e);
+        }
+    }
+
+    return {
+        status: status as 'QUEUED' | 'WORKING' | 'SUCCESS' | 'FAILURE' | 'CANCELLED' | 'TIMEOUT',
+        logs,
+        error: data.failureInfo?.detail
+    };
 }

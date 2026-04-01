@@ -88,7 +88,8 @@ export interface ProjectSlice {
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
     syncStorageStatus: (projectId: string, storageId: string) => Promise<{ status: string; error?: string }>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
-    runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<boolean>;
+    runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
+    fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -355,10 +356,30 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             }
 
             toast.success('Migration operation triggered successfully', { id: toastId });
-            return true;
+            return { success: true, operationName: data.operationName };
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to trigger migration', { id: toastId });
-            return false;
+            return { success: false };
+        }
+    },
+
+    fetchMigrationStatus: async (projectId, storageId, operationName) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/migrations?operationId=${encodeURIComponent(operationName)}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch migration status');
+            }
+
+            return {
+                status: data.status,
+                logs: data.logs,
+                error: data.error
+            };
+        } catch (error) {
+            console.error('Failed to fetch migration status:', error);
+            return { status: 'FAILURE', error: error instanceof Error ? error.message : 'Unknown error' };
         }
     },
 
