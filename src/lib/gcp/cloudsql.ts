@@ -120,7 +120,7 @@ export async function listBackups(instanceName: string): Promise<Backup[]> {
 
     if (!response.ok) throw new Error(`Failed to list backups: ${await response.text()}`);
     const data = await response.json();
-    return (data.items || []).map((item: any) => ({
+    return (data.items || []).map((item: { id: string, status: string, description?: string, startTime: string, endTime?: string, type?: string }) => ({
         id: item.id,
         status: item.status,
         description: item.description,
