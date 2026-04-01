@@ -99,6 +99,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [migrations, setMigrations] = useState<Migration[]>([]);
     const [isLoadingMigrations, setIsLoadingMigrations] = useState(false);
     const [migrationCommand, setMigrationCommand] = useState('prisma migrate deploy');
+    const [activeMigrationOp, setActiveMigrationOp] = useState<string | null>(null);
+    const [migrationStatus, setMigrationStatus] = useState<'QUEUED' | 'WORKING' | 'SUCCESS' | 'FAILURE' | 'CANCELLED' | 'TIMEOUT' | null>(null);
+    const [migrationLogs, setMigrationLogs] = useState('');
+    const [migrationError, setMigrationError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -168,13 +172,42 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
     const handleRunMigration = async () => {
         if (!isManagingMigrations) return;
-        const success = await useStore.getState().runProjectMigration(projectId, isManagingMigrations.id, migrationCommand);
-        if (success) {
+        const result = await useStore.getState().runProjectMigration(projectId, isManagingMigrations.id, migrationCommand);
+        if (result.success && result.operationName) {
+            setActiveMigrationOp(result.operationName);
+            setMigrationStatus('QUEUED');
+            setMigrationLogs('Initializing migration execution...');
+            setMigrationError(null);
+
             // Trigger sync to show provisioning/busy status if applicable
             await syncStorageStatus(projectId, isManagingMigrations.id);
-            fetchMigrations(isManagingMigrations.id);
         }
     };
+
+    const pollMigrationStatus = useCallback(async () => {
+        if (!activeMigrationOp || !isManagingMigrations) return;
+
+        const result = await useStore.getState().fetchMigrationStatus(
+            projectId,
+            isManagingMigrations.id,
+            activeMigrationOp
+        );
+
+        setMigrationStatus(result.status as 'QUEUED' | 'WORKING' | 'SUCCESS' | 'FAILURE' | 'CANCELLED' | 'TIMEOUT');
+        if (result.logs) setMigrationLogs(result.logs);
+        if (result.error) setMigrationError(result.error);
+
+        if (result.status === 'SUCCESS' || result.status === 'FAILURE' || result.status === 'CANCELLED' || result.status === 'TIMEOUT') {
+            setActiveMigrationOp(null);
+            fetchMigrations(isManagingMigrations.id);
+        }
+    }, [activeMigrationOp, isManagingMigrations, projectId, fetchMigrations]);
+
+    useEffect(() => {
+        if (!activeMigrationOp) return;
+        const interval = setInterval(pollMigrationStatus, 3000);
+        return () => clearInterval(interval);
+    }, [activeMigrationOp, pollMigrationStatus]);
 
     const handleScale = async () => {
         if (!isScaling) return;
@@ -1045,31 +1078,103 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
             <ConfirmationModal
                 isOpen={!!isManagingMigrations}
-                onClose={() => setIsManagingMigrations(null)}
+                onClose={() => {
+                    setIsManagingMigrations(null);
+                    setActiveMigrationOp(null);
+                    setMigrationStatus(null);
+                    setMigrationLogs('');
+                    setMigrationError(null);
+                }}
                 title="Database Migration Management"
                 description={
                     <div className="space-y-6">
-                        <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Run Manual Migration</Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    value={migrationCommand}
-                                    onChange={(e) => setMigrationCommand(e.target.value)}
-                                    placeholder="E.G. prisma migrate deploy"
-                                    className="h-9 text-[10px] font-mono font-bold placeholder:text-[10px]"
-                                />
-                                <Button
-                                    onClick={handleRunMigration}
-                                    disabled={isLoading}
-                                    className="h-9 px-4 text-[10px] font-bold uppercase bg-[var(--primary)]"
-                                >
-                                    Run
-                                </Button>
+                        {migrationStatus ? (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            "w-2 h-2 rounded-full animate-pulse",
+                                            migrationStatus === 'SUCCESS' ? "bg-[var(--success)]" :
+                                            migrationStatus === 'FAILURE' ? "bg-[var(--error)]" :
+                                            "bg-[var(--primary)]"
+                                        )} />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">
+                                            Migration Status: {migrationStatus}
+                                        </span>
+                                    </div>
+                                    {activeMigrationOp && <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--primary)]" />}
+                                </div>
+
+                                <div className="p-4 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px] overflow-hidden">
+                                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border)]">
+                                        <span className="text-[var(--muted-foreground)] uppercase">Build Logs</span>
+                                        <span className="text-[var(--primary)]">{activeMigrationOp?.split('/').pop()?.substring(0, 8)}</span>
+                                    </div>
+                                    <div className="max-h-60 overflow-y-auto custom-scrollbar space-y-1">
+                                        {migrationLogs.split('\n').map((line, i) => (
+                                            <div key={i} className="whitespace-pre-wrap break-all leading-relaxed">
+                                                <span className="text-[var(--muted-foreground)] mr-2 opacity-30">{(i + 1).toString().padStart(3, '0')}</span>
+                                                <span className={cn(
+                                                    line.toLowerCase().includes('error') ? "text-[var(--error)]" :
+                                                    line.toLowerCase().includes('success') ? "text-[var(--success)]" :
+                                                    "text-[var(--foreground)]/80"
+                                                )}>{line}</span>
+                                            </div>
+                                        ))}
+                                        {activeMigrationOp && (
+                                            <div className="flex items-center gap-2 text-[var(--primary)] animate-pulse mt-2">
+                                                <span className="w-1.5 h-1.5 bg-[var(--primary)] rounded-full" />
+                                                <span>Awaiting output...</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {migrationError && (
+                                    <div className="p-3 bg-[var(--error)]/10 border border-[var(--error)]/20 rounded-lg flex items-start gap-2">
+                                        <AlertCircle className="w-4 h-4 text-[var(--error)] shrink-0 mt-0.5" />
+                                        <p className="text-[10px] font-bold uppercase text-[var(--error)]">{migrationError}</p>
+                                    </div>
+                                )}
+
+                                {!activeMigrationOp && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setMigrationStatus(null);
+                                            setMigrationLogs('');
+                                            setMigrationError(null);
+                                        }}
+                                        className="w-full text-[10px] font-bold uppercase tracking-wider"
+                                    >
+                                        Run Another Migration
+                                    </Button>
+                                )}
                             </div>
-                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
-                                This will trigger a migration operation. Ensure your schema is up to date in the repository.
-                            </p>
-                        </div>
+                        ) : (
+                            <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4 animate-in fade-in">
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Run Manual Migration</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        value={migrationCommand}
+                                        onChange={(e) => setMigrationCommand(e.target.value)}
+                                        placeholder="E.G. prisma migrate deploy"
+                                        className="h-9 text-[10px] font-mono font-bold placeholder:text-[10px]"
+                                    />
+                                    <Button
+                                        onClick={handleRunMigration}
+                                        disabled={isLoading}
+                                        className="h-9 px-4 text-[10px] font-bold uppercase bg-[var(--primary)]"
+                                    >
+                                        Run
+                                    </Button>
+                                </div>
+                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
+                                    This will trigger a migration operation. Ensure your schema is up to date in the repository.
+                                </p>
+                            </div>
+                        )}
 
                         <div className="space-y-3">
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration History</Label>

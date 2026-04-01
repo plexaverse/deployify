@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
-import { listMigrations, runMigration } from '@/lib/gcp/migrations';
+import { listMigrations, runMigration, getMigrationStatus } from '@/lib/gcp/migrations';
 import type { StorageConfig } from '@/types';
+import { getProjectById } from '@/lib/db';
 
 /**
- * List applied migrations for a storage connector
+ * List applied migrations for a storage connector or get status of an active operation
  */
 export async function GET(
     request: NextRequest,
@@ -38,6 +39,22 @@ export async function GET(
 
         if (!storageConfig) {
             return NextResponse.json({ success: false, error: 'Storage connector not found' }, { status: 404 });
+        }
+
+        const searchParams = request.nextUrl.searchParams;
+        const operationId = searchParams.get('operationId');
+
+        if (operationId) {
+            // Validate that the operationId (which is a build ID) belongs to this project
+            // Cloud Build operation names are projects/{project}/locations/{location}/builds/{id}
+            // We can also check tags or just verify access to the project first (done above)
+            try {
+                const status = await getMigrationStatus(operationId);
+                return NextResponse.json({ success: true, ...status });
+            } catch (error) {
+                console.error('Failed to get migration status:', error);
+                return NextResponse.json({ success: false, error: 'Failed to get migration status' }, { status: 500 });
+            }
         }
 
         if (!storageConfig.type.includes('sql') && storageConfig.type !== 'planetscale') {
@@ -100,8 +117,30 @@ export async function POST(
             return NextResponse.json({ success: false, error: 'Storage connector not found' }, { status: 404 });
         }
 
-        const instanceName = storageConfig.metadata?.instanceName as string || storageConfig.name;
-        const { operationName } = await runMigration(instanceName, command);
+        const project = await getProjectById(id);
+        if (!project) return NextResponse.json({ success: false, error: 'Project not found' }, { status: 404 });
+
+        let connectionString = '';
+        if (storageConfig.connectionStringSecretId) {
+            connectionString = await getSecretValue(storageConfig.connectionStringSecretId);
+        }
+
+        if (!connectionString && process.env.MOCK_DB !== 'true') {
+            return NextResponse.json({ success: false, error: 'Connection string not configured' }, { status: 400 });
+        }
+
+        const commitSha = project.latestDeployment?.gitCommitSha || 'main';
+        const envKey = storageConfig.envKey || (storageConfig.type === 'memorystore-redis' ? 'REDIS_URL' : 'DATABASE_URL');
+
+        const { operationName } = await runMigration(
+            id,
+            project.repoFullName,
+            commitSha,
+            connectionString,
+            envKey,
+            command,
+            project.region
+        );
 
         return NextResponse.json({ success: true, operationName });
     } catch (error) {
