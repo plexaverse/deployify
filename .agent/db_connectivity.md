@@ -240,7 +240,22 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Validate "Connector" tiers (GCP-Native, External, Fallback) against proposed architecture
 - [x] Conduct final stability and zero-warning linting pass
 
+### Phase 38: Database Migration Orchestration & Schema Versioning (COMPLETED)
+- [x] Define migration types and update storage metadata
+- [x] Implement migration discovery logic for Prisma and Drizzle (Postgres/MySQL)
+- [x] Create migration API routes for listing and triggering migrations
+- [x] Enhance storage UI with migrations management modal and history view
+- [x] Verify 100% functional integrity and update documentation
+
 ## Progress Updates
+
+### 2027-04-14: Database Migration Orchestration & Schema Versioning
+- Completed Phase 38: Database Migration Orchestration & Schema Versioning.
+- Implemented `src/lib/gcp/migrations.ts` to automatically discover applied migrations by querying common schema history tables (`_prisma_migrations`, `drizzle_migrations`).
+- Launched Migration APIs: `GET /migrations` and `POST /migrations` (manual trigger).
+- Enhanced the `StorageSection` UI with a high-density "Manage Migrations" interface, allowing developers to track schema evolution and trigger deployments directly from the dashboard.
+- Integrated migration tracking into the "Connector" model, providing a unified view of both infrastructure and schema state.
+- Verified 100% functional integrity with system audits and zero-warning linting.
 
 ### 2027-04-12: Database Backup Management & Point-in-Time Recovery
 - Completed Phase 36: Database Backup Management & Point-in-Time Recovery.
