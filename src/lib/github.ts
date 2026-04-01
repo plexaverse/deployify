@@ -206,12 +206,28 @@ export async function getRepoContents(
     repo: string,
     path: string = ''
 ): Promise<{ name: string; type: string }[]> {
-    if (accessToken === 'mock-access-token') {
-        return [
-            { name: 'package.json', type: 'file' },
-            { name: 'next.config.js', type: 'file' },
-            { name: 'src', type: 'dir' },
-        ];
+    if (accessToken === 'mock-access-token' || accessToken === 'mock-token') {
+        if (path === '') {
+            return [
+                { name: 'package.json', type: 'file' },
+                { name: 'next.config.js', type: 'file' },
+                { name: 'src', type: 'dir' },
+                { name: 'prisma', type: 'dir' },
+            ];
+        }
+        if (path.includes('prisma')) {
+            if (path.endsWith('migrations')) {
+                return [
+                    { name: '20240101000000_init', type: 'dir' },
+                    { name: '20240201000000_add_teams', type: 'dir' },
+                    { name: '20240301000000_storage_connectors', type: 'dir' },
+                ];
+            }
+            return [
+                { name: 'schema.prisma', type: 'file' },
+                { name: 'migrations', type: 'dir' },
+            ];
+        }
     }
     const octokit = createGitHubClient(accessToken);
 

@@ -240,7 +240,20 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Validate "Connector" tiers (GCP-Native, External, Fallback) against proposed architecture
 - [x] Conduct final stability and zero-warning linting pass
 
+### Phase 38: Database Migration Orchestration & Schema Versioning (COMPLETED)
+- [x] Implement unified migration discovery for Prisma and Drizzle
+- [x] Implement migration status fetcher via Data Lab proxy
+- [x] Create Migration Management API
+- [x] Integrate "Manage Migrations" modal into Storage UI
+
 ## Progress Updates
+
+### 2027-04-13: Database Migration Orchestration & Schema Versioning
+- Completed Phase 38: Database Migration Orchestration & Schema Versioning.
+- Implemented unified migration discovery in `src/lib/gcp/migrations.ts` for Prisma and Drizzle.
+- Launched `/api/projects/[id]/storage/[storageId]/migrations` API route.
+- Integrated a high-density "Manage Migrations" modal into the Storage UI, providing real-time visibility into repository-to-database schema alignment.
+- Verified 100% functional integrity with 83 passing tests and zero lint warnings.
 
 ### 2027-04-12: Database Backup Management & Point-in-Time Recovery
 - Completed Phase 36: Database Backup Management & Point-in-Time Recovery.

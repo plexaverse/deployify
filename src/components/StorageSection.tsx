@@ -17,7 +17,8 @@ import {
     Cpu,
     HardDrive,
     Zap,
-    History as HistoryIcon
+    History as HistoryIcon,
+    GitBranch
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -94,6 +95,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [backups, setBackups] = useState<Backup[]>([]);
     const [isLoadingBackups, setIsLoadingBackups] = useState(false);
     const [backupDescription, setBackupDescription] = useState('');
+    const [isManagingMigrations, setIsManagingMigrations] = useState<StorageConfig | null>(null);
+    const [migrations, setMigrations] = useState<{ id: string, name: string, status: 'applied' | 'pending', appliedAt?: string }[]>([]);
+    const [migrationType, setMigrationType] = useState<'prisma' | 'drizzle' | 'unknown'>('unknown');
+    const [isLoadingMigrations, setIsLoadingMigrations] = useState(false);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -355,6 +360,22 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             setIsSubmitting(false);
         }
     };
+
+    const fetchMigrations = useCallback(async (storageId: string) => {
+        setIsLoadingMigrations(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/migrations`);
+            const data = await response.json();
+            if (data.success) {
+                setMigrations(data.migrations);
+                setMigrationType(data.type);
+            }
+        } catch (e) {
+            console.error('Failed to fetch migrations:', e);
+        } finally {
+            setIsLoadingMigrations(false);
+        }
+    }, [projectId]);
 
     const getStatusIcon = (status: string, id: string) => {
         if (validatingId === id) {
@@ -831,6 +852,20 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <HistoryIcon className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    {config.status === 'active' && (config.type.includes('sql') || config.type === 'planetscale') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsManagingMigrations(config);
+                                                fetchMigrations(config.id);
+                                            }}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Manage Migrations"
+                                        >
+                                            <GitBranch className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -921,6 +956,96 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 }
                 confirmText="Apply Scaling"
                 loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingMigrations}
+                onClose={() => setIsManagingMigrations(null)}
+                title="Database Migration Orchestration"
+                description={
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                            <div className="space-y-0.5">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Discovery Engine</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={cn(
+                                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border",
+                                        migrationType === 'prisma' ? "bg-blue-500/10 text-blue-400 border-blue-500/20" :
+                                        migrationType === 'drizzle' ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" :
+                                        "bg-[var(--muted)] text-[var(--muted-foreground)] border-[var(--border)]"
+                                    )}>
+                                        {migrationType === 'unknown' ? 'NO MIGRATIONS DETECTED' : `${migrationType.toUpperCase()} DETECTED`}
+                                    </span>
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => isManagingMigrations && fetchMigrations(isManagingMigrations.id)}
+                                disabled={isLoadingMigrations}
+                                className="h-8 text-[10px] font-bold uppercase tracking-wider"
+                            >
+                                <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", isLoadingMigrations && "animate-spin")} />
+                                Refresh
+                            </Button>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration History & Status</Label>
+                            <div className="max-h-80 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                {isLoadingMigrations ? (
+                                    <div className="py-12 flex flex-col items-center justify-center gap-2">
+                                        <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Analyzing repository & database...</span>
+                                    </div>
+                                ) : migrations.length === 0 ? (
+                                    <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <GitBranch className="w-8 h-8 text-[var(--muted-foreground)]/20" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No migrations found in repository</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    migrations.map(m => (
+                                        <div key={m.id} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between group">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                        m.status === 'applied' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-yellow-500/10 text-yellow-500"
+                                                    )}>
+                                                        {m.status}
+                                                    </span>
+                                                    <span className="text-[10px] font-mono font-bold truncate max-w-[250px]">{m.name}</span>
+                                                </div>
+                                                {m.appliedAt && (
+                                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                                                        Applied: {new Date(m.appliedAt).toLocaleString()}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            {m.status === 'pending' && (
+                                                <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-yellow-500/80">
+                                                    <AlertCircle className="w-3.5 h-3.5" />
+                                                    Pending
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-4 border border-[var(--info)]/20 bg-[var(--info)]/5 rounded-xl flex items-start gap-3">
+                            <Activity className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                Deployify automatically detects migration folders in your repository. Use the <strong>REDEPLOY</strong> action in the dashboard to trigger automated migration runs during the deployment lifecycle.
+                            </div>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
             />
 
             <ConfirmationModal
