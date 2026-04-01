@@ -50,7 +50,7 @@ export function ProjectCard({ project }: { project: Project }) {
   useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
 
   return (
-    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
+    <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-3xl bg-[var(--card)]/50 backdrop-blur-xl border border-[var(--border)] p-6 hover:border-[var(--foreground)]/20", config.glow)}>
       {/* Header: Project Identity and Sparkline */}
       <div className="flex justify-between w-full mb-4">
         <div className="flex items-center gap-3">
