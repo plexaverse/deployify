@@ -27,6 +27,7 @@ export interface ProjectSlice {
     projectEnvVariables: EnvVariable[];
     projectDomains: Domain[];
     projectStorageConfigs: StorageConfig[];
+    activeMigrations: Record<string, { status: string; logs?: string; error?: string; operationName?: string }>;
 
     // Saving States
     isSavingProjectSettings: boolean;
@@ -90,6 +91,8 @@ export interface ProjectSlice {
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
     runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
+    startMigrationPolling: (projectId: string, storageId: string, operationName: string) => void;
+    clearMigrationStatus: (storageId: string) => void;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -116,6 +119,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     projectEnvVariables: [],
     projectDomains: [],
     projectStorageConfigs: [],
+    activeMigrations: {},
 
     // Saving States Initial
     isSavingProjectSettings: false,
@@ -356,6 +360,10 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             }
 
             toast.success('Migration operation triggered successfully', { id: toastId });
+
+            // Start polling automatically
+            get().startMigrationPolling(projectId, storageId, data.operationName);
+
             return { success: true, operationName: data.operationName };
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to trigger migration', { id: toastId });
@@ -381,6 +389,55 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             console.error('Failed to fetch migration status:', error);
             return { status: 'FAILURE', error: error instanceof Error ? error.message : 'Unknown error' };
         }
+    },
+
+    startMigrationPolling: (projectId, storageId, operationName) => {
+        const poll = async () => {
+            // Check if it was cleared in the meantime
+            if (!get().activeMigrations[storageId]) return;
+
+            const result = await get().fetchMigrationStatus(projectId, storageId, operationName);
+
+            // Re-check if cleared after async call
+            if (!get().activeMigrations[storageId]) return;
+
+            set((state) => ({
+                activeMigrations: {
+                    ...state.activeMigrations,
+                    [storageId]: {
+                        ...result,
+                        operationName
+                    }
+                }
+            }));
+
+            // Continue polling if still working or queued
+            if (result.status === 'WORKING' || result.status === 'QUEUED') {
+                setTimeout(poll, 3000);
+            }
+        };
+
+        // Initialize state and start polling
+        set((state) => ({
+            activeMigrations: {
+                ...state.activeMigrations,
+                [storageId]: {
+                    status: 'QUEUED',
+                    operationName,
+                    logs: 'Initializing migration build...'
+                }
+            }
+        }));
+
+        poll();
+    },
+
+    clearMigrationStatus: (storageId) => {
+        set((state) => {
+            const activeMigrations = { ...state.activeMigrations };
+            delete activeMigrations[storageId];
+            return { activeMigrations };
+        });
     },
 
     fetchProjectEnvVariables: async (projectId) => {

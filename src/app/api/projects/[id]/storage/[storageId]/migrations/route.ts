@@ -139,7 +139,8 @@ export async function POST(
             connectionString,
             envKey,
             command,
-            project.region
+            project.region,
+            project.rootDirectory
         );
 
         return NextResponse.json({ success: true, operationName });

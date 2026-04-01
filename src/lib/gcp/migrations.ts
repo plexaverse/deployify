@@ -111,10 +111,17 @@ export async function runMigration(
     connectionString: string,
     envKey: string,
     command: string,
-    projectRegion?: string | null
+    projectRegion?: string | null,
+    rootDirectory?: string | null
 ): Promise<{ operationName: string }> {
     if (process.env.MOCK_DB === 'true') {
-        return { operationName: `projects/mock/locations/global/builds/migrate-${projectId}-${Date.now()}` };
+        const id = `migrate-${projectId}-${Date.now()}`;
+        // Store start time for mock polling
+        if (typeof global !== 'undefined') {
+            (global as any).mockMigrations = (global as any).mockMigrations || {};
+            (global as any).mockMigrations[id] = Date.now();
+        }
+        return { operationName: `projects/mock/locations/global/builds/${id}` };
     }
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
@@ -123,6 +130,8 @@ export async function runMigration(
 
     // Get repository name from full name (owner/repo -> repo)
     const repoName = repoFullName.split('/')[1] || repoFullName;
+
+    const workDir = rootDirectory ? `/workspace/${rootDirectory.replace(/^\/+|\/+$/g, '')}` : '/workspace';
 
     const buildConfig = {
         source: {
@@ -135,6 +144,7 @@ export async function runMigration(
             {
                 name: 'node:20-alpine',
                 entrypoint: 'sh',
+                dir: workDir,
                 args: [
                     '-c',
                     `npm install && ${command}`
@@ -181,10 +191,26 @@ export async function getMigrationStatus(
     error?: string;
 }> {
     if (process.env.MOCK_DB === 'true') {
-        return {
-            status: 'SUCCESS',
-            logs: '[MOCK] Migration started...\n[MOCK] Applying changes...\n[MOCK] Migration completed successfully.'
-        };
+        const id = operationName.split('/').pop() || '';
+        const startTime = (global as any).mockMigrations?.[id] || Date.now();
+        const elapsed = Date.now() - startTime;
+
+        if (elapsed < 5000) {
+            return {
+                status: 'QUEUED',
+                logs: '[MOCK] Build queued...\n[MOCK] Waiting for available worker...'
+            };
+        } else if (elapsed < 15000) {
+            return {
+                status: 'WORKING',
+                logs: '[MOCK] Build queued...\n[MOCK] Waiting for available worker...\n[MOCK] Fetching repository source...\n[MOCK] Running npm install...'
+            };
+        } else {
+            return {
+                status: 'SUCCESS',
+                logs: '[MOCK] Build queued...\n[MOCK] Waiting for available worker...\n[MOCK] Fetching repository source...\n[MOCK] Running npm install...\n[MOCK] Executing migration command...\n[MOCK] Migration applied successfully.'
+            };
+        }
     }
 
     const accessToken = await getGcpAccessToken();
@@ -199,16 +225,26 @@ export async function getMigrationStatus(
     }
 
     const data = await response.json();
-    const status = data.status;
+
+    // Cloud Build API returns an Operation object for the build trigger
+    // If it's an operation, the build details are in the metadata
+    const isOperation = operationName.includes('/operations/');
+    const build = isOperation ? data.metadata : data;
+
+    if (!build) {
+        return { status: 'QUEUED' };
+    }
+
+    const status = build.status || (data.done ? (data.error ? 'FAILURE' : 'SUCCESS') : 'QUEUED');
 
     // Fetch logs if available
     let logs = '';
-    if (data.logUrl) {
+    if (build.logUrl || build.logsBucket) {
         try {
             // Re-use logic from getBuildLogsContent
-            const bucketMatch = data.logsBucket?.match(/gs:\/\/(.+)/);
-            const bucket = bucketMatch ? bucketMatch[1] : null;
-            const buildId = data.id;
+            const bucketMatch = build.logsBucket?.match(/gs:\/\/(.+)/);
+            const bucket = bucketMatch ? bucketMatch[1] : (build.logsBucket || null);
+            const buildId = build.id || operationName.split('/').pop();
 
             if (bucket && buildId) {
                 const logFilename = `log-${buildId}.txt`;
@@ -228,6 +264,6 @@ export async function getMigrationStatus(
     return {
         status: status as 'QUEUED' | 'WORKING' | 'SUCCESS' | 'FAILURE' | 'CANCELLED' | 'TIMEOUT',
         logs,
-        error: data.failureInfo?.detail
+        error: build.failureInfo?.detail || data.error?.message
     };
 }
