@@ -651,7 +651,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 </div>
                                             )}
                                             {config.type.includes('cloud-sql') && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1">
+                                                    <Zap className="w-2.5 h-2.5" />
                                                     IAM AUTH
                                                 </span>
                                             )}

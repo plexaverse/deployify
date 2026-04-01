@@ -43,9 +43,10 @@ export async function GET(
             const providerApiKey = storage.metadata?.providerApiKey as string;
 
             if (process.env.MOCK_DB !== 'true' && !providerApiKey) {
+                console.warn(`[StorageSync] Auto-sync triggered for ${storage.type} (${storageId}) without Provider API Key.`);
                 return NextResponse.json({
                     success: false,
-                    error: `Auto-sync requires a Provider API Key for ${storage.type}`
+                    error: `Auto-sync requires a Provider API Key for ${storage.type}. Please update the connector settings.`
                 }, { status: 400 });
             }
 
@@ -55,6 +56,7 @@ export async function GET(
                 if (process.env.MOCK_DB === 'true') {
                     // Simulate API fetch delay
                     await new Promise(resolve => setTimeout(resolve, 500));
+                    console.log(`[StorageSync] MOCK: Syncing ${storage.type} connector ${storageId}`);
                     newConnectionString = storage.type === 'supabase'
                         ? 'postgresql://postgres:mock@db.supabase.co:5432/postgres'
                         : storage.type === 'mongodb-atlas'
@@ -169,10 +171,11 @@ export async function GET(
         const operationName = storage.metadata?.operationName as string;
 
         if (!operationName) {
+            console.warn(`[StorageSync] Sync triggered for provisioning connector ${storageId} without operation metadata.`);
             // If no operation name, we can't sync. Maybe it's stuck.
             return NextResponse.json({
                 success: false,
-                error: 'No operation name found for syncing'
+                error: 'No active provisioning operation found. The instance may need manual verification in the GCP Console.'
             }, { status: 400 });
         }
 

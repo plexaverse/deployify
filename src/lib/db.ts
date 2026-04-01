@@ -104,6 +104,10 @@ export async function getEnvVarsForDeployment(
             try {
                 const connectionString = await getSecretValue(storage.connectionStringSecretId);
 
+                if (!connectionString) {
+                    throw new Error(`Secret value is empty for ${storage.name}`);
+                }
+
                 // Determine variable name based on custom key or type defaults
                 let envKey = storage.envKey;
 
@@ -123,6 +127,8 @@ export async function getEnvVarsForDeployment(
                 }
             } catch (e) {
                 console.error(`Failed to fetch storage secret for ${storage.name}:`, e);
+                // We throw here to fail the deployment safely rather than deploying with invalid secrets
+                throw new Error(`Failed to inject storage credential for ${storage.name}. Please verify the connector status.`);
             }
         }
     }
