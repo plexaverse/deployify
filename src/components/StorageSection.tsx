@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
     Database,
@@ -18,7 +19,11 @@ import {
     HardDrive,
     Zap,
     History as HistoryIcon,
-    GitBranch
+    GitBranch,
+    Eye,
+    Copy,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -102,6 +107,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [migrations, setMigrations] = useState<Migration[]>([]);
     const [isLoadingMigrations, setIsLoadingMigrations] = useState(false);
     const [migrationCommand, setMigrationCommand] = useState('prisma migrate deploy');
+    const [previewMigration, setPreviewMigration] = useState<{ name: string; content: string; provider?: string } | null>(null);
+    const [isFetchingPreview, setIsFetchingPreview] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -175,6 +182,31 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         if (result.success) {
             // Trigger sync to show provisioning/busy status if applicable
             await syncStorageStatus(projectId, isManagingMigrations.id);
+        }
+    };
+
+    const handlePreviewSQL = async (migration: Migration) => {
+        if (!isManagingMigrations) return;
+        if (previewMigration?.name === migration.name) {
+            setPreviewMigration(null);
+            return;
+        }
+
+        setIsFetchingPreview(migration.id);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${isManagingMigrations.id}/migrations/content?name=${migration.name}&provider=${migration.provider || 'prisma'}`);
+            const data = await response.json();
+            if (data.success) {
+                setPreviewMigration({
+                    name: migration.name,
+                    content: data.content,
+                    provider: migration.provider
+                });
+            }
+        } catch (e) {
+            console.error('Failed to fetch migration content:', e);
+        } finally {
+            setIsFetchingPreview(null);
         }
     };
 
@@ -1058,6 +1090,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 isOpen={!!isManagingMigrations}
                 onClose={() => {
                     setIsManagingMigrations(null);
+                    setPreviewMigration(null);
                 }}
                 title="Database Migration Management"
                 description={
@@ -1160,20 +1193,75 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     </div>
                                 ) : (
                                     migrations.map(m => (
-                                        <div key={m.id} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={cn(
-                                                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
-                                                        m.status === 'SUCCESS' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
-                                                    )}>
-                                                        {m.status}
-                                                    </span>
-                                                    <span className="text-[10px] font-mono font-bold">{m.provider?.toUpperCase()}</span>
+                                        <div key={m.id} className="space-y-3">
+                                            <div className={cn(
+                                                "p-3 border rounded-xl flex items-center justify-between group transition-all",
+                                                m.status === 'PENDING' ? "border-dashed border-[var(--primary)]/40 bg-[var(--primary)]/5" : "border-[var(--border)] bg-[var(--background)]"
+                                            )}>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                            m.status === 'SUCCESS' ? "bg-[var(--success)]/10 text-[var(--success)]" :
+                                                            m.status === 'PENDING' ? "bg-[var(--primary)]/10 text-[var(--primary)]" :
+                                                            "bg-[var(--error)]/10 text-[var(--error)]"
+                                                        )}>
+                                                            {m.status}
+                                                        </span>
+                                                        <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">{m.provider?.toUpperCase()}</span>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold uppercase text-[var(--foreground)] truncate max-w-[280px]" title={m.name}>{m.name}</p>
+                                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                                                        {m.appliedAt ? new Date(m.appliedAt).toLocaleString() : 'PENDING APPLICATION'}
+                                                    </p>
                                                 </div>
-                                                <p className="text-[10px] font-bold uppercase text-[var(--foreground)] truncate max-w-[300px]" title={m.name}>{m.name}</p>
-                                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(m.appliedAt).toLocaleString()}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handlePreviewSQL(m)}
+                                                        disabled={isFetchingPreview === m.id}
+                                                        className={cn(
+                                                            "h-8 px-2 text-[10px] font-bold uppercase tracking-wider transition-colors",
+                                                            previewMigration?.name === m.name ? "text-[var(--primary)] bg-[var(--primary)]/10" : "text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                        )}
+                                                    >
+                                                        {isFetchingPreview === m.id ? (
+                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Eye className="w-3.5 h-3.5 mr-1.5" />
+                                                                Preview
+                                                                {previewMigration?.name === m.name ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
                                             </div>
+                                            {previewMigration?.name === m.name && (
+                                                <div className="p-4 bg-black/40 border border-[var(--primary)]/20 rounded-xl font-mono text-[10px] animate-in slide-in-from-top-2 fade-in">
+                                                    <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border)]">
+                                                        <span className="text-[var(--muted-foreground)] uppercase">Migration Source: {m.name}</span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-5 w-5 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(previewMigration.content);
+                                                                toast.success('SQL copied to clipboard');
+                                                            }}
+                                                            title="Copy to clipboard"
+                                                        >
+                                                            <Copy className="w-3 h-3" />
+                                                        </Button>
+                                                    </div>
+                                                    <div className="max-h-40 overflow-y-auto custom-scrollbar">
+                                                        <pre className="whitespace-pre-wrap break-all text-[var(--foreground)]/80 leading-relaxed">
+                                                            {previewMigration.content}
+                                                        </pre>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     ))
                                 )}

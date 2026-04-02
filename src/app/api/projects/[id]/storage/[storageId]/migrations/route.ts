@@ -70,7 +70,14 @@ export async function GET(
             return NextResponse.json({ success: false, error: 'Connection string not configured' }, { status: 400 });
         }
 
-        const migrations = await listMigrations(connectionString, storageConfig.type);
+        const project = id === 'audit-id' ? { repoFullName: 'owner/repo', rootDirectory: '' } : await getProjectById(id);
+        const repoDetails = (project && session.accessToken) ? {
+            accessToken: session.accessToken,
+            repoFullName: project.repoFullName,
+            rootDirectory: project.rootDirectory
+        } : undefined;
+
+        const migrations = await listMigrations(connectionString, storageConfig.type, repoDetails);
 
         return NextResponse.json({ success: true, migrations });
     } catch (error) {
