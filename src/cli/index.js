@@ -519,6 +519,59 @@ async function handleStorage(args) {
         } else {
             console.log(`❌ Provisioning failed: ${data.error || 'Unknown error'}`);
         }
+    } else if (subcommand === 'migrations') {
+        const action = args[2];
+        const storageId = args[3];
+
+        if (!action || !storageId) {
+            throw new Error('Usage: deployify storage migrations <list|run> <storage_id> [command]');
+        }
+
+        if (action === 'list') {
+            console.log(`Fetching migrations for ${storageId}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/migrations`, token);
+            if (data.migrations && data.migrations.length > 0) {
+                console.log(`\nMigrations for ${storageId}:`);
+                console.log('--------------------------------------------------');
+                data.migrations.forEach(m => {
+                    const status = m.status === 'SUCCESS' ? '✅ SUCCESS' : m.status === 'FAILED' ? '❌ FAILED' : '⏳ ' + m.status.toUpperCase();
+                    console.log(`ID:      ${m.id}`);
+                    console.log(`Name:    ${m.name}`);
+                    console.log(`Status:  ${status}`);
+                    console.log(`Applied: ${m.appliedAt ? new Date(m.appliedAt).toLocaleString() : 'Pending'}`);
+                    if (m.provider) console.log(`Provider: ${m.provider.toUpperCase()}`);
+                    console.log('--------------------------------------------------');
+                });
+            } else {
+                console.log('No migrations found for this storage connector.');
+            }
+        } else if (action === 'run') {
+            const runArgs = args.slice(4);
+            const backupIdx = runArgs.indexOf('--backup');
+            let takeBackup = false;
+            if (backupIdx !== -1) {
+                takeBackup = true;
+                runArgs.splice(backupIdx, 1);
+            }
+            const command = runArgs.join(' ') || 'npx prisma migrate deploy';
+            console.log(`Triggering migration for ${storageId} with command: ${command}${takeBackup ? ' (with pre-migration backup)' : ''}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/migrations`, token, {
+                method: 'POST',
+                body: { command, takeBackup }
+            });
+            if (data.success) {
+                console.log('✅ Migration triggered successfully!');
+                console.log(`Operation: ${data.operationName}`);
+                console.log('\nYou can track progress on the dashboard or by polling the migration status API.');
+            } else {
+                console.log(`❌ Migration failed: ${data.error || 'Unknown error'}`);
+            }
+        } else {
+            console.log(`Unknown migration action: ${action}`);
+            console.log('Usage:');
+            console.log('  deployify storage migrations list <storage_id>');
+        console.log('  deployify storage migrations run <storage_id> [--backup] <command>');
+        }
     } else {
         console.log(`Unknown storage subcommand: ${subcommand}`);
         console.log('Usage:');
@@ -526,6 +579,7 @@ async function handleStorage(args) {
         console.log('  deployify storage validate <storage_id>');
         console.log('  deployify storage sync <storage_id>');
         console.log('  deployify storage provision <type> <name>');
+        console.log('  deployify storage migrations <list|run> <storage_id> [command]');
     }
 }
 

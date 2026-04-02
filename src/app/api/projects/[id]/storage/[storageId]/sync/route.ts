@@ -219,7 +219,7 @@ export async function GET(
 
                 try {
                     const { createDatabase, createUser, getOperationStatus } = await import('@/lib/gcp/cloudsql');
-                    const instanceName = storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                     const dbName = project.slug;
 
                     // Step 2: Create Database if not started

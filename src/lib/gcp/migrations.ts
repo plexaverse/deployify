@@ -239,7 +239,8 @@ export async function runMigration(
     envKey: string,
     command: string,
     projectRegion?: string | null,
-    rootDirectory?: string | null
+    rootDirectory?: string | null,
+    takeBackup?: boolean
 ): Promise<{ operationName: string }> {
     if (process.env.MOCK_DB === 'true') {
         const id = `migrate-${projectId}-${Date.now()}`;
@@ -261,6 +262,48 @@ export async function runMigration(
 
     const workDir = rootDirectory ? `/workspace/${rootDirectory.replace(/^\/+|\/+$/g, '')}` : '/workspace';
 
+    const steps: {
+        name: string;
+        entrypoint: string;
+        args: string[];
+        dir?: string;
+        env?: string[];
+    }[] = [];
+
+    // Add pre-migration backup step if requested for Cloud SQL
+    if (takeBackup && connectionString.includes('cloudsql')) {
+        // Extract instance name from connection string or repo metadata
+        // For simplicity, we assume we can trigger it via gcloud in the build step
+        // We need the instance name, which is usually part of the connection string or metadata
+        const instanceMatch = connectionString.match(/host=\/cloudsql\/.+:(.+)$/) || connectionString.match(/:([a-z0-9-]+)\?/);
+        const instanceName = instanceMatch ? instanceMatch[1] : null;
+
+        if (instanceName) {
+            steps.push({
+                name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+                entrypoint: 'gcloud',
+                args: [
+                    'sql', 'backups', 'create',
+                    '--instance', instanceName,
+                    '--description', `Pre-migration backup for ${projectId} at ${new Date().toISOString()}`
+                ]
+            });
+        }
+    }
+
+    steps.push({
+        name: 'node:20-alpine',
+        entrypoint: 'sh',
+        dir: workDir,
+        args: [
+            '-c',
+            `npm install && ${command}`
+        ],
+        env: [
+            `${envKey}=${connectionString}`
+        ]
+    });
+
     const buildConfig = {
         source: {
             connectedRepository: {
@@ -268,20 +311,7 @@ export async function runMigration(
                 revision: commitSha,
             },
         },
-        steps: [
-            {
-                name: 'node:20-alpine',
-                entrypoint: 'sh',
-                dir: workDir,
-                args: [
-                    '-c',
-                    `npm install && ${command}`
-                ],
-                env: [
-                    `${envKey}=${connectionString}`
-                ]
-            }
-        ],
+        steps,
         options: {
             // logging: 'CLOUD_LOGGING_ONLY', // Removed to allow GCS logging for real-time dashboard logs
         },

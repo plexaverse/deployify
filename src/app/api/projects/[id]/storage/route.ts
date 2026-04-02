@@ -80,6 +80,7 @@ export async function POST(
         let connectionStringSecretId: string | undefined;
         let status: StorageConfig['status'] = 'active';
         let operationName: string | undefined;
+        let resourceName: string | undefined;
 
         /**
          * Standard Provisioning Flow
@@ -87,20 +88,21 @@ export async function POST(
         if (provision) {
             const targetRegion = region || project.region || 'us-central1';
             status = 'provisioning';
+            resourceName = name.toLowerCase().replace(/\s+/g, '-');
 
             try {
                 let provisionResult;
-                if (type === 'cloud-sql-postgres') {
-                    provisionResult = await createCloudSqlInstance(name.toLowerCase().replace(/\s+/g, '-'), 'postgres', targetRegion);
+                if (type === 'cloud-sql-postgres' && resourceName) {
+                    provisionResult = await createCloudSqlInstance(resourceName, 'postgres', targetRegion);
                     finalConnectionString = provisionResult.connectionString;
-                } else if (type === 'cloud-sql-mysql') {
-                    provisionResult = await createCloudSqlInstance(name.toLowerCase().replace(/\s+/g, '-'), 'mysql', targetRegion);
+                } else if (type === 'cloud-sql-mysql' && resourceName) {
+                    provisionResult = await createCloudSqlInstance(resourceName, 'mysql', targetRegion);
                     finalConnectionString = provisionResult.connectionString;
-                } else if (type === 'memorystore-redis') {
-                    provisionResult = await createMemorystoreInstance(name.toLowerCase().replace(/\s+/g, '-'), targetRegion);
+                } else if (type === 'memorystore-redis' && resourceName) {
+                    provisionResult = await createMemorystoreInstance(resourceName, targetRegion);
                     finalConnectionString = provisionResult.connectionString;
-                } else if (type === 'firestore') {
-                    provisionResult = await createFirestoreDatabase(name.toLowerCase().replace(/\s+/g, '-'), targetRegion);
+                } else if (type === 'firestore' && resourceName) {
+                    provisionResult = await createFirestoreDatabase(resourceName, targetRegion);
                     finalConnectionString = provisionResult.connectionString;
                 }
                 operationName = provisionResult?.operationName;
@@ -130,6 +132,7 @@ export async function POST(
                 autoSync,
                 region: region || project.region || 'us-central1',
                 operationName,
+                resourceName,
             },
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -203,7 +206,7 @@ export async function DELETE(
         // 1. Delete actual GCP Resource if requested and provisioned
         if (deleteResource && storageConfig.metadata?.provisioned) {
             try {
-                const resourceName = storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+                const resourceName = (storageConfig.metadata?.resourceName as string) || storageConfig.name.toLowerCase().replace(/\s+/g, '-');
                 const region = (storageConfig.metadata?.region as string) || project.region || 'us-central1';
 
                 if (storageConfig.type.includes('cloud-sql')) {
@@ -298,7 +301,7 @@ export async function PATCH(
 
         // Handle Scaling (GCP Resource Update)
         if (storage.metadata?.provisioned && metadata) {
-            const resourceName = storage.name.toLowerCase().replace(/\s+/g, '-');
+            const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
             const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
             try {

@@ -261,7 +261,20 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Enhance Storage UI with Pending status and SQL preview
 - [x] Verify 100% functional integrity and update documentation
 
+### Phase 41: CLI Migration Support & Infrastructure Hardening (COMPLETED)
+- [x] Implement persistent `resourceName` in storage metadata
+- [x] Add CLI migration subcommands (`storage migrations list`, `storage migrations run`)
+- [x] Implement automated pre-migration backups for Cloud SQL
+- [x] Verify 100% functional integrity and update documentation
+
 ## Progress Updates
+
+### 2027-04-17: CLI Migration Support & Infrastructure Hardening
+- Completed Phase 41: CLI Migration Support & Infrastructure Hardening.
+- Implemented persistent `resourceName` in storage metadata to ensure robust GCP resource management even after connector renames.
+- Launched CLI migration subcommands: `storage migrations list <storage_id>` and `storage migrations run <storage_id> <command>`.
+- Enhanced migration orchestration with automated pre-migration backups for Cloud SQL instances via the `takeBackup` flag.
+- Verified 100% functional integrity with system audits and CLI verification.
 
 ### 2027-04-16: Migration Intelligence & Pending Discovery
 - Completed Phase 40: Migration Intelligence & Pending Discovery.
