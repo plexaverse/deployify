@@ -96,7 +96,7 @@ export async function POST(
     try {
         const { id, storageId } = await params;
         const body = await request.json();
-        const { command = 'prisma migrate deploy' } = body;
+        const { command = 'prisma migrate deploy', takeBackup = false } = body;
 
         const session = await getSession();
         if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -147,7 +147,8 @@ export async function POST(
             envKey,
             command,
             project.region,
-            project.rootDirectory
+            project.rootDirectory,
+            takeBackup
         );
 
         return NextResponse.json({ success: true, operationName });
