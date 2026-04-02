@@ -254,7 +254,22 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Enhance Store with migration status polling logic
 - [x] Verify 100% functional integrity and update documentation
 
+### Phase 40: Migration Intelligence & Pending Discovery (COMPLETED)
+- [x] Implement GitHub migration discovery for Prisma and Drizzle
+- [x] Update Migration API to correlate database state with repository files
+- [x] Implement migration content preview API
+- [x] Enhance Storage UI with Pending status and SQL preview
+- [x] Verify 100% functional integrity and update documentation
+
 ## Progress Updates
+
+### 2027-04-16: Migration Intelligence & Pending Discovery
+- Completed Phase 40: Migration Intelligence & Pending Discovery.
+- Implemented `getRepoMigrations` to automatically discover available migrations in the GitHub repository.
+- Enhanced the Migration listing logic to correlate applied database migrations with repository files, identifying 'PENDING' migrations.
+- Launched Migration Content API for fetching raw SQL source from the repository.
+- Updated the "Manage Migrations" UI with a prioritized view of pending migrations and an interactive SQL previewer.
+- Verified 100% functional integrity with system audits and zero-warning linting.
 
 ### 2027-04-15: Automated Migration Execution & Real-time Logs
 - Completed Phase 39: Automated Migration Execution & Real-time Logs.

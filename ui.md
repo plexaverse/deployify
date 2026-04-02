@@ -1609,3 +1609,11 @@ Conducted a final alignment of typography and padding to maintain adherence to t
 - **Standardization**:
   - Replaced legacy `p-12` instance with the unified standard `p-8` in the `share/dashboard` root component.
   - Enforced `font-bold uppercase tracking-wider` constraint on the auto-refresh configuration drop-down badge in `DataLab.tsx`, correcting a lingering `tracking-tighter` inconsistency.
+
+### Session 176: Migration Intelligence & Pending Discovery UI
+- **File Updated**: `src/components/StorageSection.tsx`
+- **Standardization**:
+  - Implemented visual indicators for "PENDING" migrations using dashed borders and `bg-[var(--primary)]/5`.
+  - Standardized "Preview" buttons to `text-[10px] font-bold uppercase tracking-wider`.
+  - Added an interactive SQL previewer with `bg-black/40` and high-density technical typography, matching the Build Log viewer aesthetic.
+  - Verified 100% adherence to high-density technical aesthetic for all new interactive elements.

@@ -3,24 +3,92 @@ import mysql from 'mysql2/promise';
 import { Migration, StorageType } from '@/types';
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
+import { getRepoContents } from '../github';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
 
 /**
- * List applied migrations from a database by discovering common migration tables
+ * List migrations from both the database (applied) and repository (available)
  */
 export async function listMigrations(
     connectionString: string,
-    storageType: StorageType
+    storageType: StorageType,
+    repoDetails?: {
+        accessToken: string;
+        repoFullName: string;
+        rootDirectory?: string | null;
+    }
 ): Promise<Migration[]> {
     if (process.env.MOCK_DB === 'true') {
-        return [
+        const dbMigrations: Migration[] = [
             { id: '1', name: '20240101000000_init', appliedAt: new Date(Date.now() - 86400000 * 10).toISOString(), status: 'SUCCESS', provider: 'prisma' },
             { id: '2', name: '20240105000000_add_users', appliedAt: new Date(Date.now() - 86400000 * 5).toISOString(), status: 'SUCCESS', provider: 'prisma' },
             { id: '3', name: '20240410000000_fail_migration', appliedAt: new Date(Date.now() - 3600000).toISOString(), status: 'FAILED', provider: 'prisma' }
         ];
+
+        if (repoDetails) {
+            // Add some pending migrations for mock
+            return [
+                ...dbMigrations,
+                { id: 'pending-1', name: '20240501000000_new_feature', appliedAt: '', status: 'PENDING', provider: 'prisma' },
+                { id: 'pending-2', name: '20240510000000_schema_optimization', appliedAt: '', status: 'PENDING', provider: 'prisma' }
+            ];
+        }
+
+        return dbMigrations;
     }
 
+    // 1. Fetch applied migrations from DB
+    const appliedMigrations = await getAppliedMigrations(connectionString, storageType);
+
+    // 2. Fetch available migrations from Repo if details provided
+    if (repoDetails) {
+        try {
+            const repoMigrations = await getRepoMigrations(
+                repoDetails.accessToken,
+                repoDetails.repoFullName,
+                repoDetails.rootDirectory
+            );
+
+            // Merge applied and repo migrations
+            const merged = [...appliedMigrations];
+            const appliedNames = new Set(appliedMigrations.map(m => m.name));
+
+            for (const repoMig of repoMigrations) {
+                if (!appliedNames.has(repoMig.name)) {
+                    merged.push({
+                        ...repoMig,
+                        status: 'PENDING',
+                        appliedAt: ''
+                    });
+                }
+            }
+
+            // Sort: Pending migrations (those in repo but not DB) at top, then applied migrations by date DESC
+            return merged.sort((a, b) => {
+                if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+                if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+                if (a.appliedAt && b.appliedAt) {
+                    return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
+                }
+                return b.name.localeCompare(a.name);
+            });
+        } catch (e) {
+            console.error('Failed to fetch migrations from repository:', e);
+            return appliedMigrations;
+        }
+    }
+
+    return appliedMigrations;
+}
+
+/**
+ * List applied migrations from a database by discovering common migration tables
+ */
+async function getAppliedMigrations(
+    connectionString: string,
+    storageType: StorageType
+): Promise<Migration[]> {
     const isPostgres = storageType.includes('postgres') || storageType === 'supabase';
     const isMysql = storageType.includes('mysql') || storageType === 'planetscale';
 
@@ -99,6 +167,65 @@ export async function listMigrations(
     }
 
     return [];
+}
+
+/**
+ * Discover migrations available in the repository
+ */
+export async function getRepoMigrations(
+    accessToken: string,
+    repoFullName: string,
+    rootDirectory?: string | null
+): Promise<Migration[]> {
+    const [owner, repo] = repoFullName.split('/');
+    if (!owner || !repo) return [];
+
+    const migrations: Migration[] = [];
+    const rootPath = rootDirectory ? rootDirectory.replace(/^\/+|\/+$/g, '') : '';
+
+    // 1. Check for Prisma migrations (prisma/migrations/*)
+    const prismaPath = rootPath ? `${rootPath}/prisma/migrations` : 'prisma/migrations';
+    const prismaContents = await getRepoContents(accessToken, owner, repo, prismaPath);
+
+    if (prismaContents && Array.isArray(prismaContents)) {
+        for (const item of prismaContents) {
+            if (item.type === 'dir' && item.name !== 'migration_lock.toml') {
+                migrations.push({
+                    id: `repo-prisma-${item.name}`,
+                    name: item.name,
+                    appliedAt: '',
+                    status: 'PENDING',
+                    provider: 'prisma'
+                });
+            }
+        }
+    }
+
+    // 2. Check for Drizzle migrations (drizzle/ or migrations/*.sql)
+    const drizzlePaths = [
+        rootPath ? `${rootPath}/drizzle` : 'drizzle',
+        rootPath ? `${rootPath}/migrations` : 'migrations'
+    ];
+
+    for (const dPath of drizzlePaths) {
+        const drizzleContents = await getRepoContents(accessToken, owner, repo, dPath);
+        if (drizzleContents && Array.isArray(drizzleContents)) {
+            for (const item of drizzleContents) {
+                if (item.type === 'file' && item.name.endsWith('.sql')) {
+                    const name = item.name.replace('.sql', '');
+                    migrations.push({
+                        id: `repo-drizzle-${name}`,
+                        name: name,
+                        appliedAt: '',
+                        status: 'PENDING',
+                        provider: 'drizzle'
+                    });
+                }
+            }
+        }
+    }
+
+    return migrations;
 }
 
 /**

@@ -196,6 +196,10 @@
 - **Improvement**: Add auto-refresh, public sharing, and individual widget management to Data Lab Dashboards.
 - **Status**: ✅ Implemented (Public sharing URLs, configurable auto-refresh intervals, and individual widget API enhancements in Phase 29)
 
+#### 28. **Migration Intelligence & Pending Discovery**
+- **Improvement**: Detect migrations present in the repository but not yet applied to the database, and allow SQL preview.
+- **Status**: ✅ Implemented (GitHub migration discovery, database correlation logic, and SQL preview UI in Phase 40)
+
 ### Reliability Improvements
 
 #### 22. **Robust Deployment Status Sync**
