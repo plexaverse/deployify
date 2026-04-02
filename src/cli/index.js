@@ -441,6 +441,49 @@ async function triggerDeployment(instanceUrl, token, projectId, branch) {
 }
 
 async function handleStorage(args) {
+    const subcommand = args[1];
+    const action = args[2];
+
+    if (subcommand === '--help' || subcommand === '-h') {
+        console.log(`
+Usage: deployify storage <subcommand> [options]
+
+Subcommands:
+  list                                List all storage connectors
+  validate <storage_id>              Validate a storage connection
+  sync <storage_id>                  Sync provisioning status
+  provision <type> <name>            Provision a new storage instance
+  backups <action> <storage_id>      Manage database backups
+  migrations <action> <storage_id>   Manage database migrations
+`);
+        return;
+    }
+
+    if (subcommand === 'backups' && (action === '--help' || action === '-h')) {
+        console.log(`
+Usage: deployify storage backups <action> <storage_id> [options]
+
+Actions:
+  list <storage_id>                  List backups for an instance
+  create <storage_id> [description]  Trigger a manual backup
+  restore <storage_id> <backup_id>   Restore from a backup
+`);
+        return;
+    }
+
+    if (subcommand === 'migrations' && (action === '--help' || action === '-h')) {
+        console.log(`
+Usage: deployify storage migrations <action> <storage_id> [options]
+
+Actions:
+  list <storage_id>                  List migrations
+  run <storage_id> [--backup] <cmd>  Run a migration command
+  status <storage_id> <op_name>      Track migration progress
+  view <storage_id> <name>           View SQL content of a migration
+`);
+        return;
+    }
+
     if (!fs.existsSync(CONFIG_PATH)) {
         throw new Error('You must login first. Run: deployify login');
     }
@@ -448,7 +491,6 @@ async function handleStorage(args) {
     const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
     const { instanceUrl, token } = config;
 
-    const subcommand = args[1];
     const projectId = await getProjectId(instanceUrl, token);
 
     if (!projectId) {
@@ -519,12 +561,80 @@ async function handleStorage(args) {
         } else {
             console.log(`❌ Provisioning failed: ${data.error || 'Unknown error'}`);
         }
-    } else if (subcommand === 'migrations') {
-        const action = args[2];
+    } else if (subcommand === 'backups') {
         const storageId = args[3];
 
         if (!action || !storageId) {
-            throw new Error('Usage: deployify storage migrations <list|run> <storage_id> [command]');
+            console.log(`
+Usage: deployify storage backups <action> <storage_id> [options]
+
+Actions:
+  list <storage_id>                  List backups for an instance
+  create <storage_id> [description]  Trigger a manual backup
+  restore <storage_id> <backup_id>   Restore from a backup
+`);
+            return;
+        }
+
+        if (action === 'list') {
+            console.log(`Fetching backups for ${storageId}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/backups`, token);
+            if (data.backups && data.backups.length > 0) {
+                console.log(`\nBackups for ${storageId}:`);
+                console.log('--------------------------------------------------');
+                data.backups.forEach(b => {
+                    const status = b.status === 'SUCCESSFUL' ? '✅ SUCCESS' : b.status === 'FAILED' ? '❌ FAILED' : '⏳ ' + b.status;
+                    console.log(`ID:      ${b.id}`);
+                    console.log(`Status:  ${status}`);
+                    console.log(`Desc:    ${b.description || 'AUTOMATED'}`);
+                    console.log(`Started: ${new Date(b.startTime).toLocaleString()}`);
+                    console.log('--------------------------------------------------');
+                });
+            } else {
+                console.log('No backups found for this storage connector.');
+            }
+        } else if (action === 'create') {
+            const description = args.slice(4).join(' ') || `Manual backup via CLI at ${new Date().toISOString()}`;
+            console.log(`Triggering manual backup for ${storageId}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/backups`, token, {
+                method: 'POST',
+                body: { description }
+            });
+            if (data.success) {
+                console.log('✅ Backup operation triggered successfully!');
+            } else {
+                console.log(`❌ Failed to trigger backup: ${data.error || 'Unknown error'}`);
+            }
+        } else if (action === 'restore') {
+            const backupId = args[4];
+            if (!backupId) {
+                throw new Error('Backup ID required: deployify storage backups restore <storage_id> <backup_id>');
+            }
+            console.log(`Restoring ${storageId} from backup ${backupId}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/backups/${backupId}/restore`, token, {
+                method: 'POST'
+            });
+            if (data.success) {
+                console.log('✅ Restore operation triggered successfully!');
+                console.log('The instance will be unavailable while the restore is in progress.');
+            } else {
+                console.log(`❌ Restore failed: ${data.error || 'Unknown error'}`);
+            }
+        }
+    } else if (subcommand === 'migrations') {
+        const storageId = args[3];
+
+        if (!action || !storageId) {
+            console.log(`
+Usage: deployify storage migrations <action> <storage_id> [options]
+
+Actions:
+  list <storage_id>                  List migrations
+  run <storage_id> [--backup] <cmd>  Run a migration command
+  status <storage_id> <op_name>      Track migration progress
+  view <storage_id> <name>           View SQL content of a migration
+`);
+            return;
         }
 
         if (action === 'list') {
@@ -534,12 +644,15 @@ async function handleStorage(args) {
                 console.log(`\nMigrations for ${storageId}:`);
                 console.log('--------------------------------------------------');
                 data.migrations.forEach(m => {
-                    const status = m.status === 'SUCCESS' ? '✅ SUCCESS' : m.status === 'FAILED' ? '❌ FAILED' : '⏳ ' + m.status.toUpperCase();
-                    console.log(`ID:      ${m.id}`);
-                    console.log(`Name:    ${m.name}`);
-                    console.log(`Status:  ${status}`);
-                    console.log(`Applied: ${m.appliedAt ? new Date(m.appliedAt).toLocaleString() : 'Pending'}`);
-                    if (m.provider) console.log(`Provider: ${m.provider.toUpperCase()}`);
+                    const statusIcon = m.status === 'SUCCESS' ? '✅' : m.status === 'FAILED' ? '❌' : '⏳';
+                    const statusLabel = m.status.toUpperCase();
+                    console.log(`${statusIcon} ${statusLabel.padEnd(8)} | ${m.name}`);
+                    if (m.appliedAt) {
+                        console.log(`            | Applied: ${new Date(m.appliedAt).toLocaleString()}`);
+                    } else if (m.status === 'PENDING') {
+                        console.log(`            | Status:  PENDING APPLICATION`);
+                    }
+                    if (m.provider) console.log(`            | Provider: ${m.provider.toUpperCase()}`);
                     console.log('--------------------------------------------------');
                 });
             } else {
@@ -562,15 +675,52 @@ async function handleStorage(args) {
             if (data.success) {
                 console.log('✅ Migration triggered successfully!');
                 console.log(`Operation: ${data.operationName}`);
-                console.log('\nYou can track progress on the dashboard or by polling the migration status API.');
+                console.log('\nYou can track progress using:');
+                console.log(`  deployify storage migrations status ${storageId} "${data.operationName}"`);
             } else {
                 console.log(`❌ Migration failed: ${data.error || 'Unknown error'}`);
+            }
+        } else if (action === 'status') {
+            const operationName = args[4];
+            if (!operationName) {
+                throw new Error('Operation name required: deployify storage migrations status <storage_id> <operation_name>');
+            }
+            console.log(`Fetching status for operation: ${operationName}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/migrations?operationId=${encodeURIComponent(operationName)}`, token);
+            if (data.success) {
+                console.log(`\nStatus: ${data.status}`);
+                if (data.error) console.log(`Error:  ${data.error}`);
+                if (data.logs) {
+                    console.log('\nLogs:');
+                    console.log('--------------------------------------------------');
+                    console.log(data.logs);
+                    console.log('--------------------------------------------------');
+                }
+            } else {
+                console.log(`❌ Failed to get status: ${data.error || 'Unknown error'}`);
+            }
+        } else if (action === 'view') {
+            const migrationName = args[4];
+            if (!migrationName) {
+                throw new Error('Migration name required: deployify storage migrations view <storage_id> <migration_name>');
+            }
+            console.log(`Fetching SQL content for ${migrationName}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/migrations/content?name=${encodeURIComponent(migrationName)}`, token);
+            if (data.success) {
+                console.log(`\nSQL Content for ${migrationName}:`);
+                console.log('--------------------------------------------------');
+                console.log(data.content);
+                console.log('--------------------------------------------------');
+            } else {
+                console.log(`❌ Failed to fetch content: ${data.error || 'Unknown error'}`);
             }
         } else {
             console.log(`Unknown migration action: ${action}`);
             console.log('Usage:');
             console.log('  deployify storage migrations list <storage_id>');
-        console.log('  deployify storage migrations run <storage_id> [--backup] <command>');
+            console.log('  deployify storage migrations run <storage_id> [--backup] <command>');
+            console.log('  deployify storage migrations status <storage_id> <operation_name>');
+            console.log('  deployify storage migrations view <storage_id> <migration_name>');
         }
     } else {
         console.log(`Unknown storage subcommand: ${subcommand}`);
