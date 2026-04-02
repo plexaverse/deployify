@@ -96,7 +96,7 @@ export async function POST(
     try {
         const { id, storageId } = await params;
         const body = await request.json();
-        const { command = 'prisma migrate deploy' } = body;
+        const { command = 'prisma migrate deploy', backup = false } = body;
 
         const session = await getSession();
         if (!session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -139,6 +139,9 @@ export async function POST(
         const commitSha = project.latestDeployment?.gitCommitSha || 'main';
         const envKey = storageConfig.envKey || (storageConfig.type === 'memorystore-redis' ? 'REDIS_URL' : 'DATABASE_URL');
 
+        // Extract resourceName from metadata for Cloud SQL backups
+        const resourceName = storageConfig.metadata?.resourceName as string | null;
+
         const { operationName } = await runMigration(
             id,
             project.repoFullName,
@@ -147,7 +150,9 @@ export async function POST(
             envKey,
             command,
             project.region,
-            project.rootDirectory
+            project.rootDirectory,
+            backup,
+            resourceName
         );
 
         return NextResponse.json({ success: true, operationName });

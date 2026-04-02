@@ -519,6 +519,8 @@ async function handleStorage(args) {
         } else {
             console.log(`❌ Provisioning failed: ${data.error || 'Unknown error'}`);
         }
+    } else if (subcommand === 'migrations') {
+        await handleMigrations(args, instanceUrl, token, projectId);
     } else {
         console.log(`Unknown storage subcommand: ${subcommand}`);
         console.log('Usage:');
@@ -526,6 +528,61 @@ async function handleStorage(args) {
         console.log('  deployify storage validate <storage_id>');
         console.log('  deployify storage sync <storage_id>');
         console.log('  deployify storage provision <type> <name>');
+        console.log('  deployify storage migrations <subcommand> [options]');
+    }
+}
+
+async function handleMigrations(args, instanceUrl, token, projectId) {
+    const action = args[2];
+    const storageId = args[3];
+
+    if (!action || action === 'list') {
+        if (!storageId) {
+            throw new Error('Storage ID required: deployify storage migrations list <storage_id>');
+        }
+        console.log(`Fetching migrations for ${storageId}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/migrations`, token);
+        if (data.migrations && data.migrations.length > 0) {
+            console.log(`\nMigrations for ${storageId}:`);
+            console.log('--------------------------------------------------');
+            data.migrations.forEach(m => {
+                const status = m.status === 'SUCCESS' ? '✅ SUCCESS' : m.status === 'FAILED' ? '❌ FAILED' : '⏳ ' + m.status.toUpperCase();
+                console.log(`Name:    ${m.name}`);
+                console.log(`Status:  ${status}`);
+                if (m.appliedAt) console.log(`Applied: ${new Date(m.appliedAt).toLocaleString()}`);
+                if (m.provider) console.log(`Provider: ${m.provider}`);
+                console.log('--------------------------------------------------');
+            });
+        } else {
+            console.log('No migrations found for this storage connector.');
+        }
+    } else if (action === 'run') {
+        const command = args[4];
+        if (!storageId || !command) {
+            throw new Error('Usage: deployify storage migrations run <storage_id> <command> [--backup]');
+        }
+
+        const backup = args.includes('--backup');
+        console.log(`Triggering migration for ${storageId}: "${command}"...`);
+        if (backup) console.log('Pre-migration backup enabled.');
+
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/migrations`, token, {
+            method: 'POST',
+            body: { command, backup }
+        });
+
+        if (data.success) {
+            console.log('✅ Migration started!');
+            console.log(`Operation: ${data.operationName}`);
+            console.log(`\nView logs at: ${instanceUrl}/dashboard/${projectId}/storage?storageId=${storageId}`);
+        } else {
+            console.log(`❌ Migration failed: ${data.error || 'Unknown error'}`);
+        }
+    } else {
+        console.log(`Unknown migrations action: ${action}`);
+        console.log('Usage:');
+        console.log('  deployify storage migrations list <storage_id>');
+        console.log('  deployify storage migrations run <storage_id> <command> [--backup]');
     }
 }
 

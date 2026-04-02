@@ -168,7 +168,7 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Add interactive "Fetch Related" navigation for Foreign Keys
 - [x] Standardize remaining Data Lab UI elements to high-density standards
 
-## Phase 27: External Connector API Deep Integration (COMPLETED)
+### Phase 27: External Connector API Deep Integration (COMPLETED)
 - [x] Implement real API fetch logic for Supabase synchronization
 - [x] Implement real API fetch logic for MongoDB Atlas synchronization
 - [x] Implement real API fetch logic for PlanetScale synchronization
@@ -261,7 +261,21 @@ Deployify provides a Storage/Database Section in the Project Settings that handl
 - [x] Enhance Storage UI with Pending status and SQL preview
 - [x] Verify 100% functional integrity and update documentation
 
+### Phase 41: CLI Migration Support & Infrastructure Hardening (COMPLETED)
+- [x] Implement CLI migration commands: `storage migrations list` and `storage migrations run`
+- [x] Add support for `--backup` flag in CLI to trigger pre-migration backups
+- [x] Update Migration API to support automated pre-migration Cloud SQL backups
+- [x] Harden `resourceName` persistence in storage metadata for all provisioned connectors
+- [x] Verify 100% functional integrity and update documentation
+
 ## Progress Updates
+
+### 2027-04-17: CLI Migration Support & Infrastructure Hardening
+- Completed Phase 41: CLI Migration Support & Infrastructure Hardening.
+- Implemented `deployify storage migrations list <id>` and `deployify storage migrations run <id> <cmd> [--backup]` in the CLI.
+- Updated `runMigration` in `src/lib/gcp/migrations.ts` to support automated pre-migration backups for Cloud SQL via Cloud Build.
+- Hardened storage provisioning API to ensure `resourceName` persistence in connector metadata.
+- Verified 100% functional integrity with passing unit tests and API route audits.
 
 ### 2027-04-16: Migration Intelligence & Pending Discovery
 - Completed Phase 40: Migration Intelligence & Pending Discovery.

@@ -80,6 +80,7 @@ export async function POST(
         let connectionStringSecretId: string | undefined;
         let status: StorageConfig['status'] = 'active';
         let operationName: string | undefined;
+        let resourceName: string | undefined;
 
         /**
          * Standard Provisioning Flow
@@ -87,20 +88,22 @@ export async function POST(
         if (provision) {
             const targetRegion = region || project.region || 'us-central1';
             status = 'provisioning';
+            resourceName = name.toLowerCase().replace(/\s+/g, '-');
 
             try {
                 let provisionResult;
+                const safeResourceName = resourceName as string;
                 if (type === 'cloud-sql-postgres') {
-                    provisionResult = await createCloudSqlInstance(name.toLowerCase().replace(/\s+/g, '-'), 'postgres', targetRegion);
+                    provisionResult = await createCloudSqlInstance(safeResourceName, 'postgres', targetRegion);
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'cloud-sql-mysql') {
-                    provisionResult = await createCloudSqlInstance(name.toLowerCase().replace(/\s+/g, '-'), 'mysql', targetRegion);
+                    provisionResult = await createCloudSqlInstance(safeResourceName, 'mysql', targetRegion);
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'memorystore-redis') {
-                    provisionResult = await createMemorystoreInstance(name.toLowerCase().replace(/\s+/g, '-'), targetRegion);
+                    provisionResult = await createMemorystoreInstance(safeResourceName, targetRegion);
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'firestore') {
-                    provisionResult = await createFirestoreDatabase(name.toLowerCase().replace(/\s+/g, '-'), targetRegion);
+                    provisionResult = await createFirestoreDatabase(safeResourceName, targetRegion);
                     finalConnectionString = provisionResult.connectionString;
                 }
                 operationName = provisionResult?.operationName;
@@ -128,6 +131,7 @@ export async function POST(
                 ...(metadata || {}),
                 provisioned: provision,
                 autoSync,
+                resourceName: resourceName || metadata?.resourceName,
                 region: region || project.region || 'us-central1',
                 operationName,
             },

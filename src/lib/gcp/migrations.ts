@@ -239,15 +239,21 @@ export async function runMigration(
     envKey: string,
     command: string,
     projectRegion?: string | null,
-    rootDirectory?: string | null
+    rootDirectory?: string | null,
+    takeBackup: boolean = false,
+    resourceName?: string | null
 ): Promise<{ operationName: string }> {
     if (process.env.MOCK_DB === 'true') {
         const id = `migrate-${projectId}-${Date.now()}`;
+        const backupLog = takeBackup ? `[MOCK] Creating pre-migration backup for ${resourceName}...\n[MOCK] Backup successful.\n` : '';
         // Store start time for mock polling
         if (typeof global !== 'undefined') {
-            const globalObj = global as { mockMigrations?: Record<string, number> };
+            const globalObj = global as { mockMigrations?: Record<string, number>; mockMigrationLogs?: Record<string, string> };
             globalObj.mockMigrations = globalObj.mockMigrations || {};
             globalObj.mockMigrations[id] = Date.now();
+
+            globalObj.mockMigrationLogs = globalObj.mockMigrationLogs || {};
+            globalObj.mockMigrationLogs[id] = backupLog;
         }
         return { operationName: `projects/mock/locations/global/builds/${id}` };
     }
@@ -261,6 +267,38 @@ export async function runMigration(
 
     const workDir = rootDirectory ? `/workspace/${rootDirectory.replace(/^\/+|\/+$/g, '')}` : '/workspace';
 
+    const steps: any[] = [];
+
+    // Optional: Take pre-migration backup for Cloud SQL
+    if (takeBackup && resourceName) {
+        steps.push({
+            name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+            entrypoint: 'gcloud',
+            args: [
+                'sql',
+                'backups',
+                'create',
+                '--instance',
+                resourceName,
+                '--description',
+                `Pre-migration backup for deployment ${commitSha.substring(0, 7)}`
+            ]
+        });
+    }
+
+    steps.push({
+        name: 'node:20-alpine',
+        entrypoint: 'sh',
+        dir: workDir,
+        args: [
+            '-c',
+            `npm install && ${command}`
+        ],
+        env: [
+            `${envKey}=${connectionString}`
+        ]
+    });
+
     const buildConfig = {
         source: {
             connectedRepository: {
@@ -268,20 +306,7 @@ export async function runMigration(
                 revision: commitSha,
             },
         },
-        steps: [
-            {
-                name: 'node:20-alpine',
-                entrypoint: 'sh',
-                dir: workDir,
-                args: [
-                    '-c',
-                    `npm install && ${command}`
-                ],
-                env: [
-                    `${envKey}=${connectionString}`
-                ]
-            }
-        ],
+        steps,
         options: {
             // logging: 'CLOUD_LOGGING_ONLY', // Removed to allow GCS logging for real-time dashboard logs
         },
@@ -320,24 +345,25 @@ export async function getMigrationStatus(
 }> {
     if (process.env.MOCK_DB === 'true') {
         const id = operationName.split('/').pop() || '';
-        const globalObj = global as { mockMigrations?: Record<string, number> };
+        const globalObj = global as { mockMigrations?: Record<string, number>; mockMigrationLogs?: Record<string, string> };
         const startTime = globalObj.mockMigrations?.[id] || Date.now();
         const elapsed = Date.now() - startTime;
+        const initialLogs = globalObj.mockMigrationLogs?.[id] || '';
 
         if (elapsed < 5000) {
             return {
                 status: 'QUEUED',
-                logs: '[MOCK] Build queued...\n[MOCK] Waiting for available worker...'
+                logs: initialLogs + '[MOCK] Build queued...\n[MOCK] Waiting for available worker...'
             };
         } else if (elapsed < 15000) {
             return {
                 status: 'WORKING',
-                logs: '[MOCK] Build queued...\n[MOCK] Waiting for available worker...\n[MOCK] Fetching repository source...\n[MOCK] Running npm install...'
+                logs: initialLogs + '[MOCK] Build queued...\n[MOCK] Waiting for available worker...\n[MOCK] Fetching repository source...\n[MOCK] Running npm install...'
             };
         } else {
             return {
                 status: 'SUCCESS',
-                logs: '[MOCK] Build queued...\n[MOCK] Waiting for available worker...\n[MOCK] Fetching repository source...\n[MOCK] Running npm install...\n[MOCK] Executing migration command...\n[MOCK] Migration applied successfully.'
+                logs: initialLogs + '[MOCK] Build queued...\n[MOCK] Waiting for available worker...\n[MOCK] Fetching repository source...\n[MOCK] Running npm install...\n[MOCK] Executing migration command...\n[MOCK] Migration applied successfully.'
             };
         }
     }
