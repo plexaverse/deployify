@@ -135,7 +135,7 @@ export default function SharedDashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[var(--background)] p-6 md:p-12">
+        <div className="min-h-screen bg-[var(--background)] p-6 md:p-8">
             <div className="max-w-6xl mx-auto space-y-8">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
