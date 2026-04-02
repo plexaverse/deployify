@@ -5,6 +5,7 @@ import { Project } from '@/types';
 // Mock data
 const mockProject: Project = {
     id: 'proj-123',
+    teamId: null,
     slug: 'my-project',
     region: 'us-central1',
     userId: 'user-1',
