@@ -42,13 +42,13 @@ describe('Migrations Logic', () => {
 
         // Manually manipulate global state for faster testing
         const id = operationName.split('/').pop() || '';
-        (global as any).mockMigrations[id] -= 6000;
+        (global as { mockMigrations: Record<string, number> }).mockMigrations[id] -= 6000;
 
         const status2 = await getMigrationStatus(operationName);
         assert.strictEqual(status2.status, 'WORKING');
         assert.ok(status2.logs?.includes('npm install'));
 
-        (global as any).mockMigrations[id] -= 10000;
+        (global as { mockMigrations: Record<string, number> }).mockMigrations[id] -= 10000;
 
         const status3 = await getMigrationStatus(operationName);
         assert.strictEqual(status3.status, 'SUCCESS');

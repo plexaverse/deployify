@@ -118,8 +118,8 @@ export async function runMigration(
         const id = `migrate-${projectId}-${Date.now()}`;
         // Store start time for mock polling
         if (typeof global !== 'undefined') {
-            (global as any).mockMigrations = (global as any).mockMigrations || {};
-            (global as any).mockMigrations[id] = Date.now();
+            (global as { mockMigrations?: Record<string, number> }).mockMigrations = (global as { mockMigrations?: Record<string, number> }).mockMigrations || {};
+            (global as { mockMigrations: Record<string, number> }).mockMigrations[id] = Date.now();
         }
         return { operationName: `projects/mock/locations/global/builds/${id}` };
     }
@@ -192,7 +192,7 @@ export async function getMigrationStatus(
 }> {
     if (process.env.MOCK_DB === 'true') {
         const id = operationName.split('/').pop() || '';
-        const startTime = (global as any).mockMigrations?.[id] || Date.now();
+        const startTime = (global as { mockMigrations?: Record<string, number> }).mockMigrations?.[id] || Date.now();
         const elapsed = Date.now() - startTime;
 
         if (elapsed < 5000) {
