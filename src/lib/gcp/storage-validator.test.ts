@@ -46,7 +46,7 @@ describe('Storage Connection Validation', () => {
         process.env.MOCK_DB = 'false';
 
         try {
-            const result = await validateConnection('unsupported' as unknown as StorageType, 'some-id');
+            const result = await validateConnection('unsupported' as import('@/types').StorageType, 'some-id');
             // We just care that it returns a result, the specific error might vary by environment
             assert.ok(typeof result.valid === 'boolean');
         } finally {
