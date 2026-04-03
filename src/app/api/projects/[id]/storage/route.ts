@@ -68,8 +68,9 @@ export async function POST(
         const body = await request.json();
         const { type, name, environment = 'both', connectionString, envKey, metadata, provision = false, region } = body;
 
-        // autoSync can be passed at top level or inside metadata
+        // autoSync and secretOnly can be passed at top level or inside metadata
         const autoSync = body.autoSync || metadata?.autoSync || false;
+        const secretOnly = body.secretOnly !== undefined ? body.secretOnly : (metadata?.secretOnly || false);
 
         if (!type || !name) {
             return NextResponse.json({ error: 'Type and name are required' }, { status: 400 });
@@ -130,6 +131,7 @@ export async function POST(
                 ...(metadata || {}),
                 provisioned: provision,
                 autoSync,
+                secretOnly,
                 region: region || project.region || 'us-central1',
                 operationName,
                 resourceName,
@@ -276,6 +278,7 @@ export async function PATCH(
         const { project } = access;
         const body = await request.json();
         const { storageId, type, name, environment, connectionString, envKey, metadata } = body;
+        const secretOnly = body.secretOnly !== undefined ? body.secretOnly : metadata?.secretOnly;
 
         if (!storageId) {
             return NextResponse.json({ error: 'Storage ID is required' }, { status: 400 });
@@ -329,6 +332,7 @@ export async function PATCH(
             metadata: {
                 ...(storage.metadata || {}),
                 ...(metadata || {}),
+                secretOnly: secretOnly !== undefined ? secretOnly : storage.metadata?.secretOnly,
                 operationName
             },
             updatedAt: new Date(),

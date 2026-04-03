@@ -22,6 +22,7 @@ import {
     GitBranch,
     Eye,
     ShieldCheck,
+    Shield,
     Copy,
     ChevronDown,
     ChevronUp
@@ -87,6 +88,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [planetscaleOrg, setPlanetscaleOrg] = useState('');
     const [planetscaleDb, setPlanetscaleDb] = useState('');
     const [providerApiKey, setProviderApiKey] = useState('');
+    const [secretOnly, setSecretOnly] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -150,7 +152,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 type,
                 environment,
                 envKey,
-                metadata
+                metadata: {
+                    ...metadata,
+                    secretOnly
+                }
             }, provision ? '' : connectionString, provision);
 
             if (success) {
@@ -252,7 +257,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 name,
                 type,
                 environment,
-                envKey
+                envKey,
+                metadata: {
+                    secretOnly
+                }
             }, connectionString);
 
             if (success) {
@@ -274,6 +282,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setEnvironment('both');
         setProvision(false);
         setAutoSync(false);
+        setSecretOnly(false);
         setProviderApiKey('');
         setSupabaseId('');
         setMongodbGroupId('');
@@ -288,6 +297,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setType(config.type);
         setEnvironment(config.environment);
         setEnvKey(config.envKey || '');
+        setSecretOnly(!!config.metadata?.secretOnly);
         setConnectionString(''); // Don't show old connection string
         setIsAdding(false);
     };
@@ -533,6 +543,18 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {!provision ? (
                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                        <div className="space-y-0.5">
+                                            <Label className="text-sm font-semibold">Secret Only Mode</Label>
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Store in Secret Manager without auto-injection</p>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={secretOnly}
+                                            onChange={(e) => setSecretOnly(e.target.checked)}
+                                            className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                        />
+                                    </div>
                                     <div className="space-y-2">
                                         <Label className="text-sm font-semibold">Connection String / Secret</Label>
                                     <Input
@@ -645,16 +667,17 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     </div>
                                 </div>
                             )}
-                            <div className="space-y-2">
+                            <div className={cn("space-y-2 transition-opacity", secretOnly && "opacity-40 pointer-events-none")}>
                                 <Label className="text-sm font-semibold">Environment Variable Key</Label>
                                 <Input
                                     value={envKey}
                                     onChange={(e) => setEnvKey(e.target.value)}
                                     placeholder="DATABASE_URL"
+                                    disabled={secretOnly}
                                     className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                    This key will be injected into your application at runtime.
+                                    {secretOnly ? "Auto-injection is disabled in Secret Only mode." : "This key will be injected into your application at runtime."}
                                 </p>
                             </div>
                         </div>
@@ -719,10 +742,16 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     <div className="space-y-1 w-full">
                                         <div className="flex items-center gap-2">
                                             <h4 className="font-semibold text-sm">{config.name}</h4>
-                                            {config.connectionStringSecretId && (
+                                            {config.connectionStringSecretId && !config.metadata?.secretOnly && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title="Natively mounted from Secret Manager">
                                                     <ShieldCheck className="w-2.5 h-2.5" />
                                                     SECURELY MOUNTED
+                                                </span>
+                                            )}
+                                            {config.connectionStringSecretId && config.metadata?.secretOnly && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider border border-[var(--border)] flex items-center gap-1" title="Stored in Secret Manager but not injected">
+                                                    <Shield className="w-2.5 h-2.5" />
+                                                    SECRET ONLY
                                                 </span>
                                             )}
                                             {config.type.includes('cloud-sql') && (
@@ -743,9 +772,11 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-2 py-0.5 rounded-full border border-[var(--border)]">
                                                     {config.type.replace(/-/g, ' ')}
                                                 </span>
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                                    {config.envKey || (config.type === 'memorystore-redis' ? 'REDIS_URL' : config.type === 'mongodb-atlas' ? 'MONGODB_URI' : 'DATABASE_URL')}
-                                                </span>
+                                                {!config.metadata?.secretOnly && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                        {config.envKey || (config.type === 'memorystore-redis' ? 'REDIS_URL' : config.type === 'mongodb-atlas' ? 'MONGODB_URI' : 'DATABASE_URL')}
+                                                    </span>
+                                                )}
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                     {config.environment === 'both' ? 'ALL ENVIRONMENTS' : config.environment}
                                                 </span>
