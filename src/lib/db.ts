@@ -105,6 +105,11 @@ export async function getEnvVarsForDeployment(
             continue;
         }
 
+        // Handle Secret Only mode
+        if (storage.metadata?.secretOnly) {
+            continue;
+        }
+
         if (storage.connectionStringSecretId) {
             // Determine variable name based on custom key or type defaults
             let envKey = storage.envKey;

@@ -288,20 +288,23 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement Migration SQL Preview in CLI (`view` command)
 - [x] Verify 100% functional integrity and update documentation
 
-### Phase 43: Native Secret Manager Integration & Granularity (IN PROGRESS)
+### Phase 43: Native Secret Manager Integration & Granularity (COMPLETED)
 - [x] Implement automated IAM access grants to the Cloud Run Service Agent
 - [x] Switch deployment injection from `--update-env-vars` to `--set-secrets` for database credentials
-- [ ] Implement "Secret Only" mode for connectors without auto-injected env vars
-- [ ] Enhance UI with "Securely Mounted" visual status for secrets
-- [ ] Verify functional integrity with system audits and zero-warning linting
+- [x] Implement "Secret Only" mode for connectors without auto-injected env vars
+- [x] Enhance UI with "Securely Mounted" visual status for secrets
+- [x] Verify functional integrity with system audits and zero-warning linting
 
 ## Progress Updates
 
 ### 2027-04-19: Native Secret Manager Integration & Granularity
-- Started Phase 43: Native Secret Manager Integration & Granularity.
-- Refactored `getEnvVarsForDeployment` to support `runtimeSecrets` mapping.
+- Completed Phase 43: Native Secret Manager Integration & Granularity.
+- Implemented "Secret Only" mode for connectors, allowing storage of connection strings in Secret Manager without automated environment variable injection.
+- Refactored `getEnvVarsForDeployment` to skip injection for "Secret Only" connectors and support `runtimeSecrets` mapping.
 - Updated Cloud Run deployment pipeline in `src/lib/gcp/cloudbuild.ts` to utilize `--set-secrets`.
 - Standardized credential handling for GCP-Native and External connectors via direct Secret Manager mounting.
+- Enhanced Storage UI with "SECURELY MOUNTED" and "SECRET ONLY" status badges for production-grade security visibility.
+- Verified 100% functional integrity with system audits and zero-warning linting.
 
 ### 2027-04-18: CLI Parity & Advanced Migration Tooling
 - Completed Phase 42: CLI Parity & Advanced Migration Tooling.
