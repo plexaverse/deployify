@@ -88,6 +88,7 @@ export interface ProjectSlice {
     deleteStorageConfig: (projectId: string, storageId: string, deleteResource?: boolean) => Promise<boolean>;
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
     syncStorageStatus: (projectId: string, storageId: string) => Promise<{ status: string; error?: string }>;
+    updateStorageAlerts: (projectId: string, storageId: string, alerts: StorageConfig['alertSettings']) => Promise<boolean>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
     runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
@@ -774,6 +775,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                             ...s,
                             status: data.status,
                             lastSyncedAt: data.lastSyncedAt ? new Date(data.lastSyncedAt) : s.lastSyncedAt,
+                            activeAlerts: data.activeAlerts,
                             lastError: data.error,
                             updatedAt: new Date()
                         } : s
@@ -787,6 +789,36 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return { status: data.status, error: data.error };
         } catch (error) {
             return { status: 'error', error: error instanceof Error ? error.message : 'Sync failed' };
+        }
+    },
+
+    updateStorageAlerts: async (projectId, storageId, alerts) => {
+        const toastId = toast.loading('Updating alert settings...');
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/alerts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ alerts }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to update alert settings');
+            }
+
+            const { projectStorageConfigs } = get();
+            set({
+                projectStorageConfigs: projectStorageConfigs.map((s) =>
+                    s.id === storageId ? data.storageConfig : s
+                )
+            });
+
+            toast.success('Alert settings updated', { id: toastId });
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to update alerts', { id: toastId });
+            return false;
         }
     },
 

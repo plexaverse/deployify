@@ -1633,3 +1633,9 @@ Conducted a final technical sweep to align remaining internal component titles, 
   - Unified date string display in `RollbackModal.tsx` with identical CSS layout standard class sequence (`text-[10px] font-bold uppercase tracking-wider`).
   - Added `text-sm` explicitly to the `font-semibold` internal headers "Delete Account", "Leave Team", and "Delete Team" within `src/app/dashboard/settings/page.tsx` to correctly align with other settings section form labels.
   - Applied the `text-sm` class explicitly to the "Delete Project" text identifier in `src/app/dashboard/[id]/settings/page.tsx` to harmonize scale across settings.
+
+### Session 178: Advanced Storage Monitoring UI
+- Standardized monitoring iconography: `Bell` for enabled alerts, `BellOff` for disabled, and `AlertTriangle` for active threshold breaches.
+- Implemented "Manage Alerts" modal with standardized 3-part header and high-density technical typography (`text-[10px] font-bold uppercase tracking-wider`).
+- Enforced `font-semibold` for primary alert labels and `font-mono font-bold` for percentage values.
+- Integrated alert badges into the connector list with consistent padding (`px-1.5 py-0.5`) and `text-[10px]` styling, matching existing security and IAM badges.

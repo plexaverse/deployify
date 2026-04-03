@@ -1,5 +1,6 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
+import type { StorageAlertSettings } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -8,6 +9,41 @@ export interface ResourceMetrics {
     memoryUtilization: number;
     diskUtilization?: number;
     timestamp: string;
+}
+
+export interface AlertResult {
+    triggered: boolean;
+    reason?: string;
+    metrics: ResourceMetrics;
+}
+
+/**
+ * Check if resource metrics exceed configured thresholds
+ */
+export function checkAlertThresholds(
+    metrics: ResourceMetrics,
+    settings: StorageAlertSettings
+): { triggered: boolean; alerts: string[] } {
+    if (!settings.enabled) return { triggered: false, alerts: [] };
+
+    const alerts: string[] = [];
+
+    if (settings.cpuThreshold && metrics.cpuUtilization >= settings.cpuThreshold) {
+        alerts.push(`CPU usage (${metrics.cpuUtilization.toFixed(1)}%) exceeded threshold (${settings.cpuThreshold}%)`);
+    }
+
+    if (settings.memoryThreshold && metrics.memoryUtilization >= settings.memoryThreshold) {
+        alerts.push(`Memory usage (${metrics.memoryUtilization.toFixed(1)}%) exceeded threshold (${settings.memoryThreshold}%)`);
+    }
+
+    if (metrics.diskUtilization !== undefined && settings.diskThreshold && metrics.diskUtilization >= settings.diskThreshold) {
+        alerts.push(`Disk usage (${metrics.diskUtilization.toFixed(1)}%) exceeded threshold (${settings.diskThreshold}%)`);
+    }
+
+    return {
+        triggered: alerts.length > 0,
+        alerts
+    };
 }
 
 /**
