@@ -21,6 +21,7 @@ import {
     History as HistoryIcon,
     GitBranch,
     Eye,
+    ShieldCheck,
     Copy,
     ChevronDown,
     ChevronUp
@@ -719,9 +720,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                         <div className="flex items-center gap-2">
                                             <h4 className="font-semibold text-sm">{config.name}</h4>
                                             {config.connectionStringSecretId && (
-                                                <div className="hidden" id={`cs-${config.id}`}>
-                                                    {/* This is a placeholder for checking IAM status in UI */}
-                                                </div>
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title="Natively mounted from Secret Manager">
+                                                    <ShieldCheck className="w-2.5 h-2.5" />
+                                                    SECURELY MOUNTED
+                                                </span>
                                             )}
                                             {config.type.includes('cloud-sql') && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1">

@@ -146,7 +146,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
 
     try {
         // Get environment variables directly from project and split by target
-        const { buildEnvVars, runtimeEnvVars } = await getEnvVarsForDeployment(project, envTarget);
+        const { buildEnvVars, runtimeEnvVars, runtimeSecrets } = await getEnvVarsForDeployment(project, envTarget);
 
         // Decrypt GitHub token if present
         const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
@@ -160,6 +160,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             envVars: {}, // Legacy support cleared
             buildEnvVars,
             runtimeEnvVars,
+            runtimeSecrets,
             gitToken: gitToken,
             projectRegion: project.region, // Use project's region
             framework: project.framework,
@@ -273,7 +274,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         try {
             // Get environment variables directly from project and split by target
             const envTarget = 'preview';
-            const { buildEnvVars, runtimeEnvVars } = await getEnvVarsForDeployment(project, envTarget);
+            const { buildEnvVars, runtimeEnvVars, runtimeSecrets } = await getEnvVarsForDeployment(project, envTarget);
 
             // Decrypt GitHub token if present
             const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
@@ -288,6 +289,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 envVars: {}, // Legacy support cleared
                 buildEnvVars,
                 runtimeEnvVars,
+                runtimeSecrets,
                 gitToken: gitToken,
                 projectRegion: project.region, // Use project's region
                 framework: project.framework,
