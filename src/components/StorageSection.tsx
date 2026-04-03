@@ -748,7 +748,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                     SECURELY MOUNTED
                                                 </span>
                                             )}
-                                            {config.connectionStringSecretId && config.metadata?.secretOnly && (
+                                            {config.connectionStringSecretId && !!config.metadata?.secretOnly && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider border border-[var(--border)] flex items-center gap-1" title="Stored in Secret Manager but not injected">
                                                     <Shield className="w-2.5 h-2.5" />
                                                     SECRET ONLY
