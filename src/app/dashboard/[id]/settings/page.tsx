@@ -414,7 +414,7 @@ export default function ProjectSettingsPage() {
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                         <div>
-                            <p className="font-semibold text-[var(--error)]">Delete Project</p>
+                            <p className="text-sm font-semibold text-[var(--error)]">Delete Project</p>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Permanently delete this project and all its deployments.
                             </p>

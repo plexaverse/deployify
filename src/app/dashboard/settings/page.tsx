@@ -272,7 +272,7 @@ export default function TeamSettingsPage() {
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                             <div>
-                                <h3 className="font-semibold text-[var(--error)]">Delete Account</h3>
+                                <h3 className="text-sm font-semibold text-[var(--error)]">Delete Account</h3>
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Permanently remove your account and all of your data. This action cannot be undone.
                                 </p>
@@ -517,7 +517,7 @@ export default function TeamSettingsPage() {
                         <div className="p-6 space-y-6">
                             <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                 <div>
-                                    <h3 className="font-semibold">Leave Team</h3>
+                                    <h3 className="text-sm font-semibold">Leave Team</h3>
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                         Revoke your access to this team. You will need to be re-invited to join again.
                                     </p>
@@ -536,7 +536,7 @@ export default function TeamSettingsPage() {
                                     <Separator className="bg-[var(--error)]/20" />
                                     <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                         <div>
-                                            <h3 className="font-semibold text-[var(--error)]">Delete Team</h3>
+                                            <h3 className="text-sm font-semibold text-[var(--error)]">Delete Team</h3>
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 Permanently remove this team and all of its data. This action cannot be undone.
                                             </p>
