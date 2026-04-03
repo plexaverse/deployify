@@ -25,7 +25,10 @@ import {
     Shield,
     Copy,
     ChevronDown,
-    ChevronUp
+    ChevronUp,
+    Bell,
+    BellOff,
+    AlertTriangle
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
@@ -71,7 +74,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         syncStorageStatus,
         rotateStorageCredentials,
         runProjectMigration,
-        clearMigrationStatus
+        clearMigrationStatus,
+        updateStorageAlerts
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -112,6 +116,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [migrationCommand, setMigrationCommand] = useState('prisma migrate deploy');
     const [previewMigration, setPreviewMigration] = useState<{ name: string; content: string; provider?: string } | null>(null);
     const [isFetchingPreview, setIsFetchingPreview] = useState<string | null>(null);
+
+    const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
+    const [alertCpu, setAlertCpu] = useState(80);
+    const [alertMemory, setAlertMemory] = useState(80);
+    const [alertDisk, setAlertDisk] = useState(80);
+    const [alertsEnabled, setAlertsEnabled] = useState(false);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -413,6 +423,24 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             }
         } catch (e) {
             console.error('Failed to create backup:', e);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleUpdateAlerts = async () => {
+        if (!isManagingAlerts) return;
+        setIsSubmitting(true);
+        try {
+            const success = await updateStorageAlerts(projectId, isManagingAlerts.id, {
+                enabled: alertsEnabled,
+                cpuThreshold: alertCpu,
+                memoryThreshold: alertMemory,
+                diskThreshold: alertDisk
+            });
+            if (success) {
+                setIsManagingAlerts(null);
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -760,6 +788,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                     IAM AUTH
                                                 </span>
                                             )}
+                                            {config.activeAlerts && config.activeAlerts.length > 0 && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={config.activeAlerts.join('\n')}>
+                                                    <AlertTriangle className="w-2.5 h-2.5" />
+                                                    {config.activeAlerts.length} ALERT{config.activeAlerts.length > 1 ? 'S' : ''}
+                                                </span>
+                                            )}
                                             {getStatusIcon(config.status, config.id)}
                                             {config.status === 'error' && config.lastError && (
                                                 <span className="text-[10px] font-bold text-[var(--error)] uppercase truncate max-w-[200px]" title={config.lastError}>
@@ -949,6 +983,26 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             title="Manage Migrations"
                                         >
                                             <GitBranch className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                    {config.status === 'active' && !!config.metadata?.provisioned && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsManagingAlerts(config);
+                                                setAlertsEnabled(config.alertSettings?.enabled || false);
+                                                setAlertCpu(config.alertSettings?.cpuThreshold || 80);
+                                                setAlertMemory(config.alertSettings?.memoryThreshold || 80);
+                                                setAlertDisk(config.alertSettings?.diskThreshold || 80);
+                                            }}
+                                            className={cn(
+                                                "h-8 w-8",
+                                                config.alertSettings?.enabled ? "text-[var(--primary)] hover:bg-[var(--primary)]/10" : "text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            )}
+                                            title="Manage Alerts"
+                                        >
+                                            {config.alertSettings?.enabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
                                         </Button>
                                     )}
                                     <Button
@@ -1304,6 +1358,87 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 }
                 showConfirm={false}
                 showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingAlerts}
+                onClose={() => setIsManagingAlerts(null)}
+                onConfirm={handleUpdateAlerts}
+                title="Resource Monitoring Alerts"
+                description={
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                            <div className="space-y-0.5">
+                                <Label className="text-sm font-semibold">Enable Automated Alerts</Label>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notify when resource usage exceeds thresholds</p>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={alertsEnabled}
+                                onChange={(e) => setAlertsEnabled(e.target.checked)}
+                                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                            />
+                        </div>
+
+                        <div className={cn("space-y-6 transition-opacity", !alertsEnabled && "opacity-40 pointer-events-none")}>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU Threshold</Label>
+                                    <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{alertCpu}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="100"
+                                    value={alertCpu}
+                                    onChange={(e) => setAlertCpu(parseInt(e.target.value))}
+                                    className="w-full accent-[var(--primary)]"
+                                />
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory Threshold</Label>
+                                    <span className="text-[10px] font-mono font-bold text-[var(--success)]">{alertMemory}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="100"
+                                    value={alertMemory}
+                                    onChange={(e) => setAlertMemory(parseInt(e.target.value))}
+                                    className="w-full accent-[var(--success)]"
+                                />
+                            </div>
+
+                            {isManagingAlerts?.type.includes('cloud-sql') && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Disk Threshold</Label>
+                                        <span className="text-[10px] font-mono font-bold text-[var(--warning)]">{alertDisk}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="100"
+                                        value={alertDisk}
+                                        onChange={(e) => setAlertDisk(parseInt(e.target.value))}
+                                        className="w-full accent-[var(--warning)]"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-3">
+                            <Activity className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                Alerts are checked automatically during connector synchronization. When a threshold is breached, a warning indicator will appear next to the connector.
+                            </p>
+                        </div>
+                    </div>
+                }
+                confirmText="Save Alert Settings"
+                loading={isSubmitting}
             />
 
             <ConfirmationModal

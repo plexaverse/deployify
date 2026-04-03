@@ -403,6 +403,13 @@ export type StorageType =
 
 export type StorageStatus = 'provisioning' | 'active' | 'error' | 'disconnected';
 
+export interface StorageAlertSettings {
+    cpuThreshold?: number; // 0-100 percentage
+    memoryThreshold?: number; // 0-100 percentage
+    diskThreshold?: number; // 0-100 percentage
+    enabled: boolean;
+}
+
 export interface StorageConfig {
     id: string;
     type: StorageType;
@@ -415,6 +422,8 @@ export interface StorageConfig {
     lastRotatedAt?: Date;
     lastSyncedAt?: Date;
     lastError?: string;
+    alertSettings?: StorageAlertSettings;
+    activeAlerts?: string[];
     metadata?: Record<string, unknown>;
     createdAt: Date;
     updatedAt: Date;

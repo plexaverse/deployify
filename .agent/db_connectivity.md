@@ -295,7 +295,25 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Enhance UI with "Securely Mounted" visual status for secrets
 - [x] Verify functional integrity with system audits and zero-warning linting
 
+### Phase 44: Advanced Monitoring & Automated Alerts (COMPLETED)
+- [x] Define `StorageAlertSettings` and update `StorageConfig` type
+- [x] Implement `checkAlertThresholds` monitoring utility
+- [x] Create storage alerts management API
+- [x] Integrate alert evaluation into Storage Sync pipeline
+- [x] Enhance UI with "Manage Alerts" modal and threshold sliders
+- [x] Display real-time alert status badges for active threshold breaches
+- [x] Verify functional integrity with system audits and zero-warning linting
+
 ## Progress Updates
+
+### 2027-04-20: Advanced Monitoring & Automated Alerts
+- Completed Phase 44: Advanced Monitoring & Automated Alerts.
+- Implemented `StorageAlertSettings` providing configurable thresholds for CPU, Memory, and Disk usage.
+- Integrated automated alert evaluation into the Storage Sync API, allowing the platform to flag resource pressure during periodic status checks.
+- Launched the "Manage Alerts" UI modal with high-density sliders for precise threshold configuration.
+- Enhanced connector visibility with red "X ALERTS" badges and descriptive tooltips for active threshold breaches.
+- Standardized monitoring iconography using `Bell`, `BellOff`, and `AlertTriangle` to communicate alerting status clearly.
+- Verified 100% functional integrity with system audits and zero-warning linting.
 
 ### 2027-04-19: Native Secret Manager Integration & Granularity
 - Completed Phase 43: Native Secret Manager Integration & Granularity.

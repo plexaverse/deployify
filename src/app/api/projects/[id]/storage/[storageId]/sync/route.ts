@@ -6,9 +6,10 @@ import { getOperationStatus as getCloudSqlOperationStatus } from '@/lib/gcp/clou
 import { getOperationStatus as getMemorystoreOperationStatus } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds } from '@/lib/gcp/monitoring';
 
 /**
- * Sync storage provisioning status from GCP
+ * Sync storage provisioning status from GCP and check monitoring alerts
  */
 export async function GET(
     request: NextRequest,
@@ -37,6 +38,33 @@ export async function GET(
 
         const storage = storageConfigs[index];
         const now = new Date();
+
+        // 1. Check monitoring alerts for active connectors
+        if (storage.status === 'active' && storage.metadata?.provisioned && storage.alertSettings?.enabled) {
+            try {
+                const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const region = (storage.metadata?.region as string) || access.project?.region || 'us-central1';
+
+                let metrics;
+                if (storage.type.includes('cloud-sql')) {
+                    metrics = await getCloudSqlMetrics(resourceName);
+                } else if (storage.type === 'memorystore-redis') {
+                    metrics = await getMemorystoreMetrics(resourceName, region);
+                }
+
+                if (metrics) {
+                    const { triggered, alerts } = checkAlertThresholds(metrics, storage.alertSettings);
+                    storage.activeAlerts = triggered ? alerts : [];
+                    storage.updatedAt = now;
+
+                    // Update project with new alert status
+                    storageConfigs[index] = storage;
+                    await updateProject(id, { storageConfigs });
+                }
+            } catch (e) {
+                console.error(`Failed to check alerts during sync for ${storageId}:`, e);
+            }
+        }
 
         // Handle External Connectors (Auto-Sync)
         if (storage.metadata?.autoSync && (storage.type === 'supabase' || storage.type === 'mongodb-atlas' || storage.type === 'planetscale')) {
@@ -149,7 +177,8 @@ export async function GET(
                 return NextResponse.json({
                     success: true,
                     status: storage.status,
-                    lastSyncedAt: storage.lastSyncedAt.toISOString()
+                    lastSyncedAt: storage.lastSyncedAt.toISOString(),
+                    activeAlerts: storage.activeAlerts
                 });
             } catch (error) {
                 console.error(`Sync failed for ${storage.type}:`, error);
@@ -164,6 +193,7 @@ export async function GET(
             return NextResponse.json({
                 success: true,
                 status: storage.status,
+                activeAlerts: storage.activeAlerts,
                 message: 'Storage is not in provisioning state'
             });
         }
@@ -282,6 +312,7 @@ export async function GET(
                 success: true,
                 status: storage.status,
                 lastSyncedAt: storage.lastSyncedAt?.toISOString(),
+                activeAlerts: storage.activeAlerts,
                 error: storage.lastError
             });
         }
