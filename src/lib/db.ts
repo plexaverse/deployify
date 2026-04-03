@@ -61,10 +61,15 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
 export async function getEnvVarsForDeployment(
     project: Project,
     envTarget: 'production' | 'preview'
-): Promise<{ buildEnvVars: Record<string, string>; runtimeEnvVars: Record<string, string> }> {
+): Promise<{
+    buildEnvVars: Record<string, string>;
+    runtimeEnvVars: Record<string, string>;
+    runtimeSecrets?: Record<string, string>;
+}> {
     const envVars = project.envVariables || [];
     const buildEnvVars: Record<string, string> = {};
     const runtimeEnvVars: Record<string, string> = {};
+    const runtimeSecrets: Record<string, string> = {};
 
     // 1. Process regular environment variables
     for (const env of envVars) {
@@ -101,39 +106,35 @@ export async function getEnvVarsForDeployment(
         }
 
         if (storage.connectionStringSecretId) {
-            try {
-                const connectionString = await getSecretValue(storage.connectionStringSecretId);
+            // Determine variable name based on custom key or type defaults
+            let envKey = storage.envKey;
 
-                if (!connectionString) {
-                    throw new Error(`Secret value is empty for ${storage.name}`);
-                }
+            if (!envKey) {
+                envKey = 'DATABASE_URL';
+                if (storage.type === 'memorystore-redis') envKey = 'REDIS_URL';
+                if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
+            }
 
-                // Determine variable name based on custom key or type defaults
-                let envKey = storage.envKey;
+            // Prefer native Secret Manager mounting for runtime
+            runtimeSecrets[envKey] = storage.connectionStringSecretId;
 
-                if (!envKey) {
-                    envKey = 'DATABASE_URL';
-                    if (storage.type === 'memorystore-redis') envKey = 'REDIS_URL';
-                    if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
-                }
-
-                // Add to runtime env vars
-                runtimeEnvVars[envKey] = connectionString;
-
-                // Also add to build env vars if the scope is 'both'
-                // This is useful for tools like Prisma that need a DB connection during build
-                if (storage.environment === 'both') {
+            // For build-time tools (like Prisma), we still need the actual value
+            if (storage.environment === 'both') {
+                try {
+                    const connectionString = await getSecretValue(storage.connectionStringSecretId);
+                    if (!connectionString) {
+                        throw new Error(`Secret value is empty for ${storage.name}`);
+                    }
                     buildEnvVars[envKey] = connectionString;
+                } catch (e) {
+                    console.error(`Failed to fetch storage secret for ${storage.name}:`, e);
+                    throw new Error(`Failed to inject build-time storage credential for ${storage.name}. Please verify the connector status.`);
                 }
-            } catch (e) {
-                console.error(`Failed to fetch storage secret for ${storage.name}:`, e);
-                // We throw here to fail the deployment safely rather than deploying with invalid secrets
-                throw new Error(`Failed to inject storage credential for ${storage.name}. Please verify the connector status.`);
             }
         }
     }
 
-    return { buildEnvVars, runtimeEnvVars };
+    return { buildEnvVars, runtimeEnvVars, runtimeSecrets };
 }
 
 // ============= Invite Operations =============

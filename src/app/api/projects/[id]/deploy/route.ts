@@ -156,7 +156,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 }
 
                 // Extract environment variables by target
-                const { buildEnvVars, runtimeEnvVars } = await getEnvVarsForDeployment(project, envTarget);
+                const { buildEnvVars, runtimeEnvVars, runtimeSecrets } = await getEnvVarsForDeployment(project, envTarget);
 
                 // Decrypt GitHub token if present
                 const projectGitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
@@ -172,6 +172,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     commitSha: commitSha,
                     buildEnvVars,
                     runtimeEnvVars,
+                    runtimeSecrets,
                     gitToken: session?.accessToken ?? projectGitToken ?? undefined,
                     projectRegion: project.region, // Use project's selected region
                     framework: project.framework,

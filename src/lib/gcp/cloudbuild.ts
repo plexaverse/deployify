@@ -16,6 +16,7 @@ interface BuildSubmissionConfig {
     envVars?: Record<string, string>;  // Deprecated, use build/runtimeEnvVars
     buildEnvVars?: Record<string, string>;  // Env vars for build time (Docker build)
     runtimeEnvVars?: Record<string, string>;  // Env vars for runtime (Cloud Run)
+    runtimeSecrets?: Record<string, string>; // Secret Manager refs for runtime (envKey -> secretId:version)
     buildCommand?: string;
     installCommand?: string;
     outputDirectory?: string;
@@ -47,6 +48,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         envVars = {},  // Legacy support
         buildEnvVars = {},
         runtimeEnvVars = {},
+        runtimeSecrets = {},
         gitToken,
         projectRegion,
         framework = 'nextjs',
@@ -163,6 +165,16 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         });
     }
 
+    // Extract secret names for IAM binding (format: projects/PROJECT_ID/secrets/SECRET_NAME)
+    const secretResourceNames = Object.values(runtimeSecrets).map(s => {
+        // s might be "projects/PROJECT_ID/secrets/SECRET_NAME/versions/latest"
+        const parts = s.split('/');
+        if (parts.length >= 4) {
+            return parts.slice(0, 4).join('/');
+        }
+        return s;
+    });
+
     // Define common steps shared between both deployment methods
     const commonSteps = [
         // Restore cache from GCS
@@ -268,6 +280,19 @@ node fix-next-config.js && rm fix-next-config.js`,
             ],
             dir: '/workspace',
         }]),
+        // Ensure Cloud Run Service Agent has access to secrets
+        ...(secretResourceNames.length > 0 ? [{
+            name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+            entrypoint: 'bash',
+            args: [
+                '-c',
+                `PROJECT_NUMBER=$(gcloud projects describe ${gcpProjectId} --format="value(projectNumber)") && \
+                 SERVICE_ACCOUNT="service-$\${PROJECT_NUMBER}@serverless-robot-prod.iam.gserviceaccount.com" && \
+                 for secret in ${secretResourceNames.join(' ')}; do \
+                   gcloud secrets add-iam-policy-binding $\${secret} --member="serviceAccount:$\${SERVICE_ACCOUNT}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $\${secret}"; \
+                 done`,
+            ],
+        }] : []),
         // Extract and Save Cache to GCS (Non-blocking)
         // Note: Running in dir: workDir, so relative paths work as expected
         ...(isDockerFramework ? [] : [{
@@ -309,6 +334,13 @@ node fix-next-config.js && rm fix-next-config.js`,
                 '--timeout', `${config.cloudRun.timeout}s`,
                 ...(healthCheckPath ? ['--startup-probe-path', healthCheckPath, '--liveness-probe-path', healthCheckPath] : []),
                 ...envArgs,
+                ...(Object.keys(runtimeSecrets).length > 0 ? ['--set-secrets', Object.entries(runtimeSecrets).map(([k, v]) => {
+                    // Extract SECRET_NAME:VERSION from projects/PROJECT_ID/secrets/SECRET_NAME/versions/VERSION
+                    const parts = v.split('/');
+                    const secretName = parts[3];
+                    const version = parts[5] || 'latest';
+                    return `${k}=${secretName}:${version}`;
+                }).join(',')] : []),
             ],
         },
         // Route 100% traffic to the latest revision
