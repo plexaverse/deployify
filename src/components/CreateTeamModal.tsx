@@ -123,7 +123,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 type="submit"
                                 disabled={isSubmitting || !name || !slug}
                                 containerClassName="h-10 w-32"
-                                className="font-bold text-[10px] uppercase tracking-wider"
+                                className="text-[10px] font-bold uppercase tracking-wider"
                             >
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                 {isSubmitting ? 'Creating...' : 'Create Team'}
