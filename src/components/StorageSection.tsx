@@ -122,6 +122,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
     const [alertsEnabled, setAlertsEnabled] = useState(false);
+    const [alertEmailEnabled, setAlertEmailEnabled] = useState(false);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -436,7 +437,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 enabled: alertsEnabled,
                 cpuThreshold: alertCpu,
                 memoryThreshold: alertMemory,
-                diskThreshold: alertDisk
+                diskThreshold: alertDisk,
+                emailNotifications: alertEmailEnabled
             });
             if (success) {
                 setIsManagingAlerts(null);
@@ -995,6 +997,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 setAlertCpu(config.alertSettings?.cpuThreshold || 80);
                                                 setAlertMemory(config.alertSettings?.memoryThreshold || 80);
                                                 setAlertDisk(config.alertSettings?.diskThreshold || 80);
+                                                setAlertEmailEnabled(config.alertSettings?.emailNotifications || false);
                                             }}
                                             className={cn(
                                                 "h-8 w-8",
@@ -1381,6 +1384,19 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                         </div>
 
                         <div className={cn("space-y-6 transition-opacity", !alertsEnabled && "opacity-40 pointer-events-none")}>
+                            <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-semibold">Email Notifications</Label>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Send alerts to your account email address</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={alertEmailEnabled}
+                                    onChange={(e) => setAlertEmailEnabled(e.target.checked)}
+                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                />
+                            </div>
+
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU Threshold</Label>
