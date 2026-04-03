@@ -408,6 +408,7 @@ export interface StorageAlertSettings {
     memoryThreshold?: number; // 0-100 percentage
     diskThreshold?: number; // 0-100 percentage
     enabled: boolean;
+    emailNotifications?: boolean;
 }
 
 export interface StorageConfig {
@@ -421,6 +422,7 @@ export interface StorageConfig {
     lastValidatedAt?: Date;
     lastRotatedAt?: Date;
     lastSyncedAt?: Date;
+    lastAlertedAt?: Date;
     lastError?: string;
     alertSettings?: StorageAlertSettings;
     activeAlerts?: string[];

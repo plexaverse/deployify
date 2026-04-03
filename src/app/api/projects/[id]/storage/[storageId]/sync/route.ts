@@ -7,6 +7,9 @@ import { getOperationStatus as getMemorystoreOperationStatus } from '@/lib/gcp/m
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
 import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds } from '@/lib/gcp/monitoring';
+import { sendEmail } from '@/lib/email/client';
+import { storageAlertEmail } from '@/lib/email/templates';
+import { getUserById } from '@/lib/db';
 
 /**
  * Sync storage provisioning status from GCP and check monitoring alerts
@@ -54,8 +57,29 @@ export async function GET(
 
                 if (metrics) {
                     const { triggered, alerts } = checkAlertThresholds(metrics, storage.alertSettings);
+                    const previouslyAlerting = (storage.activeAlerts || []).length > 0;
                     storage.activeAlerts = triggered ? alerts : [];
                     storage.updatedAt = now;
+
+                    // Fatigue management & Notifications
+                    if (triggered && storage.alertSettings.emailNotifications) {
+                        const lastAlertedAt = storage.lastAlertedAt ? (storage.lastAlertedAt instanceof Date ? storage.lastAlertedAt : new Date(storage.lastAlertedAt)) : null;
+                        const hoursSinceLastAlert = lastAlertedAt ? (now.getTime() - lastAlertedAt.getTime()) / (1000 * 60 * 60) : 999;
+
+                        // Only notify if new alert OR cooldown period (4h) has passed
+                        if (!previouslyAlerting || hoursSinceLastAlert >= 4) {
+                            try {
+                                const user = await getUserById(project.userId);
+                                if (user?.email) {
+                                    const { subject, html } = storageAlertEmail(project.name, storage.name, alerts);
+                                    await sendEmail({ to: user.email, subject, html });
+                                    storage.lastAlertedAt = now;
+                                }
+                            } catch (emailError) {
+                                console.error(`Failed to send storage alert email for ${storageId}:`, emailError);
+                            }
+                        }
+                    }
 
                     // Update project with new alert status
                     storageConfigs[index] = storage;
