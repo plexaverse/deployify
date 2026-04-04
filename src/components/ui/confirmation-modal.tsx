@@ -55,7 +55,7 @@ export function ConfirmationModal({
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                   {variant === 'destructive' ? 'Critical Action' : 'Confirmation Required'}
                 </span>
-                <h3 className="text-xl font-semibold tracking-tight text-[var(--foreground)]">
+                <h3 className="text-sm font-semibold tracking-tight text-[var(--foreground)]">
                   {title}
                 </h3>
               </div>

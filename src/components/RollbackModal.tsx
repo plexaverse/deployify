@@ -29,7 +29,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                             </div>
                             <div className="space-y-0.5">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Action</span>
-                                <h3 className="text-xl font-semibold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
+                                <h3 className="text-sm font-semibold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
                             </div>
                         </div>
                         <Button

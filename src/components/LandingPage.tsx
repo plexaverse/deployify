@@ -90,7 +90,7 @@ export default function LandingPage() {
             <motion.div whileTap={{ scale: 0.95 }}>
               <Link href="/" className="flex items-center gap-2 group" aria-label="Deployify Home">
                 <Rocket className="w-6 h-6 text-[var(--foreground)] group-hover:rotate-12 transition-transform" />
-                <span className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] bg-opacity-50">Deployify</span>
+                <span className="text-sm font-semibold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] bg-opacity-50">Deployify</span>
               </Link>
             </motion.div>
             <div className="flex items-center gap-4">
@@ -146,7 +146,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-4xl md:text-6xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
+              className="text-2xl md:text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
             >
               Deploy like Vercel, <br /> Pay like raw GCP.
             </motion.h1>
@@ -185,7 +185,7 @@ export default function LandingPage() {
                   variant="outline"
                   size="lg"
                   onClick={() => toast.info('Demo video coming soon!', { description: 'We are currently polishing our walkthrough.' })}
-                  className="w-full text-lg font-semibold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
+                  className="w-full text-sm font-semibold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
                   aria-label="Watch 2-minute demo video"
                 >
                   <div className="relative">
@@ -279,7 +279,7 @@ export default function LandingPage() {
                     role="listitem"
                     aria-label={`${logo} logo`}
                     whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%) drop-shadow(0 0 8px rgba(255,255,255,0.1))' }}
-                    className="text-xl md:text-2xl font-bold tracking-wider text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
+                    className="text-xl font-bold tracking-wider text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
                   >
                     {logo}
                   </motion.span>
@@ -290,7 +290,7 @@ export default function LandingPage() {
 
           {/* The Method Section */}
           <div className="mt-40">
-            <h2 className="text-3xl md:text-5xl font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-2xl md:text-4xl font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               The Deployify Method
             </h2>
             <TracingBeam className="px-6">
@@ -334,7 +334,7 @@ export default function LandingPage() {
                       whileInView={{ opacity: 0.3, scale: 1.2, x: 0 }}
                       viewport={{ margin: "-100px" }}
                       transition={{ duration: 1 }}
-                      className="absolute -left-12 md:-left-16 -top-2 text-5xl font-bold text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
+                      className="absolute -left-12 md:-left-16 -top-2 text-4xl font-bold text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
                       aria-hidden="true"
                     >
                       0{i + 1}
@@ -346,7 +346,7 @@ export default function LandingPage() {
                        >
                          {step.icon}
                        </motion.div>
-                       <h3 className="text-2xl font-semibold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
+                       <h3 className="text-xl font-semibold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
                     </div>
                     <div className="text-lg text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}
@@ -362,7 +362,7 @@ export default function LandingPage() {
 
           {/* Price Efficiency Section */}
           <div className="mt-40">
-            <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-2xl md:text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Pay for what you use
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -372,7 +372,7 @@ export default function LandingPage() {
               >
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-lg font-semibold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
+                    <h3 className="text-sm font-semibold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
                   </div>
                   <X className="w-5 h-5 text-[var(--error)]" />
@@ -400,7 +400,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-lg font-semibold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
+                    <h3 className="text-sm font-semibold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
                   </div>
                   <Check className="w-5 h-5 text-[var(--foreground)]" />
@@ -424,7 +424,7 @@ export default function LandingPage() {
 
           {/* Feature Bento Grid */}
           <div id="features" className="mt-40">
-            <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-2xl md:text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Everything you need to scale
             </h2>
             <BentoGrid>
@@ -487,7 +487,7 @@ export default function LandingPage() {
             className="mt-40 max-w-2xl mx-auto"
           >
             <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm relative group" role="search">
-              <h3 className="text-xl font-semibold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
+              <h3 className="text-sm font-semibold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
               <div className="relative">
                 <label htmlFor="repo-search" className="sr-only">Search your GitHub repositories</label>
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors z-10" />
@@ -590,7 +590,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 text-center px-4"
           >
-            <h2 className="text-3xl md:text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-2xl md:text-4xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Global Edge Network
             </h2>
             <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12">

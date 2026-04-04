@@ -82,7 +82,7 @@ export default function EdgeDebugPage() {
                 </div>
                 <div className="space-y-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
-                    <h1 className="text-3xl font-bold tracking-tight">Edge Function Simulator</h1>
+                    <h1 className="text-xl font-bold tracking-tight">Edge Function Simulator</h1>
                 </div>
             </div>
             <MovingBorderButton
@@ -105,7 +105,7 @@ export default function EdgeDebugPage() {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Code Editor</span>
-                        <h2 className="text-xl font-semibold">Middleware Code</h2>
+                        <h2 className="text-sm font-semibold">Middleware Code</h2>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />
@@ -130,7 +130,7 @@ export default function EdgeDebugPage() {
                         </div>
                         <div className="space-y-0.5">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                            <h2 className="text-xl font-semibold text-[var(--foreground)]">Request Configuration</h2>
+                            <h2 className="text-sm font-semibold text-[var(--foreground)]">Request Configuration</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -187,7 +187,7 @@ export default function EdgeDebugPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Execution Output</span>
-                                <h2 className="text-xl font-semibold">Simulation Result</h2>
+                                <h2 className="text-sm font-semibold">Simulation Result</h2>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -211,7 +211,7 @@ export default function EdgeDebugPage() {
                                         result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/20' : 'bg-[var(--success-bg)] text-[var(--success)] border-[var(--success)]/20'
                                     )}>
                                         {result.type === 'error' ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
-                                        <span className="text-2xl font-semibold">{result.status}</span>
+                                        <span className="text-xl font-semibold">{result.status}</span>
                                         <Badge variant={result.type === 'error' ? 'error' : 'success'} className="ml-auto">
                                             {result.type}
                                         </Badge>
