@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        const { project } = access;
+        const { project, role } = access;
 
         // Get recent deployments
         const deployments = await listDeploymentsByProject(id, 5);
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         }
 
         return NextResponse.json(
-            { success: true, project, deployments },
+            { success: true, project, deployments, role },
             { headers: securityHeaders }
         );
     } catch (error) {

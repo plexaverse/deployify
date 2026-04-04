@@ -40,7 +40,7 @@ export async function GET(
                         userEmail: 'admin@deployify.app',
                         query: 'SELECT * FROM secrets',
                         timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-                        masked: true
+                        success: true
                     },
                     {
                         id: 'a2',
@@ -48,7 +48,7 @@ export async function GET(
                         userEmail: 'dev@deployify.app',
                         query: 'DELETE FROM users WHERE id = 1',
                         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-                        masked: false
+                        success: false
                     },
                 ]
             });
