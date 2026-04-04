@@ -200,4 +200,5 @@ export const Collections = {
     QUERY_HISTORY: 'query_history',
     QUERY_COMMENTS: 'query_comments',
     SCHEMA_DOCS: 'schema_docs',
+    DATA_LAB_AUDIT: 'dataLabAudit',
 } as const;
