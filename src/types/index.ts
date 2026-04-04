@@ -243,6 +243,22 @@ export interface AuditEvent {
     } | null;
 }
 
+export interface DataLabAuditLog {
+    id: string;
+    userId: string;
+    userEmail: string;
+    query: string;
+    timestamp: string;
+    executionTimeMs: number;
+    rowCount: number;
+    success: boolean;
+    error?: string;
+    metadata?: {
+        widgetId?: string;
+        storageType: string;
+    };
+}
+
 // GitHub repository from API
 export interface GitHubRepo {
     id: number;

@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats, CronJobConfig, StorageConfig } from '@/types';
+import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats, CronJobConfig, StorageConfig, DataLabAuditLog, TeamRole } from '@/types';
 import { toast } from 'sonner';
 
 export interface ProjectSlice {
@@ -13,6 +13,7 @@ export interface ProjectSlice {
     selectedLogsId: string | null;
     rollbackDeployment: Deployment | null;
     analyticsData: AnalyticsStats | null;
+    userRole: TeamRole | null;
 
     // Settings Form State
     buildCommand: string;
@@ -27,6 +28,7 @@ export interface ProjectSlice {
     projectEnvVariables: EnvVariable[];
     projectDomains: Domain[];
     projectStorageConfigs: StorageConfig[];
+    projectStorageAuditLogs: DataLabAuditLog[];
     activeMigrations: Record<string, { status: string; logs?: string; error?: string; operationName?: string }>;
 
     // Saving States
@@ -89,6 +91,7 @@ export interface ProjectSlice {
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
     syncStorageStatus: (projectId: string, storageId: string) => Promise<{ status: string; error?: string }>;
     updateStorageAlerts: (projectId: string, storageId: string, alerts: StorageConfig['alertSettings']) => Promise<boolean>;
+    fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
     runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
@@ -120,6 +123,8 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     projectEnvVariables: [],
     projectDomains: [],
     projectStorageConfigs: [],
+    projectStorageAuditLogs: [],
+    userRole: null,
     activeMigrations: {},
 
     // Saving States Initial
@@ -162,6 +167,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 const project = projectData.project;
                 set({
                     currentProject: project,
+                    userRole: projectData.role || 'owner',
                     buildCommand: project.buildCommand || '',
                     installCommand: project.installCommand || '',
                     rootDirectory: project.rootDirectory || '',
@@ -819,6 +825,18 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to update alerts', { id: toastId });
             return false;
+        }
+    },
+
+    fetchProjectStorageAuditLogs: async (projectId, storageId) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/audit`);
+            if (response.ok) {
+                const data = await response.json();
+                set({ projectStorageAuditLogs: data.auditLogs || [] });
+            }
+        } catch (error) {
+            console.error('Failed to fetch storage audit logs:', error);
         }
     },
 

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send } from 'lucide-react';
+import { toast } from 'sonner';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send, ShieldAlert, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useStore } from '@/store';
 import { SchemaMap } from '@/components/SchemaMap';
 import { RedisTree } from '@/components/RedisTree';
 import {
@@ -40,6 +42,7 @@ const ROWS_PER_PAGE = 10;
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
 
 export function DataLab({ projectId, connectors }: DataLabProps) {
+    const { projectStorageAuditLogs: auditLogs, fetchProjectStorageAuditLogs, userRole } = useStore();
     const currentUserId = connectors[0]?.metadata?.userId as string | undefined;
     const [selectedId, setSelectedId] = useState(connectors[0]?.id || '');
     const [query, setQuery] = useState('');
@@ -90,7 +93,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [comments, setComments] = useState<Record<string, { id: string, text: string, userName: string, createdAt: string }[]>>({});
     const [newComment, setNewComment] = useState('');
     const [isPostingComment, setIsPostingComment] = useState(false);
-    const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved' | 'dashboards'>('editor');
+    const [activeTab, setActiveTab] = useState<'editor' | 'history' | 'saved' | 'dashboards' | 'audit'>('editor');
     const [dashboards, setDashboards] = useState<{ id: string, name: string, query: string, chartConfig: { type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string } | null, storageId: string, isPublic?: boolean, refreshInterval?: number }[]>([]);
     const [isSavingDashboard, setIsSavingDashboard] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -105,6 +108,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [showTemplates, setShowTemplates] = useState(false);
     const [schemaDocs, setSchemaDocs] = useState<{ id: string, entity: string, description: string, type: 'table' | 'column' }[]>([]);
     const [isSavingDoc, setIsSavingDoc] = useState<string | null>(null);
+    const [viewingAuditQuery, setViewingAuditQuery] = useState<string | null>(null);
 
     useEffect(() => {
         // Detect :variable patterns
@@ -200,7 +204,10 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         fetchSavedQueries();
         fetchDashboards();
         fetchSchemaDocs();
-    }, [fetchMetrics, fetchHistory, fetchSavedQueries, fetchDashboards, fetchSchemaDocs]);
+        if (activeTab === 'audit' && selectedId) {
+            fetchProjectStorageAuditLogs(projectId, selectedId);
+        }
+    }, [fetchMetrics, fetchHistory, fetchSavedQueries, fetchDashboards, fetchSchemaDocs, activeTab, selectedId, projectId, fetchProjectStorageAuditLogs]);
 
     const saveSchemaDoc = async (entity: string, type: 'table' | 'column', description: string) => {
         setIsSavingDoc(`${type}_${entity}`);
@@ -1254,10 +1261,100 @@ runQuery();`;
                     <BarChart2 className="w-3.5 h-3.5 mr-2" />
                     Dashboards
                 </Button>
+                {userRole !== 'viewer' && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setActiveTab('audit')}
+                        className={`h-8 px-3 text-[10px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'audit' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
+                    >
+                        <ShieldAlert className="w-3.5 h-3.5 mr-2" />
+                        Compliance Audit
+                    </Button>
+                )}
             </div>
 
             <div className="p-6 space-y-6">
-                {activeTab === 'editor' ? (
+                {activeTab === 'audit' ? (
+                    <div className="space-y-4 animate-fade-in">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                    <ShieldAlert className="w-5 h-5 text-[var(--primary)]" />
+                                </div>
+                                <div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Compliance Monitoring</span>
+                                    <h3 className="text-sm font-semibold">Query Audit Logs</h3>
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => fetchProjectStorageAuditLogs(projectId, selectedId)}
+                                className="h-8 px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                            >
+                                <RefreshCw className="w-3.5 h-3.5 mr-2" />
+                                Refresh Logs
+                            </Button>
+                        </div>
+
+                        <div className="overflow-x-auto rounded-xl border border-[var(--border)] bg-[var(--background)]">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
+                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Timestamp</th>
+                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">User</th>
+                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query</th>
+                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
+                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {auditLogs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={5} className="p-8 text-center">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No audit logs found</span>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        auditLogs.map((log) => (
+                                            <tr key={log.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
+                                                <td className="p-3 text-[10px] font-mono whitespace-nowrap">
+                                                    {new Date(log.timestamp).toLocaleString()}
+                                                </td>
+                                                <td className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                                                    {log.userEmail}
+                                                </td>
+                                                <td className="p-3 text-[10px] font-mono max-w-[300px] truncate">
+                                                    {log.query}
+                                                </td>
+                                                <td className="p-3">
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
+                                                        log.success ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
+                                                    )}>
+                                                        {log.success ? 'SUCCESS' : 'FAILED'}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3 text-right">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => setViewingAuditQuery(log.query)}
+                                                        className="h-7 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                    >
+                                                        <Eye className="w-3.5 h-3.5 mr-1.5" />
+                                                        View Query
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                ) : activeTab === 'editor' ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                         <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Select Connector</Label>
@@ -2262,6 +2359,58 @@ runQuery();`;
                     </p>
                 </div>
             </div>
+
+            {/* View Audit Query Modal */}
+            {viewingAuditQuery && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <Card className="w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                                    <Terminal className="w-4 h-4 text-[var(--primary)]" />
+                                </div>
+                                <h3 className="text-sm font-semibold">Audit Query Source</h3>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => setViewingAuditQuery(null)} className="h-8 w-8">
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                        <div className="p-6">
+                            <div className="p-4 bg-black/40 border border-[var(--border)] rounded-xl font-mono text-[10px] max-h-96 overflow-y-auto custom-scrollbar">
+                                <pre className="whitespace-pre-wrap break-all text-[var(--foreground)]/80 leading-relaxed">
+                                    {viewingAuditQuery}
+                                </pre>
+                            </div>
+                        </div>
+                        <div className="p-6 bg-[var(--muted)]/5 border-t border-[var(--border)] flex justify-end gap-3">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(viewingAuditQuery || '');
+                                    toast.success('Query copied to clipboard');
+                                }}
+                                className="text-[10px] font-bold uppercase tracking-wider"
+                            >
+                                <Copy className="w-3.5 h-3.5 mr-2" />
+                                Copy Query
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={() => {
+                                    setQuery(viewingAuditQuery || '');
+                                    setViewingAuditQuery(null);
+                                    setActiveTab('editor');
+                                }}
+                                className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                            >
+                                <Play className="w-3.5 h-3.5 mr-2" />
+                                Load in Editor
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+            )}
 
             {/* Save Query Modal */}
             {showSaveModal && (

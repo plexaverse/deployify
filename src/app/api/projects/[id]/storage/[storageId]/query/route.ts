@@ -28,7 +28,7 @@ export async function POST(
 
         let session = null;
         let storageConfig: StorageConfig | undefined;
-        let access: any = null;
+        let access: import('@/middleware/rbac').ProjectAccessResult | null = null;
 
         // 1. Authorization Logic
         if (widgetId) {
@@ -842,7 +842,7 @@ export async function POST(
                 executionTimeMs,
                 success: response.status === 200,
                 isSlow: executionTimeMs > 1000,
-                rowCount: responseData.rowCount || 0,
+                rowCount: (responseData as { rowCount?: number }).rowCount || 0,
                 query: query !== 'DISCOVER_SCHEMA' ? query : undefined,
                 timestamp: now
             });
@@ -855,7 +855,7 @@ export async function POST(
                     userId: session?.user?.id || 'public',
                     query,
                     executionTimeMs,
-                    rowCount: responseData.rowCount || 0,
+                    rowCount: (responseData as { rowCount?: number }).rowCount || 0,
                     timestamp: now
                 });
 
@@ -867,7 +867,7 @@ export async function POST(
                     userEmail: session?.user?.email || 'anonymous',
                     query,
                     executionTimeMs,
-                    rowCount: responseData.rowCount || 0,
+                    rowCount: (responseData as { rowCount?: number }).rowCount || 0,
                     success: true,
                     timestamp: now,
                     metadata: {
