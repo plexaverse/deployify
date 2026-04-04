@@ -68,6 +68,10 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string; dashboardId: string }> }
 ) {
     try {
+        if (process.env.MOCK_DB === 'true') {
+            return NextResponse.json({ success: true });
+        }
+
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -119,6 +123,10 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string; dashboardId: string }> }
 ) {
     try {
+        if (process.env.MOCK_DB === 'true') {
+            return NextResponse.json({ success: true });
+        }
+
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
