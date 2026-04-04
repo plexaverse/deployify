@@ -20,20 +20,52 @@ export function SegmentedControl<T extends string = string>({ options, value, on
     const layoutId = useId();
     const isFullWidth = className?.includes('w-full');
 
+    const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+        switch (e.key) {
+            case 'ArrowRight':
+            case 'ArrowDown':
+                e.preventDefault();
+                onChange(options[(index + 1) % options.length].value);
+                break;
+            case 'ArrowLeft':
+            case 'ArrowUp':
+                e.preventDefault();
+                onChange(options[(index - 1 + options.length) % options.length].value);
+                break;
+            case 'Home':
+                e.preventDefault();
+                onChange(options[0].value);
+                break;
+            case 'End':
+                e.preventDefault();
+                onChange(options[options.length - 1].value);
+                break;
+        }
+    };
+
     return (
-        <div className={cn(
-            "flex p-1 bg-[var(--card)] border border-[var(--border)] rounded-full w-fit",
-            className
-        )}>
-            {options.map((option) => {
+        <div
+            role="radiogroup"
+            aria-label="Selection"
+            className={cn(
+                "flex p-1 bg-[var(--card)] border border-[var(--border)] rounded-full w-fit backdrop-blur-xl shadow-lg",
+                className
+            )}
+        >
+            {options.map((option, index) => {
                 const isActive = value === option.value;
                 return (
-                    <button
+                    <motion.button
                         key={option.value}
                         type="button"
+                        role="radio"
+                        aria-checked={isActive}
+                        tabIndex={isActive ? 0 : -1}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
+                        whileTap={{ scale: 0.97 }}
                         onClick={() => onChange(option.value)}
                         className={cn(
-                            "relative px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors duration-200 focus:outline-none",
+                            "relative px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] rounded-full transition-colors duration-200 focus:outline-none",
                             isFullWidth && "flex-1 flex items-center justify-center",
                             isActive ? "text-[var(--primary-foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                         )}
@@ -46,7 +78,7 @@ export function SegmentedControl<T extends string = string>({ options, value, on
                             />
                         )}
                         <span className="relative z-10">{option.label}</span>
-                    </button>
+                    </motion.button>
                 );
             })}
         </div>
