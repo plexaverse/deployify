@@ -109,7 +109,7 @@ export function BranchDeploymentsSettings({
                 </div>
                 <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Automation</span>
-                    <h3 className="text-xl font-semibold">Branch Deployments</h3>
+                    <h3 className="text-sm font-semibold">Branch Deployments</h3>
                 </div>
             </div>
 

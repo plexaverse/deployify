@@ -110,7 +110,7 @@ export default function ProjectSettingsPage() {
                         <Settings className="w-8 h-8 text-[var(--muted-foreground)]" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-xl font-semibold">Project Not Found</h2>
+                        <h2 className="text-sm font-semibold">Project Not Found</h2>
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             The project you are looking for does not exist or you don&apos;t have access.
                         </p>
@@ -144,7 +144,7 @@ export default function ProjectSettingsPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Configuration</span>
-                        <h1 className="text-3xl font-bold tracking-tight">Project Settings</h1>
+                        <h1 className="text-xl font-bold tracking-tight">Project Settings</h1>
                     </div>
                 </div>
             </div>
@@ -183,7 +183,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Settings</span>
-                            <h3 className="text-xl font-semibold">Configuration</h3>
+                            <h3 className="text-sm font-semibold">Configuration</h3>
                         </div>
                     </div>
 
@@ -318,7 +318,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notifications</span>
-                            <h3 className="text-xl font-semibold">Alert Preferences</h3>
+                            <h3 className="text-sm font-semibold">Alert Preferences</h3>
                         </div>
                     </div>
 
@@ -369,7 +369,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Security</span>
-                            <h3 className="text-xl font-semibold">Safety & Protection</h3>
+                            <h3 className="text-sm font-semibold">Safety & Protection</h3>
                         </div>
                     </div>
 
@@ -405,7 +405,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                            <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
+                            <h3 className="text-sm font-semibold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
 

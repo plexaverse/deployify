@@ -125,7 +125,7 @@ export default function SharedDashboardPage() {
                     <AlertCircle className="w-8 h-8 text-[var(--error)]" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-xl font-semibold uppercase">Access Denied</h2>
+                    <h2 className="text-sm font-semibold uppercase">Access Denied</h2>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-md mx-auto">
                         {error}. This insight may be private, deleted, or you may have followed an invalid link.
                     </p>
@@ -150,7 +150,7 @@ export default function SharedDashboardPage() {
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">Public</span>
                                 </div>
                             </div>
-                            <h1 className="text-2xl font-bold tracking-tight uppercase">{widget?.name}</h1>
+                            <h1 className="text-xl font-bold tracking-tight uppercase">{widget?.name}</h1>
                         </div>
                     </div>
                     <div className="text-right">

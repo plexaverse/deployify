@@ -192,7 +192,7 @@ export default function BillingPage() {
     if (billingError || !usageData) {
         return (
             <div className="min-h-screen bg-[var(--background)] p-8 flex flex-col items-center justify-center text-center">
-                <h1 className="text-2xl font-semibold mb-4">Error</h1>
+                <h1 className="text-xl font-semibold mb-4">Error</h1>
                 <p className="text-[var(--muted-foreground)] mb-6">{billingError || 'Something went wrong'}</p>
                 <Link
                     href="/dashboard"
@@ -235,7 +235,7 @@ export default function BillingPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
-                        <h1 className="text-3xl font-bold tracking-tight">Billing & Usage</h1>
+                        <h1 className="text-xl font-bold tracking-tight">Billing & Usage</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -263,7 +263,7 @@ export default function BillingPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Resource Monitoring</span>
-                            <h3 className="text-xl font-semibold">Usage</h3>
+                            <h3 className="text-sm font-semibold">Usage</h3>
                         </div>
                     </div>
 
@@ -329,7 +329,7 @@ export default function BillingPage() {
                             <Layers className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</span>
-                        <h3 className="text-2xl font-semibold">Compare features</h3>
+                        <h3 className="text-xl font-semibold">Compare features</h3>
                     </div>
                     <ComparePlansTable plans={PLANS} currentPlanId={tier.id} />
                 </section>
@@ -343,7 +343,7 @@ export default function BillingPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Billing History</span>
-                                <h3 className="text-xl font-semibold">Invoices</h3>
+                                <h3 className="text-sm font-semibold">Invoices</h3>
                             </div>
                         </div>
 

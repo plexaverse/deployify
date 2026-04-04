@@ -83,7 +83,7 @@ export default function NewProjectPage() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
-                            <h1 className="text-3xl font-bold tracking-tight">Create New Project</h1>
+                            <h1 className="text-xl font-bold tracking-tight">Create New Project</h1>
                         </div>
                     </div>
 
@@ -486,7 +486,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                        <h2 className="text-xl font-semibold">Project Settings</h2>
+                        <h2 className="text-sm font-semibold">Project Settings</h2>
                     </div>
                 </div>
 
@@ -615,7 +615,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
-                        <h2 className="text-xl font-semibold">Environment Variables</h2>
+                        <h2 className="text-sm font-semibold">Environment Variables</h2>
                     </div>
                 </div>
 
@@ -811,7 +811,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         animate={{
                             color: isReady ? 'var(--success)' : isError ? 'var(--error)' : 'var(--info)'
                         }}
-                        className="text-2xl font-semibold flex items-center gap-3"
+                        className="text-xl font-semibold flex items-center gap-3"
                     >
                         {isReady ? (
                             <motion.div

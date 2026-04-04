@@ -80,7 +80,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                                 })} />
                             </div>
                             <div className="flex items-baseline gap-1">
-                                <span className={cn("text-lg font-semibold", {
+                                <span className={cn("text-sm font-semibold", {
                                     "text-[var(--success)]": variant === 'success',
                                     "text-[var(--warning)]": variant === 'warning',
                                     "text-[var(--error)]": variant === 'error',
@@ -105,7 +105,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
-                        <h3 className="text-xl font-semibold">Core Web Vitals</h3>
+                        <h3 className="text-sm font-semibold">Core Web Vitals</h3>
                     </div>
                 </div>
                 <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider px-2">
@@ -130,7 +130,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                                     })} />
                                 </div>
                                 <div className="flex items-baseline gap-1.5 mb-3">
-                                    <span className={cn("text-2xl font-semibold tracking-tight", {
+                                    <span className={cn("text-xl font-semibold tracking-tight", {
                                         "text-[var(--success)]": variant === 'success',
                                         "text-[var(--warning)]": variant === 'warning',
                                         "text-[var(--error)]": variant === 'error',

@@ -111,7 +111,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Traffic Trends</span>
-                            <h3 className="text-xl font-semibold">Traffic Over Time</h3>
+                            <h3 className="text-sm font-semibold">Traffic Over Time</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -184,7 +184,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Referral Traffic</span>
-                                <h3 className="text-xl font-semibold">Top Sources</h3>
+                                <h3 className="text-sm font-semibold">Top Sources</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -216,7 +216,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Geographic Reach</span>
-                                <h3 className="text-xl font-semibold">Top Locations</h3>
+                                <h3 className="text-sm font-semibold">Top Locations</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -265,7 +265,7 @@ function WebVitalCard({ title, value, unit, status, description }: {
                         'bg-[var(--error)]')} />
                 </div>
                 <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-semibold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
+                    <span className="text-xl font-semibold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
                         {value < 1 ? value.toFixed(3) : Math.round(value)}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>

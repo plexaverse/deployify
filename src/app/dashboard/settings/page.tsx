@@ -214,7 +214,7 @@ export default function TeamSettingsPage() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Personal Workspace</span>
-                            <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+                            <h1 className="text-xl font-bold tracking-tight">Account Settings</h1>
                         </div>
                     </div>
                 </div>
@@ -226,7 +226,7 @@ export default function TeamSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Profile</span>
-                            <h3 className="text-xl font-semibold">Personal Profile</h3>
+                            <h3 className="text-sm font-semibold">Personal Profile</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -239,7 +239,7 @@ export default function TeamSettingsPage() {
                             </AvatarFallback>
                         </Avatar>
                         <div className="space-y-1">
-                            <h3 className="text-xl font-semibold text-[var(--foreground)]">
+                            <h3 className="text-sm font-semibold text-[var(--foreground)]">
                                 {user?.name || user?.githubUsername || 'Personal Workspace'}
                             </h3>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
@@ -265,7 +265,7 @@ export default function TeamSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                            <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
+                            <h3 className="text-sm font-semibold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--error)]/20" />
@@ -310,7 +310,7 @@ export default function TeamSettingsPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Management</span>
-                        <h1 className="text-3xl font-bold tracking-tight">{activeTeam.name} Settings</h1>
+                        <h1 className="text-xl font-bold tracking-tight">{activeTeam.name} Settings</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -331,7 +331,7 @@ export default function TeamSettingsPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collaboration</span>
-                                    <h3 className="text-xl font-semibold">Invite New Member</h3>
+                                    <h3 className="text-sm font-semibold">Invite New Member</h3>
                                 </div>
                             </div>
                             <Separator className="bg-[var(--border)]" />
@@ -381,7 +381,7 @@ export default function TeamSettingsPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team</span>
-                                    <h3 className="text-xl font-semibold">Team Members</h3>
+                                    <h3 className="text-sm font-semibold">Team Members</h3>
                                 </div>
                             </div>
                             <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full border border-[var(--border)]">
@@ -510,7 +510,7 @@ export default function TeamSettingsPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                                <h3 className="text-xl font-semibold text-[var(--error)]">Critical Actions</h3>
+                                <h3 className="text-sm font-semibold text-[var(--error)]">Critical Actions</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--error)]/20" />
@@ -564,7 +564,7 @@ export default function TeamSettingsPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Activity</span>
-                                <h3 className="text-xl font-semibold">Audit Log</h3>
+                                <h3 className="text-sm font-semibold">Audit Log</h3>
                             </div>
                         </div>
 

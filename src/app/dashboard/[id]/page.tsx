@@ -202,7 +202,7 @@ export default function ProjectDetailPage() {
                                 </span>
                             </div>
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+                        <h1 className="text-xl font-bold tracking-tight">{project.name}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -264,7 +264,7 @@ export default function ProjectDetailPage() {
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
                                     <div className="flex items-center gap-2">
-                                        <h2 className="text-xl font-semibold">Production</h2>
+                                        <h2 className="text-sm font-semibold">Production</h2>
                                         <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)]">
                                             {project.framework?.toUpperCase() || 'WEB APP'}
                                         </Badge>
@@ -293,7 +293,7 @@ export default function ProjectDetailPage() {
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-3">
                                             <div className="space-y-1">
-                                                <p className="text-2xl font-semibold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
+                                                <p className="text-xl font-semibold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
                                                     {project.productionUrl.replace(/^https?:\/\//, '')}
                                                     <ExternalLink className="inline-block w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                                                 </p>
@@ -366,7 +366,7 @@ export default function ProjectDetailPage() {
                                     </div>
                                     <div>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">24h Status</span>
-                                        <h3 className="text-xl font-semibold">Vitals</h3>
+                                        <h3 className="text-sm font-semibold">Vitals</h3>
                                     </div>
                                 </div>
                                 <AlertCircle className={cn(
@@ -425,7 +425,7 @@ export default function ProjectDetailPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Activity</span>
-                                    <h2 className="text-xl font-semibold">Deployment History</h2>
+                                    <h2 className="text-sm font-semibold">Deployment History</h2>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">

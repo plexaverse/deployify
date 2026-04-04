@@ -115,7 +115,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scheduling</span>
-                        <h3 className="text-xl font-semibold">Cron Jobs</h3>
+                        <h3 className="text-sm font-semibold">Cron Jobs</h3>
                     </div>
                 </div>
                 {!isAdding && (

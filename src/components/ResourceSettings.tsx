@@ -79,7 +79,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                 </div>
                 <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
-                    <h3 className="text-xl font-semibold">Compute Configuration</h3>
+                    <h3 className="text-sm font-semibold">Compute Configuration</h3>
                 </div>
             </div>
 

@@ -81,7 +81,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                     <thead>
                         <tr>
                             <th className="p-4 min-w-[200px] bg-[var(--background)] sticky left-0 z-10 border-b border-[var(--border)] shadow-[4px_0_10px_-2px_rgba(0,0,0,0.1)]">
-                                <span className="text-lg font-semibold">Features</span>
+                                <span className="text-sm font-semibold">Features</span>
                             </th>
                             {plans.map((plan) => (
                                 <th key={plan.id} className="p-4 min-w-[150px] border-b border-[var(--border)] text-center bg-[var(--background)]">

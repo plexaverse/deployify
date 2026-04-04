@@ -217,7 +217,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                        <h3 className="text-xl font-semibold">Environment Variables</h3>
+                        <h3 className="text-sm font-semibold">Environment Variables</h3>
                     </div>
                 </div>
                 {!isAdding && (

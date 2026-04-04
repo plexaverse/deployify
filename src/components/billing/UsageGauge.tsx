@@ -76,7 +76,7 @@ export function UsageGauge({
             </div>
 
                 <div className="mt-4 text-center">
-                    <div className="text-xl font-semibold text-[var(--foreground)]">
+                    <div className="text-sm font-semibold text-[var(--foreground)]">
                         {formattedUsed} <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
                     </div>
                     <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">

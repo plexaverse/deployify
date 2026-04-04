@@ -1187,7 +1187,7 @@ runQuery();`;
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Data Lab</span>
-                        <h3 className="text-xl font-semibold">Managed Query Browser</h3>
+                        <h3 className="text-sm font-semibold">Managed Query Browser</h3>
                     </div>
                 </div>
                 <div className="flex items-center gap-6">
@@ -1712,15 +1712,15 @@ runQuery();`;
                             <div className="space-y-3">
                                 <div>
                                     <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Uptime / Success</span>
-                                    <span className="text-lg font-semibold text-[var(--success)]">{performanceData.successRate}%</span>
+                                    <span className="text-sm font-semibold text-[var(--success)]">{performanceData.successRate}%</span>
                                 </div>
                                 <div>
                                     <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Execution</span>
-                                    <span className="text-lg font-semibold text-[var(--primary)]">{performanceData.avgLatency}ms</span>
+                                    <span className="text-sm font-semibold text-[var(--primary)]">{performanceData.avgLatency}ms</span>
                                 </div>
                                 <div>
                                     <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Queries (Last 100)</span>
-                                    <span className="text-lg font-semibold text-[var(--foreground)]">{performanceData.totalQueries}</span>
+                                    <span className="text-sm font-semibold text-[var(--foreground)]">{performanceData.totalQueries}</span>
                                 </div>
                             </div>
                         </div>
@@ -2272,7 +2272,7 @@ runQuery();`;
                                 <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                                     {isCloning ? <Copy className="w-4 h-4 text-[var(--primary)]" /> : <Save className="w-4 h-4 text-[var(--primary)]" />}
                                 </div>
-                                <h3 className="text-lg font-semibold">{isCloning ? 'Clone Query' : 'Save Query'}</h3>
+                                <h3 className="text-sm font-semibold">{isCloning ? 'Clone Query' : 'Save Query'}</h3>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => {
                                 setShowSaveModal(false);
