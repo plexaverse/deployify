@@ -172,7 +172,7 @@ export async function getEnvVarsForDeployment(
 /**
  * Derive a branch-specific connection string for ephemeral environments
  */
-function getBranchConnectionString(
+export function getBranchConnectionString(
     baseConn: string,
     type: string,
     settings: import('@/types').StorageBranchingSettings,

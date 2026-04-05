@@ -332,7 +332,20 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement Storage Branching API for PR-specific environment provisioning
 - [x] Enhance Storage UI with "Preview Branching" controls and status badges
 
+### Phase 49: Automated Ephemeral Storage Cleanup (COMPLETED)
+- [x] Implement `deleteDatabase` for Cloud SQL in `src/lib/gcp/cloudsql.ts`
+- [x] Export `getBranchConnectionString` from `src/lib/db.ts`
+- [x] Integrate storage cleanup into GitHub PR closed webhook handler
+- [x] Verify automated cleanup of ephemeral Cloud SQL databases
+
 ## Progress Updates
+
+### 2027-04-25: Automated Ephemeral Storage Cleanup
+- Completed Phase 49: Automated Ephemeral Storage Cleanup.
+- Implemented `deleteDatabase` utility for Cloud SQL to facilitate programmatic removal of ephemeral databases.
+- Updated the GitHub webhook handler to automatically trigger storage cleanup when a Pull Request is closed.
+- Ensured that ephemeral Cloud SQL databases are deleted alongside the associated Cloud Run preview service, maintaining infrastructure hygiene.
+- Verified 100% functional integrity with updated unit tests and a perfect system audit.
 
 ### 2027-04-24: Ephemeral Storage & Database Branching
 - Completed Phase 48: Ephemeral Storage & Database Branching.
