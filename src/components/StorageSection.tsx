@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, getStorageEnvKey } from '@/lib/utils';
 import {
     Database,
     Plus,
@@ -24,6 +24,8 @@ import {
     ShieldCheck,
     Shield,
     Copy,
+    FileCode,
+    BookOpen,
     ChevronDown,
     ChevronUp,
     Bell,
@@ -118,6 +120,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [isFetchingPreview, setIsFetchingPreview] = useState<string | null>(null);
 
     const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
+    const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
     const [alertCpu, setAlertCpu] = useState(80);
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
@@ -133,9 +136,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
         // Auto-set envKey based on type if it's empty
         if (!envKey) {
-            if (type === 'memorystore-redis') setEnvKey('REDIS_URL');
-            else if (type === 'mongodb-atlas') setEnvKey('MONGODB_URI');
-            else setEnvKey('DATABASE_URL');
+            setEnvKey(getStorageEnvKey({ type }));
         }
     }, [type, isAdding, editingId, envKey]);
 
@@ -810,7 +811,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 </span>
                                                 {!config.metadata?.secretOnly && (
                                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                                        {config.envKey || (config.type === 'memorystore-redis' ? 'REDIS_URL' : config.type === 'mongodb-atlas' ? 'MONGODB_URI' : 'DATABASE_URL')}
+                                                        {getStorageEnvKey(config)}
                                                     </span>
                                                 )}
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
@@ -1008,6 +1009,29 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             {config.alertSettings?.enabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            const envKey = getStorageEnvKey(config);
+                                            const snippet = `${envKey}="PASTE_YOUR_CONNECTION_STRING_HERE"`;
+                                            navigator.clipboard.writeText(snippet);
+                                            toast.success(`Config snippet copied: ${envKey}`);
+                                        }}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="Copy .env Snippet"
+                                    >
+                                        <FileCode className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setIsShowingGuide(config)}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="Usage Guide"
+                                    >
+                                        <BookOpen className="w-4 h-4" />
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -1455,6 +1479,68 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 }
                 confirmText="Save Alert Settings"
                 loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isShowingGuide}
+                onClose={() => setIsShowingGuide(null)}
+                title="Connector Usage Guide"
+                headerLabel="Technical Documentation"
+                icon={<BookOpen className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-4">
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Standardized Interface</span>
+                            </div>
+                            <p className="text-sm">
+                                This connector is automatically injected into your Cloud Run containers. You don&apos;t need to manually manage secrets or environment variables.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment Variable</Label>
+                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px] flex items-center justify-between">
+                                <span className="text-[var(--primary)]">
+                                    {isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}
+                                </span>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                    onClick={() => {
+                                        if (!isShowingGuide) return;
+                                        const key = getStorageEnvKey(isShowingGuide);
+                                        navigator.clipboard.writeText(key);
+                                        toast.success('Key copied to clipboard');
+                                    }}
+                                >
+                                    <Copy className="w-3 h-3" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Node.js Access</Label>
+                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px]">
+                                <code className="text-[var(--foreground)]/80">
+                                    const connectionString = process.env.{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'};
+                                </code>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployment Region</Label>
+                            <div className="flex items-center gap-2 px-1">
+                                <Server className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider">{isShowingGuide?.metadata?.region || 'GLOBAL/AUTO'}</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
             />
 
             <ConfirmationModal

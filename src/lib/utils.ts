@@ -150,6 +150,16 @@ export function validateConnectionString(url: string): { valid: boolean; type?: 
 }
 
 /**
+ * Get the default or custom environment variable key for a storage connector
+ */
+export function getStorageEnvKey(config: { type: string; envKey?: string }): string {
+    if (config.envKey) return config.envKey;
+    if (config.type === 'memorystore-redis') return 'REDIS_URL';
+    if (config.type === 'mongodb-atlas') return 'MONGODB_URI';
+    return 'DATABASE_URL';
+}
+
+/**
  * Clean an object by removing all properties with undefined values.
  * Firestore does not allow undefined values in documents.
  */
