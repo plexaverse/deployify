@@ -1534,7 +1534,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployment Region</Label>
                             <div className="flex items-center gap-2 px-1">
                                 <Server className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">{isShowingGuide?.metadata?.region || 'GLOBAL/AUTO'}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider">{(isShowingGuide?.metadata?.region as string) || 'GLOBAL/AUTO'}</span>
                             </div>
                         </div>
                     </div>
