@@ -17,6 +17,8 @@ interface ConfirmationModalProps {
   loading?: boolean;
   showConfirm?: boolean;
   showCancel?: boolean;
+  icon?: React.ReactNode;
+  headerLabel?: string;
 }
 
 export function ConfirmationModal({
@@ -31,6 +33,8 @@ export function ConfirmationModal({
   loading = false,
   showConfirm = true,
   showCancel = true,
+  icon,
+  headerLabel,
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -45,15 +49,15 @@ export function ConfirmationModal({
                 "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
                 variant === 'destructive' ? "bg-[var(--error)]/10" : "bg-[var(--primary)]/10"
               )}>
-                {variant === 'destructive' ? (
+                {icon || (variant === 'destructive' ? (
                   <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
                 ) : (
                   <CheckCircle2 className="w-5 h-5 text-[var(--primary)]" />
-                )}
+                ))}
               </div>
               <div className="space-y-0.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                  {variant === 'destructive' ? 'Critical Action' : 'Confirmation Required'}
+                  {headerLabel || (variant === 'destructive' ? 'Critical Action' : 'Confirmation Required')}
                 </span>
                 <h3 className="text-sm font-semibold tracking-tight text-[var(--foreground)]">
                   {title}
