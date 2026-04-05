@@ -427,6 +427,11 @@ export interface StorageAlertSettings {
     emailNotifications?: boolean;
 }
 
+export interface StorageBranchingSettings {
+    enabled: boolean;
+    template?: string; // e.g., "db_{branch}" or "preview_{pr}"
+}
+
 export interface StorageConfig {
     id: string;
     type: StorageType;
@@ -441,6 +446,7 @@ export interface StorageConfig {
     lastAlertedAt?: Date;
     lastError?: string;
     alertSettings?: StorageAlertSettings;
+    branchingSettings?: StorageBranchingSettings;
     activeAlerts?: string[];
     metadata?: Record<string, unknown>;
     createdAt: Date;

@@ -60,7 +60,8 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
  */
 export async function getEnvVarsForDeployment(
     project: Project,
-    envTarget: 'production' | 'preview'
+    envTarget: 'production' | 'preview',
+    context?: { branch?: string; pullRequestNumber?: number }
 ): Promise<{
     buildEnvVars: Record<string, string>;
     runtimeEnvVars: Record<string, string>;
@@ -120,26 +121,110 @@ export async function getEnvVarsForDeployment(
                 if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
             }
 
-            // Prefer native Secret Manager mounting for runtime
-            runtimeSecrets[envKey] = storage.connectionStringSecretId;
-
-            // For build-time tools (like Prisma), we still need the actual value
-            if (storage.environment === 'both') {
+            // Handle Ephemeral Branching
+            let branchedValue: string | undefined;
+            if (envTarget === 'preview' && storage.branchingSettings?.enabled) {
                 try {
-                    const connectionString = await getSecretValue(storage.connectionStringSecretId);
-                    if (!connectionString) {
-                        throw new Error(`Secret value is empty for ${storage.name}`);
+                    const baseConnectionString = await getSecretValue(storage.connectionStringSecretId);
+                    if (baseConnectionString) {
+                        branchedValue = getBranchConnectionString(
+                            baseConnectionString,
+                            storage.type,
+                            storage.branchingSettings,
+                            context
+                        );
                     }
-                    buildEnvVars[envKey] = connectionString;
                 } catch (e) {
-                    console.error(`Failed to fetch storage secret for ${storage.name}:`, e);
-                    throw new Error(`Failed to inject build-time storage credential for ${storage.name}. Please verify the connector status.`);
+                    console.warn(`[Branching] Failed to derive branched connection string for ${storage.name}:`, e);
+                }
+            }
+
+            if (branchedValue) {
+                // If branched, we must inject the value directly as it's dynamic per deployment
+                runtimeEnvVars[envKey] = branchedValue;
+                if (storage.environment === 'both' || storage.environment === 'preview') {
+                    buildEnvVars[envKey] = branchedValue;
+                }
+            } else {
+                // Prefer native Secret Manager mounting for runtime
+                runtimeSecrets[envKey] = storage.connectionStringSecretId;
+
+                // For build-time tools (like Prisma), we still need the actual value
+                if (storage.environment === 'both' || (storage.environment === 'preview' && envTarget === 'preview')) {
+                    try {
+                        const connectionString = await getSecretValue(storage.connectionStringSecretId);
+                        if (!connectionString) {
+                            throw new Error(`Secret value is empty for ${storage.name}`);
+                        }
+                        buildEnvVars[envKey] = connectionString;
+                    } catch (e) {
+                        console.error(`Failed to fetch storage secret for ${storage.name}:`, e);
+                        throw new Error(`Failed to inject build-time storage credential for ${storage.name}. Please verify the connector status.`);
+                    }
                 }
             }
         }
     }
 
     return { buildEnvVars, runtimeEnvVars, runtimeSecrets };
+}
+
+/**
+ * Derive a branch-specific connection string for ephemeral environments
+ */
+function getBranchConnectionString(
+    baseConn: string,
+    type: string,
+    settings: import('@/types').StorageBranchingSettings,
+    context?: { branch?: string; pullRequestNumber?: number }
+): string {
+    if (!context || (!context.branch && !context.pullRequestNumber)) return baseConn;
+
+    const identifier = context.pullRequestNumber
+        ? `pr${context.pullRequestNumber}`
+        : context.branch?.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase() || 'preview';
+
+    // 1. SQL-like connection strings (Postgres, MySQL)
+    if (type.includes('sql') || type === 'supabase' || type === 'planetscale') {
+        try {
+            const url = new URL(baseConn);
+            const baseDbName = url.pathname.split('/')[1] || 'postgres';
+            const template = settings.template || '{base}_{identifier}';
+            const newDbName = template
+                .replace('{base}', baseDbName)
+                .replace('{identifier}', identifier);
+
+            url.pathname = `/${newDbName}`;
+            return url.toString();
+        } catch {
+            return baseConn;
+        }
+    }
+
+    // 2. MongoDB
+    if (type === 'mongodb-atlas') {
+        try {
+            const url = new URL(baseConn);
+            const baseDbName = url.pathname.split('/')[1] || 'test';
+            const template = settings.template || '{base}_{identifier}';
+            const newDbName = template
+                .replace('{base}', baseDbName)
+                .replace('{identifier}', identifier);
+
+            url.pathname = `/${newDbName}`;
+            return url.toString();
+        } catch {
+            return baseConn;
+        }
+    }
+
+    // 3. Redis / Memorystore (Usually use prefixing in app code, but we can append to the URL if supported)
+    if (type === 'memorystore-redis') {
+        // Redis usually doesn't have multiple DBs in the same way, but we can append a DB index if template is numeric
+        return baseConn;
+    }
+
+    return baseConn;
 }
 
 // ============= Invite Operations =============

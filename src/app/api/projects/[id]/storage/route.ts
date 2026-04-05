@@ -66,7 +66,7 @@ export async function POST(
 
         const { project } = access;
         const body = await request.json();
-        const { type, name, environment = 'both', connectionString, envKey, metadata, provision = false, region } = body;
+        const { type, name, environment = 'both', connectionString, envKey, metadata, branchingSettings, provision = false, region } = body;
 
         // autoSync and secretOnly can be passed at top level or inside metadata
         const autoSync = body.autoSync || metadata?.autoSync || false;
@@ -127,6 +127,7 @@ export async function POST(
             environment,
             envKey,
             connectionStringSecretId,
+            branchingSettings,
             metadata: {
                 ...(metadata || {}),
                 provisioned: provision,
@@ -277,7 +278,7 @@ export async function PATCH(
 
         const { project } = access;
         const body = await request.json();
-        const { storageId, type, name, environment, connectionString, envKey, metadata } = body;
+        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings } = body;
         const secretOnly = body.secretOnly !== undefined ? body.secretOnly : metadata?.secretOnly;
 
         if (!storageId) {
@@ -329,6 +330,7 @@ export async function PATCH(
             environment: environment || storage.environment,
             envKey: envKey !== undefined ? envKey : storage.envKey,
             connectionStringSecretId,
+            branchingSettings: branchingSettings || storage.branchingSettings,
             metadata: {
                 ...(storage.metadata || {}),
                 ...(metadata || {}),
