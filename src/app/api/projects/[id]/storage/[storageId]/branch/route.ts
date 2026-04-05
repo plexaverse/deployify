@@ -4,6 +4,8 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { ensureEphemeralDatabase as ensureSqlBranch } from '@/lib/gcp/cloudsql';
 import { ensureEphemeralDatabase as ensureFirestoreBranch, validateDatabaseId } from '@/lib/gcp/firestore-admin';
+import { runSeed } from '@/lib/gcp/seeding';
+import { getLatestDeployment } from '@/lib/db';
 import type { StorageConfig } from '@/types';
 
 /**
@@ -38,7 +40,7 @@ export async function POST(
         }
 
         const body = await request.json();
-        const { branch, pullRequestNumber } = body;
+        const { branch, pullRequestNumber, seed } = body;
 
         if (!branch && !pullRequestNumber) {
             return NextResponse.json({ error: 'Branch name or PR number is required' }, { status: 400 });
@@ -54,8 +56,8 @@ export async function POST(
             }
 
             const connectionString = await getSecretValue(storageConfig.connectionStringSecretId!);
-            const url = new URL(connectionString);
-            const baseDbName = url.pathname.split('/')[1] || 'postgres';
+            const urlObj = new URL(connectionString);
+            const baseDbName = urlObj.pathname.split('/')[1] || 'postgres';
             const template = storageConfig.branchingSettings.template || '{base}_{identifier}';
             const branchDbName = template
                 .replace('{base}', baseDbName)
@@ -63,10 +65,35 @@ export async function POST(
 
             await ensureSqlBranch(instanceName, branchDbName);
 
+            // Handle optional seeding
+            let seedOperation: string | undefined;
+            if (seed && storageConfig.branchingSettings.seedCommand) {
+                const latestDeploy = await getLatestDeployment(project.id, pullRequestNumber ? 'preview' : 'branch');
+                const commitSha = latestDeploy?.gitCommitSha || 'main';
+
+                try {
+                    const branchConn = urlObj.toString().replace(urlObj.pathname, `/${branchDbName}`);
+                    const { operationName } = await runSeed(
+                        project.id,
+                        project.repoFullName,
+                        commitSha,
+                        branchConn,
+                        storageConfig.envKey || 'DATABASE_URL',
+                        storageConfig.branchingSettings.seedCommand,
+                        project.region,
+                        project.rootDirectory
+                    );
+                    seedOperation = operationName;
+                } catch (e) {
+                    console.error('[Branching] Seeding failed to trigger:', e);
+                }
+            }
+
             return NextResponse.json({
                 success: true,
                 databaseName: branchDbName,
-                message: `Ephemeral database ${branchDbName} ensured for ${identifier}`
+                seedOperation,
+                message: `Ephemeral database ${branchDbName} ensured for ${identifier}${seedOperation ? ' (Seeding triggered)' : ''}`
             });
         }
 
@@ -92,6 +119,25 @@ export async function POST(
                 success: true,
                 databaseName: finalId,
                 message: `Ephemeral Firestore database ${finalId} ensured for ${identifier}`
+            });
+        }
+
+        if (storageConfig.type === 'memorystore-redis') {
+            const connectionString = await getSecretValue(storageConfig.connectionStringSecretId!);
+            const url = new URL(connectionString);
+            let dbIndex = 0;
+
+            if (pullRequestNumber) {
+                dbIndex = (pullRequestNumber % 15) + 1;
+            } else if (branch) {
+                const hash = branch.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+                dbIndex = (hash % 15) + 1;
+            }
+
+            return NextResponse.json({
+                success: true,
+                databaseName: `db-${dbIndex}`,
+                message: `Redis DB index ${dbIndex} assigned for ${identifier}`
             });
         }
 
