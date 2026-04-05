@@ -352,7 +352,18 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement optional seeding side-effects for newly provisioned branches
 - [x] Support custom seed commands or template databases (Postgres)
 
+### Phase 53: Automated Ephemeral Storage Provisioning (COMPLETED)
+- [x] Integrate ephemeral storage provisioning into GitHub webhook handler
+- [x] Automate Cloud SQL and Firestore branch creation on PR opens
+- [x] Trigger `runSeed` in webhook automatically when `seedCommand` is present
+
 ## Progress Updates
+
+### 2027-04-27: Automated Ephemeral Storage Provisioning
+- Completed Phase 53: Automated Ephemeral Storage Provisioning.
+- Integrated automated ephemeral storage creation directly into the GitHub pull request webhook handler.
+- Added auto-provisioning for Cloud SQL and Firestore when a new PR is opened, ensuring isolated test databases are ready before builds complete.
+- Automated the triggering of `runSeed` for branches configured with a `seedCommand`.
 
 ### 2027-04-26: Advanced Branching & Seeding
 - Completed Phase 50: Advanced Branching - Firestore & Memorystore Support.
