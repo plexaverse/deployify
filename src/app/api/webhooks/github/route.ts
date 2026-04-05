@@ -15,7 +15,8 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { deleteDatabase } from '@/lib/gcp/cloudsql';
+import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
+import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { parseBranchFromRef, shouldAutoDeploy, getProjectSlugForDeployment } from '@/lib/utils';
@@ -262,10 +263,33 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
                             if (dbName) {
                                 console.log(`[Cleanup] Deleting ephemeral database ${dbName} from ${instanceName}`);
-                                await deleteDatabase(instanceName, dbName);
+                                await deleteSqlDatabase(instanceName, dbName);
                             }
                         } catch (e) {
                             console.error(`[Cleanup] Failed to delete ephemeral database for ${storage.name}:`, e);
+                        }
+                    }
+
+                    if (storage.branchingSettings?.enabled && storage.type === 'firestore') {
+                        try {
+                            const baseConnectionString = await getSecretValue(storage.connectionStringSecretId!);
+                            if (!baseConnectionString) continue;
+
+                            const branchedConnectionString = getBranchConnectionString(
+                                baseConnectionString,
+                                storage.type,
+                                storage.branchingSettings,
+                                { pullRequestNumber: pull_request.number }
+                            );
+
+                            const databaseId = branchedConnectionString.replace('firestore://', '');
+
+                            if (databaseId && databaseId !== '(default)') {
+                                console.log(`[Cleanup] Deleting ephemeral Firestore database ${databaseId}`);
+                                await deleteFirestoreDatabase(databaseId);
+                            }
+                        } catch (e) {
+                            console.error(`[Cleanup] Failed to delete ephemeral Firestore database for ${storage.name}:`, e);
                         }
                     }
                 }

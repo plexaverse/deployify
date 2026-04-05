@@ -430,6 +430,7 @@ export interface StorageAlertSettings {
 export interface StorageBranchingSettings {
     enabled: boolean;
     template?: string; // e.g., "db_{branch}" or "preview_{pr}"
+    seedCommand?: string; // Optional command to seed newly created branch databases
 }
 
 export interface StorageConfig {
