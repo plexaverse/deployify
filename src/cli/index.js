@@ -453,6 +453,7 @@ Subcommands:
   validate <storage_id>              Validate a storage connection
   sync <storage_id>                  Sync provisioning status
   provision <type> <name>            Provision a new storage instance
+  branch <storage_id> <identifier>   Provision a storage branch (PR # or branch name)
   backups <action> <storage_id>      Manage database backups
   migrations <action> <storage_id>   Manage database migrations
 `);
@@ -560,6 +561,29 @@ Actions:
             console.log('\nYou can poll for status using: deployify storage sync ' + data.storageConfig.id);
         } else {
             console.log(`❌ Provisioning failed: ${data.error || 'Unknown error'}`);
+        }
+    } else if (subcommand === 'branch') {
+        const storageId = args[2];
+        const identifier = args[3];
+        if (!storageId || !identifier) {
+            throw new Error('Usage: deployify storage branch <storage_id> <identifier>');
+        }
+
+        const isPr = /^\d+$/.test(identifier);
+        const body = isPr ? { pullRequestNumber: parseInt(identifier) } : { branch: identifier };
+
+        console.log(`Provisioning ephemeral branch for storage ${storageId} using identifier '${identifier}'...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/branch`, token, {
+            method: 'POST',
+            body
+        });
+
+        if (data.success) {
+            console.log('✅ Branching logic executed!');
+            if (data.databaseName) console.log(`Database: ${data.databaseName}`);
+            if (data.message) console.log(`Message:  ${data.message}`);
+        } else {
+            console.log(`❌ Branching failed: ${data.error || 'Unknown error'}`);
         }
     } else if (subcommand === 'backups') {
         const storageId = args[3];

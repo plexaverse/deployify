@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
-import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { ensureEphemeralDatabase as ensureSqlBranch } from '@/lib/gcp/cloudsql';
+import { ensureEphemeralDatabase as ensureFirestoreBranch, validateDatabaseId } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
 
 /**
@@ -60,7 +61,7 @@ export async function POST(
                 .replace('{base}', baseDbName)
                 .replace('{identifier}', identifier);
 
-            await ensureEphemeralDatabase(instanceName, branchDbName);
+            await ensureSqlBranch(instanceName, branchDbName);
 
             return NextResponse.json({
                 success: true,
@@ -69,7 +70,31 @@ export async function POST(
             });
         }
 
-        // Add support for other types if needed (Firestore prefixing is handled at injection)
+        if (storageConfig.type === 'firestore') {
+            const region = (storageConfig.metadata?.region as string) || project.region || 'us-central1';
+            const baseDbName = (storageConfig.metadata?.resourceName as string) || '(default)';
+            const template = storageConfig.branchingSettings.template || 'db-{identifier}';
+
+            // Note: Firestore (default) database cannot be deleted and has fixed ID.
+            // We use the template to create a NEW database for the branch.
+            const branchDbName = template
+                .replace('{base}', baseDbName === '(default)' ? 'default' : baseDbName)
+                .replace('{identifier}', identifier)
+                .replace(/[^a-z0-9-]/g, '-')
+                .toLowerCase();
+
+            // Validate ID (Firestore IDs must start with letter)
+            const finalId = validateDatabaseId(branchDbName) ? branchDbName : `db-${branchDbName}`.substring(0, 63);
+
+            await ensureFirestoreBranch(finalId, region);
+
+            return NextResponse.json({
+                success: true,
+                databaseName: finalId,
+                message: `Ephemeral Firestore database ${finalId} ensured for ${identifier}`
+            });
+        }
+
         return NextResponse.json({
             success: true,
             message: `Branching context established for ${identifier}`

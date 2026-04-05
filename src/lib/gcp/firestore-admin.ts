@@ -100,3 +100,36 @@ export async function deleteDatabase(databaseId: string): Promise<string> {
     const data = await response.json();
     return data.name;
 }
+
+/**
+ * Validate a Firestore database ID
+ */
+export function validateDatabaseId(id: string): boolean {
+    // Firestore DB ID: 4-63 chars, lowercase, numbers, hyphens. Start with letter, end with letter/number.
+    const regex = /^[a-z][a-z0-9-]{2,61}[a-z0-9]$/;
+    return regex.test(id);
+}
+
+/**
+ * Ensure an ephemeral Firestore database exists for branching
+ */
+export async function ensureEphemeralDatabase(
+    databaseId: string,
+    region: string
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/databases/${databaseId}`;
+
+    // 1. Check if database exists
+    const checkResponse = await fetch(`${FIRESTORE_API}/${name}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (checkResponse.ok) return; // Already exists
+
+    // 2. Create if not exists
+    await createDatabase(databaseId, region);
+}
