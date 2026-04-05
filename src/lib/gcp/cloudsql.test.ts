@@ -1,7 +1,21 @@
 
 import assert from 'node:assert';
 import { test, describe } from 'node:test';
-import { listBackups, createBackup, restoreBackup } from './cloudsql';
+import { listBackups, createBackup, restoreBackup, createDatabase, deleteDatabase } from './cloudsql';
+
+describe('Cloud SQL Database Operations (Mock)', () => {
+    process.env.MOCK_DB = 'true';
+
+    test('createDatabase returns mock operation', async () => {
+        const op = await createDatabase('test-instance', 'test-db');
+        assert.strictEqual(op, 'projects/mock/operations/db-test-db');
+    });
+
+    test('deleteDatabase returns mock operation', async () => {
+        const op = await deleteDatabase('test-instance', 'test-db');
+        assert.strictEqual(op, 'projects/mock/operations/delete-db-test-db');
+    });
+});
 
 describe('Cloud SQL Backup Management (Mock)', () => {
     process.env.MOCK_DB = 'true';

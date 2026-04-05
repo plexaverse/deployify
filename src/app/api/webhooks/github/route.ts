@@ -10,10 +10,13 @@ import {
     createDeployment,
     updateDeployment,
     getUserById,
-    getEnvVarsForDeployment
+    getEnvVarsForDeployment,
+    getBranchConnectionString
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
+import { deleteDatabase } from '@/lib/gcp/cloudsql';
+import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { parseBranchFromRef, shouldAutoDeploy, getProjectSlugForDeployment } from '@/lib/utils';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
@@ -230,11 +233,43 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
     const previewServiceName = getPreviewServiceName(project.slug, pull_request.number);
 
-    // Handle PR closed - cleanup preview deployment
+    // Handle PR closed - cleanup preview deployment and ephemeral storage
     if (action === 'closed') {
         try {
             const gcpAccessToken = await getGcpAccessToken();
             await deleteService(previewServiceName, gcpAccessToken, project.region);
+
+            // Cleanup ephemeral databases if branching is enabled
+            if (project.storageConfigs && project.storageConfigs.length > 0) {
+                for (const storage of project.storageConfigs) {
+                    if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                        const instanceName = storage.metadata?.resourceName as string;
+                        if (!instanceName || !storage.connectionStringSecretId) continue;
+
+                        try {
+                            const baseConnectionString = await getSecretValue(storage.connectionStringSecretId);
+                            if (!baseConnectionString) continue;
+
+                            const branchedConnectionString = getBranchConnectionString(
+                                baseConnectionString,
+                                storage.type,
+                                storage.branchingSettings,
+                                { pullRequestNumber: pull_request.number }
+                            );
+
+                            const url = new URL(branchedConnectionString);
+                            const dbName = url.pathname.split('/')[1];
+
+                            if (dbName) {
+                                console.log(`[Cleanup] Deleting ephemeral database ${dbName} from ${instanceName}`);
+                                await deleteDatabase(instanceName, dbName);
+                            }
+                        } catch (e) {
+                            console.error(`[Cleanup] Failed to delete ephemeral database for ${storage.name}:`, e);
+                        }
+                    }
+                }
+            }
         } catch (error) {
             console.error('Failed to cleanup preview deployment:', error);
         }

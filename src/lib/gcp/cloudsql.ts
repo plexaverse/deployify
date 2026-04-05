@@ -100,6 +100,30 @@ export async function createDatabase(
 }
 
 /**
+ * Delete a database within an existing instance
+ */
+export async function deleteDatabase(
+    instanceName: string,
+    databaseName: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/delete-db-${databaseName}`;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/databases/${databaseName}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) throw new Error(`Failed to delete database: ${await response.text()}`);
+    const data = await response.json();
+    return data.name;
+}
+
+/**
  * List backup runs for a Cloud SQL instance
  */
 export async function listBackups(instanceName: string): Promise<Backup[]> {
