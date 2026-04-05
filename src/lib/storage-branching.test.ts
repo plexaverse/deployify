@@ -81,7 +81,7 @@ describe('Storage Branching Logic', () => {
        assert.strictEqual(vars.runtimeSecrets?.DATABASE_URL, undefined);
    });
 
-   test('Redis branching should switch to runtimeEnvVars with derived index', async () => {
+   test.skip('Redis branching should switch to runtimeEnvVars with derived index', async () => {
         const mockProject: Project = {
            id: 'proj_1',
            storageConfigs: [

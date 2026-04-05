@@ -15,8 +15,9 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
-import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
+import { deleteDatabase as deleteSqlDatabase, ensureEphemeralDatabase as ensureSqlBranch } from '@/lib/gcp/cloudsql';
+import { deleteDatabase as deleteFirestoreDatabase, ensureEphemeralDatabase as ensureFirestoreBranch, validateDatabaseId } from '@/lib/gcp/firestore-admin';
+import { runSeed } from '@/lib/gcp/seeding';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { parseBranchFromRef, shouldAutoDeploy, getProjectSlugForDeployment } from '@/lib/utils';
@@ -331,6 +332,82 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 commitSha: pull_request.head.sha
             }
         );
+
+        // Provision Ephemeral Storage Databases if configured
+        if (project.storageConfigs && project.storageConfigs.length > 0) {
+            for (const storage of project.storageConfigs) {
+                if (!storage.branchingSettings?.enabled) continue;
+
+                if (storage.type.includes('cloud-sql')) {
+                    const instanceName = storage.metadata?.resourceName as string;
+                    if (!instanceName || !storage.connectionStringSecretId) continue;
+
+                    try {
+                        const baseConnectionString = await getSecretValue(storage.connectionStringSecretId);
+                        if (baseConnectionString) {
+                            const branchedConnectionString = getBranchConnectionString(
+                                baseConnectionString,
+                                storage.type,
+                                storage.branchingSettings,
+                                { pullRequestNumber: pull_request.number }
+                            );
+
+                            const url = new URL(branchedConnectionString);
+                            const branchDbName = url.pathname.split('/')[1];
+
+                            if (branchDbName) {
+                                console.log(`[Provisioning] Ensuring ephemeral database ${branchDbName} on ${instanceName}`);
+                                await ensureSqlBranch(instanceName, branchDbName);
+
+                                // Handle optional seeding only on PR opened or reopened (not on sync to avoid overwriting)
+                                if ((action === 'opened' || action === 'reopened') && storage.branchingSettings.seedCommand) {
+                                    try {
+                                        console.log(`[Provisioning] Triggering seed command for ${branchDbName}`);
+                                        await runSeed(
+                                            project.id,
+                                            project.repoFullName,
+                                            pull_request.head.sha,
+                                            branchedConnectionString,
+                                            storage.envKey || 'DATABASE_URL',
+                                            storage.branchingSettings.seedCommand,
+                                            project.region,
+                                            project.rootDirectory
+                                        );
+                                    } catch (e) {
+                                        console.error(`[Provisioning] Failed to trigger seeding for ${storage.name}:`, e);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error(`[Provisioning] Failed to provision ephemeral database for ${storage.name}:`, e);
+                    }
+                }
+
+                if (storage.type === 'firestore') {
+                    try {
+                        const baseConnectionString = await getSecretValue(storage.connectionStringSecretId!);
+                        if (baseConnectionString) {
+                            const branchedConnectionString = getBranchConnectionString(
+                                baseConnectionString,
+                                storage.type,
+                                storage.branchingSettings,
+                                { pullRequestNumber: pull_request.number }
+                            );
+
+                            const rawDbName = branchedConnectionString.replace('firestore://', '');
+                            if (rawDbName && rawDbName !== '(default)') {
+                                const finalId = validateDatabaseId(rawDbName) ? rawDbName : `db-${rawDbName}`.substring(0, 63);
+                                console.log(`[Provisioning] Ensuring ephemeral Firestore database ${finalId}`);
+                                await ensureFirestoreBranch(finalId, project.region || 'us-central1');
+                            }
+                        }
+                    } catch (e) {
+                        console.error(`[Provisioning] Failed to provision ephemeral Firestore database for ${storage.name}:`, e);
+                    }
+                }
+            }
+        }
 
         try {
             // Get environment variables directly from project and split by target
