@@ -218,10 +218,42 @@ export function getBranchConnectionString(
         }
     }
 
-    // 3. Redis / Memorystore (Usually use prefixing in app code, but we can append to the URL if supported)
+    // 3. Firestore
+    if (type === 'firestore') {
+        // baseConn format: firestore://databaseId
+        const baseDbName = baseConn.replace('firestore://', '') || '(default)';
+        const template = settings.template || 'db-{identifier}';
+        const newDbName = template
+            .replace('{base}', baseDbName === '(default)' ? 'default' : baseDbName)
+            .replace('{identifier}', identifier)
+            .replace(/[^a-z0-9-]/g, '-')
+            .toLowerCase();
+
+        // Ensure it starts with a letter for Firestore validation
+        const finalId = /^[a-z]/.test(newDbName) ? newDbName : `db-${newDbName}`;
+        return `firestore://${finalId.replace(/^-+/, '')}`.substring(0, 75); // 75 = 12 (firestore://) + 63
+    }
+
+    // 4. Redis / Memorystore (Branching via DB index 0-15)
     if (type === 'memorystore-redis') {
-        // Redis usually doesn't have multiple DBs in the same way, but we can append a DB index if template is numeric
-        return baseConn;
+        try {
+            const url = new URL(baseConn);
+            let dbIndex = 0;
+
+            if (context?.pullRequestNumber) {
+                // Use PR number to pick a DB (1-15), leaving 0 for main
+                dbIndex = (context.pullRequestNumber % 15) + 1;
+            } else if (context?.branch) {
+                // Simple hash of branch name to pick a DB (1-15)
+                const hash = context.branch.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                dbIndex = (hash % 15) + 1;
+            }
+
+            url.pathname = `/${dbIndex}`;
+            return url.toString();
+        } catch {
+            return baseConn;
+        }
     }
 
     return baseConn;

@@ -338,7 +338,26 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Integrate storage cleanup into GitHub PR closed webhook handler
 - [x] Verify automated cleanup of ephemeral Cloud SQL databases
 
+### Phase 50: Advanced Branching - Firestore & Memorystore Support (IN PROGRESS)
+- [ ] Implement multi-database branching for Firestore in `src/lib/gcp/firestore-admin.ts`
+- [ ] Add Redis DB index branching in `getBranchConnectionString`
+- [ ] Update branching API to support Firestore and Redis
+- [ ] Verify cross-provider ephemeral connection string derivation
+
+### Phase 51: CLI Support for Storage Branching (PLANNED)
+- [ ] Add `storage branch` command to Deployify CLI
+- [ ] Implement terminal-based branching triggers for development/testing
+
+### Phase 52: Database Seeding for Ephemeral Branches (PLANNED)
+- [ ] Implement optional seeding side-effects for newly provisioned branches
+- [ ] Support custom seed commands or template databases (Postgres)
+
 ## Progress Updates
+
+### 2027-04-26: Advanced Branching Foundations
+- Initiated Phase 50: Advanced Branching - Firestore & Memorystore Support.
+- Updated roadmap to include CLI branching support and ephemeral seeding.
+- Planned multi-database Firestore support leveraging standard GCP multi-DB capabilities.
 
 ### 2027-04-25: Automated Ephemeral Storage Cleanup
 - Completed Phase 49: Automated Ephemeral Storage Cleanup.
