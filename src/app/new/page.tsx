@@ -811,7 +811,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         animate={{
                             color: isReady ? 'var(--success)' : isError ? 'var(--error)' : 'var(--info)'
                         }}
-                        className="text-xl font-semibold flex items-center gap-3"
+                        className="text-sm font-semibold flex items-center gap-3"
                     >
                         {isReady ? (
                             <motion.div

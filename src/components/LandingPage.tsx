@@ -334,7 +334,7 @@ export default function LandingPage() {
                       whileInView={{ opacity: 0.3, scale: 1.2, x: 0 }}
                       viewport={{ margin: "-100px" }}
                       transition={{ duration: 1 }}
-                      className="absolute -left-12 md:-left-16 -top-2 text-4xl font-bold text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
+                      className="absolute -left-12 md:-left-16 -top-2 text-xl font-bold text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
                       aria-hidden="true"
                     >
                       0{i + 1}
@@ -346,7 +346,7 @@ export default function LandingPage() {
                        >
                          {step.icon}
                        </motion.div>
-                       <h3 className="text-xl font-semibold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
+                       <h3 className="text-sm font-semibold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
                     </div>
                     <div className="text-lg text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}

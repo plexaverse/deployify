@@ -211,7 +211,7 @@ export default function EdgeDebugPage() {
                                         result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/20' : 'bg-[var(--success-bg)] text-[var(--success)] border-[var(--success)]/20'
                                     )}>
                                         {result.type === 'error' ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
-                                        <span className="text-xl font-semibold">{result.status}</span>
+                                        <span className="text-sm font-semibold">{result.status}</span>
                                         <Badge variant={result.type === 'error' ? 'error' : 'success'} className="ml-auto">
                                             {result.type}
                                         </Badge>
