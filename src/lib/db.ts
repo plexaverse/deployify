@@ -1,5 +1,5 @@
 import { getDb, Collections } from '@/lib/firebase';
-import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole } from '@/types';
+import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole, DeploymentType } from '@/types';
 import { generateId, cleanFirestoreData } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
 import { getSecretValue } from '@/lib/gcp/secrets';
@@ -907,7 +907,7 @@ export async function listDeploymentsByProject(
 
 export async function getLatestDeployment(
     projectId: string,
-    type?: 'production' | 'preview'
+    type?: DeploymentType
 ): Promise<Deployment | null> {
     const db = getDb();
     let query = db
