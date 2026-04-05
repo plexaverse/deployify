@@ -126,6 +126,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [alertDisk, setAlertDisk] = useState(80);
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [alertEmailEnabled, setAlertEmailEnabled] = useState(false);
+    const [branchingEnabled, setBranchingEnabled] = useState(false);
+    const [branchingTemplate, setBranchingTemplate] = useState('{base}_{identifier}');
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -164,6 +166,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 type,
                 environment,
                 envKey,
+                branchingSettings: {
+                    enabled: branchingEnabled,
+                    template: branchingTemplate
+                },
                 metadata: {
                     ...metadata,
                     secretOnly
@@ -270,6 +276,10 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 type,
                 environment,
                 envKey,
+                branchingSettings: {
+                    enabled: branchingEnabled,
+                    template: branchingTemplate
+                },
                 metadata: {
                     secretOnly
                 }
@@ -295,6 +305,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setProvision(false);
         setAutoSync(false);
         setSecretOnly(false);
+        setBranchingEnabled(false);
+        setBranchingTemplate('{base}_{identifier}');
         setProviderApiKey('');
         setSupabaseId('');
         setMongodbGroupId('');
@@ -310,6 +322,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setEnvironment(config.environment);
         setEnvKey(config.envKey || '');
         setSecretOnly(!!config.metadata?.secretOnly);
+        setBranchingEnabled(!!config.branchingSettings?.enabled);
+        setBranchingTemplate(config.branchingSettings?.template || '{base}_{identifier}');
         setConnectionString(''); // Don't show old connection string
         setIsAdding(false);
     };
@@ -698,18 +712,55 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     </div>
                                 </div>
                             )}
-                            <div className={cn("space-y-2 transition-opacity", secretOnly && "opacity-40 pointer-events-none")}>
-                                <Label className="text-sm font-semibold">Environment Variable Key</Label>
-                                <Input
+                                    <div className={cn("space-y-6 transition-opacity", secretOnly && "opacity-40 pointer-events-none")}>
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-semibold">Environment Variable Key</Label>
+                                            <Input
                                     value={envKey}
                                     onChange={(e) => setEnvKey(e.target.value)}
                                     placeholder="DATABASE_URL"
                                     disabled={secretOnly}
                                     className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                    {secretOnly ? "Auto-injection is disabled in Secret Only mode." : "This key will be injected into your application at runtime."}
-                                </p>
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                {secretOnly ? "Auto-injection is disabled in Secret Only mode." : "This key will be injected into your application at runtime."}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-4 pt-2">
+                                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                                <div className="space-y-0.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <Label className="text-sm font-semibold">Preview Branching</Label>
+                                                        <span className="text-[8px] px-1 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-widest border border-[var(--primary)]/20">BETA</span>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Isolated database for Preview Deployments</p>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={branchingEnabled}
+                                                    onChange={(e) => setBranchingEnabled(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                />
+                                            </div>
+
+                                            {branchingEnabled && (
+                                                <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Database Name Template</Label>
+                                                        <Input
+                                                            value={branchingTemplate}
+                                                            onChange={(e) => setBranchingTemplate(e.target.value)}
+                                                            placeholder="{base}_{identifier}"
+                                                            className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                        />
+                                                        <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]/70">
+                                                            USE <code className="text-[var(--primary)]">{'{base}'}</code> FOR ORIGINAL NAME AND <code className="text-[var(--primary)]">{'{identifier}'}</code> FOR BRANCH/PR NAME.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                             </div>
                         </div>
 
@@ -789,6 +840,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1">
                                                     <Zap className="w-2.5 h-2.5" />
                                                     IAM AUTH
+                                                </span>
+                                            )}
+                                            {config.branchingSettings?.enabled && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title={`Branching template: ${config.branchingSettings.template}`}>
+                                                    <GitBranch className="w-2.5 h-2.5" />
+                                                    BRANCHING ACTIVE
                                                 </span>
                                             )}
                                             {config.activeAlerts && config.activeAlerts.length > 0 && (

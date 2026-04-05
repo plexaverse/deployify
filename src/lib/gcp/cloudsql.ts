@@ -251,6 +251,29 @@ export async function createUser(
 }
 
 /**
+ * Ensure an ephemeral database exists for branching
+ */
+export async function ensureEphemeralDatabase(
+    instanceName: string,
+    databaseName: string
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    // 1. Check if database exists
+    const checkResponse = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/databases/${databaseName}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (checkResponse.ok) return; // Already exists
+
+    // 2. Create if not exists
+    await createDatabase(instanceName, databaseName);
+}
+
+/**
  * Check the status of a long-running operation
  */
 export async function getOperationStatus(

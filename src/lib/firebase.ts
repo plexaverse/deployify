@@ -116,6 +116,7 @@ function createMockFirestore(): Firestore {
                         createdAt: new Date(),
                         updatedAt: new Date(),
                         connectionStringSecretId: 'mock-secret-id',
+                        branchingSettings: { enabled: true, template: '{base}_{identifier}' },
                         metadata: { provisioned: true, region: 'us-central1' }
                     },
                     {

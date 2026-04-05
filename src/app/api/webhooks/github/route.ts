@@ -146,7 +146,9 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
 
     try {
         // Get environment variables directly from project and split by target
-        const { buildEnvVars, runtimeEnvVars, runtimeSecrets } = await getEnvVarsForDeployment(project, envTarget);
+        const { buildEnvVars, runtimeEnvVars, runtimeSecrets } = await getEnvVarsForDeployment(project, envTarget, {
+            branch
+        });
 
         // Decrypt GitHub token if present
         const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
@@ -274,7 +276,10 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         try {
             // Get environment variables directly from project and split by target
             const envTarget = 'preview';
-            const { buildEnvVars, runtimeEnvVars, runtimeSecrets } = await getEnvVarsForDeployment(project, envTarget);
+            const { buildEnvVars, runtimeEnvVars, runtimeSecrets } = await getEnvVarsForDeployment(project, envTarget, {
+                branch: pull_request.head.ref,
+                pullRequestNumber: pull_request.number
+            });
 
             // Decrypt GitHub token if present
             const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;

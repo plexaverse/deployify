@@ -324,7 +324,24 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Standardize connector usage documentation within the dashboard
 - [x] Verify production-grade Secret Manager mounting for all tiers
 
+### Phase 48: Ephemeral Storage & Database Branching (COMPLETED)
+- [x] Define `StorageBranchingSettings` and update `StorageConfig` type
+- [x] Implement `getBranchConnectionString` utility for dynamic URL derivation
+- [x] Update deployment pipeline to support branch-specific connection string overrides
+- [x] Create `ensureEphemeralDatabase` utility for idempotent SQL branching
+- [x] Implement Storage Branching API for PR-specific environment provisioning
+- [x] Enhance Storage UI with "Preview Branching" controls and status badges
+
 ## Progress Updates
+
+### 2027-04-24: Ephemeral Storage & Database Branching
+- Completed Phase 48: Ephemeral Storage & Database Branching.
+- Launched isolated database environments for Preview Deployments, allowing developers to test schema changes in isolation.
+- Implemented dynamic connection string derivation in `getEnvVarsForDeployment`, supporting both branch-name and PR-number based identifiers.
+- Added `ensureEphemeralDatabase` to the Cloud SQL utility library, providing idempotent creation of per-PR databases within managed instances.
+- Created a new Storage Branching API route to facilitate the automated provisioning of ephemeral storage contexts during the deployment lifecycle.
+- Enhanced the `StorageSection` UI with a "Preview Branching" toggle, customizable database name templates, and high-density "BRANCHING ACTIVE" status badges.
+- Verified 100% functional integrity with new unit tests and Playwright visual verification.
 
 ### 2027-04-23: Integrated Connectivity Maturity & DX Refinement
 - Completed Phase 47: Integrated Connectivity Maturity & DX Refinement.
