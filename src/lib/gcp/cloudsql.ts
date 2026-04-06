@@ -18,7 +18,12 @@ export interface CloudSqlInstance {
 export async function createInstance(
     instanceName: string,
     dbType: 'postgres' | 'mysql',
-    region: string
+    region: string,
+    options: {
+        highAvailability?: boolean;
+        pitrEnabled?: boolean;
+        tier?: string;
+    } = {}
 ): Promise<{ operationName: string; connectionString: string }> {
     if (process.env.MOCK_DB === 'true') {
         return {
@@ -41,7 +46,14 @@ export async function createInstance(
             region,
             databaseVersion: dbType === 'postgres' ? 'POSTGRES_15' : 'MYSQL_8_0',
             settings: {
-                tier: 'db-f1-micro',
+                tier: options.tier || 'db-f1-micro',
+                availabilityType: options.highAvailability ? 'REGIONAL' : 'ZONAL',
+                backupConfiguration: {
+                    enabled: true,
+                    binaryLogEnabled: dbType === 'mysql',
+                    pointInTimeRecoveryEnabled: options.pitrEnabled || false,
+                    startTime: '04:00'
+                },
                 ipConfiguration: {
                     ipv4Enabled: true,
                 },
@@ -209,11 +221,15 @@ export async function restoreBackup(instanceName: string, backupId: string): Pro
 }
 
 /**
- * Update a Cloud SQL instance tier
+ * Update a Cloud SQL instance settings
  */
-export async function updateInstanceTier(
+export async function updateInstanceSettings(
     instanceName: string,
-    tier: string
+    settings: {
+        tier?: string;
+        highAvailability?: boolean;
+        pitrEnabled?: boolean;
+    }
 ): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
         return `projects/mock/operations/update-${instanceName}`;
@@ -222,25 +238,73 @@ export async function updateInstanceTier(
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
 
+    const updatePayload: { settings: { tier?: string; availabilityType?: string; backupConfiguration?: { pointInTimeRecoveryEnabled: boolean } } } = {
+        settings: {}
+    };
+
+    if (settings.tier) updatePayload.settings.tier = settings.tier;
+    if (settings.highAvailability !== undefined) {
+        updatePayload.settings.availabilityType = settings.highAvailability ? 'REGIONAL' : 'ZONAL';
+    }
+    if (settings.pitrEnabled !== undefined) {
+        updatePayload.settings.backupConfiguration = {
+            pointInTimeRecoveryEnabled: settings.pitrEnabled
+        };
+    }
+
     const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}`, {
         method: 'PATCH',
         headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-            settings: {
-                tier,
-            },
-        }),
+        body: JSON.stringify(updatePayload),
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to update Cloud SQL instance tier: ${await response.text()}`);
+        throw new Error(`Failed to update Cloud SQL instance settings: ${await response.text()}`);
     }
 
     const data = await response.json();
     return data.name;
+}
+
+/**
+ * Update a Cloud SQL instance tier (Legacy support)
+ */
+export async function updateInstanceTier(
+    instanceName: string,
+    tier: string
+): Promise<string> {
+    return updateInstanceSettings(instanceName, { tier });
+}
+
+/**
+ * Get detailed information about a Cloud SQL instance
+ */
+export async function getInstance(instanceName: string): Promise<Record<string, unknown>> {
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            name: instanceName,
+            settings: {
+                tier: 'db-f1-micro',
+                availabilityType: 'ZONAL',
+                backupConfiguration: {
+                    pointInTimeRecoveryEnabled: true
+                }
+            }
+        };
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) throw new Error(`Failed to get instance: ${await response.text()}`);
+    return await response.json();
 }
 
 /**

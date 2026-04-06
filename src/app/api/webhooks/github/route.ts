@@ -312,6 +312,36 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             }
                         }
                     }
+
+                    if (storage.branchingSettings?.enabled && storage.type === 'supabase') {
+                        const supabaseId = storage.metadata?.supabaseId as string;
+                        const providerApiKey = storage.metadata?.providerApiKey as string;
+
+                        if (supabaseId && providerApiKey) {
+                            const identifier = `pr${pull_request.number}`;
+                            console.log(`[Cleanup] Deleting ephemeral Supabase branch ${identifier}`);
+
+                            try {
+                                // 1. List branches to find ID
+                                const listRes = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/branches`, {
+                                    headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                                });
+                                if (listRes.ok) {
+                                    const branches = await listRes.json();
+                                    const branch = branches.find((b: { branch_name: string, id: string }) => b.branch_name === identifier);
+                                    if (branch) {
+                                        // 2. Delete branch by ID
+                                        await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/branches/${branch.id}`, {
+                                            method: 'DELETE',
+                                            headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                                        });
+                                    }
+                                }
+                            } catch (e) {
+                                console.error(`[Cleanup] Failed to delete Supabase branch ${identifier}:`, e);
+                            }
+                        }
+                    }
                 }
             }
         } catch (error) {

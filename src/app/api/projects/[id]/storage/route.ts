@@ -4,7 +4,7 @@ import { updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { upsertSecret, deleteSecret } from '@/lib/gcp/secrets';
-import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloudSqlInstance, updateInstanceTier as updateCloudSqlTier } from '@/lib/gcp/cloudsql';
+import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloudSqlInstance, updateInstanceSettings as updateCloudSqlSettings } from '@/lib/gcp/cloudsql';
 import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance, updateInstanceSize as updateMemorystoreSize } from '@/lib/gcp/memorystore';
 import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
@@ -94,10 +94,18 @@ export async function POST(
             try {
                 let provisionResult;
                 if (type === 'cloud-sql-postgres' && resourceName) {
-                    provisionResult = await createCloudSqlInstance(resourceName, 'postgres', targetRegion);
+                    provisionResult = await createCloudSqlInstance(resourceName, 'postgres', targetRegion, {
+                        highAvailability: metadata?.highAvailability,
+                        pitrEnabled: metadata?.pitrEnabled,
+                        tier: metadata?.tier
+                    });
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'cloud-sql-mysql' && resourceName) {
-                    provisionResult = await createCloudSqlInstance(resourceName, 'mysql', targetRegion);
+                    provisionResult = await createCloudSqlInstance(resourceName, 'mysql', targetRegion, {
+                        highAvailability: metadata?.highAvailability,
+                        pitrEnabled: metadata?.pitrEnabled,
+                        tier: metadata?.tier
+                    });
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'memorystore-redis' && resourceName) {
                     provisionResult = await createMemorystoreInstance(resourceName, targetRegion);
@@ -309,9 +317,19 @@ export async function PATCH(
             const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
             try {
-                if (storage.type.includes('cloud-sql') && metadata.tier && metadata.tier !== storage.metadata?.tier) {
-                    operationName = await updateCloudSqlTier(resourceName, metadata.tier);
-                    status = 'provisioning';
+                if (storage.type.includes('cloud-sql')) {
+                    const hasTierChange = metadata.tier && metadata.tier !== storage.metadata?.tier;
+                    const hasHAChange = metadata.highAvailability !== undefined && metadata.highAvailability !== storage.metadata?.highAvailability;
+                    const hasPITRChange = metadata.pitrEnabled !== undefined && metadata.pitrEnabled !== storage.metadata?.pitrEnabled;
+
+                    if (hasTierChange || hasHAChange || hasPITRChange) {
+                        operationName = await updateCloudSqlSettings(resourceName, {
+                            tier: metadata.tier,
+                            highAvailability: metadata.highAvailability,
+                            pitrEnabled: metadata.pitrEnabled
+                        });
+                        status = 'provisioning';
+                    }
                 } else if (storage.type === 'memorystore-redis' && metadata.memorySizeGb && metadata.memorySizeGb !== storage.metadata?.memorySizeGb) {
                     operationName = await updateMemorystoreSize(resourceName, region, metadata.memorySizeGb);
                     status = 'provisioning';

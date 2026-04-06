@@ -121,6 +121,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
     const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
+    const [highAvailability, setHighAvailability] = useState(false);
+    const [pitrEnabled, setPitrEnabled] = useState(false);
     const [alertCpu, setAlertCpu] = useState(80);
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
@@ -174,7 +176,9 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 },
                 metadata: {
                     ...metadata,
-                    secretOnly
+                    secretOnly,
+                    highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
+                    pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined
                 }
             }, provision ? '' : connectionString, provision);
 
@@ -284,7 +288,9 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     seedCommand: seedCommand || undefined
                 },
                 metadata: {
-                    secretOnly
+                    secretOnly,
+                    highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
+                    pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined
                 }
             }, connectionString);
 
@@ -311,6 +317,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setBranchingEnabled(false);
         setBranchingTemplate('{base}_{identifier}');
         setSeedCommand('');
+        setHighAvailability(false);
+        setPitrEnabled(false);
         setProviderApiKey('');
         setSupabaseId('');
         setMongodbGroupId('');
@@ -329,6 +337,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setBranchingEnabled(!!config.branchingSettings?.enabled);
         setBranchingTemplate(config.branchingSettings?.template || '{base}_{identifier}');
         setSeedCommand(config.branchingSettings?.seedCommand || '');
+        setHighAvailability(!!config.metadata?.highAvailability);
+        setPitrEnabled(!!config.metadata?.pitrEnabled);
         setConnectionString(''); // Don't show old connection string
         setIsAdding(false);
     };
@@ -710,11 +720,42 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     )}
                                 </div>
                             ) : (
-                                <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg flex items-start gap-3">
-                                    <Activity className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
-                                    <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
-                                        Deployify will automatically provision a new <strong>{type.replace(/-/g, ' ')}</strong> instance in your project&apos;s default region and manage all credentials.
+                                <div className="space-y-4">
+                                    <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg flex items-start gap-3">
+                                        <Activity className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            Deployify will automatically provision a new <strong>{type.replace(/-/g, ' ')}</strong> instance in your project&apos;s default region and manage all credentials.
+                                        </div>
                                     </div>
+
+                                    {type.includes('cloud-sql') && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                                <div className="space-y-0.5">
+                                                    <Label className="text-[10px] font-bold uppercase tracking-wider">High Availability</Label>
+                                                    <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Multi-zone redundancy</p>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={highAvailability}
+                                                    onChange={(e) => setHighAvailability(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                                <div className="space-y-0.5">
+                                                    <Label className="text-[10px] font-bold uppercase tracking-wider">PITR Recovery</Label>
+                                                    <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Point-in-time snapshots</p>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={pitrEnabled}
+                                                    onChange={(e) => setPitrEnabled(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                                     <div className={cn("space-y-6 transition-opacity", secretOnly && "opacity-40 pointer-events-none")}>
@@ -864,6 +905,18 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title={`Branching template: ${config.branchingSettings.template}`}>
                                                     <GitBranch className="w-2.5 h-2.5" />
                                                     BRANCHING ACTIVE
+                                                </span>
+                                            )}
+                                            {!!config.metadata?.highAvailability && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1" title="Multi-zone redundancy enabled">
+                                                    <Zap className="w-2.5 h-2.5" />
+                                                    HA ENABLED
+                                                </span>
+                                            )}
+                                            {!!config.metadata?.pitrEnabled && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1" title="Point-in-time recovery active">
+                                                    <HistoryIcon className="w-2.5 h-2.5" />
+                                                    PITR ACTIVE
                                                 </span>
                                             )}
                                             {config.activeAlerts && config.activeAlerts.length > 0 && (

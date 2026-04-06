@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
-import { getOperationStatus as getCloudSqlOperationStatus } from '@/lib/gcp/cloudsql';
+import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getCloudSqlInstance } from '@/lib/gcp/cloudsql';
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
@@ -344,6 +344,24 @@ export async function GET(
             } else {
                 storage.status = 'active';
                 storage.lastSyncedAt = now;
+            }
+
+            // Final Fetch for detailed metadata (HA/PITR)
+            if (isCloudSql) {
+                try {
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const instance = await getCloudSqlInstance(instanceName);
+                    // @ts-ignore - Dynamic access to instance settings
+                    storage.metadata = {
+                        ...storage.metadata,
+                        // @ts-ignore
+                        highAvailability: instance.settings?.availabilityType === 'REGIONAL',
+                        // @ts-ignore
+                        pitrEnabled: !!instance.settings?.backupConfiguration?.pointInTimeRecoveryEnabled
+                    };
+                } catch (e) {
+                    console.error('Failed to fetch Cloud SQL details for final metadata sync:', e);
+                }
             }
 
             storage.updatedAt = now;
