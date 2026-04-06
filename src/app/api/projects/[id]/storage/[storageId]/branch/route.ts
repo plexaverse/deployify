@@ -171,6 +171,84 @@ export async function POST(
                 branchConn = url.toString();
                 finalDbName = identifier;
             }
+        } else if (storageConfig.type === 'supabase') {
+            const supabaseId = storageConfig.metadata?.supabaseId as string;
+            const providerApiKey = storageConfig.metadata?.providerApiKey as string;
+
+            // Extract password from base connection string if possible
+            let dbPassword = 'password';
+            if (baseConnectionString) {
+                try {
+                    const url = new URL(baseConnectionString);
+                    dbPassword = url.password || 'password';
+                } catch { /* ignore */ }
+            }
+
+            if (supabaseId && providerApiKey) {
+                // Native Supabase Branching
+                if (process.env.MOCK_DB === 'true') {
+                    finalDbName = identifier;
+                    branchConn = `postgresql://postgres:${dbPassword}@db.${supabaseId}-${identifier}.supabase.co:5432/postgres`;
+                    message = `Supabase ephemeral branch ${identifier} created (MOCK)`;
+                } else {
+                    try {
+                        // Supabase branching is currently in Beta and requires specific setup.
+                        // We use their Branching API: https://supabase.com/docs/guides/platform/branching
+                        const branchRes = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/branches`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${providerApiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                branch_name: identifier,
+                                git_branch: branch || identifier
+                            })
+                        });
+
+                        if (branchRes.ok) {
+                            const branchData = await branchRes.json();
+                            // Supabase branches have their own host
+                            branchConn = `postgresql://postgres:${dbPassword}@db.${branchData.id}.supabase.co:5432/postgres`;
+                        } else if (branchRes.status === 422) {
+                            // Already exists, try to get info
+                            const listRes = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/branches`, {
+                                headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                            });
+                            if (listRes.ok) {
+                                const branches = await listRes.json();
+                                const existing = branches.find((b: { branch_name: string, id: string }) => b.branch_name === identifier);
+                                if (existing) {
+                                    branchConn = `postgresql://postgres:${dbPassword}@db.${existing.id}.supabase.co:5432/postgres`;
+                                }
+                            }
+                        }
+
+                        if (!branchConn && baseConnectionString) {
+                            const url = new URL(baseConnectionString);
+                            url.hostname = `db.${supabaseId}-${identifier}.supabase.co`;
+                            branchConn = url.toString();
+                        }
+                        finalDbName = identifier;
+                        message = `Supabase ephemeral branch ${identifier} ensured`;
+                    } catch (e) {
+                        console.error('[Supabase] Branching error:', e);
+                    }
+                }
+            } else if (baseConnectionString) {
+                try {
+                    const url = new URL(baseConnectionString);
+                    if (supabaseId) {
+                        url.hostname = `db.${supabaseId}-${identifier}.supabase.co`;
+                    } else {
+                        url.hostname = `${identifier}.${url.hostname}`;
+                    }
+                    branchConn = url.toString();
+                    finalDbName = identifier;
+                } catch {
+                    branchConn = baseConnectionString;
+                }
+            }
         } else if (baseConnectionString) {
             // Generic fallback for MongoDB/Supabase/Others
             try {

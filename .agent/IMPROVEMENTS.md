@@ -206,6 +206,10 @@
 - **Improvement**: Provide full CLI support for database backups and advanced migration tracking.
 - **Status**: ✅ Implemented (Storage backup CLI, migration status tracking, and SQL preview in CLI in Phase 42)
 
+#### 30. **Native Supabase Branching & Cloud SQL Reliability**
+- **Improvement**: Implement native Supabase branching via API and enhance Cloud SQL with High Availability (HA) and Point-in-Time Recovery (PITR) toggles.
+- **Status**: ✅ Implemented (Supabase Management API integration, HA/PITR toggles in Storage UI, and detailed infrastructure status sync in Phase 55)
+
 ### Reliability Improvements
 
 #### 22. **Robust Deployment Status Sync**
