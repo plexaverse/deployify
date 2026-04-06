@@ -351,14 +351,14 @@ export async function GET(
                 try {
                     const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                     const instance = await getCloudSqlInstance(instanceName);
-                    // @ts-ignore - Dynamic access to instance settings
+                    // @ts-expect-error - Dynamic access to instance settings
                     storage.metadata = {
                         ...storage.metadata,
-                        // @ts-ignore
+                        // @ts-expect-error - Dynamic access to instance settings
                         highAvailability: instance.settings?.availabilityType === 'REGIONAL',
-                        // @ts-ignore
+                        // @ts-expect-error - Dynamic access to instance settings
                         pitrEnabled: !!instance.settings?.backupConfiguration?.pointInTimeRecoveryEnabled,
-                        // @ts-ignore
+                        // @ts-expect-error - Dynamic access to instance settings
                         deletionProtection: !!instance.deletionProtectionEnabled
                     };
                 } catch (e) {
