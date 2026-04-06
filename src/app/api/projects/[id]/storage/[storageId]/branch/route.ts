@@ -249,8 +249,36 @@ export async function POST(
                     branchConn = baseConnectionString;
                 }
             }
+        } else if (storageConfig.type === 'mongodb-atlas' && baseConnectionString) {
+            try {
+                const url = new URL(baseConnectionString);
+                const baseDbName = url.pathname.split('/')[1] || 'test';
+                const template = storageConfig.branchingSettings.template || '{base}_{identifier}';
+                finalDbName = template
+                    .replace('{base}', baseDbName)
+                    .replace('{identifier}', identifier);
+
+                url.pathname = `/${finalDbName}`;
+                branchConn = url.toString();
+
+                // Explicitly establish MongoDB database context (idempotent)
+                if (process.env.MOCK_DB !== 'true') {
+                    const { MongoClient } = await import('mongodb');
+                    const client = new MongoClient(branchConn, { serverSelectionTimeoutMS: 5000 });
+                    await client.connect();
+                    const db = client.db(finalDbName);
+                    // Just a ping to ensure connectivity and context
+                    await db.command({ ping: 1 });
+                    await client.close();
+                }
+                message = `MongoDB ephemeral database ${finalDbName} established for ${identifier}`;
+            } catch (e) {
+                console.error('[MongoDB] Branching setup error:', e);
+                // Fallback to naming convention if ping fails
+                branchConn = baseConnectionString;
+            }
         } else if (baseConnectionString) {
-            // Generic fallback for MongoDB/Supabase/Others
+            // Generic fallback for others
             try {
                 const url = new URL(baseConnectionString);
                 const baseDbName = url.pathname.split('/')[1] || 'test';

@@ -123,6 +123,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
     const [highAvailability, setHighAvailability] = useState(false);
     const [pitrEnabled, setPitrEnabled] = useState(false);
+    const [deletionProtection, setDeletionProtection] = useState(false);
     const [alertCpu, setAlertCpu] = useState(80);
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
@@ -178,7 +179,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     ...metadata,
                     secretOnly,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
-                    pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined
+                    pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined,
+                    deletionProtection: type.includes('cloud-sql') ? deletionProtection : undefined
                 }
             }, provision ? '' : connectionString, provision);
 
@@ -290,7 +292,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 metadata: {
                     secretOnly,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
-                    pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined
+                    pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined,
+                    deletionProtection: type.includes('cloud-sql') ? deletionProtection : undefined
                 }
             }, connectionString);
 
@@ -319,6 +322,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setSeedCommand('');
         setHighAvailability(false);
         setPitrEnabled(false);
+        setDeletionProtection(false);
         setProviderApiKey('');
         setSupabaseId('');
         setMongodbGroupId('');
@@ -339,6 +343,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setSeedCommand(config.branchingSettings?.seedCommand || '');
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
+        setDeletionProtection(!!config.metadata?.deletionProtection);
         setConnectionString(''); // Don't show old connection string
         setIsAdding(false);
     };
@@ -729,7 +734,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     </div>
 
                                     {type.includes('cloud-sql') && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
                                                     <Label className="text-[10px] font-bold uppercase tracking-wider">High Availability</Label>
@@ -751,6 +756,18 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                     type="checkbox"
                                                     checked={pitrEnabled}
                                                     onChange={(e) => setPitrEnabled(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                                <div className="space-y-0.5">
+                                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Deletion Protection</Label>
+                                                    <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Prevent accidental delete</p>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={deletionProtection}
+                                                    onChange={(e) => setDeletionProtection(e.target.checked)}
                                                     className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
                                                 />
                                             </div>
@@ -917,6 +934,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1" title="Point-in-time recovery active">
                                                     <HistoryIcon className="w-2.5 h-2.5" />
                                                     PITR ACTIVE
+                                                </span>
+                                            )}
+                                            {!!config.metadata?.deletionProtection && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title="Deletion protection enabled">
+                                                    <ShieldCheck className="w-2.5 h-2.5" />
+                                                    PROTECTED
                                                 </span>
                                             )}
                                             {config.activeAlerts && config.activeAlerts.length > 0 && (
