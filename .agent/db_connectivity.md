@@ -563,3 +563,6 @@ Flexible support for manually configured databases and legacy setups:
 - Audited secure credential injection in the deployment pipeline, ensuring Secret Manager and IAM-based authentication are strictly enforced.
 - Confirmed that 100% of the 57 API routes are reachable and pass audit checks under mock conditions.
 - Validated that the "Connector" model successfully standardizes connectivity across varied database types while maintaining high-density technical UI standards.
+
+### 2027-05-01: Linting Fixes
+- Replaced `@ts-ignore` with `@ts-expect-error` in `src/app/api/projects/[id]/storage/[storageId]/sync/route.ts` with descriptive comments to resolve linting errors and comply with stricter TypeScript rules.
