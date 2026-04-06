@@ -105,6 +105,36 @@ export async function deleteInstance(
 }
 
 /**
+ * Get Memorystore instance details (to retrieve host/IP)
+ */
+export async function getInstance(
+    instanceName: string,
+    region: string
+): Promise<{ host: string; port: number }> {
+    if (process.env.MOCK_DB === 'true') {
+        return { host: '127.0.0.1', port: 6379 };
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/locations/${region}/instances/${instanceName}`;
+
+    const response = await fetch(`${MEMORYSTORE_API}/${name}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to get Memorystore instance: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return {
+        host: data.host,
+        port: data.port || 6379,
+    };
+}
+
+/**
  * Update a Memorystore (Redis) instance size
  */
 export async function updateInstanceSize(

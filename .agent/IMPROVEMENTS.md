@@ -182,6 +182,8 @@
 
 #### 24. **DB Connector Lifecycle (Rotation & Sync)**
 - **Improvement**: Implement secure credential rotation and synchronization for external database connectors (e.g., Supabase, MongoDB Atlas).
+- **Improvement**: Enhance GCP Memorystore (Redis) provisioning by retrieving the actual IP address for connectivity once the instance status is `active`.
+- **Improvement**: Standardize multi-language connectivity documentation (Python/Go) within the Storage Usage Guide UI.
 - **Status**: ✅ Implemented (Rotation API, Enhanced Sync API, and `lastRotatedAt`/`lastSyncedAt` UI indicators)
 
 #### 25. **Data Lab Persistence & Schema Intelligence**
