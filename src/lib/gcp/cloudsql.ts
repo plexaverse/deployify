@@ -22,6 +22,7 @@ export async function createInstance(
     options: {
         highAvailability?: boolean;
         pitrEnabled?: boolean;
+        deletionProtectionEnabled?: boolean;
         tier?: string;
     } = {}
 ): Promise<{ operationName: string; connectionString: string }> {
@@ -45,6 +46,7 @@ export async function createInstance(
             name: instanceName,
             region,
             databaseVersion: dbType === 'postgres' ? 'POSTGRES_15' : 'MYSQL_8_0',
+            deletionProtectionEnabled: options.deletionProtectionEnabled ?? false,
             settings: {
                 tier: options.tier || 'db-f1-micro',
                 availabilityType: options.highAvailability ? 'REGIONAL' : 'ZONAL',
@@ -229,6 +231,7 @@ export async function updateInstanceSettings(
         tier?: string;
         highAvailability?: boolean;
         pitrEnabled?: boolean;
+        deletionProtectionEnabled?: boolean;
     }
 ): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
@@ -238,9 +241,20 @@ export async function updateInstanceSettings(
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
 
-    const updatePayload: { settings: { tier?: string; availabilityType?: string; backupConfiguration?: { pointInTimeRecoveryEnabled: boolean } } } = {
+    const updatePayload: {
+        deletionProtectionEnabled?: boolean;
+        settings: {
+            tier?: string;
+            availabilityType?: string;
+            backupConfiguration?: { pointInTimeRecoveryEnabled: boolean }
+        }
+    } = {
         settings: {}
     };
+
+    if (settings.deletionProtectionEnabled !== undefined) {
+        updatePayload.deletionProtectionEnabled = settings.deletionProtectionEnabled;
+    }
 
     if (settings.tier) updatePayload.settings.tier = settings.tier;
     if (settings.highAvailability !== undefined) {
@@ -286,6 +300,7 @@ export async function getInstance(instanceName: string): Promise<Record<string, 
     if (process.env.MOCK_DB === 'true') {
         return {
             name: instanceName,
+            deletionProtectionEnabled: true,
             settings: {
                 tier: 'db-f1-micro',
                 availabilityType: 'ZONAL',

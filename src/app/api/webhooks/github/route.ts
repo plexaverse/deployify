@@ -293,6 +293,54 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                         }
                     }
 
+                    if (storage.branchingSettings?.enabled && storage.type === 'memorystore-redis') {
+                        try {
+                            const baseConnectionString = await getSecretValue(storage.connectionStringSecretId!);
+                            if (!baseConnectionString) continue;
+
+                            const branchedConnectionString = getBranchConnectionString(
+                                baseConnectionString,
+                                storage.type,
+                                storage.branchingSettings,
+                                { pullRequestNumber: pull_request.number }
+                            );
+
+                            console.log(`[Cleanup] Flushing ephemeral Redis DB at ${branchedConnectionString}`);
+                            const Redis = (await import('ioredis')).default;
+                            const redis = new Redis(branchedConnectionString, { maxRetriesPerRequest: 1 });
+                            await redis.flushdb();
+                            redis.disconnect();
+                        } catch (e) {
+                            console.error(`[Cleanup] Failed to flush ephemeral Redis DB for ${storage.name}:`, e);
+                        }
+                    }
+
+                    if (storage.branchingSettings?.enabled && storage.type === 'mongodb-atlas') {
+                        try {
+                            const baseConnectionString = await getSecretValue(storage.connectionStringSecretId!);
+                            if (!baseConnectionString) continue;
+
+                            const branchedConnectionString = getBranchConnectionString(
+                                baseConnectionString,
+                                storage.type,
+                                storage.branchingSettings,
+                                { pullRequestNumber: pull_request.number }
+                            );
+
+                            console.log(`[Cleanup] Dropping ephemeral MongoDB database at ${branchedConnectionString}`);
+                            const { MongoClient } = await import('mongodb');
+                            const client = new MongoClient(branchedConnectionString, { serverSelectionTimeoutMS: 5000 });
+                            await client.connect();
+                            const dbName = new URL(branchedConnectionString).pathname.split('/')[1];
+                            if (dbName) {
+                                await client.db(dbName).dropDatabase();
+                            }
+                            await client.close();
+                        } catch (e) {
+                            console.error(`[Cleanup] Failed to drop ephemeral MongoDB database for ${storage.name}:`, e);
+                        }
+                    }
+
                     if (storage.branchingSettings?.enabled && storage.type === 'planetscale') {
                         const organization = storage.metadata?.organization as string;
                         const database = storage.metadata?.database as string;

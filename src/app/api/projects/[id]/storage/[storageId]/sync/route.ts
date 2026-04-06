@@ -357,7 +357,9 @@ export async function GET(
                         // @ts-ignore
                         highAvailability: instance.settings?.availabilityType === 'REGIONAL',
                         // @ts-ignore
-                        pitrEnabled: !!instance.settings?.backupConfiguration?.pointInTimeRecoveryEnabled
+                        pitrEnabled: !!instance.settings?.backupConfiguration?.pointInTimeRecoveryEnabled,
+                        // @ts-ignore
+                        deletionProtection: !!instance.deletionProtectionEnabled
                     };
                 } catch (e) {
                     console.error('Failed to fetch Cloud SQL details for final metadata sync:', e);
