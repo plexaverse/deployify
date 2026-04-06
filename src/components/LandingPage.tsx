@@ -562,23 +562,46 @@ export default function LandingPage() {
                     )}
                   </AnimatePresence>
                 </div>
-                {searchQuery.trim() && (
-                  <motion.div id="repo-results" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} role="listbox" className="absolute top-full left-0 right-0 mt-2 bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden z-20 shadow-2xl p-2">
-                    {filteredRepos.length > 0 ? filteredRepos.map((repo, i) => (
-                      <div
-                        key={repo}
-                        id={`repo-option-${i}`}
-                        role="option"
-                        aria-selected={selectedIndex === i}
-                        onMouseEnter={() => setSelectedIndex(i)}
-                        onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
-                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
-                      >
-                        <Github className="w-4 h-4" /> {repo}
-                      </div>
-                    )) : <div className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
-                  </motion.div>
-                )}
+                <AnimatePresence>
+                  {searchQuery.trim() && (
+                    <motion.div
+                      id="repo-results"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.15 } }}
+                      role="listbox"
+                      className="absolute top-full left-0 right-0 mt-2 bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden z-20 shadow-2xl p-2"
+                    >
+                      {filteredRepos.length > 0 ? (
+                        filteredRepos.map((repo, i) => (
+                          <div
+                            key={repo}
+                            id={`repo-option-${i}`}
+                            role="option"
+                            aria-selected={selectedIndex === i}
+                            onMouseEnter={() => setSelectedIndex(i)}
+                            onClick={() => {
+                              setSearchQuery(repo);
+                              setSelectedIndex(-1);
+                            }}
+                            className={cn(
+                              "px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider transition-colors",
+                              selectedIndex === i
+                                ? "bg-[var(--muted)]/20 text-[var(--foreground)]"
+                                : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]"
+                            )}
+                          >
+                            <Github className="w-4 h-4" /> {repo}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                          No results for &quot;{searchQuery}&quot;
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>
