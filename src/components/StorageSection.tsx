@@ -128,6 +128,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [alertEmailEnabled, setAlertEmailEnabled] = useState(false);
     const [branchingEnabled, setBranchingEnabled] = useState(false);
     const [branchingTemplate, setBranchingTemplate] = useState('{base}_{identifier}');
+    const [seedCommand, setSeedCommand] = useState('');
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -168,7 +169,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 envKey,
                 branchingSettings: {
                     enabled: branchingEnabled,
-                    template: branchingTemplate
+                    template: branchingTemplate,
+                    seedCommand: seedCommand || undefined
                 },
                 metadata: {
                     ...metadata,
@@ -278,7 +280,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 envKey,
                 branchingSettings: {
                     enabled: branchingEnabled,
-                    template: branchingTemplate
+                    template: branchingTemplate,
+                    seedCommand: seedCommand || undefined
                 },
                 metadata: {
                     secretOnly
@@ -307,6 +310,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setSecretOnly(false);
         setBranchingEnabled(false);
         setBranchingTemplate('{base}_{identifier}');
+        setSeedCommand('');
         setProviderApiKey('');
         setSupabaseId('');
         setMongodbGroupId('');
@@ -324,6 +328,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setSecretOnly(!!config.metadata?.secretOnly);
         setBranchingEnabled(!!config.branchingSettings?.enabled);
         setBranchingTemplate(config.branchingSettings?.template || '{base}_{identifier}');
+        setSeedCommand(config.branchingSettings?.seedCommand || '');
         setConnectionString(''); // Don't show old connection string
         setIsAdding(false);
     };
@@ -756,6 +761,19 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                         />
                                                         <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]/70">
                                                             USE <code className="text-[var(--primary)]">{'{base}'}</code> FOR ORIGINAL NAME AND <code className="text-[var(--primary)]">{'{identifier}'}</code> FOR BRANCH/PR NAME.
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Seed Command (Optional)</Label>
+                                                        <Input
+                                                            value={seedCommand}
+                                                            onChange={(e) => setSeedCommand(e.target.value)}
+                                                            placeholder="E.G. NPX PRISMA DB SEED"
+                                                            className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                        />
+                                                        <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]/70">
+                                                            EXPORTS <code className="text-[var(--primary)]">$DATABASE_URL</code> (OR CUSTOM KEY) TO THE BUILD ENVIRONMENT.
                                                         </p>
                                                     </div>
                                                 </div>

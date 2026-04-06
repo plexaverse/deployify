@@ -184,8 +184,8 @@ export function getBranchConnectionString(
         ? `pr${context.pullRequestNumber}`
         : context.branch?.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase() || 'preview';
 
-    // 1. SQL-like connection strings (Postgres, MySQL)
-    if (type.includes('sql') || type === 'supabase' || type === 'planetscale') {
+    // 1. SQL-like connection strings (Postgres, MySQL, Supabase)
+    if (type.includes('sql') || type === 'supabase') {
         try {
             const url = new URL(baseConn);
             const baseDbName = url.pathname.split('/')[1] || 'postgres';
@@ -195,6 +195,18 @@ export function getBranchConnectionString(
                 .replace('{identifier}', identifier);
 
             url.pathname = `/${newDbName}`;
+            return url.toString();
+        } catch {
+            return baseConn;
+        }
+    }
+
+    // 1b. PlanetScale (Host-based branching fallback)
+    if (type === 'planetscale') {
+        try {
+            const url = new URL(baseConn);
+            // Native branches often use a different hostname or prefix
+            url.hostname = `${identifier}.${url.hostname}`;
             return url.toString();
         } catch {
             return baseConn;
