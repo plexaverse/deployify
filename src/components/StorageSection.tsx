@@ -1588,6 +1588,26 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                         </div>
 
                         <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Python Access</Label>
+                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px]">
+                                <code className="text-[var(--foreground)]/80">
+                                    import os<br />
+                                    conn_str = os.environ.get(&apos;{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}&apos;)
+                                </code>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Go Access</Label>
+                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px]">
+                                <code className="text-[var(--foreground)]/80">
+                                    import &quot;os&quot;<br />
+                                    connStr := os.Getenv(&quot;{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}&quot;)
+                                </code>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployment Region</Label>
                             <div className="flex items-center gap-2 px-1">
                                 <Server className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />

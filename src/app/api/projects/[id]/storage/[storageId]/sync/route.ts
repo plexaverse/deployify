@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
 import { getOperationStatus as getCloudSqlOperationStatus } from '@/lib/gcp/cloudsql';
-import { getOperationStatus as getMemorystoreOperationStatus } from '@/lib/gcp/memorystore';
+import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import type { StorageConfig } from '@/types';
 import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds } from '@/lib/gcp/monitoring';
@@ -321,6 +321,25 @@ export async function GET(
                     console.error('Failed follow-up Cloud SQL provisioning:', e);
                     storage.status = 'error';
                     storage.lastError = `Instance ready, but DB/User creation failed: ${e instanceof Error ? e.message : 'Unknown'}`;
+                }
+            } else if (storage.type === 'memorystore-redis') {
+                try {
+                    const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const region = (storage.metadata?.region as string) || project.region || 'us-central1';
+
+                    const instance = await getMemorystoreInstance(resourceName, region);
+                    if (instance.host) {
+                        const newConnectionString = `redis://${instance.host}:${instance.port || 6379}`;
+                        const { upsertSecret } = await import('@/lib/gcp/secrets');
+                        await upsertSecret(`deployify-${id}-${storageId}-conn`, newConnectionString);
+
+                        storage.status = 'active';
+                        storage.lastSyncedAt = now;
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch Memorystore IP during sync:', e);
+                    storage.status = 'error';
+                    storage.lastError = `Instance ready, but failed to retrieve connectivity details: ${e instanceof Error ? e.message : 'Unknown'}`;
                 }
             } else {
                 storage.status = 'active';
