@@ -292,6 +292,26 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             console.error(`[Cleanup] Failed to delete ephemeral Firestore database for ${storage.name}:`, e);
                         }
                     }
+
+                    if (storage.branchingSettings?.enabled && storage.type === 'planetscale') {
+                        const organization = storage.metadata?.organization as string;
+                        const database = storage.metadata?.database as string;
+                        const providerApiKey = storage.metadata?.providerApiKey as string;
+
+                        if (organization && database && providerApiKey) {
+                            const identifier = `pr${pull_request.number}`;
+                            console.log(`[Cleanup] Deleting ephemeral PlanetScale branch ${identifier}`);
+
+                            try {
+                                await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/branches/${identifier}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                                });
+                            } catch (e) {
+                                console.error(`[Cleanup] Failed to delete PlanetScale branch ${identifier}:`, e);
+                            }
+                        }
+                    }
                 }
             }
         } catch (error) {

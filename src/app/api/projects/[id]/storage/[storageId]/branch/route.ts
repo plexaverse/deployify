@@ -48,62 +48,40 @@ export async function POST(
 
         const identifier = pullRequestNumber ? `pr${pullRequestNumber}` : branch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
 
-        // Perform side-effect provisioning based on type
+        let finalDbName = identifier;
+        let branchConn = '';
+        let message = `Branching context established for ${identifier}`;
+
+        const baseConnectionString = storageConfig.connectionStringSecretId
+            ? await getSecretValue(storageConfig.connectionStringSecretId)
+            : '';
+
+        // 1. Perform side-effect provisioning based on type
         if (storageConfig.type.includes('cloud-sql')) {
             const instanceName = storageConfig.metadata?.resourceName as string;
             if (!instanceName) {
                 return NextResponse.json({ error: 'Cloud SQL instance name not found in metadata' }, { status: 400 });
             }
 
-            const connectionString = await getSecretValue(storageConfig.connectionStringSecretId!);
-            const urlObj = new URL(connectionString);
+            if (!baseConnectionString) {
+                return NextResponse.json({ error: 'Base connection string not found' }, { status: 400 });
+            }
+
+            const urlObj = new URL(baseConnectionString);
             const baseDbName = urlObj.pathname.split('/')[1] || 'postgres';
             const template = storageConfig.branchingSettings.template || '{base}_{identifier}';
-            const branchDbName = template
+            finalDbName = template
                 .replace('{base}', baseDbName)
                 .replace('{identifier}', identifier);
 
-            await ensureSqlBranch(instanceName, branchDbName);
-
-            // Handle optional seeding
-            let seedOperation: string | undefined;
-            if (seed && storageConfig.branchingSettings.seedCommand) {
-                const latestDeploy = await getLatestDeployment(project.id, pullRequestNumber ? 'preview' : 'branch');
-                const commitSha = latestDeploy?.gitCommitSha || 'main';
-
-                try {
-                    const branchConn = urlObj.toString().replace(urlObj.pathname, `/${branchDbName}`);
-                    const { operationName } = await runSeed(
-                        project.id,
-                        project.repoFullName,
-                        commitSha,
-                        branchConn,
-                        storageConfig.envKey || 'DATABASE_URL',
-                        storageConfig.branchingSettings.seedCommand,
-                        project.region,
-                        project.rootDirectory
-                    );
-                    seedOperation = operationName;
-                } catch (e) {
-                    console.error('[Branching] Seeding failed to trigger:', e);
-                }
-            }
-
-            return NextResponse.json({
-                success: true,
-                databaseName: branchDbName,
-                seedOperation,
-                message: `Ephemeral database ${branchDbName} ensured for ${identifier}${seedOperation ? ' (Seeding triggered)' : ''}`
-            });
-        }
-
-        if (storageConfig.type === 'firestore') {
+            await ensureSqlBranch(instanceName, finalDbName);
+            branchConn = baseConnectionString.replace(urlObj.pathname, `/${finalDbName}`);
+            message = `Ephemeral database ${finalDbName} ensured for ${identifier}`;
+        } else if (storageConfig.type === 'firestore') {
             const region = (storageConfig.metadata?.region as string) || project.region || 'us-central1';
             const baseDbName = (storageConfig.metadata?.resourceName as string) || '(default)';
             const template = storageConfig.branchingSettings.template || 'db-{identifier}';
 
-            // Note: Firestore (default) database cannot be deleted and has fixed ID.
-            // We use the template to create a NEW database for the branch.
             const branchDbName = template
                 .replace('{base}', baseDbName === '(default)' ? 'default' : baseDbName)
                 .replace('{identifier}', identifier)
@@ -111,20 +89,13 @@ export async function POST(
                 .toLowerCase();
 
             // Validate ID (Firestore IDs must start with letter)
-            const finalId = validateDatabaseId(branchDbName) ? branchDbName : `db-${branchDbName}`.substring(0, 63);
+            finalDbName = validateDatabaseId(branchDbName) ? branchDbName : `db-${branchDbName}`.substring(0, 63);
 
-            await ensureFirestoreBranch(finalId, region);
-
-            return NextResponse.json({
-                success: true,
-                databaseName: finalId,
-                message: `Ephemeral Firestore database ${finalId} ensured for ${identifier}`
-            });
-        }
-
-        if (storageConfig.type === 'memorystore-redis') {
+            await ensureFirestoreBranch(finalDbName, region);
+            branchConn = `firestore://${finalDbName}`;
+            message = `Ephemeral Firestore database ${finalDbName} ensured for ${identifier}`;
+        } else if (storageConfig.type === 'memorystore-redis') {
             let dbIndex = 0;
-
             if (pullRequestNumber) {
                 dbIndex = (pullRequestNumber % 15) + 1;
             } else if (branch) {
@@ -132,16 +103,119 @@ export async function POST(
                 dbIndex = (hash % 15) + 1;
             }
 
-            return NextResponse.json({
-                success: true,
-                databaseName: `db-${dbIndex}`,
-                message: `Redis DB index ${dbIndex} assigned for ${identifier}`
-            });
+            finalDbName = `db-${dbIndex}`;
+            if (baseConnectionString) {
+                try {
+                    const url = new URL(baseConnectionString);
+                    url.pathname = `/${dbIndex}`;
+                    branchConn = url.toString();
+                } catch {
+                    branchConn = baseConnectionString;
+                }
+            }
+            message = `Redis DB index ${dbIndex} assigned for ${identifier}`;
+        } else if (storageConfig.type === 'planetscale') {
+            const organization = storageConfig.metadata?.organization as string;
+            const database = storageConfig.metadata?.database as string;
+            const providerApiKey = storageConfig.metadata?.providerApiKey as string;
+
+            if (organization && database && providerApiKey) {
+                // Native PlanetScale Branching
+                if (process.env.MOCK_DB === 'true') {
+                    finalDbName = identifier;
+                    branchConn = `mysql://mock_user:mock_password@aws.connect.psdb.cloud/${database}?ssl={"rejectUnauthorized":true}`;
+                    message = `PlanetScale ephemeral branch ${identifier} created (MOCK)`;
+                } else {
+                    try {
+                        // 1. Create Branch
+                        const branchRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/branches`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${providerApiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ name: identifier })
+                        });
+
+                        if (!branchRes.ok && branchRes.status !== 422) {
+                            console.error('[PlanetScale] Branch creation failed:', await branchRes.text());
+                        }
+
+                        // 2. Create Password for branch
+                        const pwdRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/branches/${identifier}/passwords`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${providerApiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ display_name: `deployify-${identifier}` })
+                        });
+
+                        if (pwdRes.ok) {
+                            const pwdData = await pwdRes.json();
+                            branchConn = `mysql://${pwdData.username}:${pwdData.plain_text}@${pwdData.access_host}/${database}?ssl={"rejectUnauthorized":true}`;
+                        } else if (baseConnectionString) {
+                            const url = new URL(baseConnectionString);
+                            url.hostname = `${identifier}.${url.hostname}`;
+                            branchConn = url.toString();
+                        }
+                        finalDbName = identifier;
+                        message = `PlanetScale ephemeral branch ${identifier} ensured`;
+                    } catch (e) {
+                        console.error('[PlanetScale] Branching error:', e);
+                    }
+                }
+            } else if (baseConnectionString) {
+                const url = new URL(baseConnectionString);
+                url.hostname = `${identifier}.${url.hostname}`;
+                branchConn = url.toString();
+                finalDbName = identifier;
+            }
+        } else if (baseConnectionString) {
+            // Generic fallback for MongoDB/Supabase/Others
+            try {
+                const url = new URL(baseConnectionString);
+                const baseDbName = url.pathname.split('/')[1] || 'test';
+                const template = storageConfig.branchingSettings.template || '{base}_{identifier}';
+                finalDbName = template
+                    .replace('{base}', baseDbName)
+                    .replace('{identifier}', identifier);
+
+                url.pathname = `/${finalDbName}`;
+                branchConn = url.toString();
+            } catch {
+                branchConn = baseConnectionString;
+            }
+        }
+
+        // 2. Handle Seeding (Type-Agnostic)
+        let seedOperation: string | undefined;
+        if (seed && storageConfig.branchingSettings.seedCommand && branchConn) {
+            const latestDeploy = await getLatestDeployment(project.id, pullRequestNumber ? 'preview' : 'branch');
+            const commitSha = latestDeploy?.gitCommitSha || 'main';
+
+            try {
+                const { operationName } = await runSeed(
+                    project.id,
+                    project.repoFullName,
+                    commitSha,
+                    branchConn,
+                    storageConfig.envKey || (storageConfig.type === 'memorystore-redis' ? 'REDIS_URL' : storageConfig.type === 'mongodb-atlas' ? 'MONGODB_URI' : 'DATABASE_URL'),
+                    storageConfig.branchingSettings.seedCommand,
+                    project.region,
+                    project.rootDirectory
+                );
+                seedOperation = operationName;
+            } catch (e) {
+                console.error('[Branching] Seeding failed to trigger:', e);
+            }
         }
 
         return NextResponse.json({
             success: true,
-            message: `Branching context established for ${identifier}`
+            databaseName: finalDbName,
+            seedOperation,
+            message: `${message}${seedOperation ? ' (Seeding triggered)' : ''}`
         });
 
     } catch (error) {
