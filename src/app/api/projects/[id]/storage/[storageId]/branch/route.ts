@@ -123,8 +123,6 @@ export async function POST(
         }
 
         if (storageConfig.type === 'memorystore-redis') {
-            const connectionString = await getSecretValue(storageConfig.connectionStringSecretId!);
-            const url = new URL(connectionString);
             let dbIndex = 0;
 
             if (pullRequestNumber) {

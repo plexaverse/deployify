@@ -82,21 +82,6 @@ describe('Storage Branching Logic', () => {
    });
 
    test('Redis branching should switch to runtimeEnvVars with derived index', async () => {
-        const mockProject: Project = {
-           id: 'proj_1',
-           storageConfigs: [
-               {
-                   id: 'storage_redis',
-                   name: 'Redis',
-                   type: 'memorystore-redis',
-                   status: 'active',
-                   environment: 'both',
-                   connectionStringSecretId: 'secret_redis',
-                   branchingSettings: { enabled: true },
-               } as StorageConfig
-           ]
-       } as Project;
-
        // MOCK_DB=true Secret Manager returns 'mock-secret-value'
        // But Redis branching expects a valid URL to parse.
        // The test environment might need a real-looking connection string.
