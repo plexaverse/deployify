@@ -1,5 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { EventEmitter } from 'events';
+
+// Increase max listeners for audit script since it makes many concurrent fetch requests
+EventEmitter.defaultMaxListeners = 500;
+if (process.stdout && process.stdout.setMaxListeners) process.stdout.setMaxListeners(500);
+if (process.stderr && process.stderr.setMaxListeners) process.stderr.setMaxListeners(500);
 
 function loadEnv(filePath: string) {
     if (fs.existsSync(filePath)) {
