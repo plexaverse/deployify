@@ -312,14 +312,14 @@ node fix-next-config.js && rm fix-next-config.js`,
             args: [
                 '-c',
                 `PROJECT_NUMBER=$(gcloud projects describe ${gcpProjectId} --format="value(projectNumber)") && \
-                 RUN_SERVICE_AGENT="service-$${PROJECT_NUMBER}@serverless-robot-prod.iam.gserviceaccount.com" && \
-                 COMPUTE_SA="$${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" && \
+                 RUN_SERVICE_AGENT="service-\$\${PROJECT_NUMBER}@serverless-robot-prod.iam.gserviceaccount.com" && \
+                 COMPUTE_SA="\$\${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" && \
                  ${secretResourceNames.length > 0 ? `for secret in ${secretResourceNames.join(' ')}; do \
-                   gcloud secrets add-iam-policy-binding $${secret} --member="serviceAccount:$${RUN_SERVICE_AGENT}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $${RUN_SERVICE_AGENT}"; \
-                   gcloud secrets add-iam-policy-binding $${secret} --member="serviceAccount:$${COMPUTE_SA}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $${COMPUTE_SA}"; \
+                   gcloud secrets add-iam-policy-binding $\${secret} --member="serviceAccount:$\${RUN_SERVICE_AGENT}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $\${RUN_SERVICE_AGENT}"; \
+                   gcloud secrets add-iam-policy-binding $\${secret} --member="serviceAccount:$\${COMPUTE_SA}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $\${COMPUTE_SA}"; \
                  done` : 'echo "No secrets to bind"'} && \
-                 ${cloudSqlInstances.length > 0 ? `gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$${RUN_SERVICE_AGENT}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $${RUN_SERVICE_AGENT}"; \
-                 gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$${COMPUTE_SA}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $${COMPUTE_SA}"` : 'echo "No Cloud SQL instances to bind"'}`,
+                 ${cloudSqlInstances.length > 0 ? `gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$\${RUN_SERVICE_AGENT}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $\${RUN_SERVICE_AGENT}"; \
+                 gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$\${COMPUTE_SA}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $\${COMPUTE_SA}"` : 'echo "No Cloud SQL instances to bind"'}`,
             ],
         }] : []),
         // Extract and Save Cache to GCS (Non-blocking)
