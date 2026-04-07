@@ -314,7 +314,7 @@ function SummaryCard({ title, value }: { title: string; value: string }) {
                 <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
                     {title}
                 </h3>
-                <div className="mt-3 text-2xl font-semibold font-mono tracking-tighter text-[var(--foreground)]">
+                <div className="mt-3 text-xl font-semibold font-mono tracking-tighter text-[var(--foreground)]">
                     {value}
                 </div>
             </div>

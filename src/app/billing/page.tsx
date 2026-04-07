@@ -302,7 +302,7 @@ export default function BillingPage() {
                             <CreditCard className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
-                        <h3 className="text-2xl font-semibold tracking-tight mb-4">Simple, transparent pricing</h3>
+                        <h3 className="text-xl font-semibold tracking-tight mb-4">Simple, transparent pricing</h3>
                         <p className="text-lg text-[var(--muted-foreground)]">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
                         </p>

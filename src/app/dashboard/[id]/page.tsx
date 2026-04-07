@@ -376,7 +376,7 @@ export default function ProjectDetailPage() {
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <div className="p-6 flex items-baseline gap-2">
-                                <span className="text-2xl font-semibold">{errorCount}</span>
+                                <span className="text-xl font-semibold">{errorCount}</span>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">events tracked</span>
                             </div>
                         </Card>
