@@ -3,6 +3,7 @@ import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, Tea
 import { generateId, cleanFirestoreData } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
 import { getSecretValue } from '@/lib/gcp/secrets';
+import { config } from '@/lib/config';
 import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 // ============= User Operations =============
 
@@ -66,11 +67,19 @@ export async function getEnvVarsForDeployment(
     buildEnvVars: Record<string, string>;
     runtimeEnvVars: Record<string, string>;
     runtimeSecrets?: Record<string, string>;
+    cloudSqlInstances?: string[];
+    needsVpc?: boolean;
+    vpcNetwork?: string;
+    vpcSubnet?: string;
 }> {
     const envVars = project.envVariables || [];
     const buildEnvVars: Record<string, string> = {};
     const runtimeEnvVars: Record<string, string> = {};
     const runtimeSecrets: Record<string, string> = {};
+    const cloudSqlInstances: string[] = [];
+    let needsVpc = false;
+    let vpcNetwork: string | undefined;
+    let vpcSubnet: string | undefined;
 
     // 1. Process regular environment variables
     for (const env of envVars) {
@@ -150,7 +159,7 @@ export async function getEnvVarsForDeployment(
                 runtimeSecrets[envKey] = storage.connectionStringSecretId;
 
                 // For build-time tools (like Prisma), we still need the actual value
-                if (storage.environment === 'both' || (storage.environment === 'preview' && envTarget === 'preview')) {
+                if (storage.environment === 'both' || storage.environment === envTarget) {
                     try {
                         const connectionString = await getSecretValue(storage.connectionStringSecretId);
                         if (!connectionString) {
@@ -164,9 +173,47 @@ export async function getEnvVarsForDeployment(
                 }
             }
         }
+
+        // 2b. Explicit Orchestration detection from metadata (GCP Native)
+        if (storage.type === 'memorystore-redis') {
+            needsVpc = true;
+            if (storage.metadata?.vpcNetwork) vpcNetwork = storage.metadata.vpcNetwork as string;
+            if (storage.metadata?.vpcSubnet) vpcSubnet = storage.metadata.vpcSubnet as string;
+        }
+
+        if (storage.type.includes('cloud-sql') && storage.metadata?.resourceName) {
+            const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID || '';
+            const region = (storage.metadata?.region as string) || project.region || 'us-central1';
+            const instanceName = storage.metadata.resourceName as string;
+            cloudSqlInstances.push(`${gcpProjectId}:${region}:${instanceName}`);
+        }
     }
 
-    return { buildEnvVars, runtimeEnvVars, runtimeSecrets };
+    // 3. Final Orchestration Check (Detect requirements from resulting env vars/secrets)
+    const allEnvValues = [
+        ...Object.values(runtimeEnvVars),
+        ...Object.values(buildEnvVars)
+    ];
+
+    allEnvValues.forEach(value => {
+        const match = value.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
+        if (match && match[1]) {
+            cloudSqlInstances.push(match[1]);
+        }
+        if (value.includes('.redis.cache.google.com') || value.startsWith('redis://')) {
+            needsVpc = true;
+        }
+    });
+
+    return {
+        buildEnvVars,
+        runtimeEnvVars,
+        runtimeSecrets,
+        cloudSqlInstances: Array.from(new Set(cloudSqlInstances)),
+        needsVpc,
+        vpcNetwork,
+        vpcSubnet
+    };
 }
 
 /**
