@@ -17,6 +17,10 @@ interface BuildSubmissionConfig {
     buildEnvVars?: Record<string, string>;  // Env vars for build time (Docker build)
     runtimeEnvVars?: Record<string, string>;  // Env vars for runtime (Cloud Run)
     runtimeSecrets?: Record<string, string>; // Secret Manager refs for runtime (envKey -> secretId:version)
+    cloudSqlInstances?: string[]; // Native Cloud SQL bindings
+    needsVpc?: boolean; // VPC Orchestration requirement
+    vpcNetwork?: string; // VPC Network name
+    vpcSubnet?: string; // VPC Subnet name
     buildCommand?: string;
     installCommand?: string;
     outputDirectory?: string;
@@ -49,6 +53,10 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildEnvVars = {},
         runtimeEnvVars = {},
         runtimeSecrets = {},
+        cloudSqlInstances: explicitCloudSqlInstances = [],
+        needsVpc: explicitNeedsVpc = false,
+        vpcNetwork = 'default',
+        vpcSubnet = 'default',
         gitToken,
         projectRegion,
         framework = 'nextjs',
@@ -100,9 +108,9 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         envArgs.push('--update-env-vars', `^|||^${envVarString}`);
     }
 
-    // Determine Cloud SQL instances and VPC requirements
-    const cloudSqlInstances: string[] = [];
-    let needsVpc = false;
+    // Determine Cloud SQL instances and VPC requirements (Explicit + Detected)
+    const cloudSqlInstances = [...explicitCloudSqlInstances];
+    let needsVpc = explicitNeedsVpc;
 
     Object.entries(allRuntimeEnvVars).forEach(([key, value]) => {
         // Look for Cloud SQL Auth Proxy patterns: /cloudsql/project:region:instance
@@ -112,7 +120,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         }
 
         // Look for Memorystore/Redis patterns (Direct VPC Egress needed for internal IPs)
-        if (key.includes('REDIS_URL') || value.includes('.redis.cache.google.com')) {
+        if (key.includes('REDIS_URL') || value.includes('.redis.cache.google.com') || value.startsWith('redis://')) {
             needsVpc = true;
         }
     });
@@ -297,18 +305,21 @@ node fix-next-config.js && rm fix-next-config.js`,
             ],
             dir: '/workspace',
         }]),
-        // Ensure Cloud Run Service Agent has access to secrets and Cloud SQL
+        // Ensure Cloud Run Service Agent and Default Compute SA have access to secrets and Cloud SQL
         ...((secretResourceNames.length > 0 || cloudSqlInstances.length > 0) ? [{
             name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
             entrypoint: 'bash',
             args: [
                 '-c',
                 `PROJECT_NUMBER=$(gcloud projects describe ${gcpProjectId} --format="value(projectNumber)") && \
-                 SERVICE_ACCOUNT="service-$\${PROJECT_NUMBER}@serverless-robot-prod.iam.gserviceaccount.com" && \
+                 RUN_SERVICE_AGENT="service-$${PROJECT_NUMBER}@serverless-robot-prod.iam.gserviceaccount.com" && \
+                 COMPUTE_SA="$${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" && \
                  ${secretResourceNames.length > 0 ? `for secret in ${secretResourceNames.join(' ')}; do \
-                   gcloud secrets add-iam-policy-binding $\${secret} --member="serviceAccount:$\${SERVICE_ACCOUNT}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $\${secret}"; \
+                   gcloud secrets add-iam-policy-binding $${secret} --member="serviceAccount:$${RUN_SERVICE_AGENT}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $${RUN_SERVICE_AGENT}"; \
+                   gcloud secrets add-iam-policy-binding $${secret} --member="serviceAccount:$${COMPUTE_SA}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $${COMPUTE_SA}"; \
                  done` : 'echo "No secrets to bind"'} && \
-                 ${cloudSqlInstances.length > 0 ? `gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$\${SERVICE_ACCOUNT}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role"` : 'echo "No Cloud SQL instances to bind"'}`,
+                 ${cloudSqlInstances.length > 0 ? `gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$${RUN_SERVICE_AGENT}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $${RUN_SERVICE_AGENT}"; \
+                 gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$${COMPUTE_SA}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $${COMPUTE_SA}"` : 'echo "No Cloud SQL instances to bind"'}`,
             ],
         }] : []),
         // Extract and Save Cache to GCS (Non-blocking)
@@ -352,7 +363,7 @@ node fix-next-config.js && rm fix-next-config.js`,
                 '--timeout', `${config.cloudRun.timeout}s`,
                 ...(healthCheckPath ? ['--startup-probe-path', healthCheckPath, '--liveness-probe-path', healthCheckPath] : []),
                 ...(cloudSqlInstances.length > 0 ? ['--add-cloudsql-instances', Array.from(new Set(cloudSqlInstances)).join(',')] : []),
-                ...(needsVpc ? ['--network=default', '--subnet=default', '--vpc-egress=private-ranges-only'] : []),
+                ...(needsVpc ? [`--network=${vpcNetwork}`, `--subnet=${vpcSubnet}`, '--vpc-egress=private-ranges-only'] : []),
                 ...envArgs,
                 ...(Object.keys(runtimeSecrets).length > 0 ? ['--set-secrets', Object.entries(runtimeSecrets).map(([k, v]) => {
                     // Extract SECRET_NAME:VERSION from projects/PROJECT_ID/secrets/SECRET_NAME/versions/VERSION
