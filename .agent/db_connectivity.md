@@ -377,7 +377,16 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Refine MongoDB Atlas branching API logic to establish database context
 - [x] Add "PROTECTED" status badges and UI toggles for infrastructure safety
 
+### Phase 57: Native Cloud Run Integration & VPC Orchestration (IN PROGRESS)
+- [ ] Implement automated Cloud SQL binding via `--add-cloudsql-instances`
+- [ ] Implement Direct VPC Egress for Memorystore (Redis) connectivity
+- [ ] Automate `roles/cloudsql.client` IAM role assignment for Service Agent
+
 ## Progress Updates
+
+### 2027-05-01: Native Cloud Run Integration & VPC Orchestration
+- Initialized Phase 57: Native Cloud Run Integration & VPC Orchestration.
+- Aiming to harden the connection between Cloud Run and provisioned databases by leveraging native platform features like Cloud SQL Auth Proxy integration and Direct VPC Egress.
 
 ### 2027-04-30: Advanced Branching Maturity & Infrastructure Safety
 - Completed Phase 56: Advanced Branching Maturity & Infrastructure Safety.
