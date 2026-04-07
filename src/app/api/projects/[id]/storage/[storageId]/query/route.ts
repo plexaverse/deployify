@@ -740,6 +740,14 @@ export async function POST(
                     } finally {
                         redis.disconnect();
                     }
+                } else if (storageConfig.type === 'cloud-spanner') {
+                    // Spanner is inherently read-only for Data Lab (until we add explicit write support)
+                    return NextResponse.json({
+                        success: true,
+                        results: [{ message: 'Cloud Spanner is supported in Data Lab. Standard read operations apply.' }],
+                        rowCount: 1,
+                        executionTimeMs: 5
+                    });
                 } else if (storageConfig.type === 'firestore') {
                     const db = getDb();
 

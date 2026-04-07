@@ -7,6 +7,7 @@ import { upsertSecret, deleteSecret } from '@/lib/gcp/secrets';
 import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloudSqlInstance, updateInstanceSettings as updateCloudSqlSettings } from '@/lib/gcp/cloudsql';
 import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance, updateInstanceSize as updateMemorystoreSize } from '@/lib/gcp/memorystore';
 import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
+import { createInstance as createSpannerInstance, deleteInstance as deleteSpannerInstance } from '@/lib/gcp/spanner';
 import type { StorageConfig } from '@/types';
 
 // Generate unique ID for storage configs
@@ -112,6 +113,9 @@ export async function POST(
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'firestore' && resourceName) {
                     provisionResult = await createFirestoreDatabase(resourceName, targetRegion);
+                    finalConnectionString = provisionResult.connectionString;
+                } else if (type === 'cloud-spanner' && resourceName) {
+                    provisionResult = await createSpannerInstance(resourceName, targetRegion);
                     finalConnectionString = provisionResult.connectionString;
                 }
                 operationName = provisionResult?.operationName;
@@ -226,6 +230,8 @@ export async function DELETE(
                     await deleteMemorystoreInstance(resourceName, region);
                 } else if (storageConfig.type === 'firestore') {
                     await deleteFirestoreDatabase(resourceName);
+                } else if (storageConfig.type === 'cloud-spanner') {
+                    await deleteSpannerInstance(resourceName);
                 }
             } catch (error) {
                 console.error('Failed to delete GCP resource:', error);

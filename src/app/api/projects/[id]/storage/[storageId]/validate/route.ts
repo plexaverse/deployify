@@ -35,6 +35,18 @@ export async function POST(
 
         const storage = storageConfigs[storageIndex];
 
+        // Cloud Spanner Validation
+        if (storage.type === 'cloud-spanner') {
+            if (process.env.MOCK_DB === 'true') {
+                return NextResponse.json({
+                    success: true,
+                    valid: true,
+                    status: 'active',
+                    lastValidatedAt: new Date().toISOString()
+                });
+            }
+        }
+
         // Perform connection validation
         const result = await validateConnection(
             storage.type,

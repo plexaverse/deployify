@@ -377,6 +377,54 @@ export async function ensureEphemeralDatabase(
 }
 
 /**
+ * Create a read replica for an existing instance
+ */
+export async function createReplica(
+    masterInstanceName: string,
+    replicaName: string,
+    region: string,
+    options: { tier?: string } = {}
+): Promise<{ operationName: string; connectionString: string }> {
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            operationName: `projects/mock/operations/create-replica-${replicaName}`,
+            connectionString: `postgresql://deployify-sa@/${replicaName}?host=/cloudsql/mock:${region}:${replicaName}&enable_iam_auth=true`
+        };
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: replicaName,
+            region,
+            masterInstanceName,
+            settings: {
+                tier: options.tier || 'db-f1-micro',
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to create Cloud SQL replica: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    const connectionString = `postgresql://deployify-sa@/${replicaName}?host=/cloudsql/${gcpProjectId}:${region}:${replicaName}&enable_iam_auth=true`;
+
+    return {
+        operationName: data.name,
+        connectionString,
+    };
+}
+
+/**
  * Check the status of a long-running operation
  */
 export async function getOperationStatus(

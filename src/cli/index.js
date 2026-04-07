@@ -454,6 +454,7 @@ Subcommands:
   sync <storage_id>                  Sync provisioning status
   provision <type> <name>            Provision a new storage instance
   branch <storage_id> <identifier>   Provision a storage branch (PR # or branch name)
+  tunnel <storage_id> [local_port]   Create a secure tunnel to your database
   backups <action> <storage_id>      Manage database backups
   migrations <action> <storage_id>   Manage database migrations
 `);
@@ -584,6 +585,48 @@ Actions:
             if (data.message) console.log(`Message:  ${data.message}`);
         } else {
             console.log(`❌ Branching failed: ${data.error || 'Unknown error'}`);
+        }
+    } else if (subcommand === 'tunnel') {
+        const storageId = args[2];
+        const localPort = args[3] || '5432';
+        if (!storageId) {
+            throw new Error('Usage: deployify storage tunnel <storage_id> [local_port]');
+        }
+
+        console.log(`Fetching connector details for ${storageId}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage`, token);
+        const connector = data.storageConfigs?.find(s => s.id === storageId);
+
+        if (!connector) {
+            throw new Error(`Storage connector ${storageId} not found.`);
+        }
+
+        console.log(`\nEstablishing secure tunnel to ${connector.name} (${connector.type.toUpperCase()})...`);
+
+        if (connector.type.startsWith('cloud-sql')) {
+            const instanceName = connector.metadata?.resourceName || connector.name.toLowerCase().replace(/\s+/g, '-');
+            const gcpProject = connector.metadata?.gcpProjectId || 'YOUR_GCP_PROJECT_ID';
+            const region = connector.metadata?.region || 'us-central1';
+            const connectionName = `${gcpProject}:${region}:${instanceName}`;
+
+            console.log(`\nCloud SQL Auth Proxy detected.`);
+            console.log(`To connect locally, run the following command in a separate terminal:`);
+            console.log(`\n  cloud-sql-proxy ${connectionName} --port ${localPort}`);
+            console.log(`\nThen connect to: localhost:${localPort}`);
+
+            if (connector.type.includes('postgres')) {
+                console.log(`User: deployify-sa (IAM Auth)`);
+            }
+        } else if (connector.type === 'memorystore-redis') {
+            console.log(`\nMemorystore (Redis) is only accessible within the GCP VPC.`);
+            console.log(`To connect locally, you must use an SSH tunnel via a bastion host:`);
+            console.log(`\n  ssh -L ${localPort}:${connector.metadata?.host || 'REDIS_IP'}:6379 BASTION_HOST`);
+            console.log(`\nThen connect to: localhost:${localPort}`);
+        } else {
+            // For external connectors, we usually have a connection string
+            console.log(`\nThis connector type (${connector.type}) typically uses direct secure connections.`);
+            console.log(`Use the connection string available in the dashboard:`);
+            console.log(`${instanceUrl}/dashboard/${projectId}/storage`);
         }
     } else if (subcommand === 'backups') {
         const storageId = args[3];

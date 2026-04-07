@@ -410,6 +410,7 @@ export interface CronJobConfig {
 export type StorageType =
     | 'cloud-sql-postgres'
     | 'cloud-sql-mysql'
+    | 'cloud-spanner'
     | 'firestore'
     | 'memorystore-redis'
     | 'supabase'
@@ -433,6 +434,13 @@ export interface StorageBranchingSettings {
     seedCommand?: string; // Optional command to seed newly created branch databases
 }
 
+export interface StorageReplica {
+    id: string;
+    name: string;
+    region: string;
+    status: StorageStatus;
+}
+
 export interface StorageConfig {
     id: string;
     type: StorageType;
@@ -448,6 +456,7 @@ export interface StorageConfig {
     lastError?: string;
     alertSettings?: StorageAlertSettings;
     branchingSettings?: StorageBranchingSettings;
+    replicas?: StorageReplica[];
     activeAlerts?: string[];
     metadata?: Record<string, unknown>;
     createdAt: Date;

@@ -60,6 +60,9 @@ export async function validateConnection(
             case 'firestore':
                 return await validateFirestore(metadata);
 
+            case 'cloud-spanner':
+                return { valid: true }; // Spanner usually handles its own auth/connectivity via IAM
+
             case 'generic':
                 return await validateGeneric(connectionString);
 

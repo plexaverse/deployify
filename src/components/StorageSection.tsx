@@ -55,6 +55,7 @@ interface StorageSectionProps {
 const STORAGE_TYPES = [
     { value: 'cloud-sql-postgres', label: 'CLOUD SQL (POSTGRES)', category: 'GCP NATIVE' },
     { value: 'cloud-sql-mysql', label: 'CLOUD SQL (MYSQL)', category: 'GCP NATIVE' },
+    { value: 'cloud-spanner', label: 'CLOUD SPANNER', category: 'GCP NATIVE' },
     { value: 'firestore', label: 'FIRESTORE', category: 'GCP NATIVE' },
     { value: 'memorystore-redis', label: 'MEMORYSTORE (REDIS)', category: 'GCP NATIVE' },
     { value: 'supabase', label: 'SUPABASE', category: 'EXTERNAL' },
@@ -96,6 +97,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [providerApiKey, setProviderApiKey] = useState('');
     const [secretOnly, setSecretOnly] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [replicaRegion, setReplicaRegion] = useState('us-east1');
+    const [replicaName, setReplicaName] = useState('');
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [deleteResource, setDeleteResource] = useState(false);
@@ -113,6 +116,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [isLoadingBackups, setIsLoadingBackups] = useState(false);
     const [backupDescription, setBackupDescription] = useState('');
     const [isManagingMigrations, setIsManagingMigrations] = useState<StorageConfig | null>(null);
+    const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
     const [migrations, setMigrations] = useState<Migration[]>([]);
     const [isLoadingMigrations, setIsLoadingMigrations] = useState(false);
     const [migrationCommand, setMigrationCommand] = useState('prisma migrate deploy');
@@ -478,6 +482,31 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             if (success) {
                 setIsManagingAlerts(null);
             }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleCreateReplica = async () => {
+        if (!isManagingReplicas || !replicaName) return;
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${isManagingReplicas.id}/replica`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: replicaName, region: replicaRegion }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success('Replica creation triggered');
+                setIsManagingReplicas(null);
+                setReplicaName('');
+            } else {
+                toast.error(data.error || 'Failed to create replica');
+            }
+        } catch (e) {
+            console.error('Failed to create replica:', e);
+            toast.error('Failed to create replica');
         } finally {
             setIsSubmitting(false);
         }
@@ -1139,6 +1168,20 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <GitBranch className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    {config.status === 'active' && config.type.includes('cloud-sql') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsManagingReplicas(config);
+                                                setReplicaName(`${config.metadata?.resourceName || config.name}-replica`);
+                                            }}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Manage Replicas"
+                                        >
+                                            <Zap className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     {config.status === 'active' && !!config.metadata?.provisioned && (
                                         <Button
                                             variant="ghost"
@@ -1712,6 +1755,73 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 }
                 showConfirm={false}
                 showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingReplicas}
+                onClose={() => setIsManagingReplicas(null)}
+                onConfirm={handleCreateReplica}
+                title="Manage Read Replicas"
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Create Cross-Region Replica</Label>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Replica Instance ID</Label>
+                                    <Input
+                                        value={replicaName}
+                                        onChange={(e) => setReplicaName(e.target.value)}
+                                        placeholder="E.G. my-db-replica"
+                                        className="h-9 text-[10px] font-bold uppercase"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Target Region</Label>
+                                    <NativeSelect
+                                        value={replicaRegion}
+                                        onChange={(e) => setReplicaRegion(e.target.value)}
+                                    >
+                                        <option value="us-east1">US East 1 (South Carolina)</option>
+                                        <option value="us-west1">US West 1 (Oregon)</option>
+                                        <option value="europe-west1">Europe West 1 (Belgium)</option>
+                                        <option value="asia-east1">Asia East 1 (Taiwan)</option>
+                                    </NativeSelect>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Existing Replicas</Label>
+                            <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                {!isManagingReplicas?.replicas || isManagingReplicas.replicas.length === 0 ? (
+                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No replicas found</span>
+                                    </div>
+                                ) : (
+                                    isManagingReplicas.replicas.map(r => (
+                                        <div key={r.id} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                        r.status === 'active' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--info)]/10 text-[var(--info)]"
+                                                    )}>
+                                                        {r.status}
+                                                    </span>
+                                                    <span className="text-[10px] font-mono font-bold">{r.name}</span>
+                                                </div>
+                                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">{r.region.toUpperCase()}</p>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                }
+                confirmText="Create Replica"
+                loading={isSubmitting}
             />
 
             <ConfirmationModal

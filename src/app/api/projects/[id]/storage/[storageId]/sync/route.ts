@@ -5,6 +5,7 @@ import { updateProject } from '@/lib/db';
 import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getCloudSqlInstance } from '@/lib/gcp/cloudsql';
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
+import { getOperationStatus as getSpannerOperationStatus } from '@/lib/gcp/spanner';
 import type { StorageConfig } from '@/types';
 import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds } from '@/lib/gcp/monitoring';
 import { sendEmail } from '@/lib/email/client';
@@ -242,6 +243,8 @@ export async function GET(
                 statusResult = await getMemorystoreOperationStatus(operationName);
             } else if (storage.type === 'firestore') {
                 statusResult = await getFirestoreOperationStatus(operationName);
+            } else if (storage.type === 'cloud-spanner') {
+                statusResult = await getSpannerOperationStatus(operationName);
             } else {
                 return NextResponse.json({
                     success: false,
@@ -344,6 +347,30 @@ export async function GET(
             } else {
                 storage.status = 'active';
                 storage.lastSyncedAt = now;
+            }
+
+            // Sync Replicas for Cloud SQL
+            if (isCloudSql && storage.replicas && storage.replicas.length > 0) {
+                try {
+                    let replicaChanged = false;
+
+                    for (const replica of storage.replicas) {
+                        if (replica.status === 'provisioning' && storage.metadata?.lastReplicaOperation) {
+                            const repStatus = await getCloudSqlOperationStatus(storage.metadata.lastReplicaOperation as string);
+                            if (repStatus.status === 'DONE') {
+                                replica.status = 'active';
+                                replicaChanged = true;
+                            }
+                        }
+                    }
+
+                    if (replicaChanged) {
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+                    }
+                } catch (e) {
+                    console.error('Failed to sync replica status:', e);
+                }
             }
 
             // Final Fetch for detailed metadata (HA/PITR)
