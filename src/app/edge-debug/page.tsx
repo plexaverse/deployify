@@ -82,7 +82,7 @@ export default function EdgeDebugPage() {
                 </div>
                 <div className="space-y-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
-                    <h1 className="text-xl font-bold tracking-tight">Edge Function Simulator</h1>
+                    <h1 className="text-lg font-bold tracking-tight">Edge Function Simulator</h1>
                 </div>
             </div>
             <MovingBorderButton
