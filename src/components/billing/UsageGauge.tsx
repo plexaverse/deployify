@@ -71,7 +71,7 @@ export function UsageGauge({
                     />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">{percent}%</span>
+                    <span className="text-xl font-semibold tracking-tight text-[var(--foreground)]">{percent}%</span>
                 </div>
             </div>
 

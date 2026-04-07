@@ -146,7 +146,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-2xl md:text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
+              className="text-xl md:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
             >
               Deploy like Vercel, <br /> Pay like raw GCP.
             </motion.h1>
@@ -279,7 +279,7 @@ export default function LandingPage() {
                     role="listitem"
                     aria-label={`${logo} logo`}
                     whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%) drop-shadow(0 0 8px rgba(255,255,255,0.1))' }}
-                    className="text-xl font-bold tracking-wider text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
+                    className="text-[10px] font-bold uppercase tracking-wider tracking-wider text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
                   >
                     {logo}
                   </motion.span>
@@ -290,7 +290,7 @@ export default function LandingPage() {
 
           {/* The Method Section */}
           <div className="mt-40">
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-xl md:text-2xl font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               The Deployify Method
             </h2>
             <TracingBeam className="px-6">
@@ -334,7 +334,7 @@ export default function LandingPage() {
                       whileInView={{ opacity: 0.3, scale: 1.2, x: 0 }}
                       viewport={{ margin: "-100px" }}
                       transition={{ duration: 1 }}
-                      className="absolute -left-12 md:-left-16 -top-2 text-xl font-bold text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
+                      className="absolute -left-12 md:-left-16 -top-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
                       aria-hidden="true"
                     >
                       0{i + 1}
@@ -362,7 +362,7 @@ export default function LandingPage() {
 
           {/* Price Efficiency Section */}
           <div className="mt-40">
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-xl md:text-2xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Pay for what you use
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -424,7 +424,7 @@ export default function LandingPage() {
 
           {/* Feature Bento Grid */}
           <div id="features" className="mt-40">
-            <h2 className="text-2xl md:text-3xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-xl md:text-2xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Everything you need to scale
             </h2>
             <BentoGrid>
@@ -590,7 +590,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 text-center px-4"
           >
-            <h2 className="text-2xl md:text-3xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-xl md:text-2xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Global Edge Network
             </h2>
             <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12">
