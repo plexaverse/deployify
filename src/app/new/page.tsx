@@ -83,7 +83,7 @@ export default function NewProjectPage() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
-                            <h1 className="text-xl font-bold tracking-tight">Create New Project</h1>
+                            <h1 className="text-lg font-bold tracking-tight">Create New Project</h1>
                         </div>
                     </div>
 

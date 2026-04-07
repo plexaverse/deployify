@@ -1697,7 +1697,8 @@ Conducted a final typography size reduction pass for main page titles and hero c
   - `src/app/billing/page.tsx`
 - **Standardization**:
     - Systematically shifted down heading sizes for main page titles and hero components by one increment.
-    - Updated `text-3xl font-semibold` to `text-2xl font-semibold` in `PricingCard`.
-    - Updated `text-2xl font-semibold` to `text-xl font-semibold` in `UsageGauge`, `AnalyticsCharts`, Project Overview, and Billing page headers.
-    - Updated `text-2xl md:text-3xl` to `text-xl md:text-2xl` in `LandingPage` and `OnboardingGuide`.
+    - Updated `text-2xl font-semibold` to `text-xl font-semibold` in `PricingCard`.
+    - Updated `text-xl font-semibold` to `text-sm font-semibold` in `UsageGauge`, `AnalyticsCharts`, Project Overview, and Billing page headers.
+    - Updated `text-xl md:text-2xl font-bold` to `text-lg md:text-xl font-bold` in `LandingPage` and `OnboardingGuide`.
+    - Updated `text-xl font-bold` to `text-lg font-bold` across page headers.
     - Standardized internal component labels from `text-lg font-bold/semibold` to `text-sm font-semibold`.

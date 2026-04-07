@@ -146,7 +146,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-xl md:text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
+              className="text-lg md:text-xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
             >
               Deploy like Vercel, <br /> Pay like raw GCP.
             </motion.h1>
@@ -290,7 +290,7 @@ export default function LandingPage() {
 
           {/* The Method Section */}
           <div className="mt-40">
-            <h2 className="text-xl md:text-2xl font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-lg md:text-xl font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               The Deployify Method
             </h2>
             <TracingBeam className="px-6">
@@ -362,7 +362,7 @@ export default function LandingPage() {
 
           {/* Price Efficiency Section */}
           <div className="mt-40">
-            <h2 className="text-xl md:text-2xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-lg md:text-xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Pay for what you use
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -424,7 +424,7 @@ export default function LandingPage() {
 
           {/* Feature Bento Grid */}
           <div id="features" className="mt-40">
-            <h2 className="text-xl md:text-2xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-lg md:text-xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Everything you need to scale
             </h2>
             <BentoGrid>
@@ -590,7 +590,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 text-center px-4"
           >
-            <h2 className="text-xl md:text-2xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-lg md:text-xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Global Edge Network
             </h2>
             <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12">

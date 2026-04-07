@@ -26,7 +26,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                         </div>
                         <div className="space-y-1 mb-4">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Invalid Invite</span>
-                            <h1 className="text-xl font-bold tracking-tight">Invite Error</h1>
+                            <h1 className="text-lg font-bold tracking-tight">Invite Error</h1>
                         </div>
                         <p className="text-[var(--muted-foreground)]">No invite token provided. Please check your link.</p>
                     </div>
@@ -55,7 +55,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                         </div>
                         <div className="space-y-1 mb-4">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Invalid Invite</span>
-                            <h1 className="text-xl font-bold tracking-tight">Invite Error</h1>
+                            <h1 className="text-lg font-bold tracking-tight">Invite Error</h1>
                         </div>
                         <p className="text-[var(--muted-foreground)]">The invite link is invalid or has expired.</p>
                     </div>
@@ -76,7 +76,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                         </div>
                         <div className="space-y-1 mb-4">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Invite Expired</span>
-                            <h1 className="text-xl font-bold tracking-tight">Invite Error</h1>
+                            <h1 className="text-lg font-bold tracking-tight">Invite Error</h1>
                         </div>
                         <p className="text-[var(--muted-foreground)]">This invite link has expired. Please request a new one.</p>
                     </div>
@@ -99,7 +99,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                         </div>
                         <div className="space-y-1 mb-4">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Team Not Found</span>
-                            <h1 className="text-xl font-bold tracking-tight">Invite Error</h1>
+                            <h1 className="text-lg font-bold tracking-tight">Invite Error</h1>
                         </div>
                         <p className="text-[var(--muted-foreground)]">The team associated with this invite no longer exists.</p>
                     </div>
@@ -116,7 +116,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                 <div className="p-8 flex flex-col items-center">
                     <div className="mb-6 flex justify-center relative">
                         <div className="absolute -inset-4 bg-[var(--primary)]/10 blur-xl rounded-full animate-pulse-glow" />
-                        <Avatar className="w-20 h-20 text-xl font-bold border-4 border-[var(--background)] relative z-10 shadow-lg rounded-2xl">
+                        <Avatar className="w-20 h-20 text-lg font-bold border-4 border-[var(--background)] relative z-10 shadow-lg rounded-2xl">
                             <AvatarImage src={team.avatarUrl || undefined} alt={team.name} />
                             <AvatarFallback className="bg-[var(--primary)] text-[var(--primary-foreground)] rounded-2xl">
                                 {team.name.charAt(0).toUpperCase()}
@@ -129,7 +129,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
 
                     <div className="space-y-1 mb-6">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Invitation</span>
-                        <h1 className="text-xl font-bold tracking-tight">Join {team.name}</h1>
+                        <h1 className="text-lg font-bold tracking-tight">Join {team.name}</h1>
                     </div>
 
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-8 leading-relaxed">

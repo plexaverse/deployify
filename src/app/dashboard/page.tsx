@@ -90,7 +90,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Overview</span>
-                        <h1 className="text-xl font-bold tracking-tight">
+                        <h1 className="text-lg font-bold tracking-tight">
                             {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
                         </h1>
                     </div>

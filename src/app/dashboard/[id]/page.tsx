@@ -202,7 +202,7 @@ export default function ProjectDetailPage() {
                                 </span>
                             </div>
                         </div>
-                        <h1 className="text-xl font-bold tracking-tight">{project.name}</h1>
+                        <h1 className="text-lg font-bold tracking-tight">{project.name}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -376,7 +376,7 @@ export default function ProjectDetailPage() {
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <div className="p-6 flex items-baseline gap-2">
-                                <span className="text-xl font-semibold">{errorCount}</span>
+                                <span className="text-sm font-semibold">{errorCount}</span>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">events tracked</span>
                             </div>
                         </Card>
