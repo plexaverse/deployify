@@ -30,6 +30,28 @@ export async function runSeed(
 
     const workDir = rootDirectory ? `/workspace/${rootDirectory.replace(/^\/+|\/+$/g, '')}` : '/workspace';
 
+    const cloudSqlMatch = connectionString.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
+    const instanceConnectionName = cloudSqlMatch ? cloudSqlMatch[1] : null;
+
+    let finalConnectionString = connectionString;
+    let finalCommand = `npm install && ${command}`;
+
+    if (instanceConnectionName) {
+        const isMysql = connectionString.includes('mysql');
+        // Rewrite connection string to use Unix socket at /workspace for IAM-based connectivity in build environment
+        if (isMysql) {
+            finalConnectionString = connectionString.replace(/host=[^&?]+/, `socket=/workspace/${instanceConnectionName}`);
+        } else {
+            finalConnectionString = connectionString.replace(/host=[^&?]+/, `host=/workspace/${instanceConnectionName}`);
+        }
+
+        finalCommand = `curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64 && ` +
+            `chmod +x cloud-sql-proxy && ` +
+            `./cloud-sql-proxy --enable-iam-login --unix-socket /workspace ${instanceConnectionName} & ` +
+            `sleep 3 && ` +
+            `npm install && ${command}`;
+    }
+
     const buildConfig = {
         source: {
             connectedRepository: {
@@ -39,15 +61,15 @@ export async function runSeed(
         },
         steps: [
             {
-                name: 'node:20-alpine',
+                name: 'node:20',
                 entrypoint: 'sh',
                 dir: workDir,
                 args: [
                     '-c',
-                    `npm install && ${command}`
+                    finalCommand
                 ],
                 env: [
-                    `${envKey}=${connectionString}`
+                    `${envKey}=${finalConnectionString}`
                 ]
             }
         ],

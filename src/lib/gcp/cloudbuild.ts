@@ -419,19 +419,53 @@ node fix-next-config.js && rm fix-next-config.js`,
         );
 
         if (deployStepIndex !== -1) {
-            const migrationSteps = migrations.map((m, i) => ({
-                name: 'node:20', // Use standard node:20 for better tool compatibility
-                entrypoint: 'sh',
-                dir: workDir,
-                args: [
-                    '-c',
-                    `npm install && ${m.command}`
-                ],
-                env: [
-                    `${m.envKey}=${m.connectionString}`
-                ],
-                id: `migration-${i}`
-            }));
+            const migrationSteps = migrations.map((m, i) => {
+                const cloudSqlMatch = m.connectionString.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
+                const instanceConnectionName = cloudSqlMatch ? cloudSqlMatch[1] : null;
+
+                if (instanceConnectionName) {
+                    const isMysql = m.connectionString.includes('mysql');
+                    // Rewrite connection string to use Unix socket at /workspace for IAM-based connectivity in build environment
+                    let proxyConnectionString = m.connectionString;
+                    if (isMysql) {
+                        proxyConnectionString = m.connectionString.replace(/host=[^&?]+/, `socket=/workspace/${instanceConnectionName}`);
+                    } else {
+                        proxyConnectionString = m.connectionString.replace(/host=[^&?]+/, `host=/workspace/${instanceConnectionName}`);
+                    }
+
+                    return {
+                        name: 'node:20',
+                        entrypoint: 'sh',
+                        dir: workDir,
+                        args: [
+                            '-c',
+                            `curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64 && ` +
+                            `chmod +x cloud-sql-proxy && ` +
+                            `./cloud-sql-proxy --enable-iam-login --unix-socket /workspace ${instanceConnectionName} & ` +
+                            `sleep 3 && ` +
+                            `npm install && ${m.command}`
+                        ],
+                        env: [
+                            `${m.envKey}=${proxyConnectionString}`
+                        ],
+                        id: `migration-${i}`
+                    };
+                }
+
+                return {
+                    name: 'node:20',
+                    entrypoint: 'sh',
+                    dir: workDir,
+                    args: [
+                        '-c',
+                        `npm install && ${m.command}`
+                    ],
+                    env: [
+                        `${m.envKey}=${m.connectionString}`
+                    ],
+                    id: `migration-${i}`
+                };
+            });
 
             // Insert migration steps before deployment
             commonSteps.splice(deployStepIndex, 0, ...migrationSteps);

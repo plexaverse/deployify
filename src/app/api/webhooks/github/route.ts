@@ -247,20 +247,28 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
     // Handle PR closed - cleanup preview deployment and ephemeral storage
     if (action === 'closed') {
+        console.log(`[Cleanup] PR #${pull_request.number} closed for ${project.name}. Starting cleanup...`);
         try {
             const gcpAccessToken = await getGcpAccessToken();
             await deleteService(previewServiceName, gcpAccessToken, project.region);
+            console.log(`[Cleanup] Cloud Run service ${previewServiceName} deleted.`);
 
             // Cleanup ephemeral databases if branching is enabled
             if (project.storageConfigs && project.storageConfigs.length > 0) {
                 for (const storage of project.storageConfigs) {
-                    if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                    if (!storage.branchingSettings?.enabled) continue;
+
+                    // 1. Cloud SQL Cleanup
+                    if (storage.type.includes('cloud-sql')) {
                         const instanceName = storage.metadata?.resourceName as string;
                         if (!instanceName || !storage.connectionStringSecretId) continue;
 
                         try {
                             const baseConnectionString = await getSecretValue(storage.connectionStringSecretId);
-                            if (!baseConnectionString) continue;
+                            if (!baseConnectionString) {
+                                console.warn(`[Cleanup] Skipping SQL cleanup for ${storage.name}: Secret not found.`);
+                                continue;
+                            }
 
                             const branchedConnectionString = getBranchConnectionString(
                                 baseConnectionString,
@@ -275,19 +283,22 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             if (dbName) {
                                 console.log(`[Cleanup] Deleting ephemeral database ${dbName} from ${instanceName}`);
                                 await deleteSqlDatabase(instanceName, dbName);
+                                console.log(`[Cleanup] Successfully deleted SQL database ${dbName}.`);
                             }
                         } catch (e) {
                             console.error(`[Cleanup] Failed to delete ephemeral database for ${storage.name}:`, e);
                         }
                     }
 
-                    if (storage.branchingSettings?.enabled && storage.type === 'firestore') {
+                    // 2. Firestore Cleanup
+                    if (storage.type === 'firestore') {
                         try {
-                            const baseConnectionString = await getSecretValue(storage.connectionStringSecretId!);
-                            if (!baseConnectionString) continue;
+                            const baseConnectionString = storage.connectionStringSecretId
+                                ? await getSecretValue(storage.connectionStringSecretId)
+                                : 'firestore://(default)';
 
                             const branchedConnectionString = getBranchConnectionString(
-                                baseConnectionString,
+                                baseConnectionString || 'firestore://(default)',
                                 storage.type,
                                 storage.branchingSettings,
                                 { pullRequestNumber: pull_request.number }
@@ -298,16 +309,24 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             if (databaseId && databaseId !== '(default)') {
                                 console.log(`[Cleanup] Deleting ephemeral Firestore database ${databaseId}`);
                                 await deleteFirestoreDatabase(databaseId);
+                                console.log(`[Cleanup] Successfully deleted Firestore database ${databaseId}.`);
                             }
                         } catch (e) {
                             console.error(`[Cleanup] Failed to delete ephemeral Firestore database for ${storage.name}:`, e);
                         }
                     }
 
-                    if (storage.branchingSettings?.enabled && storage.type === 'memorystore-redis') {
+                    // 3. Redis Cleanup
+                    if (storage.type === 'memorystore-redis') {
                         try {
-                            const baseConnectionString = await getSecretValue(storage.connectionStringSecretId!);
-                            if (!baseConnectionString) continue;
+                            const baseConnectionString = storage.connectionStringSecretId
+                                ? await getSecretValue(storage.connectionStringSecretId)
+                                : null;
+
+                            if (!baseConnectionString) {
+                                console.warn(`[Cleanup] Skipping Redis cleanup for ${storage.name}: Secret not found.`);
+                                continue;
+                            }
 
                             const branchedConnectionString = getBranchConnectionString(
                                 baseConnectionString,
@@ -318,18 +337,29 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
                             console.log(`[Cleanup] Flushing ephemeral Redis DB at ${branchedConnectionString}`);
                             const Redis = (await import('ioredis')).default;
-                            const redis = new Redis(branchedConnectionString, { maxRetriesPerRequest: 1 });
+                            const redis = new Redis(branchedConnectionString, {
+                                maxRetriesPerRequest: 1,
+                                connectTimeout: 5000
+                            });
                             await redis.flushdb();
                             redis.disconnect();
+                            console.log(`[Cleanup] Successfully flushed Redis DB index.`);
                         } catch (e) {
                             console.error(`[Cleanup] Failed to flush ephemeral Redis DB for ${storage.name}:`, e);
                         }
                     }
 
-                    if (storage.branchingSettings?.enabled && storage.type === 'mongodb-atlas') {
+                    // 4. MongoDB Cleanup
+                    if (storage.type === 'mongodb-atlas') {
                         try {
-                            const baseConnectionString = await getSecretValue(storage.connectionStringSecretId!);
-                            if (!baseConnectionString) continue;
+                            const baseConnectionString = storage.connectionStringSecretId
+                                ? await getSecretValue(storage.connectionStringSecretId)
+                                : null;
+
+                            if (!baseConnectionString) {
+                                console.warn(`[Cleanup] Skipping MongoDB cleanup for ${storage.name}: Secret not found.`);
+                                continue;
+                            }
 
                             const branchedConnectionString = getBranchConnectionString(
                                 baseConnectionString,
@@ -345,6 +375,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             const dbName = new URL(branchedConnectionString).pathname.split('/')[1];
                             if (dbName) {
                                 await client.db(dbName).dropDatabase();
+                                console.log(`[Cleanup] Successfully dropped MongoDB database ${dbName}.`);
                             }
                             await client.close();
                         } catch (e) {
@@ -352,7 +383,8 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                         }
                     }
 
-                    if (storage.branchingSettings?.enabled && storage.type === 'planetscale') {
+                    // 5. PlanetScale Cleanup
+                    if (storage.type === 'planetscale') {
                         const organization = storage.metadata?.organization as string;
                         const database = storage.metadata?.database as string;
                         const providerApiKey = storage.metadata?.providerApiKey as string;
@@ -362,17 +394,23 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             console.log(`[Cleanup] Deleting ephemeral PlanetScale branch ${identifier}`);
 
                             try {
-                                await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/branches/${identifier}`, {
+                                const psRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/branches/${identifier}`, {
                                     method: 'DELETE',
                                     headers: { 'Authorization': `Bearer ${providerApiKey}` }
                                 });
+                                if (psRes.ok) {
+                                    console.log(`[Cleanup] Successfully deleted PlanetScale branch ${identifier}.`);
+                                } else {
+                                    console.warn(`[Cleanup] PlanetScale deletion returned status ${psRes.status}: ${await psRes.text()}`);
+                                }
                             } catch (e) {
                                 console.error(`[Cleanup] Failed to delete PlanetScale branch ${identifier}:`, e);
                             }
                         }
                     }
 
-                    if (storage.branchingSettings?.enabled && storage.type === 'supabase') {
+                    // 6. Supabase Cleanup
+                    if (storage.type === 'supabase') {
                         const supabaseId = storage.metadata?.supabaseId as string;
                         const providerApiKey = storage.metadata?.providerApiKey as string;
 
@@ -390,10 +428,17 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                                     const branch = branches.find((b: { branch_name: string, id: string }) => b.branch_name === identifier);
                                     if (branch) {
                                         // 2. Delete branch by ID
-                                        await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/branches/${branch.id}`, {
+                                        const delRes = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/branches/${branch.id}`, {
                                             method: 'DELETE',
                                             headers: { 'Authorization': `Bearer ${providerApiKey}` }
                                         });
+                                        if (delRes.ok) {
+                                            console.log(`[Cleanup] Successfully deleted Supabase branch ${identifier}.`);
+                                        } else {
+                                            console.warn(`[Cleanup] Supabase deletion returned status ${delRes.status}.`);
+                                        }
+                                    } else {
+                                        console.log(`[Cleanup] Supabase branch ${identifier} not found, skipping.`);
                                     }
                                 }
                             } catch (e) {
@@ -403,6 +448,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                     }
                 }
             }
+            console.log(`[Cleanup] Finished ephemeral cleanup for PR #${pull_request.number}.`);
         } catch (error) {
             console.error('Failed to cleanup preview deployment:', error);
         }
