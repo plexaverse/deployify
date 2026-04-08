@@ -219,6 +219,63 @@ export async function getEnvVarsForDeployment(
 /**
  * Derive a branch-specific connection string for ephemeral environments
  */
+/**
+ * Get automated migration tasks for a deployment
+ */
+export async function getMigrationsForDeployment(
+    project: Project,
+    envTarget: 'production' | 'preview',
+    context?: { branch?: string; pullRequestNumber?: number }
+): Promise<{ command: string; connectionString: string; envKey: string }[]> {
+    const storageConfigs = project.storageConfigs || [];
+    const migrations: { command: string; connectionString: string; envKey: string }[] = [];
+
+    for (const storage of storageConfigs) {
+        if (!storage.autoMigration || !storage.migrationCommand) {
+            continue;
+        }
+
+        // Filter by environment
+        if (storage.environment && storage.environment !== 'both' && storage.environment !== envTarget) {
+            continue;
+        }
+
+        if (storage.connectionStringSecretId) {
+            let connectionString = await getSecretValue(storage.connectionStringSecretId);
+
+            if (!connectionString) {
+                console.warn(`[Migrations] Skipping auto-migration for ${storage.name}: Connection string secret not found.`);
+                continue;
+            }
+
+            // Handle Ephemeral Branching
+            if (envTarget === 'preview' && storage.branchingSettings?.enabled) {
+                connectionString = getBranchConnectionString(
+                    connectionString,
+                    storage.type,
+                    storage.branchingSettings,
+                    context
+                );
+            }
+
+            let envKey = storage.envKey;
+            if (!envKey) {
+                envKey = 'DATABASE_URL';
+                if (storage.type === 'memorystore-redis') envKey = 'REDIS_URL';
+                if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
+            }
+
+            migrations.push({
+                command: storage.migrationCommand,
+                connectionString,
+                envKey
+            });
+        }
+    }
+
+    return migrations;
+}
+
 export function getBranchConnectionString(
     baseConn: string,
     type: string,

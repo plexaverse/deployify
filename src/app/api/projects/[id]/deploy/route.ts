@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getDeploymentById, createDeployment, updateDeployment, getEnvVarsForDeployment } from '@/lib/db';
+import { getDeploymentById, createDeployment, updateDeployment, getEnvVarsForDeployment, getMigrationsForDeployment } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
@@ -160,6 +160,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     branch,
                 });
 
+                // Extract automated migration tasks
+                const migrations = await getMigrationsForDeployment(project, envTarget, {
+                    branch,
+                });
+
                 // Decrypt GitHub token if present
                 const projectGitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
 
@@ -175,6 +180,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     buildEnvVars,
                     runtimeEnvVars,
                     runtimeSecrets,
+                    migrations,
                     cloudSqlInstances,
                     needsVpc,
                     vpcNetwork,

@@ -11,7 +11,8 @@ import {
     updateDeployment,
     getUserById,
     getEnvVarsForDeployment,
-    getBranchConnectionString
+    getBranchConnectionString,
+    getMigrationsForDeployment
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
@@ -154,6 +155,11 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             branch
         });
 
+        // Extract automated migration tasks
+        const migrations = await getMigrationsForDeployment(project, envTarget, {
+            branch
+        });
+
         // Decrypt GitHub token if present
         const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
 
@@ -167,6 +173,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             buildEnvVars,
             runtimeEnvVars,
             runtimeSecrets,
+            migrations,
             cloudSqlInstances,
             needsVpc,
             vpcNetwork,
@@ -442,6 +449,12 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 pullRequestNumber: pull_request.number
             });
 
+            // Extract automated migration tasks
+            const migrations = await getMigrationsForDeployment(project, envTarget, {
+                branch: pull_request.head.ref,
+                pullRequestNumber: pull_request.number
+            });
+
             // Decrypt GitHub token if present
             const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
 
@@ -456,6 +469,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 buildEnvVars,
                 runtimeEnvVars,
                 runtimeSecrets,
+                migrations,
                 cloudSqlInstances,
                 needsVpc,
                 vpcNetwork,

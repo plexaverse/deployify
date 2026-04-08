@@ -17,6 +17,7 @@ interface BuildSubmissionConfig {
     buildEnvVars?: Record<string, string>;  // Env vars for build time (Docker build)
     runtimeEnvVars?: Record<string, string>;  // Env vars for runtime (Cloud Run)
     runtimeSecrets?: Record<string, string>; // Secret Manager refs for runtime (envKey -> secretId:version)
+    migrations?: { command: string; connectionString: string; envKey: string }[]; // Automated migration tasks
     cloudSqlInstances?: string[]; // Native Cloud SQL bindings
     needsVpc?: boolean; // VPC Orchestration requirement
     vpcNetwork?: string; // VPC Network name
@@ -53,6 +54,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         buildEnvVars = {},
         runtimeEnvVars = {},
         runtimeSecrets = {},
+        migrations = [],
         cloudSqlInstances: explicitCloudSqlInstances = [],
         needsVpc: explicitNeedsVpc = false,
         vpcNetwork = 'default',
@@ -405,6 +407,36 @@ node fix-next-config.js && rm fix-next-config.js`,
             ],
         },
     ];
+
+    // Inject automated migration steps BEFORE deployment if applicable
+    if (migrations.length > 0) {
+        // Find the index of the 'Deploy to Cloud Run' step
+        const deployStepIndex = commonSteps.findIndex(step =>
+            step.name === 'gcr.io/google.com/cloudsdktool/cloud-sdk' &&
+            step.entrypoint === 'gcloud' &&
+            step.args.includes('run') &&
+            step.args.includes('deploy')
+        );
+
+        if (deployStepIndex !== -1) {
+            const migrationSteps = migrations.map((m, i) => ({
+                name: 'node:20', // Use standard node:20 for better tool compatibility
+                entrypoint: 'sh',
+                dir: workDir,
+                args: [
+                    '-c',
+                    `npm install && ${m.command}`
+                ],
+                env: [
+                    `${m.envKey}=${m.connectionString}`
+                ],
+                id: `migration-${i}`
+            }));
+
+            // Insert migration steps before deployment
+            commonSteps.splice(deployStepIndex, 0, ...migrationSteps);
+        }
+    }
 
     // If gitToken is provided, use manual clone step instead of connectedRepository
     if (gitToken) {
