@@ -129,6 +129,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [alertDisk, setAlertDisk] = useState(80);
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [alertEmailEnabled, setAlertEmailEnabled] = useState(false);
+    const [autoMigrationEnabled, setAutoMigrationEnabled] = useState(false);
+    const [autoMigrationCommand, setAutoMigrationCommand] = useState('prisma migrate deploy');
     const [branchingEnabled, setBranchingEnabled] = useState(false);
     const [branchingTemplate, setBranchingTemplate] = useState('{base}_{identifier}');
     const [seedCommand, setSeedCommand] = useState('');
@@ -175,6 +177,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     template: branchingTemplate,
                     seedCommand: seedCommand || undefined
                 },
+                autoMigration: autoMigrationEnabled,
+                migrationCommand: autoMigrationCommand,
                 metadata: {
                     ...metadata,
                     secretOnly,
@@ -289,6 +293,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     template: branchingTemplate,
                     seedCommand: seedCommand || undefined
                 },
+                autoMigration: autoMigrationEnabled,
+                migrationCommand: autoMigrationCommand,
                 metadata: {
                     secretOnly,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
@@ -320,6 +326,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setBranchingEnabled(false);
         setBranchingTemplate('{base}_{identifier}');
         setSeedCommand('');
+        setAutoMigrationEnabled(false);
+        setAutoMigrationCommand('prisma migrate deploy');
         setHighAvailability(false);
         setPitrEnabled(false);
         setDeletionProtection(false);
@@ -341,6 +349,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setBranchingEnabled(!!config.branchingSettings?.enabled);
         setBranchingTemplate(config.branchingSettings?.template || '{base}_{identifier}');
         setSeedCommand(config.branchingSettings?.seedCommand || '');
+        setAutoMigrationEnabled(!!config.autoMigration);
+        setAutoMigrationCommand(config.migrationCommand || 'prisma migrate deploy');
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
         setDeletionProtection(!!config.metadata?.deletionProtection);
@@ -837,6 +847,40 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 </div>
                                             )}
                                         </div>
+
+                                        {(type.includes('sql') || type === 'planetscale' || type === 'supabase') && (
+                                            <div className="space-y-4 pt-2 border-t border-[var(--border)] mt-4">
+                                                <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-sm font-semibold">Automated Migrations</Label>
+                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Run migrations automatically during deployment</p>
+                                                    </div>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={autoMigrationEnabled}
+                                                        onChange={(e) => setAutoMigrationEnabled(e.target.checked)}
+                                                        className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                    />
+                                                </div>
+
+                                                {autoMigrationEnabled && (
+                                                    <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration Command</Label>
+                                                            <Input
+                                                                value={autoMigrationCommand}
+                                                                onChange={(e) => setAutoMigrationCommand(e.target.value)}
+                                                                placeholder="E.G. PRISMA MIGRATE DEPLOY"
+                                                                className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                            />
+                                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
+                                                                EXECUTED AFTER BUILD BUT BEFORE DEPLOYMENT.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                             </div>
                         </div>
 
@@ -922,6 +966,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title={`Branching template: ${config.branchingSettings.template}`}>
                                                     <GitBranch className="w-2.5 h-2.5" />
                                                     BRANCHING ACTIVE
+                                                </span>
+                                            )}
+                                            {config.autoMigration && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title={`Auto-migration command: ${config.migrationCommand}`}>
+                                                    <RefreshCw className="w-2.5 h-2.5" />
+                                                    AUTO-MIGRATE
                                                 </span>
                                             )}
                                             {!!config.metadata?.highAvailability && (

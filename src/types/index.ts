@@ -448,6 +448,8 @@ export interface StorageConfig {
     lastError?: string;
     alertSettings?: StorageAlertSettings;
     branchingSettings?: StorageBranchingSettings;
+    autoMigration?: boolean;
+    migrationCommand?: string;
     activeAlerts?: string[];
     metadata?: Record<string, unknown>;
     createdAt: Date;

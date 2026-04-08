@@ -382,7 +382,23 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement Direct VPC Egress for Memorystore (Redis) connectivity
 - [x] Automate `roles/cloudsql.client` IAM role assignment for Service Agent
 
+### Phase 58: Deployment-Integrated Migrations (COMPLETED)
+- [x] Define `autoMigration` and `migrationCommand` in `StorageConfig`
+- [x] Implement `getMigrationsForDeployment` utility in `src/lib/db.ts`
+- [x] Update Cloud Run deployment flow to orchestrate automated migrations
+- [x] Inject automated migration steps into Cloud Build pipeline using `node:20`
+- [x] Enhance Storage dashboard with integrated migration settings UI
+
 ## Progress Updates
+
+### 2027-05-02: Deployment-Integrated Migrations
+- Completed Phase 58: Deployment-Integrated Migrations.
+- Implemented automated database migrations within the Cloud Build pipeline, ensuring schema changes are applied before new service revisions are deployed.
+- Added `autoMigration` toggle and `migrationCommand` input to the Storage connector settings UI, allowing developers to configure schema management per database.
+- Created the `getMigrationsForDeployment` shared utility to derive migration tasks based on the deployment context and storage metadata.
+- Optimized the migration build steps to use the standard `node:20` image, ensuring compatibility with native binary dependencies like Prisma engines.
+- Added visual feedback to the Storage dashboard with high-density "AUTO-MIGRATE" status badges for configured connectors.
+- Verified 100% functional integrity with system audits and exhaustive test coverage.
 
 ### 2027-05-01: Native Cloud Run Integration & VPC Orchestration
 - Completed Phase 57: Native Cloud Run Integration & VPC Orchestration.
