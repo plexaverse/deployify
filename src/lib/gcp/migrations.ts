@@ -271,36 +271,53 @@ export async function runMigration(
     }[] = [];
 
     // Add pre-migration backup step if requested for Cloud SQL
-    if (takeBackup && connectionString.includes('cloudsql')) {
-        // Extract instance name from connection string or repo metadata
-        // For simplicity, we assume we can trigger it via gcloud in the build step
-        // We need the instance name, which is usually part of the connection string or metadata
-        const instanceMatch = connectionString.match(/host=\/cloudsql\/.+:(.+)$/) || connectionString.match(/:([a-z0-9-]+)\?/);
-        const instanceName = instanceMatch ? instanceMatch[1] : null;
+    const cloudSqlMatch = connectionString.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
+    const instanceConnectionName = cloudSqlMatch ? cloudSqlMatch[1] : null;
 
-        if (instanceName) {
-            steps.push({
-                name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
-                entrypoint: 'gcloud',
-                args: [
-                    'sql', 'backups', 'create',
-                    '--instance', instanceName,
-                    '--description', `Pre-migration backup for ${projectId} at ${new Date().toISOString()}`
-                ]
-            });
+    if (takeBackup && instanceConnectionName) {
+        // Extract just the instance ID from the full connection name
+        const instanceName = instanceConnectionName.split(':').pop() || instanceConnectionName;
+
+        steps.push({
+            name: 'gcr.io/google.com/cloudsdktool/cloud-sdk',
+            entrypoint: 'gcloud',
+            args: [
+                'sql', 'backups', 'create',
+                '--instance', instanceName,
+                '--description', `Pre-migration backup for ${projectId} at ${new Date().toISOString()}`
+            ]
+        });
+    }
+
+    let finalConnectionString = connectionString;
+    let finalCommand = `npm install && ${command}`;
+
+    if (instanceConnectionName) {
+        const isMysql = connectionString.includes('mysql');
+        // Rewrite connection string to use Unix socket at /workspace for IAM-based connectivity in build environment
+        if (isMysql) {
+            finalConnectionString = connectionString.replace(/host=[^&?]+/, `socket=/workspace/${instanceConnectionName}`);
+        } else {
+            finalConnectionString = connectionString.replace(/host=[^&?]+/, `host=/workspace/${instanceConnectionName}`);
         }
+
+        finalCommand = `curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64 && ` +
+            `chmod +x cloud-sql-proxy && ` +
+            `./cloud-sql-proxy --enable-iam-login --unix-socket /workspace ${instanceConnectionName} & ` +
+            `sleep 3 && ` +
+            `npm install && ${command}`;
     }
 
     steps.push({
-        name: 'node:20-alpine',
+        name: 'node:20',
         entrypoint: 'sh',
         dir: workDir,
         args: [
             '-c',
-            `npm install && ${command}`
+            finalCommand
         ],
         env: [
-            `${envKey}=${connectionString}`
+            `${envKey}=${finalConnectionString}`
         ]
     });
 

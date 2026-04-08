@@ -805,7 +805,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 <div className="space-y-0.5">
                                                     <div className="flex items-center gap-2">
                                                         <Label className="text-sm font-semibold">Preview Branching</Label>
-                                                        <span className="text-[8px] px-1 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-widest border border-[var(--primary)]/20">BETA</span>
+                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">BETA</span>
                                                     </div>
                                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Isolated database for Preview Deployments</p>
                                                 </div>
