@@ -216,7 +216,7 @@ export function DomainsSection({
                             <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                 <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
                             </div>
-                            <h3 className="font-semibold text-lg">Verification Steps</h3>
+                            <h3 className="text-sm font-semibold">Verification Steps</h3>
                         </div>
                         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--warning-bg)] border border-[var(--warning)]/20">
                             <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--warning)] animate-pulse"></span>

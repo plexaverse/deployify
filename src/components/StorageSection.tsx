@@ -738,7 +738,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
                                                     <Label className="text-[10px] font-bold uppercase tracking-wider">High Availability</Label>
-                                                    <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Multi-zone redundancy</p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Multi-zone redundancy</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
@@ -750,7 +750,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
                                                     <Label className="text-[10px] font-bold uppercase tracking-wider">PITR Recovery</Label>
-                                                    <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Point-in-time snapshots</p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Point-in-time snapshots</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
@@ -762,7 +762,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
                                                     <Label className="text-[10px] font-bold uppercase tracking-wider">Deletion Protection</Label>
-                                                    <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Prevent accidental delete</p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Prevent accidental delete</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
@@ -817,7 +817,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                             placeholder="{base}_{identifier}"
                                                             className="h-8 text-[10px] font-mono placeholder:text-[10px]"
                                                         />
-                                                        <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]/70">
+                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
                                                             USE <code className="text-[var(--primary)]">{'{base}'}</code> FOR ORIGINAL NAME AND <code className="text-[var(--primary)]">{'{identifier}'}</code> FOR BRANCH/PR NAME.
                                                         </p>
                                                     </div>
@@ -830,7 +830,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                             placeholder="E.G. NPX PRISMA DB SEED"
                                                             className="h-8 text-[10px] font-mono placeholder:text-[10px]"
                                                         />
-                                                        <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]/70">
+                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
                                                             EXPORTS <code className="text-[var(--primary)]">$DATABASE_URL</code> (OR CUSTOM KEY) TO THE BUILD ENVIRONMENT.
                                                         </p>
                                                     </div>
