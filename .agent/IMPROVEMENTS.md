@@ -210,6 +210,10 @@
 - **Improvement**: Implement native Supabase branching via API and enhance Cloud SQL with High Availability (HA) and Point-in-Time Recovery (PITR) toggles.
 - **Status**: ✅ Implemented (Supabase Management API integration, HA/PITR toggles in Storage UI, and detailed infrastructure status sync in Phase 55)
 
+#### 31. **Deployment-Integrated Migrations**
+- **Improvement**: Implement automated database migrations within the Cloud Build pipeline.
+- **Status**: ✅ Implemented (Phase 58: Integrated `autoMigration` and `migrationCommand` settings, secure `availableSecrets` execution in Cloud Build, and UI controls in Storage Section)
+
 ### Reliability Improvements
 
 #### 22. **Robust Deployment Status Sync**

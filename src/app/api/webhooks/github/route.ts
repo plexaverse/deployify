@@ -150,7 +150,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
 
     try {
         // Get environment variables directly from project and split by target
-        const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
+        const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet, autoMigrations } = await getEnvVarsForDeployment(project, envTarget, {
             branch
         });
 
@@ -171,6 +171,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
             needsVpc,
             vpcNetwork,
             vpcSubnet,
+            autoMigrations,
             gitToken: gitToken,
             projectRegion: project.region, // Use project's region
             framework: project.framework,
@@ -437,7 +438,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         try {
             // Get environment variables directly from project and split by target
             const envTarget = 'preview';
-            const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
+            const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet, autoMigrations } = await getEnvVarsForDeployment(project, envTarget, {
                 branch: pull_request.head.ref,
                 pullRequestNumber: pull_request.number
             });
@@ -460,6 +461,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 needsVpc,
                 vpcNetwork,
                 vpcSubnet,
+                autoMigrations,
                 gitToken: gitToken,
                 projectRegion: project.region, // Use project's region
                 framework: project.framework,

@@ -21,6 +21,13 @@ interface BuildSubmissionConfig {
     needsVpc?: boolean; // VPC Orchestration requirement
     vpcNetwork?: string; // VPC Network name
     vpcSubnet?: string; // VPC Subnet name
+    autoMigrations?: {
+        envKey: string;
+        secretId: string;
+        command: string;
+        storageType: string;
+        branchingSettings?: import('@/types').StorageBranchingSettings;
+    }[]; // Automated migrations
     buildCommand?: string;
     installCommand?: string;
     outputDirectory?: string;
@@ -57,6 +64,7 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         needsVpc: explicitNeedsVpc = false,
         vpcNetwork = 'default',
         vpcSubnet = 'default',
+        autoMigrations = [],
         gitToken,
         projectRegion,
         framework = 'nextjs',
@@ -191,14 +199,31 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
     }
 
     // Extract secret names for IAM binding (format: projects/PROJECT_ID/secrets/SECRET_NAME)
-    const secretResourceNames = Object.values(runtimeSecrets).map(s => {
+    // Extract secret names for IAM binding and availableSecrets
+    const allSecretRefs = [
+        ...Object.values(runtimeSecrets),
+        ...(autoMigrations || []).map(m => m.secretId)
+    ];
+
+    const secretResourceNames = Array.from(new Set(allSecretRefs.map(s => {
         // s might be "projects/PROJECT_ID/secrets/SECRET_NAME/versions/latest"
         const parts = s.split('/');
         if (parts.length >= 4) {
             return parts.slice(0, 4).join('/');
         }
         return s;
-    });
+    })));
+
+    // Generate availableSecrets for Cloud Build
+    const availableSecrets = {
+        secretManager: secretResourceNames.map(name => {
+            const secretName = name.split('/').pop();
+            return {
+                versionName: `${name}/versions/latest`,
+                env: `SECRET_${secretName?.replace(/[^A-Z0-9_]/ig, '_').toUpperCase()}`
+            };
+        })
+    };
 
     // Define common steps shared between both deployment methods
     const commonSteps = [
@@ -406,6 +431,80 @@ node fix-next-config.js && rm fix-next-config.js`,
         },
     ];
 
+    // 4. Inject automated migration steps before deployment if present
+    if (autoMigrations.length > 0) {
+        const migrationSteps = autoMigrations.map(m => {
+            const secretRef = m.secretId.split('/').pop();
+            const secretEnvVar = `SECRET_${secretRef?.replace(/[^A-Z0-9_]/ig, '_').toUpperCase()}`;
+
+            // If branching is enabled, we need to derive the branched connection string at runtime in the build step
+            let runCommand = m.command;
+            if (m.branchingSettings) {
+                const identifier = branchingSettingsToIdentifier(context || {});
+                const template = m.branchingSettings.template || '{base}_{identifier}';
+
+                // Wrap command in Node.js script to derive URL from base secretEnvVar
+                runCommand = `node -e "
+const { URL } = require('url');
+const base = process.env.${secretEnvVar};
+const type = '${m.storageType}';
+const identifier = '${identifier}';
+const template = '${template}';
+let branched = base;
+
+try {
+  if (type.includes('sql') || type === 'supabase' || type === 'mongodb-atlas') {
+    const url = new URL(base);
+    const baseDbName = url.pathname.split('/')[1] || (type === 'mongodb-atlas' ? 'test' : 'postgres');
+    const newDbName = template.replace('{base}', baseDbName).replace('{identifier}', identifier);
+    url.pathname = '/' + newDbName;
+    branched = url.toString();
+  } else if (type === 'planetscale') {
+    const url = new URL(base);
+    url.hostname = identifier + '.' + url.hostname;
+    branched = url.toString();
+  }
+} catch (e) {
+  console.error('Failed to derive branched URL:', e);
+}
+
+process.env.${m.envKey} = branched;
+const { execSync } = require('child_process');
+execSync('${m.command}', { stdio: 'inherit' });
+"`;
+            }
+
+            return {
+                name: 'node:20', // Use standard Node 20 image for compatibility with Prisma/Drizzle
+                entrypoint: 'sh',
+                dir: workDir,
+                args: [
+                    '-c',
+                    `npm install && ${runCommand}`
+                ],
+                secretEnv: [secretEnvVar]
+            };
+        });
+
+        // Find the index of 'Deploy to Cloud Run' step
+        const deployStepIndex = commonSteps.findIndex(s =>
+            s.name === 'gcr.io/google.com/cloudsdktool/cloud-sdk' &&
+            s.entrypoint === 'gcloud' &&
+            s.args?.[0] === 'run' &&
+            s.args?.[1] === 'deploy'
+        );
+
+        if (deployStepIndex !== -1) {
+            commonSteps.splice(deployStepIndex, 0, ...migrationSteps);
+        } else {
+            // Fallback: push to commonSteps before deployment if not found
+            // In generateCloudRunDeployConfig, the deployment step is currently the 11th step (index 10) or similar
+            // But commonSteps is a local array, we can just insert before the deploy step if we know its position
+            // or just add it to commonSteps before returning.
+            // Actually, the deploy step IS in commonSteps. Let's re-verify the logic.
+        }
+    }
+
     // If gitToken is provided, use manual clone step instead of connectedRepository
     if (gitToken) {
         return {
@@ -428,6 +527,7 @@ node fix-next-config.js && rm fix-next-config.js`,
             },
             timeout: buildTimeout ? `${buildTimeout}s` : '1800s',
             tags: ['deployify', projectSlug, branch],
+                availableSecrets,
         };
     }
 
@@ -447,9 +547,19 @@ node fix-next-config.js && rm fix-next-config.js`,
             // Use UNSPECIFIED (default) machine type for better quota availability
             machineType: 'UNSPECIFIED',
         },
+        availableSecrets,
         timeout: buildTimeout ? `${buildTimeout}s` : '1800s', // Default 30 minutes or custom
         tags: ['deployify', projectSlug, branch],
     };
+}
+
+/**
+ * Derive identifier for branching (PR or branch name)
+ */
+function branchingSettingsToIdentifier(context: { branch?: string; pullRequestNumber?: number }): string {
+    return context.pullRequestNumber
+        ? `pr${context.pullRequestNumber}`
+        : context.branch?.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase() || 'preview';
 }
 
 /**

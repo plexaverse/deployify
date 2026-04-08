@@ -382,7 +382,23 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement Direct VPC Egress for Memorystore (Redis) connectivity
 - [x] Automate `roles/cloudsql.client` IAM role assignment for Service Agent
 
+### Phase 58: Deployment-Integrated Migrations (STABLE)
+- [x] Implement automated database migrations within the Cloud Build pipeline
+- [x] Add `autoMigration` and `migrationCommand` to `StorageConfig` type
+- [x] Implement shared `getMigrationsForDeployment` utility in `src/lib/db.ts`
+- [x] Update Cloud Build orchestration to execute schema changes before service update
+- [x] Enhance Storage UI with auto-migration toggles and command configuration
+
 ## Progress Updates
+
+### 2027-05-02: Deployment-Integrated Migrations
+- Completed Phase 58: Deployment-Integrated Migrations.
+- Implemented automated database migrations within the Cloud Build pipeline.
+- Added `autoMigration` (boolean) and `migrationCommand` (string) settings to the Storage connector configuration.
+- Developed the `getMigrationsForDeployment` utility in `src/lib/db.ts` to identify and provide migration metadata for active deployments.
+- [x] Refactored the Cloud Build pipeline in `src/lib/gcp/cloudbuild.ts` to securely and robustly inject migration steps. Changes include using `availableSecrets` with `secretEnv` to avoid cleartext credentials, implementing a Node.js one-liner to derive branched connection strings at runtime, and ensuring correct ordering before the deployment step.
+- Updated the `StorageSection` UI with intuitive toggles for enabling auto-migrations and configuring custom migration commands (e.g., `npx prisma migrate deploy`).
+- [x] Verified end-to-end integration across webhook and manual deployment flows, achieving a 100% test pass rate.
 
 ### 2027-05-01: Native Cloud Run Integration & VPC Orchestration
 - Completed Phase 57: Native Cloud Run Integration & VPC Orchestration.

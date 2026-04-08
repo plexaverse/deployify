@@ -132,6 +132,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [branchingEnabled, setBranchingEnabled] = useState(false);
     const [branchingTemplate, setBranchingTemplate] = useState('{base}_{identifier}');
     const [seedCommand, setSeedCommand] = useState('');
+    const [autoMigration, setAutoMigration] = useState(false);
+    const [autoMigrationCommand, setAutoMigrationCommand] = useState('prisma migrate deploy');
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -175,6 +177,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     template: branchingTemplate,
                     seedCommand: seedCommand || undefined
                 },
+                autoMigration,
+                migrationCommand: autoMigrationCommand,
                 metadata: {
                     ...metadata,
                     secretOnly,
@@ -289,6 +293,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     template: branchingTemplate,
                     seedCommand: seedCommand || undefined
                 },
+                autoMigration,
+                migrationCommand: autoMigrationCommand,
                 metadata: {
                     secretOnly,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
@@ -320,6 +326,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setBranchingEnabled(false);
         setBranchingTemplate('{base}_{identifier}');
         setSeedCommand('');
+        setAutoMigration(false);
+        setAutoMigrationCommand('prisma migrate deploy');
         setHighAvailability(false);
         setPitrEnabled(false);
         setDeletionProtection(false);
@@ -341,6 +349,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setBranchingEnabled(!!config.branchingSettings?.enabled);
         setBranchingTemplate(config.branchingSettings?.template || '{base}_{identifier}');
         setSeedCommand(config.branchingSettings?.seedCommand || '');
+        setAutoMigration(!!config.autoMigration);
+        setAutoMigrationCommand(config.migrationCommand || 'prisma migrate deploy');
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
         setDeletionProtection(!!config.metadata?.deletionProtection);
@@ -832,6 +842,41 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                         />
                                                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
                                                             EXPORTS <code className="text-[var(--primary)]">$DATABASE_URL</code> (OR CUSTOM KEY) TO THE BUILD ENVIRONMENT.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-4 pt-2">
+                                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                                <div className="space-y-0.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <Label className="text-sm font-semibold">Auto Migration</Label>
+                                                        <span className="text-[10px] px-1 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">NEW</span>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Run schema migrations automatically during deployment</p>
+                                                </div>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={autoMigration}
+                                                    onChange={(e) => setAutoMigration(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                />
+                                            </div>
+
+                                            {autoMigration && (
+                                                <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration Command</Label>
+                                                        <Input
+                                                            value={autoMigrationCommand}
+                                                            onChange={(e) => setAutoMigrationCommand(e.target.value)}
+                                                            placeholder="E.G. NPX PRISMA MIGRATE DEPLOY"
+                                                            className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                        />
+                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
+                                                            THIS COMMAND WILL RUN BEFORE THE CLOUD RUN SERVICE UPDATE.
                                                         </p>
                                                     </div>
                                                 </div>

@@ -446,6 +446,8 @@ export interface StorageConfig {
     lastSyncedAt?: Date;
     lastAlertedAt?: Date;
     lastError?: string;
+    autoMigration?: boolean;
+    migrationCommand?: string;
     alertSettings?: StorageAlertSettings;
     branchingSettings?: StorageBranchingSettings;
     activeAlerts?: string[];

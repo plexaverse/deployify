@@ -71,12 +71,26 @@ export async function getEnvVarsForDeployment(
     needsVpc?: boolean;
     vpcNetwork?: string;
     vpcSubnet?: string;
+    autoMigrations?: {
+        envKey: string;
+        secretId: string;
+        command: string;
+        storageType: string;
+        branchingSettings?: import('@/types').StorageBranchingSettings;
+    }[];
 }> {
     const envVars = project.envVariables || [];
     const buildEnvVars: Record<string, string> = {};
     const runtimeEnvVars: Record<string, string> = {};
     const runtimeSecrets: Record<string, string> = {};
     const cloudSqlInstances: string[] = [];
+    const autoMigrations: {
+        envKey: string;
+        secretId: string;
+        command: string;
+        storageType: string;
+        branchingSettings?: import('@/types').StorageBranchingSettings;
+    }[] = [];
     let needsVpc = false;
     let vpcNetwork: string | undefined;
     let vpcSubnet: string | undefined;
@@ -187,6 +201,17 @@ export async function getEnvVarsForDeployment(
             const instanceName = storage.metadata.resourceName as string;
             cloudSqlInstances.push(`${gcpProjectId}:${region}:${instanceName}`);
         }
+
+        // 2c. Automated Migration detection
+        if (storage.autoMigration && storage.migrationCommand && storage.connectionStringSecretId) {
+            autoMigrations.push({
+                envKey: storage.envKey || 'DATABASE_URL',
+                secretId: storage.connectionStringSecretId,
+                command: storage.migrationCommand,
+                storageType: storage.type,
+                branchingSettings: storage.branchingSettings?.enabled ? storage.branchingSettings : undefined
+            });
+        }
     }
 
     // 3. Final Orchestration Check (Detect requirements from resulting env vars/secrets)
@@ -212,8 +237,21 @@ export async function getEnvVarsForDeployment(
         cloudSqlInstances: Array.from(new Set(cloudSqlInstances)),
         needsVpc,
         vpcNetwork,
-        vpcSubnet
+        vpcSubnet,
+        autoMigrations
     };
+}
+
+/**
+ * Identify storage connectors that require automated migrations for a deployment
+ */
+export async function getMigrationsForDeployment(
+    project: Project,
+    envTarget: 'production' | 'preview',
+    context?: { branch?: string; pullRequestNumber?: number }
+) {
+    const { autoMigrations } = await getEnvVarsForDeployment(project, envTarget, context);
+    return autoMigrations || [];
 }
 
 /**

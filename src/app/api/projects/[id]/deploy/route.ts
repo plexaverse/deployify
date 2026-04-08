@@ -156,7 +156,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 }
 
                 // Extract environment variables by target
-                const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
+                const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet, autoMigrations } = await getEnvVarsForDeployment(project, envTarget, {
                     branch,
                 });
 
@@ -179,6 +179,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     needsVpc,
                     vpcNetwork,
                     vpcSubnet,
+                    autoMigrations,
                     gitToken: session?.accessToken ?? projectGitToken ?? undefined,
                     projectRegion: project.region, // Use project's selected region
                     framework: project.framework,
