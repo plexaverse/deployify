@@ -904,7 +904,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                         <Rocket className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-lg">Your project is live!</h3>
+                                        <h3 className="text-sm font-semibold">Your project is live!</h3>
                                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Everything is configured and running on Cloud Run.</p>
                                     </div>
                                 </div>

@@ -621,7 +621,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <Link href="/" className="flex items-center justify-center gap-2 mb-4 group w-fit mx-auto" aria-label="Deployify Home">
             <Rocket className="w-6 h-6 text-[var(--foreground)] group-hover:rotate-12 transition-transform" />
-            <span className="font-semibold text-xl">Deployify</span>
+            <span className="text-lg font-semibold">Deployify</span>
           </Link>
           <p className="text-[var(--muted-foreground)] text-sm">
             © 2026 Deployify. Built for the modern developer.
