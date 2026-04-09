@@ -28,7 +28,7 @@ export default function Error({
                 </div>
                 <div className="space-y-1 mb-6">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
-                    <h1 className="text-lg font-bold tracking-tight">Something went wrong!</h1>
+                    <h1 className="text-sm font-bold tracking-tight">Something went wrong!</h1>
                 </div>
                 <p className="text-[var(--muted-foreground)] text-lg mb-8">
                     We encountered an unexpected error. Our team has been notified.

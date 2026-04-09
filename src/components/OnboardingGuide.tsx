@@ -53,7 +53,7 @@ export function OnboardingGuide() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Welcome</span>
-                            <h1 className="text-lg md:text-xl font-bold tracking-tight">Welcome to Deployify</h1>
+                            <h1 className="text-sm md:text-base font-bold tracking-tight">Welcome to Deployify</h1>
                         </div>
                     </div>
                     <p className="text-[var(--muted-foreground)] text-lg max-w-lg mx-auto">

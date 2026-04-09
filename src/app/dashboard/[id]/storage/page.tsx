@@ -102,7 +102,7 @@ export default function ProjectStoragePage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                        <h1 className="text-lg font-bold tracking-tight">Storage & Data</h1>
+                        <h1 className="text-sm font-bold tracking-tight">Storage & Data</h1>
                     </div>
                 </div>
             </div>

@@ -150,7 +150,7 @@ export default function SharedDashboardPage() {
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">Public</span>
                                 </div>
                             </div>
-                            <h1 className="text-lg font-bold tracking-tight uppercase">{widget?.name}</h1>
+                            <h1 className="text-sm font-bold tracking-tight uppercase">{widget?.name}</h1>
                         </div>
                     </div>
                     <div className="text-right">

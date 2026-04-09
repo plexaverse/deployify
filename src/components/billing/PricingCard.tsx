@@ -52,7 +52,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
 
                 <div className="mb-10">
                     <div className="flex items-baseline gap-1">
-                        <span className="text-lg font-semibold tracking-tighter">{plan.price}</span>
+                        <span className="text-sm font-semibold tracking-tighter">{plan.price}</span>
                         {plan.price !== 'Custom' && (
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">/ month</span>
                         )}
