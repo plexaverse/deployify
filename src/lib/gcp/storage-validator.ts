@@ -140,8 +140,8 @@ async function validatePostgres(connectionString: string): Promise<ValidationRes
         try {
             // For IAM Auth via Proxy, we verify the instance exists and is RUNNABLE via API
             const instanceConnectionName = cloudSqlMatch[1];
-            const instanceId = instanceConnectionName.split(':')[2];
-            const instance = await getCloudSqlInstance(instanceId);
+            const [projectId, _region, instanceId] = instanceConnectionName.split(':');
+            const instance = await getCloudSqlInstance(instanceId, projectId);
 
             if (instance.state === 'RUNNABLE' || (process.env.MOCK_DB === 'true' && instance.name)) {
                 return { valid: true };
@@ -177,8 +177,8 @@ async function validateMysql(connectionString: string): Promise<ValidationResult
     if (isIamAuth && cloudSqlMatch) {
         try {
             const instanceConnectionName = cloudSqlMatch[1];
-            const instanceId = instanceConnectionName.split(':')[2];
-            const instance = await getCloudSqlInstance(instanceId);
+            const [projectId, _region, instanceId] = instanceConnectionName.split(':');
+            const instance = await getCloudSqlInstance(instanceId, projectId);
 
             if (instance.state === 'RUNNABLE' || (process.env.MOCK_DB === 'true' && instance.name)) {
                 return { valid: true };

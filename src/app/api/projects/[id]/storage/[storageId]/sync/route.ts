@@ -92,112 +92,18 @@ export async function GET(
 
         // Handle External Connectors (Auto-Sync)
         if (storage.metadata?.autoSync && (storage.type === 'supabase' || storage.type === 'mongodb-atlas' || storage.type === 'planetscale')) {
-            const providerApiKey = storage.metadata?.providerApiKey as string;
-
-            if (process.env.MOCK_DB !== 'true' && !providerApiKey) {
-                console.warn(`[StorageSync] Auto-sync triggered for ${storage.type} (${storageId}) without Provider API Key.`);
-                return NextResponse.json({
-                    success: false,
-                    error: `Auto-sync requires a Provider API Key for ${storage.type}. Please update the connector settings.`
-                }, { status: 400 });
-            }
-
             try {
-                let newConnectionString = '';
+                const { syncExternalConnector } = await import('@/lib/gcp/external-sync');
+                const syncResult = await syncExternalConnector(id, storage);
 
-                if (process.env.MOCK_DB === 'true') {
-                    // Simulate API fetch delay
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    console.log(`[StorageSync] MOCK: Syncing ${storage.type} connector ${storageId}`);
-                    newConnectionString = storage.type === 'supabase'
-                        ? 'postgresql://postgres:mock@db.supabase.co:5432/postgres'
-                        : storage.type === 'mongodb-atlas'
-                        ? 'mongodb+srv://mock:password@cluster.mongodb.net/test'
-                        : 'mysql://mock:password@aws.connect.psdb.cloud/test';
-                } else {
-                    // Real API Logic Implementation (Logic-Ready Structures)
-                    if (storage.type === 'supabase') {
-                        const supabaseId = storage.metadata?.supabaseId as string;
-                        if (!supabaseId) throw new Error('Supabase Reference ID is missing in metadata');
-
-                        // Implementation: Fetch DB connection info from Supabase Management API
-                        const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/config/database`, {
-                            headers: { 'Authorization': `Bearer ${providerApiKey}` }
-                        });
-
-                        if (!res.ok) {
-                            const errorText = await res.text();
-                            throw new Error(`Supabase API error: ${errorText}`);
-                        }
-
-                        const data = await res.json();
-                        // Note: Supabase Management API returns host, port, etc.
-                        // We construct the connection string using the standard pattern.
-                        newConnectionString = `postgresql://postgres:${data.password || 'password'}@db.${supabaseId}.supabase.co:5432/postgres`;
-                    } else if (storage.type === 'mongodb-atlas') {
-                        const groupId = storage.metadata?.groupId as string;
-                        const clusterName = storage.metadata?.clusterName as string;
-
-                        // Enhanced Metadata Validation
-                        if (!groupId) throw new Error('MongoDB Atlas Group ID (Project ID) is missing in connector metadata');
-                        if (!clusterName) throw new Error('MongoDB Atlas Cluster Name is missing in connector metadata');
-
-                        // Implementation: Fetch Cluster info from Atlas Administration API
-                        console.log(`Syncing MongoDB Atlas cluster: ${clusterName} in group: ${groupId}`);
-                        const res = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters/${clusterName}`, {
-                            headers: {
-                                'Authorization': `Bearer ${providerApiKey}`,
-                                'Accept': 'application/json'
-                            }
-                        });
-
-                        if (!res.ok) {
-                            const errorText = await res.text();
-                            const statusCode = res.status;
-                            console.error(`Atlas API error [${statusCode}]: ${errorText}`);
-                            throw new Error(`MongoDB Atlas API error (${statusCode}): ${errorText || 'Failed to fetch cluster details'}`);
-                        }
-
-                        const data = await res.json();
-                        newConnectionString = data.connectionStrings?.standardSrv || `mongodb+srv://user:password@${clusterName}.mongodb.net/test`;
-                    } else if (storage.type === 'planetscale') {
-                        const organization = storage.metadata?.organization as string;
-                        const database = storage.metadata?.database as string;
-                        if (!organization || !database) throw new Error('PlanetScale Organization or Database name is missing');
-
-                        // Implementation: Create a dedicated "deployify-managed" password to ensure we get the plain-text value
-                        const res = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${providerApiKey}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                name: `deployify-sync-${Date.now()}`,
-                                role: 'readwriter'
-                            })
-                        });
-
-                        if (!res.ok) {
-                            const errorText = await res.text();
-                            throw new Error(`PlanetScale API error: ${errorText}`);
-                        }
-
-                        const data = await res.json();
-                        if (data.username && data.plain_text && data.access_host) {
-                            newConnectionString = `mysql://${data.username}:${data.plain_text}@${data.access_host}/${database}?ssl={"rejectUnauthorized":true}`;
-                        } else {
-                            throw new Error('Failed to retrieve full credential set from PlanetScale API');
-                        }
-                    }
+                if (!syncResult.success) {
+                    return NextResponse.json({
+                        success: false,
+                        error: `External sync failed: ${syncResult.error}`
+                    }, { status: 502 });
                 }
 
-                if (newConnectionString && storage.connectionStringSecretId) {
-                    const { upsertSecret } = await import('@/lib/gcp/secrets');
-                    await upsertSecret(`deployify-${id}-${storageId}-conn`, newConnectionString);
-                }
-
-                storage.lastSyncedAt = now;
+                storage.lastSyncedAt = syncResult.lastSyncedAt;
                 storage.updatedAt = now;
                 storage.status = 'active';
 

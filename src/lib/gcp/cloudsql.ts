@@ -296,7 +296,7 @@ export async function updateInstanceTier(
 /**
  * Get detailed information about a Cloud SQL instance
  */
-export async function getInstance(instanceName: string): Promise<Record<string, unknown>> {
+export async function getInstance(instanceName: string, projectId?: string): Promise<Record<string, unknown>> {
     if (process.env.MOCK_DB === 'true') {
         return {
             name: instanceName,
@@ -311,7 +311,7 @@ export async function getInstance(instanceName: string): Promise<Record<string, 
         };
     }
 
-    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const gcpProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
 
     const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}`, {

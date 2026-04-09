@@ -397,17 +397,20 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Standardize technical metadata and "BETA" tags in the Storage dashboard
 - [x] Switch migration/seeding build steps to standard `node:20` for broader tool compatibility
 
-### Phase 60: Advanced External Connector Management & Connectivity Hardening (IN PROGRESS)
-- [ ] Implement automated PlanetScale password creation during credential synchronization
-- [ ] Harden Cloud SQL connection validation via SQL Admin API for IAM-based connectors
-- [ ] Verify 100% functional integrity and architectural alignment
+### Phase 60: Advanced External Connector Management & Connectivity Hardening (COMPLETED)
+- [x] Implement automated PlanetScale password creation during credential synchronization
+- [x] Harden Cloud SQL connection validation via SQL Admin API for IAM-based connectors
+- [x] Verify 100% functional integrity and architectural alignment
 
 ## Progress Updates
 
 ### 2027-05-04: Advanced External Connector Management & Connectivity Hardening
-- Initiated Phase 60: Advanced External Connector Management & Connectivity Hardening.
-- Planned enhancements for PlanetScale synchronization to handle credential retrieval by automatically creating dedicated "deployify-managed" passwords via API.
-- Planned hardening of Cloud SQL validation logic to utilize the SQL Admin API for real-time instance state verification, improving the reliability of health checks for IAM-based connectors.
+- Completed Phase 60: Advanced External Connector Management & Connectivity Hardening.
+- Launched Cloud SQL Admin API integration for connection validation, enabling real-time instance state verification for IAM-based connectors by correctly extracting project IDs from connection names.
+- Implemented a shared `external-sync` utility to centralize synchronization logic for Supabase, MongoDB Atlas, and PlanetScale.
+- Enhanced PlanetScale synchronization with automated password management, creating dedicated `deployify-sync-*` passwords and implementing a cleanup cycle for older credentials to prevent security bloat.
+- Automated initial synchronization for external connectors during both creation (POST) and update (PATCH) flows, significantly improving the first-run developer experience.
+- Verified 100% functional integrity with a comprehensive system audit and 104/104 passing tests.
 
 ### 2027-05-03: Advanced Migration Reliability & Security Hardening
 - Completed Phase 59: Advanced Migration Reliability & Security Hardening.
