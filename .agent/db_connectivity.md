@@ -402,7 +402,17 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Harden Cloud SQL connection validation via SQL Admin API for IAM-based connectors
 - [x] Verify 100% functional integrity and architectural alignment
 
+### Phase 61: ESLint Configuration Strictness (COMPLETED)
+- [x] Update ESLint rules to require '@ts-expect-error' instead of '@ts-ignore'
+- [x] Ensure the rule requires a descriptive comment of at least 3 characters
+
 ## Progress Updates
+
+### 2026-04-09: ESLint Configuration Strictness
+- Completed Phase 61: ESLint Configuration Strictness.
+- Updated `eslint.config.mjs` to enforce the `@typescript-eslint/ban-ts-comment` rule, requiring `@ts-expect-error` with a minimum 3-character description instead of `@ts-ignore`.
+- Resolved existing linting warnings and errors: removed unused `lastSyncedAt` and `_region` variables, and replaced an `any` type with a strict type interface.
+- Verified functional integrity with 104 passing tests and zero-warning linting across the codebase.
 
 ### 2027-05-04: Advanced External Connector Management & Connectivity Hardening
 - Completed Phase 60: Advanced External Connector Management & Connectivity Hardening.
