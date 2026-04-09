@@ -26,7 +26,7 @@ export default async function LoginPage() {
 
                         <div className="space-y-1 mb-8">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Authentication</span>
-                            <h1 className="text-lg font-bold tracking-tight">Welcome back</h1>
+                            <h1 className="text-sm font-bold tracking-tight">Welcome back</h1>
                         </div>
 
                         <p className="text-[var(--muted-foreground)] text-lg mb-10">Sign in to manage your deployments</p>
