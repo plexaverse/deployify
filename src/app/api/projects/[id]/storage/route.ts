@@ -154,6 +154,21 @@ export async function POST(
         const storageConfigs = project.storageConfigs || [];
         storageConfigs.push(newStorageConfig);
 
+        // Initial Synchronization for External Connectors with autoSync enabled
+        if (autoSync && (type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale')) {
+            try {
+                const { syncExternalConnector } = await import('@/lib/gcp/external-sync');
+                const syncResult = await syncExternalConnector(id, newStorageConfig);
+                if (syncResult.success) {
+                    newStorageConfig.status = 'active';
+                    newStorageConfig.lastSyncedAt = syncResult.lastSyncedAt;
+                    newStorageConfig.updatedAt = new Date();
+                }
+            } catch (e) {
+                console.error(`Initial sync failed for ${name}:`, e);
+            }
+        }
+
         await updateProject(id, { storageConfigs });
 
         await logAuditEvent(
@@ -306,6 +321,7 @@ export async function PATCH(
         let connectionStringSecretId = storage.connectionStringSecretId;
         let operationName = storage.metadata?.operationName;
         let status = storage.status;
+        let lastSyncedAt = storage.lastSyncedAt;
 
         if (connectionString) {
             // Update connection string in GCP Secret Manager
@@ -342,6 +358,10 @@ export async function PATCH(
             }
         }
 
+        // Check if autoSync was just enabled or if credentials changed
+        const wasAutoSyncEnabled = (metadata?.autoSync || body.autoSync) && !storage.metadata?.autoSync;
+        const isExternal = (type || storage.type) === 'supabase' || (type || storage.type) === 'mongodb-atlas' || (type || storage.type) === 'planetscale';
+
         const updatedStorageConfig: StorageConfig = {
             ...storage,
             type: type || storage.type,
@@ -361,6 +381,20 @@ export async function PATCH(
             },
             updatedAt: new Date(),
         };
+
+        if (isExternal && (wasAutoSyncEnabled || (updatedStorageConfig.metadata?.autoSync && metadata?.providerApiKey))) {
+            try {
+                const { syncExternalConnector } = await import('@/lib/gcp/external-sync');
+                const syncResult = await syncExternalConnector(id, updatedStorageConfig);
+                if (syncResult.success) {
+                    updatedStorageConfig.status = 'active';
+                    updatedStorageConfig.lastSyncedAt = syncResult.lastSyncedAt;
+                    updatedStorageConfig.updatedAt = new Date();
+                }
+            } catch (e) {
+                console.error(`Update sync failed for ${name || storage.name}:`, e);
+            }
+        }
 
         storageConfigs[index] = updatedStorageConfig;
 
