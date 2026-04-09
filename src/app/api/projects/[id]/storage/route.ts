@@ -321,7 +321,6 @@ export async function PATCH(
         let connectionStringSecretId = storage.connectionStringSecretId;
         let operationName = storage.metadata?.operationName;
         let status = storage.status;
-        let lastSyncedAt = storage.lastSyncedAt;
 
         if (connectionString) {
             // Update connection string in GCP Secret Manager
