@@ -165,9 +165,17 @@ export async function GET(
                         const database = storage.metadata?.database as string;
                         if (!organization || !database) throw new Error('PlanetScale Organization or Database name is missing');
 
-                        // Implementation: Fetch Passwords from PlanetScale API
+                        // Implementation: Create a dedicated "deployify-managed" password to ensure we get the plain-text value
                         const res = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
-                            headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${providerApiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                name: `deployify-sync-${Date.now()}`,
+                                role: 'readwriter'
+                            })
                         });
 
                         if (!res.ok) {
@@ -176,12 +184,10 @@ export async function GET(
                         }
 
                         const data = await res.json();
-                        // Find the first active password to construct connection string
-                        const activePwd = data.data?.[0];
-                        if (activePwd) {
-                            newConnectionString = `mysql://${activePwd.username}:${activePwd.access_host}/${database}?ssl={"rejectUnauthorized":true}`;
+                        if (data.username && data.plain_text && data.access_host) {
+                            newConnectionString = `mysql://${data.username}:${data.plain_text}@${data.access_host}/${database}?ssl={"rejectUnauthorized":true}`;
                         } else {
-                            throw new Error('No active database passwords found in PlanetScale');
+                            throw new Error('Failed to retrieve full credential set from PlanetScale API');
                         }
                     }
                 }

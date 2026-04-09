@@ -1,4 +1,5 @@
 import { getSecretValue } from './secrets';
+import { getInstance as getCloudSqlInstance } from './cloudsql';
 import type { StorageType } from '@/types';
 import net from 'net';
 import { URL } from 'url';
@@ -133,10 +134,21 @@ async function validatePostgres(connectionString: string): Promise<ValidationRes
 
     // Support IAM authentication (no password)
     const isIamAuth = connectionString.includes('enable_iam_auth=true');
-    if (isIamAuth) {
-        // Skip TCP check if using Cloud SQL Unix Socket via Auth Proxy path in host or if explicit iam auth is set
-        if (connectionString.includes('/cloudsql/') || connectionString.includes('host=')) {
-            return { valid: true };
+    const cloudSqlMatch = connectionString.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
+
+    if (isIamAuth && cloudSqlMatch) {
+        try {
+            // For IAM Auth via Proxy, we verify the instance exists and is RUNNABLE via API
+            const instanceConnectionName = cloudSqlMatch[1];
+            const instanceId = instanceConnectionName.split(':')[2];
+            const instance = await getCloudSqlInstance(instanceId);
+
+            if (instance.state === 'RUNNABLE' || (process.env.MOCK_DB === 'true' && instance.name)) {
+                return { valid: true };
+            }
+            return { valid: false, error: `Cloud SQL instance is in ${instance.state} state` };
+        } catch (e) {
+            return { valid: false, error: `Failed to verify Cloud SQL instance: ${e instanceof Error ? e.message : 'Unknown error'}` };
         }
     }
 
@@ -160,9 +172,20 @@ async function validateMysql(connectionString: string): Promise<ValidationResult
 
     // Support IAM authentication
     const isIamAuth = connectionString.includes('enable_iam_auth=true');
-    if (isIamAuth) {
-        if (connectionString.includes('/cloudsql/') || connectionString.includes('socketPath=')) {
-            return { valid: true };
+    const cloudSqlMatch = connectionString.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
+
+    if (isIamAuth && cloudSqlMatch) {
+        try {
+            const instanceConnectionName = cloudSqlMatch[1];
+            const instanceId = instanceConnectionName.split(':')[2];
+            const instance = await getCloudSqlInstance(instanceId);
+
+            if (instance.state === 'RUNNABLE' || (process.env.MOCK_DB === 'true' && instance.name)) {
+                return { valid: true };
+            }
+            return { valid: false, error: `Cloud SQL instance is in ${instance.state} state` };
+        } catch (e) {
+            return { valid: false, error: `Failed to verify Cloud SQL instance: ${e instanceof Error ? e.message : 'Unknown error'}` };
         }
     }
 
