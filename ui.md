@@ -1755,3 +1755,20 @@ Conducted a final typography size reduction pass for main page titles, hero comp
     - Updated `text-lg text-[var(--muted-foreground)]` to `text-base text-[var(--muted-foreground)]` across multiple components.
     - Updated `text-[var(--muted-foreground)] text-base md:text-lg` to `text-[var(--muted-foreground)] text-sm md:text-base` in `LandingPage`.
     - Updated `text-[var(--muted-foreground)] text-lg` to `text-[var(--muted-foreground)] text-base` across multiple components.
+
+## Progressive UI & Layout Standardization (Session 185)
+
+Conducted a final typography size reduction pass for text that was still larger than the standard scale, primarily muted subheadings.
+
+### Typography Standardization
+- **Files Updated**:
+  - `src/components/LandingPage.tsx`
+  - `src/components/OnboardingGuide.tsx`
+  - `src/app/(marketing)/login/page.tsx`
+  - `src/app/billing/page.tsx`
+  - `src/app/error.tsx`
+  - `src/app/not-found.tsx`
+- **Standardization**:
+    - Reduced `text-[var(--muted-foreground)] text-base md:text-lg` to `text-sm md:text-base` in `LandingPage`.
+    - Reduced `text-lg text-[var(--muted-foreground)]` to `text-base text-[var(--muted-foreground)]` in `LandingPage` and `app/billing/page.tsx`.
+    - Reduced `text-[var(--muted-foreground)] text-lg` to `text-[var(--muted-foreground)] text-base` in `OnboardingGuide`, `login/page.tsx`, `error.tsx`, and `not-found.tsx`.

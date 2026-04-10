@@ -56,7 +56,7 @@ export function OnboardingGuide() {
                             <h1 className="text-sm md:text-base font-bold tracking-tight">Welcome to Deployify</h1>
                         </div>
                     </div>
-                    <p className="text-[var(--muted-foreground)] text-lg max-w-lg mx-auto">
+                    <p className="text-[var(--muted-foreground)] text-base max-w-lg mx-auto">
                         Deploy your Next.js applications in minutes. Just import your repository and we handle the rest.
                     </p>
                 </motion.div>

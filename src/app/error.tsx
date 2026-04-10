@@ -30,7 +30,7 @@ export default function Error({
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
                     <h1 className="text-sm font-bold tracking-tight">Something went wrong!</h1>
                 </div>
-                <p className="text-[var(--muted-foreground)] text-lg mb-8">
+                <p className="text-[var(--muted-foreground)] text-base mb-8">
                     We encountered an unexpected error. Our team has been notified.
                 </p>
                 <div className="flex flex-col w-full gap-4">

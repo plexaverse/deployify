@@ -155,7 +155,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-[var(--muted-foreground)] text-base md:text-lg max-w-2xl mx-auto mb-10"
+              className="text-[var(--muted-foreground)] text-sm md:text-base max-w-2xl mx-auto mb-10"
             >
               The self-hosted deployment platform that brings Vercel&apos;s developer experience
               to your own Google Cloud infrastructure.
@@ -348,7 +348,7 @@ export default function LandingPage() {
                        </motion.div>
                        <h3 className="text-sm font-semibold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
                     </div>
-                    <div className="text-lg text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
+                    <div className="text-base text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}
                     </div>
                     <div className="p-1 rounded-full bg-[var(--primary)]/5 w-fit px-5 py-1.5 text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider border border-[var(--primary)]/10">
