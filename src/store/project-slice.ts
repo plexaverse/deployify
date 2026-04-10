@@ -90,6 +90,7 @@ export interface ProjectSlice {
     deleteStorageConfig: (projectId: string, storageId: string, deleteResource?: boolean) => Promise<boolean>;
     validateStorageConnection: (projectId: string, storageId: string) => Promise<{ valid: boolean; error?: string }>;
     syncStorageStatus: (projectId: string, storageId: string) => Promise<{ status: string; error?: string }>;
+    diagnoseStorageConnection: (projectId: string, storageId: string) => Promise<{ success: boolean; diagnostic?: import('@/lib/gcp/storage-validator').DiagnosticResult }>;
     updateStorageAlerts: (projectId: string, storageId: string, alerts: StorageConfig['alertSettings']) => Promise<boolean>;
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
@@ -795,6 +796,24 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return { status: data.status, error: data.error };
         } catch (error) {
             return { status: 'error', error: error instanceof Error ? error.message : 'Sync failed' };
+        }
+    },
+
+    diagnoseStorageConnection: async (projectId, storageId) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/diagnose`, {
+                method: 'POST',
+            });
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                return { success: true, diagnostic: data.diagnostic };
+            }
+
+            return { success: false };
+        } catch (error) {
+            console.error('Failed to diagnose connection:', error);
+            return { success: false };
         }
     },
 
