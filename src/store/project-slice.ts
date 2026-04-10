@@ -95,6 +95,7 @@ export interface ProjectSlice {
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
     runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
+    runProjectRollback: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
     startMigrationPolling: (projectId: string, storageId: string, operationName: string) => void;
     clearMigrationStatus: (storageId: string) => void;
@@ -375,6 +376,33 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return { success: true, operationName: data.operationName };
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to trigger migration', { id: toastId });
+            return { success: false };
+        }
+    },
+
+    runProjectRollback: async (projectId, storageId, command) => {
+        const toastId = toast.loading('Triggering rollback...');
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/migrations/rollback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to trigger rollback');
+            }
+
+            toast.success('Rollback operation triggered successfully', { id: toastId });
+
+            // Start polling automatically using the same migration polling mechanism
+            get().startMigrationPolling(projectId, storageId, data.operationName);
+
+            return { success: true, operationName: data.operationName };
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to trigger rollback', { id: toastId });
             return { success: false };
         }
     },

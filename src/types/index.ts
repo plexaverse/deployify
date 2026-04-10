@@ -69,6 +69,7 @@ export interface Migration {
     durationMs?: number;
     checksum?: string;
     provider?: 'prisma' | 'drizzle' | 'typeorm' | 'knex' | 'manual';
+    drifted?: boolean;
 }
 
 export type TeamRole = 'owner' | 'admin' | 'member' | 'viewer';
@@ -450,6 +451,7 @@ export interface StorageConfig {
     branchingSettings?: StorageBranchingSettings;
     autoMigration?: boolean;
     migrationCommand?: string;
+    rollbackCommand?: string;
     activeAlerts?: string[];
     metadata?: Record<string, unknown>;
     createdAt: Date;

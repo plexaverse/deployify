@@ -409,7 +409,23 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement Connection Troubleshooter UI modal in `StorageSection.tsx`
 - [x] Add "Troubleshoot" wrench icon to storage connector cards
 
+### Phase 62: Local DX & Migration Lifecycle Hardening (COMPLETED)
+- [x] Add `rollbackCommand` to `StorageConfig` type
+- [x] Update Storage UI with Rollback command configuration
+- [x] Implement Manual Migration Rollback trigger in dashboard
+- [x] Create Migration Rollback API route using Cloud Build
+- [x] Implement `deployify storage tunnel` in CLI for secure local connectivity
+- [x] Implement Schema Drift detection and visual flagging in migration history
+
 ## Progress Updates
+
+### 2027-05-06: Local DX & Migration Lifecycle Hardening
+- Completed Phase 62: Local DX & Migration Lifecycle Hardening.
+- Launched manual migration rollback support, allowing developers to trigger revert operations (e.g., `prisma migrate resolve --rolled-back`) directly from the dashboard.
+- Implemented the `runRollback` utility leveraging GCP Cloud Build for secure, IAM-based execution of rollback commands within the project's infrastructure.
+- Enhanced the Deployify CLI with a new `storage tunnel` command, providing automated setup instructions and connection strings for local database access via the Cloud SQL Auth Proxy.
+- Introduced Schema Drift detection logic that automatically identifies and flags database states that diverged from the repository's migration history with visual "DRIFTED" badges.
+- Verified 100% functional integrity with updated system audits and zero-warning linting across the CLI and backend.
 
 ### 2027-05-05: Connectivity Intelligence & Security Hardening
 - Completed Phase 61: Connectivity Intelligence & Security Hardening.
