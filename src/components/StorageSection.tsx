@@ -82,6 +82,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         diagnoseStorageConnection,
         rotateStorageCredentials,
         runProjectMigration,
+        runProjectRollback,
         clearMigrationStatus,
         updateStorageAlerts
     } = useStore();
@@ -122,6 +123,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [migrations, setMigrations] = useState<Migration[]>([]);
     const [isLoadingMigrations, setIsLoadingMigrations] = useState(false);
     const [migrationCommand, setMigrationCommand] = useState('prisma migrate deploy');
+    const [rollbackCommand, setRollbackCommand] = useState('prisma migrate resolve --rolled-back');
     const [previewMigration, setPreviewMigration] = useState<{ name: string; content: string; provider?: string } | null>(null);
     const [isFetchingPreview, setIsFetchingPreview] = useState<string | null>(null);
 
@@ -140,6 +142,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [alertEmailEnabled, setAlertEmailEnabled] = useState(false);
     const [autoMigrationEnabled, setAutoMigrationEnabled] = useState(false);
     const [autoMigrationCommand, setAutoMigrationCommand] = useState('prisma migrate deploy');
+    const [customRollbackCommand, setCustomRollbackCommand] = useState('prisma migrate resolve --rolled-back');
     const [branchingEnabled, setBranchingEnabled] = useState(false);
     const [branchingTemplate, setBranchingTemplate] = useState('{base}_{identifier}');
     const [seedCommand, setSeedCommand] = useState('');
@@ -188,6 +191,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 },
                 autoMigration: autoMigrationEnabled,
                 migrationCommand: autoMigrationCommand,
+                rollbackCommand: customRollbackCommand,
                 metadata: {
                     ...metadata,
                     secretOnly,
@@ -224,6 +228,15 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const handleRunMigration = async () => {
         if (!isManagingMigrations) return;
         const result = await runProjectMigration(projectId, isManagingMigrations.id, migrationCommand);
+        if (result.success) {
+            // Trigger sync to show provisioning/busy status if applicable
+            await syncStorageStatus(projectId, isManagingMigrations.id);
+        }
+    };
+
+    const handleRunRollback = async () => {
+        if (!isManagingMigrations) return;
+        const result = await runProjectRollback(projectId, isManagingMigrations.id, rollbackCommand);
         if (result.success) {
             // Trigger sync to show provisioning/busy status if applicable
             await syncStorageStatus(projectId, isManagingMigrations.id);
@@ -304,6 +317,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 },
                 autoMigration: autoMigrationEnabled,
                 migrationCommand: autoMigrationCommand,
+                rollbackCommand: customRollbackCommand,
                 metadata: {
                     secretOnly,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
@@ -337,6 +351,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setSeedCommand('');
         setAutoMigrationEnabled(false);
         setAutoMigrationCommand('prisma migrate deploy');
+        setCustomRollbackCommand('prisma migrate resolve --rolled-back');
         setHighAvailability(false);
         setPitrEnabled(false);
         setDeletionProtection(false);
@@ -360,6 +375,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setSeedCommand(config.branchingSettings?.seedCommand || '');
         setAutoMigrationEnabled(!!config.autoMigration);
         setAutoMigrationCommand(config.migrationCommand || 'prisma migrate deploy');
+        setCustomRollbackCommand(config.rollbackCommand || 'prisma migrate resolve --rolled-back');
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
         setDeletionProtection(!!config.metadata?.deletionProtection);
@@ -890,18 +906,29 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
                                                 {autoMigrationEnabled && (
                                                     <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
-                                                        <div className="space-y-2">
-                                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration Command</Label>
-                                                            <Input
-                                                                value={autoMigrationCommand}
-                                                                onChange={(e) => setAutoMigrationCommand(e.target.value)}
-                                                                placeholder="E.G. PRISMA MIGRATE DEPLOY"
-                                                                className="h-8 text-[10px] font-mono placeholder:text-[10px]"
-                                                            />
-                                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
-                                                                EXECUTED AFTER BUILD BUT BEFORE DEPLOYMENT.
-                                                            </p>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration Command</Label>
+                                                                <Input
+                                                                    value={autoMigrationCommand}
+                                                                    onChange={(e) => setAutoMigrationCommand(e.target.value)}
+                                                                    placeholder="E.G. PRISMA MIGRATE DEPLOY"
+                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Rollback Command</Label>
+                                                                <Input
+                                                                    value={customRollbackCommand}
+                                                                    onChange={(e) => setCustomRollbackCommand(e.target.value)}
+                                                                    placeholder="E.G. PRISMA MIGRATE RESOLVE --ROLLED-BACK"
+                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                />
+                                                            </div>
                                                         </div>
+                                                        <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/70">
+                                                            MIGRATION EXECUTED AFTER BUILD. ROLLBACK IS TRIGGERED MANUALLY FROM THE DASHBOARD.
+                                                        </p>
                                                     </div>
                                                 )}
                                             </div>
@@ -1522,8 +1549,27 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                         Run
                                     </Button>
                                 </div>
+                                <div className="pt-2 border-t border-[var(--border)]">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger: Rollback Operation</Label>
+                                    <div className="flex gap-2 mt-2">
+                                        <Input
+                                            value={rollbackCommand}
+                                            onChange={(e) => setRollbackCommand(e.target.value)}
+                                            placeholder="E.G. prisma migrate resolve --rolled-back"
+                                            className="h-9 text-[10px] font-mono font-bold placeholder:text-[10px] border-[var(--error)]/30"
+                                        />
+                                        <Button
+                                            onClick={handleRunRollback}
+                                            disabled={isLoading}
+                                            variant="outline"
+                                            className="h-9 px-4 text-[10px] font-bold uppercase border-[var(--error)]/30 text-[var(--error)] hover:bg-[var(--error)]/10"
+                                        >
+                                            Rollback
+                                        </Button>
+                                    </div>
+                                </div>
                                 <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
-                                    This will trigger a migration operation. Ensure your schema is up to date in the repository.
+                                    Trigger migration or rollback operations. Rollbacks should be used with caution as they may cause data loss depending on the command.
                                 </p>
                             </div>
                         )}
@@ -1557,6 +1603,11 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                         )}>
                                                             {m.status}
                                                         </span>
+                                                        {m.drifted && (
+                                                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--error)]/20 text-[var(--error)] animate-pulse border border-[var(--error)]/30">
+                                                                DRIFTED
+                                                            </span>
+                                                        )}
                                                         <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">{m.provider?.toUpperCase()}</span>
                                                     </div>
                                                     <p className="text-[10px] font-bold uppercase text-[var(--foreground)] truncate max-w-[280px]" title={m.name}>{m.name}</p>

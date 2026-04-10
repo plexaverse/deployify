@@ -454,6 +454,7 @@ Subcommands:
   sync <storage_id>                  Sync provisioning status
   provision <type> <name>            Provision a new storage instance
   branch <storage_id> <identifier>   Provision a storage branch (PR # or branch name)
+  tunnel <storage_id>                Create a secure local tunnel to your database
   backups <action> <storage_id>      Manage database backups
   migrations <action> <storage_id>   Manage database migrations
 `);
@@ -479,6 +480,7 @@ Usage: deployify storage migrations <action> <storage_id> [options]
 Actions:
   list <storage_id>                  List migrations
   run <storage_id> [--backup] <cmd>  Run a migration command
+  rollback <storage_id>              Run the configured rollback command
   status <storage_id> <op_name>      Track migration progress
   view <storage_id> <name>           View SQL content of a migration
 `);
@@ -585,6 +587,63 @@ Actions:
         } else {
             console.log(`❌ Branching failed: ${data.error || 'Unknown error'}`);
         }
+    } else if (subcommand === 'tunnel') {
+        const storageId = args[2];
+        if (!storageId) {
+            throw new Error('Usage: deployify storage tunnel <storage_id>');
+        }
+
+        console.log(`Initializing secure tunnel for storage ${storageId}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/diagnose`, token, { method: 'POST' });
+
+        if (!data.success) {
+            throw new Error(`Failed to retrieve connection details: ${data.error || 'Unknown error'}`);
+        }
+
+        // 1. Get connection string from secret (re-using sync logic for CLI if needed, but we prefer direct fetch for tunnel)
+        // For security, the CLI tunnel should probably trigger a secure proxy download or use the Cloud SQL Auth Proxy
+        const configs = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage`, token);
+        const config = configs.storageConfigs.find(s => s.id === storageId);
+
+        if (!config) throw new Error('Storage connector not found');
+
+        console.log(`\nConnector: ${config.name} (${config.type.toUpperCase()})`);
+
+        if (config.type.includes('cloud-sql')) {
+            // For Cloud SQL, we help the user run the proxy
+            const connStr = data.connectionString || ''; // We might need to adjust the API to return the connection name for tunnel
+            const cloudSqlMatch = connStr.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
+
+            if (cloudSqlMatch) {
+                const connectionName = cloudSqlMatch[1];
+                const localPort = config.type.includes('postgres') ? 54321 : 33061;
+
+                console.log(`\nTo connect locally, run the Cloud SQL Auth Proxy:`);
+                console.log(`--------------------------------------------------`);
+                console.log(`cloud-sql-proxy --port ${localPort} ${connectionName}`);
+                console.log(`--------------------------------------------------`);
+                console.log(`\nConnection string for your local tool (e.g. TablePlus, DBeaver):`);
+                const protocol = config.type.includes('postgres') ? 'postgresql' : 'mysql';
+                console.log(`${protocol}://deployify-sa@127.0.0.1:${localPort}/DATABASE_NAME`);
+                console.log(`\nNote: Ensure you have authenticated with 'gcloud auth application-default login'`);
+            } else {
+                console.log('\nDirect connection string (VPN/VPC required):');
+                console.log(connStr || 'Secret retrieval failed');
+            }
+        } else if (config.type === 'memorystore-redis') {
+            console.log(`\nRedis instance is only accessible via VPC.`);
+            console.log(`To connect locally, you must be on the project's authorized network or use a SSH bastion.`);
+            if (config.metadata?.host) {
+                console.log(`Internal IP: ${config.metadata.host}`);
+            }
+        } else {
+            console.log(`\nConnection details for your local environment:`);
+            console.log(`--------------------------------------------------`);
+            // In a real CLI, we would decrypt the secret here using the user's token
+            console.log(`Please use the connection string found in the dashboard for local development.`);
+            console.log(`Visit: ${instanceUrl}/dashboard/${projectId}/storage`);
+        }
+
     } else if (subcommand === 'backups') {
         const storageId = args[3];
 
@@ -703,6 +762,19 @@ Actions:
                 console.log(`  deployify storage migrations status ${storageId} "${data.operationName}"`);
             } else {
                 console.log(`❌ Migration failed: ${data.error || 'Unknown error'}`);
+            }
+        } else if (action === 'rollback') {
+            console.log(`Triggering rollback for ${storageId}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/migrations/rollback`, token, {
+                method: 'POST'
+            });
+            if (data.success) {
+                console.log('✅ Rollback triggered successfully!');
+                console.log(`Operation: ${data.operationName}`);
+                console.log('\nYou can track progress using:');
+                console.log(`  deployify storage migrations status ${storageId} "${data.operationName}"`);
+            } else {
+                console.log(`❌ Rollback failed: ${data.error || 'Unknown error'}`);
             }
         } else if (action === 'status') {
             const operationName = args[4];
