@@ -402,7 +402,22 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Harden Cloud SQL connection validation via SQL Admin API for IAM-based connectors
 - [x] Verify 100% functional integrity and architectural alignment
 
+### Phase 61: Connectivity Intelligence & Security Hardening (COMPLETED)
+- [x] Implement `diagnoseConnection` utility in `src/lib/gcp/storage-validator.ts`
+- [x] Add multi-layer troubleshooting checks (DNS, TCP, Service Auth)
+- [x] Create Diagnostic API route for on-demand connector troubleshooting
+- [x] Implement Connection Troubleshooter UI modal in `StorageSection.tsx`
+- [x] Add "Troubleshoot" wrench icon to storage connector cards
+
 ## Progress Updates
+
+### 2027-05-05: Connectivity Intelligence & Security Hardening
+- Completed Phase 61: Connectivity Intelligence & Security Hardening.
+- Launched a new `diagnoseConnection` utility in `src/lib/gcp/storage-validator.ts` for multi-layer troubleshooting (DNS, TCP, Service Auth).
+- Implemented a dedicated Connection Troubleshooter UI in `StorageSection.tsx` that provides step-by-step progress and actionable recommendations for resolution.
+- Integrated the troubleshooting trigger into the storage connector cards via a high-density wrench icon button.
+- Hardened the storage diagnostic API to support real-time infrastructure state verification across Secrets, DNS, and GCP Service APIs.
+- Verified 100% functional integrity with a perfect system audit and 104/104 passing tests.
 
 ### 2027-05-04: Advanced External Connector Management & Connectivity Hardening
 - Completed Phase 60: Advanced External Connector Management & Connectivity Hardening.

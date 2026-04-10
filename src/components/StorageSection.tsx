@@ -13,6 +13,10 @@ import {
     ExternalLink,
     Loader2,
     Activity,
+    Wrench,
+    Search,
+    ShieldAlert,
+    Network,
     RefreshCw,
     TrendingUp,
     Cpu,
@@ -46,6 +50,7 @@ import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
 import type { StorageType, StorageConfig, Backup, Migration } from '@/types';
+import type { DiagnosticResult } from '@/lib/gcp/storage-validator';
 
 interface StorageSectionProps {
     projectId: string;
@@ -74,6 +79,7 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         deleteStorageConfig,
         validateStorageConnection,
         syncStorageStatus,
+        diagnoseStorageConnection,
         rotateStorageCredentials,
         runProjectMigration,
         clearMigrationStatus,
@@ -121,6 +127,9 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
 
     const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
+    const [isTroubleshooting, setIsTroubleshooting] = useState<StorageConfig | null>(null);
+    const [isDiagnosing, setIsDiagnosing] = useState(false);
+    const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
     const [highAvailability, setHighAvailability] = useState(false);
     const [pitrEnabled, setPitrEnabled] = useState(false);
     const [deletionProtection, setDeletionProtection] = useState(false);
@@ -490,6 +499,22 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             }
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDiagnose = async () => {
+        if (!isTroubleshooting) return;
+        setIsDiagnosing(true);
+        setDiagnosticResult(null);
+        try {
+            const result = await diagnoseStorageConnection(projectId, isTroubleshooting.id);
+            if (result.success && result.diagnostic) {
+                setDiagnosticResult(result.diagnostic);
+            } else {
+                toast.error('Diagnostic failed to complete');
+            }
+        } finally {
+            setIsDiagnosing(false);
         }
     };
 
@@ -1236,6 +1261,15 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     <Button
                                         variant="ghost"
                                         size="icon"
+                                        onClick={() => setIsTroubleshooting(config)}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="Troubleshoot Connection"
+                                    >
+                                        <Wrench className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
                                         onClick={() => setIsRotating(isRotating === config.id ? null : config.id)}
                                         className={`h-8 w-8 ${isRotating === config.id ? 'text-[var(--primary)] bg-[var(--primary)]/10' : 'text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10'}`}
                                         title="Rotate Credentials"
@@ -1756,6 +1790,121 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                             <div className="flex items-center gap-2 px-1">
                                 <Server className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
                                 <span className="text-[10px] font-bold uppercase tracking-wider">{(isShowingGuide?.metadata?.region as string) || 'GLOBAL/AUTO'}</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isTroubleshooting}
+                onClose={() => {
+                    setIsTroubleshooting(null);
+                    setDiagnosticResult(null);
+                }}
+                title="Connection Troubleshooter"
+                headerLabel="Diagnostic Intelligence"
+                icon={<Wrench className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Activity className="w-4 h-4 text-[var(--primary)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Deep Multi-Layer Scan</span>
+                                </div>
+                                {!isDiagnosing && !diagnosticResult && (
+                                    <Button
+                                        onClick={handleDiagnose}
+                                        className="h-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                    >
+                                        Run Diagnostics
+                                    </Button>
+                                )}
+                            </div>
+                            <p className="text-sm">
+                                Run a comprehensive diagnostic to identify the root cause of connection failures across secrets, DNS, TCP, and IAM layers.
+                            </p>
+                        </div>
+
+                        {isDiagnosing && (
+                            <div className="py-8 flex flex-col items-center justify-center gap-4 animate-in fade-in">
+                                <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+                                <div className="text-center">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] animate-pulse">Scanning infrastructure...</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">Checking multi-layer connectivity</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {diagnosticResult && (
+                            <div className="space-y-4 animate-in slide-in-from-top-2">
+                                <div className="space-y-2">
+                                    {diagnosticResult.steps.map((step, i) => (
+                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    {step.status === 'success' ? (
+                                                        <CheckCircle2 className="w-4 h-4 text-[var(--success)]" />
+                                                    ) : step.status === 'failure' ? (
+                                                        <AlertCircle className="w-4 h-4 text-[var(--error)]" />
+                                                    ) : (
+                                                        <Loader2 className="w-4 h-4 text-[var(--primary)] animate-spin" />
+                                                    )}
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider">{step.name}</span>
+                                                </div>
+                                                {step.latency !== undefined && (
+                                                    <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">{step.latency}ms</span>
+                                                )}
+                                            </div>
+                                            {step.error && (
+                                                <div className="p-2 bg-[var(--error)]/5 rounded border border-[var(--error)]/10">
+                                                    <p className="text-[10px] font-bold uppercase text-[var(--error)]">{step.error}</p>
+                                                </div>
+                                            )}
+                                            {step.recommendation && (
+                                                <div className="p-2 bg-[var(--primary)]/5 rounded border border-[var(--primary)]/10 flex items-start gap-2">
+                                                    <Search className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                                        <span className="text-[var(--primary)]">Recommendation:</span> {step.recommendation}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="p-4 bg-[var(--muted)]/5 border border-[var(--border)] rounded-xl flex items-center justify-between">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Total Scan Time</span>
+                                    <span className="text-[10px] font-mono font-bold">{diagnosticResult.overallLatency}ms</span>
+                                </div>
+
+                                <Button
+                                    variant="outline"
+                                    onClick={handleDiagnose}
+                                    className="w-full text-[10px] font-bold uppercase tracking-wider"
+                                >
+                                    Rerun Scan
+                                </Button>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 border border-[var(--border)] rounded-xl space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <ShieldAlert className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">IAM Identity</span>
+                                </div>
+                                <p className="text-[10px] font-bold uppercase truncate">roles/cloudsql.client</p>
+                            </div>
+                            <div className="p-3 border border-[var(--border)] rounded-xl space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Network className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Network Mode</span>
+                                </div>
+                                <p className="text-[10px] font-bold uppercase truncate">Direct VPC Egress</p>
                             </div>
                         </div>
                     </div>

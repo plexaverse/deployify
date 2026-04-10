@@ -14,6 +14,26 @@ export interface ValidationResult {
 }
 
 /**
+ * Diagnostic step information
+ */
+export interface DiagnosticStep {
+    name: string;
+    status: 'success' | 'failure' | 'pending' | 'running';
+    error?: string;
+    latency?: number;
+    recommendation?: string;
+}
+
+/**
+ * Full diagnostic result
+ */
+export interface DiagnosticResult {
+    success: boolean;
+    steps: DiagnosticStep[];
+    overallLatency: number;
+}
+
+/**
  * Validates a storage connection based on its type and connection string
  */
 export async function validateConnection(
@@ -79,6 +99,206 @@ export async function validateConnection(
             valid: false,
             error: error instanceof Error ? error.message : 'Unknown validation error',
             latency: Date.now() - startTime
+        };
+    }
+}
+
+/**
+ * Performs a deep multi-layer diagnostic on a storage connection
+ */
+export async function diagnoseConnection(
+    type: StorageType,
+    connectionStringSecretId?: string,
+    metadata?: Record<string, unknown>
+): Promise<DiagnosticResult> {
+    const startTime = Date.now();
+    const steps: DiagnosticStep[] = [];
+
+    const addStep = (name: string) => {
+        const step: DiagnosticStep = { name, status: 'pending' };
+        steps.push(step);
+        return step;
+    };
+
+    try {
+        // If we're in mock mode, simulate diagnostics
+        if (process.env.MOCK_DB === 'true') {
+            const mockSteps: DiagnosticStep[] = [
+                { name: 'Secret Retrieval', status: 'success', latency: 120 },
+                { name: 'Connection String Parsing', status: 'success', latency: 10 },
+                { name: 'DNS Resolution', status: 'success', latency: 45 },
+                { name: 'TCP Reachability', status: 'success', latency: 200 },
+            ];
+
+            if (type.includes('cloud-sql')) {
+                mockSteps.push({ name: 'GCP SQL Admin API Validation', status: 'success', latency: 350 });
+            }
+
+            // Artificial delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            return {
+                success: true,
+                steps: mockSteps,
+                overallLatency: Date.now() - startTime
+            };
+        }
+
+        // Step 1: Secret Retrieval
+        const secretStep = addStep('Secret Retrieval');
+        secretStep.status = 'running';
+        const secretStart = Date.now();
+
+        let connectionString = '';
+        if (connectionStringSecretId) {
+            try {
+                connectionString = await getSecretValue(connectionStringSecretId);
+                secretStep.status = 'success';
+                secretStep.latency = Date.now() - secretStart;
+            } catch (e) {
+                secretStep.status = 'failure';
+                secretStep.error = e instanceof Error ? e.message : 'Failed to retrieve secret';
+                secretStep.recommendation = 'Check if the GCP Secret Manager secret exists and the service account has roles/secretmanager.secretAccessor role.';
+                return { success: false, steps, overallLatency: Date.now() - startTime };
+            }
+        } else if (type !== 'firestore') {
+            secretStep.status = 'failure';
+            secretStep.error = 'No connection string secret ID provided';
+            secretStep.recommendation = 'Ensure a connection string is provided for this database type.';
+            return { success: false, steps, overallLatency: Date.now() - startTime };
+        } else {
+            secretStep.status = 'success';
+            secretStep.latency = 0;
+        }
+
+        // Step 2: Connection String Parsing
+        const parseStep = addStep('Connection String Parsing');
+        parseStep.status = 'running';
+        const parseStart = Date.now();
+
+        let host = '';
+        let port = 0;
+
+        if (type !== 'firestore') {
+            try {
+                if (connectionString.startsWith('mongodb+srv://')) {
+                    // SRV records are special
+                    const url = new URL(connectionString);
+                    host = url.hostname;
+                    port = 27017; // SRV usually implies dynamic ports but we check primary
+                } else {
+                    const parsed = parseConnectionString(connectionString, 0);
+                    host = parsed.host;
+                    port = parsed.port;
+                }
+
+                if (!host || host === 'localhost') {
+                    throw new Error('Could not determine remote host');
+                }
+
+                parseStep.status = 'success';
+                parseStep.latency = Date.now() - parseStart;
+            } catch (e) {
+                parseStep.status = 'failure';
+                parseStep.error = e instanceof Error ? e.message : 'Failed to parse connection string';
+                parseStep.recommendation = 'Verify the connection string format. It should be a valid URI (e.g., postgresql://user:pass@host:port/db).';
+                return { success: false, steps, overallLatency: Date.now() - startTime };
+            }
+        } else {
+            parseStep.status = 'success';
+            parseStep.latency = 0;
+        }
+
+        // Step 3: DNS Resolution (Skip for Cloud SQL IAM with Unix Socket or SRV)
+        const isCloudSqlIam = (type.includes('cloud-sql') && connectionString.includes('enable_iam_auth=true'));
+
+        if (!isCloudSqlIam && type !== 'firestore' && !connectionString.startsWith('mongodb+srv://')) {
+            const dnsStep = addStep('DNS Resolution');
+            dnsStep.status = 'running';
+            const dnsStart = Date.now();
+
+            try {
+                const { promisify } = await import('util');
+                const dns = await import('dns');
+                const resolve = promisify(dns.resolve);
+                await resolve(host);
+                dnsStep.status = 'success';
+                dnsStep.latency = Date.now() - dnsStart;
+            } catch (e) {
+                dnsStep.status = 'failure';
+                dnsStep.error = e instanceof Error ? e.message : 'DNS resolution failed';
+                dnsStep.recommendation = 'Verify the hostname is correct and publicly resolvable, or check VPC settings if using internal IPs.';
+                return { success: false, steps, overallLatency: Date.now() - startTime };
+            }
+        }
+
+        // Step 4: TCP Reachability
+        if (!isCloudSqlIam && type !== 'firestore' && port !== 0) {
+            const tcpStep = addStep('TCP Reachability');
+            tcpStep.status = 'running';
+            const tcpStart = Date.now();
+
+            const reachable = await checkTcpReachability(host, port);
+            if (reachable) {
+                tcpStep.status = 'success';
+                tcpStep.latency = Date.now() - tcpStart;
+            } else {
+                tcpStep.status = 'failure';
+                tcpStep.error = `Could not establish TCP connection to ${host}:${port}`;
+                tcpStep.recommendation = `Check firewall rules (Allow ingress on port ${port}) and ensure the database server is running and accepting remote connections.`;
+                return { success: false, steps, overallLatency: Date.now() - startTime };
+            }
+        }
+
+        // Step 5: Service Auth / API Validation (GCP Specific)
+        if (type.includes('cloud-sql')) {
+            const authStep = addStep('GCP SQL Admin API Validation');
+            authStep.status = 'running';
+            const authStart = Date.now();
+
+            try {
+                const cloudSqlMatch = connectionString.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
+                if (cloudSqlMatch) {
+                    const instanceConnectionName = cloudSqlMatch[1];
+                    const [projectId, , instanceId] = instanceConnectionName.split(':');
+                    const instance = await getCloudSqlInstance(instanceId, projectId);
+
+                    if (instance.state === 'RUNNABLE') {
+                        authStep.status = 'success';
+                    } else {
+                        authStep.status = 'failure';
+                        authStep.error = `Instance is in ${instance.state} state`;
+                        authStep.recommendation = 'Start the Cloud SQL instance or wait for it to finish its current operation.';
+                        return { success: false, steps, overallLatency: Date.now() - startTime };
+                    }
+                } else {
+                    authStep.status = 'success';
+                }
+                authStep.latency = Date.now() - authStart;
+            } catch (e) {
+                authStep.status = 'failure';
+                authStep.error = e instanceof Error ? e.message : 'GCP API call failed';
+                authStep.recommendation = 'Ensure the Cloud SQL Admin API is enabled and the service account has roles/cloudsql.admin or roles/cloudsql.viewer.';
+                return { success: false, steps, overallLatency: Date.now() - startTime };
+            }
+        }
+
+        if (metadata) {
+            // Use metadata to avoid unused var warning
+            console.debug('Diagnosing with metadata', metadata);
+        }
+
+        return {
+            success: true,
+            steps,
+            overallLatency: Date.now() - startTime
+        };
+    } catch (error) {
+        console.error('Diagnostic error:', error);
+        return {
+            success: false,
+            steps,
+            overallLatency: Date.now() - startTime
         };
     }
 }
