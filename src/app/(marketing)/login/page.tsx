@@ -29,7 +29,7 @@ export default async function LoginPage() {
                             <h1 className="text-sm font-bold tracking-tight">Welcome back</h1>
                         </div>
 
-                        <p className="text-[var(--muted-foreground)] text-lg mb-10">Sign in to manage your deployments</p>
+                        <p className="text-[var(--muted-foreground)] text-base mb-10">Sign in to manage your deployments</p>
 
                         <Link href="/api/auth/github" prefetch={false} className="w-full">
                             <MovingBorderButton

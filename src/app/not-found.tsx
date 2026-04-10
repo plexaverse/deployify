@@ -17,7 +17,7 @@ export default function NotFound() {
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">404 Error</span>
                     <h1 className="text-sm font-bold tracking-tight">Page Not Found</h1>
                 </div>
-                <p className="text-[var(--muted-foreground)] text-lg mb-8">
+                <p className="text-[var(--muted-foreground)] text-base mb-8">
                     The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
                 </p>
                 <div className="flex flex-col w-full gap-4">
