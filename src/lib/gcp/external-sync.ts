@@ -113,7 +113,7 @@ export async function syncExternalConnector(
                     if (listRes.ok) {
                         const passwords = await listRes.json();
                         // Filter for passwords created by deployify sync that aren't the one we just created
-                        const oldPasswords = (passwords.data || passwords || []).filter((p: any) =>
+                        const oldPasswords = (passwords.data || passwords || []).filter((p: { name?: string; id?: string }) =>
                             p.name?.startsWith('deployify-sync-') && p.id !== newPwd.id
                         );
 
