@@ -1790,3 +1790,6 @@ Conducted a final typography size reduction pass to conform with the newly updat
     - Reduced `text-sm md:text-base` to `text-xs md:text-sm` in `LandingPage` and `OnboardingGuide`.
     - Reduced `text-[var(--muted-foreground)] text-base` to `text-[var(--muted-foreground)] text-sm` in `OnboardingGuide`, `login/page.tsx`, `error.tsx`, and `not-found.tsx`.
     - Reduced `text-base text-[var(--muted-foreground)]` to `text-sm text-[var(--muted-foreground)]` in `LandingPage` and `app/billing/page.tsx`.
+
+## General Standardizations
+- Verified UI typographies are standardized and are adhering to sizes like `text-sm`, `text-[10px]`.
