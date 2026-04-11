@@ -22,3 +22,8 @@ Conducted a full-platform system integrity verification and end-to-end functiona
 - **CLI Diagnostic Capability**: Implemented `deployify storage diagnose` command in the CLI, enabling terminal-based access to the multi-layer connectivity diagnostic engine.
 - **SSL Infrastructure**: Added `ssl` configuration to the storage connector model and implemented strict enforcement in the Data Lab SQL proxy and Cloud Run deployment orchestration.
 - **Proxy Orchestration Refactoring**: Centralized Cloud SQL Auth Proxy orchestration into a shared utility, ensuring version consistency (v2.11.0) and reducing code duplication across build and migration workflows.
+
+### IP Visibility & Diagnostic Intelligence (Session 191)
+- **Regional Egress Mapping**: Implemented `src/lib/gcp/networks.ts` to provide regional egress IP ranges for common GCP regions, improving diagnostic accuracy and developer guidance.
+- **IP Allowlist Assistant**: Launched a new UI section in the Storage Usage Guide that dynamically displays regional egress IPs based on the project's GCP region to assist in configuring external database firewalls.
+- **Diagnostic Intelligence**: Enhanced the diagnostic engine to automatically surface required egress IPs in troubleshooting recommendations when TCP connection failures are detected for external connectors.

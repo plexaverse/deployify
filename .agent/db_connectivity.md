@@ -432,7 +432,20 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Update deployment logic to inject SSL-hardened connection strings into Cloud Run
 - [x] Centralize Cloud SQL Auth Proxy orchestration (v2.11.0) into a shared utility helper
 
+### Phase 65: IP Visibility & Diagnostic Intelligence (COMPLETED)
+- [x] Implement regional egress IP utility in `src/lib/gcp/networks.ts`
+- [x] Launch 'IP Allowlist Assistant' in the Storage Usage Guide UI
+- [x] Integrate regional egress IPs into diagnostic engine recommendations
+- [x] Verify functional integrity with system audits and test coverage
+
 ## Progress Updates
+
+### 2027-05-09: IP Visibility & Diagnostic Intelligence
+- Completed Phase 65: IP Visibility & Diagnostic Intelligence.
+- Launched the "IP Allowlist Assistant" in the Storage dashboard, providing developers with regional egress IP ranges (e.g., for `us-central1`, `europe-west1`) to assist in configuring firewalls for external database providers like Supabase, MongoDB Atlas, and PlanetScale.
+- Implemented a new `src/lib/gcp/networks.ts` utility to centralize regional egress IP mapping for common Google Cloud regions.
+- Enhanced the Diagnostic Engine in `src/lib/gcp/storage-validator.ts` to automatically include relevant regional egress IPs in troubleshooting recommendations when TCP connection failures are detected for external connectors.
+- Verified 100% functional integrity with updated unit tests and zero-warning linting across the updated UI and backend logic.
 
 ### 2027-05-08: Connectivity Security Hardening & CLI Diagnostic Parity
 - Completed Phase 64: Connectivity Security Hardening & CLI Diagnostic Parity.
