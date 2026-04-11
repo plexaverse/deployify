@@ -109,7 +109,8 @@ export async function validateConnection(
 export async function diagnoseConnection(
     type: StorageType,
     connectionStringSecretId?: string,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
+    projectRegion?: string
 ): Promise<DiagnosticResult> {
     const startTime = Date.now();
     const steps: DiagnosticStep[] = [];
@@ -132,6 +133,10 @@ export async function diagnoseConnection(
 
             if (type.includes('cloud-sql')) {
                 mockSteps.push({ name: 'GCP SQL Admin API Validation', status: 'success', latency: 350 });
+            }
+
+            if (projectRegion) {
+                mockSteps.push({ name: 'Regional Alignment', status: 'success', latency: 5 });
             }
 
             // Artificial delay
@@ -281,6 +286,24 @@ export async function diagnoseConnection(
                 authStep.recommendation = 'Ensure the Cloud SQL Admin API is enabled and the service account has roles/cloudsql.admin or roles/cloudsql.viewer.';
                 return { success: false, steps, overallLatency: Date.now() - startTime };
             }
+        }
+
+        // Step 6: Regional Alignment Check
+        if (projectRegion) {
+            const regionStep = addStep('Regional Alignment');
+            regionStep.status = 'running';
+            const regionStart = Date.now();
+
+            const storageRegion = (metadata?.region as string) || projectRegion; // Fallback to project region if not specified
+
+            if (storageRegion === projectRegion) {
+                regionStep.status = 'success';
+            } else {
+                regionStep.status = 'failure';
+                regionStep.error = `Regional mismatch: Storage in ${storageRegion}, Project in ${projectRegion}`;
+                regionStep.recommendation = 'For production workloads, ensure your database is in the same region as your Cloud Run service to minimize latency and data transfer costs.';
+            }
+            regionStep.latency = Date.now() - regionStart;
         }
 
         if (metadata) {

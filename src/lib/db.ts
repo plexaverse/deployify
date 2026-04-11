@@ -182,10 +182,10 @@ export async function getEnvVarsForDeployment(
         }
 
         if (storage.type.includes('cloud-sql') && storage.metadata?.resourceName) {
-            const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID || '';
-            const region = (storage.metadata?.region as string) || project.region || 'us-central1';
+            const providerProjectId = storage.providerProjectId || config.gcp.projectId || process.env.GCP_PROJECT_ID || '';
+            const region = storage.region || (storage.metadata?.region as string) || project.region || 'us-central1';
             const instanceName = storage.metadata.resourceName as string;
-            cloudSqlInstances.push(`${gcpProjectId}:${region}:${instanceName}`);
+            cloudSqlInstances.push(`${providerProjectId}:${region}:${instanceName}`);
         }
     }
 

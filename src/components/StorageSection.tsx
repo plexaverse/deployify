@@ -146,6 +146,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [branchingEnabled, setBranchingEnabled] = useState(false);
     const [branchingTemplate, setBranchingTemplate] = useState('{base}_{identifier}');
     const [seedCommand, setSeedCommand] = useState('');
+    const [targetRegion, setTargetRegion] = useState('');
+    const [providerProjectId, setProviderProjectId] = useState('');
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -184,6 +186,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 type,
                 environment,
                 envKey,
+                region: targetRegion || undefined,
+                providerProjectId: providerProjectId || undefined,
                 branchingSettings: {
                     enabled: branchingEnabled,
                     template: branchingTemplate,
@@ -310,6 +314,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 type,
                 environment,
                 envKey,
+                region: targetRegion || undefined,
+                providerProjectId: providerProjectId || undefined,
                 branchingSettings: {
                     enabled: branchingEnabled,
                     template: branchingTemplate,
@@ -361,6 +367,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setMongodbClusterName('');
         setPlanetscaleOrg('');
         setPlanetscaleDb('');
+        setTargetRegion('');
+        setProviderProjectId('');
     };
 
     const startEditing = (config: StorageConfig) => {
@@ -379,6 +387,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
         setDeletionProtection(!!config.metadata?.deletionProtection);
+        setTargetRegion(config.region || '');
+        setProviderProjectId(config.providerProjectId || '');
         setConnectionString(''); // Don't show old connection string
         setIsAdding(false);
     };
@@ -655,6 +665,27 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                 />
                             </div>
                         )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Target Region</Label>
+                                <Input
+                                    value={targetRegion}
+                                    onChange={(e) => setTargetRegion(e.target.value)}
+                                    placeholder="E.G. US-CENTRAL1"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">Provider Project ID (Optional)</Label>
+                                <Input
+                                    value={providerProjectId}
+                                    onChange={(e) => setProviderProjectId(e.target.value)}
+                                    placeholder="GCP PROJECT ID FOR EXTERNAL RESOURCES"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                />
+                            </div>
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {!provision ? (

@@ -452,6 +452,8 @@ export interface StorageConfig {
     autoMigration?: boolean;
     migrationCommand?: string;
     rollbackCommand?: string;
+    region?: string;
+    providerProjectId?: string;
     activeAlerts?: string[];
     metadata?: Record<string, unknown>;
     createdAt: Date;

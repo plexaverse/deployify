@@ -417,7 +417,22 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement `deployify storage tunnel` in CLI for secure local connectivity
 - [x] Implement Schema Drift detection and visual flagging in migration history
 
+### Phase 63: Advanced Infrastructure Portability & Security Hardening (COMPLETED)
+- [x] Add top-level `region` and `providerProjectId` to `StorageConfig` type
+- [x] Implement granular Secret Manager IAM grants per-resource in Cloud Build
+- [x] Implement "Regional Alignment" diagnostic check in `storage-validator`
+- [x] Update Storage UI to support cross-project connectors and regional warnings
+- [x] Verify functional integrity with system audits and zero-warning linting
+
 ## Progress Updates
+
+### 2027-05-07: Advanced Infrastructure Portability & Security Hardening
+- Completed Phase 63: Advanced Infrastructure Portability & Security Hardening.
+- Introduced top-level `region` and `providerProjectId` fields to the `StorageConfig` data model, enabling first-class support for cross-project GCP resources and precise regional tracking.
+- Launched a new "Regional Alignment" diagnostic check within the Connection Troubleshooter, alerting developers when a database's region differs from the project's deployment region to prevent high-latency configurations.
+- Hardened the deployment pipeline to derive infrastructure requirements (like VPC Egress and Cloud SQL instances) and apply granular Secret Manager IAM grants based on these new portability fields.
+- Updated the Storage dashboard UI with integrated inputs for region and provider project ID, and enhanced diagnostic feedback for regional proximity.
+- Verified 100% functional integrity with updated system audits and 104/104 passing tests.
 
 ### 2027-05-06: Local DX & Migration Lifecycle Hardening
 - Completed Phase 62: Local DX & Migration Lifecycle Hardening.
