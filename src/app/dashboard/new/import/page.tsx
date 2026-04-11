@@ -201,7 +201,7 @@ export default function ImportProjectPage() {
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col items-end">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Repository</span>
-                            <span className="text-sm font-semibold truncate max-w-[200px]">{repoFullName.toUpperCase()}</span>
+                            <span className="text-xs font-semibold truncate max-w-[200px]">{repoFullName.toUpperCase()}</span>
                         </div>
                     </div>
                 </div>
@@ -216,7 +216,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                            <h2 className="text-sm font-semibold">Project Settings</h2>
+                            <h2 className="text-xs font-semibold">Project Settings</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -224,7 +224,7 @@ export default function ImportProjectPage() {
                     <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold block mb-2">Project Name</Label>
+                            <Label className="text-xs font-semibold block mb-2">Project Name</Label>
                             <Input
                                 type="text"
                                 value={projectName}
@@ -234,7 +234,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold block mb-2">Framework Preset</Label>
+                            <Label className="text-xs font-semibold block mb-2">Framework Preset</Label>
                             <NativeSelect
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
@@ -254,7 +254,7 @@ export default function ImportProjectPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label className="text-sm font-semibold block mb-2">Root Directory</Label>
+                                <Label className="text-xs font-semibold block mb-2">Root Directory</Label>
                                 <Input
                                     type="text"
                                     value={rootDirectory}
@@ -264,7 +264,7 @@ export default function ImportProjectPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-sm font-semibold block mb-2">Region</Label>
+                                <Label className="text-xs font-semibold block mb-2">Region</Label>
                                 <NativeSelect
                                     value={region}
                                     onChange={(e) => setRegion(e.target.value)}
@@ -288,7 +288,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Pipeline</span>
-                            <h2 className="text-sm font-semibold">Build Settings</h2>
+                            <h2 className="text-xs font-semibold">Build Settings</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -296,7 +296,7 @@ export default function ImportProjectPage() {
                     <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold block mb-2">Build Command</Label>
+                            <Label className="text-xs font-semibold block mb-2">Build Command</Label>
                             <Input
                                 type="text"
                                 value={buildCommand}
@@ -306,7 +306,7 @@ export default function ImportProjectPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold block mb-2">Output Directory</Label>
+                            <Label className="text-xs font-semibold block mb-2">Output Directory</Label>
                             <Input
                                 type="text"
                                 value={outputDirectory}
@@ -318,7 +318,7 @@ export default function ImportProjectPage() {
                     </div>
 
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold block mb-2">Install Command</Label>
+                            <Label className="text-xs font-semibold block mb-2">Install Command</Label>
                             <Input
                                 type="text"
                                 value={installCommand}
@@ -338,7 +338,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                            <h2 className="text-sm font-semibold">Database Connectors</h2>
+                            <h2 className="text-xs font-semibold">Database Connectors</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -477,7 +477,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                            <h2 className="text-sm font-semibold">Environment Variables</h2>
+                            <h2 className="text-xs font-semibold">Environment Variables</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -544,14 +544,14 @@ export default function ImportProjectPage() {
                                     checked={newEnvIsSecret}
                                     onCheckedChange={setNewEnvIsSecret}
                                 />
-                                <Label htmlFor="is-secret" className="text-sm font-semibold cursor-pointer flex items-center gap-1.5">
+                                <Label htmlFor="is-secret" className="text-xs font-semibold cursor-pointer flex items-center gap-1.5">
                                     <Shield className="w-3.5 h-3.5 text-[var(--info)]" />
                                     Secret (Encrypted)
                                 </Label>
                             </div>
 
                             <div className="space-y-2 flex-1 max-w-xs">
-                                <Label className="text-sm font-semibold block mb-2">Target Environment</Label>
+                                <Label className="text-xs font-semibold block mb-2">Target Environment</Label>
                                 <SegmentedControl
                                     value={newEnvTarget}
                                     onChange={(val) => setNewEnvTarget(val as 'both' | 'build' | 'runtime')}

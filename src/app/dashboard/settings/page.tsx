@@ -226,7 +226,7 @@ export default function TeamSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Profile</span>
-                            <h3 className="text-sm font-semibold">Personal Profile</h3>
+                            <h3 className="text-xs font-semibold">Personal Profile</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -239,7 +239,7 @@ export default function TeamSettingsPage() {
                             </AvatarFallback>
                         </Avatar>
                         <div className="space-y-1">
-                            <h3 className="text-sm font-semibold text-[var(--foreground)]">
+                            <h3 className="text-xs font-semibold text-[var(--foreground)]">
                                 {user?.name || user?.githubUsername || 'Personal Workspace'}
                             </h3>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
@@ -265,14 +265,14 @@ export default function TeamSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                            <h3 className="text-sm font-semibold text-[var(--error)]">Critical Actions</h3>
+                            <h3 className="text-xs font-semibold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--error)]/20" />
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                             <div>
-                                <h3 className="text-sm font-semibold text-[var(--error)]">Delete Account</h3>
+                                <h3 className="text-xs font-semibold text-[var(--error)]">Delete Account</h3>
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Permanently remove your account and all of your data. This action cannot be undone.
                                 </p>
@@ -331,13 +331,13 @@ export default function TeamSettingsPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collaboration</span>
-                                    <h3 className="text-sm font-semibold">Invite New Member</h3>
+                                    <h3 className="text-xs font-semibold">Invite New Member</h3>
                                 </div>
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <form onSubmit={handleInvite} className="p-6 flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
-                                    <Label htmlFor="email" className="text-sm font-semibold block mb-2">Email address</Label>
+                                    <Label htmlFor="email" className="text-xs font-semibold block mb-2">Email address</Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -349,7 +349,7 @@ export default function TeamSettingsPage() {
                                     />
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <Label htmlFor="role" className="text-sm font-semibold block mb-2 px-1">Role</Label>
+                                    <Label htmlFor="role" className="text-xs font-semibold block mb-2 px-1">Role</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'admin', label: 'ADMIN' },
@@ -381,7 +381,7 @@ export default function TeamSettingsPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team</span>
-                                    <h3 className="text-sm font-semibold">Team Members</h3>
+                                    <h3 className="text-xs font-semibold">Team Members</h3>
                                 </div>
                             </div>
                             <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full border border-[var(--border)]">
@@ -510,14 +510,14 @@ export default function TeamSettingsPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                                <h3 className="text-sm font-semibold text-[var(--error)]">Critical Actions</h3>
+                                <h3 className="text-xs font-semibold text-[var(--error)]">Critical Actions</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--error)]/20" />
                         <div className="p-6 space-y-6">
                             <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                 <div>
-                                    <h3 className="text-sm font-semibold">Leave Team</h3>
+                                    <h3 className="text-xs font-semibold">Leave Team</h3>
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                         Revoke your access to this team. You will need to be re-invited to join again.
                                     </p>
@@ -536,7 +536,7 @@ export default function TeamSettingsPage() {
                                     <Separator className="bg-[var(--error)]/20" />
                                     <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                         <div>
-                                            <h3 className="text-sm font-semibold text-[var(--error)]">Delete Team</h3>
+                                            <h3 className="text-xs font-semibold text-[var(--error)]">Delete Team</h3>
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 Permanently remove this team and all of its data. This action cannot be undone.
                                             </p>
@@ -564,7 +564,7 @@ export default function TeamSettingsPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Activity</span>
-                                <h3 className="text-sm font-semibold">Audit Log</h3>
+                                <h3 className="text-xs font-semibold">Audit Log</h3>
                             </div>
                         </div>
 
@@ -580,7 +580,7 @@ export default function TeamSettingsPage() {
                                     <div key={log.id} className="relative pl-8">
                                         <div className="absolute left-[19px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-sm font-semibold text-[var(--foreground)]">
+                                            <span className="text-xs font-semibold text-[var(--foreground)]">
                                                 {log.action}
                                             </span>
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed line-clamp-2">

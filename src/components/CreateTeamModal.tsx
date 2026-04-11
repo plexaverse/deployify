@@ -67,7 +67,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                             </div>
                             <div className="space-y-0.5">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Management</span>
-                                <h3 className="text-sm font-semibold tracking-tight text-[var(--foreground)]">Create New Team</h3>
+                                <h3 className="text-xs font-semibold tracking-tight text-[var(--foreground)]">Create New Team</h3>
                             </div>
                         </div>
                         <Button
@@ -83,7 +83,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                     {/* Content */}
                     <form onSubmit={handleSubmit} className="p-6 space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Team Name</Label>
+                            <Label className="text-xs font-semibold">Team Name</Label>
                             <Input
                                 type="text"
                                 value={name}
@@ -94,7 +94,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Team Slug</Label>
+                            <Label className="text-xs font-semibold">Team Slug</Label>
                             <Input
                                 type="text"
                                 value={slug}

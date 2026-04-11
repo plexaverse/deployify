@@ -68,7 +68,7 @@ export default function ProjectStoragePage() {
                         <Database className="w-8 h-8 text-[var(--muted-foreground)]" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-sm font-semibold">Project Not Found</h2>
+                        <h2 className="text-xs font-semibold">Project Not Found</h2>
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             The project you are looking for does not exist or you don&apos;t have access.
                         </p>

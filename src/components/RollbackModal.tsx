@@ -29,7 +29,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                             </div>
                             <div className="space-y-0.5">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Action</span>
-                                <h3 className="text-sm font-semibold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
+                                <h3 className="text-xs font-semibold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
                             </div>
                         </div>
                         <Button
@@ -55,7 +55,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                             </div>
                             <div className="space-y-1">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Message</span>
-                                <p className="text-sm font-semibold line-clamp-2 text-[var(--foreground)]">{deployment.gitCommitMessage}</p>
+                                <p className="text-xs font-semibold line-clamp-2 text-[var(--foreground)]">{deployment.gitCommitMessage}</p>
                             </div>
                             <div className="flex justify-between gap-4 pt-2">
                                 <div className="space-y-1">
