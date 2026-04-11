@@ -144,7 +144,7 @@ export default function ProjectSettingsPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Configuration</span>
-                        <h1 className="text-sm font-bold tracking-tight">Project Settings</h1>
+                        <h1 className="text-xs font-bold tracking-tight">Project Settings</h1>
                     </div>
                 </div>
             </div>

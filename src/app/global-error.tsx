@@ -28,9 +28,9 @@ export default function GlobalError({
                     </div>
                     <div className="space-y-1 mb-6">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">System Failure</span>
-                        <h1 className="text-sm font-bold tracking-tight">Critical Error</h1>
+                        <h1 className="text-xs font-bold tracking-tight">Critical Error</h1>
                     </div>
-                    <p className="text-[var(--muted-foreground)] text-sm mb-8 max-w-[280px]">
+                    <p className="text-[var(--muted-foreground)] text-xs mb-8 max-w-[280px]">
                       A critical error occurred and the application cannot recover automatically.
                     </p>
                     <Button

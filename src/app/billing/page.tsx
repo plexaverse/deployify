@@ -235,7 +235,7 @@ export default function BillingPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
-                        <h1 className="text-sm font-bold tracking-tight">Billing & Usage</h1>
+                        <h1 className="text-xs font-bold tracking-tight">Billing & Usage</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -303,7 +303,7 @@ export default function BillingPage() {
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
                         <h3 className="text-sm font-semibold tracking-tight mb-4">Simple, transparent pricing</h3>
-                        <p className="text-sm text-[var(--muted-foreground)]">
+                        <p className="text-xs text-[var(--muted-foreground)]">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
                         </p>
                     </div>

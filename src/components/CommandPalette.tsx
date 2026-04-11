@@ -122,11 +122,11 @@ export function CommandPalette() {
           </div>
           <div className="max-h-[60vh] overflow-y-auto p-2 relative z-10">
              {!isOpen ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-sm">Loading...</div>
+               <div className="p-4 text-center text-[var(--muted-foreground)] text-xs">Loading...</div>
              ) : filtered.length === 0 && projects.length > 0 ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-sm">No results found.</div>
+               <div className="p-4 text-center text-[var(--muted-foreground)] text-xs">No results found.</div>
              ) : projects.length === 0 ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-sm">Loading projects...</div>
+               <div className="p-4 text-center text-[var(--muted-foreground)] text-xs">Loading projects...</div>
              ) : (
                <div className="space-y-1" role="listbox" id="command-results">
                  <AnimatePresence>
