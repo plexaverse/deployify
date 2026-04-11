@@ -1223,6 +1223,24 @@ Conducted a final platform-wide cleanup and visual verification to certify the p
 - **Typography**: Confirmed that all technical metadata consistently utilizes the high-density `text-[10px] font-bold uppercase tracking-wider` typography.
 - **Consistency**: Final visual verification confirms absolute adherence to the platform's professional, developer-grade aesthetic across 40+ routes.
 
+## Phase 64: IP Visibility & Diagnostic Intelligence (Session 190)
+
+Implemented the 'IP Allowlist Assistant' to improve the external connector developer experience and hardened connection diagnostics.
+
+### IP Allowlist Assistant
+- **File Updated**: `src/components/StorageSection.tsx`
+- **Standardization**:
+  - Integrated a new "IP Allowlist Assistant" section into the Connector Usage Guide modal for external providers (Supabase, MongoDB Atlas, PlanetScale).
+  - Dynamically displays regional egress IP ranges based on the project's GCP region to assist in firewall configuration.
+  - Enforced the `text-[10px] font-bold uppercase tracking-wider` standard for all new labels and metadata.
+  - Added copy-to-clipboard functionality for individual IP ranges with standardized high-density icons.
+
+### Diagnostic Intelligence Hardening
+- **File Updated**: `src/lib/gcp/storage-validator.ts`
+- **Standardization**:
+  - Enhanced the `diagnoseConnection` engine to provide actionable firewall recommendations when TCP reachability fails for external connectors.
+  - Integrated regional IP awareness into diagnostic error messages, directing users to the IP Allowlist Assistant for resolution.
+
 ### Final Visual Sign-off
 - **Status**: 100% VISUALLY STANDARDIZED
 - **Sign-off By**: Jules, Lead Developer

@@ -425,6 +425,12 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Update deployment logic to support cross-project connector secrets
 - [x] Add "External GCP Project ID" field to storage connector UI
 
+### Phase 64: IP Visibility & Diagnostic Intelligence (IN PROGRESS)
+- [ ] Implement 'IP Allowlist Assistant' in Storage Usage Guide
+- [ ] Create `src/lib/gcp/networks.ts` with regional egress IP range data
+- [ ] Enhance diagnostic engine with IP-based firewall recommendations
+- [ ] Update UI to display egress IP ranges based on project regionality
+
 ## Progress Updates
 
 ### 2027-05-07: Advanced Infrastructure Portability & Security Hardening

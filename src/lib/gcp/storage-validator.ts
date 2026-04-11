@@ -1,5 +1,6 @@
 import { getSecretValue } from './secrets';
 import { getInstance as getCloudSqlInstance } from './cloudsql';
+import { getRegionalEgressIps } from './networks';
 import type { StorageType } from '@/types';
 import net from 'net';
 import { URL } from 'url';
@@ -271,7 +272,16 @@ export async function diagnoseConnection(
             } else {
                 tcpStep.status = 'failure';
                 tcpStep.error = `Could not establish TCP connection to ${host}:${port}`;
-                tcpStep.recommendation = `Check firewall rules (Allow ingress on port ${port}) and ensure the database server is running and accepting remote connections.`;
+
+                const isExternal = type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale';
+                if (isExternal) {
+                    const projectRegion = projectContext?.region || 'us-central1';
+                    const { ips, actualRegion } = getRegionalEgressIps(projectRegion);
+                    tcpStep.recommendation = `Firewall Issue suspected. Ensure your database provider allowlists Deployify's regional egress IPs for ${actualRegion.toUpperCase()}: ${ips.join(', ')}`;
+                } else {
+                    tcpStep.recommendation = `Check firewall rules (Allow ingress on port ${port}) and ensure the database server is running and accepting remote connections.`;
+                }
+
                 return { success: false, steps, overallLatency: Date.now() - startTime };
             }
         }

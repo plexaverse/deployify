@@ -51,6 +51,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
 import type { StorageType, StorageConfig, Backup, Migration } from '@/types';
 import type { DiagnosticResult } from '@/lib/gcp/storage-validator';
+import { getRegionalEgressIps } from '@/lib/gcp/networks';
 
 interface StorageSectionProps {
     projectId: string;
@@ -1885,6 +1886,40 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 <span className="text-[10px] font-bold uppercase tracking-wider">{(isShowingGuide?.metadata?.region as string) || 'GLOBAL/AUTO'}</span>
                             </div>
                         </div>
+
+                        {/* IP Allowlist Assistant for External Providers */}
+                        {(isShowingGuide?.type === 'supabase' || isShowingGuide?.type === 'mongodb-atlas' || isShowingGuide?.type === 'planetscale') && (
+                            <div className="space-y-3 pt-2 border-t border-[var(--border)]">
+                                <div className="flex items-center gap-2">
+                                    <Network className="w-4 h-4 text-[var(--primary)]" />
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">IP Allowlist Assistant</Label>
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    To allow connectivity from Deployify, add these regional egress IPs to your database firewall:
+                                </p>
+                                <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg space-y-1.5">
+                                    {getRegionalEgressIps((isShowingGuide?.region || isShowingGuide?.metadata?.region || projectRegion || 'us-central1') as string).ips.map((ip) => (
+                                        <div key={ip} className="flex items-center justify-between group/ip">
+                                            <code className="text-[var(--foreground)]/80 text-[10px] font-mono">{ip}</code>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-4 w-4 text-[var(--muted-foreground)] hover:text-[var(--foreground)] opacity-0 group-hover/ip:opacity-100 transition-opacity"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(ip);
+                                                    toast.success('IP copied');
+                                                }}
+                                            >
+                                                <Copy className="w-2.5 h-2.5" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]/70">
+                                    REGION: {getRegionalEgressIps((isShowingGuide?.region || isShowingGuide?.metadata?.region || projectRegion || 'us-central1') as string).actualRegion.toUpperCase()}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 }
                 showConfirm={false}
