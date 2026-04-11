@@ -258,6 +258,11 @@ export async function GET(
                 storage.lastSyncedAt = now;
             }
 
+            // Ensure top-level region is synced from metadata if not already set
+            if (!storage.region && storage.metadata?.region) {
+                storage.region = storage.metadata.region as string;
+            }
+
             // Final Fetch for detailed metadata (HA/PITR)
             if (isCloudSql) {
                 try {
@@ -273,6 +278,9 @@ export async function GET(
                         pitrEnabled: !!instanceSettings?.backupConfiguration?.pointInTimeRecoveryEnabled,
                         deletionProtection: !!instance.deletionProtectionEnabled
                     };
+                    if (instance.region) {
+                        storage.region = instance.region as string;
+                    }
                 } catch (e) {
                     console.error('Failed to fetch Cloud SQL details for final metadata sync:', e);
                 }

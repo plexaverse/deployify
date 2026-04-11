@@ -156,7 +156,17 @@ export async function getEnvVarsForDeployment(
                 }
             } else {
                 // Prefer native Secret Manager mounting for runtime
-                runtimeSecrets[envKey] = storage.connectionStringSecretId;
+                let secretId = storage.connectionStringSecretId;
+
+                // Construct full resource name if providerProjectId is specified and it's not already a full path
+                if (storage.providerProjectId && !secretId.startsWith('projects/')) {
+                    secretId = `projects/${storage.providerProjectId}/secrets/${secretId}`;
+                } else if (!secretId.startsWith('projects/')) {
+                    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+                    secretId = `projects/${gcpProjectId}/secrets/${secretId}`;
+                }
+
+                runtimeSecrets[envKey] = secretId;
 
                 // For build-time tools (like Prisma), we still need the actual value
                 if (storage.environment === 'both' || storage.environment === envTarget) {

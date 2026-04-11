@@ -36,7 +36,8 @@ export async function POST(
         const result = await diagnoseConnection(
             storage.type,
             storage.connectionStringSecretId,
-            storage.metadata
+            storage.metadata,
+            { region: project.region }
         );
 
         return NextResponse.json({

@@ -54,6 +54,7 @@ import type { DiagnosticResult } from '@/lib/gcp/storage-validator';
 
 interface StorageSectionProps {
     projectId: string;
+    projectRegion?: string | null;
     onUpdate?: () => void;
 }
 
@@ -68,7 +69,7 @@ const STORAGE_TYPES = [
     { value: 'generic', label: 'GENERIC DATABASE', category: 'OTHER' },
 ] as const;
 
-export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
+export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSectionProps) {
     const {
         projectStorageConfigs: storageConfigs,
         isLoadingStorage: isLoading,
@@ -102,6 +103,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
     const [planetscaleDb, setPlanetscaleDb] = useState('');
     const [providerApiKey, setProviderApiKey] = useState('');
     const [secretOnly, setSecretOnly] = useState(false);
+    const [region, setRegion] = useState('');
+    const [providerProjectId, setProviderProjectId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -184,6 +187,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 type,
                 environment,
                 envKey,
+                region: region || undefined,
+                providerProjectId: providerProjectId || undefined,
                 branchingSettings: {
                     enabled: branchingEnabled,
                     template: branchingTemplate,
@@ -197,7 +202,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     secretOnly,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
                     pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined,
-                    deletionProtection: type.includes('cloud-sql') ? deletionProtection : undefined
+                    deletionProtection: type.includes('cloud-sql') ? deletionProtection : undefined,
+                    region: region || undefined // Ensure it persists in metadata for backward compatibility
                 }
             }, provision ? '' : connectionString, provision);
 
@@ -310,6 +316,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                 type,
                 environment,
                 envKey,
+                region: region || undefined,
+                providerProjectId: providerProjectId || undefined,
                 branchingSettings: {
                     enabled: branchingEnabled,
                     template: branchingTemplate,
@@ -322,7 +330,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                     secretOnly,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
                     pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined,
-                    deletionProtection: type.includes('cloud-sql') ? deletionProtection : undefined
+                    deletionProtection: type.includes('cloud-sql') ? deletionProtection : undefined,
+                    region: region || undefined
                 }
             }, connectionString);
 
@@ -346,6 +355,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setProvision(false);
         setAutoSync(false);
         setSecretOnly(false);
+        setRegion('');
+        setProviderProjectId('');
         setBranchingEnabled(false);
         setBranchingTemplate('{base}_{identifier}');
         setSeedCommand('');
@@ -370,6 +381,8 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
         setEnvironment(config.environment);
         setEnvKey(config.envKey || '');
         setSecretOnly(!!config.metadata?.secretOnly);
+        setRegion(config.region || (config.metadata?.region as string) || '');
+        setProviderProjectId(config.providerProjectId || '');
         setBranchingEnabled(!!config.branchingSettings?.enabled);
         setBranchingTemplate(config.branchingSettings?.template || '{base}_{identifier}');
         setSeedCommand(config.branchingSettings?.seedCommand || '');
@@ -602,13 +615,31 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
             <div className="p-6">
                 {(isAdding || editingId) && (
                     <div className="mb-8 p-6 border border-[var(--border)] rounded-xl bg-[var(--background)] animate-fade-in space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div className="space-y-2">
                                 <Label className="text-sm font-semibold">Connector Name</Label>
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="E.G. PRIMARY POSTGRES"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">External GCP Project ID (Optional)</Label>
+                                <Input
+                                    value={providerProjectId}
+                                    onChange={(e) => setProviderProjectId(e.target.value)}
+                                    placeholder="E.G. MY-OTHER-PROJECT"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-semibold">GCP Region (Optional)</Label>
+                                <Input
+                                    value={region}
+                                    onChange={(e) => setRegion(e.target.value)}
+                                    placeholder="E.G. US-CENTRAL1"
                                     className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                             </div>
@@ -996,6 +1027,12 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                     <div className="space-y-1 w-full">
                                         <div className="flex items-center gap-2">
                                             <h4 className="font-semibold text-sm">{config.name}</h4>
+                                        {config.region && projectRegion && config.region !== projectRegion && (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={`Service is in ${projectRegion} while storage is in ${config.region}. Higher latency expected.`}>
+                                                <AlertTriangle className="w-2.5 h-2.5" />
+                                                REGION MISMATCH
+                                            </span>
+                                        )}
                                             {config.connectionStringSecretId && !config.metadata?.secretOnly && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title="Natively mounted from Secret Manager">
                                                     <ShieldCheck className="w-2.5 h-2.5" />
@@ -1070,6 +1107,11 @@ export function StorageSection({ projectId, onUpdate }: StorageSectionProps) {
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                     {config.environment === 'both' ? 'ALL ENVIRONMENTS' : config.environment}
                                                 </span>
+                                                {(config.region || (config.metadata?.region as string)) && (
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                        {(config.region || (config.metadata?.region as string)).toUpperCase()}
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 {config.lastSyncedAt && (

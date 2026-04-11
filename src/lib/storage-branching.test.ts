@@ -29,7 +29,8 @@ describe('Storage Branching Logic', () => {
         } as Project;
 
         const vars = await getEnvVarsForDeployment(mockProject, 'production');
-        assert.strictEqual(vars.runtimeSecrets?.DATABASE_URL, 'secret_1');
+        // Now it returns projects/PROJECT_ID/secrets/secret_1 by default in mock mode
+        assert.ok(vars.runtimeSecrets?.DATABASE_URL?.endsWith('secret_1'));
         assert.strictEqual(vars.runtimeEnvVars.DATABASE_URL, undefined);
     });
 

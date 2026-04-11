@@ -193,14 +193,18 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
     }
 
     // Extract secret names for IAM binding (format: projects/PROJECT_ID/secrets/SECRET_NAME)
-    const secretResourceNames = Object.values(runtimeSecrets).map(s => {
+    const secretResourceNames = Array.from(new Set(Object.values(runtimeSecrets).map(s => {
         // s might be "projects/PROJECT_ID/secrets/SECRET_NAME/versions/latest"
         const parts = s.split('/');
         if (parts.length >= 4) {
             return parts.slice(0, 4).join('/');
         }
+        // If it's just the name, prepend project
+        if (!s.startsWith('projects/')) {
+            return `projects/${gcpProjectId}/secrets/${s}`;
+        }
         return s;
-    });
+    })));
 
     // Define common steps shared between both deployment methods
     const commonSteps = [
@@ -368,9 +372,14 @@ node fix-next-config.js && rm fix-next-config.js`,
                 ...(needsVpc ? [`--network=${vpcNetwork}`, `--subnet=${vpcSubnet}`, '--vpc-egress=private-ranges-only'] : []),
                 ...envArgs,
                 ...(Object.keys(runtimeSecrets).length > 0 ? ['--set-secrets', Object.entries(runtimeSecrets).map(([k, v]) => {
-                    // Extract SECRET_NAME:VERSION from projects/PROJECT_ID/secrets/SECRET_NAME/versions/VERSION
+                    // Use standard k=secret:version or k=projects/project/secrets/secret/versions/version
+                    if (v.startsWith('projects/')) {
+                        // Ensure version is appended for full resource names
+                        return v.includes('/versions/') ? `${k}=${v}` : `${k}=${v}/versions/latest`;
+                    }
+                    // Extract SECRET_NAME:VERSION from projects/PROJECT_ID/secrets/SECRET_NAME/versions/VERSION (legacy/shorthand)
                     const parts = v.split('/');
-                    const secretName = parts[3];
+                    const secretName = parts[3] || v;
                     const version = parts[5] || 'latest';
                     return `${k}=${secretName}:${version}`;
                 }).join(',')] : []),

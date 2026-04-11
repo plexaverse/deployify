@@ -31,6 +31,10 @@ export interface DiagnosticResult {
     success: boolean;
     steps: DiagnosticStep[];
     overallLatency: number;
+    regionMismatch?: {
+        serviceRegion: string;
+        storageRegion: string;
+    };
 }
 
 /**
@@ -109,7 +113,8 @@ export async function validateConnection(
 export async function diagnoseConnection(
     type: StorageType,
     connectionStringSecretId?: string,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
+    projectContext?: { region?: string | null }
 ): Promise<DiagnosticResult> {
     const startTime = Date.now();
     const steps: DiagnosticStep[] = [];
@@ -134,13 +139,34 @@ export async function diagnoseConnection(
                 mockSteps.push({ name: 'GCP SQL Admin API Validation', status: 'success', latency: 350 });
             }
 
+            // Regional Alignment Check for Mocks
+            let regionMismatch: DiagnosticResult['regionMismatch'] | undefined;
+            if (projectContext?.region && metadata?.region) {
+                const serviceRegion = projectContext.region;
+                const storageRegion = metadata.region as string;
+
+                if (serviceRegion === storageRegion) {
+                    mockSteps.push({ name: 'Regional Alignment', status: 'success', latency: 0 });
+                } else {
+                    regionMismatch = { serviceRegion, storageRegion };
+                    mockSteps.push({
+                        name: 'Regional Alignment',
+                        status: 'failure',
+                        latency: 0,
+                        error: `Latency Warning: Service is in ${serviceRegion} while Storage is in ${storageRegion}`,
+                        recommendation: 'For optimal performance and minimal latency, ensure your database and Cloud Run service are in the same region.'
+                    });
+                }
+            }
+
             // Artificial delay
             await new Promise(resolve => setTimeout(resolve, 1500));
 
             return {
                 success: true,
                 steps: mockSteps,
-                overallLatency: Date.now() - startTime
+                overallLatency: Date.now() - startTime,
+                regionMismatch
             };
         }
 
@@ -283,6 +309,26 @@ export async function diagnoseConnection(
             }
         }
 
+        // Step 6: Regional Alignment Check
+        let regionMismatch: DiagnosticResult['regionMismatch'] | undefined;
+        if (projectContext?.region && metadata?.region) {
+            const alignmentStep = addStep('Regional Alignment');
+            alignmentStep.status = 'running';
+
+            const serviceRegion = projectContext.region;
+            const storageRegion = metadata.region as string;
+
+            if (serviceRegion === storageRegion) {
+                alignmentStep.status = 'success';
+            } else {
+                alignmentStep.status = 'failure';
+                regionMismatch = { serviceRegion, storageRegion };
+                alignmentStep.error = `Latency Warning: Service is in ${serviceRegion} while Storage is in ${storageRegion}`;
+                alignmentStep.recommendation = 'For optimal performance and minimal latency, ensure your database and Cloud Run service are in the same region.';
+            }
+            alignmentStep.latency = 0;
+        }
+
         if (metadata) {
             // Use metadata to avoid unused var warning
             console.debug('Diagnosing with metadata', metadata);
@@ -291,7 +337,8 @@ export async function diagnoseConnection(
         return {
             success: true,
             steps,
-            overallLatency: Date.now() - startTime
+            overallLatency: Date.now() - startTime,
+            regionMismatch
         };
     } catch (error) {
         console.error('Diagnostic error:', error);
