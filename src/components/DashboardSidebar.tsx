@@ -109,7 +109,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
             <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 bg-[var(--card)] border-b border-[var(--border)] h-16">
                 <Link href="/dashboard" className="flex items-center gap-2 group">
                     <Rocket className="w-6 h-6 text-[var(--primary)] group-hover:rotate-12 transition-transform" />
-                    <span className="text-sm font-semibold gradient-text">Deployify</span>
+                    <span className="text-xs font-semibold gradient-text">Deployify</span>
                 </Link>
                 <motion.button
                     whileTap={{ scale: 0.95 }}
@@ -224,7 +224,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                             </Avatar>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <p className="text-sm font-semibold truncate min-w-0 text-[var(--foreground)]">
+                                    <p className="text-xs font-semibold truncate min-w-0 text-[var(--foreground)]">
                                         {session.user.name || session.user.githubUsername}
                                     </p>
                                     {session.user.subscription?.tier && session.user.subscription.tier !== 'free' && (

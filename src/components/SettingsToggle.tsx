@@ -34,7 +34,7 @@ export function SettingsToggle({
                 <Label
                     htmlFor={id}
                     className={cn(
-                        "text-sm font-semibold cursor-pointer transition-colors",
+                        "text-xs font-semibold cursor-pointer transition-colors",
                         disabled ? "cursor-not-allowed opacity-50" : "group-hover:text-[var(--primary)]"
                     )}
                 >

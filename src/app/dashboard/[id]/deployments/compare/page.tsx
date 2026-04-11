@@ -158,13 +158,13 @@ export default function CompareDeploymentsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Base Deployment</span>
-                            <h3 className="text-sm font-semibold">Previous Version</h3>
+                            <h3 className="text-xs font-semibold">Previous Version</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
                     <div className="p-6 space-y-6">
                         <div>
-                            <label className="text-sm font-semibold mb-3 block">Select Source</label>
+                            <label className="text-xs font-semibold mb-3 block">Select Source</label>
                             <NativeSelect
                                 value={baseId}
                                 onChange={(e) => handleBaseChange(e.target.value)}
@@ -181,7 +181,7 @@ export default function CompareDeploymentsPage() {
                         {baseDeployment ? (
                             <DeploymentSummary deployment={baseDeployment} />
                         ) : (
-                             <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-sm font-semibold">
+                             <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-xs font-semibold">
                                 Select a deployment
                             </div>
                         )}
@@ -196,13 +196,13 @@ export default function CompareDeploymentsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Deployment</span>
-                            <h3 className="text-sm font-semibold">New Version</h3>
+                            <h3 className="text-xs font-semibold">New Version</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
                     <div className="p-6 space-y-6">
                         <div>
-                            <label className="text-sm font-semibold mb-3 block">Select Target</label>
+                            <label className="text-xs font-semibold mb-3 block">Select Target</label>
                             <NativeSelect
                                 value={targetId}
                                 onChange={(e) => handleTargetChange(e.target.value)}
@@ -219,7 +219,7 @@ export default function CompareDeploymentsPage() {
                         {targetDeployment ? (
                             <DeploymentSummary deployment={targetDeployment} />
                         ) : (
-                            <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-sm font-semibold">
+                            <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-xs font-semibold">
                                 Select a deployment
                             </div>
                         )}
@@ -236,7 +236,7 @@ export default function CompareDeploymentsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
-                            <h3 className="text-sm font-semibold">Comparison Results</h3>
+                            <h3 className="text-xs font-semibold">Comparison Results</h3>
                         </div>
                     </div>
                     <div className="divide-y divide-[var(--border)]">
@@ -325,7 +325,7 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
+                    <h3 className="text-xs font-semibold text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
                     <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
                         <GitBranch className="w-3.5 h-3.5" />
                         <span className="font-mono text-[var(--foreground)]">{deployment.gitBranch}</span>
@@ -341,11 +341,11 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
                     <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Created</div>
-                    <div className="text-sm font-semibold text-[var(--foreground)]">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</div>
+                    <div className="text-xs font-semibold text-[var(--foreground)]">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</div>
                 </div>
                  <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
                     <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Environment</div>
-                    <div className="text-sm font-semibold text-[var(--foreground)] uppercase">{deployment.type}</div>
+                    <div className="text-xs font-semibold text-[var(--foreground)] uppercase">{deployment.type}</div>
                 </div>
             </div>
         </div>

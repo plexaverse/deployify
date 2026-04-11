@@ -217,7 +217,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                        <h3 className="text-sm font-semibold">Environment Variables</h3>
+                        <h3 className="text-xs font-semibold">Environment Variables</h3>
                     </div>
                 </div>
                 {!isAdding && (
@@ -242,7 +242,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 <Database className="w-5 h-5 text-[var(--primary)]" />
                             </div>
                             <div className="flex-1 space-y-1">
-                                <h4 className="text-sm font-semibold text-[var(--foreground)]">Detected Database Connection String</h4>
+                                <h4 className="text-xs font-semibold text-[var(--foreground)]">Detected Database Connection String</h4>
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                                     Deployify has a managed **Database Connector** model that provides secure credential storage via Secret Manager and automated health checks.
                                 </p>
@@ -282,7 +282,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] animate-fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Key</Label>
+                            <Label className="text-xs font-semibold">Key</Label>
                             <Input
                                 type="text"
                                 value={newKey}
@@ -292,7 +292,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-sm font-semibold">Value</Label>
+                            <Label className="text-xs font-semibold">Value</Label>
                             <Input
                                 type={newIsSecret ? 'password' : 'text'}
                                 value={newValue}
@@ -302,7 +302,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                            <Label className="text-sm font-semibold">Group (Optional)</Label>
+                            <Label className="text-xs font-semibold">Group (Optional)</Label>
                             <div className="relative">
                                 <Input
                                     type="text"
@@ -333,7 +333,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 checked={newIsSecret}
                                 onCheckedChange={setNewIsSecret}
                             />
-                            <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer text-sm font-semibold">
+                            <Label htmlFor="is-secret" className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold">
                                 <Shield className="w-4 h-4 text-[var(--info)]" />
                                 Secret (Encrypted)
                             </Label>
