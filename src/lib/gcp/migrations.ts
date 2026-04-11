@@ -83,7 +83,7 @@ export async function listMigrations(
                 // DB has migrations that the repo doesn't know about - it's DRIFTED
                 sorted.forEach(m => {
                     if (extraDbMigrations.find(ex => ex.id === m.id)) {
-                        (m as any).drifted = true;
+                        m.drifted = true;
                     }
                 });
             }
