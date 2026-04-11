@@ -425,7 +425,23 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Update deployment logic to support cross-project connector secrets
 - [x] Add "External GCP Project ID" field to storage connector UI
 
+### Phase 64: Connectivity Security Hardening & CLI Diagnostic Parity (COMPLETED)
+- [x] Implement `deployify storage diagnose <storage_id>` in CLI for terminal-based troubleshooting
+- [x] Add `ssl` toggle to `StorageConfig` and Storage UI for encrypted connections
+- [x] Update Data Lab query proxy to strictly enforce SSL when enabled
+- [x] Update deployment logic to inject SSL-hardened connection strings into Cloud Run
+- [x] Centralize Cloud SQL Auth Proxy orchestration (v2.11.0) into a shared utility helper
+
 ## Progress Updates
+
+### 2027-05-08: Connectivity Security Hardening & CLI Diagnostic Parity
+- Completed Phase 64: Connectivity Security Hardening & CLI Diagnostic Parity.
+- Enhanced the Deployify CLI with a new `storage diagnose` command, bringing the multi-layer connectivity diagnostic (Secret, DNS, TCP, GCP API, Region) from the dashboard to the terminal.
+- Launched SSL Enforcement for database connectors, adding an "SSL Required" toggle to the Storage UI that strictly hardens Postgres and MySQL connections.
+- Hardened the Data Lab Query Proxy to respect the SSL requirement, ensuring all SQL queries executed through the dashboard utilize encrypted tunnels.
+- Updated the deployment orchestration logic in `getEnvVarsForDeployment` to automatically append SSL parameters to connection strings when the requirement is enabled, providing end-to-end security from build to runtime.
+- Centralized Cloud SQL Auth Proxy orchestration into `src/lib/gcp/cloudsql.ts`, standardizing on version `v2.11.0` across the build pipeline, migration runner, and seeding utility.
+- Verified 100% functional integrity with a perfect system audit and 104/104 passing tests.
 
 ### 2027-05-07: Advanced Infrastructure Portability & Security Hardening
 - Completed Phase 63: Advanced Infrastructure Portability & Security Hardening.

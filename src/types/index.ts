@@ -452,6 +452,7 @@ export interface StorageConfig {
     autoMigration?: boolean;
     migrationCommand?: string;
     rollbackCommand?: string;
+    ssl?: boolean;
     activeAlerts?: string[];
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors

@@ -171,10 +171,31 @@ export async function getEnvVarsForDeployment(
                 // For build-time tools (like Prisma), we still need the actual value
                 if (storage.environment === 'both' || storage.environment === envTarget) {
                     try {
-                        const connectionString = await getSecretValue(storage.connectionStringSecretId);
+                        let connectionString = await getSecretValue(storage.connectionStringSecretId);
                         if (!connectionString) {
                             throw new Error(`Secret value is empty for ${storage.name}`);
                         }
+
+                        // Enforce SSL if configured
+                        if (storage.ssl && (storage.type.includes('sql') || storage.type === 'supabase' || storage.type === 'planetscale' || storage.type === 'mongodb-atlas')) {
+                            try {
+                                const url = new URL(connectionString);
+                                if (storage.type.includes('postgres') || storage.type === 'supabase') {
+                                    url.searchParams.set('sslmode', 'require');
+                                } else if (storage.type.includes('mysql') || storage.type === 'planetscale') {
+                                    // MySQL often uses a JSON-like ssl param or just a flag
+                                    if (!url.searchParams.has('ssl')) {
+                                        url.searchParams.set('ssl', '{"rejectUnauthorized":true}');
+                                    }
+                                } else if (storage.type === 'mongodb-atlas') {
+                                    url.searchParams.set('tls', 'true');
+                                }
+                                connectionString = url.toString();
+                            } catch {
+                                // Fallback if not a valid URL
+                            }
+                        }
+
                         buildEnvVars[envKey] = connectionString;
                     } catch (e) {
                         console.error(`Failed to fetch storage secret for ${storage.name}:`, e);

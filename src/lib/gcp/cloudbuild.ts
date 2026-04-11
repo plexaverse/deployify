@@ -2,6 +2,7 @@ import { config } from '@/lib/config';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDockerfile } from '@/lib/dockerfiles';
 import { generateServiceName } from '@/lib/utils';
+import { getProxyOrchestrationCommand } from '@/lib/gcp/cloudsql';
 import type { Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
@@ -448,10 +449,7 @@ node fix-next-config.js && rm fix-next-config.js`,
                         dir: workDir,
                         args: [
                             '-c',
-                            `curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64 && ` +
-                            `chmod +x cloud-sql-proxy && ` +
-                            `./cloud-sql-proxy --enable-iam-login --unix-socket /workspace ${instanceConnectionName} & ` +
-                            `sleep 3 && ` +
+                            `${getProxyOrchestrationCommand(instanceConnectionName)} && ` +
                             `npm install && ${m.command}`
                         ],
                         env: [
