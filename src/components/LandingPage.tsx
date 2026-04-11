@@ -95,7 +95,7 @@ export default function LandingPage() {
             </motion.div>
             <div className="flex items-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/login" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+                <Link href="/login" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                   Sign In
                 </Link>
               </motion.div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
               </span>
-              <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">
                 Deployify 1.0 is here
               </span>
             </motion.div>
@@ -193,7 +193,7 @@ export default function LandingPage() {
                     <Play className="w-5 h-5 text-[var(--foreground)] fill-[var(--foreground)] relative z-10" aria-hidden="true" />
                   </div>
                   Watch Demo
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">2 min</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] ml-1">2 min</span>
                 </Button>
               </motion.div>
             </motion.div>
@@ -208,7 +208,7 @@ export default function LandingPage() {
                   className="mt-16 flex flex-col items-center gap-2"
                   aria-hidden="true"
                 >
-                  <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)] font-bold">Scroll to explore</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted-foreground)] font-bold">Scroll to explore</span>
                   <div className="w-5 h-8 border-2 border-[var(--border)] rounded-full flex justify-center p-1.5">
                     <motion.div
                       animate={{ y: [0, 8, 0] }}
@@ -225,9 +225,16 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="mt-12 max-w-md mx-auto p-1 rounded-2xl bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm flex items-center gap-3 pr-4 group"
+              whileHover={{ y: -2, scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              onClick={() => handleCopy('pnpm dlx deployify login', 'login-cmd')}
+              onKeyDown={(e) => e.key === 'Enter' && handleCopy('pnpm dlx deployify login', 'login-cmd')}
+              role="button"
+              tabIndex={0}
+              className="mt-12 max-w-md mx-auto p-1 rounded-2xl bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm flex items-center gap-3 pr-4 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--foreground)]/20"
+              aria-label="Copy login command"
             >
-              <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider font-mono text-[var(--foreground)]">
+              <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] font-mono text-[var(--foreground)]">
                 $
               </div>
               <code className="text-sm font-mono text-[var(--muted-foreground)] flex-1 text-left">
@@ -235,7 +242,10 @@ export default function LandingPage() {
               </code>
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => handleCopy('pnpm dlx deployify login', 'login-cmd')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCopy('pnpm dlx deployify login', 'login-cmd');
+                }}
                 className={cn(
                   buttonVariants({ variant: 'ghost', size: 'icon' }),
                   "rounded-xl text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
@@ -259,7 +269,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-32 text-center"
           >
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-16">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-16">
               Trusted by innovative teams
             </p>
             <div
@@ -279,7 +289,7 @@ export default function LandingPage() {
                     role="listitem"
                     aria-label={`${logo} logo`}
                     whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%) drop-shadow(0 0 8px rgba(255,255,255,0.1))' }}
-                    className="text-[10px] font-bold uppercase tracking-wider tracking-wider text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
+                    className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
                   >
                     {logo}
                   </motion.span>
@@ -334,7 +344,7 @@ export default function LandingPage() {
                       whileInView={{ opacity: 0.3, scale: 1.2, x: 0 }}
                       viewport={{ margin: "-100px" }}
                       transition={{ duration: 1 }}
-                      className="absolute -left-12 md:-left-16 -top-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
+                      className="absolute -left-12 md:-left-16 -top-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
                       aria-hidden="true"
                     >
                       0{i + 1}
@@ -351,7 +361,7 @@ export default function LandingPage() {
                     <div className="text-sm text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}
                     </div>
-                    <div className="p-1 rounded-full bg-[var(--primary)]/5 w-fit px-5 py-1.5 text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider border border-[var(--primary)]/10">
+                    <div className="p-1 rounded-full bg-[var(--primary)]/5 w-fit px-5 py-1.5 text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] border border-[var(--primary)]/10">
                       {step.badge}
                     </div>
                   </motion.div>
@@ -373,7 +383,7 @@ export default function LandingPage() {
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-sm font-semibold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
                   </div>
                   <X className="w-5 h-5 text-[var(--error)]" />
                 </div>
@@ -401,7 +411,7 @@ export default function LandingPage() {
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-sm font-semibold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
                   </div>
                   <Check className="w-5 h-5 text-[var(--foreground)]" />
                 </div>
@@ -551,10 +561,10 @@ export default function LandingPage() {
                           exit={{ opacity: 0, x: 5 }}
                           className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity"
                         >
-                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
                             {os === 'mac' ? '⌘' : 'Ctrl'}
                           </kbd>
-                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
                             K
                           </kbd>
                         </motion.div>
@@ -572,11 +582,11 @@ export default function LandingPage() {
                         aria-selected={selectedIndex === i}
                         onMouseEnter={() => setSelectedIndex(i)}
                         onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
-                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
+                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
                       >
                         <Github className="w-4 h-4" /> {repo}
                       </div>
-                    )) : <div className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
+                    )) : <div className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
                   </motion.div>
                 )}
               </div>
@@ -604,9 +614,9 @@ export default function LandingPage() {
                 { name: 'Cloud Armor', icon: Shield },
               ].map((feat, i) => (
                 <div key={feat.name} className="group relative p-8 rounded-[2rem] border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm hover:border-[var(--muted)] transition-all duration-500 text-center overflow-hidden">
-                  <div className="absolute top-4 right-6 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
+                  <div className="absolute top-4 right-6 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
                   <feat.icon className="w-8 h-8 text-[var(--foreground)] mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">{feat.name}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block">{feat.name}</span>
                 </div>
               ))}
             </div>

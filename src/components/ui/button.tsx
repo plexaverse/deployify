@@ -23,7 +23,7 @@ export const buttonVariants = ({
     };
 
     const sizes = {
-        sm: 'h-9 px-3 text-[10px] font-bold uppercase tracking-wider',
+        sm: 'h-9 px-3 text-[10px] font-bold uppercase tracking-[0.2em]',
         md: 'h-10 px-4 py-2',
         lg: 'h-11 px-8',
         icon: 'h-10 w-10',

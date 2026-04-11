@@ -69,3 +69,7 @@
 ## 2026-03-25 - [Framer Motion Filter Syntax and Build Safety]
 **Learning:** When using Framer Motion's `whileHover` or `animate` props to apply complex visual effects like drop shadows alongside grayscale, it is safer to use the full `filter` string property (e.g., `filter: 'grayscale(0%) drop-shadow(...)'`) rather than attempting to use shorthand keys like `dropShadow`. TypeScript often lacks definitions for these shorthands in the motion target types, leading to build-time failures even if they work in development.
 **Action:** Always use the composite `filter` string for complex CSS filters in Framer Motion to ensure build stability.
+
+## 2026-03-28 - [Interactive CLI Snippets and Tracking Scales]
+**Learning:** Making entire CLI snippets clickable for copy actions significantly improves the target size and intuitiveness for developers. However, when nesting an existing copy button, 'e.stopPropagation()' is essential to avoid double-triggering feedback. Additionally, standardizing on 'tracking-[0.2em]' across small uppercase labels creates the high-end, monochromatic scripe.io aesthetic more consistently than 'tracking-wider'.
+**Action:** Always wrap CLI snippets in an interactive 'motion.div' with 'role="button"' and 'tabIndex={0}', and use specific tracking values for a premium theme feel.
