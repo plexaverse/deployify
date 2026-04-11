@@ -111,6 +111,7 @@ export default function ProjectStoragePage() {
                 {/* Storage Section */}
                 <StorageSection
                     projectId={project.id}
+                    projectRegion={project.region}
                     onUpdate={() => fetchProjectDetails(project.id)}
                 />
 
