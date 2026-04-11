@@ -328,7 +328,7 @@ export async function POST(
                                     user: url.username || 'deployify-sa',
                                     password: accessToken,
                                     database: url.pathname.split('/')[1] || 'postgres',
-                                    ssl: socketPath ? false : { rejectUnauthorized: false }
+                                    ssl: socketPath ? false : (storageConfig.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
                                 };
                             } else {
                                 sqlConfig = {
@@ -338,7 +338,7 @@ export async function POST(
                                     user: url.username || 'deployify-sa',
                                     password: accessToken,
                                     database: url.pathname.split('/')[1] || 'mysql',
-                                    ssl: socketPath ? false : { rejectUnauthorized: false },
+                                    ssl: socketPath ? false : (storageConfig.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false }),
                                     multipleStatements: true
                                 };
                             }
@@ -525,6 +525,15 @@ export async function POST(
                     }
 
                     if (isPostgres) {
+                        // Enforce SSL if configured
+                        if (storageConfig.ssl && typeof sqlConfig === 'string') {
+                            const url = new URL(sqlConfig);
+                            url.searchParams.set('sslmode', 'require');
+                            sqlConfig = url.toString();
+                        } else if (storageConfig.ssl && typeof sqlConfig === 'object' && sqlConfig !== null) {
+                            (sqlConfig as Record<string, unknown>).ssl = { rejectUnauthorized: true };
+                        }
+
                         const client = new PgClient(sqlConfig);
                         try {
                             await client.connect();
@@ -570,10 +579,16 @@ export async function POST(
                         }
                     } else {
                         // For MySQL, we need to use query instead of execute for multiple statements
-                        const connection = await mysql.createConnection({
+                        const mysqlOptions: Record<string, unknown> = {
                             ...(typeof sqlConfig === 'string' ? { uri: sqlConfig } : sqlConfig),
                             multipleStatements: true
-                        });
+                        };
+
+                        if (storageConfig.ssl) {
+                            mysqlOptions.ssl = { rejectUnauthorized: true };
+                        }
+
+                        const connection = await mysql.createConnection(mysqlOptions);
                         try {
                             const [rows] = await connection.query(query, sqlParams);
 

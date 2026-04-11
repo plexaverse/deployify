@@ -403,6 +403,20 @@ export async function getOperationStatus(
 }
 
 /**
+ * Helper to generate Cloud SQL Auth Proxy download and startup command
+ * Centralizes version and orchestration logic
+ */
+export function getProxyOrchestrationCommand(instanceConnectionName: string): string {
+    const version = 'v2.11.0';
+    const baseUrl = 'https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy';
+
+    return `curl -o cloud-sql-proxy ${baseUrl}/${version}/cloud-sql-proxy.linux.amd64 && ` +
+        `chmod +x cloud-sql-proxy && ` +
+        `./cloud-sql-proxy --enable-iam-login --unix-socket /workspace ${instanceConnectionName} & ` +
+        `sleep 3`;
+}
+
+/**
  * Delete a Cloud SQL instance
  */
 export async function deleteInstance(instanceName: string): Promise<string> {

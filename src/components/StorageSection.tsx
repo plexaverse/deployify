@@ -138,6 +138,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [highAvailability, setHighAvailability] = useState(false);
     const [pitrEnabled, setPitrEnabled] = useState(false);
     const [deletionProtection, setDeletionProtection] = useState(false);
+    const [sslRequired, setSslRequired] = useState(false);
     const [alertCpu, setAlertCpu] = useState(80);
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
@@ -197,6 +198,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 autoMigration: autoMigrationEnabled,
                 migrationCommand: autoMigrationCommand,
                 rollbackCommand: customRollbackCommand,
+                ssl: sslRequired,
                 metadata: {
                     ...metadata,
                     secretOnly,
@@ -326,6 +328,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 autoMigration: autoMigrationEnabled,
                 migrationCommand: autoMigrationCommand,
                 rollbackCommand: customRollbackCommand,
+                ssl: sslRequired,
                 metadata: {
                     secretOnly,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
@@ -363,6 +366,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setAutoMigrationEnabled(false);
         setAutoMigrationCommand('prisma migrate deploy');
         setCustomRollbackCommand('prisma migrate resolve --rolled-back');
+        setSslRequired(false);
         setHighAvailability(false);
         setPitrEnabled(false);
         setDeletionProtection(false);
@@ -389,6 +393,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setAutoMigrationEnabled(!!config.autoMigration);
         setAutoMigrationCommand(config.migrationCommand || 'prisma migrate deploy');
         setCustomRollbackCommand(config.rollbackCommand || 'prisma migrate resolve --rolled-back');
+        setSslRequired(!!config.ssl);
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
         setDeletionProtection(!!config.metadata?.deletionProtection);
@@ -716,20 +721,35 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             Stored securely in Google Cloud Secret Manager.
                                         </p>
                                     </div>
-                                    {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale') && !editingId && (
+                                    {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale') && (
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
-                                                    <Label className="text-sm font-semibold">API Auto-Sync</Label>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
+                                                    <Label className="text-sm font-semibold">SSL Required</Label>
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enforce encrypted connections</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
-                                                    checked={autoSync}
-                                                    onChange={(e) => setAutoSync(e.target.checked)}
+                                                    checked={sslRequired}
+                                                    onChange={(e) => setSslRequired(e.target.checked)}
                                                     className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
                                                 />
                                             </div>
+
+                                            {!editingId && (
+                                                <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-sm font-semibold">API Auto-Sync</Label>
+                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
+                                                    </div>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={autoSync}
+                                                        onChange={(e) => setAutoSync(e.target.checked)}
+                                                        className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                                    />
+                                                </div>
+                                            )}
 
                                             {autoSync && (
                                                 <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
@@ -1043,6 +1063,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider border border-[var(--border)] flex items-center gap-1" title="Stored in Secret Manager but not injected">
                                                     <Shield className="w-2.5 h-2.5" />
                                                     SECRET ONLY
+                                                </span>
+                                            )}
+                                            {config.ssl && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title="Encrypted connection enforced">
+                                                    <ShieldCheck className="w-2.5 h-2.5" />
+                                                    SSL
                                                 </span>
                                             )}
                                             {config.type.includes('cloud-sql') && (

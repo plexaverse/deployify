@@ -1,5 +1,6 @@
 import { config } from '@/lib/config';
 import { getGcpAccessToken } from './auth';
+import { getProxyOrchestrationCommand } from './cloudsql';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
 
@@ -45,10 +46,7 @@ export async function runSeed(
             finalConnectionString = connectionString.replace(/host=[^&?]+/, `host=/workspace/${instanceConnectionName}`);
         }
 
-        finalCommand = `curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0/cloud-sql-proxy.linux.amd64 && ` +
-            `chmod +x cloud-sql-proxy && ` +
-            `./cloud-sql-proxy --enable-iam-login --unix-socket /workspace ${instanceConnectionName} & ` +
-            `sleep 3 && ` +
+        finalCommand = `${getProxyOrchestrationCommand(instanceConnectionName)} && ` +
             `npm install && ${command}`;
     }
 

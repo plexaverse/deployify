@@ -451,6 +451,7 @@ Usage: deployify storage <subcommand> [options]
 Subcommands:
   list                                List all storage connectors
   validate <storage_id>              Validate a storage connection
+  diagnose <storage_id>              Deep multi-layer connectivity diagnostic
   sync <storage_id>                  Sync provisioning status
   provision <type> <name>            Provision a new storage instance
   branch <storage_id> <identifier>   Provision a storage branch (PR # or branch name)
@@ -531,6 +532,39 @@ Actions:
         } else {
             console.log('❌ Connection failed');
             if (data.error) console.log(`Error: ${data.error}`);
+        }
+    } else if (subcommand === 'diagnose') {
+        const storageId = args[2];
+        if (!storageId) {
+            throw new Error('Storage ID required: deployify storage diagnose <storage_id>');
+        }
+        console.log(`\n🔍 Starting multi-layer diagnostic for ${storageId}...`);
+        console.log('--------------------------------------------------');
+
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/diagnose`, token, { method: 'POST' });
+
+        if (data.success && data.diagnostic) {
+            const diag = data.diagnostic;
+            diag.steps.forEach(step => {
+                const icon = step.status === 'success' ? '✅' : step.status === 'failure' ? '❌' : '⏳';
+                const latency = step.latency !== undefined ? ` (${step.latency}ms)` : '';
+                console.log(`${icon} ${step.name.padEnd(25)} | ${step.status.toUpperCase()}${latency}`);
+                if (step.error) console.log(`   Error: ${step.error}`);
+                if (step.recommendation) console.log(`   Hint:  ${step.recommendation}`);
+            });
+
+            console.log('--------------------------------------------------');
+            console.log(`Overall Latency: ${diag.overallLatency}ms`);
+
+            if (diag.regionMismatch) {
+                console.log(`\n⚠️  REGION MISMATCH DETECTED`);
+                console.log(`   Service Region: ${diag.regionMismatch.serviceRegion}`);
+                console.log(`   Storage Region: ${diag.regionMismatch.storageRegion}`);
+            }
+
+            console.log('\n✅ Diagnostic complete. See hints above for any failures.');
+        } else {
+            console.log(`❌ Diagnostic failed: ${data.error || 'Unknown error'}`);
         }
     } else if (subcommand === 'sync') {
         const storageId = args[2];
@@ -823,6 +857,7 @@ Actions:
         console.log('Usage:');
         console.log('  deployify storage list');
         console.log('  deployify storage validate <storage_id>');
+        console.log('  deployify storage diagnose <storage_id>');
         console.log('  deployify storage sync <storage_id>');
         console.log('  deployify storage provision <type> <name>');
         console.log('  deployify storage migrations <list|run> <storage_id> [command]');
