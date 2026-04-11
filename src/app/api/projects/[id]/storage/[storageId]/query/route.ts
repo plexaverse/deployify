@@ -530,9 +530,8 @@ export async function POST(
                             const url = new URL(sqlConfig);
                             url.searchParams.set('sslmode', 'require');
                             sqlConfig = url.toString();
-                        } else if (storageConfig.ssl && typeof sqlConfig === 'object') {
-                            // @ts-expect-error - Dynamic sqlConfig
-                            sqlConfig.ssl = { rejectUnauthorized: true };
+                        } else if (storageConfig.ssl && typeof sqlConfig === 'object' && sqlConfig !== null) {
+                            (sqlConfig as Record<string, unknown>).ssl = { rejectUnauthorized: true };
                         }
 
                         const client = new PgClient(sqlConfig);
@@ -580,7 +579,7 @@ export async function POST(
                         }
                     } else {
                         // For MySQL, we need to use query instead of execute for multiple statements
-                        let mysqlOptions: Record<string, unknown> = {
+                        const mysqlOptions: Record<string, unknown> = {
                             ...(typeof sqlConfig === 'string' ? { uri: sqlConfig } : sqlConfig),
                             multipleStatements: true
                         };
