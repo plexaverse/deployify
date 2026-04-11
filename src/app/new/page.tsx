@@ -11,6 +11,7 @@ import {
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { Spotlight } from '@/components/ui/spotlight';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -64,6 +65,7 @@ export default function NewProjectPage() {
 
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+            <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--foreground)" />
             <BackgroundBeams className="opacity-40" />
 
             {/* Header */}
@@ -244,13 +246,22 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
             className="w-full space-y-8"
         >
             <div className="relative">
+                <label htmlFor="repo-search" className="sr-only">Search repositories</label>
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
                 <Input
+                    id="repo-search"
                     ref={searchRef}
                     type="text"
                     placeholder="SEARCH REPOSITORIES..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape' && search) {
+                            e.preventDefault();
+                            setSearch('');
+                            searchRef.current?.focus();
+                        }
+                    }}
                     className="pl-12 pr-16 h-14"
                     autoFocus
                 />
@@ -495,7 +506,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <div className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="projectName" className="text-sm font-semibold block mb-2">Project Name</label>
+                            <label htmlFor="projectName" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Project Name</label>
                             <Input
                                 id="projectName"
                                 type="text"
@@ -504,8 +515,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Framework Preset</label>
+                            <label htmlFor="framework-select" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Framework Preset</label>
                             <NativeSelect
+                                id="framework-select"
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
                             >
@@ -526,8 +538,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Root Directory</label>
+                            <label htmlFor="root-directory" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Root Directory</label>
                             <Input
+                                id="root-directory"
                                 type="text"
                                 value={rootDirectory}
                                 onChange={(e) => setRootDirectory(e.target.value)}
@@ -536,8 +549,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Region</label>
+                            <label htmlFor="region-select" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Region</label>
                             <NativeSelect
+                                id="region-select"
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
                             >
@@ -568,7 +582,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 >
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
                                         <div className="space-y-2">
-                                            <label htmlFor="buildCommand" className="text-sm font-semibold block mb-2">Build Command</label>
+                                            <label htmlFor="buildCommand" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Build Command</label>
                                             <Input
                                                 id="buildCommand"
                                                 type="text"
@@ -579,7 +593,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="installCommand" className="text-sm font-semibold block mb-2">Install Command</label>
+                                            <label htmlFor="installCommand" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Install Command</label>
                                             <Input
                                                 id="installCommand"
                                                 type="text"
@@ -590,7 +604,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="outputDirectory" className="text-sm font-semibold block mb-2">Output Directory</label>
+                                            <label htmlFor="outputDirectory" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Output Directory</label>
                                             <Input
                                                 id="outputDirectory"
                                                 type="text"
@@ -645,6 +659,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                     size="icon"
                                     onClick={() => setEnvVars(envVars.filter(e => e.key !== env.key))}
                                     className="text-[var(--muted-foreground)] hover:text-[var(--error)]"
+                                    aria-label={`Delete environment variable ${env.key}`}
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
@@ -695,8 +710,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
 
                             <div className="flex-1 space-y-4">
                                 <div className="space-y-2">
-                                    <Label className="text-sm font-semibold block mb-2">Target Environment Type</Label>
+                                    <Label htmlFor="env-target" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Target Environment Type</Label>
                                     <SegmentedControl
+                                        id="env-target"
                                         options={[
                                             { value: 'both', label: 'BUILD & RUNTIME' },
                                             { value: 'build', label: 'BUILD ONLY' },
@@ -708,8 +724,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-sm font-semibold block mb-2">Scope</Label>
+                                    <Label htmlFor="env-scope" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] block mb-2">Scope</Label>
                                     <SegmentedControl
+                                        id="env-scope"
                                         options={[
                                             { value: 'both', label: 'ALL ENVS' },
                                             { value: 'production', label: 'PRODUCTION ONLY' },

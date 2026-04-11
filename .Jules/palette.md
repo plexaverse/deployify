@@ -69,3 +69,7 @@
 ## 2026-03-25 - [Framer Motion Filter Syntax and Build Safety]
 **Learning:** When using Framer Motion's `whileHover` or `animate` props to apply complex visual effects like drop shadows alongside grayscale, it is safer to use the full `filter` string property (e.g., `filter: 'grayscale(0%) drop-shadow(...)'`) rather than attempting to use shorthand keys like `dropShadow`. TypeScript often lacks definitions for these shorthands in the motion target types, leading to build-time failures even if they work in development.
 **Action:** Always use the composite `filter` string for complex CSS filters in Framer Motion to ensure build stability.
+
+## 2026-03-28 - [Accessible Segmented Controls and Scripe.io Typography]
+**Learning:** Implementing a full keyboard navigation suite (Arrows, Home, End) for custom radio-group components like `SegmentedControl` significantly elevates the perceived quality and accessibility of the interface. Additionally, using wide tracking (`tracking-[0.2em]`) for form labels creates a distinct, premium developer-tool aesthetic reminiscent of scripe.io.
+**Action:** Prioritize keyboard-driven focus management for custom interactive controls and use wider tracking for a "premium" monochromatic feel.
