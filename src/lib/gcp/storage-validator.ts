@@ -1,5 +1,6 @@
 import { getSecretValue } from './secrets';
 import { getInstance as getCloudSqlInstance } from './cloudsql';
+import { getRegionalEgressIps } from './networks';
 import type { StorageType } from '@/types';
 import net from 'net';
 import { URL } from 'url';
@@ -271,7 +272,16 @@ export async function diagnoseConnection(
             } else {
                 tcpStep.status = 'failure';
                 tcpStep.error = `Could not establish TCP connection to ${host}:${port}`;
-                tcpStep.recommendation = `Check firewall rules (Allow ingress on port ${port}) and ensure the database server is running and accepting remote connections.`;
+
+                let recommendation = `Check firewall rules (Allow ingress on port ${port}) and ensure the database server is running and accepting remote connections.`;
+
+                // Add regional egress IPs to recommendation for external connectors
+                if (type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'generic') {
+                    const regionalIps = getRegionalEgressIps(projectContext?.region);
+                    recommendation += ` Ensure these GCP egress IPs for ${regionalIps.region} are allowlisted: ${regionalIps.ips.join(', ')}`;
+                }
+
+                tcpStep.recommendation = recommendation;
                 return { success: false, steps, overallLatency: Date.now() - startTime };
             }
         }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { cn, getStorageEnvKey } from '@/lib/utils';
+import { getRegionalEgressIps } from '@/lib/gcp/networks';
 import {
     Database,
     Plus,
@@ -135,6 +136,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isTroubleshooting, setIsTroubleshooting] = useState<StorageConfig | null>(null);
     const [isDiagnosing, setIsDiagnosing] = useState(false);
     const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
+    const [egressIps, setEgressIps] = useState<{ region: string; ips: string[]; isFallback?: boolean } | null>(null);
     const [highAvailability, setHighAvailability] = useState(false);
     const [pitrEnabled, setPitrEnabled] = useState(false);
     const [deletionProtection, setDeletionProtection] = useState(false);
@@ -154,6 +156,14 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     useEffect(() => {
         fetchProjectStorage(projectId);
     }, [projectId, fetchProjectStorage]);
+
+    useEffect(() => {
+        if (isShowingGuide) {
+            setEgressIps(getRegionalEgressIps(projectRegion || isShowingGuide.region || (isShowingGuide.metadata?.region as string)));
+        } else {
+            setEgressIps(null);
+        }
+    }, [isShowingGuide, projectRegion]);
 
     useEffect(() => {
         if (!isAdding && !editingId) return;
@@ -1908,9 +1918,45 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployment Region</Label>
                             <div className="flex items-center gap-2 px-1">
                                 <Server className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">{(isShowingGuide?.metadata?.region as string) || 'GLOBAL/AUTO'}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider">{(isShowingGuide?.metadata?.region as string) || projectRegion || 'GLOBAL/AUTO'}</span>
                             </div>
                         </div>
+
+                        {egressIps && (
+                            <div className="space-y-4 pt-4 border-t border-[var(--border)]">
+                                <div className="flex items-center gap-2">
+                                    <Network className="w-4 h-4 text-[var(--primary)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">IP Allowlist Assistant</span>
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    IF YOUR EXTERNAL PROVIDER (LIKE SUPABASE OR MONGODB) USES A FIREWALL, ADD THESE GCP REGIONAL EGRESS RANGES FOR <span className="text-[var(--primary)]">{egressIps.region.toUpperCase()}</span>:
+                                </p>
+                                <div className="space-y-2">
+                                    {egressIps.ips.map(ip => (
+                                        <div key={ip} className="p-2 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px] flex items-center justify-between group">
+                                            <span className="text-[var(--foreground)]/80">{ip}</span>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-5 w-5 text-[var(--muted-foreground)] hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(ip);
+                                                    toast.success('IP Range copied');
+                                                }}
+                                            >
+                                                <Copy className="w-3 h-3" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                {egressIps.isFallback && (
+                                    <p className="text-[10px] font-bold uppercase text-[var(--warning)] flex items-center gap-1.5">
+                                        <AlertTriangle className="w-3.5 h-3.5" />
+                                        USING FALLBACK RANGES. VERIFY REGION SETTINGS.
+                                    </p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 }
                 showConfirm={false}
