@@ -27,7 +27,7 @@ export default function DashboardError({
                 </div>
                 <div className="space-y-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
-                    <h1 className="text-sm font-bold tracking-tight">
+                    <h1 className="text-xs font-bold tracking-tight">
                         Dashboard Error
                     </h1>
                 </div>

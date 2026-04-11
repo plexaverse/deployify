@@ -202,7 +202,7 @@ export default function ProjectDetailPage() {
                                 </span>
                             </div>
                         </div>
-                        <h1 className="text-sm font-bold tracking-tight">{project.name}</h1>
+                        <h1 className="text-xs font-bold tracking-tight">{project.name}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">

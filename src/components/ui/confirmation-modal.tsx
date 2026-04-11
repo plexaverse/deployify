@@ -77,7 +77,7 @@ export function ConfirmationModal({
 
           {/* Content */}
           <div className="p-6">
-            <div className="text-[var(--muted-foreground)] text-sm leading-relaxed">
+            <div className="text-[var(--muted-foreground)] text-xs leading-relaxed">
               {description}
             </div>
           </div>
