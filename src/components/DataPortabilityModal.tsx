@@ -144,7 +144,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 <Input
                                     value={storageUri}
                                     onChange={(e) => setStorageUri(e.target.value)}
-                                    placeholder={storage.type === 'firestore' ? "GS://BUCKET-NAME/PREFIX" : "GS://BUCKET-NAME/PATH/TO/DUMP.SQL"}
+                                    placeholder={storage.type === 'firestore' ? "GS://BUCKET-NAME/PREFIX" : storage.type === 'memorystore-redis' ? "GS://BUCKET-NAME/PATH/TO/DUMP.RDB" : "GS://BUCKET-NAME/PATH/TO/DUMP.SQL"}
                                     className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
@@ -204,12 +204,21 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 )
                             )}
 
+                            {storage.type === 'memorystore-redis' && (
+                                <div className="p-3 bg-[var(--warning)]/10 border border-[var(--warning)]/20 rounded-xl flex items-start gap-3">
+                                    <AlertCircle className="w-4 h-4 text-[var(--warning)] shrink-0 mt-0.5" />
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)] leading-relaxed">
+                                        REDIS {mode === 'import' ? 'IMPORT' : 'EXPORT'} WILL MOMENTARILY DISABLE THE INSTANCE WHILE PROCESSING THE RDB FILE.
+                                    </p>
+                                </div>
+                            )}
+
                             <div className="p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl flex items-start gap-3">
                                 <Database className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]">Permissions Required</p>
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
-                                        THE {storage.type === 'firestore' ? 'SERVICE ACCOUNT' : 'CLOUD SQL SERVICE ACCOUNT'} MUST HAVE <code className="text-[var(--primary)]">ROLES/STORAGEMANAGER.OBJECTADMIN</code> PERMISSION ON THE TARGET BUCKET.
+                                        THE {storage.type === 'firestore' ? 'SERVICE ACCOUNT' : storage.type === 'memorystore-redis' ? 'REDIS SERVICE AGENT' : 'CLOUD SQL SERVICE ACCOUNT'} MUST HAVE <code className="text-[var(--primary)]">ROLES/STORAGEMANAGER.OBJECTADMIN</code> PERMISSION ON THE TARGET BUCKET.
                                     </p>
                                 </div>
                             </div>

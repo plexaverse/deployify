@@ -965,7 +965,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             )}
                                         </div>
 
-                                        {(type.includes('sql') || type === 'planetscale' || type === 'supabase') && (
+                                        {(type.includes('sql') || type === 'planetscale' || type === 'supabase' || type === 'memorystore-redis') && (
                                             <div className="space-y-4 pt-2 border-t border-[var(--border)] mt-4">
                                                 <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                     <div className="space-y-0.5">
@@ -1334,7 +1334,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <GitBranch className="w-4 h-4" />
                                         </Button>
                                     )}
-                                    {config.status === 'active' && (config.type.includes('sql') || config.type === 'firestore') && (
+                                    {config.status === 'active' && (config.type.includes('sql') || config.type === 'firestore' || config.type === 'memorystore-redis') && (
                                         <Button
                                             variant="ghost"
                                             size="icon"

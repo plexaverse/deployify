@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
-import { exportInstance } from '@/lib/gcp/cloudsql';
+import { exportInstance as exportCloudSql } from '@/lib/gcp/cloudsql';
 import { exportDocuments } from '@/lib/gcp/firestore-admin';
+import { exportInstance as exportRedis } from '@/lib/gcp/memorystore';
 import { logAuditEvent } from '@/lib/audit';
 import type { StorageConfig } from '@/types';
 
@@ -38,8 +39,8 @@ export async function POST(
             return NextResponse.json({ error: 'Storage connector not found' }, { status: 404 });
         }
 
-        if (!storage.type.includes('cloud-sql') && storage.type !== 'firestore') {
-            return NextResponse.json({ error: 'Exports are only supported for Cloud SQL and Firestore instances' }, { status: 400 });
+        if (!storage.type.includes('cloud-sql') && storage.type !== 'firestore' && storage.type !== 'memorystore-redis') {
+            return NextResponse.json({ error: 'Exports are only supported for Cloud SQL, Firestore, and Memorystore instances' }, { status: 400 });
         }
 
         const body = await request.json();
@@ -50,13 +51,16 @@ export async function POST(
         }
 
         const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+        const region = (storage.region || storage.metadata?.region as string) || 'us-central1';
 
         // Trigger export based on type
         let operationName: string;
         if (storage.type === 'firestore') {
             operationName = await exportDocuments(resourceName, storageUri, collections || []);
+        } else if (storage.type === 'memorystore-redis') {
+            operationName = await exportRedis(resourceName, region, storageUri);
         } else {
-            operationName = await exportInstance(resourceName, storageUri, databases || []);
+            operationName = await exportCloudSql(resourceName, storageUri, databases || []);
         }
 
         await logAuditEvent(
