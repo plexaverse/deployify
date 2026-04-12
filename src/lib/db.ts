@@ -177,20 +177,25 @@ export async function getEnvVarsForDeployment(
                         }
 
                         // Enforce SSL if configured
-                        if (storage.ssl && (storage.type.includes('sql') || storage.type === 'supabase' || storage.type === 'planetscale' || storage.type === 'mongodb-atlas')) {
+                        if (storage.ssl && (storage.type.includes('sql') || storage.type === 'supabase' || storage.type === 'planetscale' || storage.type === 'mongodb-atlas' || storage.type === 'memorystore-redis')) {
                             try {
-                                const url = new URL(connectionString);
-                                if (storage.type.includes('postgres') || storage.type === 'supabase') {
-                                    url.searchParams.set('sslmode', 'require');
-                                } else if (storage.type.includes('mysql') || storage.type === 'planetscale') {
-                                    // MySQL often uses a JSON-like ssl param or just a flag
-                                    if (!url.searchParams.has('ssl')) {
-                                        url.searchParams.set('ssl', '{"rejectUnauthorized":true}');
+                                if (storage.type === 'memorystore-redis') {
+                                    // Switch to rediss:// protocol
+                                    connectionString = connectionString.replace(/^redis:\/\//, 'rediss://');
+                                } else {
+                                    const url = new URL(connectionString);
+                                    if (storage.type.includes('postgres') || storage.type === 'supabase') {
+                                        url.searchParams.set('sslmode', 'require');
+                                    } else if (storage.type.includes('mysql') || storage.type === 'planetscale') {
+                                        // MySQL often uses a JSON-like ssl param or just a flag
+                                        if (!url.searchParams.has('ssl')) {
+                                            url.searchParams.set('ssl', '{"rejectUnauthorized":true}');
+                                        }
+                                    } else if (storage.type === 'mongodb-atlas') {
+                                        url.searchParams.set('tls', 'true');
                                     }
-                                } else if (storage.type === 'mongodb-atlas') {
-                                    url.searchParams.set('tls', 'true');
+                                    connectionString = url.toString();
                                 }
-                                connectionString = url.toString();
                             } catch {
                                 // Fallback if not a valid URL
                             }

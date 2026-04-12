@@ -8,12 +8,13 @@ const MEMORYSTORE_API = 'https://redis.googleapis.com/v1';
  */
 export async function createInstance(
     instanceName: string,
-    region: string
+    region: string,
+    options: { ssl?: boolean } = {}
 ): Promise<{ operationName: string; connectionString: string }> {
     if (process.env.MOCK_DB === 'true') {
         return {
             operationName: `projects/mock/locations/${region}/operations/create-${instanceName}`,
-            connectionString: `redis://127.0.0.1:6379`
+            connectionString: `${options.ssl ? 'rediss' : 'redis'}://127.0.0.1:6379`
         };
     }
 
@@ -31,6 +32,7 @@ export async function createInstance(
             tier: 'BASIC',
             memorySizeGb: 1,
             region,
+            transitEncryptionMode: options.ssl ? 'SERVER_AUTHENTICATION' : 'DISABLED',
         }),
     });
 
@@ -40,7 +42,7 @@ export async function createInstance(
 
     const data = await response.json();
     // In a real scenario, we'd wait for the IP address. For now, we return a placeholder using the instance name.
-    const connectionString = `redis://${instanceName}.redis.cache.google.com:6379`;
+    const connectionString = `${options.ssl ? 'rediss' : 'redis'}://${instanceName}.redis.cache.google.com:6379`;
 
     return {
         operationName: data.name,
@@ -142,6 +144,20 @@ export async function updateInstanceSize(
     region: string,
     memorySizeGb: number
 ): Promise<string> {
+    return updateInstanceSettings(instanceName, region, { memorySizeGb });
+}
+
+/**
+ * Update Memorystore instance settings
+ */
+export async function updateInstanceSettings(
+    instanceName: string,
+    region: string,
+    settings: {
+        memorySizeGb?: number;
+        ssl?: boolean;
+    }
+): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
         return `projects/mock/locations/${region}/operations/update-${instanceName}`;
     }
@@ -150,19 +166,108 @@ export async function updateInstanceSize(
     const accessToken = await getGcpAccessToken();
     const name = `projects/${gcpProjectId}/locations/${region}/instances/${instanceName}`;
 
-    const response = await fetch(`${MEMORYSTORE_API}/${name}?updateMask=memorySizeGb`, {
+    const updateMask: string[] = [];
+    const body: any = {};
+
+    if (settings.memorySizeGb !== undefined) {
+        updateMask.push('memorySizeGb');
+        body.memorySizeGb = settings.memorySizeGb;
+    }
+
+    if (settings.ssl !== undefined) {
+        updateMask.push('transitEncryptionMode');
+        body.transitEncryptionMode = settings.ssl ? 'SERVER_AUTHENTICATION' : 'DISABLED';
+    }
+
+    const response = await fetch(`${MEMORYSTORE_API}/${name}?updateMask=${updateMask.join(',')}`, {
         method: 'PATCH',
         headers: {
             Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
         },
+        body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update Memorystore instance settings: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
+
+/**
+ * Export a Memorystore (Redis) instance to Google Cloud Storage
+ */
+export async function exportInstance(
+    instanceName: string,
+    region: string,
+    storageUri: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/locations/${region}/operations/export-${instanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/locations/${region}/instances/${instanceName}`;
+
+    const response = await fetch(`${MEMORYSTORE_API}/${name}:export`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-            memorySizeGb,
+            outputConfig: {
+                gcsDestination: {
+                    uri: storageUri,
+                },
+            },
         }),
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to update Memorystore instance size: ${await response.text()}`);
+        throw new Error(`Failed to export Memorystore instance: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
+
+/**
+ * Import a Memorystore (Redis) instance from Google Cloud Storage
+ */
+export async function importInstance(
+    instanceName: string,
+    region: string,
+    storageUri: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/locations/${region}/operations/import-${instanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/locations/${region}/instances/${instanceName}`;
+
+    const response = await fetch(`${MEMORYSTORE_API}/${name}:import`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            inputConfig: {
+                gcsSource: {
+                    uri: storageUri,
+                },
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to import Memorystore instance: ${await response.text()}`);
     }
 
     const data = await response.json();
