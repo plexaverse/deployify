@@ -25,6 +25,7 @@ import {
     Zap,
     History as HistoryIcon,
     GitBranch,
+    Upload,
     Eye,
     ShieldCheck,
     Shield,
@@ -38,6 +39,7 @@ import {
     AlertTriangle
 } from 'lucide-react';
 import { useStore } from '@/store';
+import { DataPortabilityModal } from '@/components/DataPortabilityModal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -132,6 +134,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isFetchingPreview, setIsFetchingPreview] = useState<string | null>(null);
 
     const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
+    const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
     const [isTroubleshooting, setIsTroubleshooting] = useState<StorageConfig | null>(null);
     const [isDiagnosing, setIsDiagnosing] = useState(false);
@@ -1319,6 +1322,17 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <GitBranch className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    {config.status === 'active' && config.type.includes('sql') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setIsManagingPortability(config)}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Import / Export Data"
+                                        >
+                                            <Upload className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     {config.status === 'active' && !!config.metadata?.provisioned && (
                                         <Button
                                             variant="ghost"
@@ -2109,6 +2123,13 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 }
                 confirmText={deleteResource ? "Delete Resource & Disconnect" : "Disconnect"}
                 variant="destructive"
+            />
+
+            <DataPortabilityModal
+                isOpen={!!isManagingPortability}
+                onClose={() => setIsManagingPortability(null)}
+                storage={isManagingPortability}
+                projectId={projectId}
             />
         </Card>
     );

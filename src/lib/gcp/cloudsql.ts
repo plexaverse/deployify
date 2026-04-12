@@ -114,6 +114,75 @@ export async function createDatabase(
 }
 
 /**
+ * Export a Cloud SQL instance to Google Cloud Storage
+ */
+export async function exportInstance(
+    instanceName: string,
+    storageUri: string,
+    databases: string[] = []
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/export-${instanceName}`;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/export`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            exportContext: {
+                fileType: storageUri.endsWith('.csv') ? 'CSV' : 'SQL',
+                uri: storageUri,
+                databases: databases.length > 0 ? databases : undefined,
+                offload: true // Use offload to minimize performance impact on the instance
+            }
+        }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to export instance: ${await response.text()}`);
+    const data = await response.json();
+    return data.name;
+}
+
+/**
+ * Import a Cloud SQL instance from Google Cloud Storage
+ */
+export async function importInstance(
+    instanceName: string,
+    storageUri: string,
+    database: string,
+    importUser?: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/import-${instanceName}`;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/import`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            importContext: {
+                fileType: storageUri.endsWith('.csv') ? 'CSV' : 'SQL',
+                uri: storageUri,
+                database,
+                importUser: importUser || 'postgres'
+            }
+        }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to import instance: ${await response.text()}`);
+    const data = await response.json();
+    return data.name;
+}
+
+/**
  * Delete a database within an existing instance
  */
 export async function deleteDatabase(
