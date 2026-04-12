@@ -456,6 +456,8 @@ Subcommands:
   provision <type> <name>            Provision a new storage instance
   branch <storage_id> <identifier>   Provision a storage branch (PR # or branch name)
   tunnel <storage_id>                Create a secure local tunnel to your database
+  import <storage_id> <uri>          Import data from GCS (SQL/CSV/RDB)
+  export <storage_id> <uri>          Export data to GCS
   backups <action> <storage_id>      Manage database backups
   migrations <action> <storage_id>   Manage database migrations
 `);
@@ -469,7 +471,10 @@ Usage: deployify storage backups <action> <storage_id> [options]
 Actions:
   list <storage_id>                  List backups for an instance
   create <storage_id> [description]  Trigger a manual backup
-  restore <storage_id> <backup_id>   Restore from a backup
+  restore <storage_id> <backup_id>   Restore from a backup (use 'pitr' with --time)
+
+Options:
+  --time <iso_timestamp>             Point-in-time for restore (e.g. 2024-05-12T10:00:00Z)
 `);
         return;
     }
@@ -678,6 +683,60 @@ Actions:
             console.log(`Visit: ${instanceUrl}/dashboard/${projectId}/storage`);
         }
 
+    } else if (subcommand === 'import') {
+        const storageId = args[2];
+        const storageUri = args[3];
+        if (!storageId || !storageUri) {
+            throw new Error('Usage: deployify storage import <storage_id> <gs_uri> [--db name] [--user name] [--collections a,b]');
+        }
+
+        const dbIdx = args.indexOf('--db');
+        const database = dbIdx !== -1 ? args[dbIdx + 1] : undefined;
+        const userIdx = args.indexOf('--user');
+        const importUser = userIdx !== -1 ? args[userIdx + 1] : undefined;
+        const collIdx = args.indexOf('--collections');
+        const collections = collIdx !== -1 ? args[collIdx + 1].split(',') : undefined;
+
+        console.log(`Triggering import for ${storageId} from ${storageUri}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/import`, token, {
+            method: 'POST',
+            body: { storageUri, database, importUser, collections }
+        });
+
+        if (data.success) {
+            console.log('✅ Import operation started successfully!');
+            console.log(`Operation: ${data.operationName}`);
+            console.log('\nYou can poll for status using: deployify storage sync ' + storageId);
+        } else {
+            console.log(`❌ Import failed: ${data.error || 'Unknown error'}`);
+        }
+
+    } else if (subcommand === 'export') {
+        const storageId = args[2];
+        const storageUri = args[3];
+        if (!storageId || !storageUri) {
+            throw new Error('Usage: deployify storage export <storage_id> <gs_uri> [--dbs a,b] [--collections a,b]');
+        }
+
+        const dbsIdx = args.indexOf('--dbs');
+        const databases = dbsIdx !== -1 ? args[dbsIdx + 1].split(',') : undefined;
+        const collIdx = args.indexOf('--collections');
+        const collections = collIdx !== -1 ? args[collIdx + 1].split(',') : undefined;
+
+        console.log(`Triggering export for ${storageId} to ${storageUri}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/export`, token, {
+            method: 'POST',
+            body: { storageUri, databases, collections }
+        });
+
+        if (data.success) {
+            console.log('✅ Export operation started successfully!');
+            console.log(`Operation: ${data.operationName}`);
+            console.log('\nYou can poll for status using: deployify storage sync ' + storageId);
+        } else {
+            console.log(`❌ Export failed: ${data.error || 'Unknown error'}`);
+        }
+
     } else if (subcommand === 'backups') {
         const storageId = args[3];
 
@@ -725,11 +784,20 @@ Actions:
         } else if (action === 'restore') {
             const backupId = args[4];
             if (!backupId) {
-                throw new Error('Backup ID required: deployify storage backups restore <storage_id> <backup_id>');
+                throw new Error('Backup ID required: deployify storage backups restore <storage_id> <backup_id> [--time timestamp]');
             }
-            console.log(`Restoring ${storageId} from backup ${backupId}...`);
+
+            const timeIdx = args.indexOf('--time');
+            const pointInTime = timeIdx !== -1 ? args[timeIdx + 1] : undefined;
+
+            if (backupId === 'pitr' && !pointInTime) {
+                throw new Error('Point-in-time timestamp required for PITR: --time <iso_timestamp>');
+            }
+
+            console.log(`Restoring ${storageId} from ${backupId === 'pitr' ? 'point-in-time ' + pointInTime : 'backup ' + backupId}...`);
             const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/backups/${backupId}/restore`, token, {
-                method: 'POST'
+                method: 'POST',
+                body: { pointInTime }
             });
             if (data.success) {
                 console.log('✅ Restore operation triggered successfully!');

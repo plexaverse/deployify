@@ -63,6 +63,18 @@ export async function POST(
             operationName = await exportCloudSql(resourceName, storageUri, databases || []);
         }
 
+        // Update Storage status to provisioning while export is running
+        storage.status = 'provisioning';
+        storage.metadata = {
+            ...storage.metadata,
+            operationName,
+            lastOperation: 'export'
+        };
+        storage.updatedAt = new Date();
+
+        const { updateProject } = await import('@/lib/db');
+        await updateProject(id, { storageConfigs });
+
         await logAuditEvent(
             project.teamId || null,
             session.user.id,
