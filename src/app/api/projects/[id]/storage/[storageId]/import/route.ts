@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { importInstance } from '@/lib/gcp/cloudsql';
+import { importDocuments } from '@/lib/gcp/firestore-admin';
 import { logAuditEvent } from '@/lib/audit';
 import type { StorageConfig } from '@/types';
 
@@ -37,25 +38,30 @@ export async function POST(
             return NextResponse.json({ error: 'Storage connector not found' }, { status: 404 });
         }
 
-        if (!storage.type.includes('cloud-sql')) {
-            return NextResponse.json({ error: 'Imports are only supported for Cloud SQL instances' }, { status: 400 });
+        if (!storage.type.includes('cloud-sql') && storage.type !== 'firestore') {
+            return NextResponse.json({ error: 'Imports are only supported for Cloud SQL and Firestore instances' }, { status: 400 });
         }
 
         const body = await request.json();
-        const { storageUri, database, importUser } = body;
+        const { storageUri, database, importUser, collections } = body;
 
         if (!storageUri || !storageUri.startsWith('gs://')) {
             return NextResponse.json({ error: 'Valid GCS URI (gs://bucket/path) is required' }, { status: 400 });
         }
 
-        if (!database) {
+        if (!database && storage.type !== 'firestore') {
             return NextResponse.json({ error: 'Target database name is required' }, { status: 400 });
         }
 
         const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
 
-        // Trigger import
-        const operationName = await importInstance(resourceName, storageUri, database, importUser);
+        // Trigger import based on type
+        let operationName: string;
+        if (storage.type === 'firestore') {
+            operationName = await importDocuments(resourceName, storageUri, collections || []);
+        } else {
+            operationName = await importInstance(resourceName, storageUri, database, importUser);
+        }
 
         await logAuditEvent(
             project.teamId || null,

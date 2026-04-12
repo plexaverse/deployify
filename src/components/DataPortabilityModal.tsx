@@ -31,6 +31,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
     const [database, setDatabase] = useState(storage?.metadata?.defaultDb as string || '');
     const [importUser, setImportUser] = useState(storage?.type.includes('postgres') ? 'postgres' : 'root');
     const [exportDatabases, setExportDatabases] = useState<string>(storage?.metadata?.defaultDb as string || '');
+    const [collections, setCollections] = useState<string>('');
 
     const handleAction = async () => {
         if (!storageUri || !storageUri.startsWith('gs://')) {
@@ -42,8 +43,17 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
         try {
             const endpoint = mode === 'import' ? 'import' : 'export';
             const body = mode === 'import'
-                ? { storageUri, database, importUser }
-                : { storageUri, databases: exportDatabases.split(',').map(d => d.trim()).filter(Boolean) };
+                ? {
+                    storageUri,
+                    database: storage?.type === 'firestore' ? undefined : database,
+                    importUser: storage?.type === 'firestore' ? undefined : importUser,
+                    collections: storage?.type === 'firestore' ? collections.split(',').map(c => c.trim()).filter(Boolean) : undefined
+                  }
+                : {
+                    storageUri,
+                    databases: storage?.type === 'firestore' ? undefined : exportDatabases.split(',').map(d => d.trim()).filter(Boolean),
+                    collections: storage?.type === 'firestore' ? collections.split(',').map(c => c.trim()).filter(Boolean) : undefined
+                  };
 
             const response = await fetch(`/api/projects/${projectId}/storage/${storage?.id}/${endpoint}`, {
                 method: 'POST',
@@ -128,11 +138,13 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
 
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">GCS Storage URI</Label>
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    {storage.type === 'firestore' ? 'GCS URI Prefix' : 'GCS Storage URI'}
+                                </Label>
                                 <Input
                                     value={storageUri}
                                     onChange={(e) => setStorageUri(e.target.value)}
-                                    placeholder="GS://BUCKET-NAME/PATH/TO/DUMP.SQL"
+                                    placeholder={storage.type === 'firestore' ? "GS://BUCKET-NAME/PREFIX" : "GS://BUCKET-NAME/PATH/TO/DUMP.SQL"}
                                     className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
@@ -141,40 +153,55 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 </p>
                             </div>
 
-                            {mode === 'import' ? (
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Database</Label>
-                                        <Input
-                                            value={database}
-                                            onChange={(e) => setDatabase(e.target.value)}
-                                            placeholder="POSTGRES"
-                                            className="font-mono text-xs uppercase"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Import User</Label>
-                                        <Input
-                                            value={importUser}
-                                            onChange={(e) => setImportUser(e.target.value)}
-                                            placeholder={storage.type.includes('postgres') ? 'POSTGRES' : 'ROOT'}
-                                            className="font-mono text-xs uppercase"
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
+                            {storage.type === 'firestore' ? (
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Databases to Export (CSV)</Label>
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collections to {mode === 'import' ? 'Import' : 'Export'} (CSV)</Label>
                                     <Input
-                                        value={exportDatabases}
-                                        onChange={(e) => setExportDatabases(e.target.value)}
-                                        placeholder="DB1, DB2"
+                                        value={collections}
+                                        onChange={(e) => setCollections(e.target.value)}
+                                        placeholder="USERS, POSTS"
                                         className="font-mono text-xs uppercase"
                                     />
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
-                                        LEAVE BLANK TO EXPORT ALL DATABASES.
+                                        LEAVE BLANK TO {mode === 'import' ? 'IMPORT' : 'EXPORT'} ALL COLLECTIONS.
                                     </p>
                                 </div>
+                            ) : (
+                                mode === 'import' ? (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Database</Label>
+                                            <Input
+                                                value={database}
+                                                onChange={(e) => setDatabase(e.target.value)}
+                                                placeholder="POSTGRES"
+                                                className="font-mono text-xs uppercase"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Import User</Label>
+                                            <Input
+                                                value={importUser}
+                                                onChange={(e) => setImportUser(e.target.value)}
+                                                placeholder={storage.type.includes('postgres') ? 'POSTGRES' : 'ROOT'}
+                                                className="font-mono text-xs uppercase"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Databases to Export (CSV)</Label>
+                                        <Input
+                                            value={exportDatabases}
+                                            onChange={(e) => setExportDatabases(e.target.value)}
+                                            placeholder="DB1, DB2"
+                                            className="font-mono text-xs uppercase"
+                                        />
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                            LEAVE BLANK TO EXPORT ALL DATABASES.
+                                        </p>
+                                    </div>
+                                )
                             )}
 
                             <div className="p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl flex items-start gap-3">
@@ -182,7 +209,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]">Permissions Required</p>
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
-                                        THE CLOUD SQL SERVICE ACCOUNT MUST HAVE <code className="text-[var(--primary)]">ROLES/STORAGEMANAGER.OBJECTADMIN</code> PERMISSION ON THE TARGET BUCKET.
+                                        THE {storage.type === 'firestore' ? 'SERVICE ACCOUNT' : 'CLOUD SQL SERVICE ACCOUNT'} MUST HAVE <code className="text-[var(--primary)]">ROLES/STORAGEMANAGER.OBJECTADMIN</code> PERMISSION ON THE TARGET BUCKET.
                                     </p>
                                 </div>
                             </div>

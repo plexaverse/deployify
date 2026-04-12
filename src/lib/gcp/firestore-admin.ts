@@ -133,3 +133,75 @@ export async function ensureEphemeralDatabase(
     // 2. Create if not exists
     await createDatabase(databaseId, region);
 }
+
+/**
+ * Export Firestore documents to Google Cloud Storage
+ */
+export async function exportDocuments(
+    databaseId: string,
+    outputUriPrefix: string,
+    collectionIds: string[] = []
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/databases/${databaseId}/operations/export-${Date.now()}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/databases/${databaseId}`;
+
+    const response = await fetch(`${FIRESTORE_API}/${name}:exportDocuments`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            outputUriPrefix,
+            collectionIds: collectionIds.length > 0 ? collectionIds : undefined,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to export Firestore documents: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
+
+/**
+ * Import Firestore documents from Google Cloud Storage
+ */
+export async function importDocuments(
+    databaseId: string,
+    inputUriPrefix: string,
+    collectionIds: string[] = []
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/databases/${databaseId}/operations/import-${Date.now()}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+    const name = `projects/${gcpProjectId}/databases/${databaseId}`;
+
+    const response = await fetch(`${FIRESTORE_API}/${name}:importDocuments`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            inputUriPrefix,
+            collectionIds: collectionIds.length > 0 ? collectionIds : undefined,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to import Firestore documents: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}

@@ -263,10 +263,20 @@ export async function createBackup(instanceName: string, description?: string): 
 }
 
 /**
- * Restore a Cloud SQL instance from a backup
+ * Restore a Cloud SQL instance from a backup or to a point in time
  */
-export async function restoreBackup(instanceName: string, backupId: string): Promise<string> {
-    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/restore-${backupId}`;
+export async function restoreBackup(
+    instanceName: string,
+    backupId?: string,
+    pointInTime?: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/operations/restore-${backupId || 'pitr'}-${Date.now()}`;
+    }
+
+    if (!backupId && !pointInTime) {
+        throw new Error('Either backupId or pointInTime must be provided for restoration');
+    }
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
@@ -279,7 +289,8 @@ export async function restoreBackup(instanceName: string, backupId: string): Pro
         },
         body: JSON.stringify({
             restoreBackupContext: {
-                backupRunId: backupId,
+                backupRunId: backupId || undefined,
+                pointInTime: pointInTime || undefined,
                 project: gcpProjectId,
                 instanceId: instanceName
             }
