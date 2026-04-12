@@ -44,8 +44,15 @@ export async function POST(
             return NextResponse.json({ success: false, error: 'Restore is only supported for Cloud SQL instances' }, { status: 400 });
         }
 
-        const instanceName = storageConfig.metadata?.instanceName as string || storageConfig.name;
-        const operationName = await restoreBackup(instanceName, backupId);
+        const body = await request.json().catch(() => ({}));
+        const { pointInTime } = body;
+
+        const instanceName = (storageConfig.metadata?.resourceName as string) || storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+
+        // Handle PITR if backupId is 'pitr' and pointInTime is provided
+        const operationName = backupId === 'pitr'
+            ? await restoreBackup(instanceName, undefined, pointInTime)
+            : await restoreBackup(instanceName, backupId);
 
         return NextResponse.json({ success: true, operationName });
     } catch (error) {

@@ -125,6 +125,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [backups, setBackups] = useState<Backup[]>([]);
     const [isLoadingBackups, setIsLoadingBackups] = useState(false);
     const [backupDescription, setBackupDescription] = useState('');
+    const [pitrTimestamp, setPitrTimestamp] = useState('');
     const [isManagingMigrations, setIsManagingMigrations] = useState<StorageConfig | null>(null);
     const [migrations, setMigrations] = useState<Migration[]>([]);
     const [isLoadingMigrations, setIsLoadingMigrations] = useState(false);
@@ -565,23 +566,34 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         }
     };
 
-    const handleRestoreBackup = async (backupId: string) => {
+    const handleRestoreBackup = async (backupId: string, pointInTime?: string) => {
         if (!isManagingBackups) return;
-        if (!confirm('Are you sure you want to restore this backup? This will overwrite current data and the instance will be unavailable during the process.')) return;
+        const confirmMsg = pointInTime
+            ? `Are you sure you want to restore to ${pointInTime}? This will overwrite current data and the instance will be unavailable during the process.`
+            : 'Are you sure you want to restore this backup? This will overwrite current data and the instance will be unavailable during the process.';
+
+        if (!confirm(confirmMsg)) return;
 
         setIsSubmitting(true);
         try {
             const response = await fetch(`/api/projects/${projectId}/storage/${isManagingBackups.id}/backups/${backupId}/restore`, {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pointInTime }),
             });
             const data = await response.json();
             if (data.success) {
                 setIsManagingBackups(null);
+                setPitrTimestamp('');
                 // Trigger sync to show provisioning status
                 await syncStorageStatus(projectId, isManagingBackups.id);
+                toast.success(pointInTime ? 'PITR restoration started' : 'Backup restoration started');
+            } else {
+                toast.error(data.error || 'Failed to start restoration');
             }
         } catch (e) {
             console.error('Failed to restore backup:', e);
+            toast.error('An error occurred during restoration');
         } finally {
             setIsSubmitting(false);
         }
@@ -1322,7 +1334,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <GitBranch className="w-4 h-4" />
                                         </Button>
                                     )}
-                                    {config.status === 'active' && config.type.includes('sql') && (
+                                    {config.status === 'active' && (config.type.includes('sql') || config.type === 'firestore') && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -1505,7 +1517,50 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Backup History</Label>
+                            <div className="flex items-center justify-between">
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Backup History</Label>
+                                {!!isManagingBackups?.metadata?.pitrEnabled && (
+                                    <span className="text-[10px] font-bold uppercase text-[var(--primary)] flex items-center gap-1">
+                                        <HistoryIcon className="w-3 h-3" />
+                                        PITR ACTIVE
+                                    </span>
+                                )}
+                            </div>
+
+                            {!!isManagingBackups?.metadata?.pitrEnabled && (
+                                <div className="p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-3 mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <Zap className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Point-in-Time Recovery</Label>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type="datetime-local"
+                                            value={pitrTimestamp}
+                                            onChange={(e) => setPitrTimestamp(e.target.value)}
+                                            className="h-8 text-[10px] font-bold uppercase"
+                                        />
+                                        <Button
+                                            onClick={() => {
+                                                try {
+                                                    const timestamp = new Date(pitrTimestamp).toISOString();
+                                                    handleRestoreBackup('pitr', timestamp);
+                                                } catch {
+                                                    toast.error('Invalid timestamp provided');
+                                                }
+                                            }}
+                                            disabled={isSubmitting || !pitrTimestamp}
+                                            className="h-8 px-3 text-[10px] font-bold uppercase bg-[var(--primary)]"
+                                        >
+                                            Restore
+                                        </Button>
+                                    </div>
+                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                                        RESTORE INSTANCE TO ANY SPECIFIC SECOND WITHIN THE LAST 7 DAYS.
+                                    </p>
+                                </div>
+                            )}
+
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                                 {isLoadingBackups ? (
                                     <div className="py-8 flex flex-col items-center justify-center gap-2">
