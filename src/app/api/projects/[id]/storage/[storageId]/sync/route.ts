@@ -175,6 +175,25 @@ export async function GET(
                 return NextResponse.json({ success: true, status: 'error', error: storage.lastError });
             }
 
+            // Handle Import/Export Completion
+            const lastOp = storage.metadata?.lastOperation;
+            if (lastOp === 'import' || lastOp === 'export') {
+                storage.status = 'active';
+                storage.lastSyncedAt = now;
+                storage.updatedAt = now;
+                storage.metadata = { ...storage.metadata, lastOperation: undefined, operationName: undefined };
+
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+
+                return NextResponse.json({
+                    success: true,
+                    status: 'active',
+                    message: `${lastOp === 'import' ? 'Import' : 'Export'} completed successfully`,
+                    lastSyncedAt: storage.lastSyncedAt.toISOString()
+                });
+            }
+
             // Check if we need follow-up operations (e.g. create DB/User for Cloud SQL)
             const isCloudSql = storage.type.startsWith('cloud-sql');
 
@@ -303,7 +322,9 @@ export async function GET(
         return NextResponse.json({
             success: true,
             status: 'provisioning',
-            message: 'Operation still in progress'
+            message: storage.metadata?.lastOperation === 'import' ? 'Import in progress...' :
+                     storage.metadata?.lastOperation === 'export' ? 'Export in progress...' :
+                     'Operation still in progress'
         });
 
     } catch (error) {

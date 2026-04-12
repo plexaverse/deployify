@@ -167,7 +167,7 @@ export async function updateInstanceSettings(
     const name = `projects/${gcpProjectId}/locations/${region}/instances/${instanceName}`;
 
     const updateMask: string[] = [];
-    const body: any = {};
+    const body: Record<string, unknown> = {};
 
     if (settings.memorySizeGb !== undefined) {
         updateMask.push('memorySizeGb');
