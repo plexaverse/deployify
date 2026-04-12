@@ -65,7 +65,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                     </span>
                     <ul className="space-y-4">
                         {plan.features.map((feature, i) => (
-                            <li key={i} className="flex items-start gap-3 text-sm">
+                            <li key={i} className="flex items-start gap-3 text-xs">
                                 <div className="mt-0.5 bg-[var(--primary)]/10 rounded-full p-1 shrink-0">
                                     <Check className="w-3 h-3 text-[var(--primary)]" strokeWidth={3} />
                                 </div>

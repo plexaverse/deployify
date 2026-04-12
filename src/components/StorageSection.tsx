@@ -724,7 +724,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         value={connectionString}
                                         onChange={(e) => setConnectionString(e.target.value)}
                                         placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
-                                        className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
                                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
                                             <AlertCircle className="w-3.5 h-3.5" />
@@ -895,7 +895,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     onChange={(e) => setEnvKey(e.target.value)}
                                     placeholder="DATABASE_URL"
                                     disabled={secretOnly}
-                                    className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 {secretOnly ? "Auto-injection is disabled in Secret Only mode." : "This key will be injected into your application at runtime."}
@@ -1056,7 +1056,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </div>
                                     <div className="space-y-1 w-full">
                                         <div className="flex items-center gap-2">
-                                            <h4 className="font-semibold text-sm">{config.name}</h4>
+                                            <h4 className="font-semibold text-xs">{config.name}</h4>
                                         {config.region && projectRegion && config.region !== projectRegion && (
                                             <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={`Service is in ${projectRegion} while storage is in ${config.region}. Higher latency expected.`}>
                                                 <AlertTriangle className="w-2.5 h-2.5" />
@@ -1407,7 +1407,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl">
                     <ExternalLink className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
-                    <div className="text-sm">
+                    <div className="text-xs">
                         <p className="font-semibold text-[var(--info)] mb-1">Managed Connectivity</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Deployify automatically injects the appropriate environment variables (like <code className="text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 px-1 rounded">DATABASE_URL</code>) into your services based on these connectors.
@@ -1423,7 +1423,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 title="Scale Storage Instance"
                 description={
                     <div className="space-y-4">
-                        <p className="text-sm">
+                        <p className="text-xs">
                             Adjust the resource allocation for <strong>{isScaling?.name}</strong>. This update will trigger a GCP operation and the instance status will show as provisioning while the scaling is in progress.
                         </p>
 
@@ -1454,7 +1454,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         onChange={(e) => setScaleSizeGb(parseInt(e.target.value))}
                                         className="flex-1 accent-[var(--primary)]"
                                     />
-                                    <span className="text-sm font-mono font-bold w-12 text-center">{scaleSizeGb} GB</span>
+                                    <span className="text-xs font-mono font-bold w-12 text-center">{scaleSizeGb} GB</span>
                                 </div>
                             </div>
                         ) : null}
@@ -1858,7 +1858,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Standardized Interface</span>
                             </div>
-                            <p className="text-sm">
+                            <p className="text-xs">
                                 This connector is automatically injected into your Cloud Run containers. You don&apos;t need to manually manage secrets or environment variables.
                             </p>
                         </div>
@@ -1989,7 +1989,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </Button>
                                 )}
                             </div>
-                            <p className="text-sm">
+                            <p className="text-xs">
                                 Run a comprehensive diagnostic to identify the root cause of connection failures across secrets, DNS, TCP, and IAM layers.
                             </p>
                         </div>

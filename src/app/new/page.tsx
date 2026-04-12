@@ -88,7 +88,7 @@ export default function NewProjectPage() {
                     </div>
 
                     {/* Stepper Indicator */}
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-4 text-xs">
                         <StepIndicator current={step} number={1} label="Select" />
                         <div className="w-8 h-[1px] bg-[var(--border)]" />
                         <StepIndicator current={step} number={2} label="Configure" />
@@ -911,7 +911,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Production URL</span>
-                                        <p className="text-sm font-mono truncate uppercase">{project.productionUrl?.replace(/^https?:\/\//, '').toUpperCase()}</p>
+                                        <p className="text-xs font-mono truncate uppercase">{project.productionUrl?.replace(/^https?:\/\//, '').toUpperCase()}</p>
                                     </div>
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Environment</span>
@@ -924,7 +924,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                 </motion.div>
             )}
 
-            <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-sm shadow-2xl relative">
+            <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-xs shadow-2xl relative">
                 <div className="bg-[var(--terminal-header-bg)] p-3 flex items-center justify-between border-b border-[var(--terminal-border)]">
                     <div className="flex items-center gap-4">
                         <div className="flex gap-1.5">

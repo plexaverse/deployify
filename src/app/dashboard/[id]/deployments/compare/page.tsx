@@ -356,8 +356,8 @@ function ComparisonRow({ label, baseValue, targetValue }: { label: string, baseV
     return (
         <div className="grid grid-cols-3 px-6 py-4 items-center hover:bg-[var(--card-hover)] transition-colors group">
             <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{label}</div>
-            <div className="text-sm font-mono font-semibold">{baseValue}</div>
-            <div className="text-sm font-mono font-semibold flex items-center gap-2">
+            <div className="text-xs font-mono font-semibold">{baseValue}</div>
+            <div className="text-xs font-mono font-semibold flex items-center gap-2">
                 {targetValue}
                 <ArrowRight className="w-3.5 h-3.5 text-[var(--muted-foreground)] opacity-0 group-hover:opacity-20 transition-opacity ml-auto" />
             </div>

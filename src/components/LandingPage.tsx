@@ -230,7 +230,7 @@ export default function LandingPage() {
               <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider font-mono text-[var(--foreground)]">
                 $
               </div>
-              <code className="text-sm font-mono text-[var(--muted-foreground)] flex-1 text-left">
+              <code className="text-xs font-mono text-[var(--muted-foreground)] flex-1 text-left">
                 pnpm dlx deployify login
               </code>
               <motion.button

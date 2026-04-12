@@ -85,7 +85,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
 
             <div className="p-6 space-y-4">
                 {error && (
-                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-sm">
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-xs">
                         {error}
                     </div>
                 )}
@@ -135,7 +135,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 <div className="mt-8 p-4 rounded-lg bg-[var(--info-bg)] border border-[var(--info)]/20">
                 <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
-                    <div className="text-sm">
+                    <div className="text-xs">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">Deployment Required</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changing the region will affect the next deployment.

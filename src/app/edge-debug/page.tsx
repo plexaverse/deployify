@@ -113,7 +113,7 @@ export default function EdgeDebugPage() {
                      <textarea
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
-                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-sm p-4 focus:outline-none resize-none"
+                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-xs p-4 focus:outline-none resize-none"
                         spellCheck={false}
                     />
                 </div>
@@ -168,7 +168,7 @@ export default function EdgeDebugPage() {
                             value={headers}
                             onChange={(e) => setHeaders(e.target.value)}
                             className={cn(
-                                "flex min-h-[100px] w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm",
+                                "flex min-h-[100px] w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-xs",
                                 "ring-offset-[var(--background)] placeholder:text-[var(--muted-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
                                 "font-mono text-[var(--foreground)] resize-none"
                             )}

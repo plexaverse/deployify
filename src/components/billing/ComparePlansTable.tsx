@@ -123,7 +123,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                         {plans.map((plan) => {
                                             const value = feature.values[plan.id];
                                             return (
-                                                <td key={`${plan.id}-${feature.name}`} className="p-4 border-b border-[var(--border)] text-center text-sm">
+                                                <td key={`${plan.id}-${feature.name}`} className="p-4 border-b border-[var(--border)] text-center text-xs">
                                                     {value === true ? (
                                                         <div className="flex justify-center">
                                                             <div className="bg-[var(--primary)]/10 rounded-full p-1">
