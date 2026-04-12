@@ -77,7 +77,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 </div>
                 <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                    <h3 className="text-sm font-semibold">Deployment Region</h3>
+                    <h3 className="text-xs font-semibold">Deployment Region</h3>
                 </div>
             </div>
 
@@ -90,7 +90,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                     </div>
                 )}
                 <div className="grid gap-2">
-                    <Label htmlFor="region-select" className="text-sm font-semibold">Region</Label>
+                    <Label htmlFor="region-select" className="text-xs font-semibold">Region</Label>
                     <NativeSelect
                         id="region-select"
                         value={selectedRegion}

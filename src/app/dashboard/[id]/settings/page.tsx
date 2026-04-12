@@ -110,7 +110,7 @@ export default function ProjectSettingsPage() {
                         <Settings className="w-8 h-8 text-[var(--muted-foreground)]" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-sm font-semibold">Project Not Found</h2>
+                        <h2 className="text-xs font-semibold">Project Not Found</h2>
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             The project you are looking for does not exist or you don&apos;t have access.
                         </p>
@@ -183,7 +183,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Settings</span>
-                            <h3 className="text-sm font-semibold">Configuration</h3>
+                            <h3 className="text-xs font-semibold">Configuration</h3>
                         </div>
                     </div>
 
@@ -192,7 +192,7 @@ export default function ProjectSettingsPage() {
                     <div className="p-6 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="framework" className="text-sm font-semibold">Framework</Label>
+                                <Label htmlFor="framework" className="text-xs font-semibold">Framework</Label>
                                 <NativeSelect
                                     id="framework"
                                     value={framework}
@@ -212,7 +212,7 @@ export default function ProjectSettingsPage() {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="root-directory" className="text-sm font-semibold">Root Directory</Label>
+                                <Label htmlFor="root-directory" className="text-xs font-semibold">Root Directory</Label>
                                 <Input
                                     id="root-directory"
                                     type="text"
@@ -229,7 +229,7 @@ export default function ProjectSettingsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="build-command" className="text-sm font-semibold">Build Command</Label>
+                                <Label htmlFor="build-command" className="text-xs font-semibold">Build Command</Label>
                                 <Input
                                     id="build-command"
                                     type="text"
@@ -243,7 +243,7 @@ export default function ProjectSettingsPage() {
                                 </p>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="output-directory" className="text-sm font-semibold">Output Directory</Label>
+                                <Label htmlFor="output-directory" className="text-xs font-semibold">Output Directory</Label>
                                 <Input
                                     id="output-directory"
                                     type="text"
@@ -260,7 +260,7 @@ export default function ProjectSettingsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="install-command" className="text-sm font-semibold">Install Command</Label>
+                                <Label htmlFor="install-command" className="text-xs font-semibold">Install Command</Label>
                                 <Input
                                     id="install-command"
                                     type="text"
@@ -318,7 +318,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notifications</span>
-                            <h3 className="text-sm font-semibold">Alert Preferences</h3>
+                            <h3 className="text-xs font-semibold">Alert Preferences</h3>
                         </div>
                     </div>
 
@@ -334,7 +334,7 @@ export default function ProjectSettingsPage() {
                         />
 
                         <div className="space-y-2">
-                            <Label htmlFor="webhook-url" className="text-sm font-semibold">Webhook URL</Label>
+                            <Label htmlFor="webhook-url" className="text-xs font-semibold">Webhook URL</Label>
                             <Input
                                 id="webhook-url"
                                 type="text"
@@ -369,7 +369,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Security</span>
-                            <h3 className="text-sm font-semibold">Safety & Protection</h3>
+                            <h3 className="text-xs font-semibold">Safety & Protection</h3>
                         </div>
                     </div>
 
@@ -405,7 +405,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                            <h3 className="text-sm font-semibold text-[var(--error)]">Critical Actions</h3>
+                            <h3 className="text-xs font-semibold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
 
@@ -414,7 +414,7 @@ export default function ProjectSettingsPage() {
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                         <div>
-                            <p className="text-sm font-semibold text-[var(--error)]">Delete Project</p>
+                            <p className="text-xs font-semibold text-[var(--error)]">Delete Project</p>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Permanently delete this project and all its deployments.
                             </p>

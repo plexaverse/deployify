@@ -69,7 +69,7 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                      <div className="w-12 h-12 rounded-2xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center mb-6 shadow-sm">
                         <Zap className="w-6 h-6 text-[var(--muted-foreground)] opacity-50" />
                      </div>
-                     <h3 className="text-sm font-semibold mb-2 tracking-tight">No Deployment Metrics</h3>
+                     <h3 className="text-xs font-semibold mb-2 tracking-tight">No Deployment Metrics</h3>
                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
                          Successful production deployments are required to generate performance and build history.
                      </p>
@@ -88,7 +88,7 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Efficiency</span>
-                        <h3 className="text-sm font-semibold">Build Duration History</h3>
+                        <h3 className="text-xs font-semibold">Build Duration History</h3>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />
@@ -138,7 +138,7 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Optimization Score</span>
-                        <h3 className="text-sm font-semibold">Performance Score History</h3>
+                        <h3 className="text-xs font-semibold">Performance Score History</h3>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />

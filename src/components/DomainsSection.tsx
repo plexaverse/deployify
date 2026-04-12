@@ -136,7 +136,7 @@ export function DomainsSection({
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Networking</span>
-                        <h3 className="text-sm font-semibold">Custom Domains</h3>
+                        <h3 className="text-xs font-semibold">Custom Domains</h3>
                     </div>
                 </div>
                 {!isAdding && (
@@ -171,7 +171,7 @@ export function DomainsSection({
             {isAdding && (
                 <div className="mb-6 p-4 rounded-lg border border-[var(--border)] bg-[var(--background)] animate-fade-in">
                     <div className="mb-4 space-y-2">
-                        <Label className="text-sm font-semibold">Domain</Label>
+                        <Label className="text-xs font-semibold">Domain</Label>
                         <Input
                             type="text"
                             value={newDomain}
@@ -216,7 +216,7 @@ export function DomainsSection({
                             <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                 <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
                             </div>
-                            <h3 className="text-sm font-semibold">Verification Steps</h3>
+                            <h3 className="text-xs font-semibold">Verification Steps</h3>
                         </div>
                         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--warning-bg)] border border-[var(--warning)]/20">
                             <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--warning)] animate-pulse"></span>
@@ -246,7 +246,7 @@ export function DomainsSection({
                     </p>
 
                     <div className="overflow-hidden rounded-lg border border-[var(--border)] mb-4 shadow-sm">
-                        <table className="w-full text-sm border-collapse">
+                        <table className="w-full text-xs border-collapse">
                             <thead className="bg-[var(--muted)]/5">
                                 <tr className="text-left">
                                     <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
@@ -311,7 +311,7 @@ export function DomainsSection({
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                             For global CDN and faster performance, use Cloudflare instead of GCP domain mapping:
                         </p>
-                    <ol className="text-sm space-y-4 text-[var(--muted-foreground)] list-decimal list-inside mb-6">
+                    <ol className="text-xs space-y-4 text-[var(--muted-foreground)] list-decimal list-inside mb-6">
                         <li>Add your domain to <a href="https://cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] font-semibold hover:underline">Cloudflare</a> (free)</li>
                         <li>Update nameservers at your registrar to Cloudflare&apos;s</li>
                         <li>

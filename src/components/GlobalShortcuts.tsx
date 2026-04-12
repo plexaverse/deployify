@@ -82,7 +82,7 @@ export function GlobalShortcuts() {
                     <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--card)]">
                         <div className="flex items-center gap-2">
                              <Keyboard className="w-5 h-5 text-[var(--primary)]" />
-                            <h3 className="text-sm font-semibold">Keyboard Shortcuts</h3>
+                            <h3 className="text-xs font-semibold">Keyboard Shortcuts</h3>
                         </div>
                         <Button
                             variant="ghost"
