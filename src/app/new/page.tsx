@@ -495,7 +495,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <div className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="projectName" className="text-sm font-semibold block mb-2">Project Name</label>
+                            <Label htmlFor="projectName" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Project Name</Label>
                             <Input
                                 id="projectName"
                                 type="text"
@@ -504,8 +504,9 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Framework Preset</label>
+                            <Label htmlFor="framework" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Framework Preset</Label>
                             <NativeSelect
+                                id="framework"
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
                             >
@@ -526,18 +527,19 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Root Directory</label>
+                            <Label htmlFor="rootDirectory" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Root Directory</Label>
                             <Input
+                                id="rootDirectory"
                                 type="text"
                                 value={rootDirectory}
                                 onChange={(e) => setRootDirectory(e.target.value)}
                                 placeholder="./"
-                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold block mb-2">Region</label>
+                            <Label htmlFor="region" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Region</Label>
                             <NativeSelect
+                                id="region"
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
                             >
@@ -568,36 +570,33 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 >
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
                                         <div className="space-y-2">
-                                            <label htmlFor="buildCommand" className="text-sm font-semibold block mb-2">Build Command</label>
+                                            <Label htmlFor="buildCommand" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Build Command</Label>
                                             <Input
                                                 id="buildCommand"
                                                 type="text"
                                                 value={buildCommand}
                                                 onChange={(e) => setBuildCommand(e.target.value)}
                                                 placeholder="NPM RUN BUILD"
-                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="installCommand" className="text-sm font-semibold block mb-2">Install Command</label>
+                                            <Label htmlFor="installCommand" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Install Command</Label>
                                             <Input
                                                 id="installCommand"
                                                 type="text"
                                                 value={installCommand}
                                                 onChange={(e) => setInstallCommand(e.target.value)}
                                                 placeholder="NPM INSTALL"
-                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="outputDirectory" className="text-sm font-semibold block mb-2">Output Directory</label>
+                                            <Label htmlFor="outputDirectory" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Output Directory</Label>
                                             <Input
                                                 id="outputDirectory"
                                                 type="text"
                                                 value={outputDirectory}
                                                 onChange={(e) => setOutputDirectory(e.target.value)}
                                                 placeholder=".NEXT"
-                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                     </div>
@@ -687,15 +686,15 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                     checked={newEnvIsSecret}
                                     onCheckedChange={setNewEnvIsSecret}
                                 />
-                                <label htmlFor="isSecret" className="text-sm font-semibold cursor-pointer flex items-center gap-1.5">
+                                <Label htmlFor="isSecret" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] cursor-pointer flex items-center gap-1.5">
                                     <Shield className="w-4 h-4 text-[var(--info)]" />
                                     Secret (Encrypted)
-                                </label>
+                                </Label>
                             </div>
 
                             <div className="flex-1 space-y-4">
                                 <div className="space-y-2">
-                                    <Label className="text-sm font-semibold block mb-2">Target Environment Type</Label>
+                                    <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Target Environment Type</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'both', label: 'BUILD & RUNTIME' },
@@ -708,7 +707,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-sm font-semibold block mb-2">Scope</Label>
+                                    <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-2 block">Scope</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'both', label: 'ALL ENVS' },
@@ -736,10 +735,14 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <MovingBorderButton
                     onClick={handleDeploy}
                     disabled={deploying || !projectName}
-                    containerClassName="h-12 w-48"
-                    className="text-[10px] font-bold uppercase tracking-wider"
+                    containerClassName="h-12 w-48 group"
+                    className="text-[10px] font-bold uppercase tracking-[0.2em]"
                 >
-                    {deploying ? <Loader2 className="mr-2 w-5 h-5 animate-spin" /> : null}
+                    {deploying ? (
+                      <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+                    ) : (
+                      <Rocket className="mr-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    )}
                     {deploying ? 'Deploying...' : 'Deploy Project'}
                 </MovingBorderButton>
             </div>
