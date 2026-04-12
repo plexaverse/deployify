@@ -100,7 +100,7 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
 
              {/* Error Message Display */}
              {isError && (
-                <div className="mt-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 flex items-start gap-2 text-sm text-[var(--error)]">
+                <div className="mt-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 flex items-start gap-2 text-xs text-[var(--error)]">
                     <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                     <p>{deployment.errorMessage || 'An unknown error occurred during deployment.'}</p>
                 </div>

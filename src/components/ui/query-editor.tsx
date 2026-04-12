@@ -159,7 +159,7 @@ useEffect(() => {
 
     return (
         <div className={cn(
-            "relative flex rounded-xl bg-[var(--background)] border border-[var(--border)] font-mono text-sm focus-within:ring-2 focus-within:ring-[var(--primary)]/50 overflow-hidden",
+            "relative flex rounded-xl bg-[var(--background)] border border-[var(--border)] font-mono text-xs focus-within:ring-2 focus-within:ring-[var(--primary)]/50 overflow-hidden",
             className
         )}>
             {showSuggestions && (
@@ -208,7 +208,7 @@ useEffect(() => {
             {/* Hidden mirror for position calculation */}
             <div
                 ref={mirrorRef}
-                className="absolute invisible whitespace-pre p-4 font-mono text-sm leading-5"
+                className="absolute invisible whitespace-pre p-4 font-mono text-xs leading-5"
                 style={{ width: textareaWidth, top: 0, left: 40 }}
             />
         </div>

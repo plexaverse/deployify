@@ -154,7 +154,7 @@ export function BranchDeploymentsSettings({
                             <div key={branch} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[var(--background)] gap-4">
                                 <div className="flex items-center gap-2">
                                     <GitBranch className="w-4 h-4 text-[var(--muted-foreground)]" />
-                                    <span className="font-semibold font-mono text-sm">{branch}</span>
+                                    <span className="font-semibold font-mono text-xs">{branch}</span>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col gap-1">

@@ -134,7 +134,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
 
             <div className="p-6">
                 {error && (
-                    <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-sm">
+                    <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-xs">
                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {error}
                     </div>
@@ -150,7 +150,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                 value={newPath}
                                 onChange={(e) => setNewPath(e.target.value)}
                                 placeholder="/API/CRON/DAILY-REPORT"
-                                className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Relative path to call (GET request).
@@ -173,7 +173,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                     value={customSchedule}
                                     onChange={(e) => setCustomSchedule(e.target.value)}
                                     placeholder="0 0 * * *"
-                                    className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Standard cron format: minute hour day(month) month day(week)
@@ -223,10 +223,10 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                             <tbody>
                                 {crons.map((cron, index) => (
                                     <tr key={index} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/10 transition-colors last:border-0">
-                                        <td className="py-3 px-4 text-sm font-mono">
+                                        <td className="py-3 px-4 text-xs font-mono">
                                             {cron.path}
                                         </td>
-                                        <td className="py-3 px-4 text-sm font-mono">
+                                        <td className="py-3 px-4 text-xs font-mono">
                                             {cron.schedule}
                                         </td>
                                         <td className="py-3 px-4 text-right">
@@ -249,7 +249,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
 
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
                 <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
-                <div className="text-sm">
+                <div className="text-xs">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">How it works</p>
                     <p className="text-[var(--muted-foreground)] leading-relaxed">
                         Deployify uses Google Cloud Scheduler to trigger your application&apos;s endpoints via HTTP GET requests.

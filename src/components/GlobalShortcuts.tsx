@@ -96,7 +96,7 @@ export function GlobalShortcuts() {
                     <div className="p-6 space-y-6 bg-[var(--card)]">
                         <div className="space-y-3">
                             <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Navigation</h4>
-                            <div className="flex justify-between items-center text-sm">
+                            <div className="flex justify-between items-center text-xs">
                                 <span className="text-[var(--foreground)]">Go to Dashboard</span>
                                 <div className="flex items-center gap-1.5">
                                     <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">G</kbd>
@@ -104,7 +104,7 @@ export function GlobalShortcuts() {
                                     <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">H</kbd>
                                 </div>
                             </div>
-                            <div className="flex justify-between items-center text-sm">
+                            <div className="flex justify-between items-center text-xs">
                                 <span className="text-[var(--foreground)]">Go to Projects</span>
                                 <div className="flex items-center gap-1.5">
                                     <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">G</kbd>
@@ -116,11 +116,11 @@ export function GlobalShortcuts() {
 
                         <div className="space-y-3">
                             <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Actions</h4>
-                             <div className="flex justify-between items-center text-sm">
+                             <div className="flex justify-between items-center text-xs">
                                 <span className="text-[var(--foreground)]">Create New Project</span>
                                  <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">C</kbd>
                             </div>
-                             <div className="flex justify-between items-center text-sm">
+                             <div className="flex justify-between items-center text-xs">
                                 <span className="text-[var(--foreground)]">Show Shortcuts</span>
                                  <kbd className="px-2 py-1 bg-[var(--background)] border border-[var(--border)] rounded text-[10px] font-bold uppercase tracking-wider font-mono shadow-sm">?</kbd>
                             </div>

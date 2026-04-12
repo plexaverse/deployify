@@ -349,7 +349,7 @@ export default function BillingPage() {
 
                         <Separator className="bg-[var(--border)]" />
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
+                            <table className="w-full text-left text-xs">
                                 <thead className="bg-[var(--muted)]/10 border-b border-[var(--border)]">
                                     <tr>
                                         <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Invoice #</th>

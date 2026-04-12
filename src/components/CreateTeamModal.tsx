@@ -100,7 +100,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 value={slug}
                                 onChange={(e) => setSlug(e.target.value)}
                                 placeholder="ACME-CORP"
-                                className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 required
                                 pattern="^[a-z0-9-]+$"
                                 title="Only lowercase letters, numbers, and hyphens allowed"

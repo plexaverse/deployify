@@ -288,7 +288,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 value={newKey}
                                 onChange={(e) => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="API_KEY"
-                                className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -298,7 +298,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 value={newValue}
                                 onChange={(e) => setNewValue(e.target.value)}
                                 placeholder="SECRET-VALUE"
-                                className="font-mono text-sm placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2 md:col-span-2">
@@ -426,7 +426,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                             <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--card-hover)] transition-colors last:border-0">
                                                 <td className="py-4 px-4 font-mono">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[var(--primary)] text-sm">{env.key}</span>
+                                                        <span className="text-[var(--primary)] text-xs">{env.key}</span>
                                                         {env.isSecret && (
                                                             <span title="Secret">
                                                                 <Shield className="w-3 h-3 text-[var(--info)]" />
@@ -434,7 +434,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="py-4 px-4 text-sm font-mono">
+                                                <td className="py-4 px-4 text-xs font-mono">
                                                     <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--border)] px-2.5 py-1.5 rounded-md w-fit max-w-full overflow-hidden shadow-sm">
                                                         {revealedIds.has(env.id) ? (
                                                             <span className="text-[var(--foreground)] truncate">
@@ -499,7 +499,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
 
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
                     <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
-                    <div className="text-sm">
+                    <div className="text-xs">
                         <p className="font-semibold text-[var(--info)] mb-1">Deployment required</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changes to environment variables will apply to new deployments. Existing deployments will keep their current variables until redeployed.
