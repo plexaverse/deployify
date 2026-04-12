@@ -1860,3 +1860,16 @@ Concluded the typography size reduction pass to conform with the highest-density
 - **Files Updated**: All components inside `src/components/` and `src/app/` where appropriate.
 - **Standardization**:
     - Reduced `text-sm` to `text-xs` for text elements within form components (`ui/input.tsx`, `ui/native-select.tsx`), lists, buttons, code blocks, comparison tables, error messages and standard layout regions globally. This completes the comprehensive scale-down to the tightest technical aesthetic standard.
+
+## Session 191: Managed Data Portability UI
+
+Standardized the database import/export interface with the precision-tooling aesthetic.
+
+### Portability UI Enhancements
+- **File Updated**: `src/components/DataPortabilityModal.tsx`
+- **Standardization**:
+    - Implemented a 2-mode switcher (Import/Export) using the high-density segmented button standard.
+    - Standardized GCS URI inputs with `font-mono text-xs` and precision placeholders.
+    - Integrated standardized `AlertCircle` and `Database` iconography for technical guidance.
+    - Enforced `text-[10px] font-bold uppercase tracking-wider` for all metadata labels and system permissions warnings.
+    - Verified consistent vertical rhythm and spatial balance within the modal layout.
