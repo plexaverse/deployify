@@ -81,7 +81,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                     <thead>
                         <tr>
                             <th className="p-4 min-w-[200px] bg-[var(--background)] sticky left-0 z-10 border-b border-[var(--border)] shadow-[4px_0_10px_-2px_rgba(0,0,0,0.1)]">
-                                <span className="text-sm font-semibold">Features</span>
+                                <span className="text-xs font-semibold">Features</span>
                             </th>
                             {plans.map((plan) => (
                                 <th key={plan.id} className="p-4 min-w-[150px] border-b border-[var(--border)] text-center bg-[var(--background)]">
@@ -109,7 +109,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                     <tr key={feature.name} className="group hover:bg-[var(--muted)]/5 transition-colors">
                                         <td className="p-4 border-b border-[var(--border)] bg-[var(--background)] sticky left-0 z-10 shadow-[4px_0_10px_-2px_rgba(0,0,0,0.05)]">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-sm font-semibold text-[var(--foreground)]">{feature.name}</span>
+                                                <span className="text-xs font-semibold text-[var(--foreground)]">{feature.name}</span>
                                                 {feature.info && (
                                                     <div className="group/tooltip relative">
                                                         <HelpCircle className="w-3.5 h-3.5 text-[var(--muted-foreground)] cursor-help" />
