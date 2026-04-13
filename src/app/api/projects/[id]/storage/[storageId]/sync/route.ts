@@ -175,23 +175,66 @@ export async function GET(
                 return NextResponse.json({ success: true, status: 'error', error: storage.lastError });
             }
 
-            // Handle Import/Export Completion
+            // Handle Import/Export/Clone Completion
             const lastOp = storage.metadata?.lastOperation;
-            if (lastOp === 'import' || lastOp === 'export') {
-                storage.status = 'active';
-                storage.lastSyncedAt = now;
-                storage.updatedAt = now;
-                storage.metadata = { ...storage.metadata, lastOperation: undefined, operationName: undefined };
+            if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import') {
+                if (lastOp === 'clone_export') {
+                    // Export finished, now trigger Import on the clone
+                    try {
+                        const portabilityUri = storage.metadata?.portabilityUri as string;
+                        const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
 
-                storageConfigs[index] = storage;
-                await updateProject(id, { storageConfigs });
+                        let importOperation;
+                        if (storage.type.includes('cloud-sql')) {
+                            const { importInstance } = await import('@/lib/gcp/cloudsql');
+                            importOperation = await importInstance(resourceName, portabilityUri, project.slug);
+                        } else if (storage.type === 'memorystore-redis') {
+                            const { importInstance } = await import('@/lib/gcp/memorystore');
+                            const region = (storage.metadata?.region as string) || project.region || 'us-central1';
+                            importOperation = await importInstance(resourceName, region, portabilityUri);
+                        }
 
-                return NextResponse.json({
-                    success: true,
-                    status: 'active',
-                    message: `${lastOp === 'import' ? 'Import' : 'Export'} completed successfully`,
-                    lastSyncedAt: storage.lastSyncedAt.toISOString()
-                });
+                        if (importOperation) {
+                            storage.metadata = {
+                                ...storage.metadata,
+                                operationName: importOperation,
+                                lastOperation: 'clone_import'
+                            };
+                            storageConfigs[index] = storage;
+                            await updateProject(id, { storageConfigs });
+                            return NextResponse.json({
+                                success: true,
+                                status: 'provisioning',
+                                message: 'Data export complete, now importing into clone...'
+                            });
+                        }
+                    } catch (importErr) {
+                        console.error('[CloneImport] Failed to trigger import:', importErr);
+                        storage.status = 'error';
+                        storage.lastError = `Export complete, but import trigger failed: ${importErr instanceof Error ? importErr.message : 'Unknown'}`;
+                    }
+                } else {
+                    // Normal import/export or final clone_import finished
+                    storage.status = 'active';
+                    storage.lastSyncedAt = now;
+                    storage.updatedAt = now;
+                    storage.metadata = {
+                        ...storage.metadata,
+                        lastOperation: undefined,
+                        operationName: undefined,
+                        portabilityUri: lastOp === 'clone_import' ? undefined : storage.metadata?.portabilityUri
+                    };
+
+                    storageConfigs[index] = storage;
+                    await updateProject(id, { storageConfigs });
+
+                    return NextResponse.json({
+                        success: true,
+                        status: 'active',
+                        message: `${lastOp === 'clone_import' ? 'Clone with data' : (lastOp === 'import' ? 'Import' : 'Export')} completed successfully`,
+                        lastSyncedAt: storage.lastSyncedAt.toISOString()
+                    });
+                }
             }
 
             // Check if we need follow-up operations (e.g. create DB/User for Cloud SQL)

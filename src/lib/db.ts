@@ -66,6 +66,7 @@ export async function cloneStorageConfig(
         name?: string;
         environment?: 'production' | 'preview' | 'both';
         envKey?: string;
+        includeData?: boolean;
     } = {}
 ): Promise<import('@/types').StorageConfig | null> {
     const project = await getProjectById(projectId);
@@ -98,7 +99,7 @@ export async function cloneStorageConfig(
         ...storage,
         id: newId,
         name: overrides.name || `${storage.name} (CLONE)`,
-        status: 'active', // Cloned configs start as active (assuming source was valid)
+        status: overrides.includeData ? 'provisioning' : 'active',
         environment: overrides.environment || storage.environment,
         envKey: overrides.envKey || storage.envKey,
         connectionStringSecretId,
@@ -107,7 +108,9 @@ export async function cloneStorageConfig(
         metadata: {
             ...storage.metadata,
             operationName: undefined, // Clear operation tracking for clone
-            lastOperation: undefined
+            lastOperation: undefined,
+            clonedFrom: storageId,
+            includeData: overrides.includeData
         }
     };
 

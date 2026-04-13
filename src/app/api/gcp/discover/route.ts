@@ -32,9 +32,18 @@ export async function GET(request: NextRequest) {
         }
 
         // 2. Perform discovery (either for the project's default GCP project or an override)
-        const targetGcpProjectId = gcpProjectId || access.project.id; // Or use access.project.metadata?.gcpProjectId if it existed
+        const targetGcpProjectId = gcpProjectId || access.project.id;
 
-        const resources = await discoverResources(targetGcpProjectId);
+        // 3. Fetch active branch patterns to detect orphans
+        const { listDeploymentsByProject } = await import('@/lib/db');
+        const deployments = await listDeploymentsByProject(projectId, 100);
+        const activePatterns = Array.from(new Set(
+            deployments
+                .filter(d => d.status === 'ready' || d.status === 'building')
+                .map(d => d.pullRequestNumber ? `pr${d.pullRequestNumber}` : d.gitBranch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase())
+        ));
+
+        const resources = await discoverResources(targetGcpProjectId, activePatterns);
 
         return NextResponse.json({
             success: true,

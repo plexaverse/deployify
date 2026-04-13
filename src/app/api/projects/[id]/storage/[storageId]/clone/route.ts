@@ -29,12 +29,62 @@ export async function POST(
         }
 
         const body = await request.json();
-        const { overrides } = body;
+        const { overrides = {} } = body;
 
         const clonedConfig = await cloneStorageConfig(id, storageId, overrides);
 
         if (!clonedConfig) {
             return NextResponse.json({ error: 'Failed to clone storage configuration' }, { status: 500 });
+        }
+
+        // Orchestrate "Clone with Data" export job if requested
+        if (overrides.includeData) {
+            try {
+                const project = access.project;
+                const sourceConfig = project.storageConfigs?.find(s => s.id === storageId);
+
+                if (sourceConfig && (sourceConfig.type.includes('cloud-sql') || sourceConfig.type === 'memorystore-redis')) {
+                    const timestamp = Date.now();
+                    const bucketName = `deployify-portability-${id}`;
+                    const gcsUri = `gs://${bucketName}/clones/${storageId}-to-${clonedConfig.id}-${timestamp}.${sourceConfig.type === 'memorystore-redis' ? 'rdb' : 'sql'}`;
+
+                    let operationName;
+                    if (sourceConfig.type.includes('cloud-sql')) {
+                        const { exportInstance } = await import('@/lib/gcp/cloudsql');
+                        operationName = await exportInstance(
+                            (sourceConfig.metadata?.resourceName as string) || sourceConfig.name.toLowerCase().replace(/\s+/g, '-'),
+                            gcsUri
+                        );
+                    } else if (sourceConfig.type === 'memorystore-redis') {
+                        const { exportInstance } = await import('@/lib/gcp/memorystore');
+                        operationName = await exportInstance(
+                            (sourceConfig.metadata?.resourceName as string) || sourceConfig.name.toLowerCase().replace(/\s+/g, '-'),
+                            (sourceConfig.metadata?.region as string) || project.region || 'us-central1',
+                            gcsUri
+                        );
+                    }
+
+                    if (operationName) {
+                        // Update the clone with the operation tracking
+                        const { updateProject } = await import('@/lib/db');
+                        const updatedConfigs = (project.storageConfigs || []).map(c =>
+                            c.id === clonedConfig.id ? {
+                                ...c,
+                                metadata: {
+                                    ...c.metadata,
+                                    operationName,
+                                    lastOperation: 'clone_export',
+                                    portabilityUri: gcsUri
+                                }
+                            } : c
+                        );
+                        await updateProject(id, { storageConfigs: updatedConfigs });
+                    }
+                }
+            } catch (e) {
+                console.error(`[CloneData] Export orchestration failed:`, e);
+                // We don't fail the clone itself, but the status will remain provisioning
+            }
         }
 
         await logAuditEvent(
