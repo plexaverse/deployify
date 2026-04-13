@@ -26,6 +26,7 @@ import {
     History as HistoryIcon,
     GitBranch,
     Upload,
+    CopyPlus,
     Eye,
     ShieldCheck,
     Shield,
@@ -85,6 +86,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         syncStorageStatus,
         diagnoseStorageConnection,
         rotateStorageCredentials,
+        cloneStorageConfig,
         runProjectMigration,
         runProjectRollback,
         clearMigrationStatus,
@@ -145,6 +147,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [pitrEnabled, setPitrEnabled] = useState(false);
     const [deletionProtection, setDeletionProtection] = useState(false);
     const [sslRequired, setSslRequired] = useState(false);
+    const [discoveredResources, setDiscoveredResources] = useState<import('@/lib/gcp/discovery').DiscoveredResource[]>([]);
+    const [isDiscovering, setIsDiscovering] = useState(false);
     const [alertCpu, setAlertCpu] = useState(80);
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
@@ -448,6 +452,46 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         }
     };
 
+    const handleDiscover = async () => {
+        setIsDiscovering(true);
+        try {
+            const res = await fetch(`/api/gcp/discover?projectId=${projectId}${providerProjectId ? `&gcpProjectId=${providerProjectId}` : ''}`);
+            const data = await res.json();
+            if (data.success) {
+                setDiscoveredResources(data.resources);
+                if (data.resources.length === 0) {
+                    toast.info('No database resources discovered in project');
+                } else {
+                    toast.success(`Discovered ${data.resources.length} resources`);
+                }
+            } else {
+                toast.error(data.error || 'Failed to discover resources');
+            }
+        } catch (e) {
+            console.error('Discovery failed:', e);
+            toast.error('Discovery failed');
+        } finally {
+            setIsDiscovering(false);
+        }
+    };
+
+    const handleApplyDiscovery = (resource: import('@/lib/gcp/discovery').DiscoveredResource) => {
+        setName(resource.name.toUpperCase());
+        setRegion(resource.region);
+
+        if (resource.type === 'cloud-sql') {
+            const version = resource.metadata?.databaseVersion as string || '';
+            setType(version.includes('MYSQL') ? 'cloud-sql-mysql' : 'cloud-sql-postgres');
+        } else if (resource.type === 'memorystore-redis') {
+            setType('memorystore-redis');
+        } else if (resource.type === 'firestore') {
+            setType('firestore');
+        }
+
+        setDiscoveredResources([]);
+        toast.success(`Applied settings for ${resource.name}`);
+    };
+
     const fetchMetrics = useCallback(async (storageId: string) => {
         setIsLoadingMetrics(prev => ({ ...prev, [storageId]: true }));
         try {
@@ -656,7 +700,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold">External GCP Project ID (Optional)</Label>
+                                <Label className="text-xs font-bold flex items-center justify-between">
+                                    External GCP Project ID (Optional)
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={handleDiscover}
+                                        disabled={isDiscovering}
+                                        className="h-5 px-1.5 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    >
+                                        {isDiscovering ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Search className="w-3 h-3 mr-1" />}
+                                        Scan Project
+                                    </Button>
+                                </Label>
                                 <Input
                                     value={providerProjectId}
                                     onChange={(e) => setProviderProjectId(e.target.value)}
@@ -697,6 +753,30 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </NativeSelect>
                             </div>
                         </div>
+
+                        {discoveredResources.length > 0 && (
+                            <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Discovered Resources</Label>
+                                    <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[9px] font-bold">Clear</Button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {discoveredResources.map((res) => (
+                                        <button
+                                            key={res.id}
+                                            onClick={() => handleApplyDiscovery(res)}
+                                            className="flex flex-col items-start p-2 text-left border border-[var(--border)] rounded-md bg-[var(--background)] hover:border-[var(--primary)] transition-colors group"
+                                        >
+                                            <span className="text-[10px] font-bold uppercase truncate w-full">{res.name}</span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
+                                                <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {!editingId && (
                             <div className="space-y-2">
@@ -1366,6 +1446,15 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {config.alertSettings?.enabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => cloneStorageConfig(projectId, config.id)}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="Duplicate Connector"
+                                    >
+                                        <CopyPlus className="w-4 h-4" />
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"

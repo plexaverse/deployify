@@ -2,7 +2,7 @@ import { getDb, Collections } from '@/lib/firebase';
 import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, TeamInvite, TeamRole, DeploymentType } from '@/types';
 import { generateId, cleanFirestoreData } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
-import { getSecretValue } from '@/lib/gcp/secrets';
+import { getSecretValue, upsertSecret } from '@/lib/gcp/secrets';
 import { config } from '@/lib/config';
 import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 // ============= User Operations =============
@@ -54,6 +54,67 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
         ...data,
         updatedAt: new Date(),
     }));
+}
+
+/**
+ * Clone a storage configuration to a new environment or project context
+ */
+export async function cloneStorageConfig(
+    projectId: string,
+    storageId: string,
+    overrides: {
+        name?: string;
+        environment?: 'production' | 'preview' | 'both';
+        envKey?: string;
+    } = {}
+): Promise<import('@/types').StorageConfig | null> {
+    const project = await getProjectById(projectId);
+    if (!project || !project.storageConfigs) return null;
+
+    const storage = project.storageConfigs.find(s => s.id === storageId);
+    if (!storage) return null;
+
+    const newId = `storage_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 8)}`;
+    const now = new Date();
+
+    let connectionStringSecretId = storage.connectionStringSecretId;
+
+    // Duplicating the secret in Secret Manager for isolation
+    if (storage.connectionStringSecretId) {
+        try {
+            const sourceValue = await getSecretValue(storage.connectionStringSecretId);
+            if (sourceValue) {
+                const newSecretId = `deployify-${projectId}-${newId}-conn`;
+                connectionStringSecretId = await upsertSecret(newSecretId, sourceValue);
+            }
+        } catch (e) {
+            console.error(`[Cloning] Failed to duplicate secret for ${storage.name}:`, e);
+            // We continue with the existing secret ID if duplication fails,
+            // though isolation won't be achieved for the connection string.
+        }
+    }
+
+    const cloned: import('@/types').StorageConfig = {
+        ...storage,
+        id: newId,
+        name: overrides.name || `${storage.name} (CLONE)`,
+        status: 'active', // Cloned configs start as active (assuming source was valid)
+        environment: overrides.environment || storage.environment,
+        envKey: overrides.envKey || storage.envKey,
+        connectionStringSecretId,
+        createdAt: now,
+        updatedAt: now,
+        metadata: {
+            ...storage.metadata,
+            operationName: undefined, // Clear operation tracking for clone
+            lastOperation: undefined
+        }
+    };
+
+    const updatedConfigs = [...project.storageConfigs, cloned];
+    await updateProject(projectId, { storageConfigs: updatedConfigs });
+
+    return cloned;
 }
 
 /**

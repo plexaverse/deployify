@@ -94,6 +94,7 @@ export interface ProjectSlice {
     updateStorageAlerts: (projectId: string, storageId: string, alerts: StorageConfig['alertSettings']) => Promise<boolean>;
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
+    cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string }) => Promise<boolean>;
     runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     runProjectRollback: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
@@ -917,6 +918,32 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return true;
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to rotate credentials', { id: toastId });
+            return false;
+        }
+    },
+
+    cloneStorageConfig: async (projectId, storageId, overrides) => {
+        const toastId = toast.loading('Cloning configuration...');
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/clone`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ overrides }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to clone configuration');
+            }
+
+            const { projectStorageConfigs } = get();
+            set({ projectStorageConfigs: [...projectStorageConfigs, data.storageConfig] });
+
+            toast.success('Configuration cloned successfully', { id: toastId });
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to clone configuration', { id: toastId });
             return false;
         }
     },
