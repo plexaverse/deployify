@@ -77,12 +77,12 @@ export async function getOperationStatus(
 /**
  * Delete a Firestore database
  */
-export async function deleteDatabase(databaseId: string): Promise<string> {
+export async function deleteDatabase(databaseId: string, projectId?: string): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
         return `projects/mock/databases/${databaseId}/operations/delete`;
     }
 
-    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const gcpProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
     const name = `projects/${gcpProjectId}/databases/${databaseId}`;
 

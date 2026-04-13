@@ -44,6 +44,15 @@ export async function discoverResources(
                 type: 'firestore',
                 region: 'us-central1',
                 status: 'READY'
+            },
+            {
+                id: 'orphan-db-pr-123',
+                name: 'orphan-db-pr-123',
+                type: 'cloud-sql',
+                region: 'us-central1',
+                status: 'RUNNABLE',
+                isOrphaned: true,
+                metadata: { databaseVersion: 'POSTGRES_15' }
             }
         ];
     }
