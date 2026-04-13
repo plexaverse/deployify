@@ -149,6 +149,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [sslRequired, setSslRequired] = useState(false);
     const [discoveredResources, setDiscoveredResources] = useState<import('@/lib/gcp/discovery').DiscoveredResource[]>([]);
     const [isDiscovering, setIsDiscovering] = useState(false);
+    const [isCleaningUp, setIsCleaningUp] = useState(false);
+    const [showCleanupConfirm, setShowCleanupConfirm] = useState(false);
     const [alertCpu, setAlertCpu] = useState(80);
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
@@ -477,6 +479,47 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         }
     };
 
+    const handleCleanupOrphaned = async () => {
+        const orphaned = discoveredResources.filter(r => r.isOrphaned);
+        if (orphaned.length === 0) return;
+
+        setIsCleaningUp(true);
+        try {
+            const res = await fetch('/api/gcp/cleanup-orphaned', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectId,
+                    resources: orphaned.map(r => ({ id: r.id, type: r.type, region: r.region }))
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                const results = data.results as { id: string; success: boolean; error?: string }[];
+                const successCount = results.filter(r => r.success).length;
+                const failCount = results.filter(r => !r.success).length;
+
+                if (failCount === 0) {
+                    toast.success(`Successfully cleaned up ${successCount} orphaned resources`);
+                } else {
+                    toast.warning(`Cleaned up ${successCount} resources, but ${failCount} failed`);
+                }
+
+                // Refresh discovery results
+                handleDiscover();
+            } else {
+                toast.error(data.error || 'Cleanup failed');
+            }
+        } catch (e) {
+            console.error('Cleanup orchestration failed:', e);
+            toast.error('Failed to orchestrate cleanup');
+        } finally {
+            setIsCleaningUp(false);
+            setShowCleanupConfirm(false);
+        }
+    };
+
     const handleApplyDiscovery = (resource: import('@/lib/gcp/discovery').DiscoveredResource) => {
         setName(resource.name.toUpperCase());
         setRegion(resource.region);
@@ -760,7 +803,20 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Discovered Resources</Label>
-                                    <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[9px] font-bold">Clear</Button>
+                                    <div className="flex items-center gap-2">
+                                        {discoveredResources.some(r => r.isOrphaned) && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setShowCleanupConfirm(true)}
+                                                className="h-5 px-1.5 text-[9px] font-bold uppercase tracking-wider text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error)]/10"
+                                            >
+                                                <Trash2 className="w-3 h-3 mr-1" />
+                                                Cleanup Orphaned
+                                            </Button>
+                                        )}
+                                        <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[9px] font-bold">Clear</Button>
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                     {discoveredResources.map((res) => (
@@ -2322,6 +2378,29 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     </div>
                 }
                 confirmText="Duplicate Connector"
+            />
+
+            <ConfirmationModal
+                isOpen={showCleanupConfirm}
+                onClose={() => setShowCleanupConfirm(false)}
+                onConfirm={handleCleanupOrphaned}
+                title="Cleanup Orphaned Resources"
+                variant="destructive"
+                description={
+                    <div className="space-y-4">
+                        <p className="text-xs">
+                            This will permanently delete <strong>{discoveredResources.filter(r => r.isOrphaned).length}</strong> ephemeral resources that are no longer associated with any active Pull Request or deployment.
+                        </p>
+                        <div className="p-3 border border-[var(--error)]/20 bg-[var(--error)]/5 rounded-xl flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-[var(--error)] shrink-0 mt-0.5" />
+                            <p className="text-[10px] font-bold uppercase text-[var(--error)] leading-relaxed">
+                                THIS ACTION IS IRREVERSIBLE. ALL DATA IN THESE EPHEMERAL DATABASES WILL BE LOST.
+                            </p>
+                        </div>
+                    </div>
+                }
+                confirmText="Permanently Delete Orphaned"
+                loading={isCleaningUp}
             />
 
             <DataPortabilityModal

@@ -42,6 +42,54 @@ export async function GET(
         const storage = storageConfigs[index];
         const now = new Date();
 
+        const triggerCloneExport = async () => {
+            try {
+                const sourceStorageId = storage.metadata?.sourceStorageId as string;
+                const sourceConfig = storageConfigs.find(s => s.id === sourceStorageId);
+                const portabilityUri = storage.metadata?.portabilityUri as string;
+
+                if (sourceConfig) {
+                    const sourceResourceName = (sourceConfig.metadata?.resourceName as string) || sourceConfig.name.toLowerCase().replace(/\s+/g, '-');
+                    let exportOperation;
+
+                    if (sourceConfig.type.includes('cloud-sql')) {
+                        const { exportInstance } = await import('@/lib/gcp/cloudsql');
+                        exportOperation = await exportInstance(sourceResourceName, portabilityUri);
+                    } else if (sourceConfig.type === 'memorystore-redis') {
+                        const { exportInstance } = await import('@/lib/gcp/memorystore');
+                        const region = (sourceConfig.metadata?.region as string) || project.region || 'us-central1';
+                        exportOperation = await exportInstance(sourceResourceName, region, portabilityUri);
+                    } else if (sourceConfig.type === 'firestore') {
+                        const { exportDocuments } = await import('@/lib/gcp/firestore-admin');
+                        exportOperation = await exportDocuments(sourceResourceName, portabilityUri);
+                    }
+
+                    if (exportOperation) {
+                        storage.metadata = {
+                            ...storage.metadata,
+                            operationName: exportOperation,
+                            lastOperation: 'clone_export'
+                        };
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({
+                            success: true,
+                            status: 'provisioning',
+                            message: 'Target ready, now exporting source data...'
+                        });
+                    }
+                }
+            } catch (exportErr) {
+                console.error('[CloneExport] Failed to trigger export:', exportErr);
+                storage.status = 'error';
+                storage.lastError = `Target ready, but export trigger failed: ${exportErr instanceof Error ? exportErr.message : 'Unknown'}`;
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+                return NextResponse.json({ success: true, status: 'error', error: storage.lastError });
+            }
+            return NextResponse.json({ success: false, error: 'Failed to trigger clone export' }, { status: 500 });
+        };
+
         // 1. Check monitoring alerts for active connectors
         if (storage.status === 'active' && storage.metadata?.provisioned && storage.alertSettings?.enabled) {
             try {
@@ -177,8 +225,62 @@ export async function GET(
 
             // Handle Import/Export/Clone Completion
             const lastOp = storage.metadata?.lastOperation;
-            if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import') {
-                if (lastOp === 'clone_export') {
+            if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import' || lastOp === 'clone_provision' || lastOp === 'clone_db_create' || lastOp === 'clone_user_create') {
+                if (lastOp === 'clone_provision') {
+                    // Resource provisioned, if Cloud SQL we need to create DB/User first
+                    if (storage.type.includes('cloud-sql')) {
+                        try {
+                            const { createDatabase } = await import('@/lib/gcp/cloudsql');
+                            const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                            const dbName = project.slug;
+
+                            const opName = await createDatabase(instanceName, dbName);
+                            storage.metadata = {
+                                ...storage.metadata,
+                                operationName: opName,
+                                lastOperation: 'clone_db_create',
+                                dbOperationName: opName
+                            };
+                            storageConfigs[index] = storage;
+                            await updateProject(id, { storageConfigs });
+                            return NextResponse.json({ success: true, status: 'provisioning', message: 'Instance ready, creating clone database...' });
+                        } catch (dbErr) {
+                            console.error('[CloneDBCreate] Failed:', dbErr);
+                            storage.status = 'error';
+                            storage.lastError = `Instance ready, but DB creation failed: ${dbErr instanceof Error ? dbErr.message : 'Unknown'}`;
+                        }
+                    } else {
+                        // For non-SQL, jump straight to export
+                        return triggerCloneExport();
+                    }
+                } else if (lastOp === 'clone_db_create') {
+                    // Database created, now create user
+                    try {
+                        const { createUser } = await import('@/lib/gcp/cloudsql');
+                        const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+
+                        const opName = await createUser(instanceName, 'deployify-sa');
+                        storage.metadata = {
+                            ...storage.metadata,
+                            operationName: opName,
+                            lastOperation: 'clone_user_create',
+                            userOperationName: opName,
+                            dbCreated: true,
+                            defaultDb: project.slug
+                        };
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Database ready, creating IAM user...' });
+                    } catch (userErr) {
+                        console.error('[CloneUserCreate] Failed:', userErr);
+                        storage.status = 'error';
+                        storage.lastError = `DB ready, but User creation failed: ${userErr instanceof Error ? userErr.message : 'Unknown'}`;
+                    }
+                } else if (lastOp === 'clone_user_create') {
+                    // User created, finally trigger export
+                    storage.metadata = { ...storage.metadata, userCreated: true };
+                    return triggerCloneExport();
+                } else if (lastOp === 'clone_export') {
                     // Export finished, now trigger Import on the clone
                     try {
                         const portabilityUri = storage.metadata?.portabilityUri as string;
