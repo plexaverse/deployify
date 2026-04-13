@@ -160,6 +160,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [branchingEnabled, setBranchingEnabled] = useState(false);
     const [branchingTemplate, setBranchingTemplate] = useState('{base}_{identifier}');
     const [seedCommand, setSeedCommand] = useState('');
+    const [isCloningId, setIsCloningId] = useState<string | null>(null);
+    const [cloneWithData, setCloneWithData] = useState(false);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -765,9 +767,17 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         <button
                                             key={res.id}
                                             onClick={() => handleApplyDiscovery(res)}
-                                            className="flex flex-col items-start p-2 text-left border border-[var(--border)] rounded-md bg-[var(--background)] hover:border-[var(--primary)] transition-colors group"
+                                            className={cn(
+                                                "flex flex-col items-start p-2 text-left border rounded-md bg-[var(--background)] transition-colors group",
+                                                res.isOrphaned ? "border-[var(--error)]/30 hover:border-[var(--error)]" : "border-[var(--border)] hover:border-[var(--primary)]"
+                                            )}
                                         >
-                                            <span className="text-[10px] font-bold uppercase truncate w-full">{res.name}</span>
+                                            <div className="flex items-center justify-between w-full gap-2">
+                                                <span className="text-[10px] font-bold uppercase truncate">{res.name}</span>
+                                                {res.isOrphaned && (
+                                                    <span className="text-[8px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
+                                                )}
+                                            </div>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
                                                 <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
@@ -1449,7 +1459,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => cloneStorageConfig(projectId, config.id)}
+                                        onClick={() => {
+                                            setIsCloningId(config.id);
+                                            setCloneWithData(false);
+                                        }}
                                         className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                         title="Duplicate Connector"
                                     >
@@ -2267,6 +2280,48 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 }
                 confirmText={deleteResource ? "Delete Resource & Disconnect" : "Disconnect"}
                 variant="destructive"
+            />
+
+            <ConfirmationModal
+                isOpen={!!isCloningId}
+                onClose={() => setIsCloningId(null)}
+                onConfirm={async () => {
+                    if (isCloningId) {
+                        await cloneStorageConfig(projectId, isCloningId, { includeData: cloneWithData });
+                        setIsCloningId(null);
+                    }
+                }}
+                title="Duplicate Storage Connector"
+                description={
+                    <div className="space-y-4">
+                        <p className="text-xs">
+                            Create a new storage connector with identical configuration. Secrets will be isolated in GCP Secret Manager.
+                        </p>
+
+                        {(connectors.find(c => c.id === isCloningId)?.type.includes('cloud-sql') || connectors.find(c => c.id === isCloningId)?.type === 'memorystore-redis') && (
+                            <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                <div className="space-y-0.5">
+                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Include Data snapshot</Label>
+                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">Automated GCS-based export/import</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={cloneWithData}
+                                    onChange={(e) => setCloneWithData(e.target.checked)}
+                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                />
+                            </div>
+                        )}
+
+                        <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-2">
+                            <Info className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                CONFIGURATION WILL BE DUPLICATED IMMEDIATELY. IF SNAPSHOT IS INCLUDED, THE NEW CONNECTOR WILL REMAIN IN PROVISIONING STATE UNTIL DATA TRANSFER COMPLETES.
+                            </p>
+                        </div>
+                    </div>
+                }
+                confirmText="Duplicate Connector"
             />
 
             <DataPortabilityModal

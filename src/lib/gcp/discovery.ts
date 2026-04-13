@@ -7,6 +7,7 @@ export interface DiscoveredResource {
     type: 'cloud-sql' | 'firestore' | 'memorystore-redis';
     region: string;
     status: string;
+    isOrphaned?: boolean;
     metadata?: Record<string, string | number | boolean | undefined>;
 }
 
@@ -14,7 +15,8 @@ export interface DiscoveredResource {
  * Discover existing database resources in a GCP project
  */
 export async function discoverResources(
-    projectId?: string
+    projectId?: string,
+    activeBranchPatterns: string[] = []
 ): Promise<DiscoveredResource[]> {
     const targetProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
@@ -62,12 +64,16 @@ export async function discoverResources(
             const data = await sqlRes.json();
             if (data.items) {
                 data.items.forEach((item: { name: string; region: string; state: string; databaseVersion: string; connectionName: string }) => {
+                    const isEphemeral = item.name.includes('-pr-') || item.name.includes('-branch-');
+                    const isOrphaned = isEphemeral && activeBranchPatterns.length > 0 && !activeBranchPatterns.some(p => item.name.includes(p));
+
                     resources.push({
                         id: item.name,
                         name: item.name,
                         type: 'cloud-sql',
                         region: item.region,
                         status: item.state,
+                        isOrphaned,
                         metadata: {
                             databaseVersion: item.databaseVersion,
                             connectionName: item.connectionName
@@ -92,12 +98,16 @@ export async function discoverResources(
                     const parts = item.name.split('/');
                     const id = parts[parts.length - 1];
                     const region = parts[parts.length - 3];
+                    const isEphemeral = id.includes('-pr-') || id.includes('-branch-');
+                    const isOrphaned = isEphemeral && activeBranchPatterns.length > 0 && !activeBranchPatterns.some(p => id.includes(p));
+
                     resources.push({
                         id,
                         name: id,
                         type: 'memorystore-redis',
                         region,
                         status: item.state,
+                        isOrphaned,
                         metadata: {
                             memorySizeGb: item.memorySizeGb,
                             redisVersion: item.redisVersion

@@ -477,7 +477,18 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Integrate "Duplicate Connector" action into the storage dashboard for IaC portability
 - [x] Verify 100% functional integrity and high-density aesthetic compliance
 
+### Phase 71: Storage Operational Resilience & Advanced Data Portability (IN PROGRESS)
+- [ ] Implement "Clone with Data" orchestration for automated export/import during duplication
+- [ ] Harden IAM diagnostics for Project Service Agent roles in the troubleshooting engine
+- [ ] Implement orphaned ephemeral resource detection in the discovery engine
+- [ ] Add "Include Data" toggle to the duplication flow in the Storage UI
+- [ ] Verify 100% functional integrity and operational resilience
+
 ## Progress Updates
+
+### 2027-05-15: Storage Operational Resilience & Advanced Data Portability
+- Initiated Phase 71: Storage Operational Resilience & Advanced Data Portability.
+- Defined the roadmap for automated data cloning, IAM-level health checks, and cost-optimization through orphaned resource detection.
 
 ### 2027-05-14: Multi-Project Resource Discovery & Connectivity Intelligence
 - Completed Phase 70: Multi-Project Resource Discovery & Connectivity Intelligence.
