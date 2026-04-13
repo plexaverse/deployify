@@ -149,6 +149,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [sslRequired, setSslRequired] = useState(false);
     const [discoveredResources, setDiscoveredResources] = useState<import('@/lib/gcp/discovery').DiscoveredResource[]>([]);
     const [isDiscovering, setIsDiscovering] = useState(false);
+    const [isReclaiming, setIsReclaiming] = useState<string | null>(null);
     const [alertCpu, setAlertCpu] = useState(80);
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
@@ -494,6 +495,58 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         toast.success(`Applied settings for ${resource.name}`);
     };
 
+    const handleReclaimResource = async (resource: import('@/lib/gcp/discovery').DiscoveredResource) => {
+        if (!confirm(`Are you sure you want to RECLAIM ${resource.name}? This will permanently delete the resource from GCP.`)) return;
+
+        setIsReclaiming(resource.id);
+        try {
+            const res = await fetch(`/api/gcp/discover?projectId=${projectId}&resourceId=${resource.id}&resourceType=${resource.type}&region=${resource.region}${providerProjectId ? `&gcpProjectId=${providerProjectId}` : ''}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success(data.message);
+                // Refresh discovery list
+                handleDiscover();
+            } else {
+                toast.error(data.error || 'Reclamation failed');
+            }
+        } catch (e) {
+            console.error('Reclaim failed:', e);
+            toast.error('Reclaim operation failed');
+        } finally {
+            setIsReclaiming(null);
+        }
+    };
+
+    const handlePurgeOrphans = async () => {
+        const orphans = discoveredResources.filter(r => r.isOrphaned);
+        if (orphans.length === 0) return;
+
+        if (!confirm(`Are you sure you want to PURGE ALL ${orphans.length} orphaned resources? This action is irreversible.`)) return;
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const resource of orphans) {
+            setIsReclaiming(resource.id);
+            try {
+                const res = await fetch(`/api/gcp/discover?projectId=${projectId}&resourceId=${resource.id}&resourceType=${resource.type}&region=${resource.region}${providerProjectId ? `&gcpProjectId=${providerProjectId}` : ''}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) successCount++;
+                else failCount++;
+            } catch {
+                failCount++;
+            }
+        }
+
+        setIsReclaiming(null);
+        if (successCount > 0) toast.success(`Successfully reclaimed ${successCount} resources`);
+        if (failCount > 0) toast.error(`Failed to reclaim ${failCount} resources`);
+        handleDiscover();
+    };
+
     const fetchMetrics = useCallback(async (storageId: string) => {
         setIsLoadingMetrics(prev => ({ ...prev, [storageId]: true }));
         try {
@@ -758,31 +811,70 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         {discoveredResources.length > 0 && (
                             <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2">
-                                <div className="flex items-center justify-between">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Discovered Resources</Label>
-                                    <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[9px] font-bold">Clear</Button>
+                                <div className="flex items-center justify-between border-b border-[var(--primary)]/10 pb-2">
+                                    <div className="flex items-center gap-4">
+                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Infrastructure Health</Label>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] font-bold text-[var(--success)]">{discoveredResources.filter(r => !r.isOrphaned).length} ACTIVE</span>
+                                            <span className="text-[10px] font-bold text-[var(--error)]">{discoveredResources.filter(r => r.isOrphaned).length} ORPHANED</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {discoveredResources.some(r => r.isOrphaned) && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handlePurgeOrphans}
+                                                disabled={isReclaiming !== null}
+                                                className="h-5 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error)]/10"
+                                            >
+                                                Purge All Orphans
+                                            </Button>
+                                        )}
+                                        <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[9px] font-bold uppercase">Clear</Button>
+                                    </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                     {discoveredResources.map((res) => (
-                                        <button
+                                        <div
                                             key={res.id}
-                                            onClick={() => handleApplyDiscovery(res)}
                                             className={cn(
-                                                "flex flex-col items-start p-2 text-left border rounded-md bg-[var(--background)] transition-colors group",
-                                                res.isOrphaned ? "border-[var(--error)]/30 hover:border-[var(--error)]" : "border-[var(--border)] hover:border-[var(--primary)]"
+                                                "flex flex-col items-start p-2 text-left border rounded-md bg-[var(--background)] transition-colors group relative",
+                                                res.isOrphaned ? "border-[var(--error)]/30" : "border-[var(--border)] hover:border-[var(--primary)]"
                                             )}
                                         >
-                                            <div className="flex items-center justify-between w-full gap-2">
-                                                <span className="text-[10px] font-bold uppercase truncate">{res.name}</span>
-                                                {res.isOrphaned && (
-                                                    <span className="text-[8px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
-                                                <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
-                                            </div>
-                                        </button>
+                                            <button
+                                                onClick={() => handleApplyDiscovery(res)}
+                                                className="w-full flex flex-col items-start text-left"
+                                            >
+                                                <div className="flex items-center justify-between w-full gap-2">
+                                                    <span className="text-[10px] font-bold uppercase truncate pr-6">{res.name}</span>
+                                                    {res.isOrphaned && (
+                                                        <span className="text-[8px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
+                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
+                                                </div>
+                                            </button>
+
+                                            {res.isOrphaned && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleReclaimResource(res);
+                                                    }}
+                                                    disabled={isReclaiming === res.id}
+                                                    className="absolute top-1 right-1 h-6 w-6 text-[var(--error)] hover:bg-[var(--error)]/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    title="Reclaim Resource"
+                                                >
+                                                    {isReclaiming === res.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                                </Button>
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
                             </div>

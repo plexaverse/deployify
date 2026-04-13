@@ -83,13 +83,14 @@ export async function getOperationStatus(
  */
 export async function deleteInstance(
     instanceName: string,
-    region: string
+    region: string,
+    projectId?: string
 ): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
         return `projects/mock/locations/${region}/operations/delete-${instanceName}`;
     }
 
-    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const gcpProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
     const name = `projects/${gcpProjectId}/locations/${region}/instances/${instanceName}`;
 
