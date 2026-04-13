@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
+import { Spotlight } from '@/components/ui/spotlight';
 import { ProjectCard } from '@/components/ProjectCard';
 import { CommandPalette } from '@/components/CommandPalette';
 import type { Project, Deployment } from '@/types';
@@ -80,7 +81,8 @@ export default function DashboardPage() {
     });
 
     return (
-        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10 relative overflow-hidden">
+            <Spotlight className="-top-40 left-0 md:left-60" fill="var(--foreground)" />
             <CommandPalette />
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -89,7 +91,7 @@ export default function DashboardPage() {
                         <Layout className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Overview</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Workspace Overview</span>
                         <h1 className="text-xs font-bold tracking-tight">
                             {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
                         </h1>
@@ -107,6 +109,8 @@ export default function DashboardPage() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Escape') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
                                     setSearchQuery('');
                                 }
                             }}
