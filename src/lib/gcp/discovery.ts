@@ -131,12 +131,16 @@ export async function discoverResources(
                 data.databases.forEach((item: { name: string; locationId: string; type: string }) => {
                     const parts = item.name.split('/');
                     const id = parts[parts.length - 1];
+                    const isEphemeral = id.includes('-pr-') || id.includes('-branch-');
+                    const isOrphaned = isEphemeral && activeBranchPatterns.length > 0 && !activeBranchPatterns.some(p => id.includes(p));
+
                     resources.push({
                         id,
                         name: id,
                         type: 'firestore',
                         region: item.locationId,
                         status: 'READY', // Firestore doesn't provide a simple 'state' in this list
+                        isOrphaned,
                         metadata: {
                             type: item.type
                         }

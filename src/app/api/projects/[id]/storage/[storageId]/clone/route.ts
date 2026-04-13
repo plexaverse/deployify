@@ -43,10 +43,12 @@ export async function POST(
                 const project = access.project;
                 const sourceConfig = project.storageConfigs?.find(s => s.id === storageId);
 
-                if (sourceConfig && (sourceConfig.type.includes('cloud-sql') || sourceConfig.type === 'memorystore-redis')) {
+                if (sourceConfig && (sourceConfig.type.includes('cloud-sql') || sourceConfig.type === 'memorystore-redis' || sourceConfig.type === 'firestore')) {
                     const timestamp = Date.now();
                     const bucketName = `deployify-portability-${id}`;
-                    const gcsUri = `gs://${bucketName}/clones/${storageId}-to-${clonedConfig.id}-${timestamp}.${sourceConfig.type === 'memorystore-redis' ? 'rdb' : 'sql'}`;
+                    const extension = sourceConfig.type === 'memorystore-redis' ? '.rdb' :
+                                     sourceConfig.type === 'firestore' ? '' : '.sql';
+                    const gcsUri = `gs://${bucketName}/clones/${storageId}-to-${clonedConfig.id}-${timestamp}${extension}`;
 
                     let operationName;
                     if (sourceConfig.type.includes('cloud-sql')) {
@@ -60,6 +62,12 @@ export async function POST(
                         operationName = await exportInstance(
                             (sourceConfig.metadata?.resourceName as string) || sourceConfig.name.toLowerCase().replace(/\s+/g, '-'),
                             (sourceConfig.metadata?.region as string) || project.region || 'us-central1',
+                            gcsUri
+                        );
+                    } else if (sourceConfig.type === 'firestore') {
+                        const { exportDocuments } = await import('@/lib/gcp/firestore-admin');
+                        operationName = await exportDocuments(
+                            (sourceConfig.metadata?.resourceName as string) || '(default)',
                             gcsUri
                         );
                     }

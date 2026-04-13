@@ -192,6 +192,9 @@ export async function GET(
                             const { importInstance } = await import('@/lib/gcp/memorystore');
                             const region = (storage.metadata?.region as string) || project.region || 'us-central1';
                             importOperation = await importInstance(resourceName, region, portabilityUri);
+                        } else if (storage.type === 'firestore') {
+                            const { importDocuments } = await import('@/lib/gcp/firestore-admin');
+                            importOperation = await importDocuments(resourceName, portabilityUri);
                         }
 
                         if (importOperation) {
