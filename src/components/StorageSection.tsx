@@ -2298,7 +2298,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             Create a new storage connector with identical configuration. Secrets will be isolated in GCP Secret Manager.
                         </p>
 
-                        {(connectors.find(c => c.id === isCloningId)?.type.includes('cloud-sql') || connectors.find(c => c.id === isCloningId)?.type === 'memorystore-redis') && (
+                        {(storageConfigs.find(c => c.id === isCloningId)?.type.includes('cloud-sql') || storageConfigs.find(c => c.id === isCloningId)?.type === 'memorystore-redis') && (
                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider">Include Data snapshot</Label>
@@ -2314,7 +2314,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         )}
 
                         <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-2">
-                            <Info className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <AlertCircle className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
                             <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
                                 CONFIGURATION WILL BE DUPLICATED IMMEDIATELY. IF SNAPSHOT IS INCLUDED, THE NEW CONNECTOR WILL REMAIN IN PROVISIONING STATE UNTIL DATA TRANSFER COMPLETES.
                             </p>

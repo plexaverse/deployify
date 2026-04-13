@@ -94,7 +94,7 @@ export interface ProjectSlice {
     updateStorageAlerts: (projectId: string, storageId: string, alerts: StorageConfig['alertSettings']) => Promise<boolean>;
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
-    cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string }) => Promise<boolean>;
+    cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string; includeData?: boolean }) => Promise<boolean>;
     runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     runProjectRollback: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
