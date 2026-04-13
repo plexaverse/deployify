@@ -2298,7 +2298,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             Create a new storage connector with identical configuration. Secrets will be isolated in GCP Secret Manager.
                         </p>
 
-                        {(storageConfigs.find(c => c.id === isCloningId)?.type.includes('cloud-sql') || storageConfigs.find(c => c.id === isCloningId)?.type === 'memorystore-redis') && (
+                        {(storageConfigs.find(c => c.id === isCloningId)?.type.includes('cloud-sql') || storageConfigs.find(c => c.id === isCloningId)?.type === 'memorystore-redis' || storageConfigs.find(c => c.id === isCloningId)?.type === 'firestore') && (
                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider">Include Data snapshot</Label>

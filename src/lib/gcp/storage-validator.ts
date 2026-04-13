@@ -304,16 +304,18 @@ export async function diagnoseConnection(
                     if (instanceId && gcpProjectId) {
                         await getCloudSqlInstance(instanceId, gcpProjectId);
                         // If portability is enabled or likely to be used, recommend storage admin
-                        iamStep.recommendation = 'Ensure the Cloud SQL Service Agent has roles/storage.objectAdmin on your backup buckets for managed imports/exports.';
+                        iamStep.recommendation = 'Ensure the Cloud SQL Service Agent (service-{PROJECT_NUMBER}@gcp-sa-cloud-sql.iam.gserviceaccount.com) has roles/storage.objectAdmin on your backup buckets for managed imports/exports.';
                     }
                 } else if (type === 'memorystore-redis') {
                     // Logic to verify Memorystore API access would go here
-                    iamStep.recommendation = 'Verify the Redis Service Agent has roles/redis.admin and roles/storage.objectAdmin for RDB snapshots.';
+                    iamStep.recommendation = 'Verify the Redis Service Agent (service-{PROJECT_NUMBER}@gcp-sa-redis.iam.gserviceaccount.com) has roles/redis.admin and roles/storage.objectAdmin for RDB snapshots.';
+                } else if (type === 'firestore') {
+                    iamStep.recommendation = 'Verify the Firestore Service Agent (service-{PROJECT_NUMBER}@gcp-sa-firestore.iam.gserviceaccount.com) has roles/datastore.importExportAdmin and roles/storage.objectAdmin for managed portability.';
                 }
 
                 iamStep.status = 'success';
                 iamStep.latency = Date.now() - iamStart;
-            } catch (e) {
+            } catch {
                 iamStep.status = 'failure';
                 iamStep.error = 'Missing required IAM permissions';
                 iamStep.recommendation = type.includes('cloud-sql')
