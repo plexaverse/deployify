@@ -92,7 +92,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Managed Portability
                                 </span>
-                                <h3 className="text-xs font-semibold tracking-tight text-[var(--foreground)] uppercase">
+                                <h3 className="text-xs font-bold tracking-tight text-[var(--foreground)] uppercase">
                                     {mode === 'export' ? 'Export Database' : 'Import Data'}
                                 </h3>
                             </div>

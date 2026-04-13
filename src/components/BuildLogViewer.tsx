@@ -46,7 +46,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
                 </div>
                 <div className="space-y-1 text-center">
                    <p className="text-[10px] font-bold uppercase tracking-wider">Initialization</p>
-                   <p className="text-xs font-semibold">Waiting for build logs...</p>
+                   <p className="text-xs font-bold">Waiting for build logs...</p>
                 </div>
             </div>
         );
@@ -81,7 +81,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
                         <AlertCircle className="w-5 h-5" />
                         <span className="text-[10px] font-bold uppercase tracking-wider">Deployment Pipeline Error</span>
                     </div>
-                    <p className="text-xs font-semibold text-[var(--error)]/90 break-all whitespace-pre-wrap">{error}</p>
+                    <p className="text-xs font-bold text-[var(--error)]/90 break-all whitespace-pre-wrap">{error}</p>
                     {onRetry && (
                         <Button
                             onClick={onRetry}

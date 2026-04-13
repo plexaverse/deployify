@@ -13,7 +13,7 @@ export default function DashboardNotFound() {
             </div>
             <div className="space-y-1 mb-6">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">404 Error</span>
-                <h1 className="text-xs font-bold tracking-tight">
+                <h1 className="text-[11px] md:text-xs font-bold tracking-tight">
                     Page Not Found
                 </h1>
             </div>

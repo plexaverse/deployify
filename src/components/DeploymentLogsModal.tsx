@@ -78,7 +78,7 @@ export function DeploymentLogsModal({ deployment, isOpen, onClose }: DeploymentL
                             <div className="space-y-0.5">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Runtime Diagnostics</span>
                                 <div className="flex items-center gap-3">
-                                    <h3 className="text-xs font-semibold tracking-tight text-[var(--foreground)]">Build Logs</h3>
+                                    <h3 className="text-xs font-bold tracking-tight text-[var(--foreground)]">Build Logs</h3>
                                     <StatusBadge status={deployment.status} />
                                 </div>
                             </div>

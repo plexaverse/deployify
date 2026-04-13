@@ -625,7 +625,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                        <h3 className="text-xs font-semibold">Storage & Databases</h3>
+                        <h3 className="text-xs font-bold">Storage & Databases</h3>
                     </div>
                 </div>
                 {!isAdding && (
@@ -647,7 +647,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     <div className="mb-8 p-6 border border-[var(--border)] rounded-xl bg-[var(--background)] animate-fade-in space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div className="space-y-2">
-                                <Label className="text-xs font-semibold">Connector Name</Label>
+                                <Label className="text-xs font-bold">Connector Name</Label>
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
@@ -656,7 +656,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-semibold">External GCP Project ID (Optional)</Label>
+                                <Label className="text-xs font-bold">External GCP Project ID (Optional)</Label>
                                 <Input
                                     value={providerProjectId}
                                     onChange={(e) => setProviderProjectId(e.target.value)}
@@ -665,7 +665,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-semibold">GCP Region (Optional)</Label>
+                                <Label className="text-xs font-bold">GCP Region (Optional)</Label>
                                 <Input
                                     value={region}
                                     onChange={(e) => setRegion(e.target.value)}
@@ -674,7 +674,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-semibold">Database Type</Label>
+                                <Label className="text-xs font-bold">Database Type</Label>
                                 <NativeSelect
                                     value={type}
                                     onChange={(e) => setType(e.target.value as StorageType)}
@@ -722,7 +722,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                         <div className="space-y-0.5">
-                                            <Label className="text-xs font-semibold">Secret Only Mode</Label>
+                                            <Label className="text-xs font-bold">Secret Only Mode</Label>
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Store in Secret Manager without auto-injection</p>
                                         </div>
                                         <input
@@ -733,7 +733,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-xs font-semibold">Connection String / Secret</Label>
+                                        <Label className="text-xs font-bold">Connection String / Secret</Label>
                                     <Input
                                         type="password"
                                         value={connectionString}
@@ -750,7 +750,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
-                                                    <Label className="text-xs font-semibold">SSL Required</Label>
+                                                    <Label className="text-xs font-bold">SSL Required</Label>
                                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enforce encrypted connections</p>
                                                 </div>
                                                 <input
@@ -764,7 +764,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {!editingId && (
                                                 <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                     <div className="space-y-0.5">
-                                                        <Label className="text-xs font-semibold">API Auto-Sync</Label>
+                                                        <Label className="text-xs font-bold">API Auto-Sync</Label>
                                                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
                                                     </div>
                                                     <input
@@ -904,7 +904,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             )}
                                     <div className={cn("space-y-6 transition-opacity", secretOnly && "opacity-40 pointer-events-none")}>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-semibold">Environment Variable Key</Label>
+                                            <Label className="text-xs font-bold">Environment Variable Key</Label>
                                             <Input
                                     value={envKey}
                                     onChange={(e) => setEnvKey(e.target.value)}
@@ -921,7 +921,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
                                                     <div className="flex items-center gap-2">
-                                                        <Label className="text-xs font-semibold">Preview Branching</Label>
+                                                        <Label className="text-xs font-bold">Preview Branching</Label>
                                                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">BETA</span>
                                                     </div>
                                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Isolated database for Preview Deployments</p>
@@ -969,7 +969,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <div className="space-y-4 pt-2 border-t border-[var(--border)] mt-4">
                                                 <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                     <div className="space-y-0.5">
-                                                        <Label className="text-xs font-semibold">Automated Migrations</Label>
+                                                        <Label className="text-xs font-bold">Automated Migrations</Label>
                                                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Run migrations automatically during deployment</p>
                                                     </div>
                                                     <input
@@ -1829,7 +1829,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     <div className="space-y-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                             <div className="space-y-0.5">
-                                <Label className="text-xs font-semibold">Enable Automated Alerts</Label>
+                                <Label className="text-xs font-bold">Enable Automated Alerts</Label>
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notify when resource usage exceeds thresholds</p>
                             </div>
                             <input
@@ -1843,7 +1843,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         <div className={cn("space-y-6 transition-opacity", !alertsEnabled && "opacity-40 pointer-events-none")}>
                             <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
-                                    <Label className="text-xs font-semibold">Email Notifications</Label>
+                                    <Label className="text-xs font-bold">Email Notifications</Label>
                                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Send alerts to your account email address</p>
                                 </div>
                                 <input

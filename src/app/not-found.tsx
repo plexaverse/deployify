@@ -15,7 +15,7 @@ export default function NotFound() {
                 </div>
                 <div className="space-y-1 mb-6">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">404 Error</span>
-                    <h1 className="text-xs font-bold tracking-tight">Page Not Found</h1>
+                    <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Page Not Found</h1>
                 </div>
                 <p className="text-[var(--muted-foreground)] text-xs mb-8">
                     The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.

@@ -79,7 +79,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                 </div>
                 <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
-                    <h3 className="text-xs font-semibold">Compute Configuration</h3>
+                    <h3 className="text-xs font-bold">Compute Configuration</h3>
                 </div>
             </div>
 
@@ -88,7 +88,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
             <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label className="text-xs font-semibold">CPU</Label>
+                        <Label className="text-xs font-bold">CPU</Label>
                         <SegmentedControl
                             options={CPU_OPTIONS.map(opt => ({ value: String(opt), label: `${opt} VCPU` }))}
                             value={String(cpu)}
@@ -99,7 +99,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <Label className="text-xs font-semibold">Memory</Label>
+                        <Label className="text-xs font-bold">Memory</Label>
                         <SegmentedControl
                             options={MEMORY_OPTIONS.map(opt => ({ value: opt, label: opt }))}
                             value={memory}
@@ -113,7 +113,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label htmlFor="min-instances" className="text-xs font-semibold">Min Instances</Label>
+                        <Label htmlFor="min-instances" className="text-xs font-bold">Min Instances</Label>
                         <Input
                             id="min-instances"
                             type="number"
@@ -126,7 +126,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="max-instances" className="text-xs font-semibold">Max Instances</Label>
+                        <Label htmlFor="max-instances" className="text-xs font-bold">Max Instances</Label>
                         <Input
                             id="max-instances"
                             type="number"

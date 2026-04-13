@@ -111,7 +111,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Traffic Trends</span>
-                            <h3 className="text-xs font-semibold">Traffic Over Time</h3>
+                            <h3 className="text-xs font-bold">Traffic Over Time</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -184,7 +184,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Referral Traffic</span>
-                                <h3 className="text-xs font-semibold">Top Sources</h3>
+                                <h3 className="text-xs font-bold">Top Sources</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -216,7 +216,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Geographic Reach</span>
-                                <h3 className="text-xs font-semibold">Top Locations</h3>
+                                <h3 className="text-xs font-bold">Top Locations</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -265,7 +265,7 @@ function WebVitalCard({ title, value, unit, status, description }: {
                         'bg-[var(--error)]')} />
                 </div>
                 <div className="flex items-baseline gap-1">
-                    <span className="text-xs font-semibold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
+                    <span className="text-xs font-bold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
                         {value < 1 ? value.toFixed(3) : Math.round(value)}
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
@@ -314,7 +314,7 @@ function SummaryCard({ title, value }: { title: string; value: string }) {
                 <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
                     {title}
                 </h3>
-                <div className="mt-3 text-xs font-semibold font-mono tracking-tighter text-[var(--foreground)]">
+                <div className="mt-3 text-xs font-bold font-mono tracking-tighter text-[var(--foreground)]">
                     {value}
                 </div>
             </div>
