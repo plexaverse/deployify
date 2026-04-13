@@ -13,7 +13,7 @@ export function AnalyticsAlerts({ alerts }: AnalyticsAlertsProps) {
 
     return (
         <div className="space-y-3">
-            <h3 className="text-xs font-semibold flex items-center gap-2 text-[var(--foreground)]">
+            <h3 className="text-xs font-bold flex items-center gap-2 text-[var(--foreground)]">
                 <AlertTriangle className="w-4 h-4 text-[var(--warning)]" />
                 Performance Warnings
             </h3>

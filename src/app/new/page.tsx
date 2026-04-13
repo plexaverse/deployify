@@ -83,7 +83,7 @@ export default function NewProjectPage() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
-                            <h1 className="text-xs font-bold tracking-tight">Create New Project</h1>
+                            <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Create New Project</h1>
                         </div>
                     </div>
 
@@ -143,7 +143,7 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
                     scale: currentStep ? 1.1 : 1,
                 }}
                 className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border relative",
+                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border relative",
                     currentStep && 'ring-2 ring-[var(--primary)]/30 ring-offset-2 ring-offset-[var(--background)]'
                 )}
             >
@@ -486,7 +486,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                        <h2 className="text-xs font-semibold">Project Settings</h2>
+                        <h2 className="text-xs font-bold">Project Settings</h2>
                     </div>
                 </div>
 
@@ -495,7 +495,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <div className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label htmlFor="projectName" className="text-xs font-semibold block mb-2">Project Name</label>
+                            <label htmlFor="projectName" className="text-xs font-bold block mb-2">Project Name</label>
                             <Input
                                 id="projectName"
                                 type="text"
@@ -504,7 +504,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold block mb-2">Framework Preset</label>
+                            <label className="text-xs font-bold block mb-2">Framework Preset</label>
                             <NativeSelect
                                 value={framework}
                                 onChange={(e) => setFramework(e.target.value)}
@@ -526,7 +526,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold block mb-2">Root Directory</label>
+                            <label className="text-xs font-bold block mb-2">Root Directory</label>
                             <Input
                                 type="text"
                                 value={rootDirectory}
@@ -536,7 +536,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-semibold block mb-2">Region</label>
+                            <label className="text-xs font-bold block mb-2">Region</label>
                             <NativeSelect
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
@@ -552,7 +552,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         <button
                             type="button"
                             onClick={() => setShowAdvanced(!showAdvanced)}
-                            className="flex items-center gap-2 text-xs font-semibold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                            className="flex items-center gap-2 text-xs font-bold text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                         >
                             {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             Advanced Build Settings
@@ -568,7 +568,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 >
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
                                         <div className="space-y-2">
-                                            <label htmlFor="buildCommand" className="text-xs font-semibold block mb-2">Build Command</label>
+                                            <label htmlFor="buildCommand" className="text-xs font-bold block mb-2">Build Command</label>
                                             <Input
                                                 id="buildCommand"
                                                 type="text"
@@ -579,7 +579,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="installCommand" className="text-xs font-semibold block mb-2">Install Command</label>
+                                            <label htmlFor="installCommand" className="text-xs font-bold block mb-2">Install Command</label>
                                             <Input
                                                 id="installCommand"
                                                 type="text"
@@ -590,7 +590,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label htmlFor="outputDirectory" className="text-xs font-semibold block mb-2">Output Directory</label>
+                                            <label htmlFor="outputDirectory" className="text-xs font-bold block mb-2">Output Directory</label>
                                             <Input
                                                 id="outputDirectory"
                                                 type="text"
@@ -615,7 +615,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
-                        <h2 className="text-xs font-semibold">Environment Variables</h2>
+                        <h2 className="text-xs font-bold">Environment Variables</h2>
                     </div>
                 </div>
 
@@ -687,7 +687,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                     checked={newEnvIsSecret}
                                     onCheckedChange={setNewEnvIsSecret}
                                 />
-                                <label htmlFor="isSecret" className="text-xs font-semibold cursor-pointer flex items-center gap-1.5">
+                                <label htmlFor="isSecret" className="text-xs font-bold cursor-pointer flex items-center gap-1.5">
                                     <Shield className="w-4 h-4 text-[var(--info)]" />
                                     Secret (Encrypted)
                                 </label>
@@ -695,7 +695,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
 
                             <div className="flex-1 space-y-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-semibold block mb-2">Target Environment Type</Label>
+                                    <Label className="text-xs font-bold block mb-2">Target Environment Type</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'both', label: 'BUILD & RUNTIME' },
@@ -708,7 +708,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-semibold block mb-2">Scope</Label>
+                                    <Label className="text-xs font-bold block mb-2">Scope</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'both', label: 'ALL ENVS' },
@@ -811,7 +811,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         animate={{
                             color: isReady ? 'var(--success)' : isError ? 'var(--error)' : 'var(--info)'
                         }}
-                        className="text-xs font-semibold flex items-center gap-3"
+                        className="text-xs font-bold flex items-center gap-3"
                     >
                         {isReady ? (
                             <motion.div
@@ -904,7 +904,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                         <Rocket className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xs font-semibold">Your project is live!</h3>
+                                        <h3 className="text-xs font-bold">Your project is live!</h3>
                                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Everything is configured and running on Cloud Run.</p>
                                     </div>
                                 </div>
@@ -915,7 +915,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                     </div>
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Environment</span>
-                                        <p className="text-xs font-semibold">Production</p>
+                                        <p className="text-xs font-bold">Production</p>
                                     </div>
                                 </div>
                             </div>

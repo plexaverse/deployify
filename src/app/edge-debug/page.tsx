@@ -82,7 +82,7 @@ export default function EdgeDebugPage() {
                 </div>
                 <div className="space-y-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
-                    <h1 className="text-xs font-bold tracking-tight">Edge Function Simulator</h1>
+                    <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Edge Function Simulator</h1>
                 </div>
             </div>
             <MovingBorderButton
@@ -105,7 +105,7 @@ export default function EdgeDebugPage() {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Code Editor</span>
-                        <h2 className="text-xs font-semibold">Middleware Code</h2>
+                        <h2 className="text-xs font-bold">Middleware Code</h2>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />
@@ -130,14 +130,14 @@ export default function EdgeDebugPage() {
                         </div>
                         <div className="space-y-0.5">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                            <h2 className="text-xs font-semibold text-[var(--foreground)]">Request Configuration</h2>
+                            <h2 className="text-xs font-bold text-[var(--foreground)]">Request Configuration</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
                     <div className="p-6 space-y-6">
 
                     <div className="space-y-2">
-                        <Label className="text-xs font-semibold">HTTP Method</Label>
+                        <Label className="text-xs font-bold">HTTP Method</Label>
                         <SegmentedControl
                             options={[
                                 { value: 'GET', label: 'GET' },
@@ -152,7 +152,7 @@ export default function EdgeDebugPage() {
                     </div>
 
                     <div className="space-y-2">
-                         <Label className="text-xs font-semibold">Target URL</Label>
+                         <Label className="text-xs font-bold">Target URL</Label>
                          <Input
                             type="text"
                             value={url}
@@ -163,7 +163,7 @@ export default function EdgeDebugPage() {
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-xs font-semibold mb-2 block">Headers (JSON)</Label>
+                        <Label className="text-xs font-bold mb-2 block">Headers (JSON)</Label>
                         <textarea
                             value={headers}
                             onChange={(e) => setHeaders(e.target.value)}
@@ -187,7 +187,7 @@ export default function EdgeDebugPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Execution Output</span>
-                                <h2 className="text-xs font-semibold">Simulation Result</h2>
+                                <h2 className="text-xs font-bold">Simulation Result</h2>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -211,7 +211,7 @@ export default function EdgeDebugPage() {
                                         result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/20' : 'bg-[var(--success-bg)] text-[var(--success)] border-[var(--success)]/20'
                                     )}>
                                         {result.type === 'error' ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
-                                        <span className="text-xs font-semibold">{result.status}</span>
+                                        <span className="text-xs font-bold">{result.status}</span>
                                         <Badge variant={result.type === 'error' ? 'error' : 'success'} className="ml-auto">
                                             {result.type}
                                         </Badge>

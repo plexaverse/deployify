@@ -56,7 +56,7 @@ export function ProjectCard({ project }: { project: Project }) {
         <div className="flex items-center gap-3">
           <ProjectAvatar name={project.name} productionUrl={project.productionUrl} className="w-8 h-8" />
           <div className="min-w-0">
-            <h3 className="text-xs font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors uppercase tracking-tight">
+            <h3 className="text-xs font-bold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors uppercase tracking-tight">
               {project.name}
             </h3>
             <div className="flex items-center gap-1.5 mt-1.5">
