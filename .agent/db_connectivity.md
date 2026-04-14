@@ -497,8 +497,23 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement "Infrastructure Health" dashboard widget on the Project Overview page
 - [x] Standardize connectivity status reporting across all connector tiers
 - [x] Optimized heartbeats with lightweight TCP probes to bypass Secret Manager
+- [x] Implement EWMA-based latency baselining and 'degraded' status detection
+
+### Phase 74: Advanced Storage Lifecycle & Performance Optimization (IN PROGRESS)
+- [ ] Implement automated performance optimization recommendations based on latency trends
+- [ ] Add support for scheduled health reports and downtime alerts
+- [ ] Integrate storage performance metrics into the global project analytics
+- [ ] Implement manual latency baseline reset in the Storage UI
 
 ## Progress Updates
+
+### 2027-05-18: Advanced Health Analytics & Degradation Detection
+- Completed refinement of Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability.
+- Hardened the Storage Sync API with Exponential Weighted Moving Average (EWMA, alpha=0.2) for robust latency baselining, protecting against outlier noise while maintaining sensitivity to regressions.
+- Implemented 'degraded' (SLOW) status detection triggered when current latency exceeds 2x baseline with a minimum 100ms delta.
+- Updated the StorageSection UI to visualize performance regressions with a high-density "SLOW" badge and baseline latency context.
+- Enhanced the Project Overview health widget to differentiate between 'Degraded' and 'Unhealthy' resource states.
+- Initiated Phase 74: Advanced Storage Lifecycle & Performance Optimization.
 
 ### 2027-05-17: Automated Lifecycle Resilience & Global Connectivity Observability
 - Completed Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability.

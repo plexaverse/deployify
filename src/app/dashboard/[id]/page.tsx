@@ -31,6 +31,7 @@ import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import type { StorageHealthMetadata } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 
@@ -371,10 +372,12 @@ export default function ProjectDetailPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {project.storageConfigs.every(s => (s.metadata?.health as { status: string })?.status === 'healthy' || s.status === 'provisioning') ? (
+                                    {project.storageConfigs.every(s => (s.metadata?.health as StorageHealthMetadata | undefined)?.status === 'healthy' || s.status === 'provisioning') ? (
                                         <Badge variant="success" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--success-bg)]">Operational</Badge>
-                                    ) : project.storageConfigs.some(s => (s.metadata?.health as { status: string })?.status === 'unhealthy' || s.status === 'error') ? (
-                                        <Badge variant="destructive" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Degraded</Badge>
+                                    ) : project.storageConfigs.some(s => (s.metadata?.health as StorageHealthMetadata | undefined)?.status === 'unhealthy' || s.status === 'error') ? (
+                                        <Badge variant="destructive" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Unhealthy</Badge>
+                                    ) : project.storageConfigs.some(s => (s.metadata?.health as StorageHealthMetadata | undefined)?.status === 'degraded') ? (
+                                        <Badge variant="warning" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--warning-bg)]">Degraded</Badge>
                                     ) : (
                                         <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5">Checking...</Badge>
                                     )}
@@ -385,11 +388,11 @@ export default function ProjectDetailPage() {
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">Resource Connectivity</span>
                                     <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">
-                                        {project.storageConfigs.filter(s => s.status === 'active' && (s.metadata?.health as { status: string })?.status === 'healthy').length}/{project.storageConfigs.length} UP
+                                {project.storageConfigs.filter(s => s.status === 'active' && (s.metadata?.health as StorageHealthMetadata | undefined)?.status === 'healthy').length}/{project.storageConfigs.length} UP
                                     </span>
                                 </div>
                                 {project.storageConfigs.slice(0, 3).map((storage) => {
-                                    const health = storage.metadata?.health as { status: string; latency: number; error?: string } | undefined;
+                                    const health = storage.metadata?.health as StorageHealthMetadata | undefined;
                                     const status = health?.status || (storage.status === 'provisioning' ? 'provisioning' : 'unknown');
 
                                     return (
@@ -398,6 +401,7 @@ export default function ProjectDetailPage() {
                                                 <div className={cn(
                                                     "w-1.5 h-1.5 rounded-full shrink-0",
                                                     status === 'healthy' ? "bg-[var(--success)] shadow-[0_0_8px_var(--success)]" :
+                                                    status === 'degraded' ? "bg-[var(--warning)] shadow-[0_0_8px_var(--warning)]" :
                                                     status === 'unhealthy' ? "bg-[var(--error)] shadow-[0_0_8px_var(--error)]" :
                                                     status === 'provisioning' ? "bg-[var(--info)] animate-pulse" :
                                                     "bg-[var(--muted-foreground)]/30"
@@ -408,8 +412,11 @@ export default function ProjectDetailPage() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
-                                                {status === 'healthy' && (
-                                                    <span className="text-[9px] font-mono font-bold text-[var(--success)]">
+                                                {(status === 'healthy' || status === 'degraded') && (
+                                                    <span className={cn(
+                                                        "text-[9px] font-mono font-bold",
+                                                        status === 'healthy' ? "text-[var(--success)]" : "text-[var(--warning)]"
+                                                    )}>
                                                         {health?.latency}ms
                                                     </span>
                                                 )}

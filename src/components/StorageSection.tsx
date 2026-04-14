@@ -53,7 +53,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
-import type { StorageType, StorageConfig, Backup, Migration } from '@/types';
+import type { StorageType, StorageConfig, Backup, Migration, StorageHealthMetadata } from '@/types';
 import type { DiagnosticResult } from '@/lib/gcp/storage-validator';
 
 interface StorageSectionProps {
@@ -1320,6 +1320,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     {config.activeAlerts.length} ALERT{config.activeAlerts.length > 1 ? 'S' : ''}
                                                 </span>
                                             )}
+                                            {(config.metadata?.health as StorageHealthMetadata | undefined)?.isDegraded && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1" title={`Latency regression detected. Baseline: ${(config.metadata?.health as StorageHealthMetadata).baselineLatency}ms`}>
+                                                    <Activity className="w-2.5 h-2.5" />
+                                                    SLOW
+                                                </span>
+                                            )}
                                             {getStatusIcon(config.status, config.id)}
                                             {config.status === 'error' && config.lastError && (
                                                 <span className="text-[10px] font-bold text-[var(--error)] uppercase truncate max-w-[200px]" title={config.lastError}>
@@ -1329,11 +1335,17 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {config.status === 'active' && !!config.metadata?.health && (
                                                 <span className={cn(
                                                     "text-[10px] font-bold uppercase flex items-center gap-1",
-                                                    (config.metadata.health as { status: string }).status === 'healthy' ? "text-[var(--success)]" : "text-[var(--error)]"
+                                                    (config.metadata.health as StorageHealthMetadata).status === 'healthy' ? "text-[var(--success)]" :
+                                                    (config.metadata.health as StorageHealthMetadata).status === 'degraded' ? "text-[var(--warning)]" : "text-[var(--error)]"
                                                 )}>
-                                                    — {(config.metadata.health as { status: string }).status}
-                                                    {(config.metadata.health as { status: string }).status === 'healthy' && (
-                                                        <span className="text-[9px] font-mono opacity-60">({(config.metadata.health as { latency: number }).latency}ms)</span>
+                                                    — {(config.metadata.health as StorageHealthMetadata).status}
+                                                    {((config.metadata.health as StorageHealthMetadata).status === 'healthy' || (config.metadata.health as StorageHealthMetadata).status === 'degraded') && (
+                                                        <span className="text-[9px] font-mono opacity-60">
+                                                            ({(config.metadata.health as StorageHealthMetadata).latency}ms
+                                                            {(config.metadata.health as StorageHealthMetadata).baselineLatency !== undefined && (
+                                                                <span title="Baseline Latency"> / {(config.metadata.health as StorageHealthMetadata).baselineLatency}ms baseline</span>
+                                                            )})
+                                                        </span>
                                                     )}
                                                 </span>
                                             )}

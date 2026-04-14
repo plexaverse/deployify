@@ -434,6 +434,20 @@ export interface StorageBranchingSettings {
     seedCommand?: string; // Optional command to seed newly created branch databases
 }
 
+export interface StorageHealthMetadata {
+    status: 'healthy' | 'unhealthy' | 'unknown' | 'degraded';
+    latency: number;
+    baselineLatency?: number;
+    isDegraded?: boolean;
+    timestamp: string;
+    error?: string;
+    history?: Array<{
+        status: string;
+        latency: number;
+        timestamp: string;
+    }>;
+}
+
 export interface StorageConfig {
     id: string;
     type: StorageType;

@@ -6,7 +6,7 @@ import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getClo
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
-import type { StorageConfig } from '@/types';
+import type { StorageConfig, StorageHealthMetadata } from '@/types';
 import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds } from '@/lib/gcp/monitoring';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -82,21 +82,51 @@ export async function GET(
                 }
 
                 const health = await checkConnectivityHealth(storage.type, storage.connectionStringSecretId, storage.metadata);
+
+                // Advanced Health Analytics (EWMA & Degradation Detection)
+                const currentLatency = health.latency;
+                const prevHealth = storage.metadata?.health as StorageHealthMetadata | undefined;
+                let baselineLatency = prevHealth?.baselineLatency ?? currentLatency;
+
+                // EWMA: alpha=0.2 maintains a balance between sensitivity and stability
+                const alpha = 0.2;
+                if (health.status === 'healthy') {
+                    baselineLatency = (alpha * currentLatency) + ((1 - alpha) * baselineLatency);
+                }
+
+                // Degraded if current > 2x baseline AND delta > 100ms
+                const isDegraded = health.status === 'healthy' &&
+                                  currentLatency > (baselineLatency * 2) &&
+                                  (currentLatency - baselineLatency) > 100;
+
+                // Maintain health history (last 10 samples)
+                const healthHistory = prevHealth?.history || [];
+                healthHistory.push({
+                    status: isDegraded ? 'degraded' : health.status,
+                    latency: currentLatency,
+                    timestamp: health.timestamp
+                });
+                if (healthHistory.length > 10) healthHistory.shift();
+
                 storage.metadata = {
                     ...storage.metadata,
                     health: {
-                        status: health.status,
-                        latency: health.latency,
+                        status: isDegraded ? 'degraded' : health.status,
+                        latency: currentLatency,
+                        baselineLatency: Math.round(baselineLatency),
+                        isDegraded,
                         timestamp: health.timestamp,
-                        error: health.error
+                        error: health.error,
+                        history: healthHistory
                     }
                 };
 
                 // Auto-remediation: Transition from active to error if health check fails
+                // Note: 'degraded' is still considered 'active' status but surfaces warnings
                 if (health.status === 'unhealthy' && storage.status === 'active') {
                     storage.status = 'error';
                     storage.lastError = health.error || 'Health check heartbeat failed';
-                } else if (health.status === 'healthy' && storage.status === 'error') {
+                } else if ((health.status === 'healthy' || isDegraded) && storage.status === 'error') {
                     storage.status = 'active';
                     storage.lastError = undefined;
                 }
