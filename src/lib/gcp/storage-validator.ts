@@ -1,6 +1,7 @@
 import { getSecretValue } from './secrets';
 import { getInstance as getCloudSqlInstance } from './cloudsql';
 import { getRegionalEgressIps } from './networks';
+import { isDegraded as detectDegradation } from './health-utils';
 import type { StorageType } from '@/types';
 import net from 'net';
 import { URL } from 'url';
@@ -42,8 +43,10 @@ export interface DiagnosticResult {
  * Result of a lightweight health check
  */
 export interface HealthResult {
-    status: 'healthy' | 'unhealthy' | 'unknown';
+    status: 'healthy' | 'unhealthy' | 'unknown' | 'degraded';
     latency: number;
+    baselineLatency?: number;
+    isDegraded?: boolean;
     error?: string;
     timestamp: string;
 }
@@ -61,9 +64,15 @@ export async function checkConnectivityHealth(
 
     try {
         if (process.env.MOCK_DB === 'true') {
+            const currentHealth = metadata?.health as { baselineLatency?: number } | undefined;
+            const latency = 5;
+            const isDegraded = detectDegradation(latency, currentHealth?.baselineLatency);
+
             return {
-                status: 'healthy',
-                latency: 5,
+                status: isDegraded ? 'degraded' : 'healthy',
+                latency,
+                baselineLatency: currentHealth?.baselineLatency,
+                isDegraded,
                 timestamp: new Date().toISOString()
             };
         }
@@ -73,17 +82,28 @@ export async function checkConnectivityHealth(
             return {
                 status: 'healthy',
                 latency: 0,
+                isDegraded: false,
                 timestamp: new Date().toISOString()
             };
         }
 
         // Optimization: Use direct TCP probe if host/port are available in metadata
         const connectivity = metadata?.connectivity as { host: string; port: number } | undefined;
+        const currentHealth = metadata?.health as { baselineLatency?: number } | undefined;
+
         if (connectivity?.host && connectivity?.port) {
             const isReachable = await checkTcpReachability(connectivity.host, connectivity.port, 2000);
+            const latency = Date.now() - startTime;
+            const baseline = currentHealth?.baselineLatency;
+
+            // Simple degraded check
+            const isDegraded = detectDegradation(latency, baseline);
+
             return {
-                status: isReachable ? 'healthy' : 'unhealthy',
-                latency: Date.now() - startTime,
+                status: isReachable ? (isDegraded ? 'degraded' : 'healthy') : 'unhealthy',
+                latency,
+                baselineLatency: baseline,
+                isDegraded,
                 error: isReachable ? undefined : `Direct probe failed: ${connectivity.host}:${connectivity.port} is unreachable`,
                 timestamp: new Date().toISOString()
             };
@@ -101,10 +121,15 @@ export async function checkConnectivityHealth(
 
         // Perform a quick validation check
         const result = await validateConnection(type, connectionStringSecretId, metadata);
+        const latency = result.latency || (Date.now() - startTime);
+        const baseline = currentHealth?.baselineLatency;
+        const isDegraded = detectDegradation(latency, baseline);
 
         return {
-            status: result.valid ? 'healthy' : 'unhealthy',
-            latency: result.latency || (Date.now() - startTime),
+            status: result.valid ? (isDegraded ? 'degraded' : 'healthy') : 'unhealthy',
+            latency,
+            baselineLatency: baseline,
+            isDegraded,
             error: result.error,
             timestamp: new Date().toISOString()
         };

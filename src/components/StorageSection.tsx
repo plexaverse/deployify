@@ -1329,11 +1329,16 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {config.status === 'active' && !!config.metadata?.health && (
                                                 <span className={cn(
                                                     "text-[10px] font-bold uppercase flex items-center gap-1",
-                                                    (config.metadata.health as { status: string }).status === 'healthy' ? "text-[var(--success)]" : "text-[var(--error)]"
+                                                    (config.metadata.health as { status: string }).status === 'healthy' ? "text-[var(--success)]" :
+                                                    (config.metadata.health as { status: string }).status === 'degraded' ? "text-[var(--warning)]" : "text-[var(--error)]"
                                                 )}>
                                                     — {(config.metadata.health as { status: string }).status}
-                                                    {(config.metadata.health as { status: string }).status === 'healthy' && (
-                                                        <span className="text-[9px] font-mono opacity-60">({(config.metadata.health as { latency: number }).latency}ms)</span>
+                                                    {((config.metadata.health as { status: string }).status === 'healthy' || (config.metadata.health as { status: string }).status === 'degraded') && (
+                                                        <span className="text-[9px] font-mono opacity-60">
+                                                            ({(config.metadata.health as { latency: number }).latency}ms
+                                                            {(config.metadata.health as { baselineLatency: number }).baselineLatency && ` / BASE: ${(config.metadata.health as { baselineLatency: number }).baselineLatency}ms`}
+                                                            )
+                                                        </span>
                                                     )}
                                                 </span>
                                             )}

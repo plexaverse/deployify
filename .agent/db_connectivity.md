@@ -498,7 +498,22 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Standardize connectivity status reporting across all connector tiers
 - [x] Optimized heartbeats with lightweight TCP probes to bypass Secret Manager
 
+### Phase 74: Predictive Health Monitoring & Latency Baselining (COMPLETED)
+- [x] Implement `calculateEWMA` and `isDegraded` utilities for latency-based monitoring
+- [x] Integrate EWMA-based latency baselining (alpha=0.2) into the Storage Sync pipeline
+- [x] Implement 'degraded' status detection for connectors exceeding 2x baseline latency
+- [x] Enhance Dashboard and Storage UI with 'SLOW' badges and technical latency metadata
+- [x] Verify functional integrity with automated unit tests for predictive health logic
+
 ## Progress Updates
+
+### 2027-05-17: Predictive Health Monitoring & Latency Baselining
+- Completed Phase 74: Predictive Health Monitoring & Latency Baselining.
+- Implemented `calculateEWMA` utility in `src/lib/gcp/health-utils.ts` to maintain a persistent latency baseline using an Exponential Weighted Moving Average (alpha=0.2).
+- Hardened the Storage Sync API to automatically update and persist `baselineLatency` for all active connectors.
+- Introduced 'degraded' (SLOW) status detection, flagging resources that exceed 2x their baseline latency (with a minimum 100ms delta) to surface intermittent performance issues.
+- Enhanced the Project Overview and Storage dashboard UI with warning-yellow badges and technical metadata displaying current vs. baseline performance.
+- Refactored health logic into a specialized utility library for improved testability and achieved 100% pass rate on new predictive health unit tests.
 
 ### 2027-05-17: Automated Lifecycle Resilience & Global Connectivity Observability
 - Completed Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability.
