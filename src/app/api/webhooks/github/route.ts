@@ -339,7 +339,11 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             const Redis = (await import('ioredis')).default;
                             const redis = new Redis(branchedConnectionString, {
                                 maxRetriesPerRequest: 1,
-                                connectTimeout: 5000
+                                connectTimeout: 5000,
+                                retryStrategy: () => null
+                            });
+                            redis.on('error', (err) => {
+                                console.warn(`[Cleanup] Redis connection error for ${storage.name}: ${err.message}`);
                             });
                             await redis.flushdb();
                             redis.disconnect();
