@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { Plus, Search, X, Layout } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { EmptyState } from '@/components/EmptyState';
@@ -13,6 +14,19 @@ import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { ProjectCard } from '@/components/ProjectCard';
 import { CommandPalette } from '@/components/CommandPalette';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import {
+    Activity,
+    Database,
+    ShieldCheck,
+    AlertCircle,
+    Zap,
+    RefreshCw,
+    TrendingUp,
+    Loader2
+} from 'lucide-react';
 import type { Project, Deployment } from '@/types';
 import { useTeam } from '@/contexts/TeamContext';
 
@@ -22,7 +36,19 @@ interface ProjectWithDeployment extends Project {
 
 export default function DashboardPage() {
     const [projects, setProjects] = useState<ProjectWithDeployment[]>([]);
+    const [infraHealth, setInfraHealth] = useState<{
+        summary: {
+            totalProjects: number;
+            totalConnectors: number;
+            healthyConnectors: number;
+            degradedConnectors: number;
+            unhealthyConnectors: number;
+            provisioningConnectors: number;
+            uptimeScore: number;
+        };
+    } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [loadingInfra, setLoadingInfra] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const searchInputRef = useRef<HTMLInputElement>(null);
     const { activeTeam, isLoading: isTeamLoading } = useTeam();
@@ -66,8 +92,28 @@ export default function DashboardPage() {
             }
         }
 
+        async function fetchInfraHealth() {
+            setLoadingInfra(true);
+            try {
+                let url = '/api/infrastructure/health';
+                if (activeTeam) {
+                    url += `?teamId=${activeTeam.id}`;
+                }
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.success) {
+                    setInfraHealth(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch infra health:', error);
+            } finally {
+                setLoadingInfra(false);
+            }
+        }
+
         if (!isTeamLoading) {
             fetchProjects();
+            fetchInfraHealth();
         }
     }, [activeTeam, isTeamLoading]);
 
@@ -82,6 +128,69 @@ export default function DashboardPage() {
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
             <CommandPalette />
+
+            {/* Fleet Health Overview */}
+            {!loading && projects.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in">
+                    <Card className="md:col-span-3 overflow-hidden p-0 border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5">
+                        <div className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
+                                    <Activity className="w-4 h-4 text-[var(--primary)]" />
+                                </div>
+                                <div className="space-y-0.5">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure Fleet</span>
+                                    <h3 className="text-xs font-bold">Global Connectivity Health</h3>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                {loadingInfra ? (
+                                    <Loader2 className="w-4 h-4 animate-spin text-[var(--primary)]" />
+                                ) : infraHealth && (
+                                    <>
+                                        <div className="text-right">
+                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Global Uptime</span>
+                                            <span className={cn(
+                                                "text-[10px] font-bold uppercase",
+                                                infraHealth.summary.uptimeScore > 98 ? "text-[var(--success)]" : "text-[var(--warning)]"
+                                            )}>{infraHealth.summary.uptimeScore}%</span>
+                                        </div>
+                                        <Separator orientation="vertical" className="h-8 bg-[var(--border)]" />
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-center">
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Healthy</span>
+                                                <span className="text-[10px] font-bold text-[var(--success)]">{infraHealth.summary.healthyConnectors}</span>
+                                            </div>
+                                            <div className="text-center">
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Slow</span>
+                                                <span className="text-[10px] font-bold text-[var(--warning)]">{infraHealth.summary.degradedConnectors}</span>
+                                            </div>
+                                            <div className="text-center">
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Failed</span>
+                                                <span className="text-[10px] font-bold text-[var(--error)]">{infraHealth.summary.unhealthyConnectors}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card className="overflow-hidden p-4 border-[var(--primary)]/10 bg-[var(--primary)]/5 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Database className="w-3.5 h-3.5 text-[var(--primary)]" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Active Resources</span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-xl font-bold tracking-tighter">
+                                {loadingInfra ? '...' : infraHealth?.summary.totalConnectors || 0}
+                            </span>
+                            <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Managed Connectors</span>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">

@@ -11,6 +11,16 @@ export interface ResourceMetrics {
     timestamp: string;
 }
 
+export interface ScalingRecommendation {
+    type: 'upgrade' | 'downgrade' | 'optimize';
+    resource: 'cpu' | 'memory' | 'disk';
+    currentTier: string;
+    recommendedTier: string;
+    reason: string;
+    estimatedSavings?: string;
+    performanceGain?: string;
+}
+
 export interface AlertResult {
     triggered: boolean;
     reason?: string;
@@ -106,6 +116,79 @@ export async function getMemorystoreMetrics(instanceId: string, region: string):
         memoryUtilization: parseFloat((memoryValue * 100).toFixed(2)),
         timestamp: new Date().toISOString()
     };
+}
+
+/**
+ * Analyze resource metrics and provide scaling recommendations
+ */
+export async function getScalingRecommendations(
+    storageType: string,
+    metrics: ResourceMetrics,
+    metadata?: Record<string, unknown>
+): Promise<ScalingRecommendation[]> {
+    const recommendations: ScalingRecommendation[] = [];
+    const isCloudSql = storageType.includes('cloud-sql');
+    const isRedis = storageType === 'memorystore-redis';
+
+    const currentTier = (metadata?.tier as string) || (isCloudSql ? 'db-f1-micro' : isRedis ? '1GB' : 'unknown');
+
+    // 1. CPU Analysis
+    if (metrics.cpuUtilization > 75) {
+        let recommendedTier = 'db-g1-small';
+        if (currentTier === 'db-g1-small') recommendedTier = 'db-custom-1-3840';
+        else if (currentTier.includes('custom-1')) recommendedTier = 'db-custom-2-7680';
+        else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-4-15360';
+
+        recommendations.push({
+            type: 'upgrade',
+            resource: 'cpu',
+            currentTier,
+            recommendedTier: isCloudSql ? recommendedTier : 'Next Capacity Tier',
+            reason: `High CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading will improve query performance and overall stability.`,
+            performanceGain: 'High'
+        });
+    } else if (metrics.cpuUtilization < 15 && currentTier !== 'db-f1-micro' && currentTier !== '1GB' && currentTier !== 'unknown') {
+        let recommendedTier = 'db-f1-micro';
+        if (currentTier.includes('custom-4')) recommendedTier = 'db-custom-2-7680';
+        else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-1-3840';
+        else if (currentTier.includes('custom-1')) recommendedTier = 'db-g1-small';
+
+        recommendations.push({
+            type: 'downgrade',
+            resource: 'cpu',
+            currentTier,
+            recommendedTier: isCloudSql ? recommendedTier : 'Lower Capacity Tier',
+            reason: `Low CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected consistently. Downgrading to a smaller tier will reduce infrastructure costs.`,
+            estimatedSavings: '15-40%'
+        });
+    }
+
+    // 2. Memory Analysis
+    if (metrics.memoryUtilization > 85) {
+        recommendations.push({
+            type: 'upgrade',
+            resource: 'memory',
+            currentTier,
+            recommendedTier: isCloudSql ? 'Higher RAM Custom Tier' : 'Next Capacity Tier',
+            reason: `Memory usage is near capacity (${metrics.memoryUtilization.toFixed(1)}%). Increasing memory prevents OOM errors and improves database caching performance.`,
+            performanceGain: 'Medium'
+        });
+    }
+
+    // 3. Disk Analysis (Cloud SQL)
+    if (isCloudSql && metrics.diskUtilization !== undefined && metrics.diskUtilization > 80) {
+        const currentSize = (metadata?.diskSizeGb as number) || 10;
+        recommendations.push({
+            type: 'upgrade',
+            resource: 'disk',
+            currentTier: `${currentSize}GB`,
+            recommendedTier: `${currentSize + 20}GB`,
+            reason: `Disk space is running low (${metrics.diskUtilization.toFixed(1)}%). Increasing storage capacity is essential to avoid write failures.`,
+            performanceGain: 'Critical'
+        });
+    }
+
+    return recommendations;
 }
 
 /**

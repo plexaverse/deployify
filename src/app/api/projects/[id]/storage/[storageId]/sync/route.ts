@@ -8,7 +8,7 @@ import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/fir
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations } from '@/lib/gcp/monitoring';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
 import { getUserById } from '@/lib/db';
@@ -121,8 +121,8 @@ export async function GET(
             }
         }
 
-        // 1. Check monitoring alerts for active connectors
-        if (storage.status === 'active' && storage.metadata?.provisioned && storage.alertSettings?.enabled) {
+        // 1. Check monitoring metrics, alerts & optimization for active provisioned connectors
+        if (storage.status === 'active' && storage.metadata?.provisioned) {
             try {
                 const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                 const region = (storage.metadata?.region as string) || access.project?.region || 'us-central1';
@@ -135,37 +135,56 @@ export async function GET(
                 }
 
                 if (metrics) {
-                    const { triggered, alerts } = checkAlertThresholds(metrics, storage.alertSettings);
-                    const previouslyAlerting = (storage.activeAlerts || []).length > 0;
-                    storage.activeAlerts = triggered ? alerts : [];
-                    storage.updatedAt = now;
-
-                    // Fatigue management & Notifications
-                    if (triggered && storage.alertSettings.emailNotifications) {
-                        const lastAlertedAt = storage.lastAlertedAt ? (storage.lastAlertedAt instanceof Date ? storage.lastAlertedAt : new Date(storage.lastAlertedAt)) : null;
-                        const hoursSinceLastAlert = lastAlertedAt ? (now.getTime() - lastAlertedAt.getTime()) / (1000 * 60 * 60) : 999;
-
-                        // Only notify if new alert OR cooldown period (4h) has passed
-                        if (!previouslyAlerting || hoursSinceLastAlert >= 4) {
-                            try {
-                                const user = await getUserById(project.userId);
-                                if (user?.email) {
-                                    const { subject, html } = storageAlertEmail(project.name, storage.name, alerts);
-                                    await sendEmail({ to: user.email, subject, html });
-                                    storage.lastAlertedAt = now;
-                                }
-                            } catch (emailError) {
-                                console.error(`Failed to send storage alert email for ${storageId}:`, emailError);
-                            }
-                        }
+                    // A. Optimization Intelligence: Analyze for scaling recommendations
+                    try {
+                        const recommendations = await getScalingRecommendations(storage.type, metrics, storage.metadata);
+                        storage.metadata = {
+                            ...storage.metadata,
+                            optimization: recommendations.length > 0 ? {
+                                recommendations,
+                                lastAnalyzedAt: now.toISOString()
+                            } : undefined
+                        };
+                    } catch (optErr) {
+                        console.error(`[OptimizationInsight] Analysis failed for ${storageId}:`, optErr);
                     }
 
-                    // Update project with new alert status
+                    // B. Monitoring Alerts
+                    if (storage.alertSettings?.enabled) {
+                        const { triggered, alerts } = checkAlertThresholds(metrics, storage.alertSettings);
+                        const previouslyAlerting = (storage.activeAlerts || []).length > 0;
+                        storage.activeAlerts = triggered ? alerts : [];
+
+                        // Fatigue management & Notifications
+                        if (triggered && storage.alertSettings.emailNotifications) {
+                            const lastAlertedAt = storage.lastAlertedAt ? (storage.lastAlertedAt instanceof Date ? storage.lastAlertedAt : new Date(storage.lastAlertedAt)) : null;
+                            const hoursSinceLastAlert = lastAlertedAt ? (now.getTime() - lastAlertedAt.getTime()) / (1000 * 60 * 60) : 999;
+
+                            // Only notify if new alert OR cooldown period (4h) has passed
+                            if (!previouslyAlerting || hoursSinceLastAlert >= 4) {
+                                try {
+                                    const user = await getUserById(project.userId);
+                                    if (user?.email) {
+                                        const { subject, html } = storageAlertEmail(project.name, storage.name, alerts);
+                                        await sendEmail({ to: user.email, subject, html });
+                                        storage.lastAlertedAt = now;
+                                    }
+                                } catch (emailError) {
+                                    console.error(`Failed to send storage alert email for ${storageId}:`, emailError);
+                                }
+                            }
+                        }
+                    } else {
+                        storage.activeAlerts = [];
+                    }
+
+                    // Update project with new state
+                    storage.updatedAt = now;
                     storageConfigs[index] = storage;
                     await updateProject(id, { storageConfigs });
                 }
             } catch (e) {
-                console.error(`Failed to check alerts during sync for ${storageId}:`, e);
+                console.error(`Failed to process metrics during sync for ${storageId}:`, e);
             }
         }
 
