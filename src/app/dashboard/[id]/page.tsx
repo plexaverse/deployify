@@ -17,7 +17,9 @@ import {
     Check,
     Layout,
     Activity,
-    Database
+    Database,
+    Wrench,
+    AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -383,24 +385,46 @@ export default function ProjectDetailPage() {
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             <div className={cn(
                                                 "w-1.5 h-1.5 rounded-full shrink-0",
-                                                storage.status === 'active' ? "bg-[var(--success)] shadow-[0_0_8px_var(--success)]" :
+                                                storage.status === 'active' ? (
+                                                    (storage.metadata?.health as any)?.status === 'degraded'
+                                                        ? "bg-[var(--warning)] shadow-[0_0_8px_var(--warning)]"
+                                                        : "bg-[var(--success)] shadow-[0_0_8px_var(--success)]"
+                                                ) :
                                                 storage.status === 'error' ? "bg-[var(--error)] shadow-[0_0_8px_var(--error)]" :
                                                 "bg-[var(--info)] animate-pulse"
                                             )} />
                                             <div className="flex flex-col min-w-0">
-                                                <span className="text-[10px] font-bold uppercase truncate">{storage.name}</span>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-[10px] font-bold uppercase truncate">{storage.name}</span>
+                                                    {(storage.metadata?.health as any)?.status === 'degraded' && (
+                                                        <span className="text-[8px] px-1 rounded bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase shrink-0">Slow</span>
+                                                    )}
+                                                    {storage.region && project.region && storage.region !== project.region && (
+                                                        <AlertTriangle className="w-2.5 h-2.5 text-[var(--error)]" title="Region Mismatch" />
+                                                    )}
+                                                </div>
                                                 <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] truncate">{storage.type.replace(/-/g, ' ')}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0">
                                             {!!storage.metadata?.health && (
-                                                <span className="text-[9px] font-mono font-bold text-[var(--muted-foreground)]">
-                                                    {(storage.metadata.health as { latency: number }).latency}ms
-                                                </span>
+                                                <div className="flex flex-col items-end">
+                                                    <span className={cn(
+                                                        "text-[9px] font-mono font-bold",
+                                                        (storage.metadata.health as any).status === 'degraded' ? "text-[var(--warning)]" : "text-[var(--muted-foreground)]"
+                                                    )}>
+                                                        {(storage.metadata.health as { latency: number }).latency}ms
+                                                    </span>
+                                                    {(storage.metadata.health as any).baselineLatency > 0 && (
+                                                        <span className="text-[7px] font-mono text-[var(--muted-foreground)] opacity-50 uppercase">
+                                                            Avg: {(storage.metadata.health as any).baselineLatency}ms
+                                                        </span>
+                                                    )}
+                                                </div>
                                             )}
                                             <Link href={`/dashboard/${project.id}/storage`}>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <Activity className="w-3 h-3" />
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity" title="Open Storage & Data">
+                                                    <Wrench className="w-3 h-3" />
                                                 </Button>
                                             </Link>
                                         </div>

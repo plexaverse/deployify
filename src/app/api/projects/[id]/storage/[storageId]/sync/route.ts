@@ -46,12 +46,35 @@ export async function GET(
         // 0. Perform automated health heartbeat for active connectors
         if (storage.status === 'active' || storage.status === 'error') {
             try {
-                const health = await checkConnectivityHealth(storage.type, storage.connectionStringSecretId, storage.metadata);
+                const prevHealth = storage.metadata?.health as any;
+                const prevBaseline = prevHealth?.baselineLatency || 0;
+
+                const health = await checkConnectivityHealth(
+                    storage.type,
+                    storage.connectionStringSecretId,
+                    storage.metadata,
+                    prevBaseline
+                );
+
+                // Calculate new baseline using EWMA (Exponential Weighted Moving Average)
+                // alpha = 0.2 means 20% weight to new measurement, 80% to old baseline
+                let newBaseline = prevBaseline;
+                if (health.status === 'healthy' || health.status === 'degraded') {
+                    if (prevBaseline === 0) {
+                        newBaseline = health.latency;
+                    } else {
+                        const alpha = 0.2;
+                        newBaseline = (alpha * health.latency) + ((1 - alpha) * prevBaseline);
+                    }
+                }
+
                 storage.metadata = {
                     ...storage.metadata,
                     health: {
                         status: health.status,
                         latency: health.latency,
+                        baselineLatency: Math.round(newBaseline),
+                        isDegraded: health.isDegraded,
                         timestamp: health.timestamp,
                         error: health.error
                     }
@@ -61,7 +84,7 @@ export async function GET(
                 if (health.status === 'unhealthy' && storage.status === 'active') {
                     storage.status = 'error';
                     storage.lastError = health.error || 'Health check heartbeat failed';
-                } else if (health.status === 'healthy' && storage.status === 'error') {
+                } else if ((health.status === 'healthy' || health.status === 'degraded') && storage.status === 'error') {
                     storage.status = 'active';
                     storage.lastError = undefined;
                 }

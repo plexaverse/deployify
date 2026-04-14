@@ -42,8 +42,10 @@ export interface DiagnosticResult {
  * Result of a lightweight health check
  */
 export interface HealthResult {
-    status: 'healthy' | 'unhealthy' | 'unknown';
+    status: 'healthy' | 'unhealthy' | 'unknown' | 'degraded';
     latency: number;
+    baselineLatency?: number;
+    isDegraded?: boolean;
     error?: string;
     timestamp: string;
 }
@@ -55,15 +57,21 @@ export interface HealthResult {
 export async function checkConnectivityHealth(
     type: StorageType,
     connectionStringSecretId?: string,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
+    previousBaseline?: number
 ): Promise<HealthResult> {
     const startTime = Date.now();
 
     try {
         if (process.env.MOCK_DB === 'true') {
+            const mockLatency = Math.floor(Math.random() * 20) + 5;
+            const isDegraded = previousBaseline ? mockLatency > previousBaseline * 2 : false;
+
             return {
-                status: 'healthy',
-                latency: 5,
+                status: isDegraded ? 'degraded' : 'healthy',
+                latency: mockLatency,
+                baselineLatency: previousBaseline,
+                isDegraded,
                 timestamp: new Date().toISOString()
             };
         }
@@ -89,10 +97,18 @@ export async function checkConnectivityHealth(
 
         // Perform a quick validation check
         const result = await validateConnection(type, connectionStringSecretId, metadata);
+        const latency = result.latency || (Date.now() - startTime);
+
+        // Degraded logic: if latency > 2x baseline AND latency > 100ms (to avoid flagging tiny jitters)
+        const isDegraded = result.valid && previousBaseline && previousBaseline > 0
+            ? (latency > previousBaseline * 2 && latency > 100)
+            : false;
 
         return {
-            status: result.valid ? 'healthy' : 'unhealthy',
-            latency: result.latency || (Date.now() - startTime),
+            status: result.valid ? (isDegraded ? 'degraded' : 'healthy') : 'unhealthy',
+            latency,
+            baselineLatency: previousBaseline,
+            isDegraded,
             error: result.error,
             timestamp: new Date().toISOString()
         };

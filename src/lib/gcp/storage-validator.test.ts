@@ -70,10 +70,43 @@ describe('Storage Connection Diagnosis', () => {
             );
 
             assert.strictEqual(result.success, true);
-            // In mock mode, diagnoseConnection returns mockSteps.
-            // The real logic that appends IPs to recommendation is in the non-mock branch.
-            // However, we can still verify it by forcing MOCK_DB=false and mocking the underlying dependencies if needed.
-            // For now, we verified the logic manually and with playwright.
+        } finally {
+            process.env.MOCK_DB = originalMockDb;
+        }
+    });
+});
+
+describe('Storage Health Heartbeat & Baselining', () => {
+    test('should identify degraded status when latency exceeds baseline', async () => {
+        const { checkConnectivityHealth } = await import('./storage-validator');
+        const originalMockDb = process.env.MOCK_DB;
+        process.env.MOCK_DB = 'true';
+
+        try {
+            // In mock mode, checkConnectivityHealth uses a random latency 5-25ms
+            // If we provide a tiny baseline like 1ms, it should frequently be degraded
+            const result = await checkConnectivityHealth('cloud-sql-postgres', 'mock-secret', {}, 1);
+
+            // Note: Since it's random (5-25), it will be > 1*2 (2ms)
+            assert.ok(result.latency >= 5);
+            assert.strictEqual(result.status, 'degraded');
+            assert.strictEqual(result.isDegraded, true);
+        } finally {
+            process.env.MOCK_DB = originalMockDb;
+        }
+    });
+
+    test('should identify healthy status when latency is within baseline', async () => {
+        const { checkConnectivityHealth } = await import('./storage-validator');
+        const originalMockDb = process.env.MOCK_DB;
+        process.env.MOCK_DB = 'true';
+
+        try {
+            // If we provide a huge baseline like 100ms, it should be healthy
+            const result = await checkConnectivityHealth('cloud-sql-postgres', 'mock-secret', {}, 100);
+
+            assert.strictEqual(result.status, 'healthy');
+            assert.strictEqual(result.isDegraded, false);
         } finally {
             process.env.MOCK_DB = originalMockDb;
         }
