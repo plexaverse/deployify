@@ -37,10 +37,12 @@ import {
     ChevronUp,
     Bell,
     BellOff,
-    AlertTriangle
+    AlertTriangle,
+    Sparkles
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { DataPortabilityModal } from '@/components/DataPortabilityModal';
+import { OptimizationModal } from '@/components/OptimizationModal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -137,6 +139,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isFetchingPreview, setIsFetchingPreview] = useState<string | null>(null);
 
     const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
+    const [isManagingOptimization, setIsManagingOptimization] = useState<StorageConfig | null>(null);
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
     const [isTroubleshooting, setIsTroubleshooting] = useState<StorageConfig | null>(null);
@@ -1296,6 +1299,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     AUTO-MIGRATE
                                                 </span>
                                             )}
+                                            {!!config.metadata?.optimization && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1 animate-pulse">
+                                                    <Sparkles className="w-2.5 h-2.5" />
+                                                    OPTIMIZATION AVAILABLE
+                                                </span>
+                                            )}
                                             {!!config.metadata?.highAvailability && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1" title="Multi-zone redundancy enabled">
                                                     <Zap className="w-2.5 h-2.5" />
@@ -1541,6 +1550,17 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             title="Import / Export Data"
                                         >
                                             <Upload className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                    {config.status === 'active' && !!config.metadata?.optimization && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setIsManagingOptimization(config)}
+                                            className="h-8 w-8 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="View Optimization Insights"
+                                        >
+                                            <Sparkles className="w-4 h-4 animate-pulse" />
                                         </Button>
                                     )}
                                     {config.status === 'active' && !!config.metadata?.provisioned && (
@@ -2430,6 +2450,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     </div>
                 }
                 confirmText="Duplicate Connector"
+            />
+
+            <OptimizationModal
+                isOpen={!!isManagingOptimization}
+                onClose={() => setIsManagingOptimization(null)}
+                storage={isManagingOptimization}
+                onApply={(rec) => {
+                    setIsScaling(isManagingOptimization);
+                    if (isManagingOptimization?.type.includes('cloud-sql')) {
+                        setScaleTier(rec.recommendedTier);
+                    } else if (isManagingOptimization?.type === 'memorystore-redis') {
+                        setScaleSizeGb(parseInt(rec.recommendedTier));
+                    }
+                    setIsManagingOptimization(null);
+                }}
             />
 
             <DataPortabilityModal

@@ -505,7 +505,20 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Enhance Dashboard and Storage UI with 'SLOW' badges and technical latency metadata
 - [x] Verify functional integrity with automated unit tests for predictive health logic
 
+### Phase 75: Automated Infrastructure Optimization & Global Connectivity Intelligence (IN PROGRESS)
+- [ ] Implement `getScalingRecommendations` utility for proactive tier adjustment
+- [ ] Integrate optimization insights into Storage Sync pipeline
+- [ ] Create `OptimizationModal` UI for actionable resource scaling
+- [ ] Implement Cross-Project Infrastructure Health dashboard
+- [ ] Verify 100% functional integrity and high-density aesthetic compliance
+
 ## Progress Updates
+
+### 2027-05-18: Automated Infrastructure Optimization & Global Connectivity Intelligence
+- Initiated Phase 75: Automated Infrastructure Optimization & Global Connectivity Intelligence.
+- Planning the transition from predictive monitoring to proactive resource optimization.
+- Designing the "Optimization Intelligence" engine to analyze utilization trends and suggest cost-saving or performance-improving tier adjustments.
+- Preparing to launch a cross-project fleet health summary for enhanced workspace-level observability.
 
 ### 2027-05-17: Predictive Health Monitoring & Latency Baselining
 - Completed Phase 74: Predictive Health Monitoring & Latency Baselining.
