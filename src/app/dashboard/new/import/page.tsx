@@ -216,7 +216,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                            <h2 className="text-xs font-bold">Project Settings</h2>
+                            <h2 className="text-[11px] md:text-xs font-bold">Project Settings</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -288,7 +288,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Pipeline</span>
-                            <h2 className="text-xs font-bold">Build Settings</h2>
+                            <h2 className="text-[11px] md:text-xs font-bold">Build Settings</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -338,7 +338,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                            <h2 className="text-xs font-bold">Database Connectors</h2>
+                            <h2 className="text-[11px] md:text-xs font-bold">Database Connectors</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -477,7 +477,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                            <h2 className="text-xs font-bold">Environment Variables</h2>
+                            <h2 className="text-[11px] md:text-xs font-bold">Environment Variables</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />

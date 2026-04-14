@@ -1202,11 +1202,11 @@ runQuery();`;
                         <>
                             <div className="text-right hidden md:block">
                                 <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Latency</span>
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--primary)]">{performanceData.avgLatency}ms</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{performanceData.avgLatency}ms</span>
                             </div>
                             <div className="text-right hidden md:block">
                                 <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Success Rate</span>
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--success)]">{performanceData.successRate}%</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">{performanceData.successRate}%</span>
                             </div>
                         </>
                     )}

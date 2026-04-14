@@ -414,7 +414,7 @@ export default function LandingPage() {
                   ].map((item, i) => (
                     <div key={i} className="flex justify-between border-b border-[var(--border)] pb-2">
                       <span className="text-[var(--muted-foreground)]">{item.label}</span>
-                      <span className="font-mono text-[var(--foreground)] font-semibold">{item.value}</span>
+                      <span className="font-mono text-[var(--foreground)] font-bold">{item.value}</span>
                     </div>
                   ))}
                 </div>

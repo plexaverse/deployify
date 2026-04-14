@@ -419,7 +419,7 @@ export default function TeamSettingsPage() {
                                                     </AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                                                    <p className="font-bold text-[var(--foreground)] flex items-center gap-2">
                                                         {member.user?.name || member.user?.githubUsername || 'Unknown User'}
                                                         {member.role === 'owner' && <Badge variant="warning" className="text-[10px] px-1.5 py-0.5 font-bold uppercase tracking-wider">Owner</Badge>}
                                                     </p>
@@ -468,7 +468,7 @@ export default function TeamSettingsPage() {
                                                     <Mail className="w-4 h-4 text-[var(--muted-foreground)]" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                                                    <p className="font-bold text-[var(--foreground)] flex items-center gap-2">
                                                         {invite.email}
                                                         <Badge variant="info" className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0">Invited</Badge>
                                                     </p>

@@ -66,7 +66,7 @@ export function Header() {
                             className={cn(
                                 "transition-colors whitespace-nowrap",
                                 index === breadcrumbs.length - 1
-                                    ? 'text-[var(--foreground)] font-semibold'
+                                    ? 'text-[var(--foreground)] font-bold'
                                     : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
                             )}
                         >

@@ -41,7 +41,7 @@ export function DeploymentListItem({
                     </div>
                     <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
-                            <p className="font-semibold text-xs truncate max-w-md">
+                            <p className="font-bold text-xs truncate max-w-md">
                                 {deployment.gitCommitMessage}
                             </p>
                             <Badge variant={deployment.type === 'production' ? 'success' : 'info'} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">

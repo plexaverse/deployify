@@ -1253,7 +1253,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </div>
                                     <div className="space-y-1 w-full">
                                         <div className="flex items-center gap-2">
-                                            <h4 className="font-semibold text-xs">{config.name}</h4>
+                                            <h4 className="font-bold text-xs">{config.name}</h4>
                                         {config.region && projectRegion && config.region !== projectRegion && (
                                             <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={`Service is in ${projectRegion} while storage is in ${config.region}. Higher latency expected.`}>
                                                 <AlertTriangle className="w-2.5 h-2.5" />
@@ -1628,7 +1628,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl">
                     <ExternalLink className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
                     <div className="text-xs">
-                        <p className="font-semibold text-[var(--info)] mb-1">Managed Connectivity</p>
+                        <p className="font-bold text-[var(--info)] mb-1">Managed Connectivity</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Deployify automatically injects the appropriate environment variables (like <code className="text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 px-1 rounded">DATABASE_URL</code>) into your services based on these connectors.
                         </p>
