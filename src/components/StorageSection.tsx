@@ -37,7 +37,8 @@ import {
     ChevronUp,
     Bell,
     BellOff,
-    AlertTriangle
+    AlertTriangle,
+    Sparkles
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { DataPortabilityModal } from '@/components/DataPortabilityModal';
