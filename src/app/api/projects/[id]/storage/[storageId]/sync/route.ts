@@ -46,6 +46,41 @@ export async function GET(
         // 0. Perform automated health heartbeat for active connectors
         if (storage.status === 'active' || storage.status === 'error') {
             try {
+                // Baseline connectivity metadata if missing to optimize future heartbeats
+                if (!storage.metadata?.connectivity && storage.connectionStringSecretId && storage.type !== 'firestore') {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const connectionString = await getSecretValue(storage.connectionStringSecretId);
+
+                        // Use URL to parse connection string
+                        if (connectionString.startsWith('mongodb+srv://')) {
+                            const url = new URL(connectionString);
+                            storage.metadata = {
+                                ...storage.metadata,
+                                connectivity: { host: url.hostname, port: 27017 }
+                            };
+                        } else if (!connectionString.includes('enable_iam_auth=true')) {
+                            const url = new URL(connectionString);
+                            if (url.hostname && url.hostname !== 'localhost') {
+                                storage.metadata = {
+                                    ...storage.metadata,
+                                    connectivity: {
+                                        host: url.hostname,
+                                        port: url.port ? parseInt(url.port, 10) : (
+                                            storage.type.includes('postgres') || storage.type === 'supabase' ? 5432 :
+                                            storage.type.includes('mysql') || storage.type === 'planetscale' ? 3306 :
+                                            storage.type === 'memorystore-redis' ? 6379 :
+                                            storage.type === 'mongodb-atlas' ? 27017 : 0
+                                        )
+                                    }
+                                };
+                            }
+                        }
+                    } catch (baselineErr) {
+                        console.error(`[HealthHeartbeat] Failed to baseline connectivity for ${storageId}:`, baselineErr);
+                    }
+                }
+
                 const health = await checkConnectivityHealth(storage.type, storage.connectionStringSecretId, storage.metadata);
                 storage.metadata = {
                     ...storage.metadata,
@@ -65,6 +100,10 @@ export async function GET(
                     storage.status = 'active';
                     storage.lastError = undefined;
                 }
+
+                // Persist health heartbeat and baselined connectivity metadata
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
             } catch (healthErr) {
                 console.error(`[HealthHeartbeat] Failed for ${storageId}:`, healthErr);
             }

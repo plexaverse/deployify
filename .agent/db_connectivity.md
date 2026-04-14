@@ -491,13 +491,22 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement per-resource reclamation and bulk "Purge All Orphans" in the UI
 - [x] Verify 100% functional integrity and high-density aesthetic compliance
 
-### Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability (IN PROGRESS)
-- [ ] Implement `checkConnectivityHealth` utility for low-overhead heartbeat checks
-- [ ] Integrate automated health baselining into the Storage Sync API
-- [ ] Implement "Infrastructure Health" dashboard widget on the Project Overview page
-- [ ] Standardize connectivity status reporting across all connector tiers
+### Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability (COMPLETED)
+- [x] Implement `checkConnectivityHealth` utility for low-overhead heartbeat checks
+- [x] Integrate automated health baselining into the Storage Sync API
+- [x] Implement "Infrastructure Health" dashboard widget on the Project Overview page
+- [x] Standardize connectivity status reporting across all connector tiers
+- [x] Optimized heartbeats with lightweight TCP probes to bypass Secret Manager
 
 ## Progress Updates
+
+### 2027-05-17: Automated Lifecycle Resilience & Global Connectivity Observability
+- Completed Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability.
+- Optimized `checkConnectivityHealth` in `src/lib/gcp/storage-validator.ts` with a lightweight TCP probe that utilizes cached `metadata.connectivity` to bypass expensive Secret Manager lookups, enabling high-frequency heartbeats.
+- Enhanced the Storage Sync API to automatically baseline and persist connectivity metadata (host/port) from connection strings during first-run or sync operations.
+- Launched the "Infrastructure Health" widget on the Project Overview page, providing aggregated project health status and individual resource connectivity tracking (UP/DOWN with latency).
+- Standardized real-time heartbeat reporting in `StorageSection.tsx`, surfacing latency and reachability status for all active connectors.
+- Verified 100% functional integrity with new unit tests for optimized health checks and frontend verification of the updated dashboard.
 
 ### 2027-05-17: Architectural Maturity & Resilience Hardening
 - Initiated Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability.

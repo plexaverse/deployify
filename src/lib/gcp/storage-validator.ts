@@ -77,6 +77,18 @@ export async function checkConnectivityHealth(
             };
         }
 
+        // Optimization: Use direct TCP probe if host/port are available in metadata
+        const connectivity = metadata?.connectivity as { host: string; port: number } | undefined;
+        if (connectivity?.host && connectivity?.port) {
+            const isReachable = await checkTcpReachability(connectivity.host, connectivity.port, 2000);
+            return {
+                status: isReachable ? 'healthy' : 'unhealthy',
+                latency: Date.now() - startTime,
+                error: isReachable ? undefined : `Direct probe failed: ${connectivity.host}:${connectivity.port} is unreachable`,
+                timestamp: new Date().toISOString()
+            };
+        }
+
         // For everything else, we need a connection string or instance ID
         if (!connectionStringSecretId && !metadata?.resourceName) {
             return {

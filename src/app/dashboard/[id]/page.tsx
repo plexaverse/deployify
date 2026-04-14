@@ -371,41 +371,60 @@ export default function ProjectDetailPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">
-                                        {project.storageConfigs.filter(s => s.status === 'active').length}/{project.storageConfigs.length} ACTIVE
-                                    </span>
+                                    {project.storageConfigs.every(s => (s.metadata?.health as { status: string })?.status === 'healthy' || s.status === 'provisioning') ? (
+                                        <Badge variant="success" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--success-bg)]">Operational</Badge>
+                                    ) : project.storageConfigs.some(s => (s.metadata?.health as { status: string })?.status === 'unhealthy' || s.status === 'error') ? (
+                                        <Badge variant="destructive" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Degraded</Badge>
+                                    ) : (
+                                        <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5">Checking...</Badge>
+                                    )}
                                 </div>
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <div className="p-4 space-y-3">
-                                {project.storageConfigs.slice(0, 3).map((storage) => (
-                                    <div key={storage.id} className="flex items-center justify-between p-2 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)] group hover:border-[var(--primary)]/30 transition-colors">
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            <div className={cn(
-                                                "w-1.5 h-1.5 rounded-full shrink-0",
-                                                storage.status === 'active' ? "bg-[var(--success)] shadow-[0_0_8px_var(--success)]" :
-                                                storage.status === 'error' ? "bg-[var(--error)] shadow-[0_0_8px_var(--error)]" :
-                                                "bg-[var(--info)] animate-pulse"
-                                            )} />
-                                            <div className="flex flex-col min-w-0">
-                                                <span className="text-[10px] font-bold uppercase truncate">{storage.name}</span>
-                                                <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] truncate">{storage.type.replace(/-/g, ' ')}</span>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">Resource Connectivity</span>
+                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">
+                                        {project.storageConfigs.filter(s => s.status === 'active' && (s.metadata?.health as { status: string })?.status === 'healthy').length}/{project.storageConfigs.length} UP
+                                    </span>
+                                </div>
+                                {project.storageConfigs.slice(0, 3).map((storage) => {
+                                    const health = storage.metadata?.health as { status: string; latency: number; error?: string } | undefined;
+                                    const status = health?.status || (storage.status === 'provisioning' ? 'provisioning' : 'unknown');
+
+                                    return (
+                                        <div key={storage.id} className="flex items-center justify-between p-2 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)] group hover:border-[var(--primary)]/30 transition-colors">
+                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className={cn(
+                                                    "w-1.5 h-1.5 rounded-full shrink-0",
+                                                    status === 'healthy' ? "bg-[var(--success)] shadow-[0_0_8px_var(--success)]" :
+                                                    status === 'unhealthy' ? "bg-[var(--error)] shadow-[0_0_8px_var(--error)]" :
+                                                    status === 'provisioning' ? "bg-[var(--info)] animate-pulse" :
+                                                    "bg-[var(--muted-foreground)]/30"
+                                                )} />
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-[10px] font-bold uppercase truncate">{storage.name}</span>
+                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] truncate">{storage.type.replace(/-/g, ' ')}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {status === 'healthy' && (
+                                                    <span className="text-[9px] font-mono font-bold text-[var(--success)]">
+                                                        {health?.latency}ms
+                                                    </span>
+                                                )}
+                                                {status === 'unhealthy' && (
+                                                    <span className="text-[9px] font-bold text-[var(--error)] uppercase">Failed</span>
+                                                )}
+                                                <Link href={`/dashboard/${project.id}/storage`}>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Activity className="w-3 h-3" />
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 shrink-0">
-                                            {!!storage.metadata?.health && (
-                                                <span className="text-[9px] font-mono font-bold text-[var(--muted-foreground)]">
-                                                    {(storage.metadata.health as { latency: number }).latency}ms
-                                                </span>
-                                            )}
-                                            <Link href={`/dashboard/${project.id}/storage`}>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <Activity className="w-3 h-3" />
-                                                </Button>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                                 {project.storageConfigs.length > 3 && (
                                     <Link href={`/dashboard/${project.id}/storage`} className="block text-center pt-1">
                                         <span className="text-[9px] font-bold uppercase text-[var(--primary)] hover:underline">
