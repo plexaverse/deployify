@@ -491,7 +491,19 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement per-resource reclamation and bulk "Purge All Orphans" in the UI
 - [x] Verify 100% functional integrity and high-density aesthetic compliance
 
+### Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability (IN PROGRESS)
+- [ ] Implement `checkConnectivityHealth` utility for low-overhead heartbeat checks
+- [ ] Integrate automated health baselining into the Storage Sync API
+- [ ] Implement "Infrastructure Health" dashboard widget on the Project Overview page
+- [ ] Standardize connectivity status reporting across all connector tiers
+
 ## Progress Updates
+
+### 2027-05-17: Architectural Maturity & Resilience Hardening
+- Initiated Phase 73: Automated Lifecycle Resilience & Global Connectivity Observability.
+- Conducted an architectural audit confirming the "Connector" model's success in standardizing GCP-Native, External, and Generic storage tiers.
+- Planning the transition from reactive troubleshooting to proactive health monitoring via background heartbeats.
+- Preparing to surface connectivity health intelligence directly on the main Project Overview dashboard for improved operational visibility.
 
 ### 2027-05-16: Storage Lifecycle Automation & Orphaned Resource Reclamation
 - Completed Phase 72: Storage Lifecycle Automation & Orphaned Resource Reclamation.
