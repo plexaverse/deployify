@@ -393,9 +393,9 @@ export default function ProjectDetailPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 shrink-0">
-                                            {storage.metadata?.health && (
+                                            {!!storage.metadata?.health && (
                                                 <span className="text-[9px] font-mono font-bold text-[var(--muted-foreground)]">
-                                                    {(storage.metadata.health as any).latency}ms
+                                                    {(storage.metadata.health as { latency: number }).latency}ms
                                                 </span>
                                             )}
                                             <Link href={`/dashboard/${project.id}/storage`}>
