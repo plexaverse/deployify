@@ -202,7 +202,7 @@ export default function NewProjectPage() {
                                         {/* Repo info */}
                                         <div className="relative z-10 flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
+                                                <h3 className="text-xs font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
                                                     {repo.full_name.toUpperCase()}
                                                 </h3>
                                                 {repo.private && (

@@ -34,7 +34,7 @@ export function AnalyticsAlerts({ alerts }: AnalyticsAlertsProps) {
                             <Info className="w-4 h-4 shrink-0" />
                         )}
                         <div className="space-y-1">
-                            <p className="font-semibold">{alert.message}</p>
+                            <p className="font-bold">{alert.message}</p>
                             <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">
                                 Current {alert.metric}: <span className="font-mono">{alert.value.toFixed(2)}</span>
                                 &bull; Threshold: {alert.threshold}

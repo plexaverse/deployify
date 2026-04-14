@@ -105,7 +105,7 @@ export default function EdgeDebugPage() {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Code Editor</span>
-                        <h2 className="text-xs font-bold">Middleware Code</h2>
+                        <h2 className="text-[11px] md:text-xs font-bold">Middleware Code</h2>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />
@@ -130,7 +130,7 @@ export default function EdgeDebugPage() {
                         </div>
                         <div className="space-y-0.5">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                            <h2 className="text-xs font-bold text-[var(--foreground)]">Request Configuration</h2>
+                            <h2 className="text-[11px] md:text-xs font-bold text-[var(--foreground)]">Request Configuration</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -187,7 +187,7 @@ export default function EdgeDebugPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Execution Output</span>
-                                <h2 className="text-xs font-bold">Simulation Result</h2>
+                                <h2 className="text-[11px] md:text-xs font-bold">Simulation Result</h2>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />

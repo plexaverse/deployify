@@ -125,7 +125,7 @@ export default function SharedDashboardPage() {
                     <AlertCircle className="w-8 h-8 text-[var(--error)]" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-xs font-bold uppercase">Access Denied</h2>
+                    <h2 className="text-[11px] md:text-xs font-bold uppercase">Access Denied</h2>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-md mx-auto">
                         {error}. This insight may be private, deleted, or you may have followed an invalid link.
                     </p>

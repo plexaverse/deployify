@@ -32,7 +32,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
                     <div key={index} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                         <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
-                        <span className="font-mono font-semibold text-[var(--foreground)]">
+                        <span className="font-mono font-bold text-[var(--foreground)]">
                             {entry.name === 'Duration' ? formatDuration(Number(entry.value) * 1000) : entry.value}
                         </span>
                     </div>

@@ -306,13 +306,13 @@ export function DomainsSection({
                                 <path d="M16.5088 16.8447C16.6173 16.4322 16.5258 16.0192 16.2589 15.7124C16.0023 15.4178 15.6013 15.2598 15.1548 15.2598H8.14015C8.0463 15.2598 7.9648 15.2158 7.9193 15.1421C7.8738 15.0681 7.8705 14.9768 7.9098 14.8968L8.2618 14.1958C8.3471 14.0268 8.5218 13.9185 8.7113 13.9185H15.2883C16.1918 13.9185 17.0173 13.4905 17.5173 12.7598C18.0171 12.0291 18.1171 11.11 17.7903 10.2888L17.0843 8.5155C16.6423 7.3995 15.5803 6.6495 14.3803 6.6495H5.2883C5.0988 6.6495 4.9243 6.7578 4.8388 6.927L2.6673 11.2885C2.0503 12.5195 2.0503 13.9955 2.6673 15.2265L4.0553 18H15.4653C16.2173 18 16.3753 17.3175 16.5088 16.8447Z" />
                                 <path d="M19.5813 11.2885L18.1098 8.2155C18.0213 8.0348 17.8488 7.9185 17.6573 7.9185H16.0873L17.0363 10.2168C17.4093 11.1755 17.2963 12.2588 16.7243 13.1145C16.1523 13.9702 15.2048 14.4772 14.1683 14.4772H8.0633L7.6873 15.2598H14.0343C14.0343 15.2598 14.9378 15.2598 15.5093 16.0658C15.9813 16.7355 15.7713 17.4 15.5093 18H20.5343C21.0693 18 21.5348 17.6415 21.6698 17.1255L21.9998 15.7505C22.3498 14.3755 21.8998 12.9285 20.7348 12.0885L19.5813 11.2885Z" />
                             </svg>
-                            <h3 className="font-semibold text-[var(--warning)]">Cloudflare Setup (Recommended)</h3>
+                            <h3 className="text-xs font-bold text-[var(--warning)]">Cloudflare Setup (Recommended)</h3>
                         </div>
                         <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                             For global CDN and faster performance, use Cloudflare instead of GCP domain mapping:
                         </p>
                     <ol className="text-xs space-y-4 text-[var(--muted-foreground)] list-decimal list-inside mb-6">
-                        <li>Add your domain to <a href="https://cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] font-semibold hover:underline">Cloudflare</a> (free)</li>
+                        <li>Add your domain to <a href="https://cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] font-bold hover:underline">Cloudflare</a> (free)</li>
                         <li>Update nameservers at your registrar to Cloudflare&apos;s</li>
                         <li>
                             Add a CNAME record in Cloudflare:

@@ -86,7 +86,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                             {plans.map((plan) => (
                                 <th key={plan.id} className="p-4 min-w-[150px] border-b border-[var(--border)] text-center bg-[var(--background)]">
                                     <div className="flex flex-col items-center gap-1">
-                                        <span className="font-semibold">{plan.name}</span>
+                                        <span className="font-bold">{plan.name}</span>
                                         {plan.id === currentPlanId && (
                                             <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider px-1.5 h-5">
                                                 Current
@@ -135,7 +135,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                                             <Minus className="w-4 h-4 text-[var(--muted-foreground)]/30" />
                                                         </div>
                                                     ) : (
-                                                        <span className="text-[var(--muted-foreground)] font-semibold">{value}</span>
+                                                        <span className="text-[var(--muted-foreground)] font-bold">{value}</span>
                                                     )}
                                                 </td>
                                             );

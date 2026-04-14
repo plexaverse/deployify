@@ -171,7 +171,7 @@ function StepIndicator({ current, number, label }: { current: number, number: nu
                 </AnimatePresence>
             </motion.div>
             <span className={cn(
-                "font-semibold transition-all duration-300",
+                "font-bold transition-all duration-300",
                 currentStep ? "text-[var(--foreground)] scale-105" : "text-[var(--muted-foreground)]"
             )}>
                 {label}
@@ -314,7 +314,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                                 )}
                                             </div>
                                             <div>
-                                                <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
+                                                <h3 className="text-xs font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
                                                     {repo.full_name.toUpperCase()}
                                                     {repo.private && (
                                                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
@@ -486,7 +486,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                        <h2 className="text-xs font-bold">Project Settings</h2>
+                        <h2 className="text-[11px] md:text-xs font-bold">Project Settings</h2>
                     </div>
                 </div>
 
@@ -615,7 +615,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
-                        <h2 className="text-xs font-bold">Environment Variables</h2>
+                        <h2 className="text-[11px] md:text-xs font-bold">Environment Variables</h2>
                     </div>
                 </div>
 
@@ -839,7 +839,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                     </motion.div>
                     <p className="text-[var(--muted-foreground)] flex items-center gap-2">
                         <GitBranch className="w-4 h-4" />
-                        <span className="font-semibold text-[var(--foreground)]">{project.name.toUpperCase()}</span>
+                        <span className="font-bold text-[var(--foreground)]">{project.name.toUpperCase()}</span>
                         <span className="opacity-50">•</span>
                         <span>{initialDeployment.gitBranch.toUpperCase()}</span>
                         <span className="opacity-50">•</span>
