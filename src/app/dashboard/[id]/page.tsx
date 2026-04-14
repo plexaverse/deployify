@@ -374,7 +374,9 @@ export default function ProjectDetailPage() {
                                     {project.storageConfigs.every(s => (s.metadata?.health as { status: string })?.status === 'healthy' || s.status === 'provisioning') ? (
                                         <Badge variant="success" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--success-bg)]">Operational</Badge>
                                     ) : project.storageConfigs.some(s => (s.metadata?.health as { status: string })?.status === 'unhealthy' || s.status === 'error') ? (
-                                        <Badge variant="destructive" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Degraded</Badge>
+                                        <Badge variant="destructive" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Unhealthy</Badge>
+                                    ) : project.storageConfigs.some(s => (s.metadata?.health as { status: string })?.status === 'degraded') ? (
+                                        <Badge variant="warning" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--warning-bg)]">Degraded</Badge>
                                     ) : (
                                         <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5">Checking...</Badge>
                                     )}
@@ -398,6 +400,7 @@ export default function ProjectDetailPage() {
                                                 <div className={cn(
                                                     "w-1.5 h-1.5 rounded-full shrink-0",
                                                     status === 'healthy' ? "bg-[var(--success)] shadow-[0_0_8px_var(--success)]" :
+                                                    status === 'degraded' ? "bg-[var(--warning)] shadow-[0_0_8px_var(--warning)]" :
                                                     status === 'unhealthy' ? "bg-[var(--error)] shadow-[0_0_8px_var(--error)]" :
                                                     status === 'provisioning' ? "bg-[var(--info)] animate-pulse" :
                                                     "bg-[var(--muted-foreground)]/30"
@@ -408,10 +411,16 @@ export default function ProjectDetailPage() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
-                                                {status === 'healthy' && (
-                                                    <span className="text-[9px] font-mono font-bold text-[var(--success)]">
+                                                {(status === 'healthy' || status === 'degraded') && (
+                                                    <span className={cn(
+                                                        "text-[9px] font-mono font-bold",
+                                                        status === 'healthy' ? "text-[var(--success)]" : "text-[var(--warning)]"
+                                                    )}>
                                                         {health?.latency}ms
                                                     </span>
+                                                )}
+                                                {status === 'degraded' && (
+                                                    <span className="text-[9px] font-bold text-[var(--warning)] uppercase">Slow</span>
                                                 )}
                                                 {status === 'unhealthy' && (
                                                     <span className="text-[9px] font-bold text-[var(--error)] uppercase">Failed</span>

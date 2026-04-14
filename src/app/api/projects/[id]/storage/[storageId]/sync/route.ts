@@ -6,6 +6,7 @@ import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getClo
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
+import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds } from '@/lib/gcp/monitoring';
 import { sendEmail } from '@/lib/email/client';
@@ -82,21 +83,32 @@ export async function GET(
                 }
 
                 const health = await checkConnectivityHealth(storage.type, storage.connectionStringSecretId, storage.metadata);
+
+                // Predictive Health: Implement EWMA (alpha=0.2) for baseline latency
+                const currentHealth = storage.metadata?.health as { baselineLatency?: number } | undefined;
+                const newBaseline = calculateEWMA(health.latency, currentHealth?.baselineLatency);
+
+                // Detect degradation
+                const isDegraded = detectDegradation(health.latency, newBaseline);
+                const finalStatus = health.status === 'unhealthy' ? 'unhealthy' : (isDegraded ? 'degraded' : 'healthy');
+
                 storage.metadata = {
                     ...storage.metadata,
                     health: {
-                        status: health.status,
+                        status: finalStatus,
                         latency: health.latency,
+                        baselineLatency: parseFloat(newBaseline.toFixed(2)),
+                        isDegraded,
                         timestamp: health.timestamp,
                         error: health.error
                     }
                 };
 
                 // Auto-remediation: Transition from active to error if health check fails
-                if (health.status === 'unhealthy' && storage.status === 'active') {
+                if (finalStatus === 'unhealthy' && storage.status === 'active') {
                     storage.status = 'error';
                     storage.lastError = health.error || 'Health check heartbeat failed';
-                } else if (health.status === 'healthy' && storage.status === 'error') {
+                } else if ((finalStatus === 'healthy' || finalStatus === 'degraded') && storage.status === 'error') {
                     storage.status = 'active';
                     storage.lastError = undefined;
                 }
