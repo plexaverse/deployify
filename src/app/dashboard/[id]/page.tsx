@@ -16,7 +16,8 @@ import {
     Copy,
     Check,
     Layout,
-    Activity
+    Activity,
+    Database
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -356,6 +357,66 @@ export default function ProjectDetailPage() {
 
                 {/* Right Column: Quick Stats / Alerts */}
                 <div className="space-y-8">
+                    {/* Infrastructure Health Widget */}
+                    {project.storageConfigs && project.storageConfigs.length > 0 && (
+                        <Card className="overflow-hidden p-0 shadow-sm border-[var(--primary)]/10">
+                            <div className="p-6 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                        <Database className="w-5 h-5 text-[var(--primary)]" />
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
+                                        <h3 className="text-xs font-bold">Storage Health</h3>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">
+                                        {project.storageConfigs.filter(s => s.status === 'active').length}/{project.storageConfigs.length} ACTIVE
+                                    </span>
+                                </div>
+                            </div>
+                            <Separator className="bg-[var(--border)]" />
+                            <div className="p-4 space-y-3">
+                                {project.storageConfigs.slice(0, 3).map((storage) => (
+                                    <div key={storage.id} className="flex items-center justify-between p-2 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)] group hover:border-[var(--primary)]/30 transition-colors">
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <div className={cn(
+                                                "w-1.5 h-1.5 rounded-full shrink-0",
+                                                storage.status === 'active' ? "bg-[var(--success)] shadow-[0_0_8px_var(--success)]" :
+                                                storage.status === 'error' ? "bg-[var(--error)] shadow-[0_0_8px_var(--error)]" :
+                                                "bg-[var(--info)] animate-pulse"
+                                            )} />
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-[10px] font-bold uppercase truncate">{storage.name}</span>
+                                                <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] truncate">{storage.type.replace(/-/g, ' ')}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {storage.metadata?.health && (
+                                                <span className="text-[9px] font-mono font-bold text-[var(--muted-foreground)]">
+                                                    {(storage.metadata.health as any).latency}ms
+                                                </span>
+                                            )}
+                                            <Link href={`/dashboard/${project.id}/storage`}>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Activity className="w-3 h-3" />
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                ))}
+                                {project.storageConfigs.length > 3 && (
+                                    <Link href={`/dashboard/${project.id}/storage`} className="block text-center pt-1">
+                                        <span className="text-[9px] font-bold uppercase text-[var(--primary)] hover:underline">
+                                            View all {project.storageConfigs.length} connectors
+                                        </span>
+                                    </Link>
+                                )}
+                            </div>
+                        </Card>
+                    )}
+
                     {/* Compact Error Rate */}
                     {errorCount !== null && (
                         <Card className="overflow-hidden p-0 shadow-sm">

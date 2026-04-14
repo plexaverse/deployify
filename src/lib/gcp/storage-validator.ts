@@ -39,6 +39,74 @@ export interface DiagnosticResult {
 }
 
 /**
+ * Result of a lightweight health check
+ */
+export interface HealthResult {
+    status: 'healthy' | 'unhealthy' | 'unknown';
+    latency: number;
+    error?: string;
+    timestamp: string;
+}
+
+/**
+ * Performs a lightweight health heartbeat check on a storage connector.
+ * Designed for background monitoring with minimal overhead.
+ */
+export async function checkConnectivityHealth(
+    type: StorageType,
+    connectionStringSecretId?: string,
+    metadata?: Record<string, unknown>
+): Promise<HealthResult> {
+    const startTime = Date.now();
+
+    try {
+        if (process.env.MOCK_DB === 'true') {
+            return {
+                status: 'healthy',
+                latency: 5,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        // Firestore is always considered healthy if we have access to the project
+        if (type === 'firestore') {
+            return {
+                status: 'healthy',
+                latency: 0,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        // For everything else, we need a connection string or instance ID
+        if (!connectionStringSecretId && !metadata?.resourceName) {
+            return {
+                status: 'unknown',
+                latency: Date.now() - startTime,
+                error: 'Missing connectivity metadata',
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        // Perform a quick validation check
+        const result = await validateConnection(type, connectionStringSecretId, metadata);
+
+        return {
+            status: result.valid ? 'healthy' : 'unhealthy',
+            latency: result.latency || (Date.now() - startTime),
+            error: result.error,
+            timestamp: new Date().toISOString()
+        };
+    } catch (e) {
+        return {
+            status: 'unhealthy',
+            latency: Date.now() - startTime,
+            error: e instanceof Error ? e.message : 'Unknown health error',
+            timestamp: new Date().toISOString()
+        };
+    }
+}
+
+/**
  * Validates a storage connection based on its type and connection string
  */
 export async function validateConnection(

@@ -5,6 +5,7 @@ import { updateProject } from '@/lib/db';
 import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getCloudSqlInstance } from '@/lib/gcp/cloudsql';
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
+import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import type { StorageConfig } from '@/types';
 import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds } from '@/lib/gcp/monitoring';
 import { sendEmail } from '@/lib/email/client';
@@ -41,6 +42,33 @@ export async function GET(
 
         const storage = storageConfigs[index];
         const now = new Date();
+
+        // 0. Perform automated health heartbeat for active connectors
+        if (storage.status === 'active' || storage.status === 'error') {
+            try {
+                const health = await checkConnectivityHealth(storage.type, storage.connectionStringSecretId, storage.metadata);
+                storage.metadata = {
+                    ...storage.metadata,
+                    health: {
+                        status: health.status,
+                        latency: health.latency,
+                        timestamp: health.timestamp,
+                        error: health.error
+                    }
+                };
+
+                // Auto-remediation: Transition from active to error if health check fails
+                if (health.status === 'unhealthy' && storage.status === 'active') {
+                    storage.status = 'error';
+                    storage.lastError = health.error || 'Health check heartbeat failed';
+                } else if (health.status === 'healthy' && storage.status === 'error') {
+                    storage.status = 'active';
+                    storage.lastError = undefined;
+                }
+            } catch (healthErr) {
+                console.error(`[HealthHeartbeat] Failed for ${storageId}:`, healthErr);
+            }
+        }
 
         // 1. Check monitoring alerts for active connectors
         if (storage.status === 'active' && storage.metadata?.provisioned && storage.alertSettings?.enabled) {
