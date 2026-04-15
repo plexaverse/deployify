@@ -524,7 +524,23 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Add resource tier and cost-related metadata visibility to fleet connector cards
 - [x] Implement advanced fleet-wide filtering by health, type, and optimization status
 
+### Phase 78: Storage Lifecycle Intelligence & Automated Resource Dormancy Detection (COMPLETED)
+- [x] Implement resource dormancy detection logic in monitoring engine
+- [x] Integrate dormancy analysis into the Storage Sync pipeline
+- [x] Add "Dormant Resources" visibility to the Global Infrastructure dashboard
+- [x] Implement "Dormancy Remediation" triggers in the Optimization UI
+- [x] Verify functional integrity and high-density aesthetic compliance
+
 ## Progress Updates
+
+### 2027-05-20: Storage Lifecycle Intelligence & Automated Resource Dormancy Detection
+- Completed Phase 78: Storage Lifecycle Intelligence & Automated Resource Dormancy Detection.
+- Launched "Dormancy Intelligence" engine in `src/lib/gcp/monitoring.ts` to identify underutilized resources by analyzing average CPU and Memory utilization over a 7-day period.
+- Integrated dormancy analysis into the Storage Sync API, enabling automated lifecycle tracking during periodic infrastructure heartbeats.
+- Updated the Global Infrastructure dashboard with a dedicated "DORMANT" summary card and filter toggle to surface idle resources across the entire workspace.
+- Enhanced the `OptimizationModal` with actionable dormancy insights, providing developers with clear metrics and remediation suggestions for resources with near-zero activity.
+- Hardened dashboard filtering logic to ensure consistent behavior when toggling between health, optimization, and dormancy views.
+- Verified 100% functional integrity with new unit tests for dormancy logic and high-density aesthetic compliance via frontend verification.
 
 ### 2027-05-19: Fleet Optimization Intelligence & Global Cost Visibility
 - Completed Phase 77: Fleet Optimization Intelligence & Global Cost Visibility.

@@ -1,6 +1,6 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
-import type { StorageAlertSettings } from '@/types';
+import type { StorageAlertSettings, ResourceDormancy } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -119,6 +119,76 @@ export async function getMemorystoreMetrics(instanceId: string, region: string):
 }
 
 /**
+ * Analyze historical resource metrics to detect dormancy
+ */
+export async function getResourceDormancy(
+    storageType: string,
+    instanceId: string,
+    region?: string
+): Promise<ResourceDormancy> {
+    const analysisPeriodDays = 7;
+    const startTime = new Date(Date.now() - analysisPeriodDays * 24 * 60 * 60 * 1000).toISOString();
+    const endTime = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const isDormant = Math.random() > 0.8; // 20% chance of being dormant in mock
+        return {
+            isDormant,
+            avgCpuUtilization: isDormant ? 0.2 : 5.4,
+            avgMemoryUtilization: isDormant ? 12.0 : 45.2,
+            avgDiskUtilization: storageType.includes('cloud-sql') ? (isDormant ? 5.0 : 12.5) : undefined,
+            lastActiveAt: isDormant ? new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() : endTime,
+            analysisPeriodDays
+        };
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    try {
+        let cpuFilter = '';
+        let memoryFilter = '';
+        let diskFilter = '';
+
+        if (storageType.includes('cloud-sql')) {
+            cpuFilter = `metric.type="cloudsql.googleapis.com/database/cpu/utilization" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
+            memoryFilter = `metric.type="cloudsql.googleapis.com/database/memory/utilization" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
+            diskFilter = `metric.type="cloudsql.googleapis.com/database/disk/utilization" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
+        } else if (storageType === 'memorystore-redis' && region) {
+            cpuFilter = `metric.type="redis.googleapis.com/stats/cpu/usage_time" AND resource.labels.instance_id="projects/${gcpProjectId}/locations/${region}/instances/${instanceId}"`;
+            memoryFilter = `metric.type="redis.googleapis.com/stats/memory/usage_ratio" AND resource.labels.instance_id="projects/${gcpProjectId}/locations/${region}/instances/${instanceId}"`;
+        } else {
+            return { isDormant: false, avgCpuUtilization: 0, avgMemoryUtilization: 0, analysisPeriodDays };
+        }
+
+        const [cpuAvg, memoryAvg, diskAvg] = await Promise.all([
+            fetchMetricAverage(gcpProjectId!, accessToken, cpuFilter, startTime, endTime),
+            fetchMetricAverage(gcpProjectId!, accessToken, memoryFilter, startTime, endTime),
+            diskFilter ? fetchMetricAverage(gcpProjectId!, accessToken, diskFilter, startTime, endTime) : Promise.resolve(undefined)
+        ]);
+
+        const avgCpu = cpuAvg * 100;
+        const avgMem = memoryAvg * 100;
+        const avgDisk = diskAvg !== undefined ? diskAvg * 100 : undefined;
+
+        // Dormancy logic: Extremely low CPU (< 0.5%) and Memory (< 15% for SQL, < 5% for Redis)
+        const isDormant = avgCpu < 0.5 && (storageType.includes('cloud-sql') ? avgMem < 15 : avgMem < 5);
+
+        return {
+            isDormant,
+            avgCpuUtilization: parseFloat(avgCpu.toFixed(2)),
+            avgMemoryUtilization: parseFloat(avgMem.toFixed(2)),
+            avgDiskUtilization: avgDisk !== undefined ? parseFloat(avgDisk.toFixed(2)) : undefined,
+            lastActiveAt: isDormant ? undefined : endTime, // In a real scenario, we'd find the last peak
+            analysisPeriodDays
+        };
+    } catch (error) {
+        console.error(`Dormancy analysis failed for ${instanceId}:`, error);
+        return { isDormant: false, avgCpuUtilization: 0, avgMemoryUtilization: 0, analysisPeriodDays };
+    }
+}
+
+/**
  * Analyze resource metrics and provide scaling recommendations
  */
 export async function getScalingRecommendations(
@@ -189,6 +259,43 @@ export async function getScalingRecommendations(
     }
 
     return recommendations;
+}
+
+/**
+ * Helper to fetch the average value for a specific metric filter over time
+ */
+async function fetchMetricAverage(
+    projectId: string,
+    accessToken: string,
+    filter: string,
+    startTime: string,
+    endTime: string
+): Promise<number> {
+    // Aligns to 1 hour points for the historical average
+    const url = `${MONITORING_API}/projects/${projectId}/timeSeries?filter=${encodeURIComponent(filter)}&interval.startTime=${startTime}&interval.endTime=${endTime}&aggregation.alignmentPeriod=3600s&aggregation.perSeriesAligner=ALIGN_MEAN`;
+
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    if (!response.ok) {
+        console.error(`Failed to fetch average metric for ${filter}:`, await response.text());
+        return 0;
+    }
+
+    const data = await response.json();
+    if (!data.timeSeries || data.timeSeries.length === 0) return 0;
+
+    const points = data.timeSeries[0].points;
+    if (!points || points.length === 0) return 0;
+
+    // Calculate average of all points in the range
+    const sum = points.reduce((acc: number, point: any) => {
+        const val = point.value.doubleValue !== undefined ? point.value.doubleValue : point.value.int64Value;
+        return acc + (typeof val === 'string' ? parseInt(val) : (val || 0));
+    }, 0);
+
+    return sum / points.length;
 }
 
 /**

@@ -6,7 +6,9 @@ import {
     TrendingUp,
     TrendingDown,
     Zap,
-    AlertCircle
+    AlertCircle,
+    Moon,
+    Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,6 +31,8 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
         recommendations: ScalingRecommendation[],
         lastAnalyzedAt: string
     };
+
+    const dormancy = storage.dormancy;
 
     return (
         <ConfirmationModal
@@ -53,6 +57,42 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                             Based on real-time utilization trends, we&apos;ve identified opportunities to improve the performance and cost-efficiency of <strong>{storage.name}</strong>.
                         </p>
                     </div>
+
+                    {dormancy?.isDormant && (
+                        <div className="p-4 bg-[var(--muted)]/5 border border-[var(--border)] rounded-xl space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
+                                    <Moon className="w-4 h-4" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">Resource Dormancy Detected</span>
+                                </div>
+                                <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)]">
+                                    {dormancy.analysisPeriodDays}D ANALYSIS
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="space-y-1">
+                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Avg CPU</span>
+                                    <span className="text-[10px] font-mono font-bold">{dormancy.avgCpuUtilization}%</span>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Avg Memory</span>
+                                    <span className="text-[10px] font-mono font-bold">{dormancy.avgMemoryUtilization}%</span>
+                                </div>
+                                {dormancy.lastActiveAt && (
+                                    <div className="space-y-1 col-span-2 md:col-span-1">
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="w-3 h-3 text-[var(--muted-foreground)]" />
+                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Last Activity</span>
+                                        </div>
+                                        <span className="text-[10px] font-mono font-bold uppercase">{new Date(dormancy.lastActiveAt).toLocaleDateString()}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/70 leading-relaxed italic">
+                                This resource shows near-zero activity. Consider downgrading to the minimum tier or archiving data to reduce costs.
+                            </p>
+                        </div>
+                    )}
 
                     <div className="space-y-3">
                         <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Available Recommendations</Label>
