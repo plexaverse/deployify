@@ -176,7 +176,7 @@ export default function DashboardPage() {
                             <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Active Resources</span>
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-xl font-bold tracking-tighter">
+                            <span className="text-xs font-bold tracking-tighter">
                                 {loadingInfra ? '...' : infraHealth?.summary.totalConnectors || 0}
                             </span>
                             <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Managed Connectors</span>
