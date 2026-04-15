@@ -213,7 +213,8 @@ export async function getEnvVarsForDeployment(
             }
 
             if (branchedValue) {
-                // If branched, we must inject the value directly as it's dynamic per deployment
+                // For branched environments, we still use Secret Manager for runtime but with a temporary secret
+                // or fall back to env var if it's highly dynamic. For now, we use env var for PR branches.
                 runtimeEnvVars[envKey] = branchedValue;
                 if (storage.environment === 'both' || storage.environment === 'preview') {
                     buildEnvVars[envKey] = branchedValue;
