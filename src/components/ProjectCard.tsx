@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Project } from '@/types';
 import { cn } from '@/lib/utils';
 import { GitCommit, GitBranch, Clock, AlertCircle, CheckCircle2, Loader2, XCircle, ExternalLink, Copy, Check } from 'lucide-react';
@@ -10,7 +10,7 @@ import { ProjectAvatar } from '@/components/ProjectAvatar';
 import { toast } from 'sonner';
 
 // Mock data for the sparkline - reflects status
-const generateSparklineData = (status: string) => {
+const generateSparklineData = (status: string, seed: string) => {
   const length = 20;
   let base = 50;
   let volatility = 20;
@@ -26,8 +26,11 @@ const generateSparklineData = (status: string) => {
     volatility = 10;
   }
 
-  return Array.from({ length }, () => ({
-    value: Math.max(0, Math.floor(Math.random() * volatility) + base)
+  // Deterministic pseudo-randomness based on seed string
+  const seedNum = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+  return Array.from({ length }, (_, i) => ({
+    value: Math.max(0, Math.floor(Math.abs(Math.sin(seedNum + i)) * volatility) + base)
   }));
 };
 
@@ -44,10 +47,9 @@ export function ProjectCard({ project }: { project: Project }) {
   const latestDeployment = project.latestDeployment;
   const status = latestDeployment?.status || 'queued';
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.queued;
-  const [sparklineData, setSparklineData] = useState<{value: number}[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => { setSparklineData(generateSparklineData(status)); }, [status]);
+  const sparklineData = useMemo(() => generateSparklineData(status, project.id), [status, project.id]);
 
   return (
     <div className={cn("flex flex-col h-full justify-between transition-all duration-500 rounded-2xl bg-[var(--card)]/40 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--foreground)]/20", config.glow)}>
@@ -62,7 +64,7 @@ export function ProjectCard({ project }: { project: Project }) {
             <div className="flex items-center gap-1.5 mt-1.5">
               <Badge
                 variant={config.variant}
-                className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 gap-1.5"
+                className="text-[10px] font-bold uppercase tracking-[0.2em] px-1.5 py-0.5 gap-1.5"
               >
                 {status === 'building' || status === 'deploying' ? (
                   <Loader2 className="w-2.5 h-2.5 animate-spin" />
@@ -95,7 +97,7 @@ export function ProjectCard({ project }: { project: Project }) {
       {/* Deployment Info */}
       <div className="mt-auto space-y-4">
         {project.productionUrl && (
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors px-1">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors px-1">
             <ExternalLink className="w-3.5 h-3.5" />
             <span className="truncate">{project.productionUrl.replace(/^https?:\/\//, '')}</span>
           </div>
@@ -103,7 +105,7 @@ export function ProjectCard({ project }: { project: Project }) {
 
         {latestDeployment ? (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/30 p-2 rounded-lg border border-[var(--border)] group-hover:border-[var(--foreground)]/10 transition-all group/sha">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/30 p-2 rounded-lg border border-[var(--border)] group-hover:border-[var(--foreground)]/10 transition-all group/sha">
               <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
               <button
@@ -115,7 +117,7 @@ export function ProjectCard({ project }: { project: Project }) {
                 {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
               </button>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-1">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] px-1">
                <div className="flex items-center gap-1.5">
                  <GitBranch className="w-3 h-3" />
                  <span>{latestDeployment.gitBranch.toUpperCase()}</span>
@@ -127,7 +129,7 @@ export function ProjectCard({ project }: { project: Project }) {
             </div>
           </div>
         ) : (
-          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] italic bg-[var(--card-hover)]/30 p-2 rounded-md border border-dashed border-[var(--border)] text-center">
+          <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] italic bg-[var(--card-hover)]/30 p-2 rounded-md border border-dashed border-[var(--border)] text-center">
             No deployments yet
           </div>
         )}
