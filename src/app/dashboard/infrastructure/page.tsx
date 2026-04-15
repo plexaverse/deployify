@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
     ArrowLeft,
@@ -17,17 +17,21 @@ import {
     Sparkles,
     ShieldCheck,
     Cpu,
-    HardDrive
+    HardDrive,
+    Filter,
+    ArrowUpDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
+import { NativeSelect } from '@/components/ui/native-select';
 import type { Project, StorageConfig } from '@/types';
 
 interface FleetConnector extends StorageConfig {
@@ -39,6 +43,9 @@ export default function InfrastructureFleetPage() {
     const [connectors, setConnectors] = useState<FleetConnector[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [onlyOptimizable, setOnlyOptimizable] = useState(false);
     const { activeTeam, isLoading: isTeamLoading } = useTeam();
 
     useEffect(() => {
@@ -84,20 +91,36 @@ export default function InfrastructureFleetPage() {
         }
     }, [activeTeam, isTeamLoading]);
 
-    const filteredConnectors = connectors.filter(c =>
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.type.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredConnectors = useMemo(() => {
+        return connectors.filter(c => {
+            const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                c.projectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                c.type.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const stats = {
+            const health = c.metadata?.health as { status: string } | undefined;
+            const status = health?.status || (c.status === 'provisioning' ? 'provisioning' : 'unknown');
+
+            const matchesStatus = statusFilter === 'all' || status === statusFilter;
+            const matchesType = typeFilter === 'all' || (
+                typeFilter === 'gcp-native' ? ['cloud-sql-postgres', 'cloud-sql-mysql', 'firestore', 'memorystore-redis'].includes(c.type) :
+                typeFilter === 'external' ? ['supabase', 'mongodb-atlas', 'planetscale'].includes(c.type) :
+                c.type === typeFilter
+            );
+
+            const matchesOptimization = !onlyOptimizable || !!c.metadata?.optimization;
+
+            return matchesSearch && matchesStatus && matchesType && matchesOptimization;
+        });
+    }, [connectors, searchQuery, statusFilter, typeFilter, onlyOptimizable]);
+
+    const stats = useMemo(() => ({
         total: connectors.length,
         healthy: connectors.filter(c => (c.metadata?.health as { status: string })?.status === 'healthy').length,
         degraded: connectors.filter(c => (c.metadata?.health as { status: string })?.status === 'degraded').length,
         unhealthy: connectors.filter(c => (c.metadata?.health as { status: string })?.status === 'unhealthy' || c.status === 'error').length,
         provisioning: connectors.filter(c => c.status === 'provisioning').length,
         optimizations: connectors.filter(c => !!c.metadata?.optimization).length
-    };
+    }), [connectors]);
 
     return (
         <div className="max-w-7xl mx-auto px-6 md:px-8 py-8 space-y-10">
@@ -111,41 +134,129 @@ export default function InfrastructureFleetPage() {
             </Link>
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                        <Activity className="w-8 h-8 text-[var(--primary)]" />
+            <div className="flex flex-col gap-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                            <Activity className="w-8 h-8 text-[var(--primary)]" />
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Global Fleet</span>
+                            <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Infrastructure Intelligence</h1>
+                        </div>
                     </div>
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Global Fleet</span>
-                        <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Infrastructure Intelligence</h1>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <div className="relative w-full md:w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
+                            <Input
+                                type="text"
+                                placeholder="SEARCH CONNECTORS..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 pr-4"
+                            />
+                        </div>
                     </div>
                 </div>
-                <div className="relative w-full md:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
-                    <Input
-                        type="text"
-                        placeholder="SEARCH CONNECTORS..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 pr-4"
-                    />
+
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-4 p-4 border border-[var(--primary)]/10 rounded-2xl bg-[var(--card)]/30">
+                    <div className="flex items-center gap-2 px-2 mr-2 border-r border-[var(--primary)]/10">
+                        <Filter className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fleet Filters</span>
+                    </div>
+
+                    <div className="flex items-center gap-4 flex-1">
+                        <div className="space-y-1.5 min-w-[140px]">
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Status</Label>
+                            <NativeSelect
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="h-8 text-[10px] uppercase font-bold"
+                            >
+                                <option value="all">ALL STATUSES</option>
+                                <option value="healthy">HEALTHY</option>
+                                <option value="degraded">DEGRADED (SLOW)</option>
+                                <option value="unhealthy">UNHEALTHY</option>
+                                <option value="provisioning">PROVISIONING</option>
+                            </NativeSelect>
+                        </div>
+
+                        <div className="space-y-1.5 min-w-[160px]">
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Storage Type</Label>
+                            <NativeSelect
+                                value={typeFilter}
+                                onChange={(e) => setTypeFilter(e.target.value)}
+                                className="h-8 text-[10px] uppercase font-bold"
+                            >
+                                <option value="all">ALL TYPES</option>
+                                <optgroup label="CATEGORIES">
+                                    <option value="gcp-native">GCP NATIVE</option>
+                                    <option value="external">MANAGED EXTERNAL</option>
+                                </optgroup>
+                                <optgroup label="PROVIDERS">
+                                    <option value="cloud-sql-postgres">CLOUD SQL (POSTGRES)</option>
+                                    <option value="cloud-sql-mysql">CLOUD SQL (MYSQL)</option>
+                                    <option value="firestore">FIRESTORE</option>
+                                    <option value="memorystore-redis">MEMORYSTORE (REDIS)</option>
+                                    <option value="supabase">SUPABASE</option>
+                                    <option value="mongodb-atlas">MONGODB ATLAS</option>
+                                    <option value="planetscale">PLANETSCALE</option>
+                                </optgroup>
+                            </NativeSelect>
+                        </div>
+
+                        <div className="flex items-center gap-3 ml-auto pr-2">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="only-optimizable"
+                                    checked={onlyOptimizable}
+                                    onChange={(e) => setOnlyOptimizable(e.target.checked)}
+                                    className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
+                                />
+                                <Label htmlFor="only-optimizable" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer">
+                                    Only Optimizable
+                                </Label>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    setStatusFilter('all');
+                                    setTypeFilter('all');
+                                    setSearchQuery('');
+                                    setOnlyOptimizable(false);
+                                }}
+                                className="h-7 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                            >
+                                Reset
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Summary Stats */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
-                    { label: 'Total', value: stats.total, icon: Database, color: 'text-[var(--primary)]' },
-                    { label: 'Healthy', value: stats.healthy, icon: CheckCircle2, color: 'text-[var(--success)]' },
-                    { label: 'Degraded', value: stats.degraded, icon: Activity, color: 'text-[var(--warning)]' },
-                    { label: 'Unhealthy', value: stats.unhealthy, icon: AlertCircle, color: 'text-[var(--error)]' },
-                    { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]' },
-                    { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]' },
+                    { label: 'Total', value: stats.total, icon: Database, color: 'text-[var(--primary)]', onClick: () => { setStatusFilter('all'); setOnlyOptimizable(false); } },
+                    { label: 'Healthy', value: stats.healthy, icon: CheckCircle2, color: 'text-[var(--success)]', onClick: () => { setStatusFilter('healthy'); setOnlyOptimizable(false); } },
+                    { label: 'Degraded', value: stats.degraded, icon: Activity, color: 'text-[var(--warning)]', onClick: () => { setStatusFilter('degraded'); setOnlyOptimizable(false); } },
+                    { label: 'Unhealthy', value: stats.unhealthy, icon: AlertCircle, color: 'text-[var(--error)]', onClick: () => { setStatusFilter('unhealthy'); setOnlyOptimizable(false); } },
+                    { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); } },
+                    { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]', onClick: () => { setOnlyOptimizable(true); setStatusFilter('all'); } },
                 ].map((stat, i) => (
-                    <Card key={i} className="p-4 flex flex-col justify-center border-[var(--primary)]/5 bg-[var(--card)]/50">
+                    <Card
+                        key={i}
+                        className={cn(
+                            "p-4 flex flex-col justify-center border-[var(--primary)]/5 bg-[var(--card)]/50 cursor-pointer transition-all hover:bg-[var(--primary)]/[0.02] hover:border-[var(--primary)]/20 group",
+                            ((stat.label === 'Optimizable' && onlyOptimizable) || (statusFilter === stat.label.toLowerCase())) && "border-[var(--primary)]/30 bg-[var(--primary)]/[0.03]"
+                        )}
+                        onClick={stat.onClick}
+                    >
                         <div className="flex items-center gap-2 mb-1">
-                            <stat.icon className={cn("w-3 h-3", stat.color)} />
+                            <stat.icon className={cn("w-3 h-3 transition-transform group-hover:scale-110", stat.color)} />
                             <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
                         </div>
                         <span className="text-xs font-bold">{loading ? '...' : stat.value}</span>
@@ -222,6 +333,18 @@ export default function InfrastructureFleetPage() {
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
                                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Region</span>
                                                     <span className="text-[9px] font-bold uppercase truncate block">{(connector.region || (connector.metadata?.region as string) || 'GLOBAL').toUpperCase()}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 gap-3">
+                                                <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--primary)]/10 flex items-center justify-between">
+                                                    <div>
+                                                        <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Resource Tier</span>
+                                                        <span className="text-[11px] font-mono font-bold text-[var(--primary)]">
+                                                            {(connector.metadata?.tier as string) || (connector.metadata?.memorySizeGb ? `${connector.metadata.memorySizeGb}GB` : 'UNMANAGED')}
+                                                        </span>
+                                                    </div>
+                                                    <ArrowUpDown className="w-3.5 h-3.5 text-[var(--primary)]/30" />
                                                 </div>
                                             </div>
 
