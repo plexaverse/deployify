@@ -35,3 +35,4 @@ Conducted a full-platform system integrity verification and end-to-end functiona
 - Phase 69: Implemented 'Lifecycle Parity & Operational Hardening', adding stateful tracking for import/export operations, CLI parity for data management, and PITR support for CLI-based restores. Resolved linting violations in the storage stack to maintain high code quality standards.
 - [Refactor] Updated all internal component titles and form labels from `text-xs font-semibold` to `text-xs font-bold`.
 - [Refactor] Updated main page titles and hero components from `text-xs font-bold` to `text-[11px] md:text-xs font-bold`.
+- Fixed ESLint warnings by removing unused imports in `src/app/dashboard/page.tsx` and `src/components/OptimizationModal.tsx`.

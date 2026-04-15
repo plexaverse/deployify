@@ -15,16 +15,10 @@ import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { ProjectCard } from '@/components/ProjectCard';
 import { CommandPalette } from '@/components/CommandPalette';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
     Activity,
     Database,
-    ShieldCheck,
-    AlertCircle,
-    Zap,
-    RefreshCw,
-    TrendingUp,
     Loader2
 } from 'lucide-react';
 import type { Project, Deployment } from '@/types';
