@@ -189,6 +189,55 @@ export async function getResourceDormancy(
 }
 
 /**
+ * Calculate estimated monthly cost for a storage resource based on its tier and size
+ */
+export function getEstimatedMonthlyCost(
+    storageType: string,
+    tier: string,
+    diskSizeGb?: number,
+    isHA?: boolean
+): number {
+    let cost = 0;
+
+    if (storageType.includes('cloud-sql')) {
+        // Compute Cost (Approximate Monthly)
+        const computeCosts: Record<string, number> = {
+            'db-f1-micro': 9.50,
+            'db-g1-small': 25.50,
+            'db-custom-1-3840': 52.00,
+            'db-custom-2-7680': 104.00,
+            'db-custom-4-15360': 208.00,
+        };
+
+        cost = computeCosts[tier] || computeCosts['db-f1-micro'];
+
+        // Storage Cost (~$0.17 per GB)
+        if (diskSizeGb) {
+            cost += diskSizeGb * 0.17;
+        }
+
+        // HA Multiplier (Double the cost for Regional HA)
+        if (isHA) {
+            cost *= 2;
+        }
+    } else if (storageType === 'memorystore-redis') {
+        // Redis Cost (~$35 per GB for Basic, ~$70 for Standard/HA)
+        const sizeGb = parseInt(tier) || 1;
+        cost = sizeGb * (isHA ? 72.00 : 36.00);
+    } else if (storageType === 'firestore') {
+        // Firestore is usage-based, but we'll show a minimum platform overhead/estimated starting cost
+        cost = 0; // Truly serverless/pay-as-you-go
+    } else if (['supabase', 'mongodb-atlas', 'planetscale'].includes(storageType)) {
+        // External providers vary, we'll show a 'Starting from' estimate if tier matches
+        if (tier === 'FREE') cost = 0;
+        else if (tier === 'PRO') cost = 25;
+        else cost = 0;
+    }
+
+    return parseFloat(cost.toFixed(2));
+}
+
+/**
  * Analyze resource metrics and provide scaling recommendations
  */
 export async function getScalingRecommendations(
@@ -201,6 +250,10 @@ export async function getScalingRecommendations(
     const isRedis = storageType === 'memorystore-redis';
 
     const currentTier = (metadata?.tier as string) || (isCloudSql ? 'db-f1-micro' : isRedis ? '1GB' : 'unknown');
+    const diskSizeGb = (metadata?.diskSizeGb as number) || (metadata?.memorySizeGb as number) || 10;
+    const isHA = !!metadata?.highAvailability;
+
+    const currentCost = getEstimatedMonthlyCost(storageType, currentTier, diskSizeGb, isHA);
 
     // 1. CPU Analysis
     if (metrics.cpuUtilization > 75) {
@@ -223,13 +276,16 @@ export async function getScalingRecommendations(
         else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-1-3840';
         else if (currentTier.includes('custom-1')) recommendedTier = 'db-g1-small';
 
+        const recommendedCost = getEstimatedMonthlyCost(storageType, recommendedTier, diskSizeGb, isHA);
+        const savings = currentCost - recommendedCost;
+
         recommendations.push({
             type: 'downgrade',
             resource: 'cpu',
             currentTier,
             recommendedTier: isCloudSql ? recommendedTier : 'Lower Capacity Tier',
             reason: `Low CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected consistently. Downgrading to a smaller tier will reduce infrastructure costs.`,
-            estimatedSavings: '15-40%'
+            estimatedSavings: savings > 0 ? `$${savings.toFixed(2)}/mo` : '15-40%'
         });
     }
 
