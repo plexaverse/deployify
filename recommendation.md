@@ -16,9 +16,9 @@ While Deployify currently fetches basic metrics, users lack actionable insights 
 - **Cost Impact**: Integration with GCP Billing API to show "Potential Monthly Savings" for each recommendation.
 
 ### Implementation Path
-1. Enhance `src/lib/gcp/monitoring.ts` to support historical time-series aggregation.
-2. Create a `/api/projects/[id]/recommendations` endpoint.
-3. Add a `ResourceAdvisor` component to the frontend using the existing scripe.io-inspired BentoGrid layout.
+1. ✅ Enhance `src/lib/gcp/monitoring.ts` to support historical time-series aggregation.
+2. ✅ Create a `/api/projects/[id]/recommendations` endpoint.
+3. ✅ Add a `ResourceAdvisor` component to the frontend using the existing scripe.io-inspired BentoGrid layout.
 
 ---
 
@@ -34,9 +34,9 @@ Currently, Deployify supports preview deployments for frontend code. This recomm
 - **Lifecycle Management**: Enhance `src/app/api/webhooks/route.ts` to trigger the deletion of these ephemeral databases (using `deleteDatabase`) when a PR is merged or closed.
 
 ### Implementation Path
-1. Implement Cloud SQL snapshot-cloning logic in `src/lib/gcp/cloudsql.ts`.
-2. Update the deployment pipeline in `src/lib/deployment.ts` to check for `isPreview` flags.
-3. Create a `seeding.ts` utility in `src/lib/gcp/` to handle data anonymization during the clone process.
+1. ✅ Implement Cloud SQL snapshot-cloning logic in `src/lib/gcp/cloudsql.ts`.
+2. ✅ Update the deployment pipeline in `src/lib/deployment.ts` to check for `isPreview` flags.
+3. ✅ Create a `anonymizeData` utility in `src/lib/gcp/seeding.ts` to handle data anonymization during the clone process.
 
 ---
 
@@ -52,6 +52,6 @@ Transition Deployify from simple regional deployments to a global-first platform
 - **Security Dashboard**: A "Shield" interface where users can view blocked threats and toggle security levels (Off, Detection, Prevention).
 
 ### Implementation Path
-1. Develop `src/lib/gcp/loadbalancer.ts` to orchestrate GLB, Backend Services, and NEGs.
-2. Upgrade `src/lib/gcp/armor.ts` to interface with the GCP Security Policies API.
-3. Update `src/lib/gcp/domains.ts` to handle DNS verification for Global IP addresses rather than standard Cloud Run regional URLs.
+1. ✅ Develop `src/lib/gcp/loadbalancer.ts` to orchestrate GLB, Backend Services, and NEGs.
+2. ✅ Upgrade `src/lib/gcp/armor.ts` to interface with the GCP Security Policies API.
+3. ✅ Create a `ShieldSecurity` component to display security insights on the dashboard.

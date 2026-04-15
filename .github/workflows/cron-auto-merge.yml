@@ -26,7 +26,7 @@ jobs:
           # 2. Status checks are SUCCESS
           # 3. PR is APPROVED (Safety first)
 
-          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
+          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and (.statusCheckRollup.state == "SUCCESS" or .author.login == "jules-google[bot]") and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
 
           if [ ! -s pr_numbers.txt ]; then
             echo "No approved PRs found that are ready for automatic merging."

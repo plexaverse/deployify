@@ -27,6 +27,8 @@ import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
 import { DeploymentListItem } from '@/components/DeploymentListItem';
 import { WebVitals } from '@/components/WebVitals';
+import { ResourceAdvisor } from '@/components/ResourceAdvisor';
+import { ShieldSecurity } from '@/components/ShieldSecurity';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -445,6 +447,8 @@ export default function ProjectDetailPage() {
                         </Card>
                     )}
 
+                    <ShieldSecurity projectId={project.id} />
+
                     {/* Compact Error Rate */}
                     {errorCount !== null && (
                         <Card className="overflow-hidden p-0 shadow-sm">
@@ -474,6 +478,8 @@ export default function ProjectDetailPage() {
             </div>
 
             <WebVitals metrics={deployments[0]?.performanceMetrics} />
+
+            <ResourceAdvisor projectId={project.id} />
 
             {/* Deployment History */}
             <div className="space-y-6">
