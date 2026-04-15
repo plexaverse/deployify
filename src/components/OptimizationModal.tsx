@@ -6,17 +6,11 @@ import {
     TrendingUp,
     TrendingDown,
     Zap,
-    ShieldCheck,
-    CheckCircle2,
-    AlertCircle,
-    X,
-    ExternalLink
+    AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import type { StorageConfig } from '@/types';
 import type { ScalingRecommendation } from '@/lib/gcp/monitoring';
