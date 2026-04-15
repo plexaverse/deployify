@@ -8,7 +8,7 @@ import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/fir
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, getEstimatedMonthlyCost } from '@/lib/gcp/monitoring';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
 import { getUserById } from '@/lib/db';
@@ -135,7 +135,18 @@ export async function GET(
                 }
 
                 if (metrics) {
-                    // A. Optimization Intelligence: Analyze for scaling recommendations
+                    // A. Cost Intelligence: Calculate estimated monthly cost
+                    try {
+                        const estimatedMonthlyCost = getEstimatedMonthlyCost(storage);
+                        storage.metadata = {
+                            ...storage.metadata,
+                            estimatedMonthlyCost
+                        };
+                    } catch (costErr) {
+                        console.error(`[CostInsight] Calculation failed for ${storageId}:`, costErr);
+                    }
+
+                    // B. Optimization Intelligence: Analyze for scaling recommendations
                     try {
                         const recommendations = await getScalingRecommendations(storage.type, metrics, storage.metadata);
                         storage.metadata = {
@@ -212,6 +223,17 @@ export async function GET(
                 storage.lastSyncedAt = syncResult.lastSyncedAt;
                 storage.updatedAt = now;
                 storage.status = 'active';
+
+                // Cost Intelligence: Calculate estimated monthly cost for external connectors
+                try {
+                    const estimatedMonthlyCost = getEstimatedMonthlyCost(storage);
+                    storage.metadata = {
+                        ...storage.metadata,
+                        estimatedMonthlyCost
+                    };
+                } catch (costErr) {
+                    console.error(`[CostInsight] Calculation failed for external ${storageId}:`, costErr);
+                }
 
                 storageConfigs[index] = storage;
                 await updateProject(id, { storageConfigs });

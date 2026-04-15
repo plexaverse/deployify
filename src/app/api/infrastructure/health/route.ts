@@ -31,13 +31,16 @@ export async function GET(request: NextRequest) {
         let unhealthyConnectors = 0;
         let provisioningConnectors = 0;
         let totalOptimizations = 0;
+        let totalEstimatedMonthlyCost = 0;
         const optimizationBreakdown = { upgrade: 0, downgrade: 0, optimize: 0 };
-        const projectHealth: Record<string, { status: string, healthy: number, total: number, optimizations: number }> = {};
+        const costBreakdown = { 'cloud-sql': 0, 'memorystore': 0, 'external': 0, 'other': 0 };
+        const projectHealth: Record<string, { status: string, healthy: number, total: number, optimizations: number, estimatedMonthlyCost: number }> = {};
 
         projects.forEach(project => {
             const configs = project.storageConfigs || [];
             let projectHealthy = 0;
             let projectOptimizations = 0;
+            let projectEstimatedMonthlyCost = 0;
 
             configs.forEach((storage: StorageConfig) => {
                 totalConnectors++;
@@ -68,13 +71,24 @@ export async function GET(request: NextRequest) {
                         else if (rec.type === 'optimize') optimizationBreakdown.optimize++;
                     });
                 }
+
+                // Aggregate Costs
+                const cost = (storage.metadata?.estimatedMonthlyCost as number) || 0;
+                totalEstimatedMonthlyCost += cost;
+                projectEstimatedMonthlyCost += cost;
+
+                if (storage.type.includes('cloud-sql')) costBreakdown['cloud-sql'] += cost;
+                else if (storage.type === 'memorystore-redis') costBreakdown['memorystore'] += cost;
+                else if (['supabase', 'mongodb-atlas', 'planetscale'].includes(storage.type)) costBreakdown['external'] += cost;
+                else costBreakdown['other'] += cost;
             });
 
             projectHealth[project.id] = {
                 status: projectHealthy === configs.length ? 'healthy' : (projectHealthy > 0 ? 'degraded' : 'unhealthy'),
                 healthy: projectHealthy,
                 total: configs.length,
-                optimizations: projectOptimizations
+                optimizations: projectOptimizations,
+                estimatedMonthlyCost: parseFloat(projectEstimatedMonthlyCost.toFixed(2))
             };
         });
 
@@ -89,6 +103,13 @@ export async function GET(request: NextRequest) {
                 provisioningConnectors,
                 totalOptimizations,
                 optimizationBreakdown,
+                totalEstimatedMonthlyCost: parseFloat(totalEstimatedMonthlyCost.toFixed(2)),
+                costBreakdown: {
+                    'cloud-sql': parseFloat(costBreakdown['cloud-sql'].toFixed(2)),
+                    'memorystore': parseFloat(costBreakdown['memorystore'].toFixed(2)),
+                    'external': parseFloat(costBreakdown['external'].toFixed(2)),
+                    'other': parseFloat(costBreakdown['other'].toFixed(2))
+                },
                 uptimeScore: totalConnectors > 0 ? Math.round(((healthyConnectors + degradedConnectors) / totalConnectors) * 100) : 100
             },
             projectHealth

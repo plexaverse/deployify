@@ -531,7 +531,22 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Implement "Dormancy Remediation" triggers in the Optimization UI
 - [x] Verify functional integrity and high-density aesthetic compliance
 
+### Phase 79: Fleet-wide Cost Intelligence & Operational Governance (COMPLETED)
+- [x] Implement `getEstimatedMonthlyCost` utility in `src/lib/gcp/monitoring.ts`
+- [x] Integrate cost estimation into the Storage Sync pipeline
+- [x] Enhance Infrastructure Health API with aggregate cost metrics and breakdown
+- [x] Update Global Infrastructure dashboard with Monthly Cost summary and per-connector costs
+- [x] Verify 100% functional integrity and high-density aesthetic compliance
+
 ## Progress Updates
+
+### 2027-05-21: Fleet-wide Cost Intelligence & Operational Governance
+- Completed Phase 79: Fleet-wide Cost Intelligence & Operational Governance.
+- Launched "Cost Intelligence" engine in `src/lib/gcp/monitoring.ts`, providing automated dollar-value monthly cost estimation for all managed connectors (GCP-Native and External).
+- Integrated cost calculation into the Storage Sync pipeline, enabling automated persistence of `estimatedMonthlyCost` in storage metadata during periodic health heartbeats.
+- Enhanced the Infrastructure Health API (`/api/infrastructure/health`) to aggregate workspace-wide costs and provide a categorical breakdown (Cloud SQL, Memorystore, External).
+- Updated the Global Infrastructure dashboard with a high-density "EST. COST" summary card and individual connector cost visibility to improve operational governance.
+- Verified 100% functional integrity with system audits and exhaustive test suite passing (130/130 tests).
 
 ### 2027-05-20: Storage Lifecycle Intelligence & Automated Resource Dormancy Detection
 - Completed Phase 78: Storage Lifecycle Intelligence & Automated Resource Dormancy Detection.

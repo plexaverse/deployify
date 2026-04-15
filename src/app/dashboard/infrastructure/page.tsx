@@ -10,6 +10,7 @@ import {
     AlertCircle,
     Zap,
     TrendingUp,
+    DollarSign,
     Search,
     Loader2,
     Layout,
@@ -123,7 +124,8 @@ export default function InfrastructureFleetPage() {
         unhealthy: connectors.filter(c => (c.metadata?.health as { status: string })?.status === 'unhealthy' || c.status === 'error').length,
         provisioning: connectors.filter(c => c.status === 'provisioning').length,
         optimizations: connectors.filter(c => !!c.metadata?.optimization).length,
-        dormant: connectors.filter(c => c.dormancy?.isDormant).length
+        dormant: connectors.filter(c => c.dormancy?.isDormant).length,
+        totalCost: connectors.reduce((acc, c) => acc + ((c.metadata?.estimatedMonthlyCost as number) || 0), 0)
     }), [connectors]);
 
     return (
@@ -261,7 +263,7 @@ export default function InfrastructureFleetPage() {
             </div>
 
             {/* Summary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
                 {[
                     { label: 'Total', value: stats.total, icon: Database, color: 'text-[var(--primary)]', onClick: () => { setStatusFilter('all'); setOnlyOptimizable(false); setOnlyDormant(false); } },
                     { label: 'Healthy', value: stats.healthy, icon: CheckCircle2, color: 'text-[var(--success)]', onClick: () => { setStatusFilter('healthy'); setOnlyOptimizable(false); setOnlyDormant(false); } },
@@ -270,6 +272,7 @@ export default function InfrastructureFleetPage() {
                     { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); setOnlyDormant(false); } },
                     { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]', onClick: () => { setOnlyOptimizable(true); setOnlyDormant(false); setStatusFilter('all'); } },
                     { label: 'Dormant', value: stats.dormant, icon: Moon, color: 'text-[var(--muted-foreground)]', onClick: () => { setOnlyDormant(true); setOnlyOptimizable(false); setStatusFilter('all'); } },
+                    { label: 'Est. Cost', value: `$${stats.totalCost.toFixed(2)}`, icon: DollarSign, color: 'text-[var(--primary)]', onClick: () => {} },
                 ].map((stat, i) => (
                     <Card
                         key={i}
@@ -368,7 +371,12 @@ export default function InfrastructureFleetPage() {
                                                             {(connector.metadata?.tier as string) || (connector.metadata?.memorySizeGb ? `${connector.metadata.memorySizeGb}GB` : 'UNMANAGED')}
                                                         </span>
                                                     </div>
-                                                    <ArrowUpDown className="w-3.5 h-3.5 text-[var(--primary)]/30" />
+                                                    <div className="text-right">
+                                                        <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Est. Cost</span>
+                                                        <span className="text-[10px] font-mono font-bold">
+                                                            ${((connector.metadata?.estimatedMonthlyCost as number) || 0).toFixed(2)}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 

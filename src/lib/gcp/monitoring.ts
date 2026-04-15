@@ -1,6 +1,6 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
-import type { StorageAlertSettings, ResourceDormancy } from '@/types';
+import type { StorageAlertSettings, ResourceDormancy, StorageConfig } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -186,6 +186,50 @@ export async function getResourceDormancy(
         console.error(`Dormancy analysis failed for ${instanceId}:`, error);
         return { isDormant: false, avgCpuUtilization: 0, avgMemoryUtilization: 0, analysisPeriodDays };
     }
+}
+
+/**
+ * Calculate the estimated monthly cost of a storage resource
+ */
+export function getEstimatedMonthlyCost(storage: StorageConfig): number {
+    const type = storage.type;
+    const metadata = storage.metadata || {};
+    const isGcpNative = ['cloud-sql-postgres', 'cloud-sql-mysql', 'firestore', 'memorystore-redis'].includes(type);
+
+    if (!isGcpNative) {
+        // External providers (Supabase, MongoDB Atlas, PlanetScale)
+        const tier = (metadata.tier as string)?.toUpperCase() || 'FREE';
+        return tier === 'PRO' ? 25.00 : 0;
+    }
+
+    let cost = 0;
+
+    if (type.includes('cloud-sql')) {
+        const tier = (metadata.tier as string) || 'db-f1-micro';
+        const isHa = !!metadata.highAvailability;
+        const diskSizeGb = (metadata.diskSizeGb as number) || 10;
+
+        // Base instance cost (GCP US-Central1 approximate monthly)
+        let baseCost = 9.50; // db-f1-micro
+        if (tier === 'db-g1-small') baseCost = 25.50;
+        else if (tier.includes('custom-1')) baseCost = 50.00;
+        else if (tier.includes('custom-2')) baseCost = 100.00;
+        else if (tier.includes('custom-4')) baseCost = 200.00;
+        else if (tier.includes('custom-8')) baseCost = 400.00;
+
+        cost = baseCost * (isHa ? 2 : 1);
+        cost += diskSizeGb * 0.17; // $0.17 per GB/month for SSD
+    } else if (type === 'memorystore-redis') {
+        const memorySizeGb = (metadata.memorySizeGb as number) || 1;
+        const isHa = metadata.tier === 'STANDARD_HA';
+        // $36.00 per GB for Basic, $72.00 per GB for Standard (HA)
+        cost = memorySizeGb * 36.00 * (isHa ? 2 : 1);
+    } else if (type === 'firestore') {
+        // Firestore is entirely usage-based (read/write/delete), return 0 as base cost
+        cost = 0;
+    }
+
+    return parseFloat(cost.toFixed(2));
 }
 
 /**
