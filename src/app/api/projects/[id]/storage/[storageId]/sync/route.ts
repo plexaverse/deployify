@@ -113,6 +113,18 @@ export async function GET(
                     storage.lastError = undefined;
                 }
 
+                // 0b. Security Posture Audit
+                try {
+                    const { checkSecurityPosture } = await import('@/lib/gcp/security-auditor');
+                    const posture = checkSecurityPosture(storage, project.region);
+                    storage.metadata = {
+                        ...storage.metadata,
+                        security: posture
+                    };
+                } catch (secErr) {
+                    console.error(`[SecurityAudit] Failed for ${storageId}:`, secErr);
+                }
+
                 // Persist health heartbeat and baselined connectivity metadata
                 storageConfigs[index] = storage;
                 await updateProject(id, { storageConfigs });

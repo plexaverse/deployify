@@ -33,15 +33,22 @@ export async function GET(request: NextRequest) {
         let provisioningConnectors = 0;
         let totalOptimizations = 0;
         let totalEstimatedMonthlyCost = 0;
+        let totalSecurityScore = 0;
+        let connectorsWithScore = 0;
+        let totalRisks = 0;
+        const riskBreakdown = { critical: 0, high: 0, medium: 0, low: 0 };
         const costBreakdown: Record<string, number> = {};
         const optimizationBreakdown = { upgrade: 0, downgrade: 0, optimize: 0 };
-        const projectHealth: Record<string, { status: string, healthy: number, total: number, optimizations: number, estimatedMonthlyCost: number }> = {};
+        const projectHealth: Record<string, { status: string, healthy: number, total: number, optimizations: number, estimatedMonthlyCost: number, securityScore: number, totalRisks: number }> = {};
 
         projects.forEach(project => {
             const configs = project.storageConfigs || [];
             let projectHealthy = 0;
             let projectOptimizations = 0;
             let projectCost = 0;
+            let projectSecurityScore = 0;
+            let projectConnectorsWithScore = 0;
+            let projectRisks = 0;
 
             configs.forEach((storage: StorageConfig) => {
                 totalConnectors++;
@@ -82,6 +89,24 @@ export async function GET(request: NextRequest) {
                 totalEstimatedMonthlyCost += estimatedCost;
                 projectCost += estimatedCost;
                 costBreakdown[storage.type] = (costBreakdown[storage.type] || 0) + estimatedCost;
+
+                // Aggregate Security Posture
+                if (storage.metadata?.security) {
+                    const security = storage.metadata.security as { score: number, risks: Array<{ level: string }> };
+                    totalSecurityScore += security.score;
+                    connectorsWithScore++;
+                    projectSecurityScore += security.score;
+                    projectConnectorsWithScore++;
+                    totalRisks += security.risks.length;
+                    projectRisks += security.risks.length;
+
+                    security.risks.forEach(risk => {
+                        if (risk.level === 'critical') riskBreakdown.critical++;
+                        else if (risk.level === 'high') riskBreakdown.high++;
+                        else if (risk.level === 'medium') riskBreakdown.medium++;
+                        else if (risk.level === 'low') riskBreakdown.low++;
+                    });
+                }
             });
 
             projectHealth[project.id] = {
@@ -89,7 +114,9 @@ export async function GET(request: NextRequest) {
                 healthy: projectHealthy,
                 total: configs.length,
                 optimizations: projectOptimizations,
-                estimatedMonthlyCost: parseFloat(projectCost.toFixed(2))
+                estimatedMonthlyCost: parseFloat(projectCost.toFixed(2)),
+                securityScore: projectConnectorsWithScore > 0 ? Math.round(projectSecurityScore / projectConnectorsWithScore) : 100,
+                totalRisks: projectRisks
             };
         });
 
@@ -106,6 +133,9 @@ export async function GET(request: NextRequest) {
                 optimizationBreakdown,
                 totalEstimatedMonthlyCost: parseFloat(totalEstimatedMonthlyCost.toFixed(2)),
                 costBreakdown,
+                totalRisks,
+                riskBreakdown,
+                averageSecurityScore: connectorsWithScore > 0 ? Math.round(totalSecurityScore / connectorsWithScore) : 100,
                 uptimeScore: totalConnectors > 0 ? Math.round(((healthyConnectors + degradedConnectors) / totalConnectors) * 100) : 100
             },
             projectHealth

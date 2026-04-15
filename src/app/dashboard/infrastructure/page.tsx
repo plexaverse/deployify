@@ -16,12 +16,16 @@ import {
     ExternalLink,
     Sparkles,
     ShieldCheck,
+    ShieldAlert,
+    Lock,
+    Unlock,
     Cpu,
     HardDrive,
     Filter,
     ArrowUpDown,
     Moon,
-    DollarSign
+    DollarSign,
+    Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
@@ -50,6 +54,7 @@ export default function InfrastructureFleetPage() {
     const [typeFilter, setTypeFilter] = useState('all');
     const [onlyOptimizable, setOnlyOptimizable] = useState(false);
     const [onlyDormant, setOnlyDormant] = useState(false);
+    const [onlyAtRisk, setOnlyAtRisk] = useState(false);
     const { activeTeam, isLoading: isTeamLoading } = useTeam();
 
     useEffect(() => {
@@ -125,8 +130,9 @@ export default function InfrastructureFleetPage() {
 
             const matchesOptimization = !onlyOptimizable || !!c.metadata?.optimization;
             const matchesDormancy = !onlyDormant || !!c.dormancy?.isDormant;
+            const matchesRisk = !onlyAtRisk || ((c.metadata?.security as any)?.risks?.length > 0);
 
-            return matchesSearch && matchesStatus && matchesType && matchesOptimization && matchesDormancy;
+            return matchesSearch && matchesStatus && matchesType && matchesOptimization && matchesDormancy && matchesRisk;
         });
     }, [connectors, searchQuery, statusFilter, typeFilter, onlyOptimizable, onlyDormant]);
 
@@ -137,7 +143,8 @@ export default function InfrastructureFleetPage() {
         unhealthy: connectors.filter(c => (c.metadata?.health as { status: string })?.status === 'unhealthy' || c.status === 'error').length,
         provisioning: connectors.filter(c => c.status === 'provisioning').length,
         optimizations: connectors.filter(c => !!c.metadata?.optimization).length,
-        dormant: connectors.filter(c => c.dormancy?.isDormant).length
+        dormant: connectors.filter(c => c.dormancy?.isDormant).length,
+        atRisk: connectors.filter(c => ((c.metadata?.security as any)?.risks?.length > 0)).length
     }), [connectors]);
 
     return (
@@ -232,7 +239,10 @@ export default function InfrastructureFleetPage() {
                                     checked={onlyOptimizable}
                                     onChange={(e) => {
                                         setOnlyOptimizable(e.target.checked);
-                                        if (e.target.checked) setOnlyDormant(false);
+                                        if (e.target.checked) {
+                                            setOnlyDormant(false);
+                                            setOnlyAtRisk(false);
+                                        }
                                     }}
                                     className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
@@ -247,12 +257,33 @@ export default function InfrastructureFleetPage() {
                                     checked={onlyDormant}
                                     onChange={(e) => {
                                         setOnlyDormant(e.target.checked);
-                                        if (e.target.checked) setOnlyOptimizable(false);
+                                        if (e.target.checked) {
+                                            setOnlyOptimizable(false);
+                                            setOnlyAtRisk(false);
+                                        }
                                     }}
                                     className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
                                 <Label htmlFor="only-dormant" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer">
                                     Dormant
+                                </Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="only-at-risk"
+                                    checked={onlyAtRisk}
+                                    onChange={(e) => {
+                                        setOnlyAtRisk(e.target.checked);
+                                        if (e.target.checked) {
+                                            setOnlyOptimizable(false);
+                                            setOnlyDormant(false);
+                                        }
+                                    }}
+                                    className="w-4 h-4 rounded border-[var(--error)]/20 text-[var(--error)] focus:ring-[var(--error)]"
+                                />
+                                <Label htmlFor="only-at-risk" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer text-[var(--error)]">
+                                    At Risk
                                 </Label>
                             </div>
                             <Button
@@ -264,6 +295,7 @@ export default function InfrastructureFleetPage() {
                                     setSearchQuery('');
                                     setOnlyOptimizable(false);
                                     setOnlyDormant(false);
+                                    setOnlyAtRisk(false);
                                 }}
                                 className="h-7 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                             >
@@ -275,22 +307,23 @@ export default function InfrastructureFleetPage() {
             </div>
 
             {/* Summary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4">
                 {[
-                    { label: 'Total', value: stats.total, icon: Database, color: 'text-[var(--primary)]', onClick: () => { setStatusFilter('all'); setOnlyOptimizable(false); setOnlyDormant(false); } },
-                    { label: 'Healthy', value: stats.healthy, icon: CheckCircle2, color: 'text-[var(--success)]', onClick: () => { setStatusFilter('healthy'); setOnlyOptimizable(false); setOnlyDormant(false); } },
-                    { label: 'Degraded', value: stats.degraded, icon: Activity, color: 'text-[var(--warning)]', onClick: () => { setStatusFilter('degraded'); setOnlyOptimizable(false); setOnlyDormant(false); } },
-                    { label: 'Unhealthy', value: stats.unhealthy, icon: AlertCircle, color: 'text-[var(--error)]', onClick: () => { setStatusFilter('unhealthy'); setOnlyOptimizable(false); setOnlyDormant(false); } },
-                    { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); setOnlyDormant(false); } },
-                    { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]', onClick: () => { setOnlyOptimizable(true); setOnlyDormant(false); setStatusFilter('all'); } },
-                    { label: 'Dormant', value: stats.dormant, icon: Moon, color: 'text-[var(--muted-foreground)]', onClick: () => { setOnlyDormant(true); setOnlyOptimizable(false); setStatusFilter('all'); } },
+                    { label: 'Total', value: stats.total, icon: Database, color: 'text-[var(--primary)]', onClick: () => { setStatusFilter('all'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
+                    { label: 'Healthy', value: stats.healthy, icon: CheckCircle2, color: 'text-[var(--success)]', onClick: () => { setStatusFilter('healthy'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
+                    { label: 'Degraded', value: stats.degraded, icon: Activity, color: 'text-[var(--warning)]', onClick: () => { setStatusFilter('degraded'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
+                    { label: 'Unhealthy', value: stats.unhealthy, icon: AlertCircle, color: 'text-[var(--error)]', onClick: () => { setStatusFilter('unhealthy'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
+                    { label: 'At Risk', value: stats.atRisk, icon: ShieldAlert, color: 'text-[var(--error)]', onClick: () => { setOnlyAtRisk(true); setOnlyOptimizable(false); setOnlyDormant(false); setStatusFilter('all'); } },
+                    { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
+                    { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]', onClick: () => { setOnlyOptimizable(true); setOnlyDormant(false); setOnlyAtRisk(false); setStatusFilter('all'); } },
+                    { label: 'Security', value: loading ? '...' : `${summary?.averageSecurityScore || 100}%`, icon: ShieldCheck, color: 'text-[var(--success)]', onClick: () => {} },
                     { label: 'Est. Cost', value: loading ? '...' : `$${summary?.totalEstimatedMonthlyCost || 0}`, icon: DollarSign, color: 'text-[var(--success)]', onClick: () => {} },
                 ].map((stat, i) => (
                     <Card
                         key={i}
                         className={cn(
                             "p-4 flex flex-col justify-center border-[var(--primary)]/5 bg-[var(--card)]/50 cursor-pointer transition-all hover:bg-[var(--primary)]/[0.02] hover:border-[var(--primary)]/20 group",
-                            ((stat.label === 'Optimizable' && onlyOptimizable) || (stat.label === 'Dormant' && onlyDormant) || (statusFilter === stat.label.toLowerCase())) && "border-[var(--primary)]/30 bg-[var(--primary)]/[0.03]"
+                            ((stat.label === 'Optimizable' && onlyOptimizable) || (stat.label === 'Dormant' && onlyDormant) || (stat.label === 'At Risk' && onlyAtRisk) || (statusFilter === stat.label.toLowerCase())) && "border-[var(--primary)]/30 bg-[var(--primary)]/[0.03]"
                         )}
                         onClick={stat.onClick}
                     >
@@ -438,6 +471,18 @@ export default function InfrastructureFleetPage() {
                                                         <div className="flex items-center gap-1.5 text-[var(--muted-foreground)]">
                                                             <Moon className="w-3 h-3" />
                                                             <span className="text-[10px] font-bold uppercase">Idl</span>
+                                                        </div>
+                                                    )}
+                                                    {(connector.metadata?.security as any)?.risks?.length > 0 && (
+                                                        <div className="flex items-center gap-1.5 text-[var(--error)]">
+                                                            <ShieldAlert className="w-3 h-3" />
+                                                            <span className="text-[10px] font-bold uppercase">Risk</span>
+                                                        </div>
+                                                    )}
+                                                    {((connector.metadata?.security as any)?.score >= 90) && (
+                                                        <div className="flex items-center gap-1.5 text-[var(--success)]">
+                                                            <ShieldCheck className="w-3 h-3" />
+                                                            <span className="text-[10px] font-bold uppercase">Safe</span>
                                                         </div>
                                                     )}
                                                 </div>

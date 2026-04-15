@@ -124,7 +124,24 @@ function createMockFirestore(): Firestore {
                             lastActiveAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
                             analysisPeriodDays: 7
                         },
-                        metadata: { provisioned: true, region: 'us-central1' }
+                        metadata: {
+                            provisioned: true,
+                            region: 'us-central1',
+                            security: {
+                                score: 70,
+                                grade: 'C',
+                                risks: [
+                                    {
+                                        id: 'unencrypted_connection',
+                                        level: 'high',
+                                        title: 'Unencrypted Connection',
+                                        description: 'Transit encryption (SSL/TLS) is not enforced for this connector.',
+                                        remediation: 'Enable the "SSL Required" toggle in connector settings.'
+                                    }
+                                ],
+                                lastAuditedAt: new Date().toISOString()
+                            }
+                        }
                     },
                     {
                         id: 'storage_redis',
@@ -135,7 +152,16 @@ function createMockFirestore(): Firestore {
                         createdAt: new Date(),
                         updatedAt: new Date(),
                         connectionStringSecretId: 'mock-redis-id',
-                        metadata: { provisioned: true, region: 'us-central1' }
+                        metadata: {
+                            provisioned: true,
+                            region: 'us-central1',
+                            security: {
+                                score: 100,
+                                grade: 'A',
+                                risks: [],
+                                lastAuditedAt: new Date().toISOString()
+                            }
+                        }
                     }
                 ],
                 joinedAt: { toDate: () => new Date() },
