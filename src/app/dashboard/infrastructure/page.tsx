@@ -8,8 +8,6 @@ import {
     Activity,
     CheckCircle2,
     AlertCircle,
-    Zap,
-    TrendingUp,
     Search,
     Loader2,
     Layout,
@@ -17,15 +15,11 @@ import {
     Sparkles,
     ShieldCheck,
     ShieldAlert,
-    Lock,
-    Unlock,
     Cpu,
-    HardDrive,
     Filter,
     ArrowUpDown,
     Moon,
     DollarSign,
-    Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
@@ -34,7 +28,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -47,7 +40,7 @@ interface FleetConnector extends StorageConfig {
 
 export default function InfrastructureFleetPage() {
     const [connectors, setConnectors] = useState<FleetConnector[]>([]);
-    const [summary, setSummary] = useState<any>(null);
+    const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -130,11 +123,11 @@ export default function InfrastructureFleetPage() {
 
             const matchesOptimization = !onlyOptimizable || !!c.metadata?.optimization;
             const matchesDormancy = !onlyDormant || !!c.dormancy?.isDormant;
-            const matchesRisk = !onlyAtRisk || ((c.metadata?.security as any)?.risks?.length > 0);
+            const matchesRisk = !onlyAtRisk || ((c.metadata?.security as { risks?: unknown[] })?.risks?.length ?? 0) > 0;
 
             return matchesSearch && matchesStatus && matchesType && matchesOptimization && matchesDormancy && matchesRisk;
         });
-    }, [connectors, searchQuery, statusFilter, typeFilter, onlyOptimizable, onlyDormant]);
+    }, [connectors, searchQuery, statusFilter, typeFilter, onlyOptimizable, onlyDormant, onlyAtRisk]);
 
     const stats = useMemo(() => ({
         total: connectors.length,
@@ -144,7 +137,7 @@ export default function InfrastructureFleetPage() {
         provisioning: connectors.filter(c => c.status === 'provisioning').length,
         optimizations: connectors.filter(c => !!c.metadata?.optimization).length,
         dormant: connectors.filter(c => c.dormancy?.isDormant).length,
-        atRisk: connectors.filter(c => ((c.metadata?.security as any)?.risks?.length > 0)).length
+        atRisk: connectors.filter(c => ((c.metadata?.security as { risks?: unknown[] })?.risks?.length ?? 0) > 0).length
     }), [connectors]);
 
     return (
@@ -364,7 +357,7 @@ export default function InfrastructureFleetPage() {
                     {filteredConnectors.map((connector) => {
                         const health = connector.metadata?.health as { status: string; latency: number; baselineLatency?: number } | undefined;
                         const status = health?.status || (connector.status === 'provisioning' ? 'provisioning' : 'unknown');
-                        const optimization = connector.metadata?.optimization as { recommendations: any[] } | undefined;
+                        const optimization = connector.metadata?.optimization as { recommendations: unknown[] } | undefined;
 
                         return (
                             <BentoGridItem
@@ -473,13 +466,13 @@ export default function InfrastructureFleetPage() {
                                                             <span className="text-[10px] font-bold uppercase">Idl</span>
                                                         </div>
                                                     )}
-                                                    {(connector.metadata?.security as any)?.risks?.length > 0 && (
+                                                    {((connector.metadata?.security as { risks?: unknown[] })?.risks?.length ?? 0) > 0 && (
                                                         <div className="flex items-center gap-1.5 text-[var(--error)]">
                                                             <ShieldAlert className="w-3 h-3" />
                                                             <span className="text-[10px] font-bold uppercase">Risk</span>
                                                         </div>
                                                     )}
-                                                    {((connector.metadata?.security as any)?.score >= 90) && (
+                                                    {(((connector.metadata?.security as { score?: number })?.score ?? 0) >= 90) && (
                                                         <div className="flex items-center gap-1.5 text-[var(--success)]">
                                                             <ShieldCheck className="w-3 h-3" />
                                                             <span className="text-[10px] font-bold uppercase">Safe</span>
