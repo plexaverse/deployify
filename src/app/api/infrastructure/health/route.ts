@@ -30,11 +30,14 @@ export async function GET(request: NextRequest) {
         let degradedConnectors = 0;
         let unhealthyConnectors = 0;
         let provisioningConnectors = 0;
-        const projectHealth: Record<string, { status: string, healthy: number, total: number }> = {};
+        let totalOptimizations = 0;
+        const optimizationBreakdown = { upgrade: 0, downgrade: 0, optimize: 0 };
+        const projectHealth: Record<string, { status: string, healthy: number, total: number, optimizations: number }> = {};
 
         projects.forEach(project => {
             const configs = project.storageConfigs || [];
             let projectHealthy = 0;
+            let projectOptimizations = 0;
 
             configs.forEach((storage: StorageConfig) => {
                 totalConnectors++;
@@ -52,12 +55,26 @@ export async function GET(request: NextRequest) {
                 } else if (status === 'provisioning') {
                     provisioningConnectors++;
                 }
+
+                // Aggregate Optimizations
+                if (storage.metadata?.optimization) {
+                    totalOptimizations++;
+                    projectOptimizations++;
+                    const optimizationData = storage.metadata.optimization as { recommendations?: Array<{ type: string }> };
+                    const recommendations = optimizationData.recommendations || [];
+                    recommendations.forEach((rec) => {
+                        if (rec.type === 'upgrade') optimizationBreakdown.upgrade++;
+                        else if (rec.type === 'downgrade') optimizationBreakdown.downgrade++;
+                        else if (rec.type === 'optimize') optimizationBreakdown.optimize++;
+                    });
+                }
             });
 
             projectHealth[project.id] = {
                 status: projectHealthy === configs.length ? 'healthy' : (projectHealthy > 0 ? 'degraded' : 'unhealthy'),
                 healthy: projectHealthy,
-                total: configs.length
+                total: configs.length,
+                optimizations: projectOptimizations
             };
         });
 
@@ -70,6 +87,8 @@ export async function GET(request: NextRequest) {
                 degradedConnectors,
                 unhealthyConnectors,
                 provisioningConnectors,
+                totalOptimizations,
+                optimizationBreakdown,
                 uptimeScore: totalConnectors > 0 ? Math.round(((healthyConnectors + degradedConnectors) / totalConnectors) * 100) : 100
             },
             projectHealth

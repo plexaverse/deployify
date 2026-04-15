@@ -518,7 +518,21 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Integrate "View Fleet" navigation from the main dashboard health widget
 - [x] Verify high-density technical aesthetic compliance across the new fleet UI
 
+### Phase 77: Fleet Optimization Intelligence & Global Cost Visibility (COMPLETED)
+- [x] Enhance Infrastructure Health API with aggregate optimization metrics
+- [x] Implement "Fleet Optimizations" summary in the Global Infrastructure dashboard
+- [x] Add resource tier and cost-related metadata visibility to fleet connector cards
+- [x] Implement advanced fleet-wide filtering by health, type, and optimization status
+
 ## Progress Updates
+
+### 2027-05-19: Fleet Optimization Intelligence & Global Cost Visibility
+- Completed Phase 77: Fleet Optimization Intelligence & Global Cost Visibility.
+- Enhanced the Infrastructure Health API (`/api/infrastructure/health`) to aggregate optimization metrics and provide a breakdown of upgrade/downgrade/optimize recommendations across the workspace.
+- Updated the Global Infrastructure dashboard with high-density fleet filters (Status, Type) and a dedicated "Only Optimizable" toggle.
+- Implemented interactive summary stat cards that trigger fleet-wide filtering for rapid diagnostic navigation.
+- Surfaced "Resource Tier" metadata (e.g., Cloud SQL tiers, Memorystore capacity) on fleet connector cards to improve cost and performance visibility.
+- Verified functional integrity and adherence to the platform's high-density technical aesthetic with strict typography scaling.
 
 ### 2027-05-18: Fleet-wide Observability & Resource Intelligence
 - Completed Phase 76: Fleet-wide Observability & Resource Intelligence.
