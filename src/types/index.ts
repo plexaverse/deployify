@@ -434,6 +434,15 @@ export interface StorageBranchingSettings {
     seedCommand?: string; // Optional command to seed newly created branch databases
 }
 
+export interface ResourceDormancy {
+    isDormant: boolean;
+    avgCpuUtilization: number;
+    avgMemoryUtilization: number;
+    avgDiskUtilization?: number;
+    lastActiveAt?: string;
+    analysisPeriodDays: number;
+}
+
 export interface StorageConfig {
     id: string;
     type: StorageType;
@@ -454,6 +463,7 @@ export interface StorageConfig {
     rollbackCommand?: string;
     ssl?: boolean;
     activeAlerts?: string[];
+    dormancy?: ResourceDormancy;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     metadata?: Record<string, unknown>;

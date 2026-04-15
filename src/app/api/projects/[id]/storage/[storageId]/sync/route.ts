@@ -8,7 +8,7 @@ import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/fir
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy } from '@/lib/gcp/monitoring';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
 import { getUserById } from '@/lib/db';
@@ -149,7 +149,15 @@ export async function GET(
                         console.error(`[OptimizationInsight] Analysis failed for ${storageId}:`, optErr);
                     }
 
-                    // B. Monitoring Alerts
+                    // B. Dormancy Analysis: Check for long-term inactivity
+                    try {
+                        const dormancy = await getResourceDormancy(storage.type, resourceName, region);
+                        storage.dormancy = dormancy;
+                    } catch (dormErr) {
+                        console.error(`[DormancyInsight] Analysis failed for ${storageId}:`, dormErr);
+                    }
+
+                    // C. Monitoring Alerts
                     if (storage.alertSettings?.enabled) {
                         const { triggered, alerts } = checkAlertThresholds(metrics, storage.alertSettings);
                         const previouslyAlerting = (storage.activeAlerts || []).length > 0;

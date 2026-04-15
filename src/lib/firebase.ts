@@ -117,6 +117,13 @@ function createMockFirestore(): Firestore {
                         updatedAt: new Date(),
                         connectionStringSecretId: 'mock-secret-id',
                         branchingSettings: { enabled: true, template: '{base}_{identifier}' },
+                        dormancy: {
+                            isDormant: true,
+                            avgCpuUtilization: 0.2,
+                            avgMemoryUtilization: 12.5,
+                            lastActiveAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+                            analysisPeriodDays: 7
+                        },
                         metadata: { provisioned: true, region: 'us-central1' }
                     },
                     {

@@ -19,7 +19,8 @@ import {
     Cpu,
     HardDrive,
     Filter,
-    ArrowUpDown
+    ArrowUpDown,
+    Moon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
@@ -46,6 +47,7 @@ export default function InfrastructureFleetPage() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
     const [onlyOptimizable, setOnlyOptimizable] = useState(false);
+    const [onlyDormant, setOnlyDormant] = useState(false);
     const { activeTeam, isLoading: isTeamLoading } = useTeam();
 
     useEffect(() => {
@@ -108,10 +110,11 @@ export default function InfrastructureFleetPage() {
             );
 
             const matchesOptimization = !onlyOptimizable || !!c.metadata?.optimization;
+            const matchesDormancy = !onlyDormant || !!c.dormancy?.isDormant;
 
-            return matchesSearch && matchesStatus && matchesType && matchesOptimization;
+            return matchesSearch && matchesStatus && matchesType && matchesOptimization && matchesDormancy;
         });
-    }, [connectors, searchQuery, statusFilter, typeFilter, onlyOptimizable]);
+    }, [connectors, searchQuery, statusFilter, typeFilter, onlyOptimizable, onlyDormant]);
 
     const stats = useMemo(() => ({
         total: connectors.length,
@@ -119,7 +122,8 @@ export default function InfrastructureFleetPage() {
         degraded: connectors.filter(c => (c.metadata?.health as { status: string })?.status === 'degraded').length,
         unhealthy: connectors.filter(c => (c.metadata?.health as { status: string })?.status === 'unhealthy' || c.status === 'error').length,
         provisioning: connectors.filter(c => c.status === 'provisioning').length,
-        optimizations: connectors.filter(c => !!c.metadata?.optimization).length
+        optimizations: connectors.filter(c => !!c.metadata?.optimization).length,
+        dormant: connectors.filter(c => c.dormancy?.isDormant).length
     }), [connectors]);
 
     return (
@@ -212,11 +216,29 @@ export default function InfrastructureFleetPage() {
                                     type="checkbox"
                                     id="only-optimizable"
                                     checked={onlyOptimizable}
-                                    onChange={(e) => setOnlyOptimizable(e.target.checked)}
+                                    onChange={(e) => {
+                                        setOnlyOptimizable(e.target.checked);
+                                        if (e.target.checked) setOnlyDormant(false);
+                                    }}
                                     className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
                                 <Label htmlFor="only-optimizable" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer">
-                                    Only Optimizable
+                                    Optimizable
+                                </Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="only-dormant"
+                                    checked={onlyDormant}
+                                    onChange={(e) => {
+                                        setOnlyDormant(e.target.checked);
+                                        if (e.target.checked) setOnlyOptimizable(false);
+                                    }}
+                                    className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
+                                />
+                                <Label htmlFor="only-dormant" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer">
+                                    Dormant
                                 </Label>
                             </div>
                             <Button
@@ -227,6 +249,7 @@ export default function InfrastructureFleetPage() {
                                     setTypeFilter('all');
                                     setSearchQuery('');
                                     setOnlyOptimizable(false);
+                                    setOnlyDormant(false);
                                 }}
                                 className="h-7 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                             >
@@ -240,18 +263,19 @@ export default function InfrastructureFleetPage() {
             {/* Summary Stats */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[
-                    { label: 'Total', value: stats.total, icon: Database, color: 'text-[var(--primary)]', onClick: () => { setStatusFilter('all'); setOnlyOptimizable(false); } },
-                    { label: 'Healthy', value: stats.healthy, icon: CheckCircle2, color: 'text-[var(--success)]', onClick: () => { setStatusFilter('healthy'); setOnlyOptimizable(false); } },
-                    { label: 'Degraded', value: stats.degraded, icon: Activity, color: 'text-[var(--warning)]', onClick: () => { setStatusFilter('degraded'); setOnlyOptimizable(false); } },
-                    { label: 'Unhealthy', value: stats.unhealthy, icon: AlertCircle, color: 'text-[var(--error)]', onClick: () => { setStatusFilter('unhealthy'); setOnlyOptimizable(false); } },
-                    { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); } },
-                    { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]', onClick: () => { setOnlyOptimizable(true); setStatusFilter('all'); } },
+                    { label: 'Total', value: stats.total, icon: Database, color: 'text-[var(--primary)]', onClick: () => { setStatusFilter('all'); setOnlyOptimizable(false); setOnlyDormant(false); } },
+                    { label: 'Healthy', value: stats.healthy, icon: CheckCircle2, color: 'text-[var(--success)]', onClick: () => { setStatusFilter('healthy'); setOnlyOptimizable(false); setOnlyDormant(false); } },
+                    { label: 'Degraded', value: stats.degraded, icon: Activity, color: 'text-[var(--warning)]', onClick: () => { setStatusFilter('degraded'); setOnlyOptimizable(false); setOnlyDormant(false); } },
+                    { label: 'Unhealthy', value: stats.unhealthy, icon: AlertCircle, color: 'text-[var(--error)]', onClick: () => { setStatusFilter('unhealthy'); setOnlyOptimizable(false); setOnlyDormant(false); } },
+                    { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); setOnlyDormant(false); } },
+                    { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]', onClick: () => { setOnlyOptimizable(true); setOnlyDormant(false); setStatusFilter('all'); } },
+                    { label: 'Dormant', value: stats.dormant, icon: Moon, color: 'text-[var(--muted-foreground)]', onClick: () => { setOnlyDormant(true); setOnlyOptimizable(false); setStatusFilter('all'); } },
                 ].map((stat, i) => (
                     <Card
                         key={i}
                         className={cn(
                             "p-4 flex flex-col justify-center border-[var(--primary)]/5 bg-[var(--card)]/50 cursor-pointer transition-all hover:bg-[var(--primary)]/[0.02] hover:border-[var(--primary)]/20 group",
-                            ((stat.label === 'Optimizable' && onlyOptimizable) || (statusFilter === stat.label.toLowerCase())) && "border-[var(--primary)]/30 bg-[var(--primary)]/[0.03]"
+                            ((stat.label === 'Optimizable' && onlyOptimizable) || (stat.label === 'Dormant' && onlyDormant) || (statusFilter === stat.label.toLowerCase())) && "border-[var(--primary)]/30 bg-[var(--primary)]/[0.03]"
                         )}
                         onClick={stat.onClick}
                     >
@@ -362,6 +386,12 @@ export default function InfrastructureFleetPage() {
                                                         <div className="flex items-center gap-1.5 animate-pulse">
                                                             <Sparkles className="w-3 h-3 text-[var(--primary)]" />
                                                             <span className="text-[10px] font-bold uppercase text-[var(--primary)]">Opt</span>
+                                                        </div>
+                                                    )}
+                                                    {connector.dormancy?.isDormant && (
+                                                        <div className="flex items-center gap-1.5 text-[var(--muted-foreground)]">
+                                                            <Moon className="w-3 h-3" />
+                                                            <span className="text-[10px] font-bold uppercase">Idl</span>
                                                         </div>
                                                     )}
                                                 </div>
