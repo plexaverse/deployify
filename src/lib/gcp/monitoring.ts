@@ -346,7 +346,7 @@ async function fetchMetricAverage(
     if (!points || points.length === 0) return 0;
 
     // Calculate average of all points in the range
-    const sum = points.reduce((acc: number, point: any) => {
+    const sum = points.reduce((acc: number, point: { value: { doubleValue?: number; int64Value?: string | number } }) => {
         const val = point.value.doubleValue !== undefined ? point.value.doubleValue : point.value.int64Value;
         return acc + (typeof val === 'string' ? parseInt(val) : (val || 0));
     }, 0);
