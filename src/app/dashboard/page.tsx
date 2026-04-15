@@ -164,6 +164,12 @@ export default function DashboardPage() {
                                                 <span className="text-[10px] font-bold text-[var(--error)]">{infraHealth.summary.unhealthyConnectors}</span>
                                             </div>
                                         </div>
+                                    <Separator orientation="vertical" className="h-8 bg-[var(--border)]" />
+                                    <Link href="/dashboard/infrastructure">
+                                        <Button variant="ghost" size="sm" className="h-8 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/5">
+                                            View Fleet
+                                        </Button>
+                                    </Link>
                                     </>
                                 )}
                             </div>
