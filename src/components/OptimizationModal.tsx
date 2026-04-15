@@ -49,7 +49,7 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                                 <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Scaling Analysis</span>
                             </div>
-                            <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">
+                            <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
                                 Analyzed: {new Date(optimization.lastAnalyzedAt).toLocaleTimeString()}
                             </span>
                         </div>
@@ -65,24 +65,24 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                                     <Moon className="w-4 h-4" />
                                     <span className="text-[10px] font-bold uppercase tracking-wider">Resource Dormancy Detected</span>
                                 </div>
-                                <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)]">
+                                <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)]">
                                     {dormancy.analysisPeriodDays}D ANALYSIS
                                 </span>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <div className="space-y-1">
-                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Avg CPU</span>
+                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Avg CPU</span>
                                     <span className="text-[10px] font-mono font-bold">{dormancy.avgCpuUtilization}%</span>
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Avg Memory</span>
+                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Avg Memory</span>
                                     <span className="text-[10px] font-mono font-bold">{dormancy.avgMemoryUtilization}%</span>
                                 </div>
                                 {dormancy.lastActiveAt && (
                                     <div className="space-y-1 col-span-2 md:col-span-1">
                                         <div className="flex items-center gap-1">
                                             <Clock className="w-3 h-3 text-[var(--muted-foreground)]" />
-                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Last Activity</span>
+                                            <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Last Activity</span>
                                         </div>
                                         <span className="text-[10px] font-mono font-bold uppercase">{new Date(dormancy.lastActiveAt).toLocaleDateString()}</span>
                                     </div>
@@ -113,12 +113,12 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                                                         {rec.type.toUpperCase()} {rec.resource.toUpperCase()}
                                                     </span>
                                                     {rec.estimatedSavings && (
-                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--success)]/10 text-[var(--success)] uppercase">
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--success)]/10 text-[var(--success)] uppercase">
                                                             Save {rec.estimatedSavings}
                                                         </span>
                                                     )}
                                                     {rec.performanceGain && (
-                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] uppercase">
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] uppercase">
                                                             +{rec.performanceGain} Performance
                                                         </span>
                                                     )}
@@ -130,12 +130,12 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
 
                                     <div className="flex items-center justify-between gap-4 p-2.5 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
                                         <div className="space-y-0.5">
-                                            <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] block">Current Tier</span>
+                                            <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] block">Current Tier</span>
                                             <span className="text-[10px] font-mono font-bold">{rec.currentTier}</span>
                                         </div>
                                         <ArrowRight className="w-4 h-4 text-[var(--muted-foreground)]/50" />
                                         <div className="text-right space-y-0.5">
-                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)] block">Recommended</span>
+                                            <span className="text-[10px] font-bold uppercase text-[var(--primary)] block">Recommended</span>
                                             <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{rec.recommendedTier}</span>
                                         </div>
                                     </div>
