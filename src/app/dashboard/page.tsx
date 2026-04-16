@@ -143,7 +143,7 @@ export default function DashboardPage() {
                                 ) : infraHealth && (
                                     <>
                                         <div className="text-right">
-                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Global Uptime</span>
+                                            <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Global Uptime</span>
                                             <span className={cn(
                                                 "text-[10px] font-bold uppercase",
                                                 infraHealth.summary.uptimeScore > 98 ? "text-[var(--success)]" : "text-[var(--warning)]"
@@ -152,15 +152,15 @@ export default function DashboardPage() {
                                         <Separator orientation="vertical" className="h-8 bg-[var(--border)]" />
                                         <div className="flex items-center gap-3">
                                             <div className="text-center">
-                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Healthy</span>
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Healthy</span>
                                                 <span className="text-[10px] font-bold text-[var(--success)]">{infraHealth.summary.healthyConnectors}</span>
                                             </div>
                                             <div className="text-center">
-                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Slow</span>
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Slow</span>
                                                 <span className="text-[10px] font-bold text-[var(--warning)]">{infraHealth.summary.degradedConnectors}</span>
                                             </div>
                                             <div className="text-center">
-                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Failed</span>
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Failed</span>
                                                 <span className="text-[10px] font-bold text-[var(--error)]">{infraHealth.summary.unhealthyConnectors}</span>
                                             </div>
                                         </div>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                     <Card className="overflow-hidden p-4 border-[var(--primary)]/10 bg-[var(--primary)]/5 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-2">
                             <Database className="w-3.5 h-3.5 text-[var(--primary)]" />
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Active Resources</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Active Resources</span>
                         </div>
                         <div className="flex items-baseline gap-2">
                             <span className="text-xs font-bold tracking-tighter">

@@ -374,21 +374,21 @@ export default function ProjectDetailPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {project.storageConfigs.every(s => (s.metadata?.health as { status: string })?.status === 'healthy' || s.status === 'provisioning') ? (
-                                        <Badge variant="success" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--success-bg)]">Operational</Badge>
+                                        <Badge variant="success" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--success-bg)]">Operational</Badge>
                                     ) : project.storageConfigs.some(s => (s.metadata?.health as { status: string })?.status === 'unhealthy' || s.status === 'error') ? (
-                                        <Badge variant="destructive" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Unhealthy</Badge>
+                                        <Badge variant="destructive" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Unhealthy</Badge>
                                     ) : project.storageConfigs.some(s => (s.metadata?.health as { status: string })?.status === 'degraded') ? (
-                                        <Badge variant="warning" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--warning-bg)]">Degraded</Badge>
+                                        <Badge variant="warning" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--warning-bg)]">Degraded</Badge>
                                     ) : (
-                                        <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5">Checking...</Badge>
+                                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5">Checking...</Badge>
                                     )}
                                 </div>
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <div className="p-4 space-y-3">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">Resource Connectivity</span>
-                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">
+                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Resource Connectivity</span>
+                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">
                                         {project.storageConfigs.filter(s => s.status === 'active' && (s.metadata?.health as { status: string })?.status === 'healthy').length}/{project.storageConfigs.length} UP
                                     </span>
                                 </div>
@@ -409,23 +409,23 @@ export default function ProjectDetailPage() {
                                                 )} />
                                                 <div className="flex flex-col min-w-0">
                                                     <span className="text-[10px] font-bold uppercase truncate">{storage.name}</span>
-                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] truncate">{storage.type.replace(/-/g, ' ')}</span>
+                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] truncate">{storage.type.replace(/-/g, ' ')}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
                                                 {(status === 'healthy' || status === 'degraded') && (
                                                     <span className={cn(
-                                                        "text-[9px] font-mono font-bold",
+                                                        "text-[10px] font-mono font-bold",
                                                         status === 'healthy' ? "text-[var(--success)]" : "text-[var(--warning)]"
                                                     )}>
                                                         {health?.latency}ms
                                                     </span>
                                                 )}
                                                 {status === 'degraded' && (
-                                                    <span className="text-[9px] font-bold text-[var(--warning)] uppercase">Slow</span>
+                                                    <span className="text-[10px] font-bold text-[var(--warning)] uppercase">Slow</span>
                                                 )}
                                                 {status === 'unhealthy' && (
-                                                    <span className="text-[9px] font-bold text-[var(--error)] uppercase">Failed</span>
+                                                    <span className="text-[10px] font-bold text-[var(--error)] uppercase">Failed</span>
                                                 )}
                                                 <Link href={`/dashboard/${project.id}/storage`}>
                                                     <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -438,7 +438,7 @@ export default function ProjectDetailPage() {
                                 })}
                                 {project.storageConfigs.length > 3 && (
                                     <Link href={`/dashboard/${project.id}/storage`} className="block text-center pt-1">
-                                        <span className="text-[9px] font-bold uppercase text-[var(--primary)] hover:underline">
+                                        <span className="text-[10px] font-bold uppercase text-[var(--primary)] hover:underline">
                                             View all {project.storageConfigs.length} connectors
                                         </span>
                                     </Link>

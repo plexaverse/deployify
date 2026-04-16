@@ -75,7 +75,7 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <span className={cn(
-                                                        "text-[8px] font-bold uppercase px-1 rounded",
+                                                        "text-[10px] font-bold uppercase px-1 rounded",
                                                         risk.level === 'critical' || risk.level === 'high' ? "bg-[var(--error)]/20 text-[var(--error)]" : "bg-[var(--warning)]/20 text-[var(--warning)]"
                                                     )}>{risk.level}</span>
                                                     <span className="text-[10px] font-bold uppercase">{risk.title}</span>
