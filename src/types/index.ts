@@ -434,6 +434,14 @@ export interface StorageBranchingSettings {
     seedCommand?: string; // Optional command to seed newly created branch databases
 }
 
+export interface StorageAutoScalingSettings {
+    enabled: boolean;
+    minTier?: string;
+    maxTier?: string;
+    targetCpuUtilization?: number; // Target for scaling decisions
+    targetMemoryUtilization?: number;
+}
+
 export interface ResourceDormancy {
     isDormant: boolean;
     avgCpuUtilization: number;
@@ -458,6 +466,7 @@ export interface StorageConfig {
     lastError?: string;
     alertSettings?: StorageAlertSettings;
     branchingSettings?: StorageBranchingSettings;
+    autoScalingSettings?: StorageAutoScalingSettings;
     autoMigration?: boolean;
     migrationCommand?: string;
     rollbackCommand?: string;
