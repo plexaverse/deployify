@@ -45,6 +45,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const { projectStorageAuditLogs: auditLogs, fetchProjectStorageAuditLogs, userRole } = useStore();
     const currentUserId = connectors[0]?.metadata?.userId as string | undefined;
     const [selectedId, setSelectedId] = useState(connectors[0]?.id || '');
+    const selectedConnector = connectors.find(c => c.id === selectedId);
     const [query, setQuery] = useState('');
     const [isExecuting, setIsExecuting] = useState(false);
     const [isExplaining, setIsExplaining] = useState(false);
@@ -198,8 +199,29 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         }
     }, [projectId, selectedId]);
 
+    const fetchQueryInsights = useCallback(async () => {
+        if (!selectedId || !selectedConnector?.type.includes('cloud-sql')) return;
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/query-insights`);
+            const data = await response.json();
+            if (data.success && data.insights.length > 0) {
+                setPerformanceData(prev => prev ? {
+                    ...prev,
+                    hotspots: data.insights
+                } : {
+                    avgLatency: 0,
+                    successRate: 100,
+                    hotspots: data.insights
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch query insights:', error);
+        }
+    }, [projectId, selectedId, selectedConnector]);
+
     useEffect(() => {
         fetchMetrics();
+        fetchQueryInsights();
         fetchHistory();
         fetchSavedQueries();
         fetchDashboards();
@@ -801,8 +823,6 @@ runQuery();`;
             console.error('Failed to delete dashboard widget:', error);
         }
     };
-
-    const selectedConnector = connectors.find(c => c.id === selectedId);
 
     const editorSuggestions = useMemo(() => {
         if (!schema) return [];

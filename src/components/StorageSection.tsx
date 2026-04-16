@@ -137,6 +137,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [rollbackCommand, setRollbackCommand] = useState('prisma migrate resolve --rolled-back');
     const [previewMigration, setPreviewMigration] = useState<{ name: string; content: string; provider?: string } | null>(null);
     const [isFetchingPreview, setIsFetchingPreview] = useState<string | null>(null);
+    const [isMigratingRegion, setIsMigratingRegion] = useState<StorageConfig | null>(null);
 
     const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
     const [isManagingOptimization, setIsManagingOptimization] = useState<StorageConfig | null>(null);
@@ -665,6 +666,29 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             }
         } finally {
             setIsDiagnosing(false);
+        }
+    };
+
+    const handleMigrateRegion = async () => {
+        if (!isMigratingRegion) return;
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${isMigratingRegion.id}/migrate-region`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (data.success) {
+                setIsMigratingRegion(null);
+                await syncStorageStatus(projectId, isMigratingRegion.id);
+                toast.success(data.message || 'Regional migration started');
+            } else {
+                toast.error(data.error || 'Failed to start migration');
+            }
+        } catch (e) {
+            console.error('Migration error:', e);
+            toast.error('An error occurred during regional migration');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -1258,10 +1282,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         <div className="flex items-center gap-2">
                                             <h4 className="font-bold text-xs">{config.name}</h4>
                                         {config.region && projectRegion && config.region !== projectRegion && (
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={`Service is in ${projectRegion} while storage is in ${config.region}. Higher latency expected.`}>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (config.type.includes('cloud-sql')) {
+                                                        setIsMigratingRegion(config);
+                                                    }
+                                                }}
+                                                className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1 hover:bg-[var(--error)]/20 transition-colors"
+                                                title={config.type.includes('cloud-sql') ? `Service is in ${projectRegion} while storage is in ${config.region}. Click to migrate instance.` : `Service is in ${projectRegion} while storage is in ${config.region}. Higher latency expected.`}
+                                            >
                                                 <AlertTriangle className="w-2.5 h-2.5" />
                                                 REGION MISMATCH
-                                            </span>
+                                            </button>
                                         )}
                                             {config.connectionStringSecretId && !config.metadata?.secretOnly && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title="Natively mounted from Secret Manager">
@@ -2450,6 +2483,39 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     </div>
                 }
                 confirmText="Duplicate Connector"
+            />
+
+            <ConfirmationModal
+                isOpen={!!isMigratingRegion}
+                onClose={() => setIsMigratingRegion(null)}
+                onConfirm={handleMigrateRegion}
+                title="Migrate to Project Region"
+                description={
+                    <div className="space-y-4">
+                        <div className="p-4 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl flex items-start gap-3">
+                            <Network className="w-5 h-5 text-[var(--error)] shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                                <p className="text-xs font-bold text-[var(--error)] uppercase">Performance Optimization</p>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                    Moving <strong>{isMigratingRegion?.name}</strong> to <span className="text-[var(--primary)]">{projectRegion}</span> will significantly reduce latency between your application and database.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p className="text-xs">
+                            This operation leverages the GCP Clone API to move your instance and data. A new instance will be created in the target region.
+                        </p>
+
+                        <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-2">
+                            <AlertCircle className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                THE CONNECTOR WILL REMAIN IN PROVISIONING STATE UNTIL THE MIGRATION COMPLETES. NO DATA WILL BE LOST.
+                            </p>
+                        </div>
+                    </div>
+                }
+                confirmText={`Migrate to ${projectRegion}`}
+                loading={isSubmitting}
             />
 
             <OptimizationModal

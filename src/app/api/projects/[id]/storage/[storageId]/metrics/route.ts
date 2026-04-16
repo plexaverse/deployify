@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getDb, Collections } from '@/lib/firebase';
+import { getQueryInsights } from '@/lib/gcp/monitoring';
+import type { StorageConfig } from '@/types';
 
 /**
  * GET - Fetch historical performance metrics for a specific storage connector
@@ -115,6 +117,20 @@ export async function GET(
             .sort((a, b) => b.avgLatency - a.avgLatency)
             .slice(0, 5);
 
+        // Fetch production query insights if available
+        let queryInsights: { query: string, avgLatency: number, count: number }[] = [];
+        try {
+            const storageConfigs = (access.project.storageConfigs as StorageConfig[]) || [];
+            const storage = storageConfigs.find(s => s.id === storageId);
+            if (storage && storage.type.includes('cloud-sql')) {
+                const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const dbType = storage.type === 'cloud-sql-mysql' ? 'mysql' : 'postgresql';
+                queryInsights = await getQueryInsights(resourceName, dbType);
+            }
+        } catch (insightsErr) {
+            console.warn(`[MetricsAPI] Failed to fetch query insights for ${storageId}:`, insightsErr);
+        }
+
         return NextResponse.json({
             success: true,
             stats: {
@@ -122,7 +138,7 @@ export async function GET(
                 successRate: parseFloat(successRate.toFixed(1)),
                 totalQueries,
                 timeseries,
-                hotspots
+                hotspots: queryInsights.length > 0 ? queryInsights : hotspots
             }
         });
     } catch (error) {
