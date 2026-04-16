@@ -306,6 +306,53 @@ export function getEstimatedMonthlyCost(
 }
 
 /**
+ * Fetch top slow queries from GCP Cloud SQL Query Insights
+ */
+export async function getQueryInsights(
+    instanceId: string,
+    dbType: 'postgresql' | 'mysql' = 'postgresql',
+    limit: number = 5
+): Promise<{ query: string, avgLatency: number, count: number }[]> {
+    if (process.env.MOCK_DB === 'true') {
+        return [
+            { query: 'SELECT * FROM products WHERE category = "electronics" ORDER BY price DESC', avgLatency: 1450, count: 24 },
+            { query: 'SELECT u.name, COUNT(o.id) FROM users u JOIN orders o ON u.id = o.user_id GROUP BY u.id', avgLatency: 920, count: 156 },
+            { query: 'UPDATE inventory SET stock = stock - 1 WHERE product_id = ?', avgLatency: 450, count: 890 },
+            { query: 'SELECT * FROM logs WHERE severity = "ERROR" AND timestamp > NOW() - INTERVAL 1 DAY', avgLatency: 320, count: 45 },
+            { query: 'SELECT DISTINCT city FROM users', avgLatency: 150, count: 1200 }
+        ].slice(0, limit);
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    // In a real scenario, this would call the Cloud SQL Admin API or Cloud Monitoring API
+    // to fetch query insights metrics.
+    // For now, we simulate this with a structured response based on the instance.
+    try {
+        const metricType = `cloudsql.googleapis.com/database/${dbType}/insights/query_usage`;
+        const response = await fetch(`${MONITORING_API}/projects/${gcpProjectId}/timeSeries?filter=metric.type%3D%22${encodeURIComponent(metricType)}%22%20AND%20resource.labels.database_id%3D%22${gcpProjectId}%3A${instanceId}%22&interval.startTime=${new Date(Date.now() - 3600000).toISOString()}&interval.endTime=${new Date().toISOString()}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+
+        if (!response.ok) return [];
+        const data = await response.json();
+
+        // Transform complex GCP timeseries data into simplified hotspots
+        if (!data.timeSeries) return [];
+
+        return data.timeSeries.slice(0, limit).map((ts: any) => ({
+            query: ts.metric.labels.query_fingerprint || 'Unknown Query',
+            avgLatency: Math.round(ts.points[0].value.doubleValue * 1000) || 0,
+            count: parseInt(ts.points[0].value.int64Value) || 1
+        }));
+    } catch (e) {
+        console.error('Failed to fetch query insights:', e);
+        return [];
+    }
+}
+
+/**
  * Analyze resource metrics and provide scaling recommendations
  */
 export async function getScalingRecommendations(
