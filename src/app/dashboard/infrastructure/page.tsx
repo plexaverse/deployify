@@ -310,7 +310,7 @@ export default function InfrastructureFleetPage() {
                     { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
                     { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]', onClick: () => { setOnlyOptimizable(true); setOnlyDormant(false); setOnlyAtRisk(false); setStatusFilter('all'); } },
                     { label: 'Security', value: loading ? '...' : `${summary?.averageSecurityScore || 100}%`, icon: ShieldCheck, color: 'text-[var(--success)]', onClick: () => {} },
-                    { label: 'Est. Cost', value: loading ? '...' : `$${summary?.totalEstimatedMonthlyCost || 0}`, icon: DollarSign, color: 'text-[var(--success)]', onClick: () => {} },
+                    { label: 'Est. Cost', value: loading ? '...' : `$${summary?.totalEstimatedMonthlyCost || 0}`, icon: DollarSign, color: 'text-[var(--success)]', onClick: () => {}, subValue: (summary?.totalPotentialSavings as number) > 0 ? `-$${summary?.totalPotentialSavings} SAVINGS` : undefined },
                 ].map((stat, i) => (
                     <Card
                         key={i}
@@ -324,7 +324,12 @@ export default function InfrastructureFleetPage() {
                             <stat.icon className={cn("w-3 h-3 transition-transform group-hover:scale-110", stat.color)} />
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
                         </div>
-                        <span className="text-xs font-bold">{loading ? '...' : stat.value}</span>
+                        <div className="flex items-baseline justify-between gap-2">
+                            <span className="text-xs font-bold">{loading ? '...' : stat.value}</span>
+                            {'subValue' in stat && stat.subValue && !loading && (
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)] animate-pulse truncate whitespace-nowrap">{stat.subValue}</span>
+                            )}
+                        </div>
                     </Card>
                 ))}
             </div>

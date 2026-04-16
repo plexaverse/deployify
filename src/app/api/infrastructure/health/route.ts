@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
         let provisioningConnectors = 0;
         let totalOptimizations = 0;
         let totalEstimatedMonthlyCost = 0;
+        let totalPotentialSavings = 0;
         let totalSecurityScore = 0;
         let connectorsWithScore = 0;
         let totalRisks = 0;
@@ -71,11 +72,16 @@ export async function GET(request: NextRequest) {
                 if (storage.metadata?.optimization) {
                     totalOptimizations++;
                     projectOptimizations++;
-                    const optimizationData = storage.metadata.optimization as { recommendations?: Array<{ type: string }> };
+                    const optimizationData = storage.metadata.optimization as { recommendations?: Array<{ type: string, savingsAmount?: number }> };
                     const recommendations = optimizationData.recommendations || [];
                     recommendations.forEach((rec) => {
                         if (rec.type === 'upgrade') optimizationBreakdown.upgrade++;
-                        else if (rec.type === 'downgrade') optimizationBreakdown.downgrade++;
+                        else if (rec.type === 'downgrade') {
+                            optimizationBreakdown.downgrade++;
+                            if (rec.savingsAmount) {
+                                totalPotentialSavings += rec.savingsAmount;
+                            }
+                        }
                         else if (rec.type === 'optimize') optimizationBreakdown.optimize++;
                     });
                 }
@@ -132,6 +138,7 @@ export async function GET(request: NextRequest) {
                 totalOptimizations,
                 optimizationBreakdown,
                 totalEstimatedMonthlyCost: parseFloat(totalEstimatedMonthlyCost.toFixed(2)),
+                totalPotentialSavings: parseFloat(totalPotentialSavings.toFixed(2)),
                 costBreakdown,
                 totalRisks,
                 riskBreakdown,

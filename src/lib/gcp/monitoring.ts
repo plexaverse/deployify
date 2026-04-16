@@ -18,6 +18,7 @@ export interface ScalingRecommendation {
     recommendedTier: string;
     reason: string;
     estimatedSavings?: string;
+    savingsAmount?: number;
     performanceGain?: string;
 }
 
@@ -275,6 +276,12 @@ export function getEstimatedMonthlyCost(
             'db-custom-1-3840': 52.00,
             'db-custom-2-7680': 104.00,
             'db-custom-4-15360': 208.00,
+            'db-n1-standard-1': 50.00,
+            'db-n1-standard-2': 100.00,
+            'db-n1-standard-4': 200.00,
+            'db-n1-highmem-2': 150.00,
+            'db-n1-highmem-4': 300.00,
+            'db-n1-highmem-8': 600.00,
         };
 
         cost = computeCosts[tier] || computeCosts['db-f1-micro'];
@@ -341,7 +348,7 @@ export async function getQueryInsights(
         // Transform complex GCP timeseries data into simplified hotspots
         if (!data.timeSeries) return [];
 
-        return data.timeSeries.slice(0, limit).map((ts: any) => ({
+        return data.timeSeries.slice(0, limit).map((ts: { metric: { labels: { query_fingerprint?: string } }, points: { value: { doubleValue: number, int64Value: string } }[] }) => ({
             query: ts.metric.labels.query_fingerprint || 'Unknown Query',
             avgLatency: Math.round(ts.points[0].value.doubleValue * 1000) || 0,
             count: parseInt(ts.points[0].value.int64Value) || 1
@@ -400,7 +407,8 @@ export async function getScalingRecommendations(
             currentTier,
             recommendedTier: isCloudSql ? recommendedTier : 'Lower Capacity Tier',
             reason: `Low CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected consistently. Downgrading to a smaller tier will reduce infrastructure costs.`,
-            estimatedSavings: savings > 0 ? `$${savings.toFixed(2)}/mo` : '15-40%'
+            estimatedSavings: savings > 0 ? `$${savings.toFixed(2)}/mo` : '15-40%',
+            savingsAmount: savings > 0 ? parseFloat(savings.toFixed(2)) : undefined
         });
     }
 

@@ -251,14 +251,15 @@ export async function POST(
                                 { 'QUERY PLAN': '        Filter: (id = 1)' }
                             ]
                             : [
-                                { id: 1, select_type: 'SIMPLE', table: 'users', partitions: null, type: 'ALL', possible_keys: null, key: null, key_len: null, ref: null, rows: 1250, filtered: 10.00, Extra: 'Using where' }
+                                { id: 1, select_type: 'SIMPLE', table: 'users', partitions: null, type: 'ALL', possible_keys: null, key: null, key_len: null, ref: null, rows: 1250, filtered: 10.00, Extra: 'Using filesort; Using temporary' }
                             ];
 
                         const optimizationSuggestions: string[] = [];
                         if (isPostgres) {
-                            optimizationSuggestions.push('POSTGRES: Full table scan detected on "users". Consider adding an index for the columns in the FILTER clause to improve performance.');
+                            optimizationSuggestions.push('POSTGRES: Full table scan detected on "users" with Filter on 1250 rows. Consider adding an index for the columns in the FILTER clause to improve performance.');
                         } else {
                             optimizationSuggestions.push('MYSQL: Full table scan (type: ALL) detected on "users". Consider adding an index to avoid scanning all 1250 rows.');
+                            optimizationSuggestions.push('MYSQL: Query is using a temporary table and filesort. This often indicates missing indexes on ORDER BY or GROUP BY columns.');
                         }
 
                         return NextResponse.json({
@@ -557,12 +558,27 @@ export async function POST(
                             const optimizationSuggestions: string[] = [];
 
                             if (query.toUpperCase().startsWith('EXPLAIN')) {
-                                rows.forEach(row => {
+                                rows.forEach((row, index) => {
                                     const plan = String(row['QUERY PLAN'] || '');
                                     if (plan.includes('Seq Scan')) {
                                         const tableMatch = plan.match(/on (\w+)/);
                                         const table = tableMatch ? tableMatch[1] : 'table';
-                                        optimizationSuggestions.push(`POSTGRES: Full table scan detected on "${table}". Consider adding an index for the columns in the FILTER clause to improve performance.`);
+
+                                        // Look ahead for Filter with large row count
+                                        let filterDetails = '';
+                                        const nextRow = rows[index + 1];
+                                        if (nextRow) {
+                                            const nextPlan = String(nextRow['QUERY PLAN'] || '');
+                                            if (nextPlan.includes('Filter:')) {
+                                                const rowsMatch = plan.match(/rows=(\d+)/);
+                                                const rowCount = rowsMatch ? parseInt(rowsMatch[1]) : 0;
+                                                if (rowCount > 1000) {
+                                                    filterDetails = ` with Filter on ${rowCount} rows`;
+                                                }
+                                            }
+                                        }
+
+                                        optimizationSuggestions.push(`POSTGRES: Full table scan detected on "${table}"${filterDetails}. Consider adding an index for the columns in the FILTER clause to improve performance.`);
                                     }
                                 });
                             }
@@ -616,6 +632,13 @@ export async function POST(
                                     }
                                     if (row.possible_keys === null && row.key === null && typeof row.rows === 'number' && row.rows > 100) {
                                         optimizationSuggestions.push(`MYSQL: No possible keys found for table "${row.table}". Performance will degrade as data grows.`);
+                                    }
+                                    const extra = String(row.Extra || '');
+                                    if (extra.includes('Using filesort')) {
+                                        optimizationSuggestions.push(`MYSQL: Query is using filesort on table "${row.table}". Consider adding an index on the ORDER BY columns.`);
+                                    }
+                                    if (extra.includes('Using temporary')) {
+                                        optimizationSuggestions.push(`MYSQL: Query is using a temporary table for table "${row.table}". This may indicate a complex JOIN or GROUP BY that could be optimized with indexes.`);
                                     }
                                 });
                             }
