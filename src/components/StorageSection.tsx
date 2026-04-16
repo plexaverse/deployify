@@ -765,7 +765,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         size="sm"
                                         onClick={handleDiscover}
                                         disabled={isDiscovering}
-                                        className="h-5 px-1.5 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        className="h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                     >
                                         {isDiscovering ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Search className="w-3 h-3 mr-1" />}
                                         Scan Project
@@ -829,12 +829,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 size="sm"
                                                 onClick={handlePurgeOrphans}
                                                 disabled={isReclaiming !== null}
-                                                className="h-5 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error)]/10"
+                                                className="h-5 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error)]/10"
                                             >
                                                 Purge All Orphans
                                             </Button>
                                         )}
-                                        <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[9px] font-bold uppercase">Clear</Button>
+                                        <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[10px] font-bold uppercase">Clear</Button>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -853,12 +853,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 <div className="flex items-center justify-between w-full gap-2">
                                                     <span className="text-[10px] font-bold uppercase truncate pr-6">{res.name}</span>
                                                     {res.isOrphaned && (
-                                                        <span className="text-[8px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
+                                                        <span className="text-[10px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
-                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
+                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
+                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
                                                 </div>
                                             </button>
 
@@ -1343,7 +1343,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 )}>
                                                     — {(config.metadata.health as { status: string }).status}
                                                     {((config.metadata.health as { status: string }).status === 'healthy' || (config.metadata.health as { status: string }).status === 'degraded') && (
-                                                        <span className="text-[9px] font-mono opacity-60">
+                                                        <span className="text-[10px] font-mono opacity-60">
                                                             ({(config.metadata.health as { latency: number }).latency}ms
                                                             {(config.metadata.health as { baselineLatency: number }).baselineLatency && ` / BASE: ${(config.metadata.health as { baselineLatency: number }).baselineLatency}ms`}
                                                             )
