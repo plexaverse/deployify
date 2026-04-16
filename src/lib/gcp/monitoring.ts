@@ -81,7 +81,7 @@ export async function getCloudSqlHistoricalMetrics(
     const accessToken = await getGcpAccessToken();
 
     const metrics = ['cpu/utilization', 'memory/utilization', 'disk/utilization'];
-    const timeSeriesData: Record<string, any[]> = {};
+    const timeSeriesData: Record<string, { value: number; timestamp: string }[]> = {};
 
     for (const metric of metrics) {
         const filter = `metric.type="cloudsql.googleapis.com/database/${metric}" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
@@ -118,7 +118,7 @@ async function fetchTimeSeriesData(
     const data = await response.json();
     if (!data.timeSeries || data.timeSeries.length === 0) return [];
 
-    return data.timeSeries[0].points.map((p: any) => ({
+    return data.timeSeries[0].points.map((p: { value: { doubleValue?: number; int64Value?: number | string }; interval: { endTime: string } }) => ({
         value: p.value.doubleValue !== undefined ? p.value.doubleValue : (typeof p.value.int64Value === 'string' ? parseInt(p.value.int64Value) : p.value.int64Value),
         timestamp: p.interval.endTime
     }));
@@ -414,7 +414,7 @@ async function fetchMetricAverage(
     if (!points || points.length === 0) return 0;
 
     // Calculate average of all points in the range
-    const sum = points.reduce((acc: number, point: any) => {
+    const sum = points.reduce((acc: number, point: { value: { doubleValue?: number; int64Value?: number | string } }) => {
         const val = point.value.doubleValue !== undefined ? point.value.doubleValue : point.value.int64Value;
         return acc + (typeof val === 'string' ? parseInt(val) : (val || 0));
     }, 0);

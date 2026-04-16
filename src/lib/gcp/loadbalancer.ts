@@ -1,21 +1,16 @@
-import { config } from '@/lib/config';
-import { getGcpAccessToken } from './auth';
-
-const COMPUTE_API = 'https://compute.googleapis.com/compute/v1';
-
 /**
  * Orchestrate Global Load Balancing for a Cloud Run service
  */
 export async function createGlobalLoadBalancer(
-    serviceName: string,
-    region: string
+    _serviceName: string,
+    _region: string
 ): Promise<{ ipAddress: string }> {
     if (process.env.MOCK_DB === 'true') {
         return { ipAddress: '34.120.45.67' };
     }
 
-    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
-    const accessToken = await getGcpAccessToken();
+
+
 
     // 1. Create Serverless NEG
     // 2. Create Backend Service
@@ -30,7 +25,7 @@ export async function createGlobalLoadBalancer(
 /**
  * Enable Cloud CDN for a Backend Service
  */
-export async function enableCloudCdn(backendServiceName: string): Promise<void> {
+export async function enableCloudCdn(_backendServiceName: string): Promise<void> {
     if (process.env.MOCK_DB === 'true') return;
 
     // API call to update backend service enableCDN: true
