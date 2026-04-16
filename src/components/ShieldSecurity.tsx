@@ -57,7 +57,7 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
                             <ShieldAlert className="w-3 h-3 text-red-400" />
                             <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">Blocked</span>
                         </div>
-                        <div className="text-xl font-bold font-mono">{metrics?.blockedRequests || 0}</div>
+                        <div className="text-xs font-bold font-mono">{metrics?.blockedRequests || 0}</div>
                         <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Last 24h</div>
                     </div>
                     <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
@@ -65,7 +65,7 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
                             <Globe className="w-3 h-3 text-blue-400" />
                             <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">Edge</span>
                         </div>
-                        <div className="text-xl font-bold font-mono">CDN</div>
+                        <div className="text-xs font-bold font-mono">CDN</div>
                         <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-green-400">Optimized</div>
                     </div>
                 </div>
