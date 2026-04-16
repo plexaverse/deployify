@@ -29,7 +29,7 @@ describe('Security Auditor', () => {
 
     it('should flag unencrypted connections', () => {
         const weakStorage = { ...mockStorage, ssl: false };
-        const posture = checkSecurityPosture(weakStorage as any, 'us-central1');
+        const posture = checkSecurityPosture(weakStorage as StorageConfig, 'us-central1');
         assert.strictEqual(posture.score, 75);
         assert.ok(posture.risks.some(r => r.id === 'unencrypted_connection'));
     });
@@ -39,7 +39,7 @@ describe('Security Auditor', () => {
             ...mockStorage,
             metadata: { ...mockStorage.metadata, iamAuth: false, password: 'some-password' }
         };
-        const posture = checkSecurityPosture(legacyStorage as any, 'us-central1');
+        const posture = checkSecurityPosture(legacyStorage as StorageConfig, 'us-central1');
         assert.ok(posture.score < 100);
         assert.ok(posture.risks.some(r => r.id === 'password_auth_used'));
     });
@@ -49,7 +49,7 @@ describe('Security Auditor', () => {
             ...mockStorage,
             metadata: { ...mockStorage.metadata, deletionProtection: false }
         };
-        const posture = checkSecurityPosture(riskyStorage as any, 'us-central1');
+        const posture = checkSecurityPosture(riskyStorage as StorageConfig, 'us-central1');
         assert.ok(posture.risks.some(r => r.id === 'deletion_protection_disabled'));
     });
 

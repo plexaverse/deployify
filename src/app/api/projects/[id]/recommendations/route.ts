@@ -3,7 +3,6 @@ import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getCloudSqlHistoricalMetrics, getScalingRecommendations } from '@/lib/gcp/monitoring';
 import { securityHeaders } from '@/lib/security';
-import type { StorageConfig } from '@/types';
 
 export async function GET(
     request: NextRequest,

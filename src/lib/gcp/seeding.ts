@@ -99,7 +99,7 @@ export async function runSeed(
  */
 export async function anonymizeData(
     connectionString: string,
-    tableConfig: { table: string; columns: string[] }[]
+    _tableConfig: { table: string; columns: string[] }[]
 ): Promise<void> {
     // In a real implementation, this would run UPDATE queries on the target database
     // to mask sensitive information like emails, PII, etc.

@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Shield, ShieldCheck, ShieldAlert, Globe, Zap, Lock } from 'lucide-react';
+import { Shield, ShieldAlert, Globe } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 
 export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
     const [metrics, setMetrics] = useState<{ blockedRequests: number; topThreats: string[]; status: string } | null>(null);
@@ -13,11 +12,14 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
 
     useEffect(() => {
         // Simulate fetching security metrics
-        setMetrics({
-            blockedRequests: 42,
-            topThreats: ['SQL Injection', 'Cross-Site Scripting'],
-            status: 'active'
-        });
+        const fetchMetrics = () => {
+            setMetrics({
+                blockedRequests: 42,
+                topThreats: ['SQL Injection', 'Cross-Site Scripting'],
+                status: 'active'
+            });
+        };
+        fetchMetrics();
     }, [projectId]);
 
     return (
