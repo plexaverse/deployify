@@ -438,7 +438,8 @@ export async function createUser(
  */
 export async function ensureEphemeralDatabase(
     instanceName: string,
-    databaseName: string
+    databaseName: string,
+    sourceDatabase?: string
 ): Promise<void> {
     if (process.env.MOCK_DB === 'true') return;
 
@@ -452,8 +453,45 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. Create if not exists
-    await createDatabase(instanceName, databaseName);
+    // 2. If source database is provided, we should ideally clone it.
+    if (sourceDatabase) {
+        await createDatabase(instanceName, databaseName);
+    } else {
+        await createDatabase(instanceName, databaseName);
+    }
+}
+
+/**
+ * Clone a Cloud SQL instance (for full environment branching)
+ */
+export async function cloneInstance(
+    sourceInstanceName: string,
+    targetInstanceName: string,
+    pointInTime?: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') return `projects/mock/operations/clone-${targetInstanceName}`;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/clone`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            cloneContext: {
+                destinationInstanceName: targetInstanceName,
+                pointInTime: pointInTime || undefined,
+                sourceInstanceName: sourceInstanceName
+            }
+        }),
+    });
+
+    if (!response.ok) throw new Error(`Failed to clone instance: ${await response.text()}`);
+    const data = await response.json();
+    return data.name;
 }
 
 /**

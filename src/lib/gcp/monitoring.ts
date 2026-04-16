@@ -57,6 +57,74 @@ export function checkAlertThresholds(
 }
 
 /**
+ * Fetch historical resource metrics for a Cloud SQL instance
+ */
+export async function getCloudSqlHistoricalMetrics(
+    instanceId: string,
+    days: number = 7
+): Promise<ResourceMetrics[]> {
+    if (process.env.MOCK_DB === 'true') {
+        const points = [];
+        const now = Date.now();
+        for (let i = 0; i < days * 24; i++) {
+            points.push({
+                cpuUtilization: Math.floor(Math.random() * 30) + 5,
+                memoryUtilization: Math.floor(Math.random() * 40) + 20,
+                diskUtilization: Math.floor(Math.random() * 10) + 5,
+                timestamp: new Date(now - i * 3600000).toISOString()
+            });
+        }
+        return points.reverse();
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const metrics = ['cpu/utilization', 'memory/utilization', 'disk/utilization'];
+    const timeSeriesData: Record<string, any[]> = {};
+
+    for (const metric of metrics) {
+        const filter = `metric.type="cloudsql.googleapis.com/database/${metric}" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
+        timeSeriesData[metric] = await fetchTimeSeriesData(gcpProjectId!, accessToken, filter, days);
+    }
+
+    // Align timestamps and aggregate
+    // (Simplified for this implementation)
+    return timeSeriesData['cpu/utilization'].map((point, index) => ({
+        cpuUtilization: point.value * 100,
+        memoryUtilization: (timeSeriesData['memory/utilization'][index]?.value || 0) * 100,
+        diskUtilization: (timeSeriesData['disk/utilization'][index]?.value || 0) * 100,
+        timestamp: point.timestamp
+    }));
+}
+
+async function fetchTimeSeriesData(
+    projectId: string,
+    accessToken: string,
+    filter: string,
+    days: number
+): Promise<{ value: number; timestamp: string }[]> {
+    const startTime = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const endTime = new Date().toISOString();
+
+    const url = `${MONITORING_API}/projects/${projectId}/timeSeries?filter=${encodeURIComponent(filter)}&interval.startTime=${startTime}&interval.endTime=${endTime}&view=FULL`;
+
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    if (!data.timeSeries || data.timeSeries.length === 0) return [];
+
+    return data.timeSeries[0].points.map((p: any) => ({
+        value: p.value.doubleValue !== undefined ? p.value.doubleValue : (typeof p.value.int64Value === 'string' ? parseInt(p.value.int64Value) : p.value.int64Value),
+        timestamp: p.interval.endTime
+    }));
+}
+
+/**
  * Fetch resource metrics for a Cloud SQL instance
  */
 export async function getCloudSqlMetrics(instanceId: string): Promise<ResourceMetrics> {
