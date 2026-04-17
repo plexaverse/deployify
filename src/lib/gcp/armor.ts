@@ -83,7 +83,7 @@ export async function createSecurityPolicy(policyName: string): Promise<void> {
 /**
  * Get security insights/metrics for a policy
  */
-export async function getSecurityMetrics(_policyName: string) {
+export async function getSecurityMetrics() {
     if (process.env.MOCK_DB === 'true') {
         return {
             blockedRequests: Math.floor(Math.random() * 100),
