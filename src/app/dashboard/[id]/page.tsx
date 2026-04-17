@@ -187,9 +187,9 @@ export default function ProjectDetailPage() {
                     </div>
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Overview</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Overview</span>
                             <span className="text-[var(--muted)]">•</span>
-                            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 <a
                                     href={project.repoUrl}
                                     target="_blank"
@@ -205,7 +205,7 @@ export default function ProjectDetailPage() {
                                 </span>
                             </div>
                         </div>
-                        <h1 className="text-[11px] md:text-xs font-bold tracking-tight">{project.name}</h1>
+                        <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">{project.name}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -213,7 +213,7 @@ export default function ProjectDetailPage() {
                         onClick={() => handleRedeploy(false)}
                         disabled={deploying}
                         containerClassName="h-9 w-32"
-                        className="text-[10px] font-bold uppercase tracking-wider"
+                        className="text-[9px] font-bold uppercase tracking-wider"
                     >
                         {deploying ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />
@@ -243,7 +243,7 @@ export default function ProjectDetailPage() {
                     >
                         <MovingBorderButton
                             containerClassName="h-9 w-24"
-                            className="text-[10px] font-bold uppercase tracking-wider"
+                            className="text-[9px] font-bold uppercase tracking-wider"
                             disabled={!project.productionUrl}
                         >
                             <ExternalLink className="w-3.5 h-3.5 mr-2" />
@@ -265,10 +265,10 @@ export default function ProjectDetailPage() {
                                     <Globe className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
                                     <div className="flex items-center gap-2">
-                                        <h2 className="text-[11px] md:text-xs font-bold">Production</h2>
-                                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)]">
+                                        <h2 className="text-[9px] md:text-[11px] font-bold">Production</h2>
+                                        <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)]">
                                             {project.framework?.toUpperCase() || 'WEB APP'}
                                         </Badge>
                                     </div>
@@ -281,7 +281,7 @@ export default function ProjectDetailPage() {
                                 </div>
                                 <Badge
                                     variant="success"
-                                    className="text-[10px] py-0.5 px-2 font-bold tracking-wider uppercase shadow-[0_0_10px_var(--success-bg)]"
+                                    className="text-[9px] py-0.5 px-2 font-bold tracking-wider uppercase shadow-[0_0_10px_var(--success-bg)]"
                                 >
                                     Live
                                 </Badge>
@@ -296,19 +296,19 @@ export default function ProjectDetailPage() {
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-3">
                                             <div className="space-y-1">
-                                                <p className="text-xs font-bold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
+                                                <p className="text-[11px] font-bold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
                                                     {project.productionUrl.replace(/^https?:\/\//, '')}
                                                     <ExternalLink className="inline-block w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                                                 </p>
                                             </div>
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
+                                                <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <GitBranch className="w-3 h-3" />
-                                                <span>Branch: <span className="text-[var(--foreground)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</span></span>
+                                                <span>Branch: <span className="text-[var(--foreground)] font-mono text-[9px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</span></span>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
+                                                <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <Clock className="w-3 h-3" />
-                                                    <span>Last Push: <span className="text-[var(--foreground)] text-[10px] font-bold uppercase tracking-wider">{formatDate(project.updatedAt)}</span></span>
+                                                    <span>Last Push: <span className="text-[var(--foreground)] text-[9px] font-bold uppercase tracking-wider">{formatDate(project.updatedAt)}</span></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -327,7 +327,7 @@ export default function ProjectDetailPage() {
                                         </Button>
                                     </div>
                                     <div className="pt-6 flex items-center justify-between border-t border-[var(--border)]">
-                                        <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                        <div className="flex items-center gap-6 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             <div className="flex items-center gap-1.5">
                                                 <Github className="w-3.5 h-3.5" />
                                                 <span>{project.repoFullName.toUpperCase()}</span>
@@ -340,7 +340,7 @@ export default function ProjectDetailPage() {
                                             )}
                                         </div>
                                         <Link href={`/dashboard/${params.id}/deployments`}>
-                                            <Button variant="ghost" size="sm" className="text-[10px] font-bold h-7 text-[var(--primary)] hover:bg-[var(--primary)]/5 uppercase tracking-wider">
+                                            <Button variant="ghost" size="sm" className="text-[9px] font-bold h-7 text-[var(--primary)] hover:bg-[var(--primary)]/5 uppercase tracking-wider">
                                                 View All Deploys
                                             </Button>
                                         </Link>
@@ -348,7 +348,7 @@ export default function ProjectDetailPage() {
                                 </div>
                             ) : (
                                 <div className="py-12 text-center space-y-3">
-                                    <p className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">
+                                    <p className="text-[var(--muted-foreground)] text-[9px] font-bold uppercase tracking-wider">
                                         No production deployment yet. Push to {project.defaultBranch} to deploy.
                                     </p>
                                 </div>
@@ -368,27 +368,27 @@ export default function ProjectDetailPage() {
                                         <Database className="w-5 h-5 text-[var(--primary)]" />
                                     </div>
                                     <div>
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                                        <h3 className="text-xs font-bold">Storage Health</h3>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
+                                        <h3 className="text-[11px] font-bold">Storage Health</h3>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {project.storageConfigs.every(s => (s.metadata?.health as { status: string })?.status === 'healthy' || s.status === 'provisioning') ? (
-                                        <Badge variant="success" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--success-bg)]">Operational</Badge>
+                                        <Badge variant="success" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--success-bg)]">Operational</Badge>
                                     ) : project.storageConfigs.some(s => (s.metadata?.health as { status: string })?.status === 'unhealthy' || s.status === 'error') ? (
-                                        <Badge variant="destructive" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Unhealthy</Badge>
+                                        <Badge variant="destructive" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--error-bg)]">Unhealthy</Badge>
                                     ) : project.storageConfigs.some(s => (s.metadata?.health as { status: string })?.status === 'degraded') ? (
-                                        <Badge variant="warning" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--warning-bg)]">Degraded</Badge>
+                                        <Badge variant="warning" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5 shadow-[0_0_8px_var(--warning-bg)]">Degraded</Badge>
                                     ) : (
-                                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5">Checking...</Badge>
+                                        <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider py-0 px-1.5">Checking...</Badge>
                                     )}
                                 </div>
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <div className="p-4 space-y-3">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Resource Connectivity</span>
-                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">
+                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">Resource Connectivity</span>
+                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">
                                         {project.storageConfigs.filter(s => s.status === 'active' && (s.metadata?.health as { status: string })?.status === 'healthy').length}/{project.storageConfigs.length} UP
                                     </span>
                                 </div>
@@ -408,24 +408,24 @@ export default function ProjectDetailPage() {
                                                     "bg-[var(--muted-foreground)]/30"
                                                 )} />
                                                 <div className="flex flex-col min-w-0">
-                                                    <span className="text-[10px] font-bold uppercase truncate">{storage.name}</span>
-                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] truncate">{storage.type.replace(/-/g, ' ')}</span>
+                                                    <span className="text-[9px] font-bold uppercase truncate">{storage.name}</span>
+                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] truncate">{storage.type.replace(/-/g, ' ')}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
                                                 {(status === 'healthy' || status === 'degraded') && (
                                                     <span className={cn(
-                                                        "text-[10px] font-mono font-bold",
+                                                        "text-[9px] font-mono font-bold",
                                                         status === 'healthy' ? "text-[var(--success)]" : "text-[var(--warning)]"
                                                     )}>
                                                         {health?.latency}ms
                                                     </span>
                                                 )}
                                                 {status === 'degraded' && (
-                                                    <span className="text-[10px] font-bold text-[var(--warning)] uppercase">Slow</span>
+                                                    <span className="text-[9px] font-bold text-[var(--warning)] uppercase">Slow</span>
                                                 )}
                                                 {status === 'unhealthy' && (
-                                                    <span className="text-[10px] font-bold text-[var(--error)] uppercase">Failed</span>
+                                                    <span className="text-[9px] font-bold text-[var(--error)] uppercase">Failed</span>
                                                 )}
                                                 <Link href={`/dashboard/${project.id}/storage`}>
                                                     <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -438,7 +438,7 @@ export default function ProjectDetailPage() {
                                 })}
                                 {project.storageConfigs.length > 3 && (
                                     <Link href={`/dashboard/${project.id}/storage`} className="block text-center pt-1">
-                                        <span className="text-[10px] font-bold uppercase text-[var(--primary)] hover:underline">
+                                        <span className="text-[9px] font-bold uppercase text-[var(--primary)] hover:underline">
                                             View all {project.storageConfigs.length} connectors
                                         </span>
                                     </Link>
@@ -458,8 +458,8 @@ export default function ProjectDetailPage() {
                                         <Activity className="w-5 h-5 text-[var(--primary)]" />
                                     </div>
                                     <div>
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">24h Status</span>
-                                        <h3 className="text-xs font-bold">Vitals</h3>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">24h Status</span>
+                                        <h3 className="text-[11px] font-bold">Vitals</h3>
                                     </div>
                                 </div>
                                 <AlertCircle className={cn(
@@ -469,8 +469,8 @@ export default function ProjectDetailPage() {
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <div className="p-6 flex items-baseline gap-2">
-                                <span className="text-xs font-bold">{errorCount}</span>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">events tracked</span>
+                                <span className="text-[11px] font-bold">{errorCount}</span>
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">events tracked</span>
                             </div>
                         </Card>
                     )}
@@ -489,12 +489,12 @@ export default function ProjectDetailPage() {
                         icon={GitBranch}
                         description={
                             <span>
-                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</code> to trigger your first deployment.
+                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-[9px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</code> to trigger your first deployment.
                                 We&apos;ll build and deploy your application automatically.
                             </span>
                         }
                     >
-                        <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)]">
+                        <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)]">
                             <span className="flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full bg-[var(--success)] shadow-[0_0_8px_var(--success)]" />
                                 Git Push
@@ -519,12 +519,12 @@ export default function ProjectDetailPage() {
                                     <History className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Activity</span>
-                                    <h2 className="text-[11px] md:text-xs font-bold">Deployment History</h2>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Activity</span>
+                                    <h2 className="text-[9px] md:text-[11px] font-bold">Deployment History</h2>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded border border-[var(--border)]">
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-2 py-1 rounded border border-[var(--border)]">
                                     Showing {Math.min(deployments.length, 5)} of {deployments.length}
                                 </span>
                             </div>
@@ -549,7 +549,7 @@ export default function ProjectDetailPage() {
                             <div className="px-6 py-3 bg-[var(--card)] border-t border-[var(--border)] text-center">
                                 <Link
                                     href={`/dashboard/${params.id}/deployments`}
-                                    className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                                    className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                                 >
                                     View all deployments
                                 </Link>

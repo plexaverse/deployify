@@ -25,7 +25,7 @@ export function PlanBadge({ tier }: PlanBadgeProps) {
     return (
         <Badge
             variant="secondary"
-            className={`shrink-0 h-5 px-1.5 text-[10px] bg-gradient-to-r ${gradient} text-[var(--primary-foreground)] border-0 font-bold uppercase tracking-wider animate-in fade-in zoom-in duration-300 shadow-sm`}
+            className={`shrink-0 h-5 px-1.5 text-[9px] bg-gradient-to-r ${gradient} text-[var(--primary-foreground)] border-0 font-bold uppercase tracking-wider animate-in fade-in zoom-in duration-300 shadow-sm`}
         >
             {label}
         </Badge>

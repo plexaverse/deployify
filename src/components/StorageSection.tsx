@@ -750,15 +750,15 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         <Database className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                        <h3 className="text-xs font-bold">Storage & Databases</h3>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
+                        <h3 className="text-[11px] font-bold">Storage & Databases</h3>
                     </div>
                 </div>
                 {!isAdding && (
                     <MovingBorderButton
                         onClick={() => setIsAdding(true)}
                         containerClassName="h-10 w-44"
-                        className="text-[10px] font-bold uppercase tracking-wider"
+                        className="text-[9px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Connect Database
@@ -773,23 +773,23 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     <div className="mb-8 p-6 border border-[var(--border)] rounded-xl bg-[var(--background)] animate-fade-in space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold">Connector Name</Label>
+                                <Label className="text-[11px] font-bold">Connector Name</Label>
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="E.G. PRIMARY POSTGRES"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold flex items-center justify-between">
+                                <Label className="text-[11px] font-bold flex items-center justify-between">
                                     External GCP Project ID (Optional)
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleDiscover}
                                         disabled={isDiscovering}
-                                        className="h-5 px-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        className="h-5 px-1.5 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                     >
                                         {isDiscovering ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Search className="w-3 h-3 mr-1" />}
                                         Scan Project
@@ -799,20 +799,20 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     value={providerProjectId}
                                     onChange={(e) => setProviderProjectId(e.target.value)}
                                     placeholder="E.G. MY-OTHER-PROJECT"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold">GCP Region (Optional)</Label>
+                                <Label className="text-[11px] font-bold">GCP Region (Optional)</Label>
                                 <Input
                                     value={region}
                                     onChange={(e) => setRegion(e.target.value)}
                                     placeholder="E.G. US-CENTRAL1"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold">Database Type</Label>
+                                <Label className="text-[11px] font-bold">Database Type</Label>
                                 <NativeSelect
                                     value={type}
                                     onChange={(e) => setType(e.target.value as StorageType)}
@@ -840,10 +840,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2">
                                 <div className="flex items-center justify-between border-b border-[var(--primary)]/10 pb-2">
                                     <div className="flex items-center gap-4">
-                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Infrastructure Health</Label>
+                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Infrastructure Health</Label>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-bold text-[var(--success)]">{discoveredResources.filter(r => !r.isOrphaned).length} ACTIVE</span>
-                                            <span className="text-[10px] font-bold text-[var(--error)]">{discoveredResources.filter(r => r.isOrphaned).length} ORPHANED</span>
+                                            <span className="text-[9px] font-bold text-[var(--success)]">{discoveredResources.filter(r => !r.isOrphaned).length} ACTIVE</span>
+                                            <span className="text-[9px] font-bold text-[var(--error)]">{discoveredResources.filter(r => r.isOrphaned).length} ORPHANED</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -853,12 +853,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 size="sm"
                                                 onClick={handlePurgeOrphans}
                                                 disabled={isReclaiming !== null}
-                                                className="h-5 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error)]/10"
+                                                className="h-5 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error)]/10"
                                             >
                                                 Purge All Orphans
                                             </Button>
                                         )}
-                                        <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[10px] font-bold uppercase">Clear</Button>
+                                        <Button variant="ghost" size="sm" onClick={() => setDiscoveredResources([])} className="h-5 text-[9px] font-bold uppercase">Clear</Button>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -875,14 +875,14 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 className="w-full flex flex-col items-start text-left"
                                             >
                                                 <div className="flex items-center justify-between w-full gap-2">
-                                                    <span className="text-[10px] font-bold uppercase truncate pr-6">{res.name}</span>
+                                                    <span className="text-[9px] font-bold uppercase truncate pr-6">{res.name}</span>
                                                     {res.isOrphaned && (
-                                                        <span className="text-[10px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
+                                                        <span className="text-[9px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
-                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
+                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
+                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
                                                 </div>
                                             </button>
 
@@ -909,7 +909,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         {!editingId && (
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Setup Method</Label>
+                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Setup Method</Label>
                                 <SegmentedControl
                                     options={[
                                         { value: 'connect', label: 'CONNECT EXISTING' },
@@ -931,8 +931,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                         <div className="space-y-0.5">
-                                            <Label className="text-xs font-bold">Secret Only Mode</Label>
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Store in Secret Manager without auto-injection</p>
+                                            <Label className="text-[11px] font-bold">Secret Only Mode</Label>
+                                            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Store in Secret Manager without auto-injection</p>
                                         </div>
                                         <input
                                             type="checkbox"
@@ -942,15 +942,15 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-xs font-bold">Connection String / Secret</Label>
+                                        <Label className="text-[11px] font-bold">Connection String / Secret</Label>
                                     <Input
                                         type="password"
                                         value={connectionString}
                                         onChange={(e) => setConnectionString(e.target.value)}
                                         placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
-                                        className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        className="font-mono text-[11px] placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
+                                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
                                             <AlertCircle className="w-3.5 h-3.5" />
                                             Stored securely in Google Cloud Secret Manager.
                                         </p>
@@ -959,8 +959,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
-                                                    <Label className="text-xs font-bold">SSL Required</Label>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enforce encrypted connections</p>
+                                                    <Label className="text-[11px] font-bold">SSL Required</Label>
+                                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enforce encrypted connections</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
@@ -973,8 +973,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {!editingId && (
                                                 <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                     <div className="space-y-0.5">
-                                                        <Label className="text-xs font-bold">API Auto-Sync</Label>
-                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
+                                                        <Label className="text-[11px] font-bold">API Auto-Sync</Label>
+                                                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Sync credentials via provider API</p>
                                                     </div>
                                                     <input
                                                         type="checkbox"
@@ -988,24 +988,24 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {autoSync && (
                                                 <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
                                                     <div className="space-y-2">
-                                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Provider API Key</Label>
+                                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Provider API Key</Label>
                                                         <Input
                                                             type="password"
                                                             value={providerApiKey}
                                                             onChange={(e) => setProviderApiKey(e.target.value)}
                                                             placeholder="ENTER PROVIDER API KEY..."
-                                                            className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                            className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                         />
                                                     </div>
 
                                                     {type === 'supabase' && (
                                                         <div className="space-y-2">
-                                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Supabase Project ID</Label>
+                                                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Supabase Project ID</Label>
                                                             <Input
                                                                 value={supabaseId}
                                                                 onChange={(e) => setSupabaseId(e.target.value)}
                                                                 placeholder="E.G. ABCDEFGHIJKLMNOP"
-                                                                className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                             />
                                                         </div>
                                                     )}
@@ -1013,21 +1013,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     {type === 'mongodb-atlas' && (
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="space-y-2">
-                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Group ID</Label>
+                                                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Group ID</Label>
                                                                 <Input
                                                                     value={mongodbGroupId}
                                                                     onChange={(e) => setMongodbGroupId(e.target.value)}
                                                                     placeholder="ATLAS GROUP ID"
-                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                    className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Cluster Name</Label>
+                                                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Cluster Name</Label>
                                                                 <Input
                                                                     value={mongodbClusterName}
                                                                     onChange={(e) => setMongodbClusterName(e.target.value)}
                                                                     placeholder="CLUSTER0"
-                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                    className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                                 />
                                                             </div>
                                                         </div>
@@ -1036,21 +1036,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     {type === 'planetscale' && (
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="space-y-2">
-                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Organization</Label>
+                                                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Organization</Label>
                                                                 <Input
                                                                     value={planetscaleOrg}
                                                                     onChange={(e) => setPlanetscaleOrg(e.target.value)}
                                                                     placeholder="ORG NAME"
-                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                    className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Database</Label>
+                                                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Database</Label>
                                                                 <Input
                                                                     value={planetscaleDb}
                                                                     onChange={(e) => setPlanetscaleDb(e.target.value)}
                                                                     placeholder="DB NAME"
-                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                    className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                                 />
                                                             </div>
                                                         </div>
@@ -1064,7 +1064,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 <div className="space-y-4">
                                     <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg flex items-start gap-3">
                                         <Activity className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
-                                        <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                        <div className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             Deployify will automatically provision a new <strong>{type.replace(/-/g, ' ')}</strong> instance in your project&apos;s default region and manage all credentials.
                                         </div>
                                     </div>
@@ -1073,8 +1073,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
-                                                    <Label className="text-[10px] font-bold uppercase tracking-wider">High Availability</Label>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Multi-zone redundancy</p>
+                                                    <Label className="text-[9px] font-bold uppercase tracking-wider">High Availability</Label>
+                                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Multi-zone redundancy</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
@@ -1085,8 +1085,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             </div>
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
-                                                    <Label className="text-[10px] font-bold uppercase tracking-wider">PITR Recovery</Label>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Point-in-time snapshots</p>
+                                                    <Label className="text-[9px] font-bold uppercase tracking-wider">PITR Recovery</Label>
+                                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Point-in-time snapshots</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
@@ -1097,8 +1097,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             </div>
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
-                                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Deletion Protection</Label>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Prevent accidental delete</p>
+                                                    <Label className="text-[9px] font-bold uppercase tracking-wider">Deletion Protection</Label>
+                                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Prevent accidental delete</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
@@ -1113,15 +1113,15 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             )}
                                     <div className={cn("space-y-6 transition-opacity", secretOnly && "opacity-40 pointer-events-none")}>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-bold">Environment Variable Key</Label>
+                                            <Label className="text-[11px] font-bold">Environment Variable Key</Label>
                                             <Input
                                     value={envKey}
                                     onChange={(e) => setEnvKey(e.target.value)}
                                     placeholder="DATABASE_URL"
                                     disabled={secretOnly}
-                                    className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="font-mono text-[11px] placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 {secretOnly ? "Auto-injection is disabled in Secret Only mode." : "This key will be injected into your application at runtime."}
                                             </p>
                                         </div>
@@ -1130,10 +1130,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
                                                     <div className="flex items-center gap-2">
-                                                        <Label className="text-xs font-bold">Preview Branching</Label>
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">BETA</span>
+                                                        <Label className="text-[11px] font-bold">Preview Branching</Label>
+                                                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20">BETA</span>
                                                     </div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Isolated database for Preview Deployments</p>
+                                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Isolated database for Preview Deployments</p>
                                                 </div>
                                                 <input
                                                     type="checkbox"
@@ -1146,27 +1146,27 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {branchingEnabled && (
                                                 <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
                                                     <div className="space-y-2">
-                                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Database Name Template</Label>
+                                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Database Name Template</Label>
                                                         <Input
                                                             value={branchingTemplate}
                                                             onChange={(e) => setBranchingTemplate(e.target.value)}
                                                             placeholder="{base}_{identifier}"
-                                                            className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                            className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                         />
-                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
+                                                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
                                                             USE <code className="text-[var(--primary)]">{'{base}'}</code> FOR ORIGINAL NAME AND <code className="text-[var(--primary)]">{'{identifier}'}</code> FOR BRANCH/PR NAME.
                                                         </p>
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Seed Command (Optional)</Label>
+                                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Seed Command (Optional)</Label>
                                                         <Input
                                                             value={seedCommand}
                                                             onChange={(e) => setSeedCommand(e.target.value)}
                                                             placeholder="E.G. NPX PRISMA DB SEED"
-                                                            className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                            className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                         />
-                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
+                                                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">
                                                             EXPORTS <code className="text-[var(--primary)]">$DATABASE_URL</code> (OR CUSTOM KEY) TO THE BUILD ENVIRONMENT.
                                                         </p>
                                                     </div>
@@ -1178,8 +1178,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <div className="space-y-4 pt-2 border-t border-[var(--border)] mt-4">
                                                 <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                     <div className="space-y-0.5">
-                                                        <Label className="text-xs font-bold">Automated Migrations</Label>
-                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Run migrations automatically during deployment</p>
+                                                        <Label className="text-[11px] font-bold">Automated Migrations</Label>
+                                                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Run migrations automatically during deployment</p>
                                                     </div>
                                                     <input
                                                         type="checkbox"
@@ -1193,25 +1193,25 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4 animate-in slide-in-from-top-2">
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <div className="space-y-2">
-                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration Command</Label>
+                                                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration Command</Label>
                                                                 <Input
                                                                     value={autoMigrationCommand}
                                                                     onChange={(e) => setAutoMigrationCommand(e.target.value)}
                                                                     placeholder="E.G. PRISMA MIGRATE DEPLOY"
-                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                    className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Rollback Command</Label>
+                                                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Rollback Command</Label>
                                                                 <Input
                                                                     value={customRollbackCommand}
                                                                     onChange={(e) => setCustomRollbackCommand(e.target.value)}
                                                                     placeholder="E.G. PRISMA MIGRATE RESOLVE --ROLLED-BACK"
-                                                                    className="h-8 text-[10px] font-mono placeholder:text-[10px]"
+                                                                    className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                                 />
                                                             </div>
                                                         </div>
-                                                        <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/70">
+                                                        <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/70">
                                                             MIGRATION EXECUTED AFTER BUILD. ROLLBACK IS TRIGGERED MANUALLY FROM THE DASHBOARD.
                                                         </p>
                                                     </div>
@@ -1222,7 +1222,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment Scope</Label>
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment Scope</Label>
                             <SegmentedControl
                                 options={[
                                     { value: 'both', label: 'ALL ENVIRONMENTS' },
@@ -1239,7 +1239,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 variant="ghost"
                                 onClick={resetForm}
                                 disabled={isSubmitting}
-                                className="text-[10px] font-bold uppercase tracking-wider"
+                                className="text-[9px] font-bold uppercase tracking-wider"
                             >
                                 Cancel
                             </Button>
@@ -1248,7 +1248,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 disabled={isSubmitting || !name}
                                 loading={isSubmitting}
                                 containerClassName="h-10 w-44"
-                                className="text-[10px] font-bold uppercase tracking-wider"
+                                className="text-[9px] font-bold uppercase tracking-wider"
                             >
                                 {editingId ? 'Update Connector' : 'Create Connector'}
                             </MovingBorderButton>
@@ -1280,7 +1280,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </div>
                                     <div className="space-y-1 w-full">
                                         <div className="flex items-center gap-2">
-                                            <h4 className="font-bold text-xs">{config.name}</h4>
+                                            <h4 className="font-bold text-[11px]">{config.name}</h4>
                                         {config.region && projectRegion && config.region !== projectRegion && (
                                             <button
                                                 onClick={(e) => {
@@ -1289,7 +1289,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         setIsMigratingRegion(config);
                                                     }
                                                 }}
-                                                className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1 hover:bg-[var(--error)]/20 transition-colors"
+                                                className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1 hover:bg-[var(--error)]/20 transition-colors"
                                                 title={config.type.includes('cloud-sql') ? `Service is in ${projectRegion} while storage is in ${config.region}. Click to migrate instance.` : `Service is in ${projectRegion} while storage is in ${config.region}. Higher latency expected.`}
                                             >
                                                 <AlertTriangle className="w-2.5 h-2.5" />
@@ -1297,86 +1297,86 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             </button>
                                         )}
                                             {config.connectionStringSecretId && !config.metadata?.secretOnly && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title="Natively mounted from Secret Manager">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title="Natively mounted from Secret Manager">
                                                     <ShieldCheck className="w-2.5 h-2.5" />
                                                     SECURELY MOUNTED
                                                 </span>
                                             )}
                                             {config.connectionStringSecretId && !!config.metadata?.secretOnly && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider border border-[var(--border)] flex items-center gap-1" title="Stored in Secret Manager but not injected">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider border border-[var(--border)] flex items-center gap-1" title="Stored in Secret Manager but not injected">
                                                     <Shield className="w-2.5 h-2.5" />
                                                     SECRET ONLY
                                                 </span>
                                             )}
                                             {config.ssl && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title="Encrypted connection enforced">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title="Encrypted connection enforced">
                                                     <ShieldCheck className="w-2.5 h-2.5" />
                                                     SSL
                                                 </span>
                                             )}
                                             {config.type.includes('cloud-sql') && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1">
                                                     <Zap className="w-2.5 h-2.5" />
                                                     IAM AUTH
                                                 </span>
                                             )}
                                             {config.branchingSettings?.enabled && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title={`Branching template: ${config.branchingSettings.template}`}>
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title={`Branching template: ${config.branchingSettings.template}`}>
                                                     <GitBranch className="w-2.5 h-2.5" />
                                                     BRANCHING ACTIVE
                                                 </span>
                                             )}
                                             {config.autoMigration && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title={`Auto-migration command: ${config.migrationCommand}`}>
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title={`Auto-migration command: ${config.migrationCommand}`}>
                                                     <RefreshCw className="w-2.5 h-2.5" />
                                                     AUTO-MIGRATE
                                                 </span>
                                             )}
                                             {!!config.metadata?.optimization && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1 animate-pulse">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1 animate-pulse">
                                                     <Sparkles className="w-2.5 h-2.5" />
                                                     OPTIMIZATION AVAILABLE
                                                 </span>
                                             )}
                                             {!!config.metadata?.highAvailability && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1" title="Multi-zone redundancy enabled">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1" title="Multi-zone redundancy enabled">
                                                     <Zap className="w-2.5 h-2.5" />
                                                     HA ENABLED
                                                 </span>
                                             )}
                                             {!!config.metadata?.pitrEnabled && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1" title="Point-in-time recovery active">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1" title="Point-in-time recovery active">
                                                     <HistoryIcon className="w-2.5 h-2.5" />
                                                     PITR ACTIVE
                                                 </span>
                                             )}
                                             {!!config.metadata?.deletionProtection && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title="Deletion protection enabled">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title="Deletion protection enabled">
                                                     <ShieldCheck className="w-2.5 h-2.5" />
                                                     PROTECTED
                                                 </span>
                                             )}
                                             {config.activeAlerts && config.activeAlerts.length > 0 && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={config.activeAlerts.join('\n')}>
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={config.activeAlerts.join('\n')}>
                                                     <AlertTriangle className="w-2.5 h-2.5" />
                                                     {config.activeAlerts.length} ALERT{config.activeAlerts.length > 1 ? 'S' : ''}
                                                 </span>
                                             )}
                                             {getStatusIcon(config.status, config.id)}
                                             {config.status === 'error' && config.lastError && (
-                                                <span className="text-[10px] font-bold text-[var(--error)] uppercase truncate max-w-[200px]" title={config.lastError}>
+                                                <span className="text-[9px] font-bold text-[var(--error)] uppercase truncate max-w-[200px]" title={config.lastError}>
                                                     — {config.lastError}
                                                 </span>
                                             )}
                                             {config.status === 'active' && !!config.metadata?.health && (
                                                 <span className={cn(
-                                                    "text-[10px] font-bold uppercase flex items-center gap-1",
+                                                    "text-[9px] font-bold uppercase flex items-center gap-1",
                                                     (config.metadata.health as { status: string }).status === 'healthy' ? "text-[var(--success)]" :
                                                     (config.metadata.health as { status: string }).status === 'degraded' ? "text-[var(--warning)]" : "text-[var(--error)]"
                                                 )}>
                                                     — {(config.metadata.health as { status: string }).status}
                                                     {((config.metadata.health as { status: string }).status === 'healthy' || (config.metadata.health as { status: string }).status === 'degraded') && (
-                                                        <span className="text-[10px] font-mono opacity-60">
+                                                        <span className="text-[9px] font-mono opacity-60">
                                                             ({(config.metadata.health as { latency: number }).latency}ms
                                                             {(config.metadata.health as { baselineLatency: number }).baselineLatency && ` / BASE: ${(config.metadata.health as { baselineLatency: number }).baselineLatency}ms`}
                                                             )
@@ -1387,31 +1387,31 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-2 py-0.5 rounded-full border border-[var(--border)]">
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-2 py-0.5 rounded-full border border-[var(--border)]">
                                                     {config.type.replace(/-/g, ' ')}
                                                 </span>
                                                 {!config.metadata?.secretOnly && (
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                         {getStorageEnvKey(config)}
                                                     </span>
                                                 )}
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                     {config.environment === 'both' ? 'ALL ENVIRONMENTS' : config.environment}
                                                 </span>
                                                 {(config.region || (config.metadata?.region as string)) && (
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                         {(config.region || (config.metadata?.region as string)).toUpperCase()}
                                                     </span>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 {config.lastSyncedAt && (
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--success)]">
                                                         SYNCED: {new Date(config.lastSyncedAt).toLocaleTimeString()}
                                                     </span>
                                                 )}
                                                 {config.lastRotatedAt && (
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">
                                                         ROTATED: {new Date(config.lastRotatedAt).toLocaleDateString()}
                                                     </span>
                                                 )}
@@ -1423,9 +1423,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     <div className="flex items-center justify-between mb-1">
                                                         <div className="flex items-center gap-1.5">
                                                             <Cpu className="w-3 h-3 text-[var(--primary)]" />
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU</span>
+                                                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU</span>
                                                         </div>
-                                                        <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{metrics[config.id]?.cpuUtilization || 0}%</span>
+                                                        <span className="text-[9px] font-mono font-bold text-[var(--primary)]">{metrics[config.id]?.cpuUtilization || 0}%</span>
                                                     </div>
                                                     <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
                                                         <div
@@ -1438,9 +1438,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     <div className="flex items-center justify-between mb-1">
                                                         <div className="flex items-center gap-1.5">
                                                             <Zap className="w-3 h-3 text-[var(--success)]" />
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory</span>
+                                                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory</span>
                                                         </div>
-                                                        <span className="text-[10px] font-mono font-bold text-[var(--success)]">{metrics[config.id]?.memoryUtilization || 0}%</span>
+                                                        <span className="text-[9px] font-mono font-bold text-[var(--success)]">{metrics[config.id]?.memoryUtilization || 0}%</span>
                                                     </div>
                                                     <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
                                                         <div
@@ -1454,9 +1454,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         <div className="flex items-center justify-between mb-1">
                                                             <div className="flex items-center gap-1.5">
                                                                 <HardDrive className="w-3 h-3 text-[var(--warning)]" />
-                                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Disk</span>
+                                                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Disk</span>
                                                             </div>
-                                                            <span className="text-[10px] font-mono font-bold text-[var(--warning)]">{metrics[config.id]?.diskUtilization}%</span>
+                                                            <span className="text-[9px] font-mono font-bold text-[var(--warning)]">{metrics[config.id]?.diskUtilization}%</span>
                                                         </div>
                                                         <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
                                                             <div
@@ -1471,13 +1471,13 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         {isRotating === config.id && (
                                             <div className="mt-3 p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-fade-in">
                                                 <div className="space-y-1.5">
-                                                    <Label className="text-[10px] font-bold uppercase tracking-wider">New Connection String</Label>
+                                                    <Label className="text-[9px] font-bold uppercase tracking-wider">New Connection String</Label>
                                                     <Input
                                                         type="password"
                                                         value={rotateConnectionString}
                                                         onChange={(e) => setRotateConnectionString(e.target.value)}
                                                         placeholder="PASTE NEW CONNECTION STRING..."
-                                                        className="font-mono text-[10px] h-8 placeholder:text-[10px]"
+                                                        className="font-mono text-[9px] h-8 placeholder:text-[9px]"
                                                     />
                                                 </div>
                                                 <div className="flex justify-end gap-2">
@@ -1489,7 +1489,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                             setRotateConnectionString('');
                                                         }}
                                                         disabled={isSubmitting}
-                                                        className="h-7 text-[10px] font-bold uppercase tracking-wider"
+                                                        className="h-7 text-[9px] font-bold uppercase tracking-wider"
                                                     >
                                                         Cancel
                                                     </Button>
@@ -1497,7 +1497,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         size="sm"
                                                         onClick={() => handleRotate(config.id)}
                                                         disabled={isSubmitting || !rotateConnectionString}
-                                                        className="h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                                        className="h-7 text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                                                     >
                                                         Rotate Credentials
                                                     </Button>
@@ -1696,10 +1696,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl">
                     <ExternalLink className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
-                    <div className="text-xs">
+                    <div className="text-[11px]">
                         <p className="font-bold text-[var(--info)] mb-1">Managed Connectivity</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
-                            Deployify automatically injects the appropriate environment variables (like <code className="text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 px-1 rounded">DATABASE_URL</code>) into your services based on these connectors.
+                            Deployify automatically injects the appropriate environment variables (like <code className="text-[9px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 px-1 rounded">DATABASE_URL</code>) into your services based on these connectors.
                         </p>
                     </div>
                 </div>
@@ -1712,13 +1712,13 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 title="Scale Storage Instance"
                 description={
                     <div className="space-y-4">
-                        <p className="text-xs">
+                        <p className="text-[11px]">
                             Adjust the resource allocation for <strong>{isScaling?.name}</strong>. This update will trigger a GCP operation and the instance status will show as provisioning while the scaling is in progress.
                         </p>
 
                         {isScaling?.type.includes('cloud-sql') ? (
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Machine Tier</Label>
+                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Machine Tier</Label>
                                 <NativeSelect
                                     value={scaleTier}
                                     onChange={(e) => setScaleTier(e.target.value)}
@@ -1732,7 +1732,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             </div>
                         ) : isScaling?.type === 'memorystore-redis' ? (
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory Capacity (GB)</Label>
+                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory Capacity (GB)</Label>
                                 <div className="flex items-center gap-4">
                                     <input
                                         type="range"
@@ -1743,7 +1743,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         onChange={(e) => setScaleSizeGb(parseInt(e.target.value))}
                                         className="flex-1 accent-[var(--primary)]"
                                     />
-                                    <span className="text-xs font-mono font-bold w-12 text-center">{scaleSizeGb} GB</span>
+                                    <span className="text-[11px] font-mono font-bold w-12 text-center">{scaleSizeGb} GB</span>
                                 </div>
                             </div>
                         ) : null}
@@ -1760,18 +1760,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 description={
                     <div className="space-y-6">
                         <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Trigger Manual Backup</Label>
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Trigger Manual Backup</Label>
                             <div className="flex gap-2">
                                 <Input
                                     value={backupDescription}
                                     onChange={(e) => setBackupDescription(e.target.value)}
                                     placeholder="BACKUP DESCRIPTION..."
-                                    className="h-9 text-[10px] font-bold uppercase placeholder:text-[10px]"
+                                    className="h-9 text-[9px] font-bold uppercase placeholder:text-[9px]"
                                 />
                                 <Button
                                     onClick={handleCreateBackup}
                                     disabled={isSubmitting}
-                                    className="h-9 px-4 text-[10px] font-bold uppercase bg-[var(--primary)]"
+                                    className="h-9 px-4 text-[9px] font-bold uppercase bg-[var(--primary)]"
                                 >
                                     {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1.5" />}
                                     Create
@@ -1781,9 +1781,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Backup History</Label>
+                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Backup History</Label>
                                 {!!isManagingBackups?.metadata?.pitrEnabled && (
-                                    <span className="text-[10px] font-bold uppercase text-[var(--primary)] flex items-center gap-1">
+                                    <span className="text-[9px] font-bold uppercase text-[var(--primary)] flex items-center gap-1">
                                         <HistoryIcon className="w-3 h-3" />
                                         PITR ACTIVE
                                     </span>
@@ -1794,14 +1794,14 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 <div className="p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-3 mb-4">
                                     <div className="flex items-center gap-2">
                                         <Zap className="w-3.5 h-3.5 text-[var(--primary)]" />
-                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Point-in-Time Recovery</Label>
+                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Point-in-Time Recovery</Label>
                                     </div>
                                     <div className="flex gap-2">
                                         <Input
                                             type="datetime-local"
                                             value={pitrTimestamp}
                                             onChange={(e) => setPitrTimestamp(e.target.value)}
-                                            className="h-8 text-[10px] font-bold uppercase"
+                                            className="h-8 text-[9px] font-bold uppercase"
                                         />
                                         <Button
                                             onClick={() => {
@@ -1813,12 +1813,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 }
                                             }}
                                             disabled={isSubmitting || !pitrTimestamp}
-                                            className="h-8 px-3 text-[10px] font-bold uppercase bg-[var(--primary)]"
+                                            className="h-8 px-3 text-[9px] font-bold uppercase bg-[var(--primary)]"
                                         >
                                             Restore
                                         </Button>
                                     </div>
-                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                                    <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60">
                                         RESTORE INSTANCE TO ANY SPECIFIC SECOND WITHIN THE LAST 7 DAYS.
                                     </p>
                                 </div>
@@ -1828,11 +1828,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 {isLoadingBackups ? (
                                     <div className="py-8 flex flex-col items-center justify-center gap-2">
                                         <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching backups...</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching backups...</span>
                                     </div>
                                 ) : backups.length === 0 ? (
                                     <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No backups found</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No backups found</span>
                                     </div>
                                 ) : (
                                     backups.map(b => (
@@ -1840,15 +1840,15 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <div className="space-y-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className={cn(
-                                                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                        "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded",
                                                         b.status === 'SUCCESSFUL' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
                                                     )}>
                                                         {b.status}
                                                     </span>
-                                                    <span className="text-[10px] font-mono font-bold">{b.id}</span>
+                                                    <span className="text-[9px] font-mono font-bold">{b.id}</span>
                                                 </div>
-                                                <p className="text-[10px] font-bold uppercase text-[var(--foreground)]">{b.description || 'AUTOMATED BACKUP'}</p>
-                                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(b.startTime).toLocaleString()}</p>
+                                                <p className="text-[9px] font-bold uppercase text-[var(--foreground)]">{b.description || 'AUTOMATED BACKUP'}</p>
+                                                <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(b.startTime).toLocaleString()}</p>
                                             </div>
                                             {b.status === 'SUCCESSFUL' && (
                                                 <Button
@@ -1856,7 +1856,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     size="sm"
                                                     onClick={() => handleRestoreBackup(b.id)}
                                                     disabled={isSubmitting}
-                                                    className="h-7 text-[10px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="h-7 text-[9px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10 opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >
                                                     Restore
                                                 </Button>
@@ -1891,14 +1891,14 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             activeMigrations[isManagingMigrations.id].status === 'FAILURE' ? "bg-[var(--error)]" :
                                             "bg-[var(--primary)]"
                                         )} />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider">
                                             Migration Status: {activeMigrations[isManagingMigrations.id].status}
                                         </span>
                                     </div>
                                     {(activeMigrations[isManagingMigrations.id].status === 'QUEUED' || activeMigrations[isManagingMigrations.id].status === 'WORKING') && <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--primary)]" />}
                                 </div>
 
-                                <div className="p-4 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px] overflow-hidden">
+                                <div className="p-4 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[9px] overflow-hidden">
                                     <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border)]">
                                         <span className="text-[var(--muted-foreground)] uppercase">Build Logs</span>
                                         <span className="text-[var(--primary)]">{activeMigrations[isManagingMigrations.id].operationName?.split('/').pop()?.substring(0, 8)}</span>
@@ -1926,7 +1926,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 {activeMigrations[isManagingMigrations.id].error && (
                                     <div className="p-3 bg-[var(--error)]/10 border border-[var(--error)]/20 rounded-lg flex items-start gap-2">
                                         <AlertCircle className="w-4 h-4 text-[var(--error)] shrink-0 mt-0.5" />
-                                        <p className="text-[10px] font-bold uppercase text-[var(--error)]">{activeMigrations[isManagingMigrations.id].error}</p>
+                                        <p className="text-[9px] font-bold uppercase text-[var(--error)]">{activeMigrations[isManagingMigrations.id].error}</p>
                                     </div>
                                 )}
 
@@ -1935,7 +1935,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         variant="outline"
                                         size="sm"
                                         onClick={() => clearMigrationStatus(isManagingMigrations.id)}
-                                        className="w-full text-[10px] font-bold uppercase tracking-wider"
+                                        className="w-full text-[9px] font-bold uppercase tracking-wider"
                                     >
                                         Run Another Migration
                                     </Button>
@@ -1943,58 +1943,58 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             </div>
                         ) : (
                             <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4 animate-in fade-in">
-                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Run Manual Migration</Label>
+                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Run Manual Migration</Label>
                                 <div className="flex gap-2">
                                     <Input
                                         value={migrationCommand}
                                         onChange={(e) => setMigrationCommand(e.target.value)}
                                         placeholder="E.G. prisma migrate deploy"
-                                        className="h-9 text-[10px] font-mono font-bold placeholder:text-[10px]"
+                                        className="h-9 text-[9px] font-mono font-bold placeholder:text-[9px]"
                                     />
                                     <Button
                                         onClick={handleRunMigration}
                                         disabled={isLoading}
-                                        className="h-9 px-4 text-[10px] font-bold uppercase bg-[var(--primary)]"
+                                        className="h-9 px-4 text-[9px] font-bold uppercase bg-[var(--primary)]"
                                     >
                                         Run
                                     </Button>
                                 </div>
                                 <div className="pt-2 border-t border-[var(--border)]">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger: Rollback Operation</Label>
+                                    <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--error)]">Danger: Rollback Operation</Label>
                                     <div className="flex gap-2 mt-2">
                                         <Input
                                             value={rollbackCommand}
                                             onChange={(e) => setRollbackCommand(e.target.value)}
                                             placeholder="E.G. prisma migrate resolve --rolled-back"
-                                            className="h-9 text-[10px] font-mono font-bold placeholder:text-[10px] border-[var(--error)]/30"
+                                            className="h-9 text-[9px] font-mono font-bold placeholder:text-[9px] border-[var(--error)]/30"
                                         />
                                         <Button
                                             onClick={handleRunRollback}
                                             disabled={isLoading}
                                             variant="outline"
-                                            className="h-9 px-4 text-[10px] font-bold uppercase border-[var(--error)]/30 text-[var(--error)] hover:bg-[var(--error)]/10"
+                                            className="h-9 px-4 text-[9px] font-bold uppercase border-[var(--error)]/30 text-[var(--error)] hover:bg-[var(--error)]/10"
                                         >
                                             Rollback
                                         </Button>
                                     </div>
                                 </div>
-                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
+                                <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">
                                     Trigger migration or rollback operations. Rollbacks should be used with caution as they may cause data loss depending on the command.
                                 </p>
                             </div>
                         )}
 
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration History</Label>
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Migration History</Label>
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                                 {isLoadingMigrations ? (
                                     <div className="py-8 flex flex-col items-center justify-center gap-2">
                                         <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching migrations...</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching migrations...</span>
                                     </div>
                                 ) : migrations.length === 0 ? (
                                     <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No migration history found</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No migration history found</span>
                                     </div>
                                 ) : (
                                     migrations.map(m => (
@@ -2006,7 +2006,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-2">
                                                         <span className={cn(
-                                                            "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                            "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded",
                                                             m.status === 'SUCCESS' ? "bg-[var(--success)]/10 text-[var(--success)]" :
                                                             m.status === 'PENDING' ? "bg-[var(--primary)]/10 text-[var(--primary)]" :
                                                             "bg-[var(--error)]/10 text-[var(--error)]"
@@ -2014,14 +2014,14 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                             {m.status}
                                                         </span>
                                                         {m.drifted && (
-                                                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--error)]/20 text-[var(--error)] animate-pulse border border-[var(--error)]/30">
+                                                            <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--error)]/20 text-[var(--error)] animate-pulse border border-[var(--error)]/30">
                                                                 DRIFTED
                                                             </span>
                                                         )}
-                                                        <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">{m.provider?.toUpperCase()}</span>
+                                                        <span className="text-[9px] font-mono font-bold text-[var(--muted-foreground)]">{m.provider?.toUpperCase()}</span>
                                                     </div>
-                                                    <p className="text-[10px] font-bold uppercase text-[var(--foreground)] truncate max-w-[280px]" title={m.name}>{m.name}</p>
-                                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                                                    <p className="text-[9px] font-bold uppercase text-[var(--foreground)] truncate max-w-[280px]" title={m.name}>{m.name}</p>
+                                                    <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60">
                                                         {m.appliedAt ? new Date(m.appliedAt).toLocaleString() : 'PENDING APPLICATION'}
                                                     </p>
                                                 </div>
@@ -2032,7 +2032,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         onClick={() => handlePreviewSQL(m)}
                                                         disabled={isFetchingPreview === m.id}
                                                         className={cn(
-                                                            "h-8 px-2 text-[10px] font-bold uppercase tracking-wider transition-colors",
+                                                            "h-8 px-2 text-[9px] font-bold uppercase tracking-wider transition-colors",
                                                             previewMigration?.name === m.name ? "text-[var(--primary)] bg-[var(--primary)]/10" : "text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                                                         )}
                                                     >
@@ -2049,7 +2049,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 </div>
                                             </div>
                                             {previewMigration?.name === m.name && (
-                                                <div className="p-4 bg-black/40 border border-[var(--primary)]/20 rounded-xl font-mono text-[10px] animate-in slide-in-from-top-2 fade-in">
+                                                <div className="p-4 bg-black/40 border border-[var(--primary)]/20 rounded-xl font-mono text-[9px] animate-in slide-in-from-top-2 fade-in">
                                                     <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border)]">
                                                         <span className="text-[var(--muted-foreground)] uppercase">Migration Source: {m.name}</span>
                                                         <Button
@@ -2092,8 +2092,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     <div className="space-y-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                             <div className="space-y-0.5">
-                                <Label className="text-xs font-bold">Enable Automated Alerts</Label>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notify when resource usage exceeds thresholds</p>
+                                <Label className="text-[11px] font-bold">Enable Automated Alerts</Label>
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notify when resource usage exceeds thresholds</p>
                             </div>
                             <input
                                 type="checkbox"
@@ -2106,8 +2106,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         <div className={cn("space-y-6 transition-opacity", !alertsEnabled && "opacity-40 pointer-events-none")}>
                             <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
-                                    <Label className="text-xs font-bold">Email Notifications</Label>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Send alerts to your account email address</p>
+                                    <Label className="text-[11px] font-bold">Email Notifications</Label>
+                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Send alerts to your account email address</p>
                                 </div>
                                 <input
                                     type="checkbox"
@@ -2119,8 +2119,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU Threshold</Label>
-                                    <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{alertCpu}%</span>
+                                    <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU Threshold</Label>
+                                    <span className="text-[9px] font-mono font-bold text-[var(--primary)]">{alertCpu}%</span>
                                 </div>
                                 <input
                                     type="range"
@@ -2134,8 +2134,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory Threshold</Label>
-                                    <span className="text-[10px] font-mono font-bold text-[var(--success)]">{alertMemory}%</span>
+                                    <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory Threshold</Label>
+                                    <span className="text-[9px] font-mono font-bold text-[var(--success)]">{alertMemory}%</span>
                                 </div>
                                 <input
                                     type="range"
@@ -2150,8 +2150,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             {isManagingAlerts?.type.includes('cloud-sql') && (
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Disk Threshold</Label>
-                                        <span className="text-[10px] font-mono font-bold text-[var(--warning)]">{alertDisk}%</span>
+                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Disk Threshold</Label>
+                                        <span className="text-[9px] font-mono font-bold text-[var(--warning)]">{alertDisk}%</span>
                                     </div>
                                     <input
                                         type="range"
@@ -2167,7 +2167,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-3">
                             <Activity className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                                 Alerts are checked automatically during connector synchronization. When a threshold is breached, a warning indicator will appear next to the connector.
                             </p>
                         </div>
@@ -2188,16 +2188,16 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-4">
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Standardized Interface</span>
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Standardized Interface</span>
                             </div>
-                            <p className="text-xs">
+                            <p className="text-[11px]">
                                 This connector is automatically injected into your Cloud Run containers. You don&apos;t need to manually manage secrets or environment variables.
                             </p>
                         </div>
 
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment Variable</Label>
-                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px] flex items-center justify-between">
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment Variable</Label>
+                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[9px] flex items-center justify-between">
                                 <span className="text-[var(--primary)]">
                                     {isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}
                                 </span>
@@ -2218,8 +2218,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Node.js Access</Label>
-                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px]">
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Node.js Access</Label>
+                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[9px]">
                                 <code className="text-[var(--foreground)]/80">
                                     const connectionString = process.env.{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'};
                                 </code>
@@ -2227,8 +2227,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Python Access</Label>
-                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px]">
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Python Access</Label>
+                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[9px]">
                                 <code className="text-[var(--foreground)]/80">
                                     import os<br />
                                     conn_str = os.environ.get(&apos;{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}&apos;)
@@ -2237,8 +2237,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Go Access</Label>
-                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px]">
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Go Access</Label>
+                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[9px]">
                                 <code className="text-[var(--foreground)]/80">
                                     import &quot;os&quot;<br />
                                     connStr := os.Getenv(&quot;{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}&quot;)
@@ -2247,10 +2247,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployment Region</Label>
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployment Region</Label>
                             <div className="flex items-center gap-2 px-1">
                                 <Server className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">{(isShowingGuide?.metadata?.region as string) || projectRegion || 'GLOBAL/AUTO'}</span>
+                                <span className="text-[9px] font-bold uppercase tracking-wider">{(isShowingGuide?.metadata?.region as string) || projectRegion || 'GLOBAL/AUTO'}</span>
                             </div>
                         </div>
 
@@ -2258,14 +2258,14 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <div className="space-y-4 pt-4 border-t border-[var(--border)]">
                                 <div className="flex items-center gap-2">
                                     <Network className="w-4 h-4 text-[var(--primary)]" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">IP Allowlist Assistant</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">IP Allowlist Assistant</span>
                                 </div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     IF YOUR EXTERNAL PROVIDER (LIKE SUPABASE OR MONGODB) USES A FIREWALL, ADD THESE GCP REGIONAL EGRESS RANGES FOR <span className="text-[var(--primary)]">{egressIps.region.toUpperCase()}</span>:
                                 </p>
                                 <div className="space-y-2">
                                     {egressIps.ips.map(ip => (
-                                        <div key={ip} className="p-2 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[10px] flex items-center justify-between group">
+                                        <div key={ip} className="p-2 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[9px] flex items-center justify-between group">
                                             <span className="text-[var(--foreground)]/80">{ip}</span>
                                             <Button
                                                 variant="ghost"
@@ -2282,7 +2282,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     ))}
                                 </div>
                                 {egressIps.isFallback && (
-                                    <p className="text-[10px] font-bold uppercase text-[var(--warning)] flex items-center gap-1.5">
+                                    <p className="text-[9px] font-bold uppercase text-[var(--warning)] flex items-center gap-1.5">
                                         <AlertTriangle className="w-3.5 h-3.5" />
                                         USING FALLBACK RANGES. VERIFY REGION SETTINGS.
                                     </p>
@@ -2310,18 +2310,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Activity className="w-4 h-4 text-[var(--primary)]" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Deep Multi-Layer Scan</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Deep Multi-Layer Scan</span>
                                 </div>
                                 {!isDiagnosing && !diagnosticResult && (
                                     <Button
                                         onClick={handleDiagnose}
-                                        className="h-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                        className="h-8 text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                                     >
                                         Run Diagnostics
                                     </Button>
                                 )}
                             </div>
-                            <p className="text-xs">
+                            <p className="text-[11px]">
                                 Run a comprehensive diagnostic to identify the root cause of connection failures across secrets, DNS, TCP, and IAM layers.
                             </p>
                         </div>
@@ -2330,8 +2330,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <div className="py-8 flex flex-col items-center justify-center gap-4 animate-in fade-in">
                                 <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
                                 <div className="text-center">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] animate-pulse">Scanning infrastructure...</p>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">Checking multi-layer connectivity</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] animate-pulse">Scanning infrastructure...</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">Checking multi-layer connectivity</p>
                                 </div>
                             </div>
                         )}
@@ -2350,21 +2350,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     ) : (
                                                         <Loader2 className="w-4 h-4 text-[var(--primary)] animate-spin" />
                                                     )}
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider">{step.name}</span>
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider">{step.name}</span>
                                                 </div>
                                                 {step.latency !== undefined && (
-                                                    <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">{step.latency}ms</span>
+                                                    <span className="text-[9px] font-mono font-bold text-[var(--muted-foreground)]">{step.latency}ms</span>
                                                 )}
                                             </div>
                                             {step.error && (
                                                 <div className="p-2 bg-[var(--error)]/5 rounded border border-[var(--error)]/10">
-                                                    <p className="text-[10px] font-bold uppercase text-[var(--error)]">{step.error}</p>
+                                                    <p className="text-[9px] font-bold uppercase text-[var(--error)]">{step.error}</p>
                                                 </div>
                                             )}
                                             {step.recommendation && (
                                                 <div className="p-2 bg-[var(--primary)]/5 rounded border border-[var(--primary)]/10 flex items-start gap-2">
                                                     <Search className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                                    <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
                                                         <span className="text-[var(--primary)]">Recommendation:</span> {step.recommendation}
                                                     </p>
                                                 </div>
@@ -2374,14 +2374,14 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </div>
 
                                 <div className="p-4 bg-[var(--muted)]/5 border border-[var(--border)] rounded-xl flex items-center justify-between">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Total Scan Time</span>
-                                    <span className="text-[10px] font-mono font-bold">{diagnosticResult.overallLatency}ms</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Total Scan Time</span>
+                                    <span className="text-[9px] font-mono font-bold">{diagnosticResult.overallLatency}ms</span>
                                 </div>
 
                                 <Button
                                     variant="outline"
                                     onClick={handleDiagnose}
-                                    className="w-full text-[10px] font-bold uppercase tracking-wider"
+                                    className="w-full text-[9px] font-bold uppercase tracking-wider"
                                 >
                                     Rerun Scan
                                 </Button>
@@ -2392,16 +2392,16 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <div className="p-3 border border-[var(--border)] rounded-xl space-y-1">
                                 <div className="flex items-center gap-2">
                                     <ShieldAlert className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">IAM Identity</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">IAM Identity</span>
                                 </div>
-                                <p className="text-[10px] font-bold uppercase truncate">roles/cloudsql.client</p>
+                                <p className="text-[9px] font-bold uppercase truncate">roles/cloudsql.client</p>
                             </div>
                             <div className="p-3 border border-[var(--border)] rounded-xl space-y-1">
                                 <div className="flex items-center gap-2">
                                     <Network className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Network Mode</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Network Mode</span>
                                 </div>
-                                <p className="text-[10px] font-bold uppercase truncate">Direct VPC Egress</p>
+                                <p className="text-[9px] font-bold uppercase truncate">Direct VPC Egress</p>
                             </div>
                         </div>
                     </div>
@@ -2426,8 +2426,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         {!!storageToDelete?.metadata?.provisioned && (
                             <div className="p-3 rounded-lg bg-[var(--error)]/5 border border-[var(--error)]/20 flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Delete actual GCP Resource</Label>
-                                    <p className="text-[10px] font-bold uppercase text-[var(--error)]/60">Permantently destroy the provisioned instance</p>
+                                    <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--error)]">Delete actual GCP Resource</Label>
+                                    <p className="text-[9px] font-bold uppercase text-[var(--error)]/60">Permantently destroy the provisioned instance</p>
                                 </div>
                                 <input
                                     type="checkbox"
@@ -2455,15 +2455,15 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 title="Duplicate Storage Connector"
                 description={
                     <div className="space-y-4">
-                        <p className="text-xs">
+                        <p className="text-[11px]">
                             Create a new storage connector with identical configuration. Secrets will be isolated in GCP Secret Manager.
                         </p>
 
                         {(storageConfigs.find(c => c.id === isCloningId)?.type.includes('cloud-sql') || storageConfigs.find(c => c.id === isCloningId)?.type === 'memorystore-redis' || storageConfigs.find(c => c.id === isCloningId)?.type === 'firestore') && (
                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider">Include Data snapshot</Label>
-                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">Automated GCS-based export/import</p>
+                                    <Label className="text-[9px] font-bold uppercase tracking-wider">Include Data snapshot</Label>
+                                    <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60">Automated GCS-based export/import</p>
                                 </div>
                                 <input
                                     type="checkbox"
@@ -2476,7 +2476,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-2">
                             <AlertCircle className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                            <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
                                 CONFIGURATION WILL BE DUPLICATED IMMEDIATELY. IF SNAPSHOT IS INCLUDED, THE NEW CONNECTOR WILL REMAIN IN PROVISIONING STATE UNTIL DATA TRANSFER COMPLETES.
                             </p>
                         </div>
@@ -2495,20 +2495,20 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         <div className="p-4 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl flex items-start gap-3">
                             <Network className="w-5 h-5 text-[var(--error)] shrink-0 mt-0.5" />
                             <div className="space-y-1">
-                                <p className="text-xs font-bold text-[var(--error)] uppercase">Performance Optimization</p>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                <p className="text-[11px] font-bold text-[var(--error)] uppercase">Performance Optimization</p>
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                                     Moving <strong>{isMigratingRegion?.name}</strong> to <span className="text-[var(--primary)]">{projectRegion}</span> will significantly reduce latency between your application and database.
                                 </p>
                             </div>
                         </div>
 
-                        <p className="text-xs">
+                        <p className="text-[11px]">
                             This operation leverages the GCP Clone API to move your instance and data. A new instance will be created in the target region.
                         </p>
 
                         <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-2">
                             <AlertCircle className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                            <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
                                 THE CONNECTOR WILL REMAIN IN PROVISIONING STATE UNTIL THE MIGRATION COMPLETES. NO DATA WILL BE LOST.
                             </p>
                         </div>

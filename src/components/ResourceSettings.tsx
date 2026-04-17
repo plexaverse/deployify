@@ -78,8 +78,8 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                     <Cpu className="w-5 h-5 text-[var(--primary)]" />
                 </div>
                 <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
-                    <h3 className="text-xs font-bold">Compute Configuration</h3>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
+                    <h3 className="text-[11px] font-bold">Compute Configuration</h3>
                 </div>
             </div>
 
@@ -88,24 +88,24 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
             <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label className="text-xs font-bold">CPU</Label>
+                        <Label className="text-[11px] font-bold">CPU</Label>
                         <SegmentedControl
                             options={CPU_OPTIONS.map(opt => ({ value: String(opt), label: `${opt} VCPU` }))}
                             value={String(cpu)}
                             onChange={(v) => setCpu(Number(v))}
                         />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Allocated CPU for each instance
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <Label className="text-xs font-bold">Memory</Label>
+                        <Label className="text-[11px] font-bold">Memory</Label>
                         <SegmentedControl
                             options={MEMORY_OPTIONS.map(opt => ({ value: opt, label: opt }))}
                             value={memory}
                             onChange={setMemory}
                         />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Allocated Memory for each instance
                         </p>
                     </div>
@@ -113,7 +113,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label htmlFor="min-instances" className="text-xs font-bold">Min Instances</Label>
+                        <Label htmlFor="min-instances" className="text-[11px] font-bold">Min Instances</Label>
                         <Input
                             id="min-instances"
                             type="number"
@@ -121,12 +121,12 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                             value={minInstances}
                             onChange={(e) => setMinInstances(parseInt(e.target.value) || 0)}
                         />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Minimum number of instances to keep running (0 = scales to zero)
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="max-instances" className="text-xs font-bold">Max Instances</Label>
+                        <Label htmlFor="max-instances" className="text-[11px] font-bold">Max Instances</Label>
                         <Input
                             id="max-instances"
                             type="number"
@@ -134,7 +134,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                             value={maxInstances}
                             onChange={(e) => setMaxInstances(parseInt(e.target.value) || 1)}
                         />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Maximum number of instances to scale up to
                         </p>
                     </div>
@@ -145,7 +145,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                         onClick={handleSave}
                         loading={saving}
                         containerClassName="h-10 w-32"
-                        className="text-[10px] font-bold uppercase tracking-wider"
+                        className="text-[9px] font-bold uppercase tracking-wider"
                     >
                         Save Changes
                     </MovingBorderButton>

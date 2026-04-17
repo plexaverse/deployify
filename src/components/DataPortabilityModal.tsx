@@ -89,10 +89,10 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 {mode === 'export' ? <Download className="w-5 h-5 text-[var(--primary)]" /> : <Upload className="w-5 h-5 text-[var(--primary)]" />}
                             </div>
                             <div className="space-y-0.5">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Managed Portability
                                 </span>
-                                <h3 className="text-xs font-bold tracking-tight text-[var(--foreground)] uppercase">
+                                <h3 className="text-[11px] font-bold tracking-tight text-[var(--foreground)] uppercase">
                                     {mode === 'export' ? 'Export Database' : 'Import Data'}
                                 </h3>
                             </div>
@@ -115,7 +115,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 size="sm"
                                 onClick={() => setMode('export')}
                                 className={cn(
-                                    "flex-1 h-8 text-[10px] font-bold uppercase tracking-wider",
+                                    "flex-1 h-8 text-[9px] font-bold uppercase tracking-wider",
                                     mode === 'export' ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                                 )}
                             >
@@ -127,7 +127,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 size="sm"
                                 onClick={() => setMode('import')}
                                 className={cn(
-                                    "flex-1 h-8 text-[10px] font-bold uppercase tracking-wider",
+                                    "flex-1 h-8 text-[9px] font-bold uppercase tracking-wider",
                                     mode === 'import' ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                                 )}
                             >
@@ -138,16 +138,16 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
 
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     {storage.type === 'firestore' ? 'GCS URI Prefix' : 'GCS Storage URI'}
                                 </Label>
                                 <Input
                                     value={storageUri}
                                     onChange={(e) => setStorageUri(e.target.value)}
                                     placeholder={storage.type === 'firestore' ? "GS://BUCKET-NAME/PREFIX" : storage.type === 'memorystore-redis' ? "GS://BUCKET-NAME/PATH/TO/DUMP.RDB" : "GS://BUCKET-NAME/PATH/TO/DUMP.SQL"}
-                                    className="font-mono text-xs placeholder:text-[10px] placeholder:font-bold placeholder:uppercase"
+                                    className="font-mono text-[11px] placeholder:text-[9px] placeholder:font-bold placeholder:uppercase"
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
                                     <AlertCircle className="w-3.5 h-3.5" />
                                     Must be a Cloud Storage URI starting with <code className="text-[var(--primary)]">gs://</code>
                                 </p>
@@ -155,14 +155,14 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
 
                             {storage.type === 'firestore' ? (
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collections to {mode === 'import' ? 'Import' : 'Export'} (CSV)</Label>
+                                    <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collections to {mode === 'import' ? 'Import' : 'Export'} (CSV)</Label>
                                     <Input
                                         value={collections}
                                         onChange={(e) => setCollections(e.target.value)}
                                         placeholder="USERS, POSTS"
-                                        className="font-mono text-xs uppercase"
+                                        className="font-mono text-[11px] uppercase"
                                     />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
                                         LEAVE BLANK TO {mode === 'import' ? 'IMPORT' : 'EXPORT'} ALL COLLECTIONS.
                                     </p>
                                 </div>
@@ -170,34 +170,34 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 mode === 'import' ? (
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Database</Label>
+                                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Database</Label>
                                             <Input
                                                 value={database}
                                                 onChange={(e) => setDatabase(e.target.value)}
                                                 placeholder="POSTGRES"
-                                                className="font-mono text-xs uppercase"
+                                                className="font-mono text-[11px] uppercase"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Import User</Label>
+                                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Import User</Label>
                                             <Input
                                                 value={importUser}
                                                 onChange={(e) => setImportUser(e.target.value)}
                                                 placeholder={storage.type.includes('postgres') ? 'POSTGRES' : 'ROOT'}
-                                                className="font-mono text-xs uppercase"
+                                                className="font-mono text-[11px] uppercase"
                                             />
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
-                                        <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Databases to Export (CSV)</Label>
+                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Databases to Export (CSV)</Label>
                                         <Input
                                             value={exportDatabases}
                                             onChange={(e) => setExportDatabases(e.target.value)}
                                             placeholder="DB1, DB2"
-                                            className="font-mono text-xs uppercase"
+                                            className="font-mono text-[11px] uppercase"
                                         />
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
                                             LEAVE BLANK TO EXPORT ALL DATABASES.
                                         </p>
                                     </div>
@@ -207,7 +207,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                             {storage.type === 'memorystore-redis' && (
                                 <div className="p-3 bg-[var(--warning)]/10 border border-[var(--warning)]/20 rounded-xl flex items-start gap-3">
                                     <AlertCircle className="w-4 h-4 text-[var(--warning)] shrink-0 mt-0.5" />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)] leading-relaxed">
+                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--warning)] leading-relaxed">
                                         REDIS {mode === 'import' ? 'IMPORT' : 'EXPORT'} WILL MOMENTARILY DISABLE THE INSTANCE WHILE PROCESSING THE RDB FILE.
                                     </p>
                                 </div>
@@ -216,8 +216,8 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                             <div className="p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl flex items-start gap-3">
                                 <Database className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]">Permissions Required</p>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--info)]">Permissions Required</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                                         THE {storage.type === 'firestore' ? 'SERVICE ACCOUNT' : storage.type === 'memorystore-redis' ? 'REDIS SERVICE AGENT' : 'CLOUD SQL SERVICE ACCOUNT'} MUST HAVE <code className="text-[var(--primary)]">ROLES/STORAGEMANAGER.OBJECTADMIN</code> PERMISSION ON THE TARGET BUCKET.
                                     </p>
                                 </div>
@@ -231,14 +231,14 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                             variant="ghost"
                             onClick={onClose}
                             disabled={isSubmitting}
-                            className="text-[10px] font-bold uppercase tracking-wider"
+                            className="text-[9px] font-bold uppercase tracking-wider"
                         >
                             Cancel
                         </Button>
                         <Button
                             onClick={handleAction}
                             disabled={isSubmitting || !storageUri}
-                            className="bg-[var(--primary)] text-white text-[10px] font-bold uppercase tracking-wider h-10 px-6"
+                            className="bg-[var(--primary)] text-white text-[9px] font-bold uppercase tracking-wider h-10 px-6"
                         >
                             {isSubmitting ? (
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />

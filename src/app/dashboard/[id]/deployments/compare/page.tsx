@@ -94,10 +94,10 @@ export default function CompareDeploymentsPage() {
         const isImprovement = inverse ? diff < 0 : diff > 0;
         const isNeutral = diff === 0;
 
-        if (isNeutral) return <span className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider ml-2">No change</span>;
+        if (isNeutral) return <span className="text-[var(--muted-foreground)] text-[9px] font-bold uppercase tracking-wider ml-2">No change</span>;
 
         return (
-            <span className={cn("text-[10px] font-bold uppercase tracking-wider ml-2 flex items-center gap-0.5", isImprovement ? "text-[var(--success)]" : "text-[var(--error)]")}>
+            <span className={cn("text-[9px] font-bold uppercase tracking-wider ml-2 flex items-center gap-0.5", isImprovement ? "text-[var(--success)]" : "text-[var(--error)]")}>
                 {diff > 0 ? '+' : ''}{formatter(diff)} ({diff > 0 ? '+' : ''}{percent.toFixed(1)}%)
             </span>
         );
@@ -130,7 +130,7 @@ export default function CompareDeploymentsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => router.back()}
-                className="group text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] -ml-2 h-auto py-0"
+                className="group text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] -ml-2 h-auto py-0"
             >
                 <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                 Back to Project
@@ -143,8 +143,8 @@ export default function CompareDeploymentsPage() {
                         <ArrowLeftRight className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Analysis</span>
-                        <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Compare Deployments</h1>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Analysis</span>
+                        <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">Compare Deployments</h1>
                     </div>
                 </div>
             </div>
@@ -157,14 +157,14 @@ export default function CompareDeploymentsPage() {
                             <History className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Base Deployment</span>
-                            <h3 className="text-xs font-bold">Previous Version</h3>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Base Deployment</span>
+                            <h3 className="text-[11px] font-bold">Previous Version</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
                     <div className="p-6 space-y-6">
                         <div>
-                            <label className="text-xs font-bold mb-3 block">Select Source</label>
+                            <label className="text-[11px] font-bold mb-3 block">Select Source</label>
                             <NativeSelect
                                 value={baseId}
                                 onChange={(e) => handleBaseChange(e.target.value)}
@@ -181,7 +181,7 @@ export default function CompareDeploymentsPage() {
                         {baseDeployment ? (
                             <DeploymentSummary deployment={baseDeployment} />
                         ) : (
-                             <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-xs font-bold">
+                             <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-[11px] font-bold">
                                 Select a deployment
                             </div>
                         )}
@@ -195,14 +195,14 @@ export default function CompareDeploymentsPage() {
                             <ArrowRight className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Deployment</span>
-                            <h3 className="text-xs font-bold">New Version</h3>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Deployment</span>
+                            <h3 className="text-[11px] font-bold">New Version</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
                     <div className="p-6 space-y-6">
                         <div>
-                            <label className="text-xs font-bold mb-3 block">Select Target</label>
+                            <label className="text-[11px] font-bold mb-3 block">Select Target</label>
                             <NativeSelect
                                 value={targetId}
                                 onChange={(e) => handleTargetChange(e.target.value)}
@@ -219,7 +219,7 @@ export default function CompareDeploymentsPage() {
                         {targetDeployment ? (
                             <DeploymentSummary deployment={targetDeployment} />
                         ) : (
-                            <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-xs font-bold">
+                            <div className="h-48 flex items-center justify-center text-[var(--muted-foreground)] border border-dashed border-[var(--border)] rounded-lg text-[11px] font-bold">
                                 Select a deployment
                             </div>
                         )}
@@ -235,8 +235,8 @@ export default function CompareDeploymentsPage() {
                             <LayoutGrid className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
-                            <h3 className="text-xs font-bold">Comparison Results</h3>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
+                            <h3 className="text-[11px] font-bold">Comparison Results</h3>
                         </div>
                     </div>
                     <div className="divide-y divide-[var(--border)]">
@@ -325,27 +325,27 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                    <h3 className="text-xs font-bold text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
-                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
+                    <h3 className="text-[11px] font-bold text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
+                    <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
                         <GitBranch className="w-3.5 h-3.5" />
                         <span className="font-mono text-[var(--foreground)]">{deployment.gitBranch}</span>
                         <span className="text-[var(--muted)]">•</span>
                         <span className="font-mono text-[var(--foreground)]">{deployment.gitCommitSha.substring(0, 7)}</span>
                     </div>
                 </div>
-                <Badge variant={deployment.status === 'ready' ? 'success' : 'secondary'} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                <Badge variant={deployment.status === 'ready' ? 'success' : 'secondary'} className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5">
                     {deployment.status.toUpperCase()}
                 </Badge>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
-                    <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Created</div>
-                    <div className="text-xs font-bold text-[var(--foreground)]">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</div>
+                    <div className="text-[var(--muted-foreground)] text-[9px] font-bold uppercase tracking-wider mb-1">Created</div>
+                    <div className="text-[11px] font-bold text-[var(--foreground)]">{new Date(deployment.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</div>
                 </div>
                  <div className="p-4 bg-[var(--muted)]/5 rounded-xl border border-[var(--border)]/50 transition-colors hover:bg-[var(--muted)]/10">
-                    <div className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-1">Environment</div>
-                    <div className="text-xs font-bold text-[var(--foreground)] uppercase">{deployment.type}</div>
+                    <div className="text-[var(--muted-foreground)] text-[9px] font-bold uppercase tracking-wider mb-1">Environment</div>
+                    <div className="text-[11px] font-bold text-[var(--foreground)] uppercase">{deployment.type}</div>
                 </div>
             </div>
         </div>
@@ -355,9 +355,9 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
 function ComparisonRow({ label, baseValue, targetValue }: { label: string, baseValue: React.ReactNode, targetValue: React.ReactNode }) {
     return (
         <div className="grid grid-cols-3 px-6 py-4 items-center hover:bg-[var(--card-hover)] transition-colors group">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{label}</div>
-            <div className="text-xs font-mono font-bold">{baseValue}</div>
-            <div className="text-xs font-mono font-bold flex items-center gap-2">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{label}</div>
+            <div className="text-[11px] font-mono font-bold">{baseValue}</div>
+            <div className="text-[11px] font-mono font-bold flex items-center gap-2">
                 {targetValue}
                 <ArrowRight className="w-3.5 h-3.5 text-[var(--muted-foreground)] opacity-0 group-hover:opacity-20 transition-opacity ml-auto" />
             </div>

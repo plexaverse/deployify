@@ -33,7 +33,7 @@ export function TeamSwitcher() {
             <div className="relative mb-4" ref={containerRef}>
                 <button
                     onClick={toggleTeamSwitcher}
-                    className="flex items-center justify-between w-full p-2.5 text-[10px] font-bold uppercase tracking-wider border border-[var(--border)] rounded-xl hover:bg-[var(--card-hover)] transition-all duration-200 hover:shadow-sm"
+                    className="flex items-center justify-between w-full p-2.5 text-[9px] font-bold uppercase tracking-wider border border-[var(--border)] rounded-xl hover:bg-[var(--card-hover)] transition-all duration-200 hover:shadow-sm"
                 >
                     <div className="flex items-center gap-3 overflow-hidden">
                         <Avatar className={cn("h-7 w-7 rounded-lg", activeTeam ? "bg-[var(--info-bg)]" : "bg-[var(--primary)]/10")}>
@@ -50,7 +50,7 @@ export function TeamSwitcher() {
                                 </AvatarFallback>
                             )}
                         </Avatar>
-                        <div className="flex flex-col items-start min-w-0 text-[10px] font-bold uppercase tracking-wider">
+                        <div className="flex flex-col items-start min-w-0 text-[9px] font-bold uppercase tracking-wider">
                             <span className="text-[var(--muted-foreground)] leading-none mb-1">Workspace</span>
                             <span className="truncate leading-tight">
                                 {activeTeam ? activeTeam.name : 'Personal'}
@@ -68,7 +68,7 @@ export function TeamSwitcher() {
                                     setActiveTeam(null);
                                     setTeamSwitcherOpen(false);
                                 }}
-                                className="flex items-center w-full gap-3 p-2 text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-[var(--card-hover)] transition-colors"
+                                className="flex items-center w-full gap-3 p-2 text-[9px] font-bold uppercase tracking-wider rounded-lg hover:bg-[var(--card-hover)] transition-colors"
                             >
                                 <Avatar className="h-6 w-6 rounded-md bg-[var(--primary)]/10">
                                     <AvatarFallback className="rounded-md bg-[var(--primary)]/10 text-[var(--primary)]">
@@ -82,7 +82,7 @@ export function TeamSwitcher() {
 
                         {teams.length > 0 && (
                             <div className="pt-1.5 border-t border-[var(--border)] space-y-1">
-                                <div className="px-2 pb-1.5 text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Teams</div>
+                                <div className="px-2 pb-1.5 text-[9px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Teams</div>
                                 {teams.map((team) => (
                                     <button
                                         key={team.id}
@@ -90,7 +90,7 @@ export function TeamSwitcher() {
                                             setActiveTeam(team);
                                             setTeamSwitcherOpen(false);
                                         }}
-                                        className="flex items-center w-full gap-3 p-2 text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-[var(--card-hover)] transition-colors"
+                                        className="flex items-center w-full gap-3 p-2 text-[9px] font-bold uppercase tracking-wider rounded-lg hover:bg-[var(--card-hover)] transition-colors"
                                     >
                                         <Avatar className="h-6 w-6 rounded-md bg-[var(--info-bg)]">
                                             <AvatarImage src={team.avatarUrl || undefined} alt={team.name} />
@@ -113,7 +113,7 @@ export function TeamSwitcher() {
                                     setIsCreateModalOpen(true);
                                     setTeamSwitcherOpen(false);
                                 }}
-                                className="flex items-center w-full gap-3 p-2 text-[10px] font-bold uppercase tracking-wider rounded-lg hover:bg-[var(--card-hover)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                className="flex items-center w-full gap-3 p-2 text-[9px] font-bold uppercase tracking-wider rounded-lg hover:bg-[var(--card-hover)] transition-colors text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                             >
                                 <div className="flex items-center justify-center w-6 h-6 rounded-md border border-dashed border-[var(--border)]">
                                     <Plus className="w-4 h-4" />

@@ -91,8 +91,8 @@ export default function ProjectAnalyticsPage() {
                         <BarChart3 className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Insights &bull; {siteId}</span>
-                        <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Analytics</h1>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Insights &bull; {siteId}</span>
+                        <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">Analytics</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -118,8 +118,8 @@ export default function ProjectAnalyticsPage() {
                             <Activity className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
-                            <h3 className="text-xs font-bold">Deployment Performance</h3>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
+                            <h3 className="text-[11px] font-bold">Deployment Performance</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -134,8 +134,8 @@ export default function ProjectAnalyticsPage() {
                             <Activity className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Visitor Statistics</span>
-                            <h3 className="text-xs font-bold">Traffic Analytics</h3>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Visitor Statistics</span>
+                            <h3 className="text-[11px] font-bold">Traffic Analytics</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -153,8 +153,8 @@ export default function ProjectAnalyticsPage() {
                                 <div className="w-12 h-12 rounded-2xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center mb-6 shadow-sm">
                                     <BarChart3 className="w-6 h-6 text-[var(--muted-foreground)] opacity-50" />
                                 </div>
-                                <h3 className="text-xs font-bold mb-2 tracking-tight">No Analytics Data</h3>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
+                                <h3 className="text-[11px] font-bold mb-2 tracking-tight">No Analytics Data</h3>
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
                                     We couldn&apos;t fetch analytics data for this project. Ensure your project is deployed and the domain is correctly configured.
                                 </p>
                             </div>

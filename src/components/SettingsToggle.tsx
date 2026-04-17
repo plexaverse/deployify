@@ -34,14 +34,14 @@ export function SettingsToggle({
                 <Label
                     htmlFor={id}
                     className={cn(
-                        "text-xs font-bold cursor-pointer transition-colors",
+                        "text-[11px] font-bold cursor-pointer transition-colors",
                         disabled ? "cursor-not-allowed opacity-50" : "group-hover:text-[var(--primary)]"
                     )}
                 >
                     {title}
                 </Label>
                 <p className={cn(
-                    "text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1",
+                    "text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1",
                     disabled && "opacity-50"
                 )}>
                     {description}

@@ -52,11 +52,11 @@ export function OnboardingGuide() {
                             <Rocket className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Welcome</span>
-                            <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Welcome to Deployify</h1>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Welcome</span>
+                            <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">Welcome to Deployify</h1>
                         </div>
                     </div>
-                    <p className="text-[var(--muted-foreground)] text-xs max-w-lg mx-auto">
+                    <p className="text-[var(--muted-foreground)] text-[11px] max-w-lg mx-auto">
                         Deploy your Next.js applications in minutes. Just import your repository and we handle the rest.
                     </p>
                 </motion.div>
@@ -84,14 +84,14 @@ export function OnboardingGuide() {
 
                             <div className="space-y-1">
                                 <h3 className={cn(
-                                    "font-bold text-[10px] uppercase tracking-wider transition-colors",
+                                    "font-bold text-[9px] uppercase tracking-wider transition-colors",
                                     step.status === 'completed' ? "text-[var(--success)]" :
                                     step.status === 'active' ? "text-[var(--info)]" :
                                     "text-[var(--muted-foreground)]"
                                 )}>
                                     {step.title}
                                 </h3>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-[140px] mx-auto hidden md:block">
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-[140px] mx-auto hidden md:block">
                                     {step.description}
                                 </p>
                             </div>
@@ -108,7 +108,7 @@ export function OnboardingGuide() {
                     <Link href="/new">
                         <MovingBorderButton
                             containerClassName="h-14 w-52"
-                            className="text-[10px] font-bold uppercase tracking-wider"
+                            className="text-[9px] font-bold uppercase tracking-wider"
                         >
                             <span className="flex items-center gap-2">
                                 Import Project

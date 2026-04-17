@@ -108,8 +108,8 @@ export function BranchDeploymentsSettings({
                     <GitBranch className="w-5 h-5 text-[var(--primary)]" />
                 </div>
                 <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Automation</span>
-                    <h3 className="text-xs font-bold">Branch Deployments</h3>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Automation</span>
+                    <h3 className="text-[11px] font-bold">Branch Deployments</h3>
                 </div>
             </div>
 
@@ -122,7 +122,7 @@ export function BranchDeploymentsSettings({
                         value={newBranch}
                         onChange={(e) => setNewBranch(e.target.value)}
                         placeholder="E.G., STAGING, DEVELOP"
-                        className="flex-1 placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                        className="flex-1 placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 e.preventDefault();
@@ -135,7 +135,7 @@ export function BranchDeploymentsSettings({
                         disabled={loading || !newBranch.trim()}
                         loading={loading}
                         containerClassName="h-10 w-36"
-                        className="text-[10px] font-bold uppercase tracking-wider"
+                        className="text-[9px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Branch
@@ -154,11 +154,11 @@ export function BranchDeploymentsSettings({
                             <div key={branch} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[var(--background)] gap-4">
                                 <div className="flex items-center gap-2">
                                     <GitBranch className="w-4 h-4 text-[var(--muted-foreground)]" />
-                                    <span className="font-bold font-mono text-xs">{branch}</span>
+                                    <span className="font-bold font-mono text-[11px]">{branch}</span>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col gap-1">
-                                        <span className="text-[10px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider px-1">Target Environment</span>
+                                        <span className="text-[9px] uppercase font-bold text-[var(--muted-foreground)] tracking-wider px-1">Target Environment</span>
                                         <SegmentedControl
                                             options={[
                                                 { value: 'preview', label: 'PREVIEW' },
