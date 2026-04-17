@@ -450,6 +450,45 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             }
                         }
                     }
+
+                    // 7. Neon Cleanup
+                    if (storage.type === 'neon') {
+                        const neonProjectId = storage.metadata?.neonProjectId as string;
+                        const providerApiKey = storage.metadata?.providerApiKey as string;
+
+                        if (neonProjectId && providerApiKey) {
+                            const identifier = `pr${pull_request.number}`;
+                            console.log(`[Cleanup] Deleting ephemeral Neon branch ${identifier}`);
+
+                            try {
+                                // 1. List branches to find ID
+                                const listRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/branches`, {
+                                    headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                                });
+                                if (listRes.ok) {
+                                    const data = await listRes.json();
+                                    const branches = data.branches || [];
+                                    const branch = branches.find((b: { name: string, id: string }) => b.name === identifier);
+                                    if (branch) {
+                                        // 2. Delete branch by ID
+                                        const delRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/branches/${branch.id}`, {
+                                            method: 'DELETE',
+                                            headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                                        });
+                                        if (delRes.ok) {
+                                            console.log(`[Cleanup] Successfully deleted Neon branch ${identifier}.`);
+                                        } else {
+                                            console.warn(`[Cleanup] Neon deletion returned status ${delRes.status}.`);
+                                        }
+                                    } else {
+                                        console.log(`[Cleanup] Neon branch ${identifier} not found, skipping.`);
+                                    }
+                                }
+                            } catch (e) {
+                                console.error(`[Cleanup] Failed to delete Neon branch ${identifier}:`, e);
+                            }
+                        }
+                    }
                 }
             }
             console.log(`[Cleanup] Finished ephemeral cleanup for PR #${pull_request.number}.`);

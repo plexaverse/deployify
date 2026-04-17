@@ -99,6 +99,43 @@ export async function getCloudSqlHistoricalMetrics(
     }));
 }
 
+/**
+ * Fetch historical resource metrics for a Memorystore (Redis) instance
+ */
+export async function getMemorystoreHistoricalMetrics(
+    instanceId: string,
+    region: string,
+    days: number = 7
+): Promise<ResourceMetrics[]> {
+    if (process.env.MOCK_DB === 'true') {
+        const points = [];
+        const now = Date.now();
+        for (let i = 0; i < days * 24; i++) {
+            points.push({
+                cpuUtilization: Math.floor(Math.random() * 20) + 2,
+                memoryUtilization: Math.floor(Math.random() * 50) + 10,
+                timestamp: new Date(now - i * 3600000).toISOString()
+            });
+        }
+        return points.reverse();
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const cpuFilter = `metric.type="redis.googleapis.com/stats/cpu/usage_time" AND resource.labels.instance_id="projects/${gcpProjectId}/locations/${region}/instances/${instanceId}"`;
+    const memoryFilter = `metric.type="redis.googleapis.com/stats/memory/usage_ratio" AND resource.labels.instance_id="projects/${gcpProjectId}/locations/${region}/instances/${instanceId}"`;
+
+    const cpuData = await fetchTimeSeriesData(gcpProjectId!, accessToken, cpuFilter, days);
+    const memoryData = await fetchTimeSeriesData(gcpProjectId!, accessToken, memoryFilter, days);
+
+    return cpuData.map((point, index) => ({
+        cpuUtilization: point.value * 100,
+        memoryUtilization: (memoryData[index]?.value || 0) * 100,
+        timestamp: point.timestamp
+    }));
+}
+
 async function fetchTimeSeriesData(
     projectId: string,
     accessToken: string,
@@ -200,6 +237,10 @@ export async function getResourceDormancy(
     const endTime = new Date().toISOString();
 
     if (process.env.MOCK_DB === 'true') {
+        if (storageType === 'firestore') {
+            return { isDormant: false, avgCpuUtilization: 0, avgMemoryUtilization: 0, analysisPeriodDays };
+        }
+
         const isDormant = Math.random() > 0.8; // 20% chance of being dormant in mock
         return {
             isDormant,
@@ -384,11 +425,17 @@ export async function getScalingRecommendations(
         else if (currentTier.includes('custom-1')) recommendedTier = 'db-custom-2-7680';
         else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-4-15360';
 
+        let redisRecommended = '2GB';
+        if (isRedis) {
+            const currentSize = parseInt(currentTier) || 1;
+            redisRecommended = `${currentSize * 2}GB`;
+        }
+
         recommendations.push({
             type: 'upgrade',
             resource: 'cpu',
             currentTier,
-            recommendedTier: isCloudSql ? recommendedTier : 'Next Capacity Tier',
+            recommendedTier: isCloudSql ? recommendedTier : redisRecommended,
             reason: `High CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading will improve query performance and overall stability.`,
             performanceGain: 'High'
         });
@@ -398,14 +445,20 @@ export async function getScalingRecommendations(
         else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-1-3840';
         else if (currentTier.includes('custom-1')) recommendedTier = 'db-g1-small';
 
-        const recommendedCost = getEstimatedMonthlyCost(storageType, recommendedTier, diskSizeGb, isHA);
+        let redisRecommended = '1GB';
+        if (isRedis) {
+            const currentSize = parseInt(currentTier) || 1;
+            redisRecommended = `${Math.max(1, Math.floor(currentSize / 2))}GB`;
+        }
+
+        const recommendedCost = getEstimatedMonthlyCost(storageType, isCloudSql ? recommendedTier : redisRecommended, diskSizeGb, isHA);
         const savings = currentCost - recommendedCost;
 
         recommendations.push({
             type: 'downgrade',
             resource: 'cpu',
             currentTier,
-            recommendedTier: isCloudSql ? recommendedTier : 'Lower Capacity Tier',
+            recommendedTier: isCloudSql ? recommendedTier : redisRecommended,
             reason: `Low CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected consistently. Downgrading to a smaller tier will reduce infrastructure costs.`,
             estimatedSavings: savings > 0 ? `$${savings.toFixed(2)}/mo` : '15-40%',
             savingsAmount: savings > 0 ? parseFloat(savings.toFixed(2)) : undefined
@@ -414,11 +467,17 @@ export async function getScalingRecommendations(
 
     // 2. Memory Analysis
     if (metrics.memoryUtilization > 85) {
+        let redisRecommended = '2GB';
+        if (isRedis) {
+            const currentSize = parseInt(currentTier) || 1;
+            redisRecommended = `${currentSize * 2}GB`;
+        }
+
         recommendations.push({
             type: 'upgrade',
             resource: 'memory',
             currentTier,
-            recommendedTier: isCloudSql ? 'Higher RAM Custom Tier' : 'Next Capacity Tier',
+            recommendedTier: isCloudSql ? 'Higher RAM Custom Tier' : redisRecommended,
             reason: `Memory usage is near capacity (${metrics.memoryUtilization.toFixed(1)}%). Increasing memory prevents OOM errors and improves database caching performance.`,
             performanceGain: 'Medium'
         });

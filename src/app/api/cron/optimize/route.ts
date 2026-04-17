@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, Collections } from '@/lib/firebase';
-import { getCloudSqlHistoricalMetrics, getScalingRecommendations } from '@/lib/gcp/monitoring';
-import { updateInstanceSettings } from '@/lib/gcp/cloudsql';
+import { getCloudSqlHistoricalMetrics, getMemorystoreHistoricalMetrics, getScalingRecommendations, ResourceMetrics } from '@/lib/gcp/monitoring';
+import { updateInstanceSettings as updateSqlSettings } from '@/lib/gcp/cloudsql';
+import { updateInstanceSettings as updateRedisSettings } from '@/lib/gcp/memorystore';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
 import type { Project } from '@/types';
@@ -32,77 +33,91 @@ export async function GET(request: NextRequest) {
             const storageConfigs = project.storageConfigs || [];
 
             for (const storage of storageConfigs) {
-                // Only process Cloud SQL with auto-scaling enabled
-                if (storage.type.includes('cloud-sql') && storage.autoScalingSettings?.enabled) {
-                    const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                // Only process connectors with auto-scaling enabled
+                if (!storage.autoScalingSettings?.enabled) continue;
 
-                    // Fetch historical metrics (7 days)
-                    const historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
-                    if (historicalMetrics.length === 0) continue;
+                let historicalMetrics: ResourceMetrics[] = [];
 
-                    // Calculate averages
-                    const count = historicalMetrics.length;
-                    const avgMetrics = historicalMetrics.reduce((acc, curr) => ({
-                        cpuUtilization: acc.cpuUtilization + curr.cpuUtilization,
-                        memoryUtilization: acc.memoryUtilization + curr.memoryUtilization,
-                        diskUtilization: (acc.diskUtilization || 0) + (curr.diskUtilization || 0),
-                        timestamp: curr.timestamp
-                    }), { cpuUtilization: 0, memoryUtilization: 0, diskUtilization: 0, timestamp: '' });
+                if (storage.type.includes('cloud-sql')) {
+                    historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                } else if (storage.type === 'memorystore-redis') {
+                    historicalMetrics = await getMemorystoreHistoricalMetrics(resourceName, region, 7);
+                }
 
-                    const metrics = {
-                        cpuUtilization: avgMetrics.cpuUtilization / count,
-                        memoryUtilization: avgMetrics.memoryUtilization / count,
-                        diskUtilization: (avgMetrics.diskUtilization || 0) / count,
-                        timestamp: new Date().toISOString()
-                    };
+                if (historicalMetrics.length === 0) continue;
 
-                    // Get recommendations
-                    const recommendations = await getScalingRecommendations(
-                        storage.type,
-                        metrics,
-                        {
-                            tier: storage.metadata?.tier,
-                            diskSizeGb: storage.metadata?.diskSizeGb
-                        }
-                    );
+                // Calculate averages
+                const count = historicalMetrics.length;
+                const avgMetrics = historicalMetrics.reduce((acc, curr) => ({
+                    cpuUtilization: acc.cpuUtilization + curr.cpuUtilization,
+                    memoryUtilization: acc.memoryUtilization + curr.memoryUtilization,
+                    diskUtilization: (acc.diskUtilization || 0) + (curr.diskUtilization || 0),
+                    timestamp: curr.timestamp
+                }), { cpuUtilization: 0, memoryUtilization: 0, diskUtilization: 0, timestamp: '' });
 
-                    // Apply the first actionable recommendation (Auto-Pilot)
-                    const autoScalingRec = recommendations.find(r => r.type === 'upgrade' || r.type === 'downgrade');
+                const metrics = {
+                    cpuUtilization: avgMetrics.cpuUtilization / count,
+                    memoryUtilization: avgMetrics.memoryUtilization / count,
+                    diskUtilization: (avgMetrics.diskUtilization || 0) / count,
+                    timestamp: new Date().toISOString()
+                };
 
-                    if (autoScalingRec) {
-                        console.log(`[Auto-Pilot] Applying ${autoScalingRec.type} to ${resourceName}: ${autoScalingRec.currentTier} -> ${autoScalingRec.recommendedTier}`);
+                // Get recommendations
+                const recommendations = await getScalingRecommendations(
+                    storage.type,
+                    metrics,
+                    {
+                        tier: storage.metadata?.tier || storage.metadata?.memorySizeGb?.toString(),
+                        diskSizeGb: storage.metadata?.diskSizeGb,
+                        memorySizeGb: storage.metadata?.memorySizeGb
+                    }
+                );
 
-                        try {
-                            await updateInstanceSettings(resourceName, {
+                // Apply the first actionable recommendation (Auto-Pilot)
+                const autoScalingRec = recommendations.find(r => r.type === 'upgrade' || r.type === 'downgrade');
+
+                if (autoScalingRec) {
+                    console.log(`[Auto-Pilot] Applying ${autoScalingRec.type} to ${resourceName} (${storage.type}): ${autoScalingRec.currentTier} -> ${autoScalingRec.recommendedTier}`);
+
+                    try {
+                        if (storage.type.includes('cloud-sql')) {
+                            await updateSqlSettings(resourceName, {
                                 tier: autoScalingRec.recommendedTier
                             });
+                        } else if (storage.type === 'memorystore-redis') {
+                            await updateRedisSettings(resourceName, region, {
+                                memorySizeGb: parseInt(autoScalingRec.recommendedTier)
+                            });
+                        }
 
-                            // Log the action
-                            await logAuditEvent(
-                                project.teamId || null,
-                                project.userId,
-                                'storage.autoscaled',
-                                {
-                                    projectId: project.id,
-                                    storageId: storage.id,
-                                    resourceName,
-                                    action: autoScalingRec.type,
-                                    oldTier: autoScalingRec.currentTier,
-                                    newTier: autoScalingRec.recommendedTier,
-                                    reason: autoScalingRec.reason
-                                }
-                            );
-
-                            results.push({
-                                project: project.name,
-                                storage: storage.name,
+                        // Log the action
+                        await logAuditEvent(
+                            project.teamId || null,
+                            project.userId,
+                            'storage.autoscaled',
+                            {
+                                projectId: project.id,
+                                storageId: storage.id,
+                                resourceName,
                                 action: autoScalingRec.type,
-                                tier: autoScalingRec.recommendedTier
-                            });
-                        } catch (err) {
-                            console.error(`[Auto-Pilot] Failed to scale ${resourceName}:`, err);
-                        }
+                                oldTier: autoScalingRec.currentTier,
+                                newTier: autoScalingRec.recommendedTier,
+                                reason: autoScalingRec.reason
+                            }
+                        );
+
+                        results.push({
+                            project: project.name,
+                            storage: storage.name,
+                            type: storage.type,
+                            action: autoScalingRec.type,
+                            tier: autoScalingRec.recommendedTier
+                        });
+                    } catch (err) {
+                        console.error(`[Auto-Pilot] Failed to scale ${resourceName}:`, err);
                     }
                 }
             }
