@@ -2,11 +2,47 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { updateProject, getProjectById } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
-import { enableCloudArmor } from '@/lib/gcp/armor';
+import { enableCloudArmor, getSecurityMetrics } from '@/lib/gcp/armor';
 import { securityHeaders } from '@/lib/security';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams) {
+    try {
+        const session = await getSession();
+        const { id } = await params;
+
+        if (!session) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401, headers: securityHeaders }
+            );
+        }
+
+        const access = await checkProjectAccess(session.user.id, id);
+
+        if (!access.allowed) {
+            return NextResponse.json(
+                { error: access.error },
+                { status: access.status, headers: securityHeaders }
+            );
+        }
+
+        const metrics = await getSecurityMetrics();
+
+        return NextResponse.json(
+            { success: true, metrics },
+            { headers: securityHeaders }
+        );
+    } catch (error) {
+        console.error('Error fetching security metrics:', error);
+        return NextResponse.json(
+            { error: 'Failed to fetch security metrics' },
+            { status: 500, headers: securityHeaders }
+        );
+    }
 }
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {

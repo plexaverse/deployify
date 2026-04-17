@@ -104,7 +104,11 @@ export async function anonymizeData(
     // In a real implementation, this would run UPDATE queries on the target database
     // to mask sensitive information like emails, PII, etc.
     if (process.env.MOCK_DB === 'true') {
-        console.log(`[Anonymizer] Mocking anonymization for ${connectionString}`);
+        console.log(`[Anonymizer] Mocking anonymization for ${connectionString.split('@')[1] || 'database'}`);
+        for (const config of _tableConfig) {
+            console.log(`[Anonymizer] MOCK: Masking table ${config.table}, columns: ${config.columns.join(', ')}`);
+        }
+        console.log(`[Anonymizer] MOCK: Data masking completed.`);
         return;
     }
 

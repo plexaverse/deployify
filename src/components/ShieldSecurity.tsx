@@ -5,22 +5,45 @@ import { Shield, ShieldAlert, Globe } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 
 export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
     const [metrics, setMetrics] = useState<{ blockedRequests: number; topThreats: string[]; status: string } | null>(null);
     const [wafEnabled, setWafEnabled] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate fetching security metrics
-        const fetchMetrics = () => {
-            setMetrics({
-                blockedRequests: 42,
-                topThreats: ['SQL Injection', 'Cross-Site Scripting'],
-                status: 'active'
-            });
+        const fetchMetrics = async () => {
+            try {
+                const res = await fetch(`/api/projects/${projectId}/security`);
+                const data = await res.json();
+                if (data.success) {
+                    setMetrics(data.metrics);
+                }
+            } catch (error) {
+                console.error('Failed to fetch security metrics:', error);
+            } finally {
+                setLoading(false);
+            }
         };
         fetchMetrics();
     }, [projectId]);
+
+    const handleToggleWaf = async (enabled: boolean) => {
+        setWafEnabled(enabled);
+        toast.promise(
+            fetch(`/api/projects/${projectId}/security`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled })
+            }),
+            {
+                loading: `${enabled ? 'Enabling' : 'Disabling'} Global WAF...`,
+                success: `Global WAF ${enabled ? 'enabled' : 'disabled'} successfully`,
+                error: `Failed to ${enabled ? 'enable' : 'disable'} Global WAF`
+            }
+        );
+    };
 
     return (
         <Card className="overflow-hidden border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5">
@@ -47,7 +70,7 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
                     </div>
                     <Switch
                         checked={wafEnabled}
-                        onCheckedChange={setWafEnabled}
+                        onCheckedChange={handleToggleWaf}
                     />
                 </div>
 
