@@ -99,16 +99,62 @@ export async function getCloudSqlHistoricalMetrics(
     }));
 }
 
+/**
+ * Fetch historical resource metrics for a Memorystore (Redis) instance
+ */
+export async function getMemorystoreHistoricalMetrics(
+    instanceId: string,
+    region: string,
+    days: number = 7
+): Promise<ResourceMetrics[]> {
+    if (process.env.MOCK_DB === 'true') {
+        const points = [];
+        const now = Date.now();
+        for (let i = 0; i < days * 24; i++) {
+            points.push({
+                cpuUtilization: Math.floor(Math.random() * 20) + 2,
+                memoryUtilization: Math.floor(Math.random() * 50) + 10,
+                timestamp: new Date(now - i * 3600000).toISOString()
+            });
+        }
+        return points.reverse();
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const metrics = ['stats/cpu/usage_time', 'stats/memory/usage_ratio'];
+    const timeSeriesData: Record<string, { value: number; timestamp: string }[]> = {};
+
+    for (const metric of metrics) {
+        const filter = `metric.type="redis.googleapis.com/${metric}" AND resource.labels.instance_id="projects/${gcpProjectId}/locations/${region}/instances/${instanceId}"`;
+        // For stats/cpu/usage_time, we need the rate to get utilization (0.0 to 1.0+)
+        const aligner = metric.includes('cpu') ? 'ALIGN_RATE' : undefined;
+        timeSeriesData[metric] = await fetchTimeSeriesData(gcpProjectId!, accessToken, filter, days, aligner);
+    }
+
+    return timeSeriesData['stats/cpu/usage_time'].map((point, index) => ({
+        cpuUtilization: Math.min(100, point.value * 100), // Convert rate to percentage, cap at 100
+        memoryUtilization: (timeSeriesData['stats/memory/usage_ratio'][index]?.value || 0) * 100,
+        timestamp: point.timestamp
+    }));
+}
+
 async function fetchTimeSeriesData(
     projectId: string,
     accessToken: string,
     filter: string,
-    days: number
+    days: number,
+    aligner?: string
 ): Promise<{ value: number; timestamp: string }[]> {
     const startTime = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
     const endTime = new Date().toISOString();
 
-    const url = `${MONITORING_API}/projects/${projectId}/timeSeries?filter=${encodeURIComponent(filter)}&interval.startTime=${startTime}&interval.endTime=${endTime}&view=FULL`;
+    let url = `${MONITORING_API}/projects/${projectId}/timeSeries?filter=${encodeURIComponent(filter)}&interval.startTime=${startTime}&interval.endTime=${endTime}&view=FULL`;
+
+    if (aligner) {
+        url += `&aggregation.perSeriesAligner=${aligner}&aggregation.alignmentPeriod=3600s`;
+    }
 
     const response = await fetch(url, {
         headers: { Authorization: `Bearer ${accessToken}` }
@@ -381,23 +427,33 @@ export async function getScalingRecommendations(
     // 1. CPU Analysis
     if (metrics.cpuUtilization > 75) {
         let recommendedTier = 'db-g1-small';
-        if (currentTier === 'db-g1-small') recommendedTier = 'db-custom-1-3840';
-        else if (currentTier.includes('custom-1')) recommendedTier = 'db-custom-2-7680';
-        else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-4-15360';
+        if (isCloudSql) {
+            if (currentTier === 'db-g1-small') recommendedTier = 'db-custom-1-3840';
+            else if (currentTier.includes('custom-1')) recommendedTier = 'db-custom-2-7680';
+            else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-4-15360';
+        } else if (isRedis) {
+            const currentSize = parseInt(currentTier) || 1;
+            recommendedTier = `${currentSize + 1}GB`;
+        }
 
         recommendations.push({
             type: 'upgrade',
             resource: 'cpu',
             currentTier,
-            recommendedTier: isCloudSql ? recommendedTier : 'Next Capacity Tier',
+            recommendedTier: (isCloudSql || isRedis) ? recommendedTier : 'Next Capacity Tier',
             reason: `High CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading will improve query performance and overall stability.`,
             performanceGain: 'High'
         });
     } else if (metrics.cpuUtilization < 15 && currentTier !== 'db-f1-micro' && currentTier !== '1GB' && currentTier !== 'unknown') {
         let recommendedTier = 'db-f1-micro';
-        if (currentTier.includes('custom-4')) recommendedTier = 'db-custom-2-7680';
-        else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-1-3840';
-        else if (currentTier.includes('custom-1')) recommendedTier = 'db-g1-small';
+        if (isCloudSql) {
+            if (currentTier.includes('custom-4')) recommendedTier = 'db-custom-2-7680';
+            else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-1-3840';
+            else if (currentTier.includes('custom-1')) recommendedTier = 'db-g1-small';
+        } else if (isRedis) {
+            const currentSize = parseInt(currentTier) || 1;
+            recommendedTier = `${Math.max(1, currentSize - 1)}GB`;
+        }
 
         const recommendedCost = getEstimatedMonthlyCost(storageType, recommendedTier, diskSizeGb, isHA);
         const savings = currentCost - recommendedCost;
@@ -406,7 +462,7 @@ export async function getScalingRecommendations(
             type: 'downgrade',
             resource: 'cpu',
             currentTier,
-            recommendedTier: isCloudSql ? recommendedTier : 'Lower Capacity Tier',
+            recommendedTier: (isCloudSql || isRedis) ? recommendedTier : 'Lower Capacity Tier',
             reason: `Low CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected consistently. Downgrading to a smaller tier will reduce infrastructure costs.`,
             estimatedSavings: savings > 0 ? `$${savings.toFixed(2)}/mo` : '15-40%',
             savingsAmount: savings > 0 ? parseFloat(savings.toFixed(2)) : undefined
