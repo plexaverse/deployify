@@ -2,26 +2,26 @@
 
 This document tracks the progress of implementing integrated database configuration for Deployify, following the Managed "Connector" model.
 
-## Strategy: The "Connector" Model
-Deployify provides a dedicated **Storage** section that standardizes how projects connect to and manage their database layer across three distinct tiers:
+## Strategy: The "Connector" Model (Integrated Connectivity)
+Deployify provides a dedicated **Storage** section that standardizes how projects connect to and manage their database layer across three distinct tiers, focusing on **Connectivity** rather than just hosting:
 
 ### 1. GCP-Native Integration (Automatic Provisioning)
-One-click setup for core GCP database services, leveraging IAM-based authentication (passwordless) and automated resource creation:
-- **Cloud SQL (Postgres/MySQL)**: Automated instance, database, and IAM user creation.
-- **Firestore**: Native NoSQL database creation in the project's region.
-- **Memorystore (Redis)**: Automated caching layer provisioning.
+Full lifecycle management for GCP-native storage services, ensuring tight integration with the project's regional infrastructure:
+- **Cloud SQL (Postgres/MySQL)**: One-click provisioning with automated database/user creation and IAM-based passwordless connectivity.
+- **Firestore**: Native NoSQL orchestration within the project's regional boundary.
+- **Memorystore (Redis)**: Automated caching layer setup with Direct VPC Egress for low-latency internal access.
 
 ### 2. Managed External Connectors (The "Vercel" Model)
-First-class support for popular external database providers, ensuring secure and automated credential management:
-- **Supabase**: Automated credential sync via Management API.
-- **MongoDB Atlas**: Automated cluster connection string sync via Administration API.
-- **PlanetScale**: Automated password synchronization via API.
-- **Health Checks**: Standardized reachability and performance monitoring.
+Deep integration with popular external providers to eliminate manual credential management and provide first-class observability:
+- **Credential Synchronization**: Automated sync via provider APIs (Supabase, MongoDB Atlas, PlanetScale, Neon) to GCP Secret Manager.
+- **Automated Networking**: (Phase 83) Automated firewall orchestration to allowlist Deployify's regional egress IPs.
+- **Native Branching**: Isolated database environments for Preview Deployments via provider-native branching APIs.
+- **Integrated Health**: Real-time reachability, latency baselining, and performance insights directly in the dashboard.
 
 ### 3. Generic Environment Variables (The "Fallback")
-Flexible support for manually configured databases and legacy setups:
-- Custom connection strings stored securely in GCP Secret Manager.
-- Customizable Environment Variable keys (e.g., `DATABASE_URL`, `REDIS_URL`).
+Legacy and custom support with production-grade security:
+- **Secure Injection**: All custom connection strings are stored in GCP Secret Manager and mounted into Cloud Run via `--set-secrets`.
+- **Standardized Keys**: Enforced naming conventions (e.g., `DATABASE_URL`) with support for custom overrides.
 
 ## Roadmap
 
@@ -560,7 +560,35 @@ Flexible support for manually configured databases and legacy setups:
 - [x] Update Global Infrastructure dashboard with fleet-wide 'Potential Savings' visualization
 - [x] Verify 100% functional integrity and high-density technical aesthetic compliance
 
+### Phase 83: Automated External Firewall Orchestration (COMPLETED)
+- [x] Implement `syncExternalFirewall` utility in `src/lib/gcp/external-sync.ts`
+- [x] Implement automated allowlisting for Supabase (Network Restrictions API)
+- [x] Implement automated allowlisting for MongoDB Atlas (Access List API)
+- [x] Update Storage Sync pipeline to orchestrate firewall updates during credential sync
+- [x] Add "FIREWALL SYNCED" status badge to the Storage dashboard UI
+- [x] Verify 100% functional integrity and architectural alignment
+
+### Phase 84: Neon Connector & Native Branching Integration (COMPLETED)
+- [x] Implement Neon (Postgres) external connector with automated credential sync
+- [x] Implement native Neon branching support via Project API
+- [x] Update Storage Settings UI to support Neon configuration and metadata
+- [x] Integrate Neon into the automated migration and Data Lab ecosystems
+- [x] Verify 100% functional integrity and high-density aesthetic compliance
+
 ## Progress Updates
+
+### 2027-05-26: Neon Integration & Native Branching
+- Completed Phase 84: Neon Connector & Native Branching Integration.
+- Launched first-class support for Neon (Serverless Postgres), including automated credential synchronization and native database branching for PR environments.
+- Integrated Neon connectors into the Data Lab and automated migration pipelines, ensuring a consistent developer experience across all SQL providers.
+- Verified functional integrity with updated API mocks and zero-warning build completion.
+
+### 2027-05-25: Automated External Firewall Orchestration
+- Completed Phase 83: Automated External Firewall Orchestration.
+- Launched "Managed Connectivity" automation, enabling Deployify to automatically allowlist its regional egress IPs in external provider firewalls (Supabase and MongoDB Atlas).
+- Enhanced the `syncExternalFirewall` engine to orchestrate network security updates during periodic connector synchronization, eliminating manual firewall configuration.
+- Added high-density visual feedback in the dashboard with a "FIREWALL SYNCED" badge for managed external connectors.
+- Verified 100% functional integrity with automated audits and system verification.
 
 ### 2027-05-24: Advanced SQL Optimization Intelligence & Fleet Cost Governance
 - Completed Phase 82: Advanced SQL Optimization Intelligence & Fleet Cost Governance.

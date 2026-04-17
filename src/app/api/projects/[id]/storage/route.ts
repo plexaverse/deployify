@@ -155,7 +155,7 @@ export async function POST(
         storageConfigs.push(newStorageConfig);
 
         // Initial Synchronization for External Connectors with autoSync enabled
-        if (autoSync && (type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale')) {
+        if (autoSync && (type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'neon')) {
             try {
                 const { syncExternalConnector } = await import('@/lib/gcp/external-sync');
                 const syncResult = await syncExternalConnector(id, newStorageConfig);
@@ -163,6 +163,13 @@ export async function POST(
                     newStorageConfig.status = 'active';
                     newStorageConfig.lastSyncedAt = syncResult.lastSyncedAt;
                     newStorageConfig.updatedAt = new Date();
+                    if (syncResult.firewallSynced) {
+                        newStorageConfig.metadata = {
+                            ...newStorageConfig.metadata,
+                            firewallSynced: true,
+                            lastFirewallSyncAt: syncResult.lastSyncedAt
+                        };
+                    }
                 }
             } catch (e) {
                 console.error(`Initial sync failed for ${name}:`, e);
@@ -359,7 +366,7 @@ export async function PATCH(
 
         // Check if autoSync was just enabled or if credentials changed
         const wasAutoSyncEnabled = (metadata?.autoSync || body.autoSync) && !storage.metadata?.autoSync;
-        const isExternal = (type || storage.type) === 'supabase' || (type || storage.type) === 'mongodb-atlas' || (type || storage.type) === 'planetscale';
+        const isExternal = (type || storage.type) === 'supabase' || (type || storage.type) === 'mongodb-atlas' || (type || storage.type) === 'planetscale' || (type || storage.type) === 'neon';
 
         const updatedStorageConfig: StorageConfig = {
             ...storage,
@@ -389,6 +396,13 @@ export async function PATCH(
                     updatedStorageConfig.status = 'active';
                     updatedStorageConfig.lastSyncedAt = syncResult.lastSyncedAt;
                     updatedStorageConfig.updatedAt = new Date();
+                    if (syncResult.firewallSynced) {
+                        updatedStorageConfig.metadata = {
+                            ...updatedStorageConfig.metadata,
+                            firewallSynced: true,
+                            lastFirewallSyncAt: syncResult.lastSyncedAt
+                        };
+                    }
                 }
             } catch (e) {
                 console.error(`Update sync failed for ${name || storage.name}:`, e);

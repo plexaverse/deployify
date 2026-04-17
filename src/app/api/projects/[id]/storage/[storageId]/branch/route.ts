@@ -171,6 +171,60 @@ export async function POST(
                 branchConn = url.toString();
                 finalDbName = identifier;
             }
+        } else if (storageConfig.type === 'neon') {
+            const neonProjectId = storageConfig.metadata?.neonProjectId as string;
+            const providerApiKey = storageConfig.metadata?.providerApiKey as string;
+
+            if (neonProjectId && providerApiKey) {
+                // Native Neon Branching
+                if (process.env.MOCK_DB === 'true') {
+                    finalDbName = identifier;
+                    branchConn = `postgresql://postgres:mock@ep-mock-123.${project.region}.aws.neon.tech/main`;
+                    message = `Neon ephemeral branch ${identifier} created (MOCK)`;
+                } else {
+                    try {
+                        // 1. Create Branch
+                        const branchRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/branches`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${providerApiKey}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                branch: { name: identifier }
+                            })
+                        });
+
+                        if (branchRes.ok) {
+                            const branchData = await branchRes.json();
+                            const branchId = branchData.branch.id;
+
+                            // 2. Get connection URI for the branch
+                            const connRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/connection_uri?branch_id=${branchId}`, {
+                                headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                            });
+
+                            if (connRes.ok) {
+                                const connData = await connRes.json();
+                                branchConn = connData.connection_uri;
+                            }
+                        }
+                        finalDbName = identifier;
+                        message = `Neon ephemeral branch ${identifier} ensured`;
+                    } catch (e) {
+                        console.error('[Neon] Branching error:', e);
+                    }
+                }
+            } else if (baseConnectionString) {
+                try {
+                    const url = new URL(baseConnectionString);
+                    url.hostname = `${identifier}.${url.hostname}`;
+                    branchConn = url.toString();
+                    finalDbName = identifier;
+                } catch {
+                    branchConn = baseConnectionString;
+                }
+            }
         } else if (storageConfig.type === 'supabase') {
             const supabaseId = storageConfig.metadata?.supabaseId as string;
             const providerApiKey = storageConfig.metadata?.providerApiKey as string;

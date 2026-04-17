@@ -416,6 +416,7 @@ export type StorageType =
     | 'supabase'
     | 'mongodb-atlas'
     | 'planetscale'
+    | 'neon'
     | 'generic';
 
 export type StorageStatus = 'provisioning' | 'active' | 'error' | 'disconnected';

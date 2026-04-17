@@ -209,7 +209,7 @@ export async function GET(
         }
 
         // Handle External Connectors (Auto-Sync)
-        if (storage.metadata?.autoSync && (storage.type === 'supabase' || storage.type === 'mongodb-atlas' || storage.type === 'planetscale')) {
+        if (storage.metadata?.autoSync && (storage.type === 'supabase' || storage.type === 'mongodb-atlas' || storage.type === 'planetscale' || storage.type === 'neon')) {
             try {
                 const { syncExternalConnector } = await import('@/lib/gcp/external-sync');
                 const syncResult = await syncExternalConnector(id, storage);
@@ -224,6 +224,14 @@ export async function GET(
                 storage.lastSyncedAt = syncResult.lastSyncedAt;
                 storage.updatedAt = now;
                 storage.status = 'active';
+
+                if (syncResult.firewallSynced) {
+                    storage.metadata = {
+                        ...storage.metadata,
+                        firewallSynced: true,
+                        lastFirewallSyncAt: syncResult.lastSyncedAt
+                    };
+                }
 
                 storageConfigs[index] = storage;
                 await updateProject(id, { storageConfigs });
