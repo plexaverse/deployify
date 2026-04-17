@@ -575,7 +575,21 @@ Legacy and custom support with production-grade security:
 - [x] Integrate Neon into the automated migration and Data Lab ecosystems
 - [x] Verify 100% functional integrity and high-density aesthetic compliance
 
+### Phase 85: Neon Lifecycle Hardening & Fleet Auto-Pilot Expansion (COMPLETED)
+- [x] Implement automated Neon branch cleanup in GitHub webhook handler
+- [x] Implement historical metric retrieval for Memorystore (Redis) in `src/lib/gcp/monitoring.ts`
+- [x] Expand Auto-Pilot cron job to support Memorystore (Redis) capacity scaling
+- [x] Update Redis scaling recommendations to use explicit GB strings for compatibility
+- [x] Verify 100% functional integrity and architectural alignment
+
 ## Progress Updates
+
+### 2027-05-27: Neon Lifecycle Hardening & Fleet Auto-Pilot Expansion
+- Completed Phase 85: Neon Lifecycle Hardening & Fleet Auto-Pilot Expansion.
+- Launched automated lifecycle management for Neon database branches, ensuring that ephemeral branches are automatically deleted when the associated GitHub Pull Request is closed.
+- Expanded the "Auto-Pilot" infrastructure optimization engine to support Memorystore (Redis), enabling automated vertical scaling based on historical CPU and memory utilization trends.
+- Enhanced the monitoring engine with Redis-specific historical metric retrieval and refined scaling recommendations to provide explicit capacity targets (e.g., '2GB') for the automated orchestration pipeline.
+- Verified 100% functional integrity with system audits and exhaustive test coverage for the updated lifecycle and optimization workflows.
 
 ### 2027-05-26: Neon Integration & Native Branching
 - Completed Phase 84: Neon Connector & Native Branching Integration.

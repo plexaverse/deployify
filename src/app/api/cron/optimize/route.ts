@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, Collections } from '@/lib/firebase';
-import { getCloudSqlHistoricalMetrics, getScalingRecommendations } from '@/lib/gcp/monitoring';
-import { updateInstanceSettings } from '@/lib/gcp/cloudsql';
+import { getCloudSqlHistoricalMetrics, getMemorystoreHistoricalMetrics, getScalingRecommendations } from '@/lib/gcp/monitoring';
+import { updateInstanceSettings as updateSqlSettings } from '@/lib/gcp/cloudsql';
+import { updateInstanceSettings as updateRedisSettings } from '@/lib/gcp/memorystore';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
 import type { Project } from '@/types';
@@ -32,12 +33,18 @@ export async function GET(request: NextRequest) {
             const storageConfigs = project.storageConfigs || [];
 
             for (const storage of storageConfigs) {
-                // Only process Cloud SQL with auto-scaling enabled
-                if (storage.type.includes('cloud-sql') && storage.autoScalingSettings?.enabled) {
+                // Process Cloud SQL and Memorystore with auto-scaling enabled
+                const isSql = storage.type.includes('cloud-sql');
+                const isRedis = storage.type === 'memorystore-redis';
+
+                if ((isSql || isRedis) && storage.autoScalingSettings?.enabled) {
                     const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
                     // Fetch historical metrics (7 days)
-                    const historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                    const historicalMetrics = isSql
+                        ? await getCloudSqlHistoricalMetrics(resourceName, 7)
+                        : await getMemorystoreHistoricalMetrics(resourceName, region, 7);
 
                     if (historicalMetrics.length === 0) continue;
 
@@ -62,7 +69,7 @@ export async function GET(request: NextRequest) {
                         storage.type,
                         metrics,
                         {
-                            tier: storage.metadata?.tier,
+                            tier: storage.metadata?.tier || (isRedis ? `${storage.metadata?.memorySizeGb}GB` : undefined),
                             diskSizeGb: storage.metadata?.diskSizeGb
                         }
                     );
@@ -71,12 +78,18 @@ export async function GET(request: NextRequest) {
                     const autoScalingRec = recommendations.find(r => r.type === 'upgrade' || r.type === 'downgrade');
 
                     if (autoScalingRec) {
-                        console.log(`[Auto-Pilot] Applying ${autoScalingRec.type} to ${resourceName}: ${autoScalingRec.currentTier} -> ${autoScalingRec.recommendedTier}`);
+                        console.log(`[Auto-Pilot] Applying ${autoScalingRec.type} to ${resourceName} (${storage.type}): ${autoScalingRec.currentTier} -> ${autoScalingRec.recommendedTier}`);
 
                         try {
-                            await updateInstanceSettings(resourceName, {
-                                tier: autoScalingRec.recommendedTier
-                            });
+                            if (isSql) {
+                                await updateSqlSettings(resourceName, {
+                                    tier: autoScalingRec.recommendedTier
+                                });
+                            } else if (isRedis) {
+                                await updateRedisSettings(resourceName, region, {
+                                    memorySizeGb: parseInt(autoScalingRec.recommendedTier)
+                                });
+                            }
 
                             // Log the action
                             await logAuditEvent(
