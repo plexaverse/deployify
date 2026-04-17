@@ -229,7 +229,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         if (activeTab === 'audit' && selectedId) {
             fetchProjectStorageAuditLogs(projectId, selectedId);
         }
-    }, [fetchMetrics, fetchHistory, fetchSavedQueries, fetchDashboards, fetchSchemaDocs, activeTab, selectedId, projectId, fetchProjectStorageAuditLogs]);
+    }, [fetchMetrics, fetchQueryInsights, fetchHistory, fetchSavedQueries, fetchDashboards, fetchSchemaDocs, activeTab, selectedId, projectId, fetchProjectStorageAuditLogs]);
 
     const saveSchemaDoc = async (entity: string, type: 'table' | 'column', description: string) => {
         setIsSavingDoc(`${type}_${entity}`);

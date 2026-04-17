@@ -1,8 +1,8 @@
 import { config } from '@/lib/config';
-import { updateDeployment, updateProject, getDeploymentById } from '@/lib/db';
+import { updateDeployment, updateProject, getDeploymentById, getProjectById } from '@/lib/db';
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
-import { ensureEphemeralDatabase, cloneInstance } from '@/lib/gcp/cloudsql';
+import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -169,8 +169,9 @@ export async function syncDeploymentStatus(
 
             // Handle Database Branching/Cloning for Preview Environments
             if (deployment.type === 'preview' && pullRequestNumber) {
-                const project = await updateProject(projectId, {}); // Just to get latest project state
-                const storageConfigs = (project as any)?.storageConfigs || [];
+                await updateProject(projectId, {}); // Just to get latest project state
+                const project = await getProjectById(projectId);
+                const storageConfigs = project?.storageConfigs || [];
 
                 for (const storage of storageConfigs) {
                     if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {

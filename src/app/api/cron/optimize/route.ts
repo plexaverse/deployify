@@ -4,7 +4,7 @@ import { getCloudSqlHistoricalMetrics, getScalingRecommendations } from '@/lib/g
 import { updateInstanceSettings } from '@/lib/gcp/cloudsql';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
-import type { Project, StorageConfig } from '@/types';
+import type { Project } from '@/types';
 
 /**
  * Cron job to analyze resource utilization and apply auto-scaling recommendations.
