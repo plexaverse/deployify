@@ -200,7 +200,8 @@ export async function getResourceDormancy(
     const endTime = new Date().toISOString();
 
     if (process.env.MOCK_DB === 'true') {
-        const isDormant = Math.random() > 0.8; // 20% chance of being dormant in mock
+        const isSupported = storageType.includes('cloud-sql') || storageType === 'memorystore-redis';
+        const isDormant = isSupported ? Math.random() > 0.8 : false; // Only simulate dormancy for supported types
         return {
             isDormant,
             avgCpuUtilization: isDormant ? 0.2 : 5.4,

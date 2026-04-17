@@ -441,7 +441,13 @@ export async function ensureEphemeralDatabase(
     databaseName: string,
     sourceDatabase?: string
 ): Promise<void> {
-    if (process.env.MOCK_DB === 'true') return;
+    if (process.env.MOCK_DB === 'true') {
+        console.log(`[Branching] MOCK: Ensuring ephemeral database ${databaseName} exists on ${instanceName}`);
+        if (sourceDatabase) {
+            console.log(`[Branching] MOCK: Seeding data from ${sourceDatabase} to ${databaseName}`);
+        }
+        return;
+    }
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();

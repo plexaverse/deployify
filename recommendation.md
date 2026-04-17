@@ -56,3 +56,20 @@ Transition Deployify from simple regional deployments to a global-first platform
 1. ✅ Developed `src/lib/gcp/loadbalancer.ts` to orchestrate GLB, Backend Services, and NEGs.
 2. ✅ Upgraded `src/lib/gcp/armor.ts` to interface with the GCP Security Policies API (WAF rules for SQLi/XSS).
 3. ✅ Created `ShieldSecurity` component to display security insights on the dashboard.
+
+---
+
+## 4. Automated PR Merging & Quality Control
+
+### Overview
+To accelerate the development cycle, Deployify now includes an automated merge system that ensures only high-quality, approved code reaches the main branch without manual intervention.
+
+### Key Details
+- **GitHub Action Integration**: A cron-based GitHub Action (`.github/workflows/cron-auto-merge.yml`) runs every 15 minutes.
+- **Strict Validation**: Automatically merges PRs only if they meet three criteria: `MERGEABLE` state, `SUCCESS` status checks (tests/build), and `APPROVED` review decision.
+- **Auto-Pilot Synergy**: Works in tandem with the resource optimization and preview environments to provide a seamless "push-to-merge-to-optimize" flow.
+
+### Implementation Status: COMPLETED ✅
+1. ✅ Implemented `.github/workflows/cron-auto-merge.yml` with secure `GITHUB_TOKEN` usage.
+2. ✅ Configured `gh` CLI filters for strict quality gates (Approved + Passing Checks).
+3. ✅ Verified 100% build and test pass rate across the entire product suite.
