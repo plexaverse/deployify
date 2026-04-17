@@ -145,7 +145,7 @@ export default function InfrastructureFleetPage() {
             {/* Breadcrumb */}
             <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Dashboard
@@ -159,8 +159,8 @@ export default function InfrastructureFleetPage() {
                             <Activity className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Global Fleet</span>
-                            <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Infrastructure Intelligence</h1>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Global Fleet</span>
+                            <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">Infrastructure Intelligence</h1>
                         </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
@@ -181,16 +181,16 @@ export default function InfrastructureFleetPage() {
                 <div className="flex flex-wrap items-center gap-4 p-4 border border-[var(--primary)]/10 rounded-2xl bg-[var(--card)]/30">
                     <div className="flex items-center gap-2 px-2 mr-2 border-r border-[var(--primary)]/10">
                         <Filter className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fleet Filters</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fleet Filters</span>
                     </div>
 
                     <div className="flex items-center gap-4 flex-1">
                         <div className="space-y-1.5 min-w-[140px]">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Status</Label>
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Status</Label>
                             <NativeSelect
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="h-8 text-[10px] uppercase font-bold"
+                                className="h-8 text-[9px] uppercase font-bold"
                             >
                                 <option value="all">ALL STATUSES</option>
                                 <option value="healthy">HEALTHY</option>
@@ -201,11 +201,11 @@ export default function InfrastructureFleetPage() {
                         </div>
 
                         <div className="space-y-1.5 min-w-[160px]">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Storage Type</Label>
+                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Storage Type</Label>
                             <NativeSelect
                                 value={typeFilter}
                                 onChange={(e) => setTypeFilter(e.target.value)}
-                                className="h-8 text-[10px] uppercase font-bold"
+                                className="h-8 text-[9px] uppercase font-bold"
                             >
                                 <option value="all">ALL TYPES</option>
                                 <optgroup label="CATEGORIES">
@@ -239,7 +239,7 @@ export default function InfrastructureFleetPage() {
                                     }}
                                     className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
-                                <Label htmlFor="only-optimizable" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer">
+                                <Label htmlFor="only-optimizable" className="text-[9px] font-bold uppercase tracking-wider cursor-pointer">
                                     Optimizable
                                 </Label>
                             </div>
@@ -257,7 +257,7 @@ export default function InfrastructureFleetPage() {
                                     }}
                                     className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
-                                <Label htmlFor="only-dormant" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer">
+                                <Label htmlFor="only-dormant" className="text-[9px] font-bold uppercase tracking-wider cursor-pointer">
                                     Dormant
                                 </Label>
                             </div>
@@ -275,7 +275,7 @@ export default function InfrastructureFleetPage() {
                                     }}
                                     className="w-4 h-4 rounded border-[var(--error)]/20 text-[var(--error)] focus:ring-[var(--error)]"
                                 />
-                                <Label htmlFor="only-at-risk" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer text-[var(--error)]">
+                                <Label htmlFor="only-at-risk" className="text-[9px] font-bold uppercase tracking-wider cursor-pointer text-[var(--error)]">
                                     At Risk
                                 </Label>
                             </div>
@@ -290,7 +290,7 @@ export default function InfrastructureFleetPage() {
                                     setOnlyDormant(false);
                                     setOnlyAtRisk(false);
                                 }}
-                                className="h-7 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                className="h-7 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                             >
                                 Reset
                             </Button>
@@ -322,12 +322,12 @@ export default function InfrastructureFleetPage() {
                     >
                         <div className="flex items-center gap-2 mb-1">
                             <stat.icon className={cn("w-3 h-3 transition-transform group-hover:scale-110", stat.color)} />
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
                         </div>
                         <div className="flex items-baseline justify-between gap-2">
-                            <span className="text-xs font-bold">{loading ? '...' : stat.value}</span>
+                            <span className="text-[11px] font-bold">{loading ? '...' : stat.value}</span>
                             {'subValue' in stat && stat.subValue && !loading && (
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)] animate-pulse truncate whitespace-nowrap">{stat.subValue}</span>
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--success)] animate-pulse truncate whitespace-nowrap">{stat.subValue}</span>
                             )}
                         </div>
                     </Card>
@@ -351,8 +351,8 @@ export default function InfrastructureFleetPage() {
                         <Database className="w-8 h-8 text-[var(--muted-foreground)]" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-xs font-bold">No Connectors Found</h2>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
+                        <h2 className="text-[11px] font-bold">No Connectors Found</h2>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
                             {searchQuery ? `No managed connectors match "${searchQuery}"` : "You haven't connected any databases to your projects yet."}
                         </p>
                     </div>
@@ -374,16 +374,16 @@ export default function InfrastructureFleetPage() {
                                             <div className="flex items-start justify-between">
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-2">
-                                                        <h3 className="text-xs font-bold tracking-tight truncate max-w-[140px]">{connector.name}</h3>
+                                                        <h3 className="text-[11px] font-bold tracking-tight truncate max-w-[140px]">{connector.name}</h3>
                                                         <Badge variant={
                                                             status === 'healthy' ? 'success' :
                                                             status === 'degraded' ? 'warning' :
                                                             status === 'provisioning' ? 'secondary' : 'destructive'
-                                                        } className="text-[10px] font-bold uppercase px-1.5 py-0.5 h-4">
+                                                        } className="text-[9px] font-bold uppercase px-1.5 py-0.5 h-4">
                                                             {status}
                                                         </Badge>
                                                     </div>
-                                                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
+                                                    <div className="flex items-center gap-1 text-[9px] font-bold uppercase text-[var(--muted-foreground)]">
                                                         <Layout className="w-3 h-3" />
                                                         <span className="truncate max-w-[120px]">{connector.projectName}</span>
                                                     </div>
@@ -397,20 +397,20 @@ export default function InfrastructureFleetPage() {
 
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
-                                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Provider</span>
-                                                    <span className="text-[10px] font-bold uppercase truncate block">{connector.type.replace(/-/g, ' ')}</span>
+                                                    <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Provider</span>
+                                                    <span className="text-[9px] font-bold uppercase truncate block">{connector.type.replace(/-/g, ' ')}</span>
                                                 </div>
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
-                                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Region</span>
-                                                    <span className="text-[10px] font-bold uppercase truncate block">{(connector.region || (connector.metadata?.region as string) || 'GLOBAL').toUpperCase()}</span>
+                                                    <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Region</span>
+                                                    <span className="text-[9px] font-bold uppercase truncate block">{(connector.region || (connector.metadata?.region as string) || 'GLOBAL').toUpperCase()}</span>
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--primary)]/10 flex items-center justify-between col-span-2">
                                                     <div>
-                                                        <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Resource Tier</span>
-                                                        <span className="text-[10px] font-mono font-bold text-[var(--primary)]">
+                                                        <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Resource Tier</span>
+                                                        <span className="text-[9px] font-mono font-bold text-[var(--primary)]">
                                                             {(connector.metadata?.tier as string) || (connector.metadata?.memorySizeGb ? `${connector.metadata.memorySizeGb}GB` : 'UNMANAGED')}
                                                         </span>
                                                     </div>
@@ -418,10 +418,10 @@ export default function InfrastructureFleetPage() {
                                                 </div>
                                                 <div className="p-2 rounded-lg bg-[var(--success-bg)]/5 border border-[var(--success)]/10 flex items-center justify-between col-span-2">
                                                     <div>
-                                                        <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Monthly Est.</span>
+                                                        <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Monthly Est.</span>
                                                         <div className="flex items-center gap-1">
                                                             <DollarSign className="w-2.5 h-2.5 text-[var(--success)]" />
-                                                            <span className="text-[10px] font-mono font-bold text-[var(--success)]">
+                                                            <span className="text-[9px] font-mono font-bold text-[var(--success)]">
                                                                 {(() => {
                                                                     // Define a simple version here for client-side to avoid require/import issues
                                                                     const type = connector.type;
@@ -453,34 +453,34 @@ export default function InfrastructureFleetPage() {
                                                 <div className="flex items-center gap-4 pt-1">
                                                     <div className="flex items-center gap-1.5">
                                                         <Cpu className="w-3 h-3 text-[var(--primary)]" />
-                                                        <span className="text-[10px] font-mono font-bold">ACTV</span>
+                                                        <span className="text-[9px] font-mono font-bold">ACTV</span>
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
                                                         <ShieldCheck className="w-3 h-3 text-[var(--success)]" />
-                                                        <span className="text-[10px] font-mono font-bold">SEC</span>
+                                                        <span className="text-[9px] font-mono font-bold">SEC</span>
                                                     </div>
                                                     {optimization && (
                                                         <div className="flex items-center gap-1.5 animate-pulse">
                                                             <Sparkles className="w-3 h-3 text-[var(--primary)]" />
-                                                            <span className="text-[10px] font-bold uppercase text-[var(--primary)]">Opt</span>
+                                                            <span className="text-[9px] font-bold uppercase text-[var(--primary)]">Opt</span>
                                                         </div>
                                                     )}
                                                     {connector.dormancy?.isDormant && (
                                                         <div className="flex items-center gap-1.5 text-[var(--muted-foreground)]">
                                                             <Moon className="w-3 h-3" />
-                                                            <span className="text-[10px] font-bold uppercase">Idl</span>
+                                                            <span className="text-[9px] font-bold uppercase">Idl</span>
                                                         </div>
                                                     )}
                                                     {(((connector.metadata?.security as Record<string, unknown>)?.risks as unknown[])?.length > 0) && (
                                                         <div className="flex items-center gap-1.5 text-[var(--error)]">
                                                             <ShieldAlert className="w-3 h-3" />
-                                                            <span className="text-[10px] font-bold uppercase">Risk</span>
+                                                            <span className="text-[9px] font-bold uppercase">Risk</span>
                                                         </div>
                                                     )}
                                                     {(((connector.metadata?.security as Record<string, unknown>)?.score as number) >= 90) && (
                                                         <div className="flex items-center gap-1.5 text-[var(--success)]">
                                                             <ShieldCheck className="w-3 h-3" />
-                                                            <span className="text-[10px] font-bold uppercase">Safe</span>
+                                                            <span className="text-[9px] font-bold uppercase">Safe</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -491,23 +491,23 @@ export default function InfrastructureFleetPage() {
                                             <div className="flex items-center gap-3">
                                                 {health?.latency && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Latency</span>
+                                                        <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Latency</span>
                                                         <span className={cn(
-                                                            "text-[10px] font-mono font-bold",
+                                                            "text-[9px] font-mono font-bold",
                                                             status === 'healthy' ? "text-[var(--success)]" : "text-[var(--warning)]"
                                                         )}>{health.latency}ms</span>
                                                     </div>
                                                 )}
                                                 {health?.baselineLatency && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Baseline</span>
-                                                        <span className="text-[10px] font-mono font-bold opacity-60">{health.baselineLatency}ms</span>
+                                                        <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Baseline</span>
+                                                        <span className="text-[9px] font-mono font-bold opacity-60">{health.baselineLatency}ms</span>
                                                     </div>
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Environment</span>
-                                                <span className="text-[10px] font-bold uppercase">{connector.environment}</span>
+                                                <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Environment</span>
+                                                <span className="text-[9px] font-bold uppercase">{connector.environment}</span>
                                             </div>
                                         </div>
                                     </div>

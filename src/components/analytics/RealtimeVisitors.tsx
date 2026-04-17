@@ -42,7 +42,7 @@ export function RealtimeVisitors({ projectId }: RealtimeVisitorsProps) {
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
                     </span>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                <span className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap">
                     {loading ? '...' : stats.visitors} Live Visitors
                 </span>
             </div>
@@ -51,14 +51,14 @@ export function RealtimeVisitors({ projectId }: RealtimeVisitorsProps) {
 
             <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-[var(--info)]" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap">
                     {stats.pageviews} Views In Last 15m
                 </span>
             </div>
 
             <div className="ml-auto flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--success)]" />
-                <span className="text-[10px] font-bold text-[var(--success)] uppercase tracking-wider">Live</span>
+                <span className="text-[9px] font-bold text-[var(--success)] uppercase tracking-wider">Live</span>
             </div>
         </div>
     );

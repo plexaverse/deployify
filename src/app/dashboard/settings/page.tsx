@@ -213,8 +213,8 @@ export default function TeamSettingsPage() {
                             <UserIcon className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Personal Workspace</span>
-                            <h1 className="text-[11px] md:text-xs font-bold tracking-tight">Account Settings</h1>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Personal Workspace</span>
+                            <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">Account Settings</h1>
                         </div>
                     </div>
                 </div>
@@ -225,8 +225,8 @@ export default function TeamSettingsPage() {
                             <UserIcon className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Profile</span>
-                            <h3 className="text-xs font-bold">Personal Profile</h3>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Profile</span>
+                            <h3 className="text-[11px] font-bold">Personal Profile</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -239,17 +239,17 @@ export default function TeamSettingsPage() {
                             </AvatarFallback>
                         </Avatar>
                         <div className="space-y-1">
-                            <h3 className="text-xs font-bold text-[var(--foreground)]">
+                            <h3 className="text-[11px] font-bold text-[var(--foreground)]">
                                 {user?.name || user?.githubUsername || 'Personal Workspace'}
                             </h3>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 {user?.email || 'You are using your individual workspace for hobby projects.'}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
-                                <Button onClick={() => router.push('/billing')} variant="outline" size="sm" className="text-[10px] font-bold uppercase tracking-wider">
+                                <Button onClick={() => router.push('/billing')} variant="outline" size="sm" className="text-[9px] font-bold uppercase tracking-wider">
                                     Manage Billing
                                 </Button>
-                                <Link href="/api/auth/github" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors flex items-center gap-1">
+                                <Link href="/api/auth/github" className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors flex items-center gap-1">
                                     <Github className="w-3 h-3" />
                                     Account connected via GitHub
                                 </Link>
@@ -264,23 +264,23 @@ export default function TeamSettingsPage() {
                             <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                            <h3 className="text-xs font-bold text-[var(--error)]">Critical Actions</h3>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
+                            <h3 className="text-[11px] font-bold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--error)]/20" />
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                             <div>
-                                <h3 className="text-xs font-bold text-[var(--error)]">Delete Account</h3>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <h3 className="text-[11px] font-bold text-[var(--error)]">Delete Account</h3>
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Permanently remove your account and all of your data. This action cannot be undone.
                                 </p>
                             </div>
                             <Button
                                 variant="destructive"
                                 onClick={() => setConfirmDeleteAccount(true)}
-                                className="text-[10px] font-bold uppercase tracking-wider"
+                                className="text-[9px] font-bold uppercase tracking-wider"
                             >
                                 Delete Account
                             </Button>
@@ -309,12 +309,12 @@ export default function TeamSettingsPage() {
                         <Users className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Management</span>
-                        <h1 className="text-[11px] md:text-xs font-bold tracking-tight">{activeTeam.name} Settings</h1>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Management</span>
+                        <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">{activeTeam.name} Settings</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                    <Badge variant="secondary" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5">
                         {activeTeam.membership.role.toUpperCase()}
                     </Badge>
                 </div>
@@ -330,26 +330,26 @@ export default function TeamSettingsPage() {
                                     <UserPlus className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collaboration</span>
-                                    <h3 className="text-xs font-bold">Invite New Member</h3>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collaboration</span>
+                                    <h3 className="text-[11px] font-bold">Invite New Member</h3>
                                 </div>
                             </div>
                             <Separator className="bg-[var(--border)]" />
                             <form onSubmit={handleInvite} className="p-6 flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
-                                    <Label htmlFor="email" className="text-xs font-bold block mb-2">Email address</Label>
+                                    <Label htmlFor="email" className="text-[11px] font-bold block mb-2">Email address</Label>
                                     <Input
                                         id="email"
                                         type="email"
                                         placeholder="COLLEAGUE@EXAMPLE.COM"
-                                        className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        className="placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         required
                                     />
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <Label htmlFor="role" className="text-xs font-bold block mb-2 px-1">Role</Label>
+                                    <Label htmlFor="role" className="text-[11px] font-bold block mb-2 px-1">Role</Label>
                                     <SegmentedControl
                                         options={[
                                             { value: 'admin', label: 'ADMIN' },
@@ -364,7 +364,7 @@ export default function TeamSettingsPage() {
                                     type="submit"
                                     disabled={isInviting || !inviteEmail}
                                     containerClassName="h-10 w-full sm:w-36"
-                                    className="text-[10px] font-bold uppercase tracking-wider"
+                                    className="text-[9px] font-bold uppercase tracking-wider"
                                 >
                                     {isInviting ? 'Sending...' : 'Send Invite'}
                                 </MovingBorderButton>
@@ -380,11 +380,11 @@ export default function TeamSettingsPage() {
                                     <Users className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team</span>
-                                    <h3 className="text-xs font-bold">Team Members</h3>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team</span>
+                                    <h3 className="text-[11px] font-bold">Team Members</h3>
                                 </div>
                             </div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full border border-[var(--border)]">
+                            <div className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full border border-[var(--border)]">
                                 {members.length} {members.length === 1 ? 'member' : 'members'}
                             </div>
                         </div>
@@ -421,9 +421,9 @@ export default function TeamSettingsPage() {
                                                 <div>
                                                     <p className="font-bold text-[var(--foreground)] flex items-center gap-2">
                                                         {member.user?.name || member.user?.githubUsername || 'Unknown User'}
-                                                        {member.role === 'owner' && <Badge variant="warning" className="text-[10px] px-1.5 py-0.5 font-bold uppercase tracking-wider">Owner</Badge>}
+                                                        {member.role === 'owner' && <Badge variant="warning" className="text-[9px] px-1.5 py-0.5 font-bold uppercase tracking-wider">Owner</Badge>}
                                                     </p>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                         {member.user?.email}
                                                     </p>
                                                 </div>
@@ -440,7 +440,7 @@ export default function TeamSettingsPage() {
                                                         onChange={(v) => handleRoleUpdate(member.userId, v as TeamRole)}
                                                     />
                                                 ) : (
-                                                    <Badge variant={member.role === 'owner' ? 'success' : member.role === 'admin' ? 'info' : 'secondary'} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                                                    <Badge variant={member.role === 'owner' ? 'success' : member.role === 'admin' ? 'info' : 'secondary'} className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5">
                                                         {member.role.toUpperCase()}
                                                     </Badge>
                                                 )}
@@ -470,15 +470,15 @@ export default function TeamSettingsPage() {
                                                 <div>
                                                     <p className="font-bold text-[var(--foreground)] flex items-center gap-2">
                                                         {invite.email}
-                                                        <Badge variant="info" className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0">Invited</Badge>
+                                                        <Badge variant="info" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0">Invited</Badge>
                                                     </p>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                         Sent {new Date(invite.createdAt).toLocaleDateString().toUpperCase()}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">{invite.role.toUpperCase()}</Badge>
+                                                <Badge variant="secondary" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5">{invite.role.toUpperCase()}</Badge>
                                                 {canManage && (
                                                     <Button
                                                         variant="ghost"
@@ -509,23 +509,23 @@ export default function TeamSettingsPage() {
                                 <AlertTriangle className="w-5 h-5 text-[var(--error)]" />
                             </div>
                             <div>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                                <h3 className="text-xs font-bold text-[var(--error)]">Critical Actions</h3>
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
+                                <h3 className="text-[11px] font-bold text-[var(--error)]">Critical Actions</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--error)]/20" />
                         <div className="p-6 space-y-6">
                             <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                 <div>
-                                    <h3 className="text-xs font-bold">Leave Team</h3>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    <h3 className="text-[11px] font-bold">Leave Team</h3>
+                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                         Revoke your access to this team. You will need to be re-invited to join again.
                                     </p>
                                 </div>
                                 <Button
                                     variant="ghost"
                                     onClick={() => setConfirmLeaveTeam(true)}
-                                    className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)] text-[10px] font-bold uppercase tracking-wider"
+                                    className="text-[var(--error)] hover:bg-[var(--error)]/10 hover:text-[var(--error)] text-[9px] font-bold uppercase tracking-wider"
                                 >
                                     Leave Team
                                 </Button>
@@ -536,15 +536,15 @@ export default function TeamSettingsPage() {
                                     <Separator className="bg-[var(--error)]/20" />
                                     <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                         <div>
-                                            <h3 className="text-xs font-bold text-[var(--error)]">Delete Team</h3>
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            <h3 className="text-[11px] font-bold text-[var(--error)]">Delete Team</h3>
+                                            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 Permanently remove this team and all of its data. This action cannot be undone.
                                             </p>
                                         </div>
                                         <Button
                                             variant="destructive"
                                             onClick={() => setConfirmDeleteTeam(true)}
-                                            className="text-[10px] font-bold uppercase tracking-wider"
+                                            className="text-[9px] font-bold uppercase tracking-wider"
                                         >
                                             Delete Team
                                         </Button>
@@ -563,8 +563,8 @@ export default function TeamSettingsPage() {
                                 <History className="w-5 h-5 text-[var(--primary)]" />
                             </div>
                             <div>
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Activity</span>
-                                <h3 className="text-xs font-bold">Audit Log</h3>
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Activity</span>
+                                <h3 className="text-[11px] font-bold">Audit Log</h3>
                             </div>
                         </div>
 
@@ -572,7 +572,7 @@ export default function TeamSettingsPage() {
 
                         <div className="flex-1 overflow-y-auto p-6 pr-2 space-y-6 relative before:absolute before:left-[43px] before:top-6 before:bottom-6 before:w-[1px] before:bg-[var(--border)]">
                             {logs.length === 0 && !isLoading ? (
-                                <div className="text-center text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider py-8 pl-8">
+                                <div className="text-center text-[var(--muted-foreground)] text-[9px] font-bold uppercase tracking-wider py-8 pl-8">
                                     No activity recorded yet.
                                 </div>
                             ) : (
@@ -580,17 +580,17 @@ export default function TeamSettingsPage() {
                                     <div key={log.id} className="relative pl-8">
                                         <div className="absolute left-[19px] top-1.5 w-2 h-2 rounded-full bg-[var(--muted-foreground)] ring-4 ring-[var(--card)]" />
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-xs font-bold text-[var(--foreground)]">
+                                            <span className="text-[11px] font-bold text-[var(--foreground)]">
                                                 {log.action}
                                             </span>
-                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed line-clamp-2">
+                                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed line-clamp-2">
                                                 {typeof log.details === 'string' ? log.details : JSON.stringify(log.details)}
                                             </span>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider">
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider">
                                                     {log.user?.email || 'Unknown User'}
                                                 </span>
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                     {new Date(log.createdAt).toLocaleDateString().toUpperCase()}
                                                 </span>
                                             </div>

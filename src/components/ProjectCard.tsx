@@ -56,13 +56,13 @@ export function ProjectCard({ project }: { project: Project }) {
         <div className="flex items-center gap-3">
           <ProjectAvatar name={project.name} productionUrl={project.productionUrl} className="w-8 h-8" />
           <div className="min-w-0">
-            <h3 className="text-xs font-bold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors uppercase tracking-tight">
+            <h3 className="text-[11px] font-bold text-[var(--foreground)] truncate group-hover:text-[var(--primary)] transition-colors uppercase tracking-tight">
               {project.name}
             </h3>
             <div className="flex items-center gap-1.5 mt-1.5">
               <Badge
                 variant={config.variant}
-                className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 gap-1.5"
+                className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 gap-1.5"
               >
                 {status === 'building' || status === 'deploying' ? (
                   <Loader2 className="w-2.5 h-2.5 animate-spin" />
@@ -95,7 +95,7 @@ export function ProjectCard({ project }: { project: Project }) {
       {/* Deployment Info */}
       <div className="mt-auto space-y-4">
         {project.productionUrl && (
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors px-1">
+          <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors px-1">
             <ExternalLink className="w-3.5 h-3.5" />
             <span className="truncate">{project.productionUrl.replace(/^https?:\/\//, '')}</span>
           </div>
@@ -103,7 +103,7 @@ export function ProjectCard({ project }: { project: Project }) {
 
         {latestDeployment ? (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/30 p-2 rounded-lg border border-[var(--border)] group-hover:border-[var(--foreground)]/10 transition-all group/sha">
+            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono bg-[var(--card-hover)]/30 p-2 rounded-lg border border-[var(--border)] group-hover:border-[var(--foreground)]/10 transition-all group/sha">
               <GitCommit className="w-3 h-3 shrink-0" />
               <span className="truncate flex-1">{latestDeployment.gitCommitMessage}</span>
               <button
@@ -115,7 +115,7 @@ export function ProjectCard({ project }: { project: Project }) {
                 {copiedId === project.id ? <Check className="w-2.5 h-2.5 text-[var(--success)]" /> : <Copy className="w-2.5 h-2.5 opacity-0 group-hover/sha:opacity-100" />}
               </button>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-1">
+            <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-1">
                <div className="flex items-center gap-1.5">
                  <GitBranch className="w-3 h-3" />
                  <span>{latestDeployment.gitBranch.toUpperCase()}</span>
@@ -127,7 +127,7 @@ export function ProjectCard({ project }: { project: Project }) {
             </div>
           </div>
         ) : (
-          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] italic bg-[var(--card-hover)]/30 p-2 rounded-md border border-dashed border-[var(--border)] text-center">
+          <div className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] italic bg-[var(--card-hover)]/30 p-2 rounded-md border border-dashed border-[var(--border)] text-center">
             No deployments yet
           </div>
         )}

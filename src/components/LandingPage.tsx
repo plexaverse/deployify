@@ -90,12 +90,12 @@ export default function LandingPage() {
             <motion.div whileTap={{ scale: 0.95 }}>
               <Link href="/" className="flex items-center gap-2 group" aria-label="Deployify Home">
                 <Rocket className="w-6 h-6 text-[var(--foreground)] group-hover:rotate-12 transition-transform" />
-                <span className="text-xs font-bold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] bg-opacity-50">Deployify</span>
+                <span className="text-[11px] font-bold bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] bg-opacity-50">Deployify</span>
               </Link>
             </motion.div>
             <div className="flex items-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/login" className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+                <Link href="/login" className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                   Sign In
                 </Link>
               </motion.div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--success)]"></span>
               </span>
-              <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">
+              <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">
                 Deployify 1.0 is here
               </span>
             </motion.div>
@@ -146,7 +146,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-[11px] md:text-xs font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
+              className="text-[9px] md:text-[11px] font-bold text-center bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)] leading-[1.1] tracking-tight mb-6"
             >
               Deploy like Vercel, <br /> Pay like raw GCP.
             </motion.h1>
@@ -155,7 +155,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-[var(--muted-foreground)] text-[11px] md:text-xs max-w-2xl mx-auto mb-10"
+              className="text-[var(--muted-foreground)] text-[9px] md:text-[11px] max-w-2xl mx-auto mb-10"
             >
               The self-hosted deployment platform that brings Vercel&apos;s developer experience
               to your own Google Cloud infrastructure.
@@ -172,7 +172,7 @@ export default function LandingPage() {
                   <MovingBorderButton
                     as="div"
                     containerClassName="w-full h-auto group"
-                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-xs font-bold flex items-center justify-center gap-2 rounded-3xl"
+                    className="bg-[var(--foreground)] text-[var(--background)] px-8 py-4 text-[11px] font-bold flex items-center justify-center gap-2 rounded-3xl"
                   >
                     <Github className="w-5 h-5" />
                     Connect GitHub
@@ -185,7 +185,7 @@ export default function LandingPage() {
                   variant="outline"
                   size="lg"
                   onClick={() => toast.info('Demo video coming soon!', { description: 'We are currently polishing our walkthrough.' })}
-                  className="w-full text-xs font-bold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
+                  className="w-full text-[11px] font-bold h-auto py-4 rounded-xl flex items-center justify-center gap-2 group"
                   aria-label="Watch 2-minute demo video"
                 >
                   <div className="relative">
@@ -193,7 +193,7 @@ export default function LandingPage() {
                     <Play className="w-5 h-5 text-[var(--foreground)] fill-[var(--foreground)] relative z-10" aria-hidden="true" />
                   </div>
                   Watch Demo
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">2 min</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">2 min</span>
                 </Button>
               </motion.div>
             </motion.div>
@@ -208,7 +208,7 @@ export default function LandingPage() {
                   className="mt-16 flex flex-col items-center gap-2"
                   aria-hidden="true"
                 >
-                  <span className="text-[10px] uppercase tracking-wider text-[var(--muted-foreground)] font-bold">Scroll to explore</span>
+                  <span className="text-[9px] uppercase tracking-wider text-[var(--muted-foreground)] font-bold">Scroll to explore</span>
                   <div className="w-5 h-8 border-2 border-[var(--border)] rounded-full flex justify-center p-1.5">
                     <motion.div
                       animate={{ y: [0, 8, 0] }}
@@ -227,10 +227,10 @@ export default function LandingPage() {
               transition={{ delay: 0.6 }}
               className="mt-12 max-w-md mx-auto p-1 rounded-2xl bg-[var(--card)] border border-[var(--border)] backdrop-blur-sm flex items-center gap-3 pr-4 group"
             >
-              <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider font-mono text-[var(--foreground)]">
+              <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider font-mono text-[var(--foreground)]">
                 $
               </div>
-              <code className="text-xs font-mono text-[var(--muted-foreground)] flex-1 text-left">
+              <code className="text-[11px] font-mono text-[var(--muted-foreground)] flex-1 text-left">
                 pnpm dlx deployify login
               </code>
               <motion.button
@@ -259,7 +259,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-32 text-center"
           >
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-16">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-16">
               Trusted by innovative teams
             </p>
             <div
@@ -279,7 +279,7 @@ export default function LandingPage() {
                     role="listitem"
                     aria-label={`${logo} logo`}
                     whileHover={{ scale: 1.05, opacity: 1, filter: 'grayscale(0%) drop-shadow(0 0 8px rgba(255,255,255,0.1))' }}
-                    className="text-[10px] font-bold uppercase tracking-wider tracking-wider text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
+                    className="text-[9px] font-bold uppercase tracking-wider tracking-wider text-[var(--foreground)] opacity-30 grayscale cursor-default transition-all duration-500"
                   >
                     {logo}
                   </motion.span>
@@ -290,7 +290,7 @@ export default function LandingPage() {
 
           {/* The Method Section */}
           <div className="mt-40">
-            <h2 className="text-[11px] md:text-xs font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-[9px] md:text-[11px] font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               The Deployify Method
             </h2>
             <TracingBeam className="px-6">
@@ -334,7 +334,7 @@ export default function LandingPage() {
                       whileInView={{ opacity: 0.3, scale: 1.2, x: 0 }}
                       viewport={{ margin: "-100px" }}
                       transition={{ duration: 1 }}
-                      className="absolute -left-12 md:-left-16 -top-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
+                      className="absolute -left-12 md:-left-16 -top-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]/20 tabular-nums transition-all group-hover:text-[var(--primary)] group-hover:opacity-100"
                       aria-hidden="true"
                     >
                       0{i + 1}
@@ -346,12 +346,12 @@ export default function LandingPage() {
                        >
                          {step.icon}
                        </motion.div>
-                       <h3 className="text-xs font-bold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
+                       <h3 className="text-[11px] font-bold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
                     </div>
-                    <div className="text-xs text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
+                    <div className="text-[11px] text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}
                     </div>
-                    <div className="p-1 rounded-full bg-[var(--primary)]/5 w-fit px-5 py-1.5 text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider border border-[var(--primary)]/10">
+                    <div className="p-1 rounded-full bg-[var(--primary)]/5 w-fit px-5 py-1.5 text-[9px] font-bold text-[var(--primary)] uppercase tracking-wider border border-[var(--primary)]/10">
                       {step.badge}
                     </div>
                   </motion.div>
@@ -362,7 +362,7 @@ export default function LandingPage() {
 
           {/* Price Efficiency Section */}
           <div className="mt-40">
-            <h2 className="text-[11px] md:text-xs font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-[9px] md:text-[11px] font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Pay for what you use
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -372,8 +372,8 @@ export default function LandingPage() {
               >
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-xs font-bold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
+                    <h3 className="text-[11px] font-bold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
                   </div>
                   <X className="w-5 h-5 text-[var(--error)]" />
                 </div>
@@ -400,8 +400,8 @@ export default function LandingPage() {
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-xs font-bold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
+                    <h3 className="text-[11px] font-bold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
                   </div>
                   <Check className="w-5 h-5 text-[var(--foreground)]" />
                 </div>
@@ -424,7 +424,7 @@ export default function LandingPage() {
 
           {/* Feature Bento Grid */}
           <div id="features" className="mt-40">
-            <h2 className="text-[11px] md:text-xs font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-[9px] md:text-[11px] font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Everything you need to scale
             </h2>
             <BentoGrid>
@@ -487,7 +487,7 @@ export default function LandingPage() {
             className="mt-40 max-w-2xl mx-auto"
           >
             <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm relative group" role="search">
-              <h3 className="text-xs font-bold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
+              <h3 className="text-[11px] font-bold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
               <div className="relative">
                 <label htmlFor="repo-search" className="sr-only">Search your GitHub repositories</label>
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors z-10" />
@@ -551,10 +551,10 @@ export default function LandingPage() {
                           exit={{ opacity: 0, x: 5 }}
                           className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity"
                         >
-                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             {os === 'mac' ? '⌘' : 'Ctrl'}
                           </kbd>
-                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             K
                           </kbd>
                         </motion.div>
@@ -572,11 +572,11 @@ export default function LandingPage() {
                         aria-selected={selectedIndex === i}
                         onMouseEnter={() => setSelectedIndex(i)}
                         onClick={() => { setSearchQuery(repo); setSelectedIndex(-1); }}
-                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
+                        className={cn("px-4 py-2 rounded-xl cursor-pointer flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider transition-colors", selectedIndex === i ? "bg-[var(--muted)]/20 text-[var(--foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/10 hover:text-[var(--foreground)]")}
                       >
                         <Github className="w-4 h-4" /> {repo}
                       </div>
-                    )) : <div className="px-4 py-4 text-center text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
+                    )) : <div className="px-4 py-4 text-center text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No results for &quot;{searchQuery}&quot;</div>}
                   </motion.div>
                 )}
               </div>
@@ -590,7 +590,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 text-center px-4"
           >
-            <h2 className="text-[11px] md:text-xs font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-[9px] md:text-[11px] font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Global Edge Network
             </h2>
             <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12">
@@ -604,9 +604,9 @@ export default function LandingPage() {
                 { name: 'Cloud Armor', icon: Shield },
               ].map((feat, i) => (
                 <div key={feat.name} className="group relative p-8 rounded-[2rem] border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm hover:border-[var(--muted)] transition-all duration-500 text-center overflow-hidden">
-                  <div className="absolute top-4 right-6 text-[10px] font-bold uppercase tracking-wider text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
+                  <div className="absolute top-4 right-6 text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]/30 group-hover:text-[var(--foreground)]/30 tabular-nums transition-colors" aria-hidden="true">0{i + 1}</div>
                   <feat.icon className="w-8 h-8 text-[var(--foreground)] mx-auto mb-4 group-hover:scale-110 transition-transform duration-500" aria-hidden="true" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">{feat.name}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block">{feat.name}</span>
                 </div>
               ))}
             </div>
@@ -621,9 +621,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <Link href="/" className="flex items-center justify-center gap-2 mb-4 group w-fit mx-auto" aria-label="Deployify Home">
             <Rocket className="w-6 h-6 text-[var(--foreground)] group-hover:rotate-12 transition-transform" />
-            <span className="text-xs font-bold">Deployify</span>
+            <span className="text-[11px] font-bold">Deployify</span>
           </Link>
-          <p className="text-[var(--muted-foreground)] text-xs">
+          <p className="text-[var(--muted-foreground)] text-[11px]">
             © 2026 Deployify. Built for the modern developer.
           </p>
         </div>
