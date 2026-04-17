@@ -72,6 +72,7 @@ const STORAGE_TYPES = [
     { value: 'supabase', label: 'SUPABASE', category: 'EXTERNAL' },
     { value: 'mongodb-atlas', label: 'MONGODB ATLAS', category: 'EXTERNAL' },
     { value: 'planetscale', label: 'PLANETSCALE', category: 'EXTERNAL' },
+    { value: 'neon', label: 'NEON (POSTGRES)', category: 'EXTERNAL' },
     { value: 'generic', label: 'GENERIC DATABASE', category: 'OTHER' },
 ] as const;
 
@@ -108,6 +109,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [mongodbClusterName, setMongodbClusterName] = useState('');
     const [planetscaleOrg, setPlanetscaleOrg] = useState('');
     const [planetscaleDb, setPlanetscaleDb] = useState('');
+    const [neonProjectId, setNeonProjectId] = useState('');
     const [providerApiKey, setProviderApiKey] = useState('');
     const [secretOnly, setSecretOnly] = useState(false);
     const [region, setRegion] = useState('');
@@ -205,6 +207,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 if (type === 'planetscale') {
                     metadata.organization = planetscaleOrg;
                     metadata.database = planetscaleDb;
+                }
+                if (type === 'neon') {
+                    metadata.neonProjectId = neonProjectId;
                 }
             }
 
@@ -401,6 +406,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setMongodbClusterName('');
         setPlanetscaleOrg('');
         setPlanetscaleDb('');
+        setNeonProjectId('');
     };
 
     const startEditing = (config: StorageConfig) => {
@@ -422,6 +428,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
         setDeletionProtection(!!config.metadata?.deletionProtection);
+        setNeonProjectId((config.metadata?.neonProjectId as string) || '');
+        setSupabaseId((config.metadata?.supabaseId as string) || '');
+        setMongodbGroupId((config.metadata?.groupId as string) || '');
+        setMongodbClusterName((config.metadata?.clusterName as string) || '');
+        setPlanetscaleOrg((config.metadata?.organization as string) || '');
+        setPlanetscaleDb((config.metadata?.database as string) || '');
         setConnectionString(''); // Don't show old connection string
         setIsAdding(false);
     };
@@ -955,7 +967,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             Stored securely in Google Cloud Secret Manager.
                                         </p>
                                     </div>
-                                    {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale') && (
+                                    {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'neon') && (
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
@@ -1053,6 +1065,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                                     className="h-8 text-[9px] font-mono placeholder:text-[9px]"
                                                                 />
                                                             </div>
+                                                        </div>
+                                                    )}
+
+                                                    {type === 'neon' && (
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Neon Project ID</Label>
+                                                            <Input
+                                                                value={neonProjectId}
+                                                                onChange={(e) => setNeonProjectId(e.target.value)}
+                                                                placeholder="E.G. EP-MOCK-123456"
+                                                                className="h-8 text-[9px] font-mono placeholder:text-[9px]"
+                                                            />
                                                         </div>
                                                     )}
                                                 </div>
@@ -1174,7 +1198,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             )}
                                         </div>
 
-                                        {(type.includes('sql') || type === 'planetscale' || type === 'supabase' || type === 'memorystore-redis') && (
+                                        {(type.includes('sql') || type === 'planetscale' || type === 'supabase' || type === 'neon' || type === 'memorystore-redis') && (
                                             <div className="space-y-4 pt-2 border-t border-[var(--border)] mt-4">
                                                 <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                     <div className="space-y-0.5">
@@ -1312,6 +1336,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--info)]/10 text-[var(--info)] font-bold uppercase tracking-wider border border-[var(--info)]/20 flex items-center gap-1" title="Encrypted connection enforced">
                                                     <ShieldCheck className="w-2.5 h-2.5" />
                                                     SSL
+                                                </span>
+                                            )}
+                                            {!!config.metadata?.firewallSynced && (
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title={`Regional egress IPs allowed in provider firewall. Last sync: ${config.metadata.lastFirewallSyncAt ? new Date(config.metadata.lastFirewallSyncAt as string).toLocaleString() : 'N/A'}`}>
+                                                    <Network className="w-2.5 h-2.5" />
+                                                    FIREWALL SYNCED
                                                 </span>
                                             )}
                                             {config.type.includes('cloud-sql') && (
@@ -1560,7 +1590,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <HistoryIcon className="w-4 h-4" />
                                         </Button>
                                     )}
-                                    {config.status === 'active' && (config.type.includes('sql') || config.type === 'planetscale') && (
+                                    {config.status === 'active' && (config.type.includes('sql') || config.type === 'planetscale' || config.type === 'neon') && (
                                         <Button
                                             variant="ghost"
                                             size="icon"

@@ -1,10 +1,13 @@
 import { upsertSecret } from './secrets';
+import { getRegionalEgressIps } from './networks';
+import { getProjectById } from '@/lib/db';
 import type { StorageConfig } from '@/types';
 
 export interface SyncResult {
     success: boolean;
     connectionString?: string;
     lastSyncedAt: Date;
+    firewallSynced?: boolean;
     error?: string;
 }
 
@@ -128,6 +131,21 @@ export async function syncExternalConnector(
                     console.warn(`[StorageSync] PlanetScale password cleanup failed:`, cleanupError);
                     // Don't fail the whole sync if cleanup fails
                 }
+            } else if (storage.type === 'neon') {
+                const neonProjectId = storage.metadata?.neonProjectId as string;
+                if (!neonProjectId) throw new Error('Neon Project ID is missing');
+
+                const res = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/connection_uri?branch_id=main`, {
+                    headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                });
+
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`Neon API error: ${errorText}`);
+                }
+
+                const data = await res.json();
+                newConnectionString = data.connection_uri || '';
             }
         }
 
@@ -135,10 +153,21 @@ export async function syncExternalConnector(
             await upsertSecret(`deployify-${projectId}-${storage.id}-conn`, newConnectionString);
         }
 
+        // 3. Automatically sync firewall if enabled
+        let firewallSynced = false;
+        try {
+            const fwResult = await syncExternalFirewall(projectId, storage);
+            firewallSynced = fwResult.success;
+        } catch (fwError) {
+            console.warn(`[StorageSync] Firewall sync failed for ${storage.name}:`, fwError);
+            // We don't fail the credential sync if firewall sync fails, but we log it
+        }
+
         return {
             success: true,
             connectionString: newConnectionString,
-            lastSyncedAt: now
+            lastSyncedAt: now,
+            firewallSynced
         };
     } catch (error) {
         console.error(`External sync failed for ${storage.type}:`, error);
@@ -146,6 +175,75 @@ export async function syncExternalConnector(
             success: false,
             error: error instanceof Error ? error.message : 'Unknown sync error',
             lastSyncedAt: now
+        };
+    }
+}
+
+/**
+ * Automatically allowlist Deployify egress IPs in the external provider's firewall
+ */
+export async function syncExternalFirewall(
+    projectId: string,
+    storage: StorageConfig
+): Promise<{ success: boolean; error?: string }> {
+    const providerApiKey = storage.metadata?.providerApiKey as string;
+    if (process.env.MOCK_DB === 'true' || !providerApiKey) return { success: true };
+
+    try {
+        const project = await getProjectById(projectId);
+        const { ips } = getRegionalEgressIps(project?.region || (storage.metadata?.region as string));
+
+        if (storage.type === 'supabase') {
+            const supabaseId = storage.metadata?.supabaseId as string;
+            if (!supabaseId) throw new Error('Supabase Reference ID missing');
+
+            const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/network-restrictions`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${providerApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    db_allowed_cidrs: ips
+                })
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Supabase Firewall API error: ${errorText}`);
+            }
+        } else if (storage.type === 'mongodb-atlas') {
+            const groupId = storage.metadata?.groupId as string;
+            if (!groupId) throw new Error('MongoDB Atlas Group ID missing');
+
+            // MongoDB Atlas access list takes individual entries
+            const body = ips.map(cidr => ({
+                cidrBlock: cidr,
+                comment: 'Deployify Managed Egress'
+            }));
+
+            const res = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/accessList`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${providerApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            // 409 means it already exists, which is fine
+            if (!res.ok && res.status !== 409) {
+                const errorText = await res.text();
+                throw new Error(`MongoDB Atlas Access List API error: ${errorText}`);
+            }
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error(`Firewall sync failed for ${storage.type}:`, error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown firewall sync error'
         };
     }
 }
