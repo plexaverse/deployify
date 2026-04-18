@@ -28,7 +28,7 @@ export function checkSecurityPosture(
     const type = storage.type;
     const metadata = storage.metadata || {};
     const isCloudSql = type.includes('cloud-sql');
-    const isExternal = ['supabase', 'mongodb-atlas', 'planetscale'].includes(type);
+    const isExternal = ['supabase', 'mongodb-atlas', 'planetscale', 'neon'].includes(type);
 
     // 1. SSL/TLS Enforcement Check
     if ((isCloudSql || isExternal || type === 'memorystore-redis') && !storage.ssl) {
@@ -84,7 +84,19 @@ export function checkSecurityPosture(
         score -= 5;
     }
 
-    // 5. Public Access Risk (Simplified)
+    // 5. Firewall Governance Check (External Connectors)
+    if (isExternal && !metadata.firewallSynced) {
+        risks.push({
+            id: 'unmanaged_firewall_policy',
+            level: 'medium',
+            title: 'Unmanaged Firewall Policy',
+            description: 'Firewall synchronization is not active or has not been verified for this external connector.',
+            remediation: 'Trigger a manual "Sync" to authorize the latest regional egress IPs in your provider firewall.'
+        });
+        score -= 15;
+    }
+
+    // 6. Public Access Risk (Simplified)
     // If it's external and no SSL, it's a high risk. We already caught SSL above,
     // but let's add a specific one for public exposure if we could detect it better.
 

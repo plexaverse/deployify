@@ -39,6 +39,8 @@ export async function syncExternalConnector(
                 ? 'postgresql://postgres:mock@db.supabase.co:5432/postgres'
                 : storage.type === 'mongodb-atlas'
                 ? 'mongodb+srv://mock:password@cluster.mongodb.net/test'
+                : storage.type === 'neon'
+                ? 'postgresql://mock:password@ep-mock-123.us-east-1.aws.neon.tech/neondb'
                 : 'mysql://mock:password@aws.connect.psdb.cloud/test';
         } else {
             if (storage.type === 'supabase') {
@@ -82,7 +84,11 @@ export async function syncExternalConnector(
                 const database = storage.metadata?.database as string;
                 if (!organization || !database) throw new Error('PlanetScale Organization or Database name is missing');
 
-                // 1. Create a new "deployify-managed" password
+                // Fetch regional IPs for trusted_ips
+                const project = await getProjectById(projectId);
+                const { ips } = getRegionalEgressIps(project?.region || (storage.metadata?.region as string));
+
+                // 1. Create a new "deployify-managed" password with trusted IPs
                 const createRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
                     method: 'POST',
                     headers: {
@@ -91,7 +97,8 @@ export async function syncExternalConnector(
                     },
                     body: JSON.stringify({
                         name: `deployify-sync-${now.getTime()}`,
-                        role: 'readwriter'
+                        role: 'readwriter',
+                        trusted_ips: ips
                     })
                 });
 
@@ -187,7 +194,8 @@ export async function syncExternalFirewall(
     storage: StorageConfig
 ): Promise<{ success: boolean; error?: string }> {
     const providerApiKey = storage.metadata?.providerApiKey as string;
-    if (process.env.MOCK_DB === 'true' || !providerApiKey) return { success: true };
+    if (process.env.MOCK_DB === 'true') return { success: true };
+    if (!providerApiKey) return { success: false, error: 'Provider API Key is missing' };
 
     try {
         const project = await getProjectById(projectId);
@@ -236,6 +244,34 @@ export async function syncExternalFirewall(
                 const errorText = await res.text();
                 throw new Error(`MongoDB Atlas Access List API error: ${errorText}`);
             }
+        } else if (storage.type === 'neon') {
+            const neonProjectId = storage.metadata?.neonProjectId as string;
+            if (!neonProjectId) throw new Error('Neon Project ID is missing');
+
+            const res = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${providerApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    project: {
+                        settings: {
+                            ip_allow: {
+                                allowed_ips: ips
+                            }
+                        }
+                    }
+                })
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Neon Firewall API error: ${errorText}`);
+            }
+        } else if (storage.type === 'planetscale') {
+            // PlanetScale firewall is synced during credential creation in syncExternalConnector
+            return { success: true };
         }
 
         return { success: true };

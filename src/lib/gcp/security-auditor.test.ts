@@ -57,4 +57,18 @@ describe('Security Auditor', () => {
         const posture = checkSecurityPosture(mockStorage, 'europe-west1');
         assert.ok(posture.risks.some(r => r.id === 'regional_mismatch'));
     });
+
+    it('should flag unmanaged firewall policy for external connectors', () => {
+        const externalStorage: StorageConfig = {
+            ...mockStorage,
+            type: 'supabase',
+            metadata: {
+                ...mockStorage.metadata,
+                firewallSynced: false
+            }
+        };
+        const posture = checkSecurityPosture(externalStorage, 'us-central1');
+        assert.strictEqual(posture.score, 85);
+        assert.ok(posture.risks.some(r => r.id === 'unmanaged_firewall_policy'));
+    });
 });

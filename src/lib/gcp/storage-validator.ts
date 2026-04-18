@@ -463,7 +463,24 @@ export async function diagnoseConnection(
             }
         }
 
-        // Step 7: Regional Alignment Check
+        // Step 7: Firewall Policy Validation (External)
+        if (type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'neon') {
+            const fwStep = addStep('Firewall Policy Validation');
+            fwStep.status = 'running';
+
+            const firewallSynced = !!metadata?.firewallSynced;
+            if (firewallSynced) {
+                fwStep.status = 'success';
+            } else {
+                fwStep.status = 'failure';
+                const regionalIps = getRegionalEgressIps(projectContext?.region);
+                fwStep.error = 'Unmanaged Firewall Policy';
+                fwStep.recommendation = `Firewall synchronization has not been confirmed. Ensure these regional egress IPs for ${regionalIps.region} are allowlisted in your provider dashboard: ${regionalIps.ips.join(', ')}. Alternatively, trigger a manual Sync to automate this.`;
+            }
+            fwStep.latency = 0;
+        }
+
+        // Step 8: Regional Alignment Check
         let regionMismatch: DiagnosticResult['regionMismatch'] | undefined;
         if (projectContext?.region && metadata?.region) {
             const alignmentStep = addStep('Regional Alignment');
