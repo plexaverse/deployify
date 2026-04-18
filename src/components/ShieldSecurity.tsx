@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
     const [metrics, setMetrics] = useState<{ blockedRequests: number; topThreats: string[]; status: string } | null>(null);
     const [wafEnabled, setWafEnabled] = useState(true);
-    const [loading, setLoading] = useState(true);
+    const [, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchMetrics = async () => {
