@@ -594,7 +594,22 @@ Legacy and custom support with production-grade security:
 - [x] Integrate external metrics into workspace-wide infrastructure health dashboard
 - [x] Optimize discovery API to leverage existing project-level API keys
 
+### Phase 88: Advanced External Connectivity Hardening & Tier Intelligence (COMPLETED)
+- [x] Implement Automated Tier Discovery for Supabase, MongoDB Atlas, PlanetScale, and Neon
+- [x] Integrate Tier Intelligence into cost estimation and financial observability
+- [x] Enhance Security Auditor with production-tier compliance checks for external connectors
+- [x] Update Storage UI with discovered tier metadata and high-density financial badges
+- [x] Verify functional integrity with system audits and zero-warning build completion
+
 ## Progress Updates
+
+### 2027-05-30: Advanced External Connectivity Hardening & Tier Intelligence
+- Completed Phase 88: Advanced External Connectivity Hardening & Tier Intelligence.
+- Launched "Tier Intelligence" for external providers, enabling automated discovery of resource tiers (e.g., PRO, SCALE, M30) for Supabase, MongoDB Atlas, PlanetScale, and Neon during periodic synchronization.
+- Integrated discovered tiers into the `getEstimatedMonthlyCost` utility, providing more accurate financial forecasting for external connectors in the global infrastructure dashboard.
+- Hardened the security auditor to flag development or free tiers used in production environments, providing actionable remediation guidance for infrastructure reliability.
+- Updated the Storage dashboard with high-density `TIER` badges to surface provider-specific resource levels at a glance.
+- Verified 100% functional integrity with a new unit test suite for tier intelligence and project-wide system audits.
 
 ### 2027-05-29: Unified External Discovery & Observability Intelligence
 - Completed Phase 87: Unified External Discovery & Observability Intelligence.

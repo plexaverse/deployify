@@ -96,7 +96,24 @@ export function checkSecurityPosture(
         score -= 15;
     }
 
-    // 6. Public Access Risk (Simplified)
+    // 6. Production Tier Check (External Connectors)
+    if (isExternal && storage.environment === 'production') {
+        const tier = (metadata.tier as string || '').toUpperCase();
+        const isFree = tier.includes('FREE') || tier.includes('HOBBY') || tier === 'M0' || tier === 'DEVELOPMENT';
+
+        if (isFree) {
+            risks.push({
+                id: 'development_tier_in_production',
+                level: 'medium',
+                title: 'Non-Production Tier in Prod',
+                description: `This connector is using a development/free tier (${tier || 'UNKNOWN'}) for a production environment.`,
+                remediation: 'Upgrade to a professional/paid tier to ensure better availability and support.'
+            });
+            score -= 10;
+        }
+    }
+
+    // 7. Public Access Risk (Simplified)
     // If it's external and no SSL, it's a high risk. We already caught SSL above,
     // but let's add a specific one for public exposure if we could detect it better.
 

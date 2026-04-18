@@ -8,6 +8,7 @@ export interface SyncResult {
     connectionString?: string;
     lastSyncedAt: Date;
     firewallSynced?: boolean;
+    tier?: string;
     error?: string;
 }
 
@@ -31,6 +32,7 @@ export async function syncExternalConnector(
 
     try {
         let newConnectionString = '';
+        let discoveredTier = '';
 
         if (process.env.MOCK_DB === 'true') {
             // Simulate API fetch delay
@@ -40,22 +42,37 @@ export async function syncExternalConnector(
                 : storage.type === 'mongodb-atlas'
                 ? 'mongodb+srv://mock:password@cluster.mongodb.net/test'
                 : 'mysql://mock:password@aws.connect.psdb.cloud/test';
+            discoveredTier = 'PRO';
         } else {
             if (storage.type === 'supabase') {
                 const supabaseId = storage.metadata?.supabaseId as string;
                 if (!supabaseId) throw new Error('Supabase Reference ID is missing in metadata');
 
+                // 1. Fetch Connection String
                 const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/config/database`, {
                     headers: { 'Authorization': `Bearer ${providerApiKey}` }
                 });
 
                 if (!res.ok) {
                     const errorText = await res.text();
-                    throw new Error(`Supabase API error: ${errorText}`);
+                    throw new Error(`Supabase API error (DB): ${errorText}`);
                 }
 
                 const data = await res.json();
                 newConnectionString = `postgresql://postgres:${data.password || 'password'}@db.${supabaseId}.supabase.co:5432/postgres`;
+
+                // 2. Discover Tier
+                try {
+                    const projectRes = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}`, {
+                        headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                    });
+                    if (projectRes.ok) {
+                        const projectData = await projectRes.json();
+                        discoveredTier = projectData.plan?.toUpperCase() || 'FREE';
+                    }
+                } catch (e) {
+                    console.warn(`[StorageSync] Supabase tier discovery failed:`, e);
+                }
             } else if (storage.type === 'mongodb-atlas') {
                 const groupId = storage.metadata?.groupId as string;
                 const clusterName = storage.metadata?.clusterName as string;
@@ -77,10 +94,24 @@ export async function syncExternalConnector(
 
                 const data = await res.json();
                 newConnectionString = data.connectionStrings?.standardSrv || `mongodb+srv://user:password@${clusterName}.mongodb.net/test`;
+                discoveredTier = data.providerSettings?.instanceSizeName || 'M0';
             } else if (storage.type === 'planetscale') {
                 const organization = storage.metadata?.organization as string;
                 const database = storage.metadata?.database as string;
                 if (!organization || !database) throw new Error('PlanetScale Organization or Database name is missing');
+
+                // 0. Discover Tier
+                try {
+                    const dbRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}`, {
+                        headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                    });
+                    if (dbRes.ok) {
+                        const dbData = await dbRes.json();
+                        discoveredTier = dbData.plan?.toUpperCase() || 'FREE';
+                    }
+                } catch (e) {
+                    console.warn(`[StorageSync] PlanetScale tier discovery failed:`, e);
+                }
 
                 // 1. Create a new "deployify-managed" password
                 const createRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
@@ -135,17 +166,32 @@ export async function syncExternalConnector(
                 const neonProjectId = storage.metadata?.neonProjectId as string;
                 if (!neonProjectId) throw new Error('Neon Project ID is missing');
 
+                // 1. Fetch Connection String
                 const res = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/connection_uri?branch_id=main`, {
                     headers: { 'Authorization': `Bearer ${providerApiKey}` }
                 });
 
                 if (!res.ok) {
                     const errorText = await res.text();
-                    throw new Error(`Neon API error: ${errorText}`);
+                    throw new Error(`Neon API error (Conn): ${errorText}`);
                 }
 
                 const data = await res.json();
                 newConnectionString = data.connection_uri || '';
+
+                // 2. Discover Tier
+                try {
+                    const projectRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
+                        headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                    });
+                    if (projectRes.ok) {
+                        const projectData = await projectRes.json();
+                        // Neon projects use 'plan_id'
+                        discoveredTier = (projectData.project?.plan_id || 'free').toUpperCase();
+                    }
+                } catch (e) {
+                    console.warn(`[StorageSync] Neon tier discovery failed:`, e);
+                }
             }
         }
 
@@ -167,7 +213,8 @@ export async function syncExternalConnector(
             success: true,
             connectionString: newConnectionString,
             lastSyncedAt: now,
-            firewallSynced
+            firewallSynced,
+            tier: discoveredTier || undefined
         };
     } catch (error) {
         console.error(`External sync failed for ${storage.type}:`, error);
