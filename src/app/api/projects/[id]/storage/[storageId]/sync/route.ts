@@ -225,6 +225,13 @@ export async function GET(
                 storage.updatedAt = now;
                 storage.status = 'active';
 
+                if (syncResult.tier) {
+                    storage.metadata = {
+                        ...storage.metadata,
+                        tier: syncResult.tier
+                    };
+                }
+
                 if (syncResult.firewallSynced) {
                     storage.metadata = {
                         ...storage.metadata,

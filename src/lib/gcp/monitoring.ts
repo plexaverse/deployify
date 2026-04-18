@@ -314,6 +314,7 @@ export function getEstimatedMonthlyCost(
     isHA?: boolean
 ): number {
     let cost = 0;
+    const normalizedTier = tier.toUpperCase();
 
     if (storageType.includes('cloud-sql')) {
         // Compute Cost (Approximate Monthly)
@@ -349,10 +350,33 @@ export function getEstimatedMonthlyCost(
     } else if (storageType === 'firestore') {
         // Firestore is usage-based, but we'll show a minimum platform overhead/estimated starting cost
         cost = 0; // Truly serverless/pay-as-you-go
-    } else if (['supabase', 'mongodb-atlas', 'planetscale'].includes(storageType)) {
-        // External providers vary, we'll show a 'Starting from' estimate if tier matches
-        if (tier === 'FREE') cost = 0;
-        else if (tier === 'PRO') cost = 25;
+    } else if (storageType === 'supabase') {
+        if (normalizedTier.includes('FREE')) cost = 0;
+        else if (normalizedTier.includes('PRO')) cost = 25;
+        else if (normalizedTier.includes('TEAM')) cost = 599;
+        else if (normalizedTier.includes('ENTERPRISE')) cost = 2000;
+        else cost = 0;
+    } else if (storageType === 'mongodb-atlas') {
+        if (normalizedTier === 'M0' || normalizedTier === 'FREE') cost = 0;
+        else if (normalizedTier === 'M2') cost = 9;
+        else if (normalizedTier === 'M5') cost = 25;
+        else if (normalizedTier.startsWith('M')) {
+            const size = parseInt(normalizedTier.substring(1));
+            if (size >= 10 && size < 30) cost = 60;
+            else if (size >= 30) cost = 150;
+            else cost = 40;
+        } else cost = 0;
+    } else if (storageType === 'planetscale') {
+        if (normalizedTier.includes('FREE') || normalizedTier.includes('HOBBY')) cost = 0;
+        else if (normalizedTier.includes('SCALER')) cost = 29;
+        else if (normalizedTier.includes('PRO')) cost = 39;
+        else if (normalizedTier.includes('TEAM')) cost = 599;
+        else cost = 0;
+    } else if (storageType === 'neon') {
+        if (normalizedTier.includes('FREE')) cost = 0;
+        else if (normalizedTier.includes('LAUNCH')) cost = 19;
+        else if (normalizedTier.includes('SCALE')) cost = 69;
+        else if (normalizedTier.includes('PRO')) cost = 49;
         else cost = 0;
     }
 
@@ -368,13 +392,14 @@ export function getEstimatedMonthlyCost(
 export async function getExternalMetrics(
     storageType: string,
     metadata: Record<string, unknown>
-): Promise<{ status: string; usage?: number; limit?: number; unit?: string }> {
+): Promise<{ status: string; usage?: number; limit?: number; unit?: string; tier?: string }> {
     if (process.env.MOCK_DB === 'true') {
         return {
             status: 'ACTIVE',
             usage: Math.floor(Math.random() * 40) + 10,
             limit: 100,
-            unit: 'GB'
+            unit: 'GB',
+            tier: 'PRO'
         };
     }
 
@@ -394,6 +419,7 @@ export async function getExternalMetrics(
                 const data = await res.json();
                 return {
                     status: data.project?.status?.toUpperCase() || 'ACTIVE',
+                    tier: (data.project?.plan_id || 'free').toUpperCase(),
                     // Basic estimation from projects API if usage not directly available
                     usage: undefined
                 };
@@ -416,6 +442,7 @@ export async function getExternalMetrics(
                 const data = await res.json();
                 return {
                     status: data.stateName === 'IDLE' ? 'ACTIVE' : (data.stateName || 'ACTIVE'),
+                    tier: data.providerSettings?.instanceSizeName || 'M0',
                     usage: undefined
                 };
             }
@@ -430,7 +457,8 @@ export async function getExternalMetrics(
             if (res.ok) {
                 const data = await res.json();
                 return {
-                    status: data.status?.toUpperCase() || 'ACTIVE'
+                    status: data.status?.toUpperCase() || 'ACTIVE',
+                    tier: data.plan?.toUpperCase() || 'FREE'
                 };
             }
         }
