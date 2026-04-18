@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, Collections } from '@/lib/firebase';
-import { getCloudSqlHistoricalMetrics, getMemorystoreHistoricalMetrics, getScalingRecommendations } from '@/lib/gcp/monitoring';
+import { getCloudSqlHistoricalMetrics, getMemorystoreHistoricalMetrics, getScalingRecommendations, getExternalMetrics } from '@/lib/gcp/monitoring';
 import { updateInstanceSettings as updateSqlSettings } from '@/lib/gcp/cloudsql';
 import { updateInstanceSettings as updateRedisSettings } from '@/lib/gcp/memorystore';
 import { logAuditEvent } from '@/lib/audit';
@@ -33,36 +33,51 @@ export async function GET(request: NextRequest) {
             const storageConfigs = project.storageConfigs || [];
 
             for (const storage of storageConfigs) {
-                // Process Cloud SQL and Memorystore with auto-scaling enabled
+                // Process Cloud SQL, Memorystore and Neon with auto-scaling enabled
                 const isSql = storage.type.includes('cloud-sql');
                 const isRedis = storage.type === 'memorystore-redis';
+                const isNeon = storage.type === 'neon';
 
-                if ((isSql || isRedis) && storage.autoScalingSettings?.enabled) {
+                if ((isSql || isRedis || isNeon) && storage.autoScalingSettings?.enabled) {
                     const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                     const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
-                    // Fetch historical metrics (7 days)
-                    const historicalMetrics = isSql
-                        ? await getCloudSqlHistoricalMetrics(resourceName, 7)
-                        : await getMemorystoreHistoricalMetrics(resourceName, region, 7);
+                    let metrics;
 
-                    if (historicalMetrics.length === 0) continue;
+                    if (isSql || isRedis) {
+                        // Fetch historical metrics (7 days)
+                        const historicalMetrics = isSql
+                            ? await getCloudSqlHistoricalMetrics(resourceName, 7)
+                            : await getMemorystoreHistoricalMetrics(resourceName, region, 7);
 
-                    // Calculate averages
-                    const count = historicalMetrics.length;
-                    const avgMetrics = historicalMetrics.reduce((acc, curr) => ({
-                        cpuUtilization: acc.cpuUtilization + curr.cpuUtilization,
-                        memoryUtilization: acc.memoryUtilization + curr.memoryUtilization,
-                        diskUtilization: (acc.diskUtilization || 0) + (curr.diskUtilization || 0),
-                        timestamp: curr.timestamp
-                    }), { cpuUtilization: 0, memoryUtilization: 0, diskUtilization: 0, timestamp: '' });
+                        if (historicalMetrics.length === 0) continue;
 
-                    const metrics = {
-                        cpuUtilization: avgMetrics.cpuUtilization / count,
-                        memoryUtilization: avgMetrics.memoryUtilization / count,
-                        diskUtilization: (avgMetrics.diskUtilization || 0) / count,
-                        timestamp: new Date().toISOString()
-                    };
+                        // Calculate averages
+                        const count = historicalMetrics.length;
+                        const avgMetrics = historicalMetrics.reduce((acc, curr) => ({
+                            cpuUtilization: acc.cpuUtilization + curr.cpuUtilization,
+                            memoryUtilization: acc.memoryUtilization + curr.memoryUtilization,
+                            diskUtilization: (acc.diskUtilization || 0) + (curr.diskUtilization || 0),
+                            timestamp: curr.timestamp
+                        }), { cpuUtilization: 0, memoryUtilization: 0, diskUtilization: 0, timestamp: '' });
+
+                        metrics = {
+                            cpuUtilization: avgMetrics.cpuUtilization / count,
+                            memoryUtilization: avgMetrics.memoryUtilization / count,
+                            diskUtilization: (avgMetrics.diskUtilization || 0) / count,
+                            timestamp: new Date().toISOString()
+                        };
+                    } else if (isNeon) {
+                        // Fetch current usage for Neon (Management API)
+                        const ext = await getExternalMetrics(storage.type, storage.metadata || {});
+                        metrics = {
+                            cpuUtilization: ext.usage || 0,
+                            memoryUtilization: 0,
+                            timestamp: new Date().toISOString()
+                        };
+                    }
+
+                    if (!metrics) continue;
 
                     // Get recommendations
                     const recommendations = await getScalingRecommendations(
@@ -89,6 +104,27 @@ export async function GET(request: NextRequest) {
                                 await updateRedisSettings(resourceName, region, {
                                     memorySizeGb: parseInt(autoScalingRec.recommendedTier)
                                 });
+                            } else if (isNeon) {
+                                // For Neon, Auto-Pilot updates the discovered tier metadata
+                                // which will be synced to the provider during the next heartbeat.
+                                // In a real production scenario, we would call the Neon API here.
+                                const providerApiKey = storage.metadata?.providerApiKey as string;
+                                const neonProjectId = storage.metadata?.neonProjectId as string;
+
+                                if (providerApiKey && neonProjectId && process.env.MOCK_DB !== 'true') {
+                                    await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
+                                        method: 'PATCH',
+                                        headers: {
+                                            'Authorization': `Bearer ${providerApiKey}`,
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            project: {
+                                                plan_id: autoScalingRec.recommendedTier.toLowerCase()
+                                            }
+                                        })
+                                    });
+                                }
                             }
 
                             // Log the action
