@@ -4,7 +4,7 @@ import { config } from '@/lib/config';
 export interface DiscoveredResource {
     id: string;
     name: string;
-    type: 'cloud-sql' | 'firestore' | 'memorystore-redis' | 'supabase' | 'neon';
+    type: 'cloud-sql' | 'firestore' | 'memorystore-redis' | 'supabase' | 'neon' | 'mongodb-atlas';
     region: string;
     status: string;
     isOrphaned?: boolean;
