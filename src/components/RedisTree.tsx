@@ -49,7 +49,7 @@ export function RedisTree({ keys, onKeyClick }: RedisTreeProps) {
         <div className="space-y-1">
             <div className="flex items-center gap-2 mb-2">
                 <Database className="w-3.5 h-3.5 text-[var(--primary)]" />
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Redis Key Explorer</span>
+                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Redis Key Explorer</span>
             </div>
             <div className="pl-1">
                 {Object.values(tree.children).sort((a, b) => {
@@ -90,13 +90,13 @@ function TreeItem({ node, onKeyClick, level }: { node: TreeNode; onKeyClick: (ke
                     <Key className="w-3.5 h-3.5 text-[var(--success)]/60" />
                 )}
                 <span className={cn(
-                    "text-[9px] font-mono truncate",
+                    "text-[8px] font-mono truncate",
                     node.isKey ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)] font-bold uppercase tracking-wider"
                 )}>
                     {node.name}
                 </span>
                 {node.isKey && (
-                    <span className="ml-auto opacity-0 group-hover:opacity-100 text-[9px] font-bold uppercase text-[var(--primary)] transition-opacity">
+                    <span className="ml-auto opacity-0 group-hover:opacity-100 text-[8px] font-bold uppercase text-[var(--primary)] transition-opacity">
                         Fetch
                     </span>
                 )}

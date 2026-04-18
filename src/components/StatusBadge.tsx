@@ -65,7 +65,7 @@ export function StatusBadge({ status, className, showIcon = true }: StatusBadgeP
         <Badge
             variant={config.variant}
             className={cn(
-                "gap-1.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5",
+                "gap-1.5 text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5",
                 className
             )}
         >

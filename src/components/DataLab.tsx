@@ -955,7 +955,7 @@ runQuery();`;
                                 <th
                                     key={col}
                                     onClick={() => toggleSort(col)}
-                                    className="p-3 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap cursor-pointer hover:text-[var(--primary)] transition-colors group"
+                                    className="p-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap cursor-pointer hover:text-[var(--primary)] transition-colors group"
                                 >
                                     <div className="flex items-center gap-1.5">
                                         {col}
@@ -983,7 +983,7 @@ runQuery();`;
                                     const fkInfo = schema?.columns ? Object.values(schema.columns).flat().find(c => c.name === col && c.isForeign && c.referencesTable) : null;
 
                                     return (
-                                        <td key={col} className="p-3 text-[9px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
+                                        <td key={col} className="p-3 text-[8px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
                                             <div className="flex items-center gap-1.5">
                                                 {value}
                                                 {fkInfo && (
@@ -1040,16 +1040,16 @@ runQuery();`;
                                         {aggregations[col] ? (
                                             <div className="space-y-1">
                                                 <div className="flex items-center justify-between gap-4">
-                                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">SUM</span>
-                                                    <span className="text-[9px] font-mono font-bold text-[var(--primary)]">{aggregations[col].sum.toLocaleString()}</span>
+                                                    <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase">SUM</span>
+                                                    <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{aggregations[col].sum.toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-4">
-                                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">AVG</span>
-                                                    <span className="text-[9px] font-mono font-bold text-[var(--primary)]">{aggregations[col].avg.toFixed(2)}</span>
+                                                    <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase">AVG</span>
+                                                    <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{aggregations[col].avg.toFixed(2)}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-4">
-                                                    <span className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase">MIN/MAX</span>
-                                                    <span className="text-[9px] font-mono font-bold text-[var(--primary)]">{aggregations[col].min} / {aggregations[col].max}</span>
+                                                    <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase">MIN/MAX</span>
+                                                    <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{aggregations[col].min} / {aggregations[col].max}</span>
                                                 </div>
                                             </div>
                                         ) : (
@@ -1080,29 +1080,29 @@ runQuery();`;
             <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
-                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">X-Axis (Labels)</Label>
+                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">X-Axis (Labels)</Label>
                         <select
                             value={chartConfig.xAxis}
                             onChange={(e) => setChartConfig(prev => ({ ...prev, xAxis: e.target.value }))}
-                            className="w-full h-8 px-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[9px] font-bold uppercase"
+                            className="w-full h-8 px-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[8px] font-bold uppercase"
                         >
                             <option value="">SELECT X-AXIS</option>
                             {columns.map(col => <option key={col} value={col}>{col.toUpperCase()}</option>)}
                         </select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Y-Axis (Numeric)</Label>
+                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Y-Axis (Numeric)</Label>
                         <select
                             value={chartConfig.yAxis}
                             onChange={(e) => setChartConfig(prev => ({ ...prev, yAxis: e.target.value }))}
-                            className="w-full h-8 px-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[9px] font-bold uppercase"
+                            className="w-full h-8 px-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[8px] font-bold uppercase"
                         >
                             <option value="">SELECT Y-AXIS</option>
                             {numericColumns.map(col => <option key={col} value={col}>{col.toUpperCase()}</option>)}
                         </select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Chart Type</Label>
+                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Chart Type</Label>
                         <div className="flex gap-1 bg-[var(--muted)]/20 p-1 rounded-xl border border-[var(--border)] h-8">
                             {(['bar', 'line', 'area', 'pie'] as const).map(t => (
                                 <Button
@@ -1110,7 +1110,7 @@ runQuery();`;
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setChartConfig(prev => ({ ...prev, type: t }))}
-                                        className={`flex-1 h-full text-[9px] font-bold uppercase tracking-wider px-1 ${chartConfig.type === t ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                        className={`flex-1 h-full text-[8px] font-bold uppercase tracking-wider px-1 ${chartConfig.type === t ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
                                 >
                                     {t}
                                 </Button>
@@ -1123,8 +1123,8 @@ runQuery();`;
                     <div className="flex flex-col items-center justify-center py-8 space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                         <PieChartIcon className="w-8 h-8 text-[var(--muted-foreground)]/30" />
                         <div className="text-center space-y-1">
-                            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configure axes to visualize data</p>
-                            <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Select X and Y axes from the results</p>
+                            <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configure axes to visualize data</p>
+                            <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Select X and Y axes from the results</p>
                         </div>
                     </div>
                 ) : (
@@ -1213,20 +1213,20 @@ runQuery();`;
                         <Terminal className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Data Lab</span>
-                        <h3 className="text-[11px] font-bold">Managed Query Browser</h3>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Data Lab</span>
+                        <h3 className="text-[10px] font-bold">Managed Query Browser</h3>
                     </div>
                 </div>
                 <div className="flex items-center gap-6">
                     {performanceData && (
                         <>
                             <div className="text-right hidden md:block">
-                                <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Latency</span>
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">{performanceData.avgLatency}ms</span>
+                                <span className="block text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Latency</span>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">{performanceData.avgLatency}ms</span>
                             </div>
                             <div className="text-right hidden md:block">
-                                <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Success Rate</span>
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--success)]">{performanceData.successRate}%</span>
+                                <span className="block text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Success Rate</span>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]">{performanceData.successRate}%</span>
                             </div>
                         </>
                     )}
@@ -1234,7 +1234,7 @@ runQuery();`;
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowInsights(!showInsights)}
-                        className={`h-8 px-3 text-[9px] font-bold uppercase tracking-wider ${showInsights ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                        className={`h-8 px-3 text-[8px] font-bold uppercase tracking-wider ${showInsights ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
                     >
                         <BarChart2 className="w-4 h-4 mr-2" />
                         Performance Insights
@@ -1249,7 +1249,7 @@ runQuery();`;
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveTab('editor')}
-                    className={`h-8 px-3 text-[9px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'editor' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
+                    className={`h-8 px-3 text-[8px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'editor' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
                 >
                     <Terminal className="w-3.5 h-3.5 mr-2" />
                     Query Editor
@@ -1258,7 +1258,7 @@ runQuery();`;
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveTab('saved')}
-                    className={`h-8 px-3 text-[9px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'saved' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
+                    className={`h-8 px-3 text-[8px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'saved' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
                 >
                     <Save className="w-3.5 h-3.5 mr-2" />
                     Saved Queries
@@ -1267,7 +1267,7 @@ runQuery();`;
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveTab('history')}
-                    className={`h-8 px-3 text-[9px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'history' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
+                    className={`h-8 px-3 text-[8px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'history' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
                 >
                     <History className="w-3.5 h-3.5 mr-2" />
                     Query History
@@ -1276,7 +1276,7 @@ runQuery();`;
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveTab('dashboards')}
-                    className={`h-8 px-3 text-[9px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'dashboards' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
+                    className={`h-8 px-3 text-[8px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'dashboards' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
                 >
                     <BarChart2 className="w-3.5 h-3.5 mr-2" />
                     Dashboards
@@ -1286,7 +1286,7 @@ runQuery();`;
                         variant="ghost"
                         size="sm"
                         onClick={() => setActiveTab('audit')}
-                        className={`h-8 px-3 text-[9px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'audit' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
+                        className={`h-8 px-3 text-[8px] font-bold uppercase tracking-wider rounded-none border-b-2 transition-all ${activeTab === 'audit' ? 'border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/5' : 'border-transparent text-[var(--muted-foreground)]'}`}
                     >
                         <ShieldAlert className="w-3.5 h-3.5 mr-2" />
                         Compliance Audit
@@ -1303,15 +1303,15 @@ runQuery();`;
                                     <ShieldAlert className="w-5 h-5 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Compliance Monitoring</span>
-                                    <h3 className="text-[11px] font-bold">Query Audit Logs</h3>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Compliance Monitoring</span>
+                                    <h3 className="text-[10px] font-bold">Query Audit Logs</h3>
                                 </div>
                             </div>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => fetchProjectStorageAuditLogs(projectId, selectedId)}
-                                className="h-8 px-3 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                className="h-8 px-3 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
                             >
                                 <RefreshCw className="w-3.5 h-3.5 mr-2" />
                                 Refresh Logs
@@ -1322,35 +1322,35 @@ runQuery();`;
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
-                                        <th className="p-3 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Timestamp</th>
-                                        <th className="p-3 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">User</th>
-                                        <th className="p-3 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query</th>
-                                        <th className="p-3 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
-                                        <th className="p-3 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
+                                        <th className="p-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Timestamp</th>
+                                        <th className="p-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">User</th>
+                                        <th className="p-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query</th>
+                                        <th className="p-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
+                                        <th className="p-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {auditLogs.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="p-8 text-center">
-                                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No audit logs found</span>
+                                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No audit logs found</span>
                                             </td>
                                         </tr>
                                     ) : (
                                         auditLogs.map((log) => (
                                             <tr key={log.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
-                                                <td className="p-3 text-[9px] font-mono whitespace-nowrap">
+                                                <td className="p-3 text-[8px] font-mono whitespace-nowrap">
                                                     {new Date(log.timestamp).toLocaleString()}
                                                 </td>
-                                                <td className="p-3 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                                                <td className="p-3 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">
                                                     {log.userEmail}
                                                 </td>
-                                                <td className="p-3 text-[9px] font-mono max-w-[300px] truncate">
+                                                <td className="p-3 text-[8px] font-mono max-w-[300px] truncate">
                                                     {log.query}
                                                 </td>
                                                 <td className="p-3">
                                                     <span className={cn(
-                                                        "text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
+                                                        "text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded",
                                                         log.success ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
                                                     )}>
                                                         {log.success ? 'SUCCESS' : 'FAILED'}
@@ -1361,7 +1361,7 @@ runQuery();`;
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => setViewingAuditQuery(log.query)}
-                                                        className="h-7 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                        className="h-7 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                                                     >
                                                         <Eye className="w-3.5 h-3.5 mr-1.5" />
                                                         View Query
@@ -1377,11 +1377,11 @@ runQuery();`;
                 ) : activeTab === 'editor' ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                        <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Select Connector</Label>
+                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Select Connector</Label>
                         <select
                             value={selectedId}
                             onChange={(e) => setSelectedId(e.target.value)}
-                                    className="w-full h-10 px-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)] text-[9px] font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
+                                    className="w-full h-10 px-3 rounded-lg bg-[var(--muted)]/20 border border-[var(--border)] text-[8px] font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50"
                         >
                             {connectors.map(c => (
                                 <option key={c.id} value={c.id}>{c.name} ({c.type.toUpperCase()})</option>
@@ -1390,13 +1390,13 @@ runQuery();`;
                     </div>
                     <div className="md:col-span-2 space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 {selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale' ? 'SQL Query (Read-Only)' : 'NoSQL Filter / JSON'}
                             </Label>
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]"
+                                className="h-6 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]"
                                 onClick={discoverSchema}
                                 disabled={isDiscovering}
                             >
@@ -1425,7 +1425,7 @@ runQuery();`;
                                         size="sm"
                                         onClick={() => setShowTemplates(!showTemplates)}
                                         className={cn(
-                                            "h-10 px-4 text-[9px] font-bold uppercase tracking-wider transition-colors",
+                                            "h-10 px-4 text-[8px] font-bold uppercase tracking-wider transition-colors",
                                             showTemplates ? "text-[var(--primary)] bg-[var(--primary)]/10" : "text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                         )}
                                         title="Query Templates"
@@ -1436,7 +1436,7 @@ runQuery();`;
                                     {showTemplates && (
                                         <div className="absolute bottom-full mb-2 right-0 w-64 bg-[var(--popover)] border border-[var(--border)] rounded-xl shadow-2xl p-2 z-50 animate-in slide-in-from-bottom-2 fade-in">
                                             <div className="p-2 border-b border-[var(--border)] mb-1">
-                                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">QUICK TEMPLATES</span>
+                                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">QUICK TEMPLATES</span>
                                             </div>
                                             <div className="space-y-1">
                                                 {templates.map(t => (
@@ -1448,13 +1448,13 @@ runQuery();`;
                                                         }}
                                                         className="w-full text-left p-2 hover:bg-[var(--primary)]/10 rounded-xl transition-colors group"
                                                     >
-                                                        <span className="block text-[9px] font-bold uppercase tracking-wider group-hover:text-[var(--primary)]">{t.name}</span>
-                                                        <code className="block text-[9px] font-mono text-[var(--muted-foreground)] truncate">{t.query}</code>
+                                                        <span className="block text-[8px] font-bold uppercase tracking-wider group-hover:text-[var(--primary)]">{t.name}</span>
+                                                        <code className="block text-[8px] font-mono text-[var(--muted-foreground)] truncate">{t.query}</code>
                                                     </button>
                                                 ))}
                                                 {templates.length === 0 && (
                                                     <div className="p-4 text-center">
-                                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">NO TEMPLATES AVAILABLE</span>
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">NO TEMPLATES AVAILABLE</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -1466,7 +1466,7 @@ runQuery();`;
                                     size="sm"
                                     onClick={formatQuery}
                                     disabled={!query.trim()}
-                                    className="h-10 px-4 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    className="h-10 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                     title="Format Query"
                                 >
                                     <AlignLeft className="w-4 h-4 mr-2" />
@@ -1477,7 +1477,7 @@ runQuery();`;
                                     size="sm"
                                     onClick={() => setShowSaveModal(true)}
                                     disabled={!query.trim()}
-                                    className="h-10 px-4 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    className="h-10 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                 >
                                     <Save className="w-4 h-4 mr-2" />
                                     Save
@@ -1488,7 +1488,7 @@ runQuery();`;
                                         size="sm"
                                         onClick={() => executeQuery(undefined, true)}
                                         disabled={isExplaining || isExecuting || !query.trim()}
-                                        className="h-10 px-4 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        className="h-10 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                     >
                                         {isExplaining ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Info className="w-4 h-4 mr-2" />}
                                         Explain
@@ -1498,7 +1498,7 @@ runQuery();`;
                                             onClick={() => executeQuery()}
                                             disabled={isExecuting || !query.trim()}
                                             containerClassName="h-10 w-32"
-                                            className="text-[9px] font-bold uppercase tracking-wider"
+                                            className="text-[8px] font-bold uppercase tracking-wider"
                                         >
                                             {isExecuting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />}
                                             Run Query
@@ -1510,17 +1510,17 @@ runQuery();`;
                                     <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5 animate-in slide-in-from-top-2">
                                         <div className="flex items-center gap-2 mb-3">
                                             <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
-                                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query Variables</span>
+                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query Variables</span>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                             {detectedVars.map(v => (
                                                 <div key={v} className="space-y-1.5">
-                                                    <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">:{v}</Label>
+                                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">:{v}</Label>
                                                     <Input
                                                         value={queryVariables[v] || ''}
                                                         onChange={(e) => setQueryVariables(prev => ({ ...prev, [v]: e.target.value }))}
                                                         placeholder={`VALUE FOR :${v.toUpperCase()}`}
-                                                        className="h-8 text-[9px] font-mono placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                                        className="h-8 text-[8px] font-mono placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                                     />
                                                 </div>
                                             ))}
@@ -1536,8 +1536,8 @@ runQuery();`;
                             <div className="col-span-full py-8 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <Save className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto" />
                                 <div className="space-y-1">
-                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No saved queries yet</p>
-                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Save frequently used queries for quick access</p>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No saved queries yet</p>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Save frequently used queries for quick access</p>
                                 </div>
                             </div>
                         ) : (
@@ -1549,8 +1549,8 @@ runQuery();`;
                                                 <Terminal className="w-3.5 h-3.5 text-[var(--primary)]" />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-[9px] font-bold uppercase tracking-wider truncate max-w-[150px]">{q.name}</span>
-                                                {q.isPublic && <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--success)]">Team Shared</span>}
+                                                <span className="text-[8px] font-bold uppercase tracking-wider truncate max-w-[150px]">{q.name}</span>
+                                                {q.isPublic && <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]">Team Shared</span>}
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1580,7 +1580,7 @@ runQuery();`;
                                             )}
                                         </div>
                                     </div>
-                                    <pre className="text-[9px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
+                                    <pre className="text-[8px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
                                         {q.query}
                                     </pre>
                                     <div className="flex gap-2">
@@ -1592,7 +1592,7 @@ runQuery();`;
                                                 setActiveTab('editor');
                                                 executeQuery(q.query);
                                             }}
-                                            className="flex-1 h-8 text-[9px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            className="flex-1 h-8 text-[8px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                         >
                                             <Play className="w-3 h-3 mr-2" />
                                             Load & Run
@@ -1614,15 +1614,15 @@ runQuery();`;
                                                 {(comments[q.id] || []).map(c => (
                                                     <div key={c.id} className="p-2 rounded bg-[var(--muted)]/10 border border-[var(--border)] space-y-1">
                                                         <div className="flex items-center justify-between">
-                                                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">{c.userName}</span>
-                                                            <span className="text-[9px] text-[var(--muted-foreground)]/60">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">{c.userName}</span>
+                                                            <span className="text-[8px] text-[var(--muted-foreground)]/60">{new Date(c.createdAt).toLocaleDateString()}</span>
                                                         </div>
-                                                        <p className="text-[9px] text-[var(--foreground)]">{c.text}</p>
+                                                        <p className="text-[8px] text-[var(--foreground)]">{c.text}</p>
                                                     </div>
                                                 ))}
                                                 {(!comments[q.id] || comments[q.id].length === 0) && (
                                                     <div className="text-center py-2">
-                                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/40">No comments yet</span>
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/40">No comments yet</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -1631,7 +1631,7 @@ runQuery();`;
                                                     value={newComment}
                                                     onChange={(e) => setNewComment(e.target.value)}
                                                     placeholder="ADD COMMENT..."
-                                                    className="h-8 text-[9px] font-bold uppercase tracking-wider placeholder:text-[9px]"
+                                                    className="h-8 text-[8px] font-bold uppercase tracking-wider placeholder:text-[8px]"
                                                     onKeyDown={(e) => e.key === 'Enter' && postComment(q.id)}
                                                 />
                                                 <Button
@@ -1655,8 +1655,8 @@ runQuery();`;
                             <div className="col-span-full py-12 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <BarChart2 className="w-10 h-10 text-[var(--muted-foreground)]/30 mx-auto" />
                                 <div className="space-y-1">
-                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No dashboard widgets yet</p>
-                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Add query results or charts to your dashboard for quick visualization</p>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No dashboard widgets yet</p>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Add query results or charts to your dashboard for quick visualization</p>
                                 </div>
                             </div>
                         ) : (
@@ -1670,14 +1670,14 @@ runQuery();`;
                                                     <BarChart2 className="w-3 h-3 text-[var(--primary)]" />
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider truncate">{widget.name}</span>
+                                                    <span className="text-[8px] font-bold uppercase tracking-wider truncate">{widget.name}</span>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60 truncate">{widgetConnector?.name || 'UNKNOWN STORAGE'}</span>
+                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60 truncate">{widgetConnector?.name || 'UNKNOWN STORAGE'}</span>
                                                         {widget.isPublic && (
-                                                            <span className="text-[9px] font-bold uppercase text-[var(--success)] shrink-0">Shared</span>
+                                                            <span className="text-[8px] font-bold uppercase text-[var(--success)] shrink-0">Shared</span>
                                                         )}
                                                         {widget.refreshInterval && widget.refreshInterval > 0 && (
-                                                            <span className="text-[9px] font-bold uppercase text-[var(--primary)] shrink-0 flex items-center">
+                                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)] shrink-0 flex items-center">
                                                                 <RefreshCw className="w-2.5 h-2.5 mr-1 animate-spin-slow" />
                                                                 {widget.refreshInterval}s
                                                             </span>
@@ -1689,7 +1689,7 @@ runQuery();`;
                                                 <select
                                                     value={widget.refreshInterval || 0}
                                                     onChange={(e) => updateDashboardWidget(widget.id, { refreshInterval: parseInt(e.target.value) })}
-                                                    className="h-6 px-1 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[9px] font-bold uppercase tracking-wider"
+                                                    className="h-6 px-1 rounded bg-[var(--muted)]/20 border border-[var(--border)] text-[8px] font-bold uppercase tracking-wider"
                                                     title="Auto-refresh interval"
                                                 >
                                                     <option value={0}>OFF</option>
@@ -1760,8 +1760,8 @@ runQuery();`;
                             <div className="py-8 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <History className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto" />
                                 <div className="space-y-1">
-                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query history is empty</p>
-                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Your recently executed queries will appear here</p>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query history is empty</p>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Your recently executed queries will appear here</p>
                                 </div>
                             </div>
                         ) : (
@@ -1778,20 +1778,20 @@ runQuery();`;
                                             </div>
                                             <div className="space-y-1 flex-1">
                                                 <div className="flex items-center gap-3">
-                                                    <code className="text-[9px] font-mono text-[var(--foreground)] line-clamp-1">{h.query}</code>
-                                                    {h.error && <span className="text-[9px] font-bold uppercase bg-[var(--error)]/10 text-[var(--error)] px-1 rounded">Error</span>}
+                                                    <code className="text-[8px] font-mono text-[var(--foreground)] line-clamp-1">{h.query}</code>
+                                                    {h.error && <span className="text-[8px] font-bold uppercase bg-[var(--error)]/10 text-[var(--error)] px-1 rounded">Error</span>}
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
                                                         {new Date(h.timestamp).toLocaleString()}
                                                     </span>
                                                     {h.executionTimeMs !== undefined && (
-                                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]/60">
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]/60">
                                                             {h.executionTimeMs}ms
                                                         </span>
                                                     )}
                                                     {h.rowCount !== undefined && (
-                                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--success)]/60">
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]/60">
                                                             {h.rowCount} rows
                                                         </span>
                                                     )}
@@ -1806,7 +1806,7 @@ runQuery();`;
                                                 setActiveTab('editor');
                                                 executeQuery(h.query);
                                             }}
-                                            className="h-8 px-3 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="h-8 px-3 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
                                             <ChevronRight className="w-3.5 h-3.5 mr-1" />
                                             Re-run
@@ -1824,27 +1824,27 @@ runQuery();`;
                         <div className="md:col-span-1 space-y-4">
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Historical Performance</span>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Historical Performance</span>
                             </div>
                             <div className="space-y-3">
                                 <div>
-                                    <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Uptime / Success</span>
-                                    <span className="text-[11px] font-bold text-[var(--success)]">{performanceData.successRate}%</span>
+                                    <span className="block text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Uptime / Success</span>
+                                    <span className="text-[10px] font-bold text-[var(--success)]">{performanceData.successRate}%</span>
                                 </div>
                                 <div>
-                                    <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Execution</span>
-                                    <span className="text-[11px] font-bold text-[var(--primary)]">{performanceData.avgLatency}ms</span>
+                                    <span className="block text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Avg Execution</span>
+                                    <span className="text-[10px] font-bold text-[var(--primary)]">{performanceData.avgLatency}ms</span>
                                 </div>
                                 <div>
-                                    <span className="block text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Queries (Last 100)</span>
-                                    <span className="text-[11px] font-bold text-[var(--foreground)]">{performanceData.totalQueries}</span>
+                                    <span className="block text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Queries (Last 100)</span>
+                                    <span className="text-[10px] font-bold text-[var(--foreground)]">{performanceData.totalQueries}</span>
                                 </div>
                             </div>
                         </div>
                         <div className="md:col-span-3 space-y-4">
                             <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Time Trend</span>
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded">Last 7 Days</span>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Time Trend</span>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded">Last 7 Days</span>
                             </div>
                             <div className="h-24 flex items-end gap-1.5">
                                 {(performanceData.timeseries || []).map((day, i) => (
@@ -1853,20 +1853,20 @@ runQuery();`;
                                             className="w-full bg-[var(--primary)]/40 hover:bg-[var(--primary)] transition-colors rounded-t-sm"
                                             style={{ height: `${Math.min(100, (day.avgLatency / 100) * 100)}%` }}
                                         />
-                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--popover)] text-[9px] font-bold px-2 py-1 rounded shadow-lg border border-[var(--border)] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--popover)] text-[8px] font-bold px-2 py-1 rounded shadow-lg border border-[var(--border)] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                             {day.date}: {Math.round(day.avgLatency)}ms
                                         </div>
                                     </div>
                                 ))}
                                 {(!performanceData.timeseries || performanceData.timeseries.length === 0) && (
                                     <div className="w-full h-full flex items-center justify-center border border-dashed border-[var(--border)] rounded-lg">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Insufficient Data</span>
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Insufficient Data</span>
                                     </div>
                                 )}
                             </div>
                             <div className="flex justify-between">
                                 {(performanceData.timeseries || []).map((day, i) => (
-                                    <span key={i} className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">
+                                    <span key={i} className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
                                         {new Date(day.date).toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase()}
                                     </span>
                                 ))}
@@ -1878,17 +1878,17 @@ runQuery();`;
                           <div className="pt-4 border-t border-[var(--primary)]/10 space-y-3">
                               <div className="flex items-center gap-2">
                                   <AlertTriangle className="w-3.5 h-3.5 text-[var(--error)]" />
-                                  <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--error)]">Performance Hotspots (Slow Queries)</span>
+                                  <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--error)]">Performance Hotspots (Slow Queries)</span>
                               </div>
                               <div className="grid grid-cols-1 gap-2">
                                   {performanceData.hotspots.map((h, i) => (
                                       <div key={i} className="p-2 rounded bg-[var(--background)] border border-[var(--border)] flex items-center justify-between group">
                                           <div className="flex items-center gap-3 overflow-hidden">
-                                              <span className="text-[9px] font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded shrink-0">{h.count}X</span>
-                                              <code className="text-[9px] font-mono truncate text-[var(--foreground)]">{h.query}</code>
+                                              <span className="text-[8px] font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded shrink-0">{h.count}X</span>
+                                              <code className="text-[8px] font-mono truncate text-[var(--foreground)]">{h.query}</code>
                                           </div>
                                           <div className="flex items-center gap-3 shrink-0">
-                                              <span className="text-[9px] font-bold text-[var(--error)]">{h.avgLatency}ms</span>
+                                              <span className="text-[8px] font-bold text-[var(--error)]">{h.avgLatency}ms</span>
                                               <Button
                                                   variant="ghost"
                                                   size="sm"
@@ -1896,7 +1896,7 @@ runQuery();`;
                                                       setQuery(h.query);
                                                       setActiveTab('editor');
                                                   }}
-                                                  className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
+                                                  className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"
                                               >
                                                   Optimize
                                               </Button>
@@ -1915,7 +1915,7 @@ runQuery();`;
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
                                     <Info className="w-4 h-4 text-[var(--primary)]" />
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Schema Insight</span>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Schema Insight</span>
                                 </div>
                                 <div className="flex items-center gap-1 bg-[var(--muted)]/20 p-0.5 rounded-lg border border-[var(--border)]">
                                     <Button
@@ -1923,7 +1923,7 @@ runQuery();`;
                                         size="sm"
                                         onClick={() => addToDashboard(`DASHBOARD WIDGET ${dashboards.length + 1}`)}
                                         disabled={isSavingDashboard}
-                                        className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                     >
                                         {isSavingDashboard ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <BarChart2 className="w-3.5 h-3.5 mr-1.5" />}
                                         Add to Dashboard
@@ -1933,7 +1933,7 @@ runQuery();`;
                                         size="sm"
                                         onClick={() => setSchemaView('list')}
                                         className={cn(
-                                            "h-6 px-2 text-[9px] font-bold uppercase tracking-wider",
+                                            "h-6 px-2 text-[8px] font-bold uppercase tracking-wider",
                                             schemaView === 'list' ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                                         )}
                                     >
@@ -1945,7 +1945,7 @@ runQuery();`;
                                         size="sm"
                                         onClick={() => setSchemaView('graph')}
                                         className={cn(
-                                            "h-6 px-2 text-[9px] font-bold uppercase tracking-wider",
+                                            "h-6 px-2 text-[8px] font-bold uppercase tracking-wider",
                                             schemaView === 'graph' ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                                         )}
                                     >
@@ -1959,7 +1959,7 @@ runQuery();`;
                                     variant="ghost"
                                     size="sm"
                                     onClick={exportTypeScript}
-                                    className="h-6 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    className="h-6 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
                                 >
                                     <FileCode className="w-3 h-3 mr-1.5" />
                                     Export Types (TS)
@@ -1977,7 +1977,7 @@ runQuery();`;
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Entities</span>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Entities</span>
                                     <div className="relative w-48">
                                         <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--muted-foreground)]" />
                                         <input
@@ -1985,7 +1985,7 @@ runQuery();`;
                                             value={entitySearchQuery}
                                             onChange={(e) => setEntitySearchQuery(e.target.value)}
                                             placeholder="SEARCH ENTITIES..."
-                                            className="w-full h-7 pl-7 pr-2 rounded bg-[var(--background)] border border-[var(--border)] text-[9px] font-bold uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-[var(--primary)]/50 placeholder:text-[var(--muted-foreground)]/50"
+                                            className="w-full h-7 pl-7 pr-2 rounded bg-[var(--background)] border border-[var(--border)] text-[8px] font-bold uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-[var(--primary)]/50 placeholder:text-[var(--muted-foreground)]/50"
                                         />
                                     </div>
                                 </div>
@@ -2011,12 +2011,12 @@ runQuery();`;
                                                         setQuery(`{ "collection": "${item}", "limit": 10 }`);
                                                     }
                                                 }}
-                                                className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[9px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
+                                                className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[8px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <span>{item}</span>
                                                     {schema.tableStats?.[item] !== undefined && (
-                                                        <span className="text-[9px] font-bold text-[var(--muted-foreground)]/50 uppercase tracking-wider">
+                                                        <span className="text-[8px] font-bold text-[var(--muted-foreground)]/50 uppercase tracking-wider">
                                                             ({schema.tableStats[item].estimatedRows.toLocaleString()} ROWS)
                                                         </span>
                                                     )}
@@ -2030,14 +2030,14 @@ runQuery();`;
 
                             {schema.columns && Object.keys(schema.columns).length > 0 && (
                                 <div className="space-y-3 border-l border-[var(--border)] pl-4">
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Structure Preview</span>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Structure Preview</span>
                                     <div className="max-h-40 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
                                         {Object.entries(schema.columns).map(([table, cols]) => (
                                             <div key={table} className="space-y-1.5 p-2 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5 group/table-item">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <Table className="w-3 h-3 text-[var(--primary)]" />
-                                                        <span className="text-[9px] font-bold uppercase tracking-wider">{table}</span>
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider">{table}</span>
                                                     </div>
                                                     {isSavingDoc === `table_${table}` && (
                                                         <Loader2 className="w-2.5 h-2.5 animate-spin text-[var(--primary)]" />
@@ -2053,20 +2053,20 @@ runQuery();`;
                                                         }
                                                     }}
                                                     placeholder="ADD TABLE DESCRIPTION..."
-                                                    className="w-full bg-transparent border-none text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4 pl-5"
+                                                    className="w-full bg-transparent border-none text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4 pl-5"
                                                 />
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (
                                                         <div key={c.name} className="flex flex-col gap-1 p-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] group/col-item relative">
                                                             <div className="flex items-center justify-between gap-4">
                                                                 <div className="flex items-center gap-1">
-                                                                    <span className="text-[9px] font-mono font-bold">{c.name}</span>
-                                                                    {c.isPrimary && <span className="text-[9px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
-                                                                    {c.isForeign && <span className="text-[9px] font-bold text-[var(--success)] mr-0.5">FK</span>}
+                                                                    <span className="text-[8px] font-mono font-bold">{c.name}</span>
+                                                                    {c.isPrimary && <span className="text-[8px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
+                                                                    {c.isForeign && <span className="text-[8px] font-bold text-[var(--success)] mr-0.5">FK</span>}
                                                                     {c.indices && c.indices.map(idx => (
-                                                                        <span key={idx} className="text-[9px] font-bold text-[var(--warning)] mr-0.5" title={idx}>IDX</span>
+                                                                        <span key={idx} className="text-[8px] font-bold text-[var(--warning)] mr-0.5" title={idx}>IDX</span>
                                                                     ))}
-                                                                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
+                                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">{c.type}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-1">
                                                                     {c.isForeign && c.referencesTable && (
@@ -2098,7 +2098,7 @@ runQuery();`;
                                                                         }
                                                                     }}
                                                                     placeholder="ADD COLUMN DESCRIPTION..."
-                                                                    className="w-full bg-transparent border-none text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4"
+                                                                    className="w-full bg-transparent border-none text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4"
                                                                 />
                                                                 {isSavingDoc === `column_${table}.${c.name}` && (
                                                                     <Loader2 className="absolute right-0 top-0 w-2.5 h-2.5 animate-spin text-[var(--primary)]" />
@@ -2130,7 +2130,7 @@ runQuery();`;
                 {error && (
                     <div className="p-4 rounded-lg bg-[var(--error)]/10 border border-[var(--error)]/20 flex items-start gap-3 text-[var(--error)]">
                         <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                        <span className="text-[9px] font-bold uppercase tracking-wider">{error}</span>
+                        <span className="text-[8px] font-bold uppercase tracking-wider">{error}</span>
                     </div>
                 )}
 
@@ -2145,7 +2145,7 @@ runQuery();`;
                                     setCurrentPage(1);
                                 }}
                                 placeholder="FILTER RESULTS LOCALLY..."
-                                className="h-8 border-none bg-transparent focus-visible:ring-0 text-[9px] font-bold uppercase tracking-wider placeholder:text-[9px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="h-8 border-none bg-transparent focus-visible:ring-0 text-[8px] font-bold uppercase tracking-wider placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             {filterQuery && (
                                 <Button
@@ -2175,7 +2175,7 @@ runQuery();`;
                                                     setCurrentPage(1);
                                                 }}
                                                 className={cn(
-                                                    "h-7 px-3 text-[9px] font-bold uppercase tracking-wider",
+                                                    "h-7 px-3 text-[8px] font-bold uppercase tracking-wider",
                                                     activeResultSet === idx ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)]"
                                                 )}
                                             >
@@ -2185,20 +2185,20 @@ runQuery();`;
                                     </div>
                                 )}
                                 <div className="flex flex-col">
-                                    <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--success)]">
+                                    <div className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--success)]">
                                         <CheckCircle2 className="w-4 h-4" />
                                         Query Executed Successfully
                                     </div>
                                     <div className="flex items-center gap-3 mt-1">
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             Total: <span className="text-[var(--foreground)]">{rowCount ?? results.length}</span>
                                         </span>
                                         {filterQuery && (
-                                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 Filtered: <span className="text-[var(--success)]">{processedResults?.length}</span>
                                             </span>
                                         )}
-                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                             Time: <span className="text-[var(--primary)]">{executionTime}ms</span>
                                         </span>
                                     </div>
@@ -2210,7 +2210,7 @@ runQuery();`;
                                             variant="ghost"
                                             size="sm"
                                             onClick={copyResultsCSV}
-                                            className="h-5 px-1.5 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                            className="h-5 px-1.5 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                                             title="Copy Results as CSV"
                                         >
                                             {copiedResults === 'csv' ? <CheckCircle2 className="w-3 h-3 text-[var(--success)] mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
@@ -2221,7 +2221,7 @@ runQuery();`;
                                             variant="ghost"
                                             size="sm"
                                             onClick={copyResultsJSON}
-                                            className="h-5 px-1.5 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                            className="h-5 px-1.5 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                                             title="Copy Results as JSON"
                                         >
                                             {copiedResults === 'json' ? <CheckCircle2 className="w-3 h-3 text-[var(--success)] mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
@@ -2232,7 +2232,7 @@ runQuery();`;
                                             variant="ghost"
                                             size="sm"
                                             onClick={copyAsCode}
-                                            className="h-5 px-1.5 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                            className="h-5 px-1.5 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                                             title="Copy as Node.js Code"
                                         >
                                             {copiedResults === 'code' ? <CheckCircle2 className="w-3 h-3 text-[var(--success)] mr-1" /> : <FileCode className="w-3 h-3 mr-1" />}
@@ -2243,7 +2243,7 @@ runQuery();`;
                                         variant="ghost"
                                         size="sm"
                                         onClick={downloadCSV}
-                                        className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                        className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                                     >
                                         <Download className="w-3.5 h-3.5 mr-1.5" />
                                         CSV
@@ -2252,7 +2252,7 @@ runQuery();`;
                                         variant="ghost"
                                         size="sm"
                                         onClick={downloadJSON}
-                                        className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                        className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                                     >
                                         <Terminal className="w-3.5 h-3.5 mr-1.5" />
                                         JSON
@@ -2262,7 +2262,7 @@ runQuery();`;
                                         size="sm"
                                         onClick={downloadPDF}
                                         disabled={isExportingPDF}
-                                        className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                        className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                                     >
                                         {isExportingPDF ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <FileCode className="w-3.5 h-3.5 mr-1.5" />}
                                         PDF
@@ -2271,7 +2271,7 @@ runQuery();`;
                                         variant="ghost"
                                         size="sm"
                                         onClick={clearResults}
-                                        className="h-6 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error)]/10"
+                                        className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error)]/10"
                                     >
                                         <X className="w-3.5 h-3.5 mr-1.5" />
                                         Clear
@@ -2283,7 +2283,7 @@ runQuery();`;
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setViewMode('table')}
-                                    className={`h-7 px-3 text-[9px] font-bold uppercase tracking-wider ${viewMode === 'table' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                    className={`h-7 px-3 text-[8px] font-bold uppercase tracking-wider ${viewMode === 'table' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
                                 >
                                     <Table className="w-3.5 h-3.5 mr-1.5" />
                                     Table
@@ -2292,7 +2292,7 @@ runQuery();`;
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setViewMode('json')}
-                                    className={`h-7 px-3 text-[9px] font-bold uppercase tracking-wider ${viewMode === 'json' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                    className={`h-7 px-3 text-[8px] font-bold uppercase tracking-wider ${viewMode === 'json' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
                                 >
                                     <Terminal className="w-3.5 h-3.5 mr-1.5" />
                                     JSON
@@ -2301,7 +2301,7 @@ runQuery();`;
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => setViewMode('chart')}
-                                    className={`h-7 px-3 text-[9px] font-bold uppercase tracking-wider ${viewMode === 'chart' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                    className={`h-7 px-3 text-[8px] font-bold uppercase tracking-wider ${viewMode === 'chart' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
                                 >
                                     <PieChartIcon className="w-3.5 h-3.5 mr-1.5" />
                                     Chart
@@ -2312,11 +2312,11 @@ runQuery();`;
                             <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-in slide-in-from-top-2 mb-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Optimization Suggestions (Virtual DBA)</span>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Optimization Suggestions (Virtual DBA)</span>
                                 </div>
                                 <div className="space-y-2">
                                     {optimizationSuggestions.map((s, i) => (
-                                        <div key={i} className="flex items-start gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] p-2 rounded border border-[var(--border)]">
+                                        <div key={i} className="flex items-start gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] p-2 rounded border border-[var(--border)]">
                                             <Info className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
                                             {s}
                                         </div>
@@ -2333,7 +2333,7 @@ runQuery();`;
                                     {renderResultsTable()}
                                     {totalPages > 1 && (
                                         <div className="mt-4 flex items-center justify-between px-2">
-                                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 Page {currentPage} of {totalPages}
                                             </span>
                                             <div className="flex items-center gap-2">
@@ -2342,7 +2342,7 @@ runQuery();`;
                                                     size="sm"
                                                     disabled={currentPage === 1}
                                                     onClick={() => setCurrentPage(prev => prev - 1)}
-                                                    className="h-7 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]"
+                                                    className="h-7 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]"
                                                 >
                                                     <ChevronLeft className="w-4 h-4 mr-1" />
                                                     Previous
@@ -2352,7 +2352,7 @@ runQuery();`;
                                                     size="sm"
                                                     disabled={currentPage === totalPages}
                                                     onClick={() => setCurrentPage(prev => prev + 1)}
-                                                    className="h-7 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]"
+                                                    className="h-7 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]"
                                                 >
                                                     Next
                                                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -2363,7 +2363,7 @@ runQuery();`;
                                 </>
                             ) : (
                                 <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/10 p-4">
-                                    <pre className="text-[9px] font-mono text-[var(--foreground)]">
+                                    <pre className="text-[8px] font-mono text-[var(--foreground)]">
                                         {JSON.stringify(results, null, 2)}
                                     </pre>
                                 </div>
@@ -2374,7 +2374,7 @@ runQuery();`;
 
                 <div className="p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl flex items-start gap-3">
                     <Database className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                         Data Lab uses a secure proxy to execute read-only commands against your connected infrastructure. Your credentials never leave our VPC.
                     </p>
                 </div>
@@ -2389,14 +2389,14 @@ runQuery();`;
                                 <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                                     <Terminal className="w-4 h-4 text-[var(--primary)]" />
                                 </div>
-                                <h3 className="text-[11px] font-bold">Audit Query Source</h3>
+                                <h3 className="text-[10px] font-bold">Audit Query Source</h3>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => setViewingAuditQuery(null)} className="h-8 w-8">
                                 <X className="w-4 h-4" />
                             </Button>
                         </div>
                         <div className="p-6">
-                            <div className="p-4 bg-black/40 border border-[var(--border)] rounded-xl font-mono text-[9px] max-h-96 overflow-y-auto custom-scrollbar">
+                            <div className="p-4 bg-black/40 border border-[var(--border)] rounded-xl font-mono text-[8px] max-h-96 overflow-y-auto custom-scrollbar">
                                 <pre className="whitespace-pre-wrap break-all text-[var(--foreground)]/80 leading-relaxed">
                                     {viewingAuditQuery}
                                 </pre>
@@ -2410,7 +2410,7 @@ runQuery();`;
                                     navigator.clipboard.writeText(viewingAuditQuery || '');
                                     toast.success('Query copied to clipboard');
                                 }}
-                                className="text-[9px] font-bold uppercase tracking-wider"
+                                className="text-[8px] font-bold uppercase tracking-wider"
                             >
                                 <Copy className="w-3.5 h-3.5 mr-2" />
                                 Copy Query
@@ -2422,7 +2422,7 @@ runQuery();`;
                                     setViewingAuditQuery(null);
                                     setActiveTab('editor');
                                 }}
-                                className="text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                className="text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                             >
                                 <Play className="w-3.5 h-3.5 mr-2" />
                                 Load in Editor
@@ -2441,7 +2441,7 @@ runQuery();`;
                                 <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                                     {isCloning ? <Copy className="w-4 h-4 text-[var(--primary)]" /> : <Save className="w-4 h-4 text-[var(--primary)]" />}
                                 </div>
-                                <h3 className="text-[11px] font-bold">{isCloning ? 'Clone Query' : 'Save Query'}</h3>
+                                <h3 className="text-[10px] font-bold">{isCloning ? 'Clone Query' : 'Save Query'}</h3>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => {
                                 setShowSaveModal(false);
@@ -2453,19 +2453,19 @@ runQuery();`;
                         </div>
                         <div className="p-6 space-y-4">
                             <div className="space-y-2">
-                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query Name</Label>
+                                <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query Name</Label>
                                 <Input
                                     value={newQueryName}
                                     onChange={(e) => setNewQueryName(e.target.value)}
                                     placeholder="E.G. ACTIVE USERS"
-                                    className="placeholder:text-[9px]"
+                                    className="placeholder:text-[8px]"
                                     autoFocus
                                 />
                             </div>
                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
-                                    <Label className="text-[9px] font-bold uppercase tracking-wider">Share with Team</Label>
-                                    <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60">Allow other team members to use this query</p>
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider">Share with Team</Label>
+                                    <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">Allow other team members to use this query</p>
                                 </div>
                                 <input
                                     type="checkbox"
@@ -2475,8 +2475,8 @@ runQuery();`;
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">SQL/JSON Code</Label>
-                                <pre className="p-3 bg-[var(--muted)]/20 rounded-xl text-[9px] font-mono line-clamp-4 text-[var(--muted-foreground)]">
+                                <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">SQL/JSON Code</Label>
+                                <pre className="p-3 bg-[var(--muted)]/20 rounded-xl text-[8px] font-mono line-clamp-4 text-[var(--muted-foreground)]">
                                     {query}
                                 </pre>
                             </div>
@@ -2486,14 +2486,14 @@ runQuery();`;
                                 setShowSaveModal(false);
                                 setIsCloning(false);
                                 setNewQueryName('');
-                            }} className="text-[9px] font-bold uppercase tracking-wider">
+                            }} className="text-[8px] font-bold uppercase tracking-wider">
                                 Cancel
                             </Button>
                             <Button
                                 size="sm"
                                 onClick={saveQuery}
                                 disabled={isSavingQuery || !newQueryName.trim()}
-                                className="text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                className="text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                             >
                                 {isSavingQuery ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : (isCloning ? <Copy className="w-3.5 h-3.5 mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />)}
                                 {isCloning ? 'Clone Query' : 'Save Query'}
@@ -2545,7 +2545,7 @@ function DashboardWidget({ widget, projectId }: { widget: { id: string, name: st
         return (
             <div className="h-full flex flex-col items-center justify-center space-y-3">
                 <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
-                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Executing Query...</span>
+                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Executing Query...</span>
             </div>
         );
     }
@@ -2554,7 +2554,7 @@ function DashboardWidget({ widget, projectId }: { widget: { id: string, name: st
         return (
             <div className="h-full flex flex-col items-center justify-center space-y-3 text-[var(--error)]">
                 <AlertCircle className="w-6 h-6" />
-                <span className="text-[9px] font-bold uppercase tracking-wider">{error}</span>
+                <span className="text-[8px] font-bold uppercase tracking-wider">{error}</span>
             </div>
         );
     }
@@ -2563,7 +2563,7 @@ function DashboardWidget({ widget, projectId }: { widget: { id: string, name: st
         return (
             <div className="h-full flex flex-col items-center justify-center space-y-3 text-[var(--muted-foreground)]">
                 <Search className="w-6 h-6 opacity-20" />
-                <span className="text-[9px] font-bold uppercase tracking-wider">No results found</span>
+                <span className="text-[8px] font-bold uppercase tracking-wider">No results found</span>
             </div>
         );
     }
@@ -2651,7 +2651,7 @@ function DashboardWidget({ widget, projectId }: { widget: { id: string, name: st
                 <thead>
                     <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
                         {columns.map(col => (
-                            <th key={col} className="p-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <th key={col} className="p-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 {col}
                             </th>
                         ))}
@@ -2661,7 +2661,7 @@ function DashboardWidget({ widget, projectId }: { widget: { id: string, name: st
                     {results.slice(0, 5).map((row, i) => (
                         <tr key={i} className="border-b border-[var(--border)] last:border-0">
                             {columns.map(col => (
-                                <td key={col} className="p-2 text-[9px] font-mono truncate max-w-[120px]">
+                                <td key={col} className="p-2 text-[8px] font-mono truncate max-w-[120px]">
                                     {typeof row[col] === 'object' ? '{...}' : String(row[col])}
                                 </td>
                             ))}
@@ -2671,7 +2671,7 @@ function DashboardWidget({ widget, projectId }: { widget: { id: string, name: st
             </table>
             {results.length > 5 && (
                 <div className="p-2 text-center border-t border-[var(--border)]">
-                    <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">
                         + {results.length - 5} MORE ROWS
                     </span>
                 </div>

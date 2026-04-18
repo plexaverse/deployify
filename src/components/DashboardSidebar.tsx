@@ -109,7 +109,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
             <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 bg-[var(--card)] border-b border-[var(--border)] h-16">
                 <Link href="/dashboard" className="flex items-center gap-2 group">
                     <Rocket className="w-6 h-6 text-[var(--primary)] group-hover:rotate-12 transition-transform" />
-                    <span className="text-[11px] font-bold gradient-text">Deployify</span>
+                    <span className="text-[10px] font-bold gradient-text">Deployify</span>
                 </Link>
                 <motion.button
                     whileTap={{ scale: 0.95 }}
@@ -144,7 +144,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                 <nav className="flex-1 p-4 overflow-y-auto space-y-6">
                     {navGroups.map((group) => (
                         <div key={group.label}>
-                            <h3 className="text-[9px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-3 px-3">
+                            <h3 className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider mb-3 px-3">
                                 {group.label}
                             </h3>
                             <ul className="space-y-1">
@@ -163,7 +163,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                                 <Link
                                                     href={item.href}
                                                     className={cn(
-                                                        "flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-[9px] font-bold uppercase tracking-wider transition-all duration-200",
+                                                        "flex items-center gap-3 px-3 py-3 md:py-2 rounded-md text-[8px] font-bold uppercase tracking-wider transition-all duration-200",
                                                         isActive
                                                             ? 'bg-[var(--primary)]/5 text-[var(--foreground)] shadow-sm border border-[var(--primary)]/10'
                                                             : 'text-[var(--muted-foreground)] hover:bg-[var(--card-hover)] hover:text-[var(--foreground)]'
@@ -224,7 +224,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                             </Avatar>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <p className="text-[11px] font-bold truncate min-w-0 text-[var(--foreground)]">
+                                    <p className="text-[10px] font-bold truncate min-w-0 text-[var(--foreground)]">
                                         {session.user.name || session.user.githubUsername}
                                     </p>
                                     {session.user.subscription?.tier && session.user.subscription.tier !== 'free' && (
@@ -233,7 +233,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate">
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate">
                                     @{session.user.githubUsername.toUpperCase()}
                                 </p>
                             </div>
@@ -241,7 +241,7 @@ export function DashboardSidebar({ session }: DashboardSidebarProps) {
                         <motion.a
                             whileTap={{ scale: 0.98 }}
                             href="/api/auth/logout"
-                            className="flex items-center gap-2 px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
+                            className="flex items-center gap-2 px-3 py-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--error)] transition-colors mt-1"
                         >
                             <LogOut className="w-4 h-4 shrink-0" />
                             <span className="truncate">Sign out</span>

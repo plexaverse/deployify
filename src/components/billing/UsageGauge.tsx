@@ -37,7 +37,7 @@ export function UsageGauge({
                     <div className="p-2 bg-[var(--card-hover)] rounded-md">
                         {icon}
                     </div>
-                    <h3 className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{title}</h3>
+                    <h3 className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{title}</h3>
                 </div>
 
                 <div className="mt-8 relative flex items-center justify-center">
@@ -71,15 +71,15 @@ export function UsageGauge({
                     />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-[11px] font-bold tracking-tight text-[var(--foreground)]">{percent}%</span>
+                    <span className="text-[10px] font-bold tracking-tight text-[var(--foreground)]">{percent}%</span>
                 </div>
             </div>
 
                 <div className="mt-4 text-center">
-                    <div className="text-[11px] font-bold text-[var(--foreground)]">
-                        {formattedUsed} <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
+                    <div className="text-[10px] font-bold text-[var(--foreground)]">
+                        {formattedUsed} <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
                     </div>
-                    <div className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
+                    <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
                         of {formattedLimit} {unit && limit !== Infinity ? unit : ''}
                     </div>
                 </div>

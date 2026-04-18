@@ -81,14 +81,14 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                     <thead>
                         <tr>
                             <th className="p-4 min-w-[200px] bg-[var(--background)] sticky left-0 z-10 border-b border-[var(--border)] shadow-[4px_0_10px_-2px_rgba(0,0,0,0.1)]">
-                                <span className="text-[11px] font-bold">Features</span>
+                                <span className="text-[10px] font-bold">Features</span>
                             </th>
                             {plans.map((plan) => (
                                 <th key={plan.id} className="p-4 min-w-[150px] border-b border-[var(--border)] text-center bg-[var(--background)]">
                                     <div className="flex flex-col items-center gap-1">
                                         <span className="font-bold">{plan.name}</span>
                                         {plan.id === currentPlanId && (
-                                            <Badge variant="secondary" className="text-[9px] font-bold uppercase tracking-wider px-1.5 h-5">
+                                            <Badge variant="secondary" className="text-[8px] font-bold uppercase tracking-wider px-1.5 h-5">
                                                 Current
                                             </Badge>
                                         )}
@@ -101,7 +101,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                         {features.map((section) => (
                             <React.Fragment key={section.category}>
                                 <tr className="bg-[var(--muted)]/20">
-                                    <td colSpan={plans.length + 1} className="p-4 py-3 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
+                                    <td colSpan={plans.length + 1} className="p-4 py-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
                                         {section.category}
                                     </td>
                                 </tr>
@@ -109,11 +109,11 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                     <tr key={feature.name} className="group hover:bg-[var(--muted)]/5 transition-colors">
                                         <td className="p-4 border-b border-[var(--border)] bg-[var(--background)] sticky left-0 z-10 shadow-[4px_0_10px_-2px_rgba(0,0,0,0.05)]">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[11px] font-bold text-[var(--foreground)]">{feature.name}</span>
+                                                <span className="text-[10px] font-bold text-[var(--foreground)]">{feature.name}</span>
                                                 {feature.info && (
                                                     <div className="group/tooltip relative">
                                                         <HelpCircle className="w-3.5 h-3.5 text-[var(--muted-foreground)] cursor-help" />
-                                                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-48 p-2 bg-[var(--popover)] text-[var(--popover-foreground)] text-[9px] font-bold uppercase tracking-wider rounded-md shadow-md opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-20 border border-[var(--border)]">
+                                                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-48 p-2 bg-[var(--popover)] text-[var(--popover-foreground)] text-[8px] font-bold uppercase tracking-wider rounded-md shadow-md opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-20 border border-[var(--border)]">
                                                             {feature.info}
                                                         </div>
                                                     </div>
@@ -123,7 +123,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                         {plans.map((plan) => {
                                             const value = feature.values[plan.id];
                                             return (
-                                                <td key={`${plan.id}-${feature.name}`} className="p-4 border-b border-[var(--border)] text-center text-[11px]">
+                                                <td key={`${plan.id}-${feature.name}`} className="p-4 border-b border-[var(--border)] text-center text-[10px]">
                                                     {value === true ? (
                                                         <div className="flex justify-center">
                                                             <div className="bg-[var(--primary)]/10 rounded-full p-1">

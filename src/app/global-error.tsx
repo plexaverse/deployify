@@ -27,16 +27,16 @@ export default function GlobalError({
                         <AlertCircle className="w-10 h-10 text-[var(--error)]" />
                     </div>
                     <div className="space-y-1 mb-6">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--error)]">System Failure</span>
-                        <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">Critical Error</h1>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--error)]">System Failure</span>
+                        <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Critical Error</h1>
                     </div>
-                    <p className="text-[var(--muted-foreground)] text-[11px] mb-8 max-w-[280px]">
+                    <p className="text-[var(--muted-foreground)] text-[10px] mb-8 max-w-[280px]">
                       A critical error occurred and the application cannot recover automatically.
                     </p>
                     <Button
                         onClick={() => reset()}
                         size="lg"
-                        className="w-full text-[9px] font-bold uppercase tracking-wider h-12"
+                        className="w-full text-[8px] font-bold uppercase tracking-wider h-12"
                         variant="primary"
                     >
                         <RefreshCw className="mr-2 h-4 w-4" />
@@ -44,8 +44,8 @@ export default function GlobalError({
                     </Button>
                     {error.digest && (
                         <div className="mt-8 pt-6 border-t border-[var(--border)] w-full">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted)]">Error Digest</span>
-                            <code className="block mt-2 text-[9px] font-bold uppercase tracking-wider font-mono text-[var(--muted-foreground)] bg-[var(--muted)]/10 p-2 rounded">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted)]">Error Digest</span>
+                            <code className="block mt-2 text-[8px] font-bold uppercase tracking-wider font-mono text-[var(--muted-foreground)] bg-[var(--muted)]/10 p-2 rounded">
                                 {error.digest}
                             </code>
                         </div>
