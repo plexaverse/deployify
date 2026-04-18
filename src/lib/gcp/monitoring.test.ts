@@ -54,4 +54,18 @@ describe('Scaling Recommendations Logic', () => {
 
         assert.strictEqual(recommendations.length, 0);
     });
+
+    it('should suggest Neon upgrade when compute is high', async () => {
+        const highCpuMetrics = { ...mockMetrics, cpuUtilization: 80 };
+        const recommendations = await getScalingRecommendations('neon', highCpuMetrics, { tier: 'FREE' });
+
+        assert.ok(recommendations.some(r => r.type === 'upgrade' && r.recommendedTier === 'LAUNCH'));
+    });
+
+    it('should suggest Neon downgrade when compute is low', async () => {
+        const lowCpuMetrics = { ...mockMetrics, cpuUtilization: 5 };
+        const recommendations = await getScalingRecommendations('neon', lowCpuMetrics, { tier: 'SCALE' });
+
+        assert.ok(recommendations.some(r => r.type === 'downgrade' && r.recommendedTier === 'PRO'));
+    });
 });

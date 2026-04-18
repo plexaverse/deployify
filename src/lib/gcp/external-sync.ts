@@ -113,7 +113,10 @@ export async function syncExternalConnector(
                     console.warn(`[StorageSync] PlanetScale tier discovery failed:`, e);
                 }
 
-                // 1. Create a new "deployify-managed" password
+                // 1. Create a new "deployify-managed" password with regional IP allowlisting
+                const project = await getProjectById(projectId);
+                const { ips } = getRegionalEgressIps(project?.region || (storage.metadata?.region as string));
+
                 const createRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
                     method: 'POST',
                     headers: {
@@ -122,7 +125,8 @@ export async function syncExternalConnector(
                     },
                     body: JSON.stringify({
                         name: `deployify-sync-${now.getTime()}`,
-                        role: 'readwriter'
+                        role: 'readwriter',
+                        trusted_ips: ips
                     })
                 });
 
@@ -310,9 +314,8 @@ export async function syncExternalFirewall(
                 throw new Error(`Neon Firewall API error: ${errorText}`);
             }
         } else if (storage.type === 'planetscale') {
-            // PlanetScale IP allowlisting is currently managed at the organization level
-            // and does not support per-password or per-database restrictions via this API.
-            return { success: false, error: 'PlanetScale requires manual organization-level IP allowlisting' };
+            // PlanetScale firewall sync is handled during password creation via 'trusted_ips'
+            return { success: true };
         }
 
         return { success: true };

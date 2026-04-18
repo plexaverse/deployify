@@ -524,8 +524,9 @@ export async function getScalingRecommendations(
     const recommendations: ScalingRecommendation[] = [];
     const isCloudSql = storageType.includes('cloud-sql');
     const isRedis = storageType === 'memorystore-redis';
+    const isNeon = storageType === 'neon';
 
-    const currentTier = (metadata?.tier as string) || (isCloudSql ? 'db-f1-micro' : isRedis ? '1GB' : 'unknown');
+    const currentTier = (metadata?.tier as string) || (isCloudSql ? 'db-f1-micro' : isRedis ? '1GB' : isNeon ? 'FREE' : 'unknown');
     const diskSizeGb = (metadata?.diskSizeGb as number) || (metadata?.memorySizeGb as number) || 10;
     const isHA = !!metadata?.highAvailability;
 
@@ -541,17 +542,22 @@ export async function getScalingRecommendations(
         } else if (isRedis) {
             const currentSize = parseInt(currentTier) || 1;
             recommendedTier = `${currentSize + 1}GB`;
+        } else if (isNeon) {
+            if (currentTier === 'FREE') recommendedTier = 'LAUNCH';
+            else if (currentTier === 'LAUNCH') recommendedTier = 'PRO';
+            else if (currentTier === 'PRO') recommendedTier = 'SCALE';
+            else recommendedTier = 'SCALE';
         }
 
         recommendations.push({
             type: 'upgrade',
             resource: 'cpu',
             currentTier,
-            recommendedTier: (isCloudSql || isRedis) ? recommendedTier : 'Next Capacity Tier',
+            recommendedTier: (isCloudSql || isRedis || isNeon) ? recommendedTier : 'Next Capacity Tier',
             reason: `High CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading will improve query performance and overall stability.`,
             performanceGain: 'High'
         });
-    } else if (metrics.cpuUtilization < 15 && currentTier !== 'db-f1-micro' && currentTier !== '1GB' && currentTier !== 'unknown') {
+    } else if (metrics.cpuUtilization < 15 && currentTier !== 'db-f1-micro' && currentTier !== '1GB' && currentTier !== 'FREE' && currentTier !== 'unknown') {
         let recommendedTier = 'db-f1-micro';
         if (isCloudSql) {
             if (currentTier.includes('custom-4')) recommendedTier = 'db-custom-2-7680';
@@ -560,6 +566,11 @@ export async function getScalingRecommendations(
         } else if (isRedis) {
             const currentSize = parseInt(currentTier) || 1;
             recommendedTier = `${Math.max(1, currentSize - 1)}GB`;
+        } else if (isNeon) {
+            if (currentTier === 'SCALE') recommendedTier = 'PRO';
+            else if (currentTier === 'PRO') recommendedTier = 'LAUNCH';
+            else if (currentTier === 'LAUNCH') recommendedTier = 'FREE';
+            else recommendedTier = 'FREE';
         }
 
         const recommendedCost = getEstimatedMonthlyCost(storageType, recommendedTier, diskSizeGb, isHA);
@@ -569,7 +580,7 @@ export async function getScalingRecommendations(
             type: 'downgrade',
             resource: 'cpu',
             currentTier,
-            recommendedTier: (isCloudSql || isRedis) ? recommendedTier : 'Lower Capacity Tier',
+            recommendedTier: (isCloudSql || isRedis || isNeon) ? recommendedTier : 'Lower Capacity Tier',
             reason: `Low CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected consistently. Downgrading to a smaller tier will reduce infrastructure costs.`,
             estimatedSavings: savings > 0 ? `$${savings.toFixed(2)}/mo` : '15-40%',
             savingsAmount: savings > 0 ? parseFloat(savings.toFixed(2)) : undefined
