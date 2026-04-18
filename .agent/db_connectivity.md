@@ -588,7 +588,21 @@ Legacy and custom support with production-grade security:
 - [x] Integrate firewall validation into the multi-layer diagnostic engine
 - [x] Update documentation and high-density UI standards for firewall compliance
 
+### Phase 87: Unified External Discovery & Observability Intelligence (COMPLETED)
+- [x] Extend resource discovery engine to support external providers (Supabase, Neon, MongoDB Atlas)
+- [x] Implement metrics bridge for service-level observability of third-party connectors
+- [x] Integrate external metrics into workspace-wide infrastructure health dashboard
+- [x] Optimize discovery API to leverage existing project-level API keys
+
 ## Progress Updates
+
+### 2027-05-29: Unified External Discovery & Observability Intelligence
+- Completed Phase 87: Unified External Discovery & Observability Intelligence.
+- Launched "Unified Discovery" for external providers, enabling developers to scan and import projects from Supabase, Neon, and MongoDB Atlas using existing project-level API keys.
+- Implemented an "External Metrics Bridge" that fetches real-time status and usage data from third-party provider APIs, providing first-class observability for unmanaged storage.
+- Optimized the Infrastructure Health API to utilize parallel fetching for workspace-wide health aggregation, ensuring low-latency performance even with high connector density.
+- Enabled resource usage gauges for managed external connectors in the Storage dashboard, unifying the developer experience across GCP-native and external databases.
+- Verified 100% functional integrity with system audits and zero-warning build completion.
 
 ### 2027-05-28: Managed Connectivity Intelligence & Cross-Provider Firewall Governance
 - Completed Phase 86: Managed Connectivity Intelligence & Cross-Provider Firewall Governance.

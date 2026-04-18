@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
                 .map(d => d.pullRequestNumber ? `pr${d.pullRequestNumber}` : d.gitBranch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase())
         ));
 
-        const resources = await discoverResources(targetGcpProjectId, activePatterns);
+        const resources = await discoverResources(targetGcpProjectId, activePatterns, projectId);
 
         return NextResponse.json({
             success: true,
