@@ -362,6 +362,85 @@ export function getEstimatedMonthlyCost(
 /**
  * Fetch top slow queries from GCP Cloud SQL Query Insights
  */
+/**
+ * Fetch status and basic metrics from external providers
+ */
+export async function getExternalMetrics(
+    storageType: string,
+    metadata: Record<string, unknown>
+): Promise<{ status: string; usage?: number; limit?: number; unit?: string }> {
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            status: 'ACTIVE',
+            usage: Math.floor(Math.random() * 40) + 10,
+            limit: 100,
+            unit: 'GB'
+        };
+    }
+
+    const providerApiKey = metadata.providerApiKey as string;
+    if (!providerApiKey) return { status: 'UNKNOWN' };
+
+    try {
+        if (storageType === 'neon') {
+            const neonProjectId = metadata.neonProjectId as string;
+            if (!neonProjectId) return { status: 'UNKNOWN' };
+
+            const res = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
+                headers: { 'Authorization': `Bearer ${providerApiKey}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                return {
+                    status: data.project?.status?.toUpperCase() || 'ACTIVE',
+                    // Basic estimation from projects API if usage not directly available
+                    usage: undefined
+                };
+            }
+        } else if (storageType === 'mongodb-atlas') {
+            const groupId = metadata.groupId as string;
+            const clusterName = metadata.clusterName as string;
+            if (!groupId || !clusterName) return { status: 'UNKNOWN' };
+
+            // MongoDB Atlas API often uses Digest Auth, but some configurations support Bearer
+            // We attempt with Bearer first as that's what's currently provided in metadata
+            const res = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters/${clusterName}`, {
+                headers: {
+                    'Authorization': `Bearer ${providerApiKey}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                return {
+                    status: data.stateName === 'IDLE' ? 'ACTIVE' : (data.stateName || 'ACTIVE'),
+                    usage: undefined
+                };
+            }
+        } else if (storageType === 'supabase') {
+            const supabaseId = metadata.supabaseId as string;
+            if (!supabaseId) return { status: 'UNKNOWN' };
+
+            const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}`, {
+                headers: { 'Authorization': `Bearer ${providerApiKey}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                return {
+                    status: data.status?.toUpperCase() || 'ACTIVE'
+                };
+            }
+        }
+    } catch (e) {
+        console.warn(`[Monitoring] Failed to fetch external metrics for ${storageType}:`, e);
+    }
+
+    return { status: 'UNKNOWN' };
+}
+
 export async function getQueryInsights(
     instanceId: string,
     dbType: 'postgresql' | 'mysql' = 'postgresql',

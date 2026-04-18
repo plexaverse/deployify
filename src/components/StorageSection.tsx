@@ -505,6 +505,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             setType('memorystore-redis');
         } else if (resource.type === 'firestore') {
             setType('firestore');
+        } else if (resource.type === 'supabase') {
+            setType('supabase');
+            setSupabaseId(resource.id);
+            setAutoSync(true);
+        } else if (resource.type === 'neon') {
+            setType('neon');
+            setNeonProjectId(resource.id);
+            setAutoSync(true);
+        } else if (resource.type === 'mongodb-atlas') {
+            setType('mongodb-atlas');
+            setMongodbClusterName(resource.name);
+            setMongodbGroupId((resource.metadata?.groupId as string) || '');
+            setAutoSync(true);
         }
 
         setDiscoveredResources([]);

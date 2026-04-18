@@ -4,7 +4,7 @@ import { config } from '@/lib/config';
 export interface DiscoveredResource {
     id: string;
     name: string;
-    type: 'cloud-sql' | 'firestore' | 'memorystore-redis';
+    type: 'cloud-sql' | 'firestore' | 'memorystore-redis' | 'supabase' | 'neon' | 'mongodb-atlas';
     region: string;
     status: string;
     isOrphaned?: boolean;
@@ -12,11 +12,12 @@ export interface DiscoveredResource {
 }
 
 /**
- * Discover existing database resources in a GCP project
+ * Discover existing database resources in a GCP project and external providers
  */
 export async function discoverResources(
-    projectId?: string,
-    activeBranchPatterns: string[] = []
+    projectId?: string, // GCP Project ID (Optional)
+    activeBranchPatterns: string[] = [],
+    deployifyProjectId?: string // Deployify Project ID to fetch external API keys
 ): Promise<DiscoveredResource[]> {
     const targetProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
@@ -53,6 +54,20 @@ export async function discoverResources(
                 status: 'RUNNABLE',
                 isOrphaned: true,
                 metadata: { databaseVersion: 'POSTGRES_15' }
+            },
+            {
+                id: 'sb-external-proj',
+                name: 'Supabase Main',
+                type: 'supabase',
+                region: 'us-east-1',
+                status: 'ACTIVE'
+            },
+            {
+                id: 'neon-dev-db',
+                name: 'Neon Development',
+                type: 'neon',
+                region: 'aws-us-east-1',
+                status: 'ACTIVE'
             }
         ];
     }
@@ -159,6 +174,116 @@ export async function discoverResources(
         }
     } catch (e) {
         console.warn(`[Discovery] Failed to list Firestore databases for ${targetProjectId}:`, e);
+    }
+
+    // 4. Discover External Resources (Supabase, Neon)
+    if (deployifyProjectId) {
+        try {
+            const { getProjectById } = await import('@/lib/db');
+            const project = await getProjectById(deployifyProjectId);
+
+            if (project && project.storageConfigs) {
+                // Find unique API keys for each provider
+                const supabaseKeys = Array.from(new Set(
+                    project.storageConfigs
+                        .filter(s => s.type === 'supabase' && s.metadata?.providerApiKey)
+                        .map(s => s.metadata?.providerApiKey as string)
+                ));
+
+                const neonKeys = Array.from(new Set(
+                    project.storageConfigs
+                        .filter(s => s.type === 'neon' && s.metadata?.providerApiKey)
+                        .map(s => s.metadata?.providerApiKey as string)
+                ));
+
+                const mongodbKeys = Array.from(new Set(
+                    project.storageConfigs
+                        .filter(s => s.type === 'mongodb-atlas' && s.metadata?.providerApiKey)
+                        .map(s => ({
+                            apiKey: s.metadata?.providerApiKey as string,
+                            groupId: s.metadata?.groupId as string
+                        }))
+                ));
+
+                // Discover from Supabase, Neon, and MongoDB Atlas in parallel
+                await Promise.all([
+                    ...supabaseKeys.map(async (apiKey) => {
+                        try {
+                            const sbRes = await fetch('https://api.supabase.com/v1/projects', {
+                                headers: { Authorization: `Bearer ${apiKey}` }
+                            });
+                            if (sbRes.ok) {
+                                const data = await sbRes.json();
+                                (data || []).forEach((item: { id: string; name: string; region: string; status: string }) => {
+                                    resources.push({
+                                        id: item.id,
+                                        name: item.name,
+                                        type: 'supabase',
+                                        region: item.region,
+                                        status: item.status.toUpperCase()
+                                    });
+                                });
+                            }
+                        } catch (e) {
+                            console.warn('[Discovery] Supabase discovery failed:', e);
+                        }
+                    }),
+                    ...neonKeys.map(async (apiKey) => {
+                        try {
+                            const neonRes = await fetch('https://console.neon.tech/api/v2/projects', {
+                                headers: { Authorization: `Bearer ${apiKey}` }
+                            });
+                            if (neonRes.ok) {
+                                const data = await neonRes.json();
+                                if (data.projects) {
+                                    data.projects.forEach((item: { id: string; name: string; region_id: string }) => {
+                                        resources.push({
+                                            id: item.id,
+                                            name: item.name,
+                                            type: 'neon',
+                                            region: item.region_id,
+                                            status: 'ACTIVE'
+                                        });
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('[Discovery] Neon discovery failed:', e);
+                        }
+                    }),
+                    ...mongodbKeys.map(async ({ apiKey, groupId }) => {
+                        try {
+                            if (!groupId) return;
+                            const mongoRes = await fetch(`https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters`, {
+                                headers: {
+                                    'Authorization': `Bearer ${apiKey}`,
+                                    'Accept': 'application/json'
+                                }
+                            });
+                            if (mongoRes.ok) {
+                                const data = await mongoRes.json();
+                                if (data.results) {
+                                    data.results.forEach((item: { name: string; stateName: string; regionName: string }) => {
+                                        resources.push({
+                                            id: item.name,
+                                            name: item.name,
+                                            type: 'mongodb-atlas',
+                                            region: item.regionName || 'UNKNOWN',
+                                            status: item.stateName || 'ACTIVE',
+                                            metadata: { groupId }
+                                        });
+                                    });
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('[Discovery] MongoDB Atlas discovery failed:', e);
+                        }
+                    })
+                ]);
+            }
+        } catch (e) {
+            console.warn('[Discovery] External discovery failed:', e);
+        }
     }
 
     return resources;

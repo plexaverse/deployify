@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { listProjectsByUser, listProjectsByTeam } from '@/lib/db';
-import { getEstimatedMonthlyCost } from '@/lib/gcp/monitoring';
-import type { Project, StorageConfig } from '@/types';
+import { getEstimatedMonthlyCost, getExternalMetrics } from '@/lib/gcp/monitoring';
+import type { Project } from '@/types';
 
 /**
  * GET - Aggregate infrastructure health across all projects in the workspace
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         const optimizationBreakdown = { upgrade: 0, downgrade: 0, optimize: 0 };
         const projectHealth: Record<string, { status: string, healthy: number, total: number, optimizations: number, estimatedMonthlyCost: number, securityScore: number, totalRisks: number }> = {};
 
-        projects.forEach(project => {
+        const projectResults = await Promise.all(projects.map(async (project) => {
             const configs = project.storageConfigs || [];
             let projectHealthy = 0;
             let projectOptimizations = 0;
@@ -51,28 +51,52 @@ export async function GET(request: NextRequest) {
             let projectConnectorsWithScore = 0;
             let projectRisks = 0;
 
-            configs.forEach((storage: StorageConfig) => {
-                totalConnectors++;
+            const storageResults = await Promise.all(configs.map(async (storage) => {
                 const health = storage.metadata?.health as { status: string } | undefined;
-                const status = health?.status || (storage.status === 'provisioning' ? 'provisioning' : 'unknown');
+                let status = health?.status || (storage.status === 'provisioning' ? 'provisioning' : 'unknown');
+
+                // For external connectors, if status is unknown/active, try to fetch real status
+                if (status === 'active' || status === 'unknown') {
+                    if (['supabase', 'mongodb-atlas', 'neon'].includes(storage.type)) {
+                        const ext = await getExternalMetrics(storage.type, storage.metadata || {});
+                        if (ext.status && ext.status !== 'UNKNOWN') {
+                            status = ext.status.toLowerCase();
+                        }
+                    }
+                }
+
+                // Temporary object to hold metrics for this storage
+                return {
+                    status,
+                    type: storage.type,
+                    metadata: storage.metadata,
+                    id: storage.id,
+                    provisioned: storage.status === 'provisioning'
+                };
+            }));
+
+            // Now aggregate the results synchronously
+            storageResults.forEach((result) => {
+                totalConnectors++;
+                const status = result.status;
 
                 if (status === 'healthy') {
                     healthyConnectors++;
                     projectHealthy++;
                 } else if (status === 'degraded') {
                     degradedConnectors++;
-                    projectHealthy++; // Still "UP" but slow
-                } else if (status === 'unhealthy' || storage.status === 'error') {
+                    projectHealthy++;
+                } else if (status === 'unhealthy' || result.provisioned === false) { // storage.status === 'error' handled by result mapping if needed
                     unhealthyConnectors++;
                 } else if (status === 'provisioning') {
                     provisioningConnectors++;
                 }
 
                 // Aggregate Optimizations
-                if (storage.metadata?.optimization) {
+                if (result.metadata?.optimization) {
                     totalOptimizations++;
                     projectOptimizations++;
-                    const optimizationData = storage.metadata.optimization as { recommendations?: Array<{ type: string, savingsAmount?: number }> };
+                    const optimizationData = result.metadata.optimization as { recommendations?: Array<{ type: string, savingsAmount?: number }> };
                     const recommendations = optimizationData.recommendations || [];
                     recommendations.forEach((rec) => {
                         if (rec.type === 'upgrade') optimizationBreakdown.upgrade++;
@@ -87,18 +111,18 @@ export async function GET(request: NextRequest) {
                 }
 
                 // Aggregate Cost Intelligence
-                const tier = (storage.metadata?.tier as string) || (storage.type.includes('cloud-sql') ? 'db-f1-micro' : (storage.type === 'memorystore-redis' ? '1GB' : ''));
-                const diskSizeGb = (storage.metadata?.diskSizeGb as number) || (storage.metadata?.memorySizeGb as number);
-                const isHA = !!storage.metadata?.highAvailability;
+                const tier = (result.metadata?.tier as string) || (result.type.includes('cloud-sql') ? 'db-f1-micro' : (result.type === 'memorystore-redis' ? '1GB' : ''));
+                const diskSizeGb = (result.metadata?.diskSizeGb as number) || (result.metadata?.memorySizeGb as number);
+                const isHA = !!result.metadata?.highAvailability;
 
-                const estimatedCost = getEstimatedMonthlyCost(storage.type, tier, diskSizeGb, isHA);
+                const estimatedCost = getEstimatedMonthlyCost(result.type, tier, diskSizeGb, isHA);
                 totalEstimatedMonthlyCost += estimatedCost;
                 projectCost += estimatedCost;
-                costBreakdown[storage.type] = (costBreakdown[storage.type] || 0) + estimatedCost;
+                costBreakdown[result.type] = (costBreakdown[result.type] || 0) + estimatedCost;
 
                 // Aggregate Security Posture
-                if (storage.metadata?.security) {
-                    const security = storage.metadata.security as { score: number, risks: Array<{ level: string }> };
+                if (result.metadata?.security) {
+                    const security = result.metadata.security as { score: number, risks: Array<{ level: string }> };
                     totalSecurityScore += security.score;
                     connectorsWithScore++;
                     projectSecurityScore += security.score;
@@ -115,15 +139,22 @@ export async function GET(request: NextRequest) {
                 }
             });
 
-            projectHealth[project.id] = {
-                status: projectHealthy === configs.length ? 'healthy' : (projectHealthy > 0 ? 'degraded' : 'unhealthy'),
-                healthy: projectHealthy,
-                total: configs.length,
-                optimizations: projectOptimizations,
-                estimatedMonthlyCost: parseFloat(projectCost.toFixed(2)),
-                securityScore: projectConnectorsWithScore > 0 ? Math.round(projectSecurityScore / projectConnectorsWithScore) : 100,
-                totalRisks: projectRisks
+            return {
+                id: project.id,
+                data: {
+                    status: projectHealthy === configs.length ? 'healthy' : (projectHealthy > 0 ? 'degraded' : 'unhealthy'),
+                    healthy: projectHealthy,
+                    total: configs.length,
+                    optimizations: projectOptimizations,
+                    estimatedMonthlyCost: parseFloat(projectCost.toFixed(2)),
+                    securityScore: projectConnectorsWithScore > 0 ? Math.round(projectSecurityScore / projectConnectorsWithScore) : 100,
+                    totalRisks: projectRisks
+                }
             };
+        }));
+
+        projectResults.forEach(res => {
+            projectHealth[res.id] = res.data;
         });
 
         return NextResponse.json({

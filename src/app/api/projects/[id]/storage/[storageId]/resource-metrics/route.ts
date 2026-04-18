@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
-import { getCloudSqlMetrics, getMemorystoreMetrics } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, getExternalMetrics } from '@/lib/gcp/monitoring';
 import type { StorageConfig } from '@/types';
 
 /**
@@ -29,11 +29,12 @@ export async function GET(
             return NextResponse.json({ error: 'Storage connector not found' }, { status: 404 });
         }
 
-        // Metrics are only available for provisioned GCP resources
-        if (!storageConfig.metadata?.provisioned) {
+        // Metrics are only available for provisioned GCP resources or managed external connectors
+        const isExternal = ['supabase', 'mongodb-atlas', 'neon'].includes(storageConfig.type);
+        if (!storageConfig.metadata?.provisioned && !isExternal) {
             return NextResponse.json({
                 success: false,
-                error: 'Resource metrics are only available for provisioned GCP-native connectors'
+                error: 'Resource metrics are only available for provisioned GCP-native or managed external connectors'
             }, { status: 400 });
         }
 
@@ -45,6 +46,14 @@ export async function GET(
             metrics = await getCloudSqlMetrics(resourceName);
         } else if (storageConfig.type === 'memorystore-redis') {
             metrics = await getMemorystoreMetrics(resourceName, region);
+        } else if (isExternal) {
+            const ext = await getExternalMetrics(storageConfig.type, storageConfig.metadata || {});
+            metrics = {
+                cpuUtilization: ext.usage || 0,
+                memoryUtilization: 0, // Not all providers return memory via project API
+                status: ext.status,
+                timestamp: new Date().toISOString()
+            };
         } else {
             return NextResponse.json({
                 success: false,
