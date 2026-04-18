@@ -117,7 +117,7 @@ export function SchemaMap({ tables, columns, onTableClick }: SchemaMapProps) {
                             <text
                                 x="25"
                                 y="20"
-                                className="text-[9px] font-bold uppercase tracking-wider fill-[var(--foreground)]"
+                                className="text-[8px] font-bold uppercase tracking-wider fill-[var(--foreground)]"
                             >
                                 {table.length > 20 ? table.substring(0, 17) + '...' : table}
                             </text>
@@ -129,7 +129,7 @@ export function SchemaMap({ tables, columns, onTableClick }: SchemaMapProps) {
                                         x="10"
                                         y="0"
                                         className={cn(
-                                            "text-[9px] font-mono",
+                                            "text-[8px] font-mono",
                                             col.isPrimary ? "fill-[var(--primary)] font-bold" : "fill-[var(--muted-foreground)]"
                                         )}
                                     >
@@ -141,7 +141,7 @@ export function SchemaMap({ tables, columns, onTableClick }: SchemaMapProps) {
                                         x={node.width - 10}
                                         y="0"
                                         textAnchor="end"
-                                        className="text-[9px] fill-[var(--muted-foreground)] opacity-50 uppercase font-bold tracking-wider"
+                                        className="text-[8px] fill-[var(--muted-foreground)] opacity-50 uppercase font-bold tracking-wider"
                                     >
                                         {col.type}
                                     </text>

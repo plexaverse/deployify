@@ -52,7 +52,7 @@ export const BentoGridItem = ({
           </div>
         )}
         {description && (
-          <div className="font-sans font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-[9px]">
+          <div className="font-sans font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-[8px]">
             {description}
           </div>
         )}

@@ -68,13 +68,13 @@ export default function ProjectStoragePage() {
                         <Database className="w-8 h-8 text-[var(--muted-foreground)]" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-[9px] md:text-[11px] font-bold">Project Not Found</h2>
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <h2 className="text-[8px] md:text-[10px] font-bold">Project Not Found</h2>
+                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             The project you are looking for does not exist or you don&apos;t have access.
                         </p>
                     </div>
                     <Link href="/dashboard">
-                        <Button variant="outline" className="text-[9px] font-bold uppercase tracking-wider">
+                        <Button variant="outline" className="text-[8px] font-bold uppercase tracking-wider">
                             Back to Dashboard
                         </Button>
                     </Link>
@@ -88,7 +88,7 @@ export default function ProjectStoragePage() {
             {/* Breadcrumb */}
             <Link
                 href={`/dashboard/${project.id}`}
-                className="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                className="inline-flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to {project.name}
@@ -101,8 +101,8 @@ export default function ProjectStoragePage() {
                         <Database className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                        <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">Storage & Data</h1>
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
+                        <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Storage & Data</h1>
                     </div>
                 </div>
             </div>

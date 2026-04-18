@@ -61,11 +61,11 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                                         <ShieldAlert className="w-4 h-4 text-[var(--error)]" />
                                     )}
                                     <span className={cn(
-                                        "text-[9px] font-bold uppercase tracking-wider",
+                                        "text-[8px] font-bold uppercase tracking-wider",
                                         security.score >= 90 ? "text-[var(--success)]" : "text-[var(--error)]"
                                     )}>Security Posture: Grade {security.grade}</span>
                                 </div>
-                                <span className="text-[9px] font-mono font-bold">{security.score}/100</span>
+                                <span className="text-[8px] font-mono font-bold">{security.score}/100</span>
                             </div>
 
                             {security.risks.length > 0 ? (
@@ -75,22 +75,22 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <span className={cn(
-                                                        "text-[9px] font-bold uppercase px-1 rounded",
+                                                        "text-[8px] font-bold uppercase px-1 rounded",
                                                         risk.level === 'critical' || risk.level === 'high' ? "bg-[var(--error)]/20 text-[var(--error)]" : "bg-[var(--warning)]/20 text-[var(--warning)]"
                                                     )}>{risk.level}</span>
-                                                    <span className="text-[9px] font-bold uppercase">{risk.title}</span>
+                                                    <span className="text-[8px] font-bold uppercase">{risk.title}</span>
                                                 </div>
                                             </div>
-                                            <p className="text-[9px] text-[var(--muted-foreground)] leading-relaxed">{risk.description}</p>
+                                            <p className="text-[8px] text-[var(--muted-foreground)] leading-relaxed">{risk.description}</p>
                                             <div className="flex items-start gap-2 pt-1 border-t border-[var(--border)] mt-1">
                                                 <Lock className="w-3 h-3 text-[var(--primary)] shrink-0 mt-0.5" />
-                                                <p className="text-[9px] font-bold text-[var(--foreground)] uppercase">Remediation: {risk.remediation}</p>
+                                                <p className="text-[8px] font-bold text-[var(--foreground)] uppercase">Remediation: {risk.remediation}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-[9px] font-bold uppercase text-[var(--success)]/70 flex items-center gap-2">
+                                <p className="text-[8px] font-bold uppercase text-[var(--success)]/70 flex items-center gap-2">
                                     <ShieldCheck className="w-3 h-3" />
                                     No immediate security risks detected for this connector.
                                 </p>
@@ -103,13 +103,13 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--primary)]">Scaling Analysis</span>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Scaling Analysis</span>
                                 </div>
-                                <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">
+                                <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
                                     Analyzed: {new Date(optimization.lastAnalyzedAt).toLocaleTimeString()}
                                 </span>
                             </div>
-                            <p className="text-[11px] leading-relaxed text-[var(--muted-foreground)]">
+                            <p className="text-[10px] leading-relaxed text-[var(--muted-foreground)]">
                                 Based on real-time utilization trends, we&apos;ve identified opportunities to improve the performance and cost-efficiency of <strong>{storage.name}</strong>.
                             </p>
                         </div>
@@ -120,32 +120,32 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
                                     <Moon className="w-4 h-4" />
-                                    <span className="text-[9px] font-bold uppercase tracking-wider">Resource Dormancy Detected</span>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider">Resource Dormancy Detected</span>
                                 </div>
-                                <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)]">
+                                <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--muted)]/20 text-[var(--muted-foreground)]">
                                     {dormancy.analysisPeriodDays}D ANALYSIS
                                 </span>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <div className="space-y-1">
-                                    <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Avg CPU</span>
-                                    <span className="text-[9px] font-mono font-bold">{dormancy.avgCpuUtilization}%</span>
+                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Avg CPU</span>
+                                    <span className="text-[8px] font-mono font-bold">{dormancy.avgCpuUtilization}%</span>
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Avg Memory</span>
-                                    <span className="text-[9px] font-mono font-bold">{dormancy.avgMemoryUtilization}%</span>
+                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Avg Memory</span>
+                                    <span className="text-[8px] font-mono font-bold">{dormancy.avgMemoryUtilization}%</span>
                                 </div>
                                 {dormancy.lastActiveAt && (
                                     <div className="space-y-1 col-span-2 md:col-span-1">
                                         <div className="flex items-center gap-1">
                                             <Clock className="w-3 h-3 text-[var(--muted-foreground)]" />
-                                            <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Last Activity</span>
+                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Last Activity</span>
                                         </div>
-                                        <span className="text-[9px] font-mono font-bold uppercase">{new Date(dormancy.lastActiveAt).toLocaleDateString()}</span>
+                                        <span className="text-[8px] font-mono font-bold uppercase">{new Date(dormancy.lastActiveAt).toLocaleDateString()}</span>
                                     </div>
                                 )}
                             </div>
-                            <p className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]/70 leading-relaxed italic">
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/70 leading-relaxed italic">
                                 This resource shows near-zero activity. Consider downgrading to the minimum tier or archiving data to reduce costs.
                             </p>
                         </div>
@@ -153,7 +153,7 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
 
                     {optimization && (
                         <div className="space-y-3">
-                            <Label className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scaling Recommendations</Label>
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scaling Recommendations</Label>
                             <div className="space-y-3">
                                 {optimization.recommendations.map((rec, i) => (
                                 <div key={i} className="p-4 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-4 group hover:border-[var(--primary)]/30 transition-all">
@@ -167,41 +167,41 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[9px] font-bold uppercase tracking-wider">
+                                                    <span className="text-[8px] font-bold uppercase tracking-wider">
                                                         {rec.type.toUpperCase()} {rec.resource.toUpperCase()}
                                                     </span>
                                                     {rec.estimatedSavings && (
-                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--success)]/10 text-[var(--success)] uppercase">
+                                                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[var(--success)]/10 text-[var(--success)] uppercase">
                                                             Save {rec.estimatedSavings}
                                                         </span>
                                                     )}
                                                     {rec.performanceGain && (
-                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] uppercase">
+                                                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] uppercase">
                                                             +{rec.performanceGain} Performance
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[11px] font-bold text-[var(--foreground)] mt-1">{rec.reason}</p>
+                                                <p className="text-[10px] font-bold text-[var(--foreground)] mt-1">{rec.reason}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center justify-between gap-4 p-2.5 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
                                         <div className="space-y-0.5">
-                                            <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)] block">Current Tier</span>
-                                            <span className="text-[9px] font-mono font-bold">{rec.currentTier}</span>
+                                            <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] block">Current Tier</span>
+                                            <span className="text-[8px] font-mono font-bold">{rec.currentTier}</span>
                                         </div>
                                         <ArrowRight className="w-4 h-4 text-[var(--muted-foreground)]/50" />
                                         <div className="text-right space-y-0.5">
-                                            <span className="text-[9px] font-bold uppercase text-[var(--primary)] block">Recommended</span>
-                                            <span className="text-[9px] font-mono font-bold text-[var(--primary)]">{rec.recommendedTier}</span>
+                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)] block">Recommended</span>
+                                            <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{rec.recommendedTier}</span>
                                         </div>
                                     </div>
 
                                     {onApply && (
                                         <Button
                                             onClick={() => onApply(rec)}
-                                            className="w-full h-8 text-[9px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                            className="w-full h-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                                         >
                                             Apply Recommendation
                                         </Button>
@@ -214,7 +214,7 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
 
                     <div className="flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl">
                         <AlertCircle className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                             Applying these changes will trigger a GCP update operation. Your database may experience brief unavailability depending on the tier adjustment.
                         </p>
                     </div>

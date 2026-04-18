@@ -133,8 +133,8 @@ export default function DashboardPage() {
                                     <Activity className="w-4 h-4 text-[var(--primary)]" />
                                 </div>
                                 <div className="space-y-0.5">
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure Fleet</span>
-                                    <h3 className="text-[11px] font-bold">Global Connectivity Health</h3>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure Fleet</span>
+                                    <h3 className="text-[10px] font-bold">Global Connectivity Health</h3>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
@@ -143,30 +143,30 @@ export default function DashboardPage() {
                                 ) : infraHealth && (
                                     <>
                                         <div className="text-right">
-                                            <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Global Uptime</span>
+                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Global Uptime</span>
                                             <span className={cn(
-                                                "text-[9px] font-bold uppercase",
+                                                "text-[8px] font-bold uppercase",
                                                 infraHealth.summary.uptimeScore > 98 ? "text-[var(--success)]" : "text-[var(--warning)]"
                                             )}>{infraHealth.summary.uptimeScore}%</span>
                                         </div>
                                         <Separator orientation="vertical" className="h-8 bg-[var(--border)]" />
                                         <div className="flex items-center gap-3">
                                             <div className="text-center">
-                                                <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Healthy</span>
-                                                <span className="text-[9px] font-bold text-[var(--success)]">{infraHealth.summary.healthyConnectors}</span>
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Healthy</span>
+                                                <span className="text-[8px] font-bold text-[var(--success)]">{infraHealth.summary.healthyConnectors}</span>
                                             </div>
                                             <div className="text-center">
-                                                <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Slow</span>
-                                                <span className="text-[9px] font-bold text-[var(--warning)]">{infraHealth.summary.degradedConnectors}</span>
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Slow</span>
+                                                <span className="text-[8px] font-bold text-[var(--warning)]">{infraHealth.summary.degradedConnectors}</span>
                                             </div>
                                             <div className="text-center">
-                                                <span className="block text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Failed</span>
-                                                <span className="text-[9px] font-bold text-[var(--error)]">{infraHealth.summary.unhealthyConnectors}</span>
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Failed</span>
+                                                <span className="text-[8px] font-bold text-[var(--error)]">{infraHealth.summary.unhealthyConnectors}</span>
                                             </div>
                                         </div>
                                     <Separator orientation="vertical" className="h-8 bg-[var(--border)]" />
                                     <Link href="/dashboard/infrastructure">
-                                        <Button variant="ghost" size="sm" className="h-8 px-2 text-[9px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/5">
+                                        <Button variant="ghost" size="sm" className="h-8 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/5">
                                             View Fleet
                                         </Button>
                                     </Link>
@@ -179,13 +179,13 @@ export default function DashboardPage() {
                     <Card className="overflow-hidden p-4 border-[var(--primary)]/10 bg-[var(--primary)]/5 flex flex-col justify-center">
                         <div className="flex items-center gap-2 mb-2">
                             <Database className="w-3.5 h-3.5 text-[var(--primary)]" />
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Active Resources</span>
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Active Resources</span>
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-[11px] font-bold tracking-tighter">
+                            <span className="text-[10px] font-bold tracking-tighter">
                                 {loadingInfra ? '...' : infraHealth?.summary.totalConnectors || 0}
                             </span>
-                            <span className="text-[9px] font-bold uppercase text-[var(--muted-foreground)]">Managed Connectors</span>
+                            <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Managed Connectors</span>
                         </div>
                     </Card>
                 </div>
@@ -198,8 +198,8 @@ export default function DashboardPage() {
                         <Layout className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Overview</span>
-                        <h1 className="text-[9px] md:text-[11px] font-bold tracking-tight">
+                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Overview</span>
+                        <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">
                             {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
                         </h1>
                     </div>
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                                     <X className="w-3.5 h-3.5" />
                                 </Button>
                             ) : (
-                                <div className="hidden sm:flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-wider text-[var(--muted)] border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                                <div className="hidden sm:flex items-center gap-0.5 text-[8px] font-bold uppercase tracking-wider text-[var(--muted)] border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
                                     <span>/</span>
                                 </div>
                             )}
@@ -246,7 +246,7 @@ export default function DashboardPage() {
                         <MovingBorderButton
                             as="div"
                             containerClassName="h-10 w-36"
-                            className="text-[9px] font-bold uppercase tracking-wider"
+                            className="text-[8px] font-bold uppercase tracking-wider"
                         >
                             <Plus className="w-4 h-4 mr-2" />
                             ADD NEW

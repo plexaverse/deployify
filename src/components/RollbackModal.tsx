@@ -28,8 +28,8 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                                 <AlertTriangle className="w-5 h-5 text-[var(--warning)]" />
                             </div>
                             <div className="space-y-0.5">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Action</span>
-                                <h3 className="text-[11px] font-bold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Action</span>
+                                <h3 className="text-[10px] font-bold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
                             </div>
                         </div>
                         <Button
@@ -44,27 +44,27 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
 
                     {/* Content */}
                     <div className="p-6 overflow-y-auto">
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-6 leading-relaxed">
+                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-6 leading-relaxed">
                             Are you sure you want to rollback to this version? This will immediately switch traffic to the selected revision.
                         </p>
 
                         <div className="bg-[var(--background)] rounded-xl p-6 border border-[var(--border)] space-y-4 shadow-sm">
                             <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Commit</span>
-                                <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-[var(--foreground)] bg-[var(--muted)]/20 px-2 py-1 rounded w-fit">{deployment.gitCommitSha.substring(0, 7).toUpperCase()}</p>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Commit</span>
+                                <p className="font-mono text-[8px] font-bold uppercase tracking-wider text-[var(--foreground)] bg-[var(--muted)]/20 px-2 py-1 rounded w-fit">{deployment.gitCommitSha.substring(0, 7).toUpperCase()}</p>
                             </div>
                             <div className="space-y-1">
-                                <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Message</span>
-                                <p className="text-[11px] font-bold line-clamp-2 text-[var(--foreground)]">{deployment.gitCommitMessage}</p>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Message</span>
+                                <p className="text-[10px] font-bold line-clamp-2 text-[var(--foreground)]">{deployment.gitCommitMessage}</p>
                             </div>
                             <div className="flex justify-between gap-4 pt-2">
                                 <div className="space-y-1">
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Author</span>
-                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--foreground)]">{deployment.gitCommitAuthor}</p>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Author</span>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--foreground)]">{deployment.gitCommitAuthor}</p>
                                 </div>
                                 <div className="text-right space-y-1">
-                                    <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployed At</span>
-                                    <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--foreground)]">
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployed At</span>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--foreground)]">
                                         {new Date(deployment.createdAt).toLocaleDateString().toUpperCase()}
                                     </p>
                                 </div>
@@ -77,14 +77,14 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                         <Button
                             variant="secondary"
                             onClick={onClose}
-                            className="text-[9px] font-bold uppercase tracking-wider"
+                            className="text-[8px] font-bold uppercase tracking-wider"
                         >
                             Cancel
                         </Button>
                         <MovingBorderButton
                             onClick={onConfirm}
                             containerClassName="h-10 w-40"
-                            className="text-[9px] font-bold uppercase tracking-wider"
+                            className="text-[8px] font-bold uppercase tracking-wider"
                         >
                             Confirm Rollback
                         </MovingBorderButton>
