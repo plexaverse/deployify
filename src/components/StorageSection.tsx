@@ -1402,7 +1402,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {!!config.metadata?.tier && (
                                                 <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--muted)]/20 text-[var(--muted-foreground)] font-bold uppercase tracking-wider border border-[var(--border)] flex items-center gap-1" title={`Discovered Resource Tier: ${config.metadata.tier}`}>
                                                     <Zap className="w-2.5 h-2.5" />
-                                                    TIER: {config.metadata.tier}
+                                                    TIER: {config.metadata.tier as string}
                                                 </span>
                                             )}
                                             {config.activeAlerts && config.activeAlerts.length > 0 && (

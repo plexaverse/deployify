@@ -33,7 +33,14 @@ export async function GET(
         }
 
         const { project } = access;
-        const storageConfigs = project.storageConfigs || [];
+        const storageConfigs = (project.storageConfigs || []).map(config => {
+            if (config.metadata?.providerApiKey) {
+                const safeMetadata = { ...config.metadata };
+                delete safeMetadata.providerApiKey;
+                return { ...config, metadata: safeMetadata };
+            }
+            return config;
+        });
 
         return NextResponse.json({ success: true, storageConfigs });
     } catch (error) {
@@ -190,9 +197,17 @@ export async function POST(
             }
         );
 
+        // Sanitize for response
+        const sanitizedConfig = { ...newStorageConfig };
+        if (sanitizedConfig.metadata?.providerApiKey) {
+            const safeMetadata = { ...sanitizedConfig.metadata };
+            delete safeMetadata.providerApiKey;
+            sanitizedConfig.metadata = safeMetadata;
+        }
+
         return NextResponse.json({
             success: true,
-            storageConfig: newStorageConfig,
+            storageConfig: sanitizedConfig,
         });
     } catch (error) {
         console.error('Failed to add storage config:', error);
@@ -424,9 +439,17 @@ export async function PATCH(
             }
         );
 
+        // Sanitize for response
+        const sanitizedConfig = { ...updatedStorageConfig };
+        if (sanitizedConfig.metadata?.providerApiKey) {
+            const safeMetadata = { ...sanitizedConfig.metadata };
+            delete safeMetadata.providerApiKey;
+            sanitizedConfig.metadata = safeMetadata;
+        }
+
         return NextResponse.json({
             success: true,
-            storageConfig: updatedStorageConfig,
+            storageConfig: sanitizedConfig,
         });
     } catch (error) {
         console.error('Failed to update storage config:', error);
