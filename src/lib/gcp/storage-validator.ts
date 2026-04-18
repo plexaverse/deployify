@@ -245,6 +245,22 @@ export async function diagnoseConnection(
                 mockSteps.push({ name: 'GCP SQL Admin API Validation', status: 'success', latency: 350 });
             }
 
+            const isExternal = ['supabase', 'mongodb-atlas', 'planetscale', 'neon'].includes(type);
+            if (isExternal) {
+                if (metadata?.firewallSynced) {
+                    mockSteps.push({ name: 'Firewall Policy Validation', status: 'success', latency: 0 });
+                } else {
+                    const regionalIps = getRegionalEgressIps(projectContext?.region);
+                    mockSteps.push({
+                        name: 'Firewall Policy Validation',
+                        status: 'failure',
+                        latency: 0,
+                        error: 'Unmanaged firewall policy detected',
+                        recommendation: `Automated firewall synchronization is not active. Ensure these regional egress IPs for ${regionalIps.region} are allowlisted: ${regionalIps.ips.join(', ')}`
+                    });
+                }
+            }
+
             // Regional Alignment Check for Mocks
             let regionMismatch: DiagnosticResult['regionMismatch'] | undefined;
             if (projectContext?.region && metadata?.region) {
@@ -430,7 +446,25 @@ export async function diagnoseConnection(
             }
         }
 
-        // Step 6: GCP API State Validation
+        // Step 6: Firewall Policy Validation (External Connectors)
+        const isExternal = ['supabase', 'mongodb-atlas', 'planetscale', 'neon'].includes(type);
+        if (isExternal) {
+            const fwStep = addStep('Firewall Policy Validation');
+            fwStep.status = 'running';
+
+            if (metadata?.firewallSynced) {
+                fwStep.status = 'success';
+                fwStep.latency = 0;
+            } else {
+                fwStep.status = 'failure';
+                const regionalIps = getRegionalEgressIps(projectContext?.region);
+                fwStep.error = 'Unmanaged firewall policy detected';
+                fwStep.recommendation = `Automated firewall synchronization is not active. Ensure these regional egress IPs for ${regionalIps.region} are allowlisted in your provider dashboard: ${regionalIps.ips.join(', ')}. Alternatively, trigger a "Sync Status" operation to automate this.`;
+                fwStep.latency = 0;
+            }
+        }
+
+        // Step 7: GCP API State Validation
         if (type.includes('cloud-sql')) {
             const authStep = addStep('GCP SQL Admin API Validation');
             authStep.status = 'running';
@@ -463,7 +497,7 @@ export async function diagnoseConnection(
             }
         }
 
-        // Step 7: Regional Alignment Check
+        // Step 8: Regional Alignment Check
         let regionMismatch: DiagnosticResult['regionMismatch'] | undefined;
         if (projectContext?.region && metadata?.region) {
             const alignmentStep = addStep('Regional Alignment');

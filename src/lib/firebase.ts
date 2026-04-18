@@ -144,6 +144,37 @@ function createMockFirestore(): Firestore {
                         }
                     },
                     {
+                        id: 'storage_neon',
+                        type: 'neon',
+                        name: 'Neon DB',
+                        status: 'active',
+                        environment: 'both',
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        connectionStringSecretId: 'mock-neon-id',
+                        metadata: {
+                            provisioned: false,
+                            autoSync: true,
+                            neonProjectId: 'ep-mock-123456',
+                            firewallSynced: false,
+                            region: 'us-central1',
+                            security: {
+                                score: 85,
+                                grade: 'B',
+                                risks: [
+                                    {
+                                        id: 'unmanaged_firewall',
+                                        level: 'medium',
+                                        title: 'Unmanaged Firewall Policy',
+                                        description: 'This external connector does not have an automated firewall synchronization policy active.',
+                                        remediation: 'Trigger a "Sync Status" operation to allowlist regional egress IPs in the provider firewall.'
+                                    }
+                                ],
+                                lastAuditedAt: new Date().toISOString()
+                            }
+                        }
+                    },
+                    {
                         id: 'storage_redis',
                         type: 'memorystore-redis',
                         name: 'Cache Layer',

@@ -236,6 +236,36 @@ export async function syncExternalFirewall(
                 const errorText = await res.text();
                 throw new Error(`MongoDB Atlas Access List API error: ${errorText}`);
             }
+        } else if (storage.type === 'neon') {
+            const neonProjectId = storage.metadata?.neonProjectId as string;
+            if (!neonProjectId) throw new Error('Neon Project ID missing');
+
+            // Neon V2 API handles IP allowlisting via nested project settings
+            const res = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${providerApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    project: {
+                        settings: {
+                            ip_allow: {
+                                allowed_ips: ips
+                            }
+                        }
+                    }
+                })
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Neon Firewall API error: ${errorText}`);
+            }
+        } else if (storage.type === 'planetscale') {
+            // PlanetScale IP allowlisting is currently managed at the organization level
+            // and does not support per-password or per-database restrictions via this API.
+            return { success: false, error: 'PlanetScale requires manual organization-level IP allowlisting' };
         }
 
         return { success: true };
