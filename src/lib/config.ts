@@ -31,6 +31,7 @@ export const config = {
         projectNumber: process.env.GCP_PROJECT_NUMBER,
         region: process.env.GCP_REGION || 'asia-south1',
         artifactRegistry: process.env.GCP_ARTIFACT_REGISTRY || 'deployify-images',
+        serviceAccountName: process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa',
     },
 
     // Firebase/Firestore

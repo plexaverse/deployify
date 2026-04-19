@@ -609,6 +609,13 @@ Legacy and custom support with production-grade security:
 
 ## Progress Updates
 
+### 2027-06-01: Integrated GCP Lifecycle & Regional Alignment
+- Completed Phase 90: Integrated GCP Lifecycle.
+- Hardened Memorystore provisioning with `authorizedNetwork` support, enabling automated VPC peering during resource creation.
+- Enhanced Cloud SQL IAM bootstrapping by formatting usernames correctly for PostgreSQL (full email) and MySQL (email prefix) engines.
+- Implemented strict Regional Alignment enforcement in the Storage API, ensuring provisioned resources are co-located with the project's compute region.
+- Updated the `Project` type and build pipeline to include necessary IAM roles (`roles/cloudsql.instanceUser`) and VPC metadata.
+
 ### 2027-05-31: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion
 - Completed Phase 89: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion.
 - Hardened PlanetScale connectivity by integrating regional egress IP allowlisting into the automated password rotation flow.
@@ -620,11 +627,11 @@ Legacy and custom support with production-grade security:
 
 Following the Managed "Connector" model, Deployify will evolve its storage layer to provide seamless integration between GCP-native services and external providers, focusing on **Connectivity Intelligence**.
 
-### Phase 90: Integrated GCP Lifecycle (PROPOSED)
-- [ ] Implement automated Firestore database creation within project regional boundaries.
-- [ ] Orchestrate Memorystore (Redis) instance provisioning with automated VPC Network Peering.
-- [ ] Implement "One-Click" Cloud SQL instance creation with IAM-based user bootstrapping.
-- [ ] Standardize regional alignment checks to ensure storage and compute are co-located.
+### Phase 90: Integrated GCP Lifecycle (COMPLETED)
+- [x] Implement automated Firestore database creation within project regional boundaries.
+- [x] Orchestrate Memorystore (Redis) instance provisioning with automated VPC Network Peering.
+- [x] Implement "One-Click" Cloud SQL instance creation with IAM-based user bootstrapping.
+- [x] Standardize regional alignment checks to ensure storage and compute are co-located.
 
 ### Phase 91: Native Secret Management & Mounting (PROPOSED)
 - [ ] Implement automated IAM grant cycles for Cloud Run Service Agents to access Secret Manager.

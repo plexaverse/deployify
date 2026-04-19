@@ -337,7 +337,9 @@ node fix-next-config.js && rm fix-next-config.js`,
                    gcloud secrets add-iam-policy-binding $\${secret} --member="serviceAccount:$\${COMPUTE_SA}" --role="roles/secretmanager.secretAccessor" --quiet || echo "Warning: Could not grant secret access to $\${COMPUTE_SA}"; \
                  done` : 'echo "No secrets to bind"'} && \
                  ${cloudSqlInstances.length > 0 ? `gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$\${RUN_SERVICE_AGENT}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $\${RUN_SERVICE_AGENT}"; \
-                 gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$\${COMPUTE_SA}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $\${COMPUTE_SA}"` : 'echo "No Cloud SQL instances to bind"'}`,
+                 gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$\${COMPUTE_SA}" --role="roles/cloudsql.client" --quiet || echo "Warning: Could not grant Cloud SQL client role to $\${COMPUTE_SA}"; \
+                 gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$\${RUN_SERVICE_AGENT}" --role="roles/cloudsql.instanceUser" --quiet || echo "Warning: Could not grant Cloud SQL instanceUser role to $\${RUN_SERVICE_AGENT}"; \
+                 gcloud projects add-iam-policy-binding ${gcpProjectId} --member="serviceAccount:$\${COMPUTE_SA}" --role="roles/cloudsql.instanceUser" --quiet || echo "Warning: Could not grant Cloud SQL instanceUser role to $\${COMPUTE_SA}"` : 'echo "No Cloud SQL instances to bind"'}`,
             ],
         }] : []),
         // Extract and Save Cache to GCS (Non-blocking)

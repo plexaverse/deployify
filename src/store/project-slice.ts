@@ -82,6 +82,7 @@ export interface ProjectSlice {
     updateProjectResources: (projectId: string, resources: NonNullable<Project['resources']>) => Promise<boolean>;
     updateBranchSettings: (projectId: string, settings: { autodeployBranches: string[], branchEnvironments: NonNullable<Project['branchEnvironments']> }) => Promise<boolean>;
     updateProjectCrons: (projectId: string, crons: CronJobConfig[]) => Promise<boolean>;
+    updateProject: (projectId: string, data: Partial<Project>) => Promise<boolean>;
 
     // Storage Actions
     fetchProjectStorage: (projectId: string) => Promise<void>;
@@ -665,20 +666,24 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     },
 
     updateProjectCrons: async (projectId: string, crons: CronJobConfig[]) => {
+        return get().updateProject(projectId, { crons });
+    },
+
+    updateProject: async (projectId: string, data: Partial<Project>) => {
         try {
             const response = await fetch(`/api/projects/${projectId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ crons }),
+                body: JSON.stringify(data),
             });
             if (response.ok) {
-                const data = await response.json();
-                set({ currentProject: data.project });
+                const resData = await response.json();
+                set({ currentProject: resData.project });
                 return true;
             }
             return false;
         } catch (error) {
-            console.error('Failed to update project crons:', error);
+            console.error('Failed to update project:', error);
             return false;
         }
     },

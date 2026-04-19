@@ -10,6 +10,7 @@ import mysql from 'mysql2/promise';
 import { MongoClient } from 'mongodb';
 import Redis from 'ioredis';
 import { maskData } from '@/lib/utils/masking';
+import { config } from '@/lib/config';
 
 const MAX_ROWS = 500;
 
@@ -322,11 +323,12 @@ export async function POST(
                             const accessToken = await getGcpAccessToken();
                             const socketPath = url.searchParams.get('host');
 
+                            const saName = config.gcp.serviceAccountName;
                             if (isPostgres) {
                                 sqlConfig = {
                                     host: socketPath || url.hostname,
                                     port: url.port ? parseInt(url.port, 10) : 5432,
-                                    user: url.username || 'deployify-sa',
+                                    user: url.username || saName,
                                     password: accessToken,
                                     database: url.pathname.split('/')[1] || 'postgres',
                                     ssl: socketPath ? false : (storageConfig.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
@@ -336,7 +338,7 @@ export async function POST(
                                     host: url.hostname,
                                     port: url.port ? parseInt(url.port, 10) : 3306,
                                     socketPath: socketPath || undefined,
-                                    user: url.username || 'deployify-sa',
+                                    user: url.username || saName,
                                     password: accessToken,
                                     database: url.pathname.split('/')[1] || 'mysql',
                                     ssl: socketPath ? false : (storageConfig.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false }),

@@ -95,6 +95,14 @@ export async function POST(
          */
         if (provision) {
             const targetRegion = region || project.region || 'us-central1';
+
+            // Enforce regional alignment: Storage must be co-located with compute
+            if (project.region && region && region !== project.region) {
+                return NextResponse.json({
+                    error: `Regional Mismatch: Project is configured for ${project.region}, but storage was requested in ${region}. Regional co-location is required for performance and architectural integrity.`
+                }, { status: 400 });
+            }
+
             status = 'provisioning';
             resourceName = name.toLowerCase().replace(/\s+/g, '-');
 
@@ -115,7 +123,9 @@ export async function POST(
                     });
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'memorystore-redis' && resourceName) {
-                    provisionResult = await createMemorystoreInstance(resourceName, targetRegion);
+                    provisionResult = await createMemorystoreInstance(resourceName, targetRegion, {
+                        authorizedNetwork: metadata?.vpcNetwork || project.vpcNetwork || 'default'
+                    });
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'firestore' && resourceName) {
                     provisionResult = await createFirestoreDatabase(resourceName, targetRegion);
@@ -151,6 +161,8 @@ export async function POST(
                 autoSync,
                 secretOnly,
                 region: region || project.region || 'us-central1',
+                vpcNetwork: metadata?.vpcNetwork || project.vpcNetwork,
+                vpcSubnet: metadata?.vpcSubnet || project.vpcSubnet,
                 operationName,
                 resourceName,
             },

@@ -77,7 +77,8 @@ export async function createInstance(
 
     const data = await response.json();
     // Use IAM-based connection string (no password, using service account identity)
-    const connectionString = `${dbType === 'postgres' ? 'postgresql' : 'mysql'}://deployify-sa@/${instanceName}?host=/cloudsql/${gcpProjectId}:${region}:${instanceName}&enable_iam_auth=true`;
+    const saName = config.gcp.serviceAccountName;
+    const connectionString = `${dbType === 'postgres' ? 'postgresql' : 'mysql'}://${saName}@/${instanceName}?host=/cloudsql/${gcpProjectId}:${region}:${instanceName}&enable_iam_auth=true`;
 
     // Advanced Provisioning: In a real scenario, we would trigger follow-up operations for DB and User.
     // We return the primary operation name for the instance creation.

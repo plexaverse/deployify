@@ -37,18 +37,24 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
     const currentRegion = currentProject?.region;
 
     const [selectedRegion, setSelectedRegion] = useState(currentRegion || '');
+    const [vpcNetwork, setVpcNetwork] = useState(currentProject?.vpcNetwork || '');
+    const [vpcSubnet, setVpcSubnet] = useState(currentProject?.vpcSubnet || '');
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleRegionChange = async (newRegion: string) => {
-        setSelectedRegion(newRegion);
+    const handleSave = async () => {
         setSaving(true);
         setError(null);
         setSaved(false);
 
         try {
-            const success = await updateProjectRegion(projectId, newRegion || null);
+            const { updateProject } = useStore.getState();
+            const success = await updateProject(projectId, {
+                region: selectedRegion || null,
+                vpcNetwork: vpcNetwork || undefined,
+                vpcSubnet: vpcSubnet || undefined
+            });
 
             if (success) {
                 setSaved(true);
@@ -94,7 +100,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                     <NativeSelect
                         id="region-select"
                         value={selectedRegion}
-                        onChange={(e) => handleRegionChange(e.target.value)}
+                        onChange={(e) => setSelectedRegion(e.target.value)}
                         disabled={saving}
                     >
                         <option value="">USE DEFAULT REGION</option>
@@ -117,22 +123,58 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                     </NativeSelect>
                 </div>
 
-                <div className="flex items-center gap-2 h-6">
-                    {saving && (
-                        <span className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] animate-fade-in">
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            Saving...
-                        </span>
-                    )}
-                    {saved && (
-                        <span className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--success)] animate-fade-in">
-                            <Check className="w-3.5 h-3.5" />
-                            Saved successfully
-                        </span>
-                    )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="vpc-network" className="text-[10px] font-bold uppercase">VPC Network</Label>
+                        <input
+                            id="vpc-network"
+                            type="text"
+                            value={vpcNetwork}
+                            onChange={(e) => setVpcNetwork(e.target.value)}
+                            placeholder="default"
+                            disabled={saving}
+                            className="flex h-9 w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-1 text-[10px] shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="vpc-subnet" className="text-[10px] font-bold uppercase">VPC Subnet</Label>
+                        <input
+                            id="vpc-subnet"
+                            type="text"
+                            value={vpcSubnet}
+                            onChange={(e) => setVpcSubnet(e.target.value)}
+                            placeholder="default"
+                            disabled={saving}
+                            className="flex h-9 w-full rounded-md border border-[var(--border)] bg-transparent px-3 py-1 text-[10px] shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                    </div>
                 </div>
 
-                <div className="mt-8 p-4 rounded-lg bg-[var(--info-bg)] border border-[var(--info)]/20">
+                <div className="flex items-center justify-between gap-2 h-10">
+                    <div className="flex items-center gap-2">
+                        {saving && (
+                            <span className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] animate-fade-in">
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                Saving...
+                            </span>
+                        )}
+                        {saved && (
+                            <span className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--success)] animate-fade-in">
+                                <Check className="w-3.5 h-3.5" />
+                                Saved successfully
+                            </span>
+                        )}
+                    </div>
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="h-8 px-4 rounded-md bg-[var(--primary)] text-white text-[8px] font-bold uppercase tracking-wider hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
+                    >
+                        Save Network Settings
+                    </button>
+                </div>
+
+                <div className="mt-4 p-4 rounded-lg bg-[var(--info-bg)] border border-[var(--info)]/20">
                 <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
                     <div className="text-[10px]">

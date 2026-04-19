@@ -12,6 +12,7 @@ import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getSca
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
 import { getUserById } from '@/lib/db';
+import { config } from '@/lib/config';
 
 /**
  * Sync storage provisioning status from GCP and check monitoring alerts
@@ -409,10 +410,17 @@ export async function GET(
 
                     // Step 4: Create User if not started
                     if (hasCreatedDb && !userOperationName) {
-                        const opName = await createUser(instanceName, 'deployify-sa');
-                        storage.metadata = { ...storage.metadata, userOperationName: opName };
+                        // Postgres requires full email, MySQL requires email without .gserviceaccount.com suffix
+                        const isMysql = storage.type === 'cloud-sql-mysql';
+                        const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+                        const saName = config.gcp.serviceAccountName;
+                        const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
+                        const username = isMysql ? saEmail.replace('.gserviceaccount.com', '') : saEmail;
+
+                        const opName = await createUser(instanceName, username);
+                        storage.metadata = { ...storage.metadata, userOperationName: opName, iamUsername: username };
                         await updateProject(id, { storageConfigs });
-                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Creating IAM user...' });
+                        return NextResponse.json({ success: true, status: 'provisioning', message: `Creating IAM user (${username})...` });
                     }
 
                     // Step 5: Poll User creation

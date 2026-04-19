@@ -152,6 +152,8 @@ export interface Project {
     envVariables?: EnvVariable[];
     domains?: Domain[];
     storageConfigs?: StorageConfig[];
+    vpcNetwork?: string;
+    vpcSubnet?: string;
     ipRules?: {
         allow: string[];
         block: string[];
