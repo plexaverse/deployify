@@ -95,6 +95,12 @@ export async function POST(
          */
         if (provision) {
             const targetRegion = region || project.region || 'us-central1';
+
+            // Backend Regional Alignment Enforcement
+            if (project.region && targetRegion !== project.region) {
+                console.warn(`[RegionalAlignment] Project compute is in ${project.region} but storage is being provisioned in ${targetRegion}. Latency overhead expected.`);
+            }
+
             status = 'provisioning';
             resourceName = name.toLowerCase().replace(/\s+/g, '-');
 
@@ -115,7 +121,10 @@ export async function POST(
                     });
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'memorystore-redis' && resourceName) {
-                    provisionResult = await createMemorystoreInstance(resourceName, targetRegion);
+                    const vpcNetwork = project.vpcNetwork || 'default';
+                    provisionResult = await createMemorystoreInstance(resourceName, targetRegion, {
+                        authorizedNetwork: vpcNetwork
+                    });
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'firestore' && resourceName) {
                     provisionResult = await createFirestoreDatabase(resourceName, targetRegion);

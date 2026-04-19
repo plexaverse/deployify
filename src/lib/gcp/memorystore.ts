@@ -9,7 +9,7 @@ const MEMORYSTORE_API = 'https://redis.googleapis.com/v1';
 export async function createInstance(
     instanceName: string,
     region: string,
-    options: { ssl?: boolean } = {}
+    options: { ssl?: boolean; authorizedNetwork?: string } = {}
 ): Promise<{ operationName: string; connectionString: string }> {
     if (process.env.MOCK_DB === 'true') {
         return {
@@ -21,6 +21,8 @@ export async function createInstance(
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
     const parent = `projects/${gcpProjectId}/locations/${region}`;
+    const network = options.authorizedNetwork || 'default';
+    const networkPath = network.includes('/') ? network : `projects/${gcpProjectId}/global/networks/${network}`;
 
     const response = await fetch(`${MEMORYSTORE_API}/${parent}/instances?instanceId=${instanceName}`, {
         method: 'POST',
@@ -32,6 +34,7 @@ export async function createInstance(
             tier: 'BASIC',
             memorySizeGb: 1,
             region,
+            authorizedNetwork: networkPath,
             transitEncryptionMode: options.ssl ? 'SERVER_AUTHENTICATION' : 'DISABLED',
         }),
     });

@@ -607,7 +607,33 @@ Legacy and custom support with production-grade security:
 - [x] Implement Neon-specific scaling recommendation logic based on compute unit utilization
 - [x] Standardize typography in all updated components to platform-standard high-density aesthetic
 
+### Phase 90: Integrated GCP Lifecycle (COMPLETED)
+- [x] Implement automated Firestore database creation within project regional boundaries.
+- [x] Orchestrate Memorystore (Redis) instance provisioning with automated VPC Network Peering.
+- [x] Implement "One-Click" Cloud SQL instance creation with IAM-based user bootstrapping.
+- [x] Standardize regional alignment checks to ensure storage and compute are co-located.
+
+### Phase 91: Native Secret Management & Mounting (COMPLETED)
+- [x] Implement automated IAM grant cycles for Cloud Run Service Agents to access Secret Manager.
+- [x] Transition all connector types to use `--set-secrets` for direct credential mounting.
+- [x] Implement "Secret-Only" mode for connectors without auto-injected environment variables.
+- [x] Add visual "Securely Mounted" status indicators to the storage dashboard.
+
+### Phase 92: GCP-Native Lifecycle Hardening & VPC Orchestration (COMPLETED)
+- [x] Implement `authorizedNetwork` orchestration for Memorystore provisioning.
+- [x] Harden Cloud SQL IAM bootstrapping with accurate Service Account email derivation.
+- [x] Enhance Cloud Run deployment IAM with `roles/cloudsql.instanceUser` for IAM-based login.
+- [x] Implement backend regional alignment enforcement for provisioned resources.
+
 ## Progress Updates
+
+### 2027-06-01: GCP-Native Lifecycle Hardening & VPC Orchestration
+- Completed Phase 92: GCP-Native Lifecycle Hardening & VPC Orchestration.
+- Implemented `authorizedNetwork` (VPC peering) orchestration for Memorystore (Redis) provisioning to ensure secure internal connectivity.
+- Hardened Cloud SQL IAM authentication by refining user naming conventions: MySQL now uses truncated emails (without `.gserviceaccount.com`) while PostgreSQL uses full emails.
+- Enhanced the deployment pipeline to automatically grant `roles/cloudsql.instanceUser` to service accounts, enabling passwordless IAM-based database login.
+- Integrated `getGcpProjectNumber` into the storage sync route to accurately bootstrap the project's compute service account as a database user.
+- Implemented backend regional alignment enforcement in the storage API to warn users when storage and compute are cross-region.
 
 ### 2027-05-31: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion
 - Completed Phase 89: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion.
@@ -620,25 +646,13 @@ Legacy and custom support with production-grade security:
 
 Following the Managed "Connector" model, Deployify will evolve its storage layer to provide seamless integration between GCP-native services and external providers, focusing on **Connectivity Intelligence**.
 
-### Phase 90: Integrated GCP Lifecycle (PROPOSED)
-- [ ] Implement automated Firestore database creation within project regional boundaries.
-- [ ] Orchestrate Memorystore (Redis) instance provisioning with automated VPC Network Peering.
-- [ ] Implement "One-Click" Cloud SQL instance creation with IAM-based user bootstrapping.
-- [ ] Standardize regional alignment checks to ensure storage and compute are co-located.
-
-### Phase 91: Native Secret Management & Mounting (PROPOSED)
-- [ ] Implement automated IAM grant cycles for Cloud Run Service Agents to access Secret Manager.
-- [ ] Transition all connector types to use `--set-secrets` for direct credential mounting.
-- [ ] Implement "Secret-Only" mode for connectors without auto-injected environment variables.
-- [ ] Add visual "Securely Mounted" status indicators to the storage dashboard.
-
-### Phase 92: Data Lab & Observability Maturity (PROPOSED)
+### Phase 93: Data Lab & Observability Maturity (PROPOSED)
 - [ ] Enhance Data Lab with native "Query Explain" visualization for performance tuning.
 - [ ] Implement query performance tracking (latency, throughput) per connector.
 - [ ] Add "Schema Insights" with ER diagram generation for SQL connectors.
 - [ ] Implement read-only NoSQL browser for Firestore and MongoDB Atlas.
 
-### Phase 93: Fleet-Wide Governance & Compliance (PROPOSED)
+### Phase 94: Fleet-Wide Governance & Compliance (PROPOSED)
 - [ ] Launch "Infrastructure Health" dashboard with global connectivity status.
 - [ ] Implement automated security auditing for database connectors (SSL, IAM, Auth).
 - [ ] Add "Cost Intelligence" to surface estimated monthly spend and optimization opportunities.
