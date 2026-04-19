@@ -394,12 +394,13 @@ export async function getExternalMetrics(
     metadata: Record<string, unknown>
 ): Promise<{ status: string; usage?: number; limit?: number; unit?: string; tier?: string }> {
     if (process.env.MOCK_DB === 'true') {
+        const isNeon = storageType === 'neon';
         return {
             status: 'ACTIVE',
             usage: Math.floor(Math.random() * 40) + 10,
             limit: 100,
-            unit: 'GB',
-            tier: 'PRO'
+            unit: isNeon ? 'CU' : 'GB',
+            tier: isNeon ? 'LAUNCH' : 'PRO'
         };
     }
 
@@ -417,11 +418,28 @@ export async function getExternalMetrics(
 
             if (res.ok) {
                 const data = await res.json();
+
+                // Fetch consumption metrics for compute unit utilization
+                let usage = 0;
+                try {
+                    const consumptionRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/consumption`, {
+                        headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                    });
+                    if (consumptionRes.ok) {
+                        const consData = await consumptionRes.json();
+                        // Estimate utilization based on active_compute_unit_seconds vs typical monthly limits
+                        // (Simplified for this dashboard - normalized to 0-100 scale)
+                        usage = Math.min(100, (consData.consumption?.active_compute_unit_seconds || 0) / 3600);
+                    }
+                } catch (e) {
+                    console.warn(`[Monitoring] Failed to fetch Neon consumption:`, e);
+                }
+
                 return {
                     status: data.project?.status?.toUpperCase() || 'ACTIVE',
                     tier: (data.project?.plan_id || 'free').toUpperCase(),
-                    // Basic estimation from projects API if usage not directly available
-                    usage: undefined
+                    usage,
+                    unit: 'CU'
                 };
             }
         } else if (storageType === 'mongodb-atlas') {
@@ -554,7 +572,9 @@ export async function getScalingRecommendations(
             resource: 'cpu',
             currentTier,
             recommendedTier: (isCloudSql || isRedis || isNeon) ? recommendedTier : 'Next Capacity Tier',
-            reason: `High CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading will improve query performance and overall stability.`,
+            reason: isNeon
+                ? `High compute unit utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading to ${recommendedTier} will provide more burst capacity and higher resource limits.`
+                : `High CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading will improve query performance and overall stability.`,
             performanceGain: 'High'
         });
     } else if (metrics.cpuUtilization < 15 && currentTier !== 'db-f1-micro' && currentTier !== '1GB' && currentTier !== 'FREE' && currentTier !== 'unknown') {

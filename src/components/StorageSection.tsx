@@ -897,7 +897,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         >
                                             <button
                                                 onClick={() => handleApplyDiscovery(res)}
-                                                className="w-full flex flex-col items-start text-left"
+                                                className="w-full flex flex-col items-start text-left text-[10px]"
                                             >
                                                 <div className="flex items-center justify-between w-full gap-2">
                                                     <span className="text-[8px] font-bold uppercase truncate pr-6">{res.name}</span>
@@ -1880,7 +1880,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching backups...</span>
                                     </div>
                                 ) : backups.length === 0 ? (
-                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5 text-[10px]">
                                         <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No backups found</span>
                                     </div>
                                 ) : (
@@ -2042,7 +2042,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching migrations...</span>
                                     </div>
                                 ) : migrations.length === 0 ? (
-                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5 text-[10px]">
                                         <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No migration history found</span>
                                     </div>
                                 ) : (
@@ -2376,7 +2376,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         {isDiagnosing && (
-                            <div className="py-8 flex flex-col items-center justify-center gap-4 animate-in fade-in">
+                            <div className="py-8 flex flex-col items-center justify-center gap-4 animate-in fade-in text-[10px]">
                                 <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
                                 <div className="text-center">
                                     <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] animate-pulse">Scanning infrastructure...</p>

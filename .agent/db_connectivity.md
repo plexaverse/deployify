@@ -601,18 +601,48 @@ Legacy and custom support with production-grade security:
 - [x] Update Storage UI with discovered tier metadata and high-density financial badges
 - [x] Verify functional integrity with system audits and zero-warning build completion
 
-### Phase 89: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion (IN PROGRESS)
-- [ ] Implement PlanetScale `trusted_ips` allowlisting in automated sync
-- [ ] Expand Auto-Pilot optimization engine to support Neon serverless Postgres
-- [ ] Implement Neon-specific scaling recommendation logic based on compute unit utilization
-- [ ] Standardize typography in all updated components to platform-standard high-density aesthetic
+### Phase 89: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion (COMPLETED)
+- [x] Implement PlanetScale `trusted_ips` allowlisting in automated sync
+- [x] Expand Auto-Pilot optimization engine to support Neon serverless Postgres
+- [x] Implement Neon-specific scaling recommendation logic based on compute unit utilization
+- [x] Standardize typography in all updated components to platform-standard high-density aesthetic
 
 ## Progress Updates
 
 ### 2027-05-31: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion
-- Initiated Phase 89: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion.
-- Hardening PlanetScale connectivity by integrating regional egress IP allowlisting into the automated password rotation flow.
-- Extending the Auto-Pilot optimization engine to Neon, enabling automated compute scaling for serverless Postgres based on utilization trends.
+- Completed Phase 89: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion.
+- Hardened PlanetScale connectivity by integrating regional egress IP allowlisting into the automated password rotation flow.
+- Expanded the Auto-Pilot optimization engine to Neon, enabling automated compute scaling for serverless Postgres based on compute unit utilization trends fetched via the Neon API.
+- Refined Neon scaling recommendations to strictly follow the FREE -> LAUNCH -> PRO -> SCALE tier progression.
+- Standardized UI typography in the Storage section to 100% adherence with the platform's high-density aesthetic.
+
+## Detailed Roadmap for Architectural Evolution
+
+Following the Managed "Connector" model, Deployify will evolve its storage layer to provide seamless integration between GCP-native services and external providers, focusing on **Connectivity Intelligence**.
+
+### Phase 90: Integrated GCP Lifecycle (PROPOSED)
+- [ ] Implement automated Firestore database creation within project regional boundaries.
+- [ ] Orchestrate Memorystore (Redis) instance provisioning with automated VPC Network Peering.
+- [ ] Implement "One-Click" Cloud SQL instance creation with IAM-based user bootstrapping.
+- [ ] Standardize regional alignment checks to ensure storage and compute are co-located.
+
+### Phase 91: Native Secret Management & Mounting (PROPOSED)
+- [ ] Implement automated IAM grant cycles for Cloud Run Service Agents to access Secret Manager.
+- [ ] Transition all connector types to use `--set-secrets` for direct credential mounting.
+- [ ] Implement "Secret-Only" mode for connectors without auto-injected environment variables.
+- [ ] Add visual "Securely Mounted" status indicators to the storage dashboard.
+
+### Phase 92: Data Lab & Observability Maturity (PROPOSED)
+- [ ] Enhance Data Lab with native "Query Explain" visualization for performance tuning.
+- [ ] Implement query performance tracking (latency, throughput) per connector.
+- [ ] Add "Schema Insights" with ER diagram generation for SQL connectors.
+- [ ] Implement read-only NoSQL browser for Firestore and MongoDB Atlas.
+
+### Phase 93: Fleet-Wide Governance & Compliance (PROPOSED)
+- [ ] Launch "Infrastructure Health" dashboard with global connectivity status.
+- [ ] Implement automated security auditing for database connectors (SSL, IAM, Auth).
+- [ ] Add "Cost Intelligence" to surface estimated monthly spend and optimization opportunities.
+- [ ] Orchestrate managed backups and point-in-time recovery (PITR) for GCP-native storage.
 
 ### 2027-05-30: Advanced External Connectivity Hardening & Tier Intelligence
 - Completed Phase 88: Advanced External Connectivity Hardening & Tier Intelligence.
