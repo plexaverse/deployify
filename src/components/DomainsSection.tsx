@@ -135,8 +135,8 @@ export function DomainsSection({
                         <Globe className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Networking</span>
-                        <h3 className="text-[10px] font-bold">Custom Domains</h3>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Networking</span>
+                        <h3 className="text-[9px] font-bold">Custom Domains</h3>
                     </div>
                 </div>
                 {!isAdding && (
@@ -144,7 +144,7 @@ export function DomainsSection({
                         onClick={() => setIsAdding(true)}
                         disabled={isLoading}
                         containerClassName="h-10 w-36"
-                        className="text-[8px] font-bold uppercase tracking-wider"
+                        className="text-[7px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Domain
@@ -157,12 +157,12 @@ export function DomainsSection({
             <div className="p-6">
                 {/* Error/Success Messages */}
                 {error && (
-                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-[8px] font-bold uppercase tracking-wider">
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-[7px] font-bold uppercase tracking-wider">
                         {error}
                     </div>
                 )}
                 {success && (
-                    <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-[8px] font-bold uppercase tracking-wider">
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-[7px] font-bold uppercase tracking-wider">
                         {success}
                     </div>
                 )}
@@ -171,15 +171,15 @@ export function DomainsSection({
             {isAdding && (
                 <div className="mb-6 p-4 rounded-lg border border-[var(--border)] bg-[var(--background)] animate-fade-in">
                     <div className="mb-4 space-y-2">
-                        <Label className="text-[10px] font-bold">Domain</Label>
+                        <Label className="text-[9px] font-bold">Domain</Label>
                         <Input
                             type="text"
                             value={newDomain}
                             onChange={(e) => setNewDomain(e.target.value)}
                             placeholder="APP.EXAMPLE.COM"
-                            className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                            className="placeholder:text-[7px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                         />
-                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Enter your domain or subdomain (e.g., app.example.com)
                         </p>
                     </div>
@@ -189,7 +189,7 @@ export function DomainsSection({
                             disabled={isSubmitting || !newDomain.trim()}
                             loading={isSubmitting}
                             containerClassName="h-10 w-32"
-                            className="text-[8px] font-bold uppercase tracking-wider"
+                            className="text-[7px] font-bold uppercase tracking-wider"
                         >
                             Add Domain
                         </MovingBorderButton>
@@ -216,52 +216,52 @@ export function DomainsSection({
                             <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                                 <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
                             </div>
-                            <h3 className="text-[10px] font-bold">Verification Steps</h3>
+                            <h3 className="text-[9px] font-bold">Verification Steps</h3>
                         </div>
                         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--warning-bg)] border border-[var(--warning)]/20">
                             <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--warning)] animate-pulse"></span>
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--warning)]">Analyzing...</span>
+                            <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--warning)]">Analyzing...</span>
                         </div>
                     </div>
 
                     <div className="mb-8 flex items-center gap-4">
                         <div className="flex items-center gap-2 text-[var(--foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[8px] font-bold uppercase tracking-wider">1</div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider">DNS Configuration</span>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[7px] font-bold uppercase tracking-wider">1</div>
+                            <span className="text-[7px] font-bold uppercase tracking-wider">DNS Configuration</span>
                         </div>
                         <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
                         <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[8px] font-bold uppercase tracking-wider">2</div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider">Securing site</span>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[7px] font-bold uppercase tracking-wider">2</div>
+                            <span className="text-[7px] font-bold uppercase tracking-wider">Securing site</span>
                         </div>
                         <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
                         <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[8px] font-bold uppercase tracking-wider">3</div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider">Ready</span>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[7px] font-bold uppercase tracking-wider">3</div>
+                            <span className="text-[7px] font-bold uppercase tracking-wider">Ready</span>
                         </div>
                     </div>
 
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
+                    <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                         Please add the following DNS records to your domain provider to verify ownership.
                     </p>
 
                     <div className="overflow-hidden rounded-lg border border-[var(--border)] mb-4 shadow-sm">
-                        <table className="w-full text-[10px] border-collapse">
+                        <table className="w-full text-[9px] border-collapse">
                             <thead className="bg-[var(--muted)]/5">
                                 <tr className="text-left">
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Host</th>
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Value</th>
+                                    <th className="py-3 px-4 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
+                                    <th className="py-3 px-4 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Host</th>
+                                    <th className="py-3 px-4 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Value</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[var(--border)]">
                                 {dnsRecords.map((record, index) => (
                                     <tr key={index} className="bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors">
-                                        <td className="py-3 px-4 font-mono font-bold text-[var(--primary)] text-[8px] uppercase tracking-wider">{record.type}</td>
-                                        <td className="py-3 px-4 font-mono text-[var(--muted-foreground)] text-[8px] font-bold uppercase tracking-wider">{record.name}</td>
+                                        <td className="py-3 px-4 font-mono font-bold text-[var(--primary)] text-[7px] uppercase tracking-wider">{record.type}</td>
+                                        <td className="py-3 px-4 font-mono text-[var(--muted-foreground)] text-[7px] font-bold uppercase tracking-wider">{record.name}</td>
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-3">
-                                                <code className="font-mono text-[8px] bg-[var(--muted)]/20 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate text-[var(--foreground)] font-bold uppercase tracking-wider" title={record.value}>
+                                                <code className="font-mono text-[7px] bg-[var(--muted)]/20 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate text-[var(--foreground)] font-bold uppercase tracking-wider" title={record.value}>
                                                     {record.value}
                                                 </code>
                                                 <Button
@@ -306,29 +306,29 @@ export function DomainsSection({
                                 <path d="M16.5088 16.8447C16.6173 16.4322 16.5258 16.0192 16.2589 15.7124C16.0023 15.4178 15.6013 15.2598 15.1548 15.2598H8.14015C8.0463 15.2598 7.9648 15.2158 7.9193 15.1421C7.8738 15.0681 7.8705 14.9768 7.9098 14.8968L8.2618 14.1958C8.3471 14.0268 8.5218 13.9185 8.7113 13.9185H15.2883C16.1918 13.9185 17.0173 13.4905 17.5173 12.7598C18.0171 12.0291 18.1171 11.11 17.7903 10.2888L17.0843 8.5155C16.6423 7.3995 15.5803 6.6495 14.3803 6.6495H5.2883C5.0988 6.6495 4.9243 6.7578 4.8388 6.927L2.6673 11.2885C2.0503 12.5195 2.0503 13.9955 2.6673 15.2265L4.0553 18H15.4653C16.2173 18 16.3753 17.3175 16.5088 16.8447Z" />
                                 <path d="M19.5813 11.2885L18.1098 8.2155C18.0213 8.0348 17.8488 7.9185 17.6573 7.9185H16.0873L17.0363 10.2168C17.4093 11.1755 17.2963 12.2588 16.7243 13.1145C16.1523 13.9702 15.2048 14.4772 14.1683 14.4772H8.0633L7.6873 15.2598H14.0343C14.0343 15.2598 14.9378 15.2598 15.5093 16.0658C15.9813 16.7355 15.7713 17.4 15.5093 18H20.5343C21.0693 18 21.5348 17.6415 21.6698 17.1255L21.9998 15.7505C22.3498 14.3755 21.8998 12.9285 20.7348 12.0885L19.5813 11.2885Z" />
                             </svg>
-                            <h3 className="text-[10px] font-bold text-[var(--warning)]">Cloudflare Setup (Recommended)</h3>
+                            <h3 className="text-[9px] font-bold text-[var(--warning)]">Cloudflare Setup (Recommended)</h3>
                         </div>
-                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
+                        <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                             For global CDN and faster performance, use Cloudflare instead of GCP domain mapping:
                         </p>
-                    <ol className="text-[10px] space-y-4 text-[var(--muted-foreground)] list-decimal list-inside mb-6">
+                    <ol className="text-[9px] space-y-4 text-[var(--muted-foreground)] list-decimal list-inside mb-6">
                         <li>Add your domain to <a href="https://cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] font-bold hover:underline">Cloudflare</a> (free)</li>
                         <li>Update nameservers at your registrar to Cloudflare&apos;s</li>
                         <li>
                             Add a CNAME record in Cloudflare:
                             <div className="mt-4 ml-4 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-sm max-w-md">
-                                <table className="w-full text-[8px] font-bold uppercase tracking-wider">
+                                <table className="w-full text-[7px] font-bold uppercase tracking-wider">
                                     <tbody className="divide-y divide-[var(--border)]">
                                         <tr>
-                                            <td className="py-2 px-3 text-[8px] font-bold uppercase tracking-wider bg-[var(--muted)]/5 w-20">Type</td>
-                                            <td className="py-2 px-3 font-mono text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">CNAME</td>
+                                            <td className="py-2 px-3 text-[7px] font-bold uppercase tracking-wider bg-[var(--muted)]/5 w-20">Type</td>
+                                            <td className="py-2 px-3 font-mono text-[7px] font-bold uppercase tracking-wider text-[var(--primary)]">CNAME</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 text-[8px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Name</td>
-                                            <td className="py-2 px-3 font-mono text-[8px] font-bold uppercase tracking-wider">@ or subdomain</td>
+                                            <td className="py-2 px-3 text-[7px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Name</td>
+                                            <td className="py-2 px-3 font-mono text-[7px] font-bold uppercase tracking-wider">@ or subdomain</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 text-[8px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Target</td>
+                                            <td className="py-2 px-3 text-[7px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Target</td>
                                             <td className="py-2 px-3">
                                                 <div className="flex items-center gap-2">
                                                     <code className="font-mono text-[var(--foreground)] bg-[var(--muted)]/10 px-1.5 py-0.5 rounded truncate">
@@ -359,7 +359,7 @@ export function DomainsSection({
                         </ol>
                         <div className="flex items-center gap-2 p-2 px-3 rounded-full bg-[var(--success-bg)] w-fit border border-[var(--success)]/20">
                             <Check className="w-3.5 h-3.5 text-[var(--success)]" />
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]">
+                            <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--success)]">
                                 No need to add domain here when using Cloudflare
                             </span>
                         </div>
@@ -373,7 +373,7 @@ export function DomainsSection({
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-[var(--border)]"></div>
                     </div>
-                    <div className="relative flex justify-center text-[8px] font-bold uppercase tracking-wider">
+                    <div className="relative flex justify-center text-[7px] font-bold uppercase tracking-wider">
                         <span className="bg-[var(--card)] px-2 text-[var(--muted-foreground)]">Or use GCP Domain Mapping</span>
                     </div>
                 </div>
@@ -385,13 +385,13 @@ export function DomainsSection({
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Globe className="w-4 h-4 text-[var(--muted-foreground)]" />
-                            <span className="text-[8px] font-bold uppercase tracking-wider">Cloud Run URL</span>
+                            <span className="text-[7px] font-bold uppercase tracking-wider">Cloud Run URL</span>
                         </div>
                         <a
                             href={productionUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline flex items-center gap-1"
+                            className="text-[7px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline flex items-center gap-1"
                         >
                             {productionUrl.replace('https://', '')}
                             <ExternalLink className="w-3 h-3" />
@@ -435,12 +435,12 @@ export function DomainsSection({
                                         href={`https://${domain.domain}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-[8px] font-bold uppercase tracking-wider hover:text-[var(--primary)] flex items-center gap-1"
+                                        className="text-[7px] font-bold uppercase tracking-wider hover:text-[var(--primary)] flex items-center gap-1"
                                     >
                                         {domain.domain}
                                         <ExternalLink className="w-3 h-3" />
                                     </a>
-                                    <span className={`text-[8px] font-bold uppercase tracking-wider ${domain.status === 'active' ? 'text-[var(--success)]' :
+                                    <span className={`text-[7px] font-bold uppercase tracking-wider ${domain.status === 'active' ? 'text-[var(--success)]' :
                                         domain.status === 'pending' ? 'text-[var(--warning)]' :
                                             'text-[var(--error)]'
                                         }`}>
@@ -454,7 +454,7 @@ export function DomainsSection({
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => fetchProjectDomains(projectId)}
-                                        className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline"
+                                        className="text-[7px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline"
                                     >
                                         Refresh
                                     </Button>
@@ -475,7 +475,7 @@ export function DomainsSection({
             )}
 
             {/* Info */}
-                <div className="mt-6 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-t border-[var(--border)] pt-4">
+                <div className="mt-6 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-t border-[var(--border)] pt-4">
                     <p><strong>Note:</strong> DNS changes may take up to 48 hours to propagate worldwide.</p>
                     <p className="mt-1">SSL certificates are automatically provisioned by Google Cloud.</p>
                 </div>

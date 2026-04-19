@@ -76,8 +76,8 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                     <MapPin className="w-5 h-5 text-[var(--primary)]" />
                 </div>
                 <div>
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                    <h3 className="text-[10px] font-bold">Deployment Region</h3>
+                    <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
+                    <h3 className="text-[9px] font-bold">Deployment Region</h3>
                 </div>
             </div>
 
@@ -85,12 +85,12 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
 
             <div className="p-6 space-y-4">
                 {error && (
-                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-[10px]">
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)] text-[var(--error)] text-[9px]">
                         {error}
                     </div>
                 )}
                 <div className="grid gap-2">
-                    <Label htmlFor="region-select" className="text-[10px] font-bold">Region</Label>
+                    <Label htmlFor="region-select" className="text-[9px] font-bold">Region</Label>
                     <NativeSelect
                         id="region-select"
                         value={selectedRegion}
@@ -119,13 +119,13 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
 
                 <div className="flex items-center gap-2 h-6">
                     {saving && (
-                        <span className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] animate-fade-in">
+                        <span className="flex items-center gap-2 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] animate-fade-in">
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             Saving...
                         </span>
                     )}
                     {saved && (
-                        <span className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--success)] animate-fade-in">
+                        <span className="flex items-center gap-2 text-[7px] font-bold uppercase tracking-wider text-[var(--success)] animate-fade-in">
                             <Check className="w-3.5 h-3.5" />
                             Saved successfully
                         </span>
@@ -135,8 +135,8 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 <div className="mt-8 p-4 rounded-lg bg-[var(--info-bg)] border border-[var(--info)]/20">
                 <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
-                    <div className="text-[10px]">
-                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">Deployment Required</p>
+                    <div className="text-[9px]">
+                        <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">Deployment Required</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changing the region will affect the next deployment.
                             To apply the change immediately, trigger a redeploy after saving.

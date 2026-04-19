@@ -17,8 +17,8 @@ export default function LogsDashboardPage() {
                         <Terminal className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Runtime Output</span>
-                        <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Logs</h1>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Runtime Output</span>
+                        <h1 className="text-[7px] md:text-[9px] font-bold tracking-tight">Logs</h1>
                     </div>
                 </div>
             </div>

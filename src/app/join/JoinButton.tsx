@@ -50,7 +50,7 @@ export default function JoinButton({ token, teamName }: JoinButtonProps) {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="bg-[var(--error-bg)] text-[var(--error)] p-4 rounded-xl mb-6 text-[10px] w-full flex items-center gap-3 border border-[var(--error)]/20 shadow-sm"
+                        className="bg-[var(--error-bg)] text-[var(--error)] p-4 rounded-xl mb-6 text-[9px] w-full flex items-center gap-3 border border-[var(--error)]/20 shadow-sm"
                     >
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <p>{error}</p>
@@ -62,7 +62,7 @@ export default function JoinButton({ token, teamName }: JoinButtonProps) {
                 onClick={handleJoin}
                 disabled={isLoading}
                 containerClassName="w-full h-14"
-                className="text-[8px] font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+                className="text-[7px] font-bold uppercase tracking-wider flex items-center justify-center gap-2"
             >
                 {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

@@ -32,7 +32,7 @@ export function ProjectNav({ projectId }: ProjectNavProps) {
                                 key={tab.name}
                                 href={tab.href}
                                 className={cn(
-                                    'relative whitespace-nowrap py-4 px-1 text-[8px] font-bold uppercase tracking-wider transition-colors',
+                                    'relative whitespace-nowrap py-4 px-1 text-[7px] font-bold uppercase tracking-wider transition-colors',
                                     isActive
                                         ? 'text-[var(--foreground)]'
                                         : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'

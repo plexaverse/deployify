@@ -26,8 +26,8 @@ export default function DashboardError({
                     <AlertCircle className="w-6 h-6 text-[var(--error)]" />
                 </div>
                 <div className="space-y-1">
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
-                    <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">
+                    <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
+                    <h1 className="text-[7px] md:text-[9px] font-bold tracking-tight">
                         Dashboard Error
                     </h1>
                 </div>
@@ -43,7 +43,7 @@ export default function DashboardError({
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Try Again
             </Button>
-            <p className="mt-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono truncate w-full px-2" title={error.message || 'Unknown error'}>
+            <p className="mt-4 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono truncate w-full px-2" title={error.message || 'Unknown error'}>
                  {error.message || 'Unknown error'}
             </p>
         </div>

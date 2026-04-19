@@ -25,11 +25,11 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
     if (active && payload && payload.length && label) {
         return (
             <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 shadow-xl">
-                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                     {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
                 </p>
                  {payload.map((entry: TooltipEntry, index: number) => (
-                    <div key={index} className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider">
+                    <div key={index} className="flex items-center gap-2 text-[7px] font-bold uppercase tracking-wider">
                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
                         <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
                         <span className="font-mono font-bold text-[var(--foreground)]">
@@ -38,7 +38,7 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
                     </div>
                 ))}
                 {payload[0] && !!payload[0].payload.commit && (
-                     <div className="mt-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-t border-[var(--border)] pt-2 max-w-[200px] truncate">
+                     <div className="mt-2 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-t border-[var(--border)] pt-2 max-w-[200px] truncate">
                          Commit: {payload[0].payload.commit as string}
                      </div>
                 )}
@@ -69,8 +69,8 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                      <div className="w-12 h-12 rounded-2xl bg-[var(--background)] border border-[var(--border)] flex items-center justify-center mb-6 shadow-sm">
                         <Zap className="w-6 h-6 text-[var(--muted-foreground)] opacity-50" />
                      </div>
-                     <h3 className="text-[10px] font-bold mb-2 tracking-tight">No Deployment Metrics</h3>
-                     <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
+                     <h3 className="text-[9px] font-bold mb-2 tracking-tight">No Deployment Metrics</h3>
+                     <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
                          Successful production deployments are required to generate performance and build history.
                      </p>
                 </div>
@@ -87,8 +87,8 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                         <Clock className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Efficiency</span>
-                        <h3 className="text-[10px] font-bold">Build Duration History</h3>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Efficiency</span>
+                        <h3 className="text-[9px] font-bold">Build Duration History</h3>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />
@@ -137,8 +137,8 @@ export function DeploymentMetricsCharts({ deployments }: DeploymentMetricsCharts
                         <Zap className="w-5 h-5 text-[var(--success)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Optimization Score</span>
-                        <h3 className="text-[10px] font-bold">Performance Score History</h3>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Optimization Score</span>
+                        <h3 className="text-[9px] font-bold">Performance Score History</h3>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />

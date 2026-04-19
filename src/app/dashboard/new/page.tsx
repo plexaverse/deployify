@@ -91,7 +91,7 @@ export default function NewProjectPage() {
             <div className="space-y-4">
                 <Link
                     href="/dashboard"
-                className="inline-flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-4"
+                className="inline-flex items-center gap-2 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-4"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to projects
@@ -102,8 +102,8 @@ export default function NewProjectPage() {
                             <Github className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Connectivity</span>
-                            <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Import Repository</h1>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Connectivity</span>
+                            <h1 className="text-[7px] md:text-[9px] font-bold tracking-tight">Import Repository</h1>
                         </div>
                     </div>
                 </div>
@@ -123,7 +123,7 @@ export default function NewProjectPage() {
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                     {search ? null : (
-                        <div className="hidden sm:flex items-center gap-0.5 text-[8px] text-[var(--muted)] font-bold uppercase tracking-wider border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                        <div className="hidden sm:flex items-center gap-0.5 text-[7px] text-[var(--muted)] font-bold uppercase tracking-wider border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
                             <span>{isMac ? '⌘' : 'Ctrl'}</span>
                             <span>K</span>
                         </div>
@@ -202,19 +202,19 @@ export default function NewProjectPage() {
                                         {/* Repo info */}
                                         <div className="relative z-10 flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <h3 className="text-[10px] font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
+                                                <h3 className="text-[9px] font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
                                                     {repo.full_name.toUpperCase()}
                                                 </h3>
                                                 {repo.private && (
-                                                    <Badge variant="warning" className="text-[8px] px-1.5 py-0.5 uppercase font-bold tracking-wider">
+                                                    <Badge variant="warning" className="text-[7px] px-1.5 py-0.5 uppercase font-bold tracking-wider">
                                                         Private
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate mt-0.5">
+                                            <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate mt-0.5">
                                                 {repo.description || 'No description'}
                                             </p>
-                                            <div className="flex items-center gap-4 mt-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            <div className="flex items-center gap-4 mt-2 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                 {repo.language && (
                                                     <span className="flex items-center gap-1.5">
                                                         <span className="w-2 h-2 rounded-full bg-[var(--info)]"></span>
@@ -239,7 +239,7 @@ export default function NewProjectPage() {
                                                 }}
                                                 loading={importing === repo.full_name}
                                                 disabled={importing !== null}
-                                                className="hidden sm:flex text-[8px] font-bold uppercase tracking-wider"
+                                                className="hidden sm:flex text-[7px] font-bold uppercase tracking-wider"
                                             >
                                                 Import
                                             </Button>
@@ -257,7 +257,7 @@ export default function NewProjectPage() {
                     {filteredRepos.length === 0 && !loading && (
                         <Card className="overflow-hidden p-0">
                             <div className="text-center py-12">
-                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     {search ? 'No repositories match your search' : 'No repositories found'}
                                 </p>
                             </div>

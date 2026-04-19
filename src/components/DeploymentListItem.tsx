@@ -41,14 +41,14 @@ export function DeploymentListItem({
                     </div>
                     <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
-                            <p className="font-bold text-[10px] truncate max-w-md">
+                            <p className="font-bold text-[9px] truncate max-w-md">
                                 {deployment.gitCommitMessage}
                             </p>
-                            <Badge variant={deployment.type === 'production' ? 'success' : 'info'} className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                            <Badge variant={deployment.type === 'production' ? 'success' : 'info'} className="text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5">
                                 {deployment.type.toUpperCase()}
                             </Badge>
                         </div>
-                        <div className="flex items-center gap-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <div className="flex items-center gap-3 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             <div className="flex items-center gap-1">
                                 <span className="font-mono text-[var(--foreground)] uppercase">{deployment.gitBranch.toUpperCase()}</span>
                                 <span className="text-[var(--muted)]">@</span>
@@ -72,7 +72,7 @@ export function DeploymentListItem({
                             href={deployment.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-8 px-2.5 text-[8px] font-bold uppercase tracking-wider border border-[var(--border)] hover:border-[var(--foreground)]')}
+                            className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-8 px-2.5 text-[7px] font-bold uppercase tracking-wider border border-[var(--border)] hover:border-[var(--foreground)]')}
                         >
                             <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                             View
@@ -83,7 +83,7 @@ export function DeploymentListItem({
                         variant="ghost"
                         size="sm"
                         onClick={() => onViewLogs(deployment.id)}
-                        className="h-8 px-2.5 text-[8px] font-bold uppercase tracking-wider border border-[var(--border)] hover:border-[var(--foreground)]"
+                        className="h-8 px-2.5 text-[7px] font-bold uppercase tracking-wider border border-[var(--border)] hover:border-[var(--foreground)]"
                     >
                         <FileText className="w-3.5 h-3.5 mr-1.5 text-[var(--muted-foreground)]" />
                         Logs
@@ -94,7 +94,7 @@ export function DeploymentListItem({
                             variant="ghost"
                             size="sm"
                             onClick={() => onRollback(deployment.id)}
-                            className="h-8 px-2.5 text-[8px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
+                            className="h-8 px-2.5 text-[7px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
                         >
                             <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                             Rollback
@@ -106,7 +106,7 @@ export function DeploymentListItem({
                             variant="ghost"
                             size="sm"
                             onClick={() => onCancel(deployment.id)}
-                            className="h-8 px-2.5 text-[8px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
+                            className="h-8 px-2.5 text-[7px] font-bold uppercase tracking-wider text-[var(--error)] hover:bg-[var(--error-bg)] border border-[var(--error)]/20"
                         >
                             Cancel
                         </Button>

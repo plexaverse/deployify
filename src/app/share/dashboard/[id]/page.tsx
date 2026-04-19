@@ -113,7 +113,7 @@ export default function SharedDashboardPage() {
         return (
             <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-6 space-y-4">
                 <Loader2 className="w-10 h-10 animate-spin text-[var(--primary)]" />
-                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching shared insight...</span>
+                <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fetching shared insight...</span>
             </div>
         );
     }
@@ -125,8 +125,8 @@ export default function SharedDashboardPage() {
                     <AlertCircle className="w-8 h-8 text-[var(--error)]" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-[8px] md:text-[10px] font-bold uppercase">Access Denied</h2>
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-md mx-auto">
+                    <h2 className="text-[7px] md:text-[9px] font-bold uppercase">Access Denied</h2>
+                    <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-md mx-auto">
                         {error}. This insight may be private, deleted, or you may have followed an invalid link.
                     </p>
                 </div>
@@ -144,20 +144,20 @@ export default function SharedDashboardPage() {
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Shared Insight</span>
+                                <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--primary)]">Shared Insight</span>
                                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--success)]/10 border border-[var(--success)]/20">
                                     <Globe className="w-2.5 h-2.5 text-[var(--success)]" />
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]">Public</span>
+                                    <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--success)]">Public</span>
                                 </div>
                             </div>
-                            <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight uppercase">{widget?.name}</h1>
+                            <h1 className="text-[7px] md:text-[9px] font-bold tracking-tight uppercase">{widget?.name}</h1>
                         </div>
                     </div>
                     <div className="text-right">
                         {lastUpdated && (
                             <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
                                 <Clock className="w-3.5 h-3.5" />
-                                <span className="text-[8px] font-bold uppercase tracking-wider">
+                                <span className="text-[7px] font-bold uppercase tracking-wider">
                                     Updated: {lastUpdated.toLocaleTimeString()}
                                 </span>
                             </div>
@@ -165,7 +165,7 @@ export default function SharedDashboardPage() {
                         {widget?.refreshInterval && widget.refreshInterval > 0 && (
                             <div className="flex items-center gap-2 text-[var(--primary)] mt-1">
                                 <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
-                                <span className="text-[8px] font-bold uppercase tracking-wider">
+                                <span className="text-[7px] font-bold uppercase tracking-wider">
                                     Auto-refresh: {widget.refreshInterval}s
                                 </span>
                             </div>
@@ -178,7 +178,7 @@ export default function SharedDashboardPage() {
                         {isExecuting && !results && (
                             <div className="flex-1 flex flex-col items-center justify-center space-y-4">
                                 <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Running secure query...</span>
+                                <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Running secure query...</span>
                             </div>
                         )}
 
@@ -195,7 +195,7 @@ export default function SharedDashboardPage() {
                         {!isExecuting && (!results || results.length === 0) && (
                             <div className="flex-1 flex flex-col items-center justify-center space-y-4 text-[var(--muted-foreground)]">
                                 <Search className="w-12 h-12 opacity-20" />
-                                <span className="text-[8px] font-bold uppercase tracking-wider">No results found</span>
+                                <span className="text-[7px] font-bold uppercase tracking-wider">No results found</span>
                             </div>
                         )}
                     </div>
@@ -204,19 +204,19 @@ export default function SharedDashboardPage() {
                         <div className="flex items-center gap-4 text-[var(--muted-foreground)]">
                             <div className="flex items-center gap-1.5">
                                 <Database className="w-3.5 h-3.5" />
-                                <span className="text-[8px] font-bold uppercase tracking-wider">Secure Managed Storage</span>
+                                <span className="text-[7px] font-bold uppercase tracking-wider">Secure Managed Storage</span>
                             </div>
                             <Separator orientation="vertical" className="h-4 bg-[var(--border)]" />
-                            <span className="text-[8px] font-bold uppercase tracking-wider">{results?.length || 0} Rows Returned</span>
+                            <span className="text-[7px] font-bold uppercase tracking-wider">{results?.length || 0} Rows Returned</span>
                         </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">
                             DEPLOYIFY DATA LAB &copy; {new Date().getFullYear()}
                         </span>
                     </div>
                 </Card>
 
                 <div className="text-center">
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/40 max-w-xl mx-auto">
+                    <p className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/40 max-w-xl mx-auto">
                         This data insight is hosted on Deployify. Access to the underlying infrastructure is strictly proxied and read-only.
                     </p>
                 </div>
@@ -313,7 +313,7 @@ function SharedTable({ results }: { results: Record<string, unknown>[] }) {
                 <thead>
                     <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
                         {columns.map(col => (
-                            <th key={col} className="p-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <th key={col} className="p-4 text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 {col}
                             </th>
                         ))}
@@ -323,7 +323,7 @@ function SharedTable({ results }: { results: Record<string, unknown>[] }) {
                     {results.map((row, i) => (
                         <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
                             {columns.map(col => (
-                                <td key={col} className="p-4 text-[8px] font-mono whitespace-nowrap max-w-[300px] truncate">
+                                <td key={col} className="p-4 text-[7px] font-mono whitespace-nowrap max-w-[300px] truncate">
                                     {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
                                 </td>
                             ))}

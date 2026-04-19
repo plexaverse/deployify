@@ -13,7 +13,7 @@ export function AnalyticsAlerts({ alerts }: AnalyticsAlertsProps) {
 
     return (
         <div className="space-y-3">
-            <h3 className="text-[10px] font-bold flex items-center gap-2 text-[var(--foreground)]">
+            <h3 className="text-[9px] font-bold flex items-center gap-2 text-[var(--foreground)]">
                 <AlertTriangle className="w-4 h-4 text-[var(--warning)]" />
                 Performance Warnings
             </h3>
@@ -22,7 +22,7 @@ export function AnalyticsAlerts({ alerts }: AnalyticsAlertsProps) {
                     <div
                         key={alert.id}
                         className={cn(
-                            "flex gap-3 p-3 rounded-lg border text-[8px] font-bold uppercase tracking-wider",
+                            "flex gap-3 p-3 rounded-lg border text-[7px] font-bold uppercase tracking-wider",
                             alert.type === 'critical'
                                 ? 'bg-[var(--error-bg)] border-[var(--error)]/20 text-[var(--error)]'
                                 : 'bg-[var(--warning-bg)] border-[var(--warning)]/20 text-[var(--warning)]'
@@ -35,7 +35,7 @@ export function AnalyticsAlerts({ alerts }: AnalyticsAlertsProps) {
                         )}
                         <div className="space-y-1">
                             <p className="font-bold">{alert.message}</p>
-                            <p className="text-[8px] font-bold uppercase tracking-wider opacity-70">
+                            <p className="text-[7px] font-bold uppercase tracking-wider opacity-70">
                                 Current {alert.metric}: <span className="font-mono">{alert.value.toFixed(2)}</span>
                                 &bull; Threshold: {alert.threshold}
                             </p>

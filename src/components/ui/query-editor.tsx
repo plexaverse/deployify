@@ -159,7 +159,7 @@ useEffect(() => {
 
     return (
         <div className={cn(
-            "relative flex rounded-xl bg-[var(--background)] border border-[var(--border)] font-mono text-[10px] focus-within:ring-2 focus-within:ring-[var(--primary)]/50 overflow-hidden",
+            "relative flex rounded-xl bg-[var(--background)] border border-[var(--border)] font-mono text-[9px] focus-within:ring-2 focus-within:ring-[var(--primary)]/50 overflow-hidden",
             className
         )}>
             {showSuggestions && (
@@ -172,7 +172,7 @@ useEffect(() => {
                             key={s}
                             onClick={() => applySuggestion(s)}
                             className={cn(
-                                "w-full text-left px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider transition-colors",
+                                "w-full text-left px-3 py-1.5 text-[7px] font-bold uppercase tracking-wider transition-colors",
                                 i === selectedIndex ? "bg-[var(--primary)] text-white" : "hover:bg-[var(--primary)]/10"
                             )}
                         >
@@ -184,7 +184,7 @@ useEffect(() => {
             {/* Line Numbers */}
             <div
                 ref={lineNumbersRef}
-                className="w-10 bg-[var(--muted)]/20 border-r border-[var(--border)] py-4 text-right pr-2 text-[8px] font-bold text-[var(--muted-foreground)]/40 select-none overflow-hidden"
+                className="w-10 bg-[var(--muted)]/20 border-r border-[var(--border)] py-4 text-right pr-2 text-[7px] font-bold text-[var(--muted-foreground)]/40 select-none overflow-hidden"
             >
                 {Array.from({ length: lineCount }).map((_, i) => (
                     <div key={i} className="h-5 leading-5">
@@ -208,7 +208,7 @@ useEffect(() => {
             {/* Hidden mirror for position calculation */}
             <div
                 ref={mirrorRef}
-                className="absolute invisible whitespace-pre p-4 font-mono text-[10px] leading-5"
+                className="absolute invisible whitespace-pre p-4 font-mono text-[9px] leading-5"
                 style={{ width: textareaWidth, top: 0, left: 40 }}
             />
         </div>

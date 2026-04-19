@@ -81,15 +81,15 @@ export default function EdgeDebugPage() {
                     <Cpu className="w-8 h-8 text-[var(--primary)]" />
                 </div>
                 <div className="space-y-1">
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
-                    <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Edge Function Simulator</h1>
+                    <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
+                    <h1 className="text-[7px] md:text-[9px] font-bold tracking-tight">Edge Function Simulator</h1>
                 </div>
             </div>
             <MovingBorderButton
                 onClick={handleRun}
                 disabled={loading}
                 containerClassName="h-12 w-48"
-                className="text-[8px] font-bold uppercase tracking-wider"
+                className="text-[7px] font-bold uppercase tracking-wider"
             >
                 {!loading && <Play className="mr-2 h-4 w-4" />}
                 {loading ? 'Running...' : 'Run Simulation'}
@@ -104,8 +104,8 @@ export default function EdgeDebugPage() {
                         <Terminal className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Code Editor</span>
-                        <h2 className="text-[8px] md:text-[10px] font-bold">Middleware Code</h2>
+                        <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Code Editor</span>
+                        <h2 className="text-[7px] md:text-[9px] font-bold">Middleware Code</h2>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />
@@ -113,7 +113,7 @@ export default function EdgeDebugPage() {
                      <textarea
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
-                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-[10px] p-4 focus:outline-none resize-none"
+                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-[9px] p-4 focus:outline-none resize-none"
                         spellCheck={false}
                     />
                 </div>
@@ -129,15 +129,15 @@ export default function EdgeDebugPage() {
                             <Cpu className="w-5 h-5" />
                         </div>
                         <div className="space-y-0.5">
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                            <h2 className="text-[8px] md:text-[10px] font-bold text-[var(--foreground)]">Request Configuration</h2>
+                            <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
+                            <h2 className="text-[7px] md:text-[9px] font-bold text-[var(--foreground)]">Request Configuration</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
                     <div className="p-6 space-y-6">
 
                     <div className="space-y-2">
-                        <Label className="text-[10px] font-bold">HTTP Method</Label>
+                        <Label className="text-[9px] font-bold">HTTP Method</Label>
                         <SegmentedControl
                             options={[
                                 { value: 'GET', label: 'GET' },
@@ -152,23 +152,23 @@ export default function EdgeDebugPage() {
                     </div>
 
                     <div className="space-y-2">
-                         <Label className="text-[10px] font-bold">Target URL</Label>
+                         <Label className="text-[9px] font-bold">Target URL</Label>
                          <Input
                             type="text"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="HTTPS://EXAMPLE.COM/PATH"
-                            className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                            className="placeholder:text-[7px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-[10px] font-bold mb-2 block">Headers (JSON)</Label>
+                        <Label className="text-[9px] font-bold mb-2 block">Headers (JSON)</Label>
                         <textarea
                             value={headers}
                             onChange={(e) => setHeaders(e.target.value)}
                             className={cn(
-                                "flex min-h-[100px] w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[10px]",
+                                "flex min-h-[100px] w-full rounded-md border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-[9px]",
                                 "ring-offset-[var(--background)] placeholder:text-[var(--muted-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
                                 "font-mono text-[var(--foreground)] resize-none"
                             )}
@@ -186,15 +186,15 @@ export default function EdgeDebugPage() {
                                 <Layout className="w-5 h-5 text-[var(--primary)]" />
                             </div>
                             <div>
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Execution Output</span>
-                                <h2 className="text-[8px] md:text-[10px] font-bold">Simulation Result</h2>
+                                <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Execution Output</span>
+                                <h2 className="text-[7px] md:text-[9px] font-bold">Simulation Result</h2>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
 
                         <div className="p-6 flex-1 flex flex-col">
                             {!result && !loading && (
-                                <div className="flex-1 border border-dashed border-[var(--border)] rounded-xl flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px] text-[8px] font-bold uppercase tracking-wider">
+                                <div className="flex-1 border border-dashed border-[var(--border)] rounded-xl flex items-center justify-center text-[var(--muted-foreground)] p-8 min-h-[200px] text-[7px] font-bold uppercase tracking-wider">
                                     Run a simulation to see the results
                                 </div>
                             )}
@@ -211,7 +211,7 @@ export default function EdgeDebugPage() {
                                         result.type === 'error' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/20' : 'bg-[var(--success-bg)] text-[var(--success)] border-[var(--success)]/20'
                                     )}>
                                         {result.type === 'error' ? <AlertCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
-                                        <span className="text-[10px] font-bold">{result.status}</span>
+                                        <span className="text-[9px] font-bold">{result.status}</span>
                                         <Badge variant={result.type === 'error' ? 'error' : 'success'} className="ml-auto">
                                             {result.type}
                                         </Badge>
@@ -220,8 +220,8 @@ export default function EdgeDebugPage() {
                                     {/* Logs */}
                                     {result.logs.length > 0 && (
                                         <div className="space-y-2">
-                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Runtime Logs</span>
-                                            <div className="p-4 rounded-xl border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[8px] font-bold uppercase tracking-wider overflow-auto max-h-[150px]">
+                                            <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Runtime Logs</span>
+                                            <div className="p-4 rounded-xl border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[7px] font-bold uppercase tracking-wider overflow-auto max-h-[150px]">
                                                 {result.logs.map((log: string, i: number) => (
                                                     <div key={i}>{log}</div>
                                                 ))}
@@ -232,8 +232,8 @@ export default function EdgeDebugPage() {
                                     {/* Error Message */}
                                     {result.error && (
                                         <div className="space-y-2">
-                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--error)]">Error Details</span>
-                                            <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] border border-[var(--error)]/20 rounded-xl font-mono text-[8px] font-bold uppercase tracking-wider">
+                                            <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--error)]">Error Details</span>
+                                            <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] border border-[var(--error)]/20 rounded-xl font-mono text-[7px] font-bold uppercase tracking-wider">
                                                 {result.error}
                                             </div>
                                         </div>
@@ -245,8 +245,8 @@ export default function EdgeDebugPage() {
                                             {/* Headers */}
                                             {Object.keys(result.headers).length > 0 && (
                                                 <div className="space-y-2">
-                                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Headers</span>
-                                                    <div className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[8px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
+                                                    <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Headers</span>
+                                                    <div className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[7px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
                                                         {Object.entries(result.headers).map(([k, v]) => (
                                                             <div key={k} className="flex gap-2">
                                                                 <span className="text-[var(--primary)]">{k.toUpperCase()}:</span>
@@ -259,8 +259,8 @@ export default function EdgeDebugPage() {
 
                                             {/* Body */}
                                             <div className="space-y-2">
-                                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Body</span>
-                                                <pre className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[8px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
+                                                <span className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Body</span>
+                                                <pre className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[7px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
                                                     {result.body || <span className="text-[var(--muted-foreground)] italic opacity-50">No content</span>}
                                                 </pre>
                                             </div>

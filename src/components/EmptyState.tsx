@@ -34,8 +34,8 @@ export function EmptyState({
                     <Icon className="w-8 h-8 text-[var(--muted-foreground)] opacity-50 group-hover:opacity-100 group-hover:text-[var(--primary)] transition-all duration-300" />
                 </div>
             ) : null}
-            <h3 className="text-[10px] font-bold mb-2 tracking-tight text-[var(--foreground)]">{title}</h3>
-            <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-sm mb-8 leading-relaxed">
+            <h3 className="text-[9px] font-bold mb-2 tracking-tight text-[var(--foreground)]">{title}</h3>
+            <div className="text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-sm mb-8 leading-relaxed">
                 {description}
             </div>
             {children}
