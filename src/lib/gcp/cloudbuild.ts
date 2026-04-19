@@ -207,6 +207,9 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         return s;
     })));
 
+    // Helper to safely escape arguments for bash -c execution (avoiding the 100 max args limit)
+    const escapeBashArg = (arg: string) => `'${arg.replace(/'/g, "'\\''")}'`;
+
     // Define common steps shared between both deployment methods
     const commonSteps = [
         // Restore cache from GCS
@@ -278,14 +281,18 @@ node fix-next-config.js && rm fix-next-config.js`,
         // Build the Docker image with build-time env vars and caching
         {
             name: 'gcr.io/cloud-builders/docker',
+            entrypoint: 'bash',
             args: [
-                'build',
-                '-t', imageName,
-                '-t', latestImageName,
-                '--cache-from', latestImageName,
-                ...dockerBuildArgs,
-                '-f', `${workDir}/Dockerfile`,
-                '.'
+                '-c',
+                [
+                    'docker', 'build',
+                    '-t', escapeBashArg(imageName),
+                    '-t', escapeBashArg(latestImageName),
+                    '--cache-from', escapeBashArg(latestImageName),
+                    ...dockerBuildArgs.map(escapeBashArg),
+                    '-f', escapeBashArg(`${workDir}/Dockerfile`),
+                    '.' // Current context directory
+                ].join(' ')
             ],
             dir: '/workspace',
         },
@@ -302,13 +309,17 @@ node fix-next-config.js && rm fix-next-config.js`,
         // Build 'builder' target to extract cache (Skip for Docker framework)
         ...(isDockerFramework ? [] : [{
             name: 'gcr.io/cloud-builders/docker',
+            entrypoint: 'bash',
             args: [
-                'build',
-                '--target', 'builder',
-                '-t', `${imageName}-builder`,
-                ...dockerBuildArgs,
-                '-f', `${workDir}/Dockerfile`,
-                '.'
+                '-c',
+                [
+                    'docker', 'build',
+                    '--target', 'builder',
+                    '-t', escapeBashArg(`${imageName}-builder`),
+                    ...dockerBuildArgs.map(escapeBashArg),
+                    '-f', escapeBashArg(`${workDir}/Dockerfile`),
+                    '.' // Current context directory
+                ].join(' ')
             ],
             dir: '/workspace',
         }]),
