@@ -30,9 +30,11 @@ export async function GET(request: NextRequest) {
 
         for (const projectDoc of projectsSnapshot.docs) {
             const project = projectDoc.data() as Project;
-            const storageConfigs = project.storageConfigs || [];
+            const storageConfigs = [...(project.storageConfigs || [])];
+            let projectUpdated = false;
 
-            for (const storage of storageConfigs) {
+            for (let i = 0; i < storageConfigs.length; i++) {
+                const storage = storageConfigs[i];
                 // Process Cloud SQL, Memorystore and Neon with auto-scaling enabled
                 const isSql = storage.type.includes('cloud-sql');
                 const isRedis = storage.type === 'memorystore-redis';
@@ -105,14 +107,11 @@ export async function GET(request: NextRequest) {
                                     memorySizeGb: parseInt(autoScalingRec.recommendedTier)
                                 });
                             } else if (isNeon) {
-                                // For Neon, Auto-Pilot updates the discovered tier metadata
-                                // which will be synced to the provider during the next heartbeat.
-                                // In a real production scenario, we would call the Neon API here.
                                 const providerApiKey = storage.metadata?.providerApiKey as string;
                                 const neonProjectId = storage.metadata?.neonProjectId as string;
 
                                 if (providerApiKey && neonProjectId && process.env.MOCK_DB !== 'true') {
-                                    await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
+                                    const neonRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
                                         method: 'PATCH',
                                         headers: {
                                             'Authorization': `Bearer ${providerApiKey}`,
@@ -124,8 +123,23 @@ export async function GET(request: NextRequest) {
                                             }
                                         })
                                     });
+                                    if (!neonRes.ok) {
+                                        console.error(`[Auto-Pilot] Neon API scaling failed for ${resourceName}: ${await neonRes.text()}`);
+                                        continue;
+                                    }
                                 }
                             }
+
+                            // Update the local storage config metadata to reflect the new tier
+                            storageConfigs[i] = {
+                                ...storage,
+                                metadata: {
+                                    ...storage.metadata,
+                                    tier: autoScalingRec.recommendedTier
+                                },
+                                updatedAt: new Date()
+                            };
+                            projectUpdated = true;
 
                             // Log the action
                             await logAuditEvent(
@@ -154,6 +168,13 @@ export async function GET(request: NextRequest) {
                         }
                     }
                 }
+            }
+
+            if (projectUpdated) {
+                await db.collection(Collections.PROJECTS).doc(project.id).update({
+                    storageConfigs,
+                    updatedAt: new Date()
+                });
             }
         }
 
