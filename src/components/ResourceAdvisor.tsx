@@ -82,7 +82,7 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
         return (
             <div className="p-8 rounded-3xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center">
                 <BarChart3 className="w-12 h-12 text-white/20 mb-4" />
-                <h3 className="text-[10px] font-bold">All optimized</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">All optimized</h3>
                 <p className="text-white/40 mt-1 max-w-xs uppercase tracking-[0.2em] text-[8px]">
                     Your resources are currently aligned with your usage patterns. Check back in 7 days.
                 </p>
@@ -107,21 +107,21 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
                             key={`${storage.storageId}-${idx}`}
                             title={
                                 <div className="flex items-center justify-between">
-                                    <span>{storage.storageName}</span>
+                                    <span className="uppercase tracking-[0.1em]">{storage.storageName}</span>
                                     <span className={rec.type === 'downgrade' ? 'text-green-400' : 'text-blue-400'}>
                                         {rec.type === 'downgrade' ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
                                     </span>
                                 </div>
                             }
-                            description={rec.reason}
+                            description={<div className="uppercase tracking-[0.05em] text-[10px] opacity-70">{rec.reason}</div>}
                             header={
                                 <div className="flex flex-col space-y-2">
                                     <div className="flex justify-between items-end">
-                                        <div className="text-[8px] uppercase tracking-[0.2em] text-white/40">Current Tier</div>
+                                        <div className="text-[8px] uppercase tracking-[0.2em] font-bold text-white/40">Current Tier</div>
                                         <div className="text-[10px] font-mono">{rec.currentTier}</div>
                                     </div>
                                     <div className="flex justify-between items-end">
-                                        <div className="text-[8px] uppercase tracking-[0.2em] text-white/40">Recommended</div>
+                                        <div className="text-[8px] uppercase tracking-[0.2em] font-bold text-white/40">Recommended</div>
                                         <div className="text-[10px] font-mono text-white">{rec.recommendedTier}</div>
                                     </div>
                                     <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10">
@@ -129,12 +129,12 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
                                             {rec.type === 'downgrade' ? (
                                                 <>
                                                     <DollarSign className="w-4 h-4 text-green-400" />
-                                                    <span className="text-[10px] font-bold text-green-400">Save {rec.estimatedSavings} / mo</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-green-400">Save {rec.estimatedSavings} / mo</span>
                                                 </>
                                             ) : (
                                                 <>
                                                     <Zap className="w-4 h-4 text-blue-400" />
-                                                    <span className="text-[10px] font-bold text-blue-400">{rec.performanceGain} Performance Boost</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400">{rec.performanceGain} Performance Boost</span>
                                                 </>
                                             )}
                                         </div>

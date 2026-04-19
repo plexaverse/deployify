@@ -139,7 +139,8 @@ export async function GET(request: NextRequest) {
                                     action: autoScalingRec.type,
                                     oldTier: autoScalingRec.currentTier,
                                     newTier: autoScalingRec.recommendedTier,
-                                    reason: autoScalingRec.reason
+                                    reason: autoScalingRec.reason,
+                                    estimatedSavings: autoScalingRec.estimatedSavings
                                 }
                             );
 
