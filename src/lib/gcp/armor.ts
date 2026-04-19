@@ -70,6 +70,12 @@ export async function createSecurityPolicy(policyName: string): Promise<void> {
                     description: 'XSS protection'
                 },
                 {
+                    priority: 1002,
+                    match: { expr: { expression: "evaluatePreconfiguredExpr('lfi-v33-stable') || evaluatePreconfiguredExpr('rfi-v33-stable')" } },
+                    action: 'deny(403)',
+                    description: 'LFI/RFI protection'
+                },
+                {
                     priority: 2147483647,
                     match: { config: { srcIpRanges: ['*'] } },
                     action: 'allow',

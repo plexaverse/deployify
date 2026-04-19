@@ -284,6 +284,13 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                                 console.log(`[Cleanup] Deleting ephemeral database ${dbName} from ${instanceName}`);
                                 await deleteSqlDatabase(instanceName, dbName);
                                 console.log(`[Cleanup] Successfully deleted SQL database ${dbName}.`);
+
+                                await logAuditEvent(
+                                    project.teamId || null,
+                                    project.userId,
+                                    'storage.branch_deleted',
+                                    { projectId: project.id, storageId: storage.id, dbName }
+                                );
                             }
                         } catch (e) {
                             console.error(`[Cleanup] Failed to delete ephemeral database for ${storage.name}:`, e);

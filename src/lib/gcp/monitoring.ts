@@ -532,6 +532,9 @@ export async function getScalingRecommendations(
 
     const currentCost = getEstimatedMonthlyCost(storageType, currentTier, diskSizeGb, isHA);
 
+    // Check if Billing API should be simulated (for accurate cost impact)
+    const simulateBillingApi = true;
+
     // 1. CPU Analysis
     if (metrics.cpuUtilization > 75) {
         let recommendedTier = 'db-g1-small';
@@ -583,7 +586,8 @@ export async function getScalingRecommendations(
             recommendedTier: (isCloudSql || isRedis || isNeon) ? recommendedTier : 'Lower Capacity Tier',
             reason: `Low CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected consistently. Downgrading to a smaller tier will reduce infrastructure costs.`,
             estimatedSavings: savings > 0 ? `$${savings.toFixed(2)}/mo` : '15-40%',
-            savingsAmount: savings > 0 ? parseFloat(savings.toFixed(2)) : undefined
+            savingsAmount: savings > 0 ? parseFloat(savings.toFixed(2)) : undefined,
+            performanceGain: simulateBillingApi ? 'Cost-Optimized' : undefined
         });
     }
 

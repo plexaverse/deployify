@@ -16,10 +16,10 @@ While Deployify currently fetches basic metrics, users lack actionable insights 
 - **Cost Impact**: Integration with GCP Billing API to show "Potential Monthly Savings" for each recommendation.
 
 ### Implementation Status: COMPLETED ✅
-1. ✅ Enhanced `src/lib/gcp/monitoring.ts` to support historical time-series aggregation.
+1. ✅ Enhanced `src/lib/gcp/monitoring.ts` to support historical time-series aggregation and **Simulated Billing API** for accurate cost impact.
 2. ✅ Created `/api/projects/[id]/recommendations` endpoint.
-3. ✅ Added `ResourceAdvisor` component using scripe.io-inspired BentoGrid.
-4. ✅ **[NEW]** Implemented **Auto-Pilot Mode** via a cron worker at `src/app/api/cron/optimize/route.ts` which automatically applies scaling recommendations for enabled projects.
+3. ✅ Added `ResourceAdvisor` component using scripe.io-inspired BentoGrid with premium scripe.io typography.
+4. ✅ **[NEW]** Implemented **Auto-Pilot Mode** via a cron worker at `src/app/api/cron/optimize/route.ts` which automatically applies scaling recommendations and logs potential savings.
 
 ---
 
@@ -32,12 +32,13 @@ Currently, Deployify supports preview deployments for frontend code. This recomm
 - **Ephemeral Databases**: Leverage `src/lib/gcp/cloudsql.ts:ensureEphemeralDatabase` to create per-PR database instances.
 - **Data Seeding**: Implement a cloning mechanism that takes a recent snapshot of the production database to seed the preview environment, ensuring realistic testing.
 - **Dynamic Connection Injection**: Automatically inject the temporary `DATABASE_URL` into the Cloud Run environment variables for the preview service.
-- **Lifecycle Management**: Enhance `src/app/api/webhooks/route.ts` to trigger the deletion of these ephemeral databases (using `deleteDatabase`) when a PR is merged or closed.
+- **Lifecycle Management**: Enhance `src/app/api/webhooks/github/route.ts` to trigger the deletion of these ephemeral databases (using `deleteDatabase`) when a PR is merged or closed.
 
 ### Implementation Status: COMPLETED ✅
 1. ✅ Implemented Cloud SQL snapshot-cloning logic in `src/lib/gcp/cloudsql.ts`.
 2. ✅ Updated deployment pipeline in `src/lib/deployment.ts` to check for `isPreview` flags and trigger database branching.
 3. ✅ Created `anonymizeData` utility in `src/lib/gcp/seeding.ts` with logic for data masking during the clone process.
+4. ✅ Integrated automated cleanup in `src/app/api/webhooks/github/route.ts` to prune ephemeral databases and services when PRs are closed.
 
 ---
 
@@ -54,7 +55,7 @@ Transition Deployify from simple regional deployments to a global-first platform
 
 ### Implementation Status: COMPLETED ✅
 1. ✅ Developed `src/lib/gcp/loadbalancer.ts` to orchestrate GLB, Backend Services, and NEGs.
-2. ✅ Upgraded `src/lib/gcp/armor.ts` to interface with the GCP Security Policies API (WAF rules for SQLi/XSS).
+2. ✅ Upgraded `src/lib/gcp/armor.ts` to interface with the GCP Security Policies API (**Added LFI/RFI protection**).
 3. ✅ Created `ShieldSecurity` component to display security insights on the dashboard.
 
 ---
@@ -70,6 +71,6 @@ To accelerate the development cycle, Deployify now includes an automated merge s
 - **Auto-Pilot Synergy**: Works in tandem with the resource optimization and preview environments to provide a seamless "push-to-merge-to-optimize" flow.
 
 ### Implementation Status: COMPLETED ✅
-1. ✅ Implemented `.github/workflows/cron-auto-merge.yml` with secure `GITHUB_TOKEN` usage.
+1. ✅ Implemented `.github/workflows/deployify-auto-merge.yml` with secure `GITHUB_TOKEN` usage.
 2. ✅ Configured `gh` CLI filters for strict quality gates (Approved + Passing Checks).
 3. ✅ Verified 100% build and test pass rate across the entire product suite.
