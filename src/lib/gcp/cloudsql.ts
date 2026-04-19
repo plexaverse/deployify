@@ -60,7 +60,10 @@ export async function createInstance(
                     ipv4Enabled: true,
                 },
                 databaseFlags: [
-                    { name: 'cloudsql.iam_authentication', value: 'on' }
+                    {
+                        name: dbType === 'postgres' ? 'cloudsql.iam_authentication' : 'cloudsql_iam_authentication',
+                        value: 'on'
+                    }
                 ],
                 insightsConfig: {
                     queryInsightsEnabled: true,
@@ -408,12 +411,25 @@ export async function getInstance(instanceName: string, projectId?: string): Pro
 export async function createUser(
     instanceName: string,
     username: string,
-    password?: string
+    password?: string,
+    dbType: 'postgres' | 'mysql' = 'postgres'
 ): Promise<string> {
     if (process.env.MOCK_DB === 'true') return `projects/mock/operations/user-${username}`;
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
+
+    // Formatting for IAM Service Account users
+    let dbUsername = username;
+    if (!password && username.includes('@')) {
+        if (dbType === 'mysql') {
+            // MySQL IAM service account username is the email WITHOUT the .gserviceaccount.com suffix
+            dbUsername = username.replace('.gserviceaccount.com', '');
+        }
+        // Postgres uses the full email address
+    }
+
+    const isServiceAccount = username.endsWith('.gserviceaccount.com');
 
     const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/users`, {
         method: 'POST',
@@ -422,9 +438,9 @@ export async function createUser(
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            name: username,
+            name: dbUsername,
             password: password || undefined,
-            type: password ? 'BUILT_IN' : 'CLOUD_IAM_USER',
+            type: password ? 'BUILT_IN' : (isServiceAccount ? 'CLOUD_IAM_SERVICE_ACCOUNT' : 'CLOUD_IAM_USER'),
         }),
     });
 

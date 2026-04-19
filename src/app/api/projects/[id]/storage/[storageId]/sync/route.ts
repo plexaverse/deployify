@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
-import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getCloudSqlInstance } from '@/lib/gcp/cloudsql';
+import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getCloudSqlInstance, createUser as createCloudSqlUser } from '@/lib/gcp/cloudsql';
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
+import { getGcpProjectNumber } from '@/lib/gcp/auth';
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
@@ -382,7 +383,7 @@ export async function GET(
                 const userOperationName = storage.metadata?.userOperationName as string;
 
                 try {
-                    const { createDatabase, createUser, getOperationStatus } = await import('@/lib/gcp/cloudsql');
+                    const { createDatabase, getOperationStatus } = await import('@/lib/gcp/cloudsql');
                     const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                     const dbName = project.slug;
 
@@ -409,7 +410,17 @@ export async function GET(
 
                     // Step 4: Create User if not started
                     if (hasCreatedDb && !userOperationName) {
-                        const opName = await createUser(instanceName, 'deployify-sa');
+                        const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
+                        const gcpProjectId = storage.providerProjectId || process.env.GCP_PROJECT_ID;
+                        const projectNumber = await getGcpProjectNumber(gcpProjectId as string);
+                        const computeSaEmail = projectNumber ? `${projectNumber}-compute@developer.gserviceaccount.com` : null;
+
+                        const opName = await createCloudSqlUser(
+                            instanceName,
+                            computeSaEmail || 'deployify-sa',
+                            undefined,
+                            dbType as 'postgres' | 'mysql'
+                        );
                         storage.metadata = { ...storage.metadata, userOperationName: opName };
                         await updateProject(id, { storageConfigs });
                         return NextResponse.json({ success: true, status: 'provisioning', message: 'Creating IAM user...' });

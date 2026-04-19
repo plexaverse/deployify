@@ -140,6 +140,8 @@ export interface Project {
         envTarget: 'production' | 'preview';
     }[]; // Custom environment mapping for branches
     healthCheckPath?: string; // Custom path for health checks (startup/liveness probes)
+    vpcNetwork?: string; // VPC Network name
+    vpcSubnet?: string; // VPC Subnet name
     githubToken?: string | null; // Stored OAuth token for private repo access
     analyticsApiKey?: string; // API key for internal analytics collector
     resources?: {
