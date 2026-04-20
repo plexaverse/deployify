@@ -23,14 +23,14 @@ export const buttonVariants = ({
     };
 
     const sizes = {
-        sm: 'h-9 px-3 text-[8px] font-bold uppercase tracking-wider',
+        sm: 'h-9 px-3 text-[8px] font-bold uppercase tracking-[0.2em]',
         md: 'h-10 px-4 py-2',
         lg: 'h-11 px-8',
         icon: 'h-10 w-10',
     };
 
     return cn(
-        'inline-flex items-center justify-center rounded-md text-[10px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-[var(--background)]',
+        'inline-flex items-center justify-center rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-[var(--background)]',
         variants[variant],
         sizes[size],
         className

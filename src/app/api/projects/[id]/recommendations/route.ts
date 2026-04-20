@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
-import { getCloudSqlHistoricalMetrics, getScalingRecommendations } from '@/lib/gcp/monitoring';
+import {
+    getCloudSqlHistoricalMetrics,
+    getMemorystoreHistoricalMetrics,
+    getScalingRecommendations,
+    getExternalMetrics
+} from '@/lib/gcp/monitoring';
 import { securityHeaders } from '@/lib/security';
 
 export async function GET(
@@ -27,34 +32,55 @@ export async function GET(
         // Analyze each provisioned storage config
         const storageConfigs = project.storageConfigs || [];
         for (const storage of storageConfigs) {
-            if (storage.metadata?.provisioned && storage.type.includes('cloud-sql')) {
+            const isSql = storage.type.includes('cloud-sql');
+            const isRedis = storage.type === 'memorystore-redis';
+            const isNeon = storage.type === 'neon';
+
+            if (storage.metadata?.provisioned && (isSql || isRedis || isNeon)) {
                 const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
-                // Fetch last 7 days of metrics
-                const historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                let metrics;
 
-                if (historicalMetrics.length > 0) {
-                    // Get average metrics for analysis
-                    const avgMetrics = historicalMetrics.reduce((acc, curr) => ({
-                        cpuUtilization: acc.cpuUtilization + curr.cpuUtilization,
-                        memoryUtilization: acc.memoryUtilization + curr.memoryUtilization,
-                        diskUtilization: (acc.diskUtilization || 0) + (curr.diskUtilization || 0),
-                        timestamp: curr.timestamp
-                    }), { cpuUtilization: 0, memoryUtilization: 0, diskUtilization: 0, timestamp: '' });
+                if (isSql || isRedis) {
+                    // Fetch last 7 days of metrics
+                    const historicalMetrics = isSql
+                        ? await getCloudSqlHistoricalMetrics(resourceName, 7)
+                        : await getMemorystoreHistoricalMetrics(resourceName, region, 7);
 
-                    const count = historicalMetrics.length;
-                    const metrics = {
-                        cpuUtilization: avgMetrics.cpuUtilization / count,
-                        memoryUtilization: avgMetrics.memoryUtilization / count,
-                        diskUtilization: (avgMetrics.diskUtilization || 0) / count,
+                    if (historicalMetrics.length > 0) {
+                        // Get average metrics for analysis
+                        const count = historicalMetrics.length;
+                        const avgMetrics = historicalMetrics.reduce((acc, curr) => ({
+                            cpuUtilization: acc.cpuUtilization + curr.cpuUtilization,
+                            memoryUtilization: acc.memoryUtilization + curr.memoryUtilization,
+                            diskUtilization: (acc.diskUtilization || 0) + (curr.diskUtilization || 0),
+                            timestamp: curr.timestamp
+                        }), { cpuUtilization: 0, memoryUtilization: 0, diskUtilization: 0, timestamp: '' });
+
+                        metrics = {
+                            cpuUtilization: avgMetrics.cpuUtilization / count,
+                            memoryUtilization: avgMetrics.memoryUtilization / count,
+                            diskUtilization: (avgMetrics.diskUtilization || 0) / count,
+                            timestamp: new Date().toISOString()
+                        };
+                    }
+                } else if (isNeon) {
+                    // Fetch current usage for Neon
+                    const ext = await getExternalMetrics(storage.type, storage.metadata || {});
+                    metrics = {
+                        cpuUtilization: ext.usage || 0,
+                        memoryUtilization: 0,
                         timestamp: new Date().toISOString()
                     };
+                }
 
+                if (metrics) {
                     const storageRecs = await getScalingRecommendations(
                         storage.type,
                         metrics,
                         {
-                            tier: storage.metadata?.tier,
+                            tier: storage.metadata?.tier || (isRedis ? `${storage.metadata?.memorySizeGb}GB` : undefined),
                             diskSizeGb: storage.metadata?.diskSizeGb
                         }
                     );
