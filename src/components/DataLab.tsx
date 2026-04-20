@@ -100,6 +100,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [filterQuery, setFilterQuery] = useState('');
     const [entitySearchQuery, setEntitySearchQuery] = useState('');
+    const [entityTypeFilter, setEntityTypeFilter] = useState<'all' | 'tables' | 'collections' | 'views'>('all');
     const [copiedCell, setCopiedCell] = useState<string | null>(null);
     const [copiedResults, setCopiedResults] = useState<'csv' | 'json' | 'code' | null>(null);
     const [isExportingPDF, setIsExportingPDF] = useState(false);
@@ -927,6 +928,9 @@ runQuery();`;
         if (!paginatedResults || paginatedResults.length === 0 || !processedResults) return null;
         const columns = Object.keys(paginatedResults[0]);
 
+        // Enhanced Visual EXPLAIN Rendering
+        const isExplainResults = query.toUpperCase().startsWith('EXPLAIN');
+
         // Calculate aggregations for numeric columns
         const aggregations: Record<string, { sum: number, avg: number, min: number, max: number, count: number }> = {};
         columns.forEach(col => {
@@ -985,7 +989,25 @@ runQuery();`;
                                     return (
                                         <td key={col} className="p-3 text-[8px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
                                             <div className="flex items-center gap-1.5">
-                                                {value}
+                                                {isExplainResults && col === 'QUERY PLAN' ? (
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2">
+                                                            {value.includes('Seq Scan') && <span className="text-[7px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold">FULL SCAN</span>}
+                                                            {value.includes('Index Scan') && <span className="text-[7px] px-1 rounded bg-[var(--success)]/20 text-[var(--success)] font-bold">INDEX</span>}
+                                                            {value.includes('Bitmap Index Scan') && <span className="text-[7px] px-1 rounded bg-[var(--success)]/10 text-[var(--success)] font-bold">BITMAP</span>}
+                                                            {value.includes('Hash Join') && <span className="text-[7px] px-1 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold">HASH JOIN</span>}
+                                                            {value.includes('Nested Loop') && <span className="text-[7px] px-1 rounded bg-[var(--warning)]/10 text-[var(--warning)] font-bold">LOOP</span>}
+                                                            <span>{value}</span>
+                                                        </div>
+                                                    </div>
+                                                ) : isExplainResults && col === 'type' && value === 'ALL' ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-[7px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase">Critical</span>
+                                                        {value}
+                                                    </div>
+                                                ) : (
+                                                    value
+                                                )}
                                                 {fkInfo && (
                                                     <button
                                                         onClick={() => {
@@ -1976,9 +1998,25 @@ runQuery();`;
                         ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Entities</span>
-                                    <div className="relative w-48">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Entities</span>
+                                        <div className="flex items-center gap-1 bg-[var(--muted)]/20 p-0.5 rounded-lg border border-[var(--border)]">
+                                            {(['all', 'tables', 'collections'] as const).map(t => (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => setEntityTypeFilter(t)}
+                                                    className={cn(
+                                                        "h-5 px-2 text-[7px] font-bold uppercase tracking-wider rounded-md transition-all",
+                                                        entityTypeFilter === t ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                                                    )}
+                                                >
+                                                    {t}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="relative w-full sm:w-48">
                                         <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--muted-foreground)]" />
                                         <input
                                             type="text"
@@ -1989,7 +2027,7 @@ runQuery();`;
                                         />
                                     </div>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                     {selectedConnector?.type === 'memorystore-redis' && (schema as { sampleKeys?: string[] })?.sampleKeys ? (
                                         <div className="w-full">
                                             <RedisTree
@@ -2001,29 +2039,46 @@ runQuery();`;
                                             />
                                         </div>
                                     ) : (
-                                        (schema.tables || schema.collections || []).filter(item => item.toLowerCase().includes(entitySearchQuery.toLowerCase())).map(item => (
-                                            <button
-                                                key={item}
-                                                onClick={() => {
-                                                    if (selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') {
-                                                        setQuery(`SELECT * FROM ${item} LIMIT 10`);
-                                                    } else {
-                                                        setQuery(`{ "collection": "${item}", "limit": 10 }`);
-                                                    }
-                                                }}
-                                                className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[8px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <span>{item}</span>
-                                                    {schema.tableStats?.[item] !== undefined && (
-                                                        <span className="text-[8px] font-bold text-[var(--muted-foreground)]/50 uppercase tracking-wider">
-                                                            ({schema.tableStats[item].estimatedRows.toLocaleString()} ROWS)
-                                                        </span>
-                                                    )}
+                                        (() => {
+                                            const items = [
+                                                ...(entityTypeFilter === 'all' || entityTypeFilter === 'tables' ? (schema.tables || []) : []),
+                                                ...(entityTypeFilter === 'all' || entityTypeFilter === 'collections' ? (schema.collections || []) : [])
+                                            ].filter(item => item.toLowerCase().includes(entitySearchQuery.toLowerCase()));
+
+                                            if (items.length === 0) return (
+                                                <div className="w-full py-8 text-center border border-dashed border-[var(--border)] rounded-xl opacity-40">
+                                                    <span className="text-[8px] font-bold uppercase tracking-wider">No matching entities found</span>
                                                 </div>
-                                                <ChevronRight className="w-3 h-3 text-[var(--muted-foreground)] group-hover:text-[var(--primary)]" />
-                                            </button>
-                                        ))
+                                            );
+
+                                            return items.map(item => (
+                                                <button
+                                                    key={item}
+                                                    onClick={() => {
+                                                        if (selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') {
+                                                            setQuery(`SELECT * FROM ${item} LIMIT 10`);
+                                                        } else {
+                                                            setQuery(`{ "collection": "${item}", "limit": 10 }`);
+                                                        }
+                                                    }}
+                                                    className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[8px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={cn(
+                                                            "w-1.5 h-1.5 rounded-full",
+                                                            schema.tables?.includes(item) ? "bg-[var(--primary)]" : "bg-[var(--success)]"
+                                                        )} />
+                                                        <span>{item}</span>
+                                                        {schema.tableStats?.[item] !== undefined && (
+                                                            <span className="text-[8px] font-bold text-[var(--muted-foreground)]/50 uppercase tracking-wider">
+                                                                ({schema.tableStats[item].estimatedRows.toLocaleString()} ROWS)
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <ChevronRight className="w-3 h-3 text-[var(--muted-foreground)] group-hover:text-[var(--primary)]" />
+                                                </button>
+                                            ));
+                                        })()
                                     )}
                                 </div>
                             </div>
@@ -2310,9 +2365,25 @@ runQuery();`;
                         </div>
                         {optimizationSuggestions && (
                             <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-in slide-in-from-top-2 mb-4">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Optimization Suggestions (Virtual DBA)</span>
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Optimization Suggestions (Virtual DBA)</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[7px] font-bold uppercase text-[var(--muted-foreground)]">Impact Score:</span>
+                                        <div className="flex items-center gap-0.5">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <div
+                                                    key={star}
+                                                    className={cn(
+                                                        "w-1.5 h-1.5 rounded-full",
+                                                        star <= (optimizationSuggestions.length > 2 ? 5 : optimizationSuggestions.length * 2) ? "bg-[var(--primary)]" : "bg-[var(--border)]"
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     {optimizationSuggestions.map((s, i) => (

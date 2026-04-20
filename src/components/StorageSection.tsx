@@ -2411,11 +2411,30 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 </div>
                                             )}
                                             {step.recommendation && (
-                                                <div className="p-2 bg-[var(--primary)]/5 rounded border border-[var(--primary)]/10 flex items-start gap-2">
-                                                    <Search className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                                                    <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
-                                                        <span className="text-[var(--primary)]">Recommendation:</span> {step.recommendation}
-                                                    </p>
+                                                <div className={cn(
+                                                    "p-2 rounded border flex items-start gap-2",
+                                                    step.status === 'failure' ? "bg-[var(--error)]/5 border-[var(--error)]/20" : "bg-[var(--primary)]/5 border-[var(--primary)]/10"
+                                                )}>
+                                                    {step.status === 'failure' ? (
+                                                        <ShieldAlert className="w-3.5 h-3.5 text-[var(--error)] shrink-0 mt-0.5" />
+                                                    ) : (
+                                                        <Search className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                                                    )}
+                                                    <div className="space-y-1">
+                                                        <p className={cn(
+                                                            "text-[8px] font-bold uppercase leading-relaxed",
+                                                            step.status === 'failure' ? "text-[var(--error)]" : "text-[var(--muted-foreground)]"
+                                                        )}>
+                                                            <span className="opacity-60">{step.status === 'failure' ? 'Remediation:' : 'Recommendation:'}</span> {step.recommendation}
+                                                        </p>
+                                                        {step.name.includes('IAM') && step.status === 'failure' && (
+                                                            <div className="pt-1 flex flex-wrap gap-1">
+                                                                {['roles/secretmanager.secretAccessor', 'roles/cloudsql.client', 'roles/cloudsql.instanceUser'].map(role => (
+                                                                    <span key={role} className="text-[7px] px-1 rounded bg-black/20 font-mono border border-white/5">{role}</span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
