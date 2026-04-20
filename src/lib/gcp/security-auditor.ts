@@ -30,6 +30,18 @@ export function checkSecurityPosture(
     const isCloudSql = type.includes('cloud-sql');
     const isExternal = ['supabase', 'mongodb-atlas', 'planetscale', 'neon'].includes(type);
 
+    // 0. Public Exposure Check (Critical)
+    if (isCloudSql && metadata.publicIp && !metadata.authorizedNetworks) {
+        risks.push({
+            id: 'public_ip_exposed',
+            level: 'critical',
+            title: 'Public IP Exposure',
+            description: 'This Cloud SQL instance has a public IP assigned with no authorized networks, potentially allowing unrestricted access.',
+            remediation: 'Disable public IP or restrict access using Authorized Networks / Cloud SQL Auth Proxy.'
+        });
+        score -= 40;
+    }
+
     // 1. SSL/TLS Enforcement Check
     if ((isCloudSql || isExternal || type === 'memorystore-redis') && !storage.ssl) {
         risks.push({
@@ -56,6 +68,15 @@ export function checkSecurityPosture(
                 remediation: 'Switch to IAM-based authentication for improved security and automated rotation.'
             });
             score -= 15;
+        } else if (!metadata.iamRoleVerified) {
+            risks.push({
+                id: 'iam_role_not_verified',
+                level: 'high',
+                title: 'Unverified IAM Configuration',
+                description: 'IAM authentication is enabled but the required service account roles have not been verified.',
+                remediation: 'Run a "Connection Diagnostic" to verify and grant the roles/cloudsql.instanceUser role.'
+            });
+            score -= 20;
         }
     }
 

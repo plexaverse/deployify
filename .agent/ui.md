@@ -40,3 +40,7 @@
 - Added Impact Scoring for database optimizations to prioritize performance tuning.
 - Hardened IAM role validation in the diagnostic engine with explicit checks for Secret Manager and Cloud SQL roles.
 - Improved remediation guidance in the Troubleshooting UI with specific role names and red highlighting for failures.
+- Session 210: Visual Query Plan & Performance Indicators.
+- Added 'Explain' view mode to Data Lab with hierarchical tree visualization for SQL query plans.
+- Integrated color-coded performance badges (FULL SCAN, INDEX) and severity-based optimization cards.
+- Implemented high-density impact score stars for virtual DBA recommendations.

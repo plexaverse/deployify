@@ -15,6 +15,7 @@ describe('Security Auditor', () => {
         ssl: true,
         metadata: {
             iamAuth: true,
+            iamRoleVerified: true,
             deletionProtection: true,
             region: 'us-central1'
         }
