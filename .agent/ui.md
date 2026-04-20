@@ -40,3 +40,9 @@
 - Added Impact Scoring for database optimizations to prioritize performance tuning.
 - Hardened IAM role validation in the diagnostic engine with explicit checks for Secret Manager and Cloud SQL roles.
 - Improved remediation guidance in the Troubleshooting UI with specific role names and red highlighting for failures.
+
+## Session 210: Data Lab Visual Intelligence & Smart Connectivity
+- Enhanced Data Lab with a visual hierarchical Query Explain for Postgres using indentation markers.
+- Implemented specific diagnostic highlighting for MySQL EXPLAIN output (FULL SCAN, INDEX SCAN).
+- Launched Smart JOIN preview modal, allowing developers to see relationship data before loading the query.
+- Integrated automated SQL quoting in JOIN suggestions to handle reserved keywords and case-sensitivity.

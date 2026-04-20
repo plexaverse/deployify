@@ -57,4 +57,25 @@ describe('Security Auditor', () => {
         const posture = checkSecurityPosture(mockStorage, 'europe-west1');
         assert.ok(posture.risks.some(r => r.id === 'regional_mismatch'));
     });
+
+    it('should flag IAM auth without SSL in production', () => {
+        const prodStorage = {
+            ...mockStorage,
+            environment: 'production',
+            ssl: false,
+            metadata: { ...mockStorage.metadata, iamAuth: true }
+        };
+        const posture = checkSecurityPosture(prodStorage as StorageConfig, 'us-central1');
+        assert.ok(posture.risks.some(r => r.id === 'iam_without_ssl_prod'));
+    });
+
+    it('should flag disabled backups in production', () => {
+        const prodStorage = {
+            ...mockStorage,
+            environment: 'production',
+            metadata: { ...mockStorage.metadata, backupsEnabled: false }
+        };
+        const posture = checkSecurityPosture(prodStorage as StorageConfig, 'us-central1');
+        assert.ok(posture.risks.some(r => r.id === 'backups_disabled_prod'));
+    });
 });

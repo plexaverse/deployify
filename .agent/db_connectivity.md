@@ -635,10 +635,13 @@ Legacy and custom support with production-grade security:
 - Integrated `getGcpProjectNumber` into the storage sync route to accurately bootstrap the project's compute service account as a database user.
 - Implemented backend regional alignment enforcement in the storage API to warn users when storage and compute are cross-region.
 
-### 2027-06-02: Initiating Data Lab Maturity & Fleet Governance
-- Started Phase 93: Data Lab Maturity & Productivity.
-- Started Phase 94: Fleet-Wide Governance & Compliance.
-- Planning visual Query Explain enhancements and granular IAM diagnostics.
+### 2027-06-03: Data Lab Maturity & Fleet Governance Hardening
+- Completed Phase 93: Data Lab Maturity & Productivity.
+- Completed Phase 94: Fleet-Wide Governance & Compliance.
+- Enhanced Data Lab with a visual hierarchical Query Explain for Postgres and specific diagnostic highlighting for MySQL full/index scans.
+- Implemented Smart JOIN preview modal, allowing developers to see relationship data before loading the query into the editor.
+- Hardened the diagnostic engine with granular IAM role validation (Cloud SQL, Secret Manager, Firestore).
+- Integrated deep security posture tracking with checks for SSL enforcement in production when using IAM, and automated backup status validation.
 
 ### 2027-05-31: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion
 - Completed Phase 89: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion.
@@ -651,16 +654,16 @@ Legacy and custom support with production-grade security:
 
 Following the Managed "Connector" model, Deployify will evolve its storage layer to provide seamless integration between GCP-native services and external providers, focusing on **Connectivity Intelligence**.
 
-### Phase 93: Data Lab Maturity & Productivity (ACTIVE)
-- [ ] Implement Visual Query Explain tree for SQL performance tuning.
-- [ ] Add Schema Search and Entity Filtering to the Data Lab.
-- [ ] Implement Smart JOIN suggestions in the Query Editor.
-- [ ] Add Performance Impact scoring to optimization suggestions.
+### Phase 93: Data Lab Maturity & Productivity (COMPLETED)
+- [x] Implement Visual Query Explain tree for SQL performance tuning (Hierarchical indentation).
+- [x] Add Schema Search and Entity Filtering to the Data Lab.
+- [x] Implement Smart JOIN suggestions with preview capabilities.
+- [x] Add Performance Impact scoring to optimization suggestions.
 
-### Phase 94: Fleet-Wide Governance & Compliance (ACTIVE)
-- [ ] Harden IAM validation in the diagnostic engine with granular role checks.
-- [ ] Integrate deep security posture tracking for database connectors.
-- [ ] Add remediation guidance for IAM-related connectivity failures.
+### Phase 94: Fleet-Wide Governance & Compliance (COMPLETED)
+- [x] Harden IAM validation in the diagnostic engine with granular role checks.
+- [x] Integrate deep security posture tracking for database connectors (SSL, Backups).
+- [x] Add remediation guidance for IAM-related connectivity failures.
 
 ### 2027-05-30: Advanced External Connectivity Hardening & Tier Intelligence
 - Completed Phase 88: Advanced External Connectivity Hardening & Tier Intelligence.

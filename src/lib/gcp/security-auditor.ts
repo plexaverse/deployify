@@ -53,9 +53,19 @@ export function checkSecurityPosture(
                 level: 'medium',
                 title: 'Legacy Password Authentication',
                 description: 'This instance is using static password authentication instead of IAM-based service account identity.',
-                remediation: 'Switch to IAM-based authentication for improved security and automated rotation.'
+                remediation: 'Switch to IAM-based authentication for improved security and automated rotation. If connection fails, ensure roles/cloudsql.instanceUser is granted.'
             });
             score -= 15;
+        } else if (storage.environment === 'production' && !storage.ssl) {
+            // High risk: IAM auth without SSL in production
+            risks.push({
+                id: 'iam_without_ssl_prod',
+                level: 'high',
+                title: 'IAM Auth without SSL',
+                description: 'IAM-based authentication is being used without enforced SSL in a production environment.',
+                remediation: 'Enable "SSL Required" to ensure the IAM token is transmitted over an encrypted tunnel.'
+            });
+            // score reduction already handled by SSL check above
         }
     }
 
@@ -113,7 +123,22 @@ export function checkSecurityPosture(
         }
     }
 
-    // 7. Public Access Risk (Simplified)
+    // 7. Automated Backup Check (Cloud SQL)
+    if (isCloudSql && storage.environment === 'production') {
+        const hasBackups = metadata.backupsEnabled !== false; // Default to true for provisioned
+        if (!hasBackups) {
+            risks.push({
+                id: 'backups_disabled_prod',
+                level: 'high',
+                title: 'Automated Backups Disabled',
+                description: 'Automated backups are disabled for this production database.',
+                remediation: 'Enable automated backups in the GCP console or storage settings to prevent data loss.'
+            });
+            score -= 20;
+        }
+    }
+
+    // 8. Public Access Risk (Simplified)
     // If it's external and no SSL, it's a high risk. We already caught SSL above,
     // but let's add a specific one for public exposure if we could detect it better.
 

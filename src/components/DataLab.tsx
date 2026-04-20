@@ -111,6 +111,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [schemaDocs, setSchemaDocs] = useState<{ id: string, entity: string, description: string, type: 'table' | 'column' }[]>([]);
     const [isSavingDoc, setIsSavingDoc] = useState<string | null>(null);
     const [viewingAuditQuery, setViewingAuditQuery] = useState<string | null>(null);
+    const [joinPreviewQuery, setJoinPreviewQuery] = useState<string | null>(null);
 
     useEffect(() => {
         // Detect :variable patterns
@@ -930,6 +931,8 @@ runQuery();`;
 
         // Enhanced Visual EXPLAIN Rendering
         const isExplainResults = query.toUpperCase().startsWith('EXPLAIN');
+        const isPostgresExplain = isExplainResults && columns.includes('QUERY PLAN');
+        const isMysqlExplain = isExplainResults && columns.includes('select_type');
 
         // Calculate aggregations for numeric columns
         const aggregations: Record<string, { sum: number, avg: number, min: number, max: number, count: number }> = {};
@@ -987,23 +990,39 @@ runQuery();`;
                                     const fkInfo = schema?.columns ? Object.values(schema.columns).flat().find(c => c.name === col && c.isForeign && c.referencesTable) : null;
 
                                     return (
-                                        <td key={col} className="p-3 text-[8px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
+                                        <td key={col} className="p-3 text-[8px] font-mono whitespace-nowrap max-w-[400px] truncate group/cell relative">
                                             <div className="flex items-center gap-1.5">
-                                                {isExplainResults && col === 'QUERY PLAN' ? (
-                                                    <div className="flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2">
-                                                            {value.includes('Seq Scan') && <span className="text-[7px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold">FULL SCAN</span>}
-                                                            {value.includes('Index Scan') && <span className="text-[7px] px-1 rounded bg-[var(--success)]/20 text-[var(--success)] font-bold">INDEX</span>}
-                                                            {value.includes('Bitmap Index Scan') && <span className="text-[7px] px-1 rounded bg-[var(--success)]/10 text-[var(--success)] font-bold">BITMAP</span>}
-                                                            {value.includes('Hash Join') && <span className="text-[7px] px-1 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold">HASH JOIN</span>}
-                                                            {value.includes('Nested Loop') && <span className="text-[7px] px-1 rounded bg-[var(--warning)]/10 text-[var(--warning)] font-bold">LOOP</span>}
-                                                            <span>{value}</span>
-                                                        </div>
+                                                {isPostgresExplain && col === 'QUERY PLAN' ? (
+                                                    <div className="flex items-center gap-1">
+                                                        {/* Hierarchical Indentation parsing */}
+                                                        {(() => {
+                                                            const depth = value.search(/\S/) / 2;
+                                                            const cleanValue = value.trim();
+                                                            return (
+                                                                <>
+                                                                    {Array.from({ length: depth }).map((_, i) => (
+                                                                        <div key={i} className="w-3 h-full border-l border-[var(--border)] ml-1" />
+                                                                    ))}
+                                                                    <div className="flex items-center gap-2">
+                                                                        {cleanValue.includes('Seq Scan') && <span className="text-[7px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold">FULL SCAN</span>}
+                                                                        {cleanValue.includes('Index Scan') && <span className="text-[7px] px-1 rounded bg-[var(--success)]/20 text-[var(--success)] font-bold">INDEX</span>}
+                                                                        {cleanValue.includes('Hash Join') && <span className="text-[7px] px-1 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold">HASH JOIN</span>}
+                                                                        {cleanValue.includes('Nested Loop') && <span className="text-[7px] px-1 rounded bg-[var(--warning)]/10 text-[var(--warning)] font-bold">LOOP</span>}
+                                                                        <span className={cn(cleanValue.includes('Seq Scan') ? "text-[var(--error)] font-bold" : "text-[var(--foreground)]")}>{cleanValue}</span>
+                                                                    </div>
+                                                                </>
+                                                            );
+                                                        })()}
                                                     </div>
-                                                ) : isExplainResults && col === 'type' && value === 'ALL' ? (
+                                                ) : isMysqlExplain && col === 'type' && (value === 'ALL' || value === 'index') ? (
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className="text-[7px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase">Critical</span>
-                                                        {value}
+                                                        <span className={cn(
+                                                            "text-[7px] px-1 rounded font-bold uppercase",
+                                                            value === 'ALL' ? "bg-[var(--error)]/20 text-[var(--error)]" : "bg-[var(--warning)]/20 text-[var(--warning)]"
+                                                        )}>
+                                                            {value === 'ALL' ? 'FULL SCAN' : 'INDEX SCAN'}
+                                                        </span>
+                                                        <span className="font-bold">{value}</span>
                                                     </div>
                                                 ) : (
                                                     value
@@ -2138,6 +2157,20 @@ runQuery();`;
                                                                             {copiedCell === `join-${table}-${c.name}` ? <CheckCircle2 className="w-3 h-3 text-[var(--success)]" /> : <LinkIcon className="w-3 h-3" />}
                                                                         </button>
                                                                     )}
+                                                                    {c.isForeign && c.referencesTable && (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const isPostgres = selectedConnector?.type.includes('postgres');
+                                                                                const quote = isPostgres ? '"' : '`';
+                                                                                const q = `SELECT t1.*, t2.* FROM ${quote}${table}${quote} t1 JOIN ${quote}${c.referencesTable}${quote} t2 ON t1.${quote}${c.name}${quote} = t2.${quote}${c.referencesColumn}${quote} LIMIT 10`;
+                                                                                setJoinPreviewQuery(q);
+                                                                            }}
+                                                                            className="p-1 rounded bg-[var(--background)] border border-[var(--border)] hover:text-[var(--primary)] opacity-0 group-hover/col-item:opacity-100 transition-opacity"
+                                                                            title="Preview JOIN Results"
+                                                                        >
+                                                                            <Eye className="w-3 h-3" />
+                                                                        </button>
+                                                                    )}
                                                                 </div>
                                                             </div>
 
@@ -2503,6 +2536,57 @@ runQuery();`;
                 </div>
             )}
 
+            {/* JOIN Preview Modal */}
+            {joinPreviewQuery && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <Card className="w-full max-w-5xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b border-[var(--border)] flex items-center justify-between shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                                    <Network className="w-4 h-4 text-[var(--primary)]" />
+                                </div>
+                                <div>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Smart JOIN Preview</span>
+                                    <h3 className="text-[10px] font-bold">Suggested Relationship Data</h3>
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => setJoinPreviewQuery(null)} className="h-8 w-8">
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                        <div className="p-6 overflow-auto flex-1">
+                            <div className="mb-4 p-3 bg-[var(--muted)]/20 rounded-xl border border-[var(--border)]">
+                                <code className="text-[8px] font-mono text-[var(--primary)]">{joinPreviewQuery}</code>
+                            </div>
+                            <JoinPreviewRunner query={joinPreviewQuery} projectId={projectId} storageId={selectedId} />
+                        </div>
+                        <div className="p-6 bg-[var(--muted)]/5 border-t border-[var(--border)] flex justify-end gap-3 shrink-0">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setJoinPreviewQuery(null)}
+                                className="text-[8px] font-bold uppercase tracking-wider"
+                            >
+                                Close
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={() => {
+                                    setQuery(joinPreviewQuery);
+                                    setJoinPreviewQuery(null);
+                                    setActiveTab('editor');
+                                    executeQuery(joinPreviewQuery);
+                                }}
+                                className="text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                            >
+                                <Play className="w-3.5 h-3.5 mr-2" />
+                                Load in Editor
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
             {/* Save Query Modal */}
             {showSaveModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -2574,6 +2658,91 @@ runQuery();`;
                 </div>
             )}
         </Card>
+    );
+}
+
+function JoinPreviewRunner({ query, projectId, storageId }: { query: string, projectId: string, storageId: string }) {
+    const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
+    const [isExecuting, setIsExecuting] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const execute = async () => {
+            setIsExecuting(true);
+            try {
+                const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query }),
+                });
+                const data = await response.json();
+                if (data.success) {
+                    setResults(data.results);
+                } else {
+                    setError(data.error);
+                }
+            } catch {
+                setError('Failed to fetch preview data');
+            } finally {
+                setIsExecuting(false);
+            }
+        };
+        execute();
+    }, [query, projectId, storageId]);
+
+    if (isExecuting) {
+        return (
+            <div className="h-64 flex flex-col items-center justify-center space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Executing JOIN Preview...</span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="h-64 flex flex-col items-center justify-center space-y-3 text-[var(--error)]">
+                <AlertCircle className="w-8 h-8" />
+                <span className="text-[8px] font-bold uppercase tracking-wider">{error}</span>
+            </div>
+        );
+    }
+
+    if (!results || results.length === 0) {
+        return (
+            <div className="h-64 flex flex-col items-center justify-center space-y-3 text-[var(--muted-foreground)]">
+                <Search className="w-8 h-8 opacity-20" />
+                <span className="text-[8px] font-bold uppercase tracking-wider">No matching data found for this JOIN</span>
+            </div>
+        );
+    }
+
+    const columns = Object.keys(results[0]);
+    return (
+        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+            <table className="w-full text-left border-collapse">
+                <thead>
+                    <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
+                        {columns.map(col => (
+                            <th key={col} className="p-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] whitespace-nowrap">
+                                {col}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {results.map((row, i) => (
+                        <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
+                            {columns.map(col => (
+                                <td key={col} className="p-3 text-[8px] font-mono whitespace-nowrap max-w-[150px] truncate">
+                                    {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
     );
 }
 
