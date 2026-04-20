@@ -635,6 +635,11 @@ Legacy and custom support with production-grade security:
 - Integrated `getGcpProjectNumber` into the storage sync route to accurately bootstrap the project's compute service account as a database user.
 - Implemented backend regional alignment enforcement in the storage API to warn users when storage and compute are cross-region.
 
+### 2027-06-02: Initiating Data Lab Maturity & Fleet Governance
+- Started Phase 93: Data Lab Maturity & Productivity.
+- Started Phase 94: Fleet-Wide Governance & Compliance.
+- Planning visual Query Explain enhancements and granular IAM diagnostics.
+
 ### 2027-05-31: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion
 - Completed Phase 89: Managed Connectivity Hardening & Fleet Auto-Pilot Expansion.
 - Hardened PlanetScale connectivity by integrating regional egress IP allowlisting into the automated password rotation flow.
@@ -646,17 +651,16 @@ Legacy and custom support with production-grade security:
 
 Following the Managed "Connector" model, Deployify will evolve its storage layer to provide seamless integration between GCP-native services and external providers, focusing on **Connectivity Intelligence**.
 
-### Phase 93: Data Lab & Observability Maturity (PROPOSED)
-- [ ] Enhance Data Lab with native "Query Explain" visualization for performance tuning.
-- [ ] Implement query performance tracking (latency, throughput) per connector.
-- [ ] Add "Schema Insights" with ER diagram generation for SQL connectors.
-- [ ] Implement read-only NoSQL browser for Firestore and MongoDB Atlas.
+### Phase 93: Data Lab Maturity & Productivity (ACTIVE)
+- [ ] Implement Visual Query Explain tree for SQL performance tuning.
+- [ ] Add Schema Search and Entity Filtering to the Data Lab.
+- [ ] Implement Smart JOIN suggestions in the Query Editor.
+- [ ] Add Performance Impact scoring to optimization suggestions.
 
-### Phase 94: Fleet-Wide Governance & Compliance (PROPOSED)
-- [ ] Launch "Infrastructure Health" dashboard with global connectivity status.
-- [ ] Implement automated security auditing for database connectors (SSL, IAM, Auth).
-- [ ] Add "Cost Intelligence" to surface estimated monthly spend and optimization opportunities.
-- [ ] Orchestrate managed backups and point-in-time recovery (PITR) for GCP-native storage.
+### Phase 94: Fleet-Wide Governance & Compliance (ACTIVE)
+- [ ] Harden IAM validation in the diagnostic engine with granular role checks.
+- [ ] Integrate deep security posture tracking for database connectors.
+- [ ] Add remediation guidance for IAM-related connectivity failures.
 
 ### 2027-05-30: Advanced External Connectivity Hardening & Tier Intelligence
 - Completed Phase 88: Advanced External Connectivity Hardening & Tier Intelligence.

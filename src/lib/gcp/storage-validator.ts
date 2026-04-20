@@ -408,7 +408,7 @@ export async function diagnoseConnection(
         }
 
         // Step 5: Service Identity & IAM Roles
-        if (type.includes('cloud-sql') || type === 'memorystore-redis' || type === 'firestore') {
+        if (type.includes('cloud-sql') || type === 'memorystore-redis' || type === 'firestore' || connectionStringSecretId) {
             const iamStep = addStep('Service Identity & IAM Roles');
             iamStep.status = 'running';
             const iamStart = Date.now();
@@ -418,30 +418,53 @@ export async function diagnoseConnection(
                 // For this diagnostic phase, we verify API access which implicitly tests IAM connectivity
                 const gcpProjectId = (metadata?.providerProjectId as string) || (metadata?.projectId as string) || (process.env.GCP_PROJECT_ID);
 
+                // Simulate granular role checking logic (Hardened Validation)
+                // In production, this would call the IAM Policy API
+                if (connectionStringSecretId) {
+                    // Check secretAccessor role
+                    try {
+                        await getSecretValue(connectionStringSecretId);
+                    } catch {
+                        iamStep.status = 'failure';
+                        iamStep.error = 'Missing roles/secretmanager.secretAccessor';
+                        iamStep.recommendation = 'The Cloud Run Service Agent requires permission to access the connection string secret.';
+                        return { success: false, steps, overallLatency: Date.now() - startTime };
+                    }
+                }
+
                 if (type.includes('cloud-sql')) {
                     const cloudSqlMatch = connectionString.match(/\/cloudsql\/([a-z0-9-]+:[a-z0-9-]+:[a-z0-9-]+)/i);
                     const instanceId = cloudSqlMatch ? cloudSqlMatch[1].split(':').pop() : (metadata?.resourceName as string);
 
                     if (instanceId && gcpProjectId) {
-                        await getCloudSqlInstance(instanceId, gcpProjectId);
-                        // If portability is enabled or likely to be used, recommend storage admin
-                        iamStep.recommendation = 'Ensure the Cloud SQL Service Agent (service-{PROJECT_NUMBER}@gcp-sa-cloud-sql.iam.gserviceaccount.com) has roles/storage.objectAdmin on your backup buckets for managed imports/exports.';
+                        try {
+                            await getCloudSqlInstance(instanceId, gcpProjectId);
+                        } catch {
+                            iamStep.status = 'failure';
+                            iamStep.error = 'Missing roles/cloudsql.client or Admin API disabled';
+                            iamStep.recommendation = 'Ensure the Cloud SQL Admin API is enabled and roles/cloudsql.client is granted to the service account.';
+                            return { success: false, steps, overallLatency: Date.now() - startTime };
+                        }
+
+                        // Check for IAM login role if connection string suggests it
+                        if (connectionString.includes('enable_iam_auth=true')) {
+                            // This check is harder to do via API without attempting a connection,
+                            // but we can surface it as a critical warning if the primary API fails.
+                            iamStep.recommendation = 'Ensure roles/cloudsql.instanceUser is granted to your service account for IAM-based login.';
+                        }
                     }
                 } else if (type === 'memorystore-redis') {
-                    // Logic to verify Memorystore API access would go here
-                    iamStep.recommendation = 'Verify the Redis Service Agent (service-{PROJECT_NUMBER}@gcp-sa-redis.iam.gserviceaccount.com) has roles/redis.admin and roles/storage.objectAdmin for RDB snapshots.';
+                    iamStep.recommendation = 'Verify the Redis Service Agent has roles/redis.admin and your service has roles/redis.editor.';
                 } else if (type === 'firestore') {
-                    iamStep.recommendation = 'Verify the Firestore Service Agent (service-{PROJECT_NUMBER}@gcp-sa-firestore.iam.gserviceaccount.com) has roles/datastore.importExportAdmin and roles/storage.objectAdmin for managed portability.';
+                    iamStep.recommendation = 'Verify the Firestore Service Agent has roles/datastore.importExportAdmin for managed portability.';
                 }
 
                 iamStep.status = 'success';
                 iamStep.latency = Date.now() - iamStart;
-            } catch {
+            } catch (e) {
                 iamStep.status = 'failure';
-                iamStep.error = 'Missing required IAM permissions';
-                iamStep.recommendation = type.includes('cloud-sql')
-                    ? 'Grant roles/cloudsql.client to the Cloud Run service identity and ensure the Cloud SQL Admin API is enabled.'
-                    : 'Grant appropriate service-specific roles (e.g., roles/redis.editor) to the project service agent.';
+                iamStep.error = e instanceof Error ? e.message : 'Missing required IAM permissions';
+                iamStep.recommendation = 'Verify that the compute service account has appropriate roles for the requested storage type.';
                 return { success: false, steps, overallLatency: Date.now() - startTime };
             }
         }
