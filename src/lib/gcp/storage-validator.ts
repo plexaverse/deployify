@@ -2,6 +2,7 @@ import { getSecretValue } from './secrets';
 import { getInstance as getCloudSqlInstance } from './cloudsql';
 import { getRegionalEgressIps } from './networks';
 import { isDegraded as detectDegradation } from './health-utils';
+import { getGcpAccessToken, getGcpProjectNumber } from './auth';
 import type { StorageType } from '@/types';
 import net from 'net';
 import { URL } from 'url';
@@ -448,9 +449,31 @@ export async function diagnoseConnection(
 
                         // Check for IAM login role if connection string suggests it
                         if (connectionString.includes('enable_iam_auth=true')) {
-                            // This check is harder to do via API without attempting a connection,
-                            // but we can surface it as a critical warning if the primary API fails.
-                            iamStep.recommendation = 'Ensure roles/cloudsql.instanceUser is granted to your service account for IAM-based login.';
+                            // Attempt to verify the instanceUser role by checking for any database users with the SA email
+                            // This is a proxy for "Does the SA have the right to be a user?"
+                            try {
+                                const projectNumber = await getGcpProjectNumber(gcpProjectId);
+                                const saEmail = projectNumber ? `${projectNumber}-compute@developer.gserviceaccount.com` : 'deployify-sa';
+
+                                const response = await fetch(`https://sqladmin.googleapis.com/v1/projects/${gcpProjectId}/instances/${instanceId}/users`, {
+                                    headers: { Authorization: `Bearer ${await getGcpAccessToken()}` }
+                                });
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    const hasUser = (data.items || []).some((u: Record<string, unknown>) =>
+                                        String(u.name).includes(saEmail) || String(u.name).includes('deployify-sa')
+                                    );
+                                    if (!hasUser) {
+                                        iamStep.status = 'failure';
+                                        iamStep.error = 'IAM Database User missing';
+                                        iamStep.recommendation = 'The service account must be added as a database user with the "Cloud SQL Instance User" role.';
+                                        return { success: false, steps, overallLatency: Date.now() - startTime };
+                                    }
+                                }
+                            } catch {
+                                // Fallback to warning if users API call fails
+                                iamStep.recommendation = 'Ensure roles/cloudsql.instanceUser is granted to your service account for IAM-based login.';
+                            }
                         }
                     }
                 } else if (type === 'memorystore-redis') {

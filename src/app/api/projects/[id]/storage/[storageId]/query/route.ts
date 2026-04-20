@@ -254,12 +254,24 @@ export async function POST(
                                 { id: 1, select_type: 'SIMPLE', table: 'users', partitions: null, type: 'ALL', possible_keys: null, key: null, key_len: null, ref: null, rows: 1250, filtered: 10.00, Extra: 'Using filesort; Using temporary' }
                             ];
 
-                        const optimizationSuggestions: string[] = [];
+                        const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number }[] = [];
                         if (isPostgres) {
-                            optimizationSuggestions.push('POSTGRES: Full table scan detected on "users" with Filter on 1250 rows. Consider adding an index for the columns in the FILTER clause to improve performance.');
+                            optimizationSuggestions.push({
+                                message: 'POSTGRES: Full table scan detected on "users" with Filter on 1250 rows. Consider adding an index for the columns in the FILTER clause to improve performance.',
+                                severity: 'high',
+                                score: 85
+                            });
                         } else {
-                            optimizationSuggestions.push('MYSQL: Full table scan (type: ALL) detected on "users". Consider adding an index to avoid scanning all 1250 rows.');
-                            optimizationSuggestions.push('MYSQL: Query is using a temporary table and filesort. This often indicates missing indexes on ORDER BY or GROUP BY columns.');
+                            optimizationSuggestions.push({
+                                message: 'MYSQL: Full table scan (type: ALL) detected on "users". Consider adding an index to avoid scanning all 1250 rows.',
+                                severity: 'high',
+                                score: 90
+                            });
+                            optimizationSuggestions.push({
+                                message: 'MYSQL: Query is using a temporary table and filesort. This often indicates missing indexes on ORDER BY or GROUP BY columns.',
+                                severity: 'medium',
+                                score: 65
+                            });
                         }
 
                         return NextResponse.json({
@@ -555,7 +567,7 @@ export async function POST(
 
                             const rawRows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
                             const rows = rawRows as unknown as Record<string, unknown>[];
-                            const optimizationSuggestions: string[] = [];
+                            const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number }[] = [];
 
                             if (query.toUpperCase().startsWith('EXPLAIN')) {
                                 rows.forEach((row, index) => {
@@ -566,19 +578,34 @@ export async function POST(
 
                                         // Look ahead for Filter with large row count
                                         let filterDetails = '';
+                                        let severity: 'high' | 'medium' | 'low' = 'medium';
+                                        let score = 60;
+
+                                        const rowsMatch = plan.match(/rows=(\d+)/);
+                                        const rowCount = rowsMatch ? parseInt(rowsMatch[1]) : 0;
+
                                         const nextRow = rows[index + 1];
                                         if (nextRow) {
                                             const nextPlan = String(nextRow['QUERY PLAN'] || '');
                                             if (nextPlan.includes('Filter:')) {
-                                                const rowsMatch = plan.match(/rows=(\d+)/);
-                                                const rowCount = rowsMatch ? parseInt(rowsMatch[1]) : 0;
                                                 if (rowCount > 1000) {
                                                     filterDetails = ` with Filter on ${rowCount} rows`;
+                                                    severity = 'high';
+                                                    score = 85;
                                                 }
                                             }
                                         }
 
-                                        optimizationSuggestions.push(`POSTGRES: Full table scan detected on "${table}"${filterDetails}. Consider adding an index for the columns in the FILTER clause to improve performance.`);
+                                        if (rowCount > 5000) {
+                                            severity = 'high';
+                                            score = 95;
+                                        }
+
+                                        optimizationSuggestions.push({
+                                            message: `POSTGRES: Full table scan detected on "${table}"${filterDetails}. Consider adding an index for the columns in the FILTER clause to improve performance.`,
+                                            severity,
+                                            score
+                                        });
                                     }
                                 });
                             }
@@ -623,22 +650,38 @@ export async function POST(
 
                             const rawFinalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
                             const finalRows = rawFinalRows as unknown as Record<string, unknown>[];
-                            const optimizationSuggestions: string[] = [];
+                            const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number }[] = [];
 
                             if (query.toUpperCase().startsWith('EXPLAIN')) {
                                 finalRows.forEach(row => {
                                     if (row.type === 'ALL') {
-                                        optimizationSuggestions.push(`MYSQL: Full table scan (type: ALL) detected on "${row.table}". Consider adding an index to avoid scanning all ${row.rows} rows.`);
+                                        optimizationSuggestions.push({
+                                            message: `MYSQL: Full table scan (type: ALL) detected on "${row.table}". Consider adding an index to avoid scanning all ${row.rows} rows.`,
+                                            severity: (row.rows as number) > 1000 ? 'high' : 'medium',
+                                            score: (row.rows as number) > 1000 ? 90 : 70
+                                        });
                                     }
                                     if (row.possible_keys === null && row.key === null && typeof row.rows === 'number' && row.rows > 100) {
-                                        optimizationSuggestions.push(`MYSQL: No possible keys found for table "${row.table}". Performance will degrade as data grows.`);
+                                        optimizationSuggestions.push({
+                                            message: `MYSQL: No possible keys found for table "${row.table}". Performance will degrade as data grows.`,
+                                            severity: row.rows > 1000 ? 'high' : 'medium',
+                                            score: row.rows > 1000 ? 80 : 60
+                                        });
                                     }
                                     const extra = String(row.Extra || '');
                                     if (extra.includes('Using filesort')) {
-                                        optimizationSuggestions.push(`MYSQL: Query is using filesort on table "${row.table}". Consider adding an index on the ORDER BY columns.`);
+                                        optimizationSuggestions.push({
+                                            message: `MYSQL: Query is using filesort on table "${row.table}". Consider adding an index on the ORDER BY columns.`,
+                                            severity: 'medium',
+                                            score: 65
+                                        });
                                     }
                                     if (extra.includes('Using temporary')) {
-                                        optimizationSuggestions.push(`MYSQL: Query is using a temporary table for table "${row.table}". This may indicate a complex JOIN or GROUP BY that could be optimized with indexes.`);
+                                        optimizationSuggestions.push({
+                                            message: `MYSQL: Query is using a temporary table for table "${row.table}". This may indicate a complex JOIN or GROUP BY that could be optimized with indexes.`,
+                                            severity: 'medium',
+                                            score: 55
+                                        });
                                     }
                                 });
                             }

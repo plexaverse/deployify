@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send, ShieldAlert, Eye } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send, ShieldAlert, Eye, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { SchemaMap } from '@/components/SchemaMap';
 import { RedisTree } from '@/components/RedisTree';
+import { VisualExplain } from '@/components/VisualExplain';
 import {
     ResponsiveContainer,
     BarChart,
@@ -56,7 +57,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [schemaView, setSchemaView] = useState<'list' | 'graph'>('list');
     const [executionTime, setExecutionTime] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState<'table' | 'json' | 'chart'>('table');
+    const [viewMode, setViewMode] = useState<'table' | 'json' | 'chart' | 'explain'>('table');
     const [chartConfig, setChartConfig] = useState<{ type: 'bar' | 'line' | 'area' | 'pie', xAxis: string, yAxis: string }>({ type: 'bar', xAxis: '', yAxis: '' });
     const [schema, setSchema] = useState<{
         tables?: string[],
@@ -81,7 +82,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         timeseries?: { date: string, avgLatency: number }[],
         hotspots?: { query: string, avgLatency: number, count: number }[]
     } | null>(null);
-    const [optimizationSuggestions, setOptimizationSuggestions] = useState<string[] | null>(null);
+    const [optimizationSuggestions, setOptimizationSuggestions] = useState<{ message: string, severity: 'high' | 'medium' | 'low', score: number }[] | null>(null);
     const [showInsights, setShowInsights] = useState(false);
     const [history, setHistory] = useState<{ id: string, query: string, timestamp: string, executionTimeMs?: number, rowCount?: number, error?: string }[]>([]);
     const [savedQueries, setSavedQueries] = useState<{ id: string, name: string, query: string, isPublic?: boolean, userId?: string }[]>([]);
@@ -371,6 +372,11 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                         setResults(data.results);
                         setRowCount(data.rowCount);
                     }
+
+                    if (queryToRun.toUpperCase().startsWith('EXPLAIN')) {
+                        setViewMode('explain');
+                    }
+
                     setOptimizationSuggestions(data.optimizationSuggestions || null);
                     setExecutionTime(data.executionTimeMs);
                     // Re-fetch historical metrics and history after execution
@@ -2361,6 +2367,17 @@ runQuery();`;
                                     <PieChartIcon className="w-3.5 h-3.5 mr-1.5" />
                                     Chart
                                 </Button>
+                                {(selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setViewMode('explain')}
+                                        className={`h-7 px-3 text-[8px] font-bold uppercase tracking-wider ${viewMode === 'explain' ? 'bg-[var(--background)] shadow-sm text-[var(--primary)]' : 'text-[var(--muted-foreground)]'}`}
+                                    >
+                                        <Activity className="w-3.5 h-3.5 mr-1.5" />
+                                        Explain
+                                    </Button>
+                                )}
                             </div>
                         </div>
                         {optimizationSuggestions && (
@@ -2371,25 +2388,43 @@ runQuery();`;
                                         <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Optimization Suggestions (Virtual DBA)</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[7px] font-bold uppercase text-[var(--muted-foreground)]">Impact Score:</span>
+                                        <span className="text-[7px] font-bold uppercase text-[var(--muted-foreground)]">Avg Impact Score:</span>
                                         <div className="flex items-center gap-0.5">
-                                            {[1, 2, 3, 4, 5].map(star => (
-                                                <div
-                                                    key={star}
-                                                    className={cn(
-                                                        "w-1.5 h-1.5 rounded-full",
-                                                        star <= (optimizationSuggestions.length > 2 ? 5 : optimizationSuggestions.length * 2) ? "bg-[var(--primary)]" : "bg-[var(--border)]"
-                                                    )}
-                                                />
-                                            ))}
+                                            {(() => {
+                                                const total = optimizationSuggestions.length;
+                                                const avgScore = total > 0 ? optimizationSuggestions.reduce((a, b) => a + b.score, 0) / total : 0;
+                                                const stars = Math.round(avgScore / 20);
+                                                return [1, 2, 3, 4, 5].map(star => (
+                                                    <div
+                                                        key={star}
+                                                        className={cn(
+                                                            "w-1.5 h-1.5 rounded-full shadow-[0_0_5px_rgba(var(--primary-rgb),0.5)]",
+                                                            star <= stars ? "bg-[var(--primary)]" : "bg-[var(--border)]"
+                                                        )}
+                                                    />
+                                                ));
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    {optimizationSuggestions.map((s, i) => (
-                                        <div key={i} className="flex items-start gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] p-2 rounded border border-[var(--border)]">
-                                            <Info className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                                            {s}
+                                    {optimizationSuggestions.sort((a, b) => b.score - a.score).map((s, i) => (
+                                        <div key={i} className={cn(
+                                            "flex items-start gap-3 text-[8px] font-bold uppercase tracking-wider p-2 rounded border transition-all",
+                                            s.severity === 'high' ? "bg-[var(--error)]/5 border-[var(--error)]/20 text-[var(--error)]" :
+                                            s.severity === 'medium' ? "bg-[var(--warning)]/5 border-[var(--warning)]/20 text-[var(--warning)]" :
+                                            "bg-[var(--primary)]/5 border-[var(--primary)]/20 text-[var(--muted-foreground)]"
+                                        )}>
+                                            <div className="flex flex-col items-center gap-1 shrink-0 mt-0.5">
+                                                <Info className="w-3.5 h-3.5" />
+                                                <span className="text-[7px] font-bold">{s.score}</span>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="px-1 py-0.5 rounded bg-current/10 text-[7px]">{s.severity.toUpperCase()}</span>
+                                                    <span className="opacity-90">{s.message}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -2397,7 +2432,12 @@ runQuery();`;
                         )}
 
                         <div className="min-h-[300px] max-h-[600px] overflow-auto">
-                            {viewMode === 'chart' ? (
+                            {viewMode === 'explain' && results ? (
+                                <VisualExplain
+                                    data={results}
+                                    type={selectedConnector?.type.includes('postgres') || selectedConnector?.type === 'supabase' ? 'postgres' : 'mysql'}
+                                />
+                            ) : viewMode === 'chart' ? (
                                 renderChart()
                             ) : viewMode === 'table' ? (
                                 <>
