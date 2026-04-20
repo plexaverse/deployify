@@ -26,3 +26,10 @@
 - Conducted a comprehensive typography audit of the Storage section to ensure 100% adherence to Session 203 standards (`text-[8px]` for labels, `text-[10px]` for titles).
 - Standardized empty states and diagnostic loading indicators to maintain high-density visual consistency.
 - Verified visual integrity with frontend verification screenshots.
+
+## Session 208: Legacy Typography Cleanup
+- Replaced stray occurrences of `text-white` with `text-[var(--primary-foreground)]` across components (`ShieldSecurity`, `EnvVariablesSection`, `query-editor`, `DataPortabilityModal`).
+- Standardized UI components (`ResourceAdvisor`, `ShieldSecurity`) to map raw colors (`text-red-400`, `text-blue-400`, `text-green-400`, `text-yellow-500`) to their respective platform variables (`var(--error)`, `var(--info)`, `var(--success)`, `var(--warning)`).
+- Swapped `text-white/40` and `text-white/60` for semantic CSS variables such as `text-[var(--muted-foreground)]` or `text-[var(--muted-foreground)]/80`.
+- Ensured container backgrounds and borders utilize `var(--card)` and `var(--border)` rather than direct hex/rgba equivalents.
+- Fixed `focus:bg-white` and `focus:text-black` in `layout.tsx` to `focus:bg-[var(--background)]` and `focus:text-[var(--foreground)]`.

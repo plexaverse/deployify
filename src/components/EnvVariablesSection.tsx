@@ -251,7 +251,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                         size="sm"
                                         onClick={handleAddAsConnector}
                                         disabled={isSubmitting}
-                                        className="h-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white"
+                                        className="h-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)]"
                                     >
                                         Use Managed Connector
                                         <ArrowRight className="w-3.5 h-3.5 ml-1.5" />

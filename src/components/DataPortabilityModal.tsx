@@ -238,7 +238,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                         <Button
                             onClick={handleAction}
                             disabled={isSubmitting || !storageUri}
-                            className="bg-[var(--primary)] text-white text-[8px] font-bold uppercase tracking-wider h-10 px-6"
+                            className="bg-[var(--primary)] text-[var(--primary-foreground)] text-[8px] font-bold uppercase tracking-wider h-10 px-6"
                         >
                             {isSubmitting ? (
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />

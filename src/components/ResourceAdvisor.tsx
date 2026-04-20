@@ -71,19 +71,19 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
 
     if (loading) {
         return <div className="animate-pulse flex flex-col space-y-4">
-            <div className="h-8 bg-white/5 rounded w-1/4"></div>
+            <div className="h-8 bg-[var(--card)] rounded w-1/4"></div>
             <div className="grid grid-cols-3 gap-6">
-                {[1, 2, 3].map(i => <div key={i} className="h-48 bg-white/5 rounded-3xl"></div>)}
+                {[1, 2, 3].map(i => <div key={i} className="h-48 bg-[var(--card)] rounded-3xl"></div>)}
             </div>
         </div>;
     }
 
     if (recommendations.length === 0) {
         return (
-            <div className="p-8 rounded-3xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center">
-                <BarChart3 className="w-12 h-12 text-white/20 mb-4" />
+            <div className="p-8 rounded-3xl border border-dashed border-[var(--border)] flex flex-col items-center justify-center text-center">
+                <BarChart3 className="w-12 h-12 text-[var(--muted-foreground)]/50 mb-4" />
                 <h3 className="text-[10px] font-bold">All optimized</h3>
-                <p className="text-white/40 mt-1 max-w-xs uppercase tracking-[0.2em] text-[8px]">
+                <p className="text-[var(--muted-foreground)] mt-1 max-w-xs uppercase tracking-[0.2em] text-[8px]">
                     Your resources are currently aligned with your usage patterns. Check back in 7 days.
                 </p>
             </div>
@@ -94,8 +94,8 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em]">Resource Advisor</h2>
-                <div className="flex items-center space-x-2 text-[8px] font-bold uppercase tracking-[0.2em] text-white/40">
-                    <Zap className="w-3 h-3 text-yellow-500" />
+                <div className="flex items-center space-x-2 text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                    <Zap className="w-3 h-3 text-[var(--warning)]" />
                     <span>Powered by Intelligent Insights</span>
                 </div>
             </div>
@@ -108,7 +108,7 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
                             title={
                                 <div className="flex items-center justify-between">
                                     <span>{storage.storageName}</span>
-                                    <span className={rec.type === 'downgrade' ? 'text-green-400' : 'text-blue-400'}>
+                                    <span className={rec.type === 'downgrade' ? 'text-[var(--success)]' : 'text-[var(--info)]'}>
                                         {rec.type === 'downgrade' ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
                                     </span>
                                 </div>
@@ -117,24 +117,24 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
                             header={
                                 <div className="flex flex-col space-y-2">
                                     <div className="flex justify-between items-end">
-                                        <div className="text-[8px] uppercase tracking-[0.2em] text-white/40">Current Tier</div>
+                                        <div className="text-[8px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Current Tier</div>
                                         <div className="text-[10px] font-mono">{rec.currentTier}</div>
                                     </div>
                                     <div className="flex justify-between items-end">
-                                        <div className="text-[8px] uppercase tracking-[0.2em] text-white/40">Recommended</div>
-                                        <div className="text-[10px] font-mono text-white">{rec.recommendedTier}</div>
+                                        <div className="text-[8px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Recommended</div>
+                                        <div className="text-[10px] font-mono text-[var(--foreground)]">{rec.recommendedTier}</div>
                                     </div>
-                                    <div className="mt-4 p-3 rounded-xl bg-white/5 border border-white/10">
+                                    <div className="mt-4 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]">
                                         <div className="flex items-center space-x-2">
                                             {rec.type === 'downgrade' ? (
                                                 <>
-                                                    <DollarSign className="w-4 h-4 text-green-400" />
-                                                    <span className="text-[10px] font-bold text-green-400">Save {rec.estimatedSavings} / mo</span>
+                                                    <DollarSign className="w-4 h-4 text-[var(--success)]" />
+                                                    <span className="text-[10px] font-bold text-[var(--success)]">Save {rec.estimatedSavings} / mo</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Zap className="w-4 h-4 text-blue-400" />
-                                                    <span className="text-[10px] font-bold text-blue-400">{rec.performanceGain} Performance Boost</span>
+                                                    <Zap className="w-4 h-4 text-[var(--info)]" />
+                                                    <span className="text-[10px] font-bold text-[var(--info)]">{rec.performanceGain} Performance Boost</span>
                                                 </>
                                             )}
                                         </div>
@@ -149,7 +149,7 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
                                     </Button>
                                 </div>
                             }
-                            icon={<BarChart3 className="w-4 h-4 text-white/60" />}
+                            icon={<BarChart3 className="w-4 h-4 text-[var(--muted-foreground)]/80" />}
                         />
                     ))
                 )}

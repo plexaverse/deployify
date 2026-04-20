@@ -63,9 +63,9 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
             </div>
 
             <div className="p-6 pt-0 space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
                     <div className="space-y-1">
-                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/40">Global WAF</div>
+                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Global WAF</div>
                         <div className="text-[10px] font-bold">SQLi & XSS Protection</div>
                     </div>
                     <Switch
@@ -75,30 +75,30 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
                         <div className="flex items-center space-x-2 mb-2">
-                            <ShieldAlert className="w-3 h-3 text-red-400" />
-                            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/40">Blocked</span>
+                            <ShieldAlert className="w-3 h-3 text-[var(--error)]" />
+                            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Blocked</span>
                         </div>
                         <div className="text-[10px] font-bold font-mono">{metrics?.blockedRequests || 0}</div>
-                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/20">Last 24h</div>
+                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]/50">Last 24h</div>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
                         <div className="flex items-center space-x-2 mb-2">
-                            <Globe className="w-3 h-3 text-blue-400" />
-                            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/40">Edge</span>
+                            <Globe className="w-3 h-3 text-[var(--info)]" />
+                            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Edge</span>
                         </div>
                         <div className="text-[10px] font-bold font-mono">CDN</div>
-                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-green-400">Optimized</div>
+                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--success)]">Optimized</div>
                     </div>
                 </div>
 
                 {metrics?.topThreats && metrics.topThreats.length > 0 && (
                     <div className="space-y-2">
-                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-white/40 px-1">Top Mitigated Threats</div>
+                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] px-1">Top Mitigated Threats</div>
                         <div className="flex flex-wrap gap-2">
                             {metrics.topThreats.map((threat, i) => (
-                                <Badge key={i} variant="outline" className="text-[8px] font-bold uppercase tracking-wider bg-red-400/5 text-red-400/80 border-red-400/20">
+                                <Badge key={i} variant="outline" className="text-[8px] font-bold uppercase tracking-wider bg-[var(--error)]/5 text-[var(--error)]/80 border-[var(--error)]/20">
                                     {threat}
                                 </Badge>
                             ))}
