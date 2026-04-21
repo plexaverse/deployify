@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { getScalingRecommendations, ResourceMetrics } from './monitoring';
+import { getScalingRecommendations, detectPerformanceAnomaly } from './monitoring';
 
 describe('Scaling Recommendations Logic', () => {
     const mockMetrics: ResourceMetrics = {
@@ -67,5 +67,37 @@ describe('Scaling Recommendations Logic', () => {
         const recommendations = await getScalingRecommendations('neon', lowCpuMetrics, { tier: 'SCALE' });
 
         assert.ok(recommendations.some(r => r.type === 'downgrade' && r.recommendedTier === 'PRO'));
+    });
+
+    describe('Performance Anomaly Detection', () => {
+        it('should detect anomaly when current value is significantly higher than baseline', () => {
+            const current = 80;
+            const history = [10, 12, 11, 13, 10]; // Low stable baseline
+            const result = detectPerformanceAnomaly(current, history);
+
+            assert.strictEqual(result.isAnomaly, true);
+            assert.ok(result.baseline < 15);
+            assert.ok(result.deviation > 60);
+        });
+
+        it('should not detect anomaly when current value is within threshold', () => {
+            const current = 20;
+            const history = [10, 12, 11, 13, 10];
+            const result = detectPerformanceAnomaly(current, history);
+
+            assert.strictEqual(result.isAnomaly, false);
+        });
+
+        it('should trigger upgrade recommendation based on anomaly even if under absolute threshold', async () => {
+            const metrics = { cpuUtilization: 45, memoryUtilization: 20, timestamp: new Date().toISOString() };
+            const metadata = {
+                tier: 'db-f1-micro',
+                historicalCpu: [5, 6, 5, 7, 5] // Very low baseline, 45 is a big spike
+            };
+            const recommendations = await getScalingRecommendations('cloud-sql-postgres', metrics, metadata);
+
+            assert.ok(recommendations.some(r => r.type === 'upgrade' && r.resource === 'cpu'));
+            assert.ok(recommendations.find(r => r.resource === 'cpu')?.reason.includes('anomaly'));
+        });
     });
 });
