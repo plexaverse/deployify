@@ -40,6 +40,17 @@ export async function GET(request: NextRequest) {
         const riskBreakdown = { critical: 0, high: 0, medium: 0, low: 0 };
         const costBreakdown: Record<string, number> = {};
         const optimizationBreakdown = { upgrade: 0, downgrade: 0, optimize: 0 };
+        const regionalMappings: Array<{
+            projectId: string;
+            projectName: string;
+            projectRegion: string;
+            storageId: string;
+            storageName: string;
+            storageRegion: string;
+            storageType: string;
+            latencyMs: number;
+            aligned: boolean;
+        }> = [];
         const projectHealth: Record<string, { status: string, healthy: number, total: number, optimizations: number, estimatedMonthlyCost: number, securityScore: number, totalRisks: number }> = {};
 
         const projectResults = await Promise.all(projects.map(async (project) => {
@@ -137,6 +148,23 @@ export async function GET(request: NextRequest) {
                         else if (risk.level === 'low') riskBreakdown.low++;
                     });
                 }
+
+                // Aggregate Regional Mapping
+                const pRegion = project.region || 'us-central1';
+                const sRegion = (result.metadata?.region as string) || pRegion;
+                const aligned = pRegion === sRegion;
+
+                regionalMappings.push({
+                    projectId: project.id,
+                    projectName: project.name,
+                    projectRegion: pRegion,
+                    storageId: result.id,
+                    storageName: (result.metadata?.name as string) || result.id,
+                    storageRegion: sRegion,
+                    storageType: result.type,
+                    latencyMs: aligned ? 5 : 45, // Simulation: Intra-region vs Cross-region
+                    aligned
+                });
             });
 
             return {
@@ -176,7 +204,8 @@ export async function GET(request: NextRequest) {
                 averageSecurityScore: connectorsWithScore > 0 ? Math.round(totalSecurityScore / connectorsWithScore) : 100,
                 uptimeScore: totalConnectors > 0 ? Math.round(((healthyConnectors + degradedConnectors) / totalConnectors) * 100) : 100
             },
-            projectHealth
+            projectHealth,
+            regionalMappings
         });
     } catch (error) {
         console.error('Failed to fetch global infrastructure health:', error);

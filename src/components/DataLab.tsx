@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send, ShieldAlert, Eye, Activity } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send, ShieldAlert, Eye, Activity, FileSpreadsheet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { SchemaMap } from '@/components/SchemaMap';
@@ -632,6 +632,46 @@ runQuery();`;
         } finally {
             setIsExportingPDF(false);
         }
+    };
+
+    const exportDataDictionary = () => {
+        if (!schema || !schema.columns || !selectedConnector) return;
+
+        let md = `# Data Dictionary: ${selectedConnector.name}\n`;
+        md += `**Provider:** ${selectedConnector.type.toUpperCase()}\n`;
+        md += `**Generated:** ${new Date().toLocaleString()}\n\n`;
+
+        Object.entries(schema.columns).forEach(([table, cols]) => {
+            const tableDesc = schemaDocs.find(d => d.entity === table && d.type === 'table')?.description;
+            md += `## Table: ${table}\n`;
+            if (tableDesc) md += `*${tableDesc}*\n\n`;
+
+            md += `| Column | Type | Keys | Description |\n`;
+            md += `|--------|------|------|-------------|\n`;
+
+            cols.forEach(col => {
+                const colDesc = schemaDocs.find(d => d.entity === `${table}.${col.name}` && d.type === 'column')?.description;
+                const keys = [
+                    col.isPrimary ? 'PK' : '',
+                    col.isForeign ? `FK (${col.referencesTable})` : '',
+                    col.indices?.length ? 'IDX' : ''
+                ].filter(Boolean).join(', ');
+
+                md += `| ${col.name} | ${col.type} | ${keys || '-'} | ${colDesc || '-'} |\n`;
+            });
+            md += `\n`;
+        });
+
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `data-dictionary-${selectedConnector.name.toLowerCase().replace(/\s+/g, '-')}.md`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Data Dictionary exported');
     };
 
     const exportTypeScript = () => {
@@ -1448,6 +1488,15 @@ runQuery();`;
                                     />
                                     <div className="absolute bottom-4 right-4 flex items-center gap-2">
                                 <div className="relative">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={exportDataDictionary}
+                                        className="h-6 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                    >
+                                        <FileSpreadsheet className="w-3 h-3 mr-1.5" />
+                                        Export Dictionary
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="sm"

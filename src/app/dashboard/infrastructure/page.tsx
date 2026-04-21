@@ -31,6 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BentoGrid, BentoGridItem } from '@/components/ui/bento-grid';
 import { NativeSelect } from '@/components/ui/native-select';
+import { ProximityMatrix, RegionalProximityMapping } from '@/components/ProximityMatrix';
 import type { Project, StorageConfig } from '@/types';
 
 interface FleetConnector extends StorageConfig {
@@ -40,6 +41,7 @@ interface FleetConnector extends StorageConfig {
 
 export default function InfrastructureFleetPage() {
     const [connectors, setConnectors] = useState<FleetConnector[]>([]);
+    const [mappings, setMappings] = useState<RegionalProximityMapping[]>([]);
     const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +73,7 @@ export default function InfrastructureFleetPage() {
 
                 if (healthData.success) {
                     setSummary(healthData.summary);
+                    setMappings(healthData.regionalMappings || []);
                 }
 
                 const projects: Project[] = data.projects || [];
@@ -297,6 +300,11 @@ export default function InfrastructureFleetPage() {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Proximity Matrix Section */}
+            <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                <ProximityMatrix mappings={mappings} />
             </div>
 
             {/* Summary Stats */}
