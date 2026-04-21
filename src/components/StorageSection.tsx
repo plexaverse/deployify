@@ -93,7 +93,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         runProjectMigration,
         runProjectRollback,
         clearMigrationStatus,
-        updateStorageAlerts
+        updateStorageAlerts,
+        remediateStorageRisk
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -1417,6 +1418,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     — {config.lastError}
                                                 </span>
                                             )}
+                                            {(config.metadata?.security as { risks: Array<{ id: string, level: string, title: string }> })?.risks?.filter(risk =>
+                                                ['unencrypted_connection', 'deletion_protection_disabled', 'unmanaged_firewall'].includes(risk.id)
+                                            ).map(risk => (
+                                                <button
+                                                    key={risk.id}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        remediateStorageRisk(projectId, config.id, risk.id);
+                                                    }}
+                                                    className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/30 hover:bg-[var(--error)]/30 transition-all animate-pulse"
+                                                    title={`Auto-fix available: ${risk.title}`}
+                                                >
+                                                    FIX {risk.title.split(' ')[0].toUpperCase()}
+                                                </button>
+                                            ))}
                                             {config.status === 'active' && !!config.metadata?.health && (
                                                 <span className={cn(
                                                     "text-[8px] font-bold uppercase flex items-center gap-1",

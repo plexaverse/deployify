@@ -95,6 +95,7 @@ export interface ProjectSlice {
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
     cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string; includeData?: boolean }) => Promise<boolean>;
+    remediateStorageRisk: (projectId: string, storageId: string, riskId: string) => Promise<boolean>;
     runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     runProjectRollback: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
@@ -944,6 +945,36 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return true;
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to clone configuration', { id: toastId });
+            return false;
+        }
+    },
+
+    remediateStorageRisk: async (projectId, storageId, riskId) => {
+        const toastId = toast.loading('Applying remediation...');
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/remediate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ riskId }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Remediation failed');
+            }
+
+            const { projectStorageConfigs } = get();
+            set({
+                projectStorageConfigs: projectStorageConfigs.map((s) =>
+                    s.id === storageId ? data.storageConfig : s
+                )
+            });
+
+            toast.success(data.message || 'Risk remediated successfully', { id: toastId });
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to apply remediation', { id: toastId });
             return false;
         }
     },
