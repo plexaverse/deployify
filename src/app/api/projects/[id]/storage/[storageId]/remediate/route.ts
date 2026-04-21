@@ -79,6 +79,38 @@ export async function POST(
                 message = 'Firewall synchronization complete';
                 break;
 
+            case 'no_ha_in_production':
+                if (storage.type.includes('cloud-sql')) {
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    operationName = await updateInstanceSettings(instanceName, {
+                        highAvailability: true
+                    });
+                    storage.status = 'provisioning';
+                    storage.metadata = {
+                        ...storage.metadata,
+                        operationName,
+                        highAvailability: true
+                    };
+                    message = 'Enabling High Availability in GCP...';
+                }
+                break;
+
+            case 'no_pitr_in_production':
+                if (storage.type.includes('cloud-sql')) {
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    operationName = await updateInstanceSettings(instanceName, {
+                        pitrEnabled: true
+                    });
+                    storage.status = 'provisioning';
+                    storage.metadata = {
+                        ...storage.metadata,
+                        operationName,
+                        pitrEnabled: true
+                    };
+                    message = 'Enabling Point-in-Time Recovery in GCP...';
+                }
+                break;
+
             default:
                 return NextResponse.json({ success: false, error: `Unsupported risk remediation: ${riskId}` }, { status: 400 });
         }

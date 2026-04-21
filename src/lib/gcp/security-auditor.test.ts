@@ -58,4 +58,20 @@ describe('Security Auditor', () => {
         const posture = checkSecurityPosture(mockStorage, 'europe-west1');
         assert.ok(posture.risks.some(r => r.id === 'regional_mismatch'));
     });
+
+    it('should flag missing HA and PITR in production Cloud SQL', () => {
+        const prodStorage = {
+            ...mockStorage,
+            environment: 'production',
+            metadata: {
+                ...mockStorage.metadata,
+                highAvailability: false,
+                pitrEnabled: false
+            }
+        };
+        const posture = checkSecurityPosture(prodStorage as StorageConfig, 'us-central1');
+        assert.ok(posture.risks.some(r => r.id === 'no_ha_in_production'));
+        assert.ok(posture.risks.some(r => r.id === 'no_pitr_in_production'));
+        assert.strictEqual(posture.score, 70); // 100 - 15 - 15
+    });
 });

@@ -134,7 +134,32 @@ export function checkSecurityPosture(
         }
     }
 
-    // 7. Public Access Risk (Simplified)
+    // 7. High Availability & PITR Check (Production Cloud SQL)
+    if (isCloudSql && storage.environment === 'production') {
+        if (!metadata.highAvailability) {
+            risks.push({
+                id: 'no_ha_in_production',
+                level: 'high',
+                title: 'Missing High Availability',
+                description: 'This production Cloud SQL instance is not configured for High Availability (Regional).',
+                remediation: 'Enable "High Availability" in instance settings to ensure failover capability across zones.'
+            });
+            score -= 15;
+        }
+
+        if (!metadata.pitrEnabled) {
+            risks.push({
+                id: 'no_pitr_in_production',
+                level: 'high',
+                title: 'PITR Disabled in Production',
+                description: 'Point-in-Time Recovery (PITR) is disabled for this production database.',
+                remediation: 'Enable "Point-in-Time Recovery" to allow restoration to any specific second in the recovery window.'
+            });
+            score -= 15;
+        }
+    }
+
+    // 8. Public Access Risk (Simplified)
     // If it's external and no SSL, it's a high risk. We already caught SSL above,
     // but let's add a specific one for public exposure if we could detect it better.
 

@@ -22,9 +22,6 @@ interface ProximityMatrixProps {
 }
 
 export function ProximityMatrix({ mappings }: ProximityMatrixProps) {
-    // Group mappings by region pairs
-    const regionPairs = Array.from(new Set(mappings.map(m => `${m.projectRegion}:${m.storageRegion}`)));
-
     return (
         <Card className="p-6 bg-[var(--card)]/50 border-[var(--primary)]/10">
             <div className="flex items-center gap-3 mb-6">

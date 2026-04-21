@@ -1,5 +1,6 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
+import { calculateEWMA, isDegraded } from './health-utils';
 import type { StorageAlertSettings, ResourceDormancy } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
@@ -532,6 +533,31 @@ export async function getQueryInsights(
 }
 
 /**
+ * Detect performance anomalies in resource utilization using EWMA baselining
+ * Returns true if current utilization significantly deviates from historical trend
+ */
+export function detectPerformanceAnomaly(
+    currentValue: number,
+    historicalPoints: number[],
+    threshold = 2.5
+): { isAnomaly: boolean; baseline: number; deviation: number } {
+    if (historicalPoints.length === 0) {
+        return { isAnomaly: false, baseline: currentValue, deviation: 0 };
+    }
+
+    // Calculate baseline using EWMA across historical data
+    let baseline = historicalPoints[0];
+    for (let i = 1; i < historicalPoints.length; i++) {
+        baseline = calculateEWMA(historicalPoints[i], baseline, 0.15); // Use a stable alpha for baselining
+    }
+
+    const isAnomaly = isDegraded(currentValue, baseline, threshold, 15); // 15% min delta for utilization
+    const deviation = currentValue - baseline;
+
+    return { isAnomaly, baseline, deviation };
+}
+
+/**
  * Analyze resource metrics and provide scaling recommendations
  */
 export async function getScalingRecommendations(
@@ -551,7 +577,12 @@ export async function getScalingRecommendations(
     const currentCost = getEstimatedMonthlyCost(storageType, currentTier, diskSizeGb, isHA);
 
     // 1. CPU Analysis
-    if (metrics.cpuUtilization > 75) {
+    const cpuAnomaly = detectPerformanceAnomaly(
+        metrics.cpuUtilization,
+        (metadata?.historicalCpu as number[]) || []
+    );
+
+    if (metrics.cpuUtilization > 75 || cpuAnomaly.isAnomaly) {
         let recommendedTier = 'db-g1-small';
         if (isCloudSql) {
             if (currentTier === 'db-g1-small') recommendedTier = 'db-custom-1-3840';
@@ -572,9 +603,11 @@ export async function getScalingRecommendations(
             resource: 'cpu',
             currentTier,
             recommendedTier: (isCloudSql || isRedis || isNeon) ? recommendedTier : 'Next Capacity Tier',
-            reason: isNeon
-                ? `High compute unit utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading to ${recommendedTier} will provide more burst capacity and higher resource limits.`
-                : `High CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading will improve query performance and overall stability.`,
+            reason: cpuAnomaly.isAnomaly
+                ? `Significant CPU performance anomaly detected (${metrics.cpuUtilization.toFixed(1)}% vs baseline ${cpuAnomaly.baseline.toFixed(1)}%). Upgrading is recommended to handle spiky workloads safely.`
+                : (isNeon
+                    ? `High compute unit utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading to ${recommendedTier} will provide more burst capacity and higher resource limits.`
+                    : `High CPU utilization (${metrics.cpuUtilization.toFixed(1)}%) detected. Upgrading will improve query performance and overall stability.`),
             performanceGain: 'High'
         });
     } else if (metrics.cpuUtilization < 15 && currentTier !== 'db-f1-micro' && currentTier !== '1GB' && currentTier !== 'FREE' && currentTier !== 'unknown') {
