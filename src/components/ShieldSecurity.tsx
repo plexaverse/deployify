@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Shield, ShieldAlert, Globe } from 'lucide-react';
+import { Shield, ShieldAlert, Globe, Zap } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { toast } from 'sonner';
 
 export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
     const [metrics, setMetrics] = useState<{ blockedRequests: number; topThreats: string[]; status: string } | null>(null);
-    const [wafEnabled, setWafEnabled] = useState(true);
+    const [securityMode, setSecurityMode] = useState<'off' | 'detection' | 'prevention'>('prevention');
     const [, setLoading] = useState(true);
 
     useEffect(() => {
@@ -29,18 +29,19 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
         fetchMetrics();
     }, [projectId]);
 
-    const handleToggleWaf = async (enabled: boolean) => {
-        setWafEnabled(enabled);
+    const handleModeChange = async (mode: string) => {
+        const newMode = mode as 'off' | 'detection' | 'prevention';
+        setSecurityMode(newMode);
         toast.promise(
             fetch(`/api/projects/${projectId}/security`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ enabled })
+                body: JSON.stringify({ mode: newMode })
             }),
             {
-                loading: `${enabled ? 'Enabling' : 'Disabling'} Global WAF...`,
-                success: `Global WAF ${enabled ? 'enabled' : 'disabled'} successfully`,
-                error: `Failed to ${enabled ? 'enable' : 'disable'} Global WAF`
+                loading: `Setting security mode to ${newMode}...`,
+                success: `Security mode set to ${newMode}`,
+                error: `Failed to update security mode`
             }
         );
     };
@@ -57,20 +58,25 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
                         <h3 className="text-[10px] font-bold">Shield Security</h3>
                     </div>
                 </div>
-                <Badge variant={wafEnabled ? "success" : "outline"} className="text-[8px] font-bold uppercase tracking-wider">
-                    {wafEnabled ? 'Protected' : 'Off'}
+                <Badge variant={securityMode === 'off' ? "outline" : "success"} className="text-[8px] font-bold uppercase tracking-wider">
+                    {securityMode === 'off' ? 'Disabled' : securityMode === 'detection' ? 'Detection' : 'Prevention'}
                 </Badge>
             </div>
 
             <div className="p-6 pt-0 space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
-                    <div className="space-y-1">
-                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Global WAF</div>
-                        <div className="text-[10px] font-bold">SQLi & XSS Protection</div>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between px-1">
+                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Security Mode</div>
+                        <Zap className="w-3 h-3 text-[var(--warning)]" />
                     </div>
-                    <Switch
-                        checked={wafEnabled}
-                        onCheckedChange={handleToggleWaf}
+                    <SegmentedControl
+                        value={securityMode}
+                        onChange={handleModeChange}
+                        options={[
+                            { label: 'Off', value: 'off' },
+                            { label: 'Detection', value: 'detection' },
+                            { label: 'Prevention', value: 'prevention' },
+                        ]}
                     />
                 </div>
 
