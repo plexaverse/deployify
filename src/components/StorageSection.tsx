@@ -144,6 +144,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
     const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
     const [isManagingOptimization, setIsManagingOptimization] = useState<StorageConfig | null>(null);
+    const [isManagingGuardrails, setIsManagingGuardrails] = useState<StorageConfig | null>(null);
+    const [guardrailQueries, setGuardrailQueries] = useState<import('@/lib/gcp/monitoring').LongRunningQuery[]>([]);
+    const [isLoadingGuardrails, setIsLoadingGuardrails] = useState(false);
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
     const [isTroubleshooting, setIsTroubleshooting] = useState<StorageConfig | null>(null);
@@ -717,6 +720,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             setIsSubmitting(false);
         }
     };
+
+    const fetchGuardrails = useCallback(async (storageId: string) => {
+        setIsLoadingGuardrails(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/guardrails`);
+            const data = await response.json();
+            if (data.success) {
+                setGuardrailQueries(data.queries);
+            }
+        } catch (e) {
+            console.error('Failed to fetch guardrails:', e);
+        } finally {
+            setIsLoadingGuardrails(false);
+        }
+    }, [projectId]);
 
     const handleRestoreBackup = async (backupId: string, pointInTime?: string) => {
         if (!isManagingBackups) return;
@@ -1661,6 +1679,20 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <Sparkles className="w-4 h-4 animate-pulse" />
                                         </Button>
                                     )}
+                                    {config.status === 'active' && config.type.includes('sql') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsManagingGuardrails(config);
+                                                fetchGuardrails(config.id);
+                                            }}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error)]/10"
+                                            title="Performance Guardrails"
+                                        >
+                                            <ShieldAlert className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     {config.status === 'active' && !!config.metadata?.provisioned && (
                                         <Button
                                             variant="ghost"
@@ -2600,6 +2632,83 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 }
                 confirmText={`Migrate to ${projectRegion}`}
                 loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingGuardrails}
+                onClose={() => setIsManagingGuardrails(null)}
+                title="Performance Guardrails"
+                headerLabel="Intelligent Monitoring"
+                icon={<ShieldAlert className="w-5 h-5 text-[var(--error)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl space-y-4">
+                            <div className="flex items-center gap-2">
+                                <Activity className="w-4 h-4 text-[var(--error)]" />
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--error)]">Active Watchdog</span>
+                            </div>
+                            <p className="text-[10px]">
+                                Performance Guardrails identify queries that exceed resource limits or run longer than 1000ms. High-frequency slow queries can degrade overall application performance.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Flagged Queries (Last 1H)</Label>
+                            <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
+                                {isLoadingGuardrails ? (
+                                    <div className="py-8 flex flex-col items-center justify-center gap-2">
+                                        <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Analyzing traffic...</span>
+                                    </div>
+                                ) : guardrailQueries.length === 0 ? (
+                                    <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                                        <CheckCircle2 className="w-8 h-8 text-[var(--success)]/30 mx-auto mb-3" />
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No performance issues detected</p>
+                                    </div>
+                                ) : (
+                                    guardrailQueries.map((q, i) => (
+                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-2 group">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[8px] font-mono font-bold text-[var(--error)] px-1.5 py-0.5 bg-[var(--error)]/10 rounded">{q.durationMs}ms</span>
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{q.database}</span>
+                                                </div>
+                                                <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(q.startTime).toLocaleTimeString()}</span>
+                                            </div>
+                                            <div className="p-2 bg-[var(--muted)]/20 rounded font-mono text-[8px] line-clamp-2 text-[var(--foreground)] group-hover:line-clamp-none transition-all">
+                                                {q.query}
+                                            </div>
+                                            <div className="flex items-center justify-between text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                                <span>USER: {q.user}</span>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-5 px-1.5 text-[7px] font-bold uppercase"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(q.query);
+                                                        toast.success('Query copied for analysis');
+                                                    }}
+                                                >
+                                                    <Copy className="w-2.5 h-2.5 mr-1" />
+                                                    Copy
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl flex items-start gap-2">
+                            <Zap className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                RECOMMENDATION: Use EXPLAIN in the Data Lab to analyze the execution plans of these queries and identify missing indexes.
+                            </p>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
             />
 
             <OptimizationModal

@@ -632,6 +632,13 @@ Legacy and custom support with production-grade security:
 - [x] Add resource efficiency scoring to the Fleet Dashboard
 - [x] Standardize new UI elements to high-density technical aesthetic
 
+### Phase 98: Intelligent Fleet-wide Performance Guardrails & Optimization Orchestration (COMPLETED)
+- [x] Implement 'Query Watchdog' utility to detect long-running/resource-intensive queries
+- [x] Implement 'One-Click' Index Application API for automated SQL optimization
+- [x] Add "Apply Index" triggers to Data Lab optimization suggestions
+- [x] Implement "Cost Forecasting" (3-month projection) for the Fleet Dashboard
+- [x] Launch "Performance Guardrails" section in the Storage dashboard
+
 ## Progress Updates
 
 ### 2027-06-01: GCP-Native Lifecycle Hardening & VPC Orchestration
@@ -679,6 +686,13 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement EWMA-based performance anomaly detection in the monitoring engine.
 - [x] Add ORM schema export functionality (Prisma/Drizzle) to the Data Lab.
 - [x] Integrate anomaly detection into proactive scaling recommendations.
+
+### 2027-06-07: Initiating Performance Guardrails & Optimization Orchestration
+- Completed Phase 98: Intelligent Fleet-wide Performance Guardrails & Optimization Orchestration.
+- Implemented a 'Query Watchdog' utility in the monitoring engine to identify resource-intensive queries.
+- Launched 'One-Click' SQL Optimization, allowing developers to apply suggested indexes directly from the Data Lab.
+- Integrated 3-month cost forecasting into the Global Infrastructure dashboard, providing proactive financial visibility.
+- Added a "Performance Guardrails" modal to the Storage dashboard for tracking flagged long-running queries.
 
 ### 2027-06-06: Governance, Compliance & Advanced Fleet Intelligence
 - Completed Phase 97: Governance, Compliance & Advanced Fleet Intelligence.

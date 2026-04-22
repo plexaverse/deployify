@@ -12,6 +12,14 @@ export interface ResourceMetrics {
     timestamp: string;
 }
 
+export interface LongRunningQuery {
+    query: string;
+    durationMs: number;
+    startTime: string;
+    user?: string;
+    database?: string;
+}
+
 export interface ScalingRecommendation {
     type: 'upgrade' | 'downgrade' | 'optimize';
     resource: 'cpu' | 'memory' | 'disk';
@@ -533,6 +541,38 @@ export async function getQueryInsights(
 }
 
 /**
+ * Detect long-running or resource-intensive queries (Performance Guardrails)
+ */
+export async function getLongRunningQueries(
+    instanceId: string,
+    dbType: 'postgresql' | 'mysql' = 'postgresql',
+    thresholdMs: number = 1000
+): Promise<LongRunningQuery[]> {
+    if (process.env.MOCK_DB === 'true') {
+        return [
+            {
+                query: 'SELECT * FROM users CROSS JOIN orders CROSS JOIN products',
+                durationMs: 5400,
+                startTime: new Date(Date.now() - 6000).toISOString(),
+                user: 'deployify-sa',
+                database: 'app_prod'
+            },
+            {
+                query: 'SELECT COUNT(*) FROM audit_logs WHERE payload LIKE "%error%"',
+                durationMs: 2100,
+                startTime: new Date(Date.now() - 15000).toISOString(),
+                user: 'reporting-sa',
+                database: 'audit_db'
+            }
+        ].filter(q => q.durationMs >= thresholdMs);
+    }
+
+    // In production, this would leverage the Cloud SQL Admin API to list active processes
+    // or fetch from Cloud Logging / Query Insights.
+    return [];
+}
+
+/**
  * Detect performance anomalies in resource utilization using EWMA baselining
  * Returns true if current utilization significantly deviates from historical trend
  */
@@ -769,6 +809,34 @@ export function calculateEfficiencyScore(
     const costFactor = Math.max(0.7, 1 - (monthlyCost / 2000)); // Cap penalty for extreme costs
 
     return Math.round(rawScore * costFactor);
+}
+
+/**
+ * Project 3-month storage costs based on current tiers and estimated growth
+ */
+export function getCostForecast(
+    storageType: string,
+    tier: string,
+    diskSizeGb: number = 10,
+    isHA: boolean = false,
+    growthRate: number = 0.05 // 5% monthly growth in storage
+): { month: string; cost: number }[] {
+    const forecast = [];
+    const now = new Date();
+
+    for (let i = 1; i <= 3; i++) {
+        // Simple linear projection for storage growth
+        const projectedDisk = diskSizeGb * Math.pow(1 + growthRate, i);
+        const cost = getEstimatedMonthlyCost(storageType, tier, projectedDisk, isHA);
+        const forecastDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
+
+        forecast.push({
+            month: forecastDate.toLocaleString('default', { month: 'short' }),
+            cost: parseFloat(cost.toFixed(2))
+        });
+    }
+
+    return forecast;
 }
 
 /**

@@ -254,7 +254,7 @@ export async function POST(
                                 { id: 1, select_type: 'SIMPLE', table: 'users', partitions: null, type: 'ALL', possible_keys: null, key: null, key_len: null, ref: null, rows: 1250, filtered: 10.00, Extra: 'Using filesort; Using temporary' }
                             ];
 
-                        const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number }[] = [];
+                        const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number, action?: { type: string, table: string, column?: string } }[] = [];
                         if (isPostgres) {
                             optimizationSuggestions.push({
                                 message: 'POSTGRES: Full table scan detected on "users" with Filter on 1250 rows. Consider adding an index for the columns in the FILTER clause to improve performance.',
@@ -567,7 +567,7 @@ export async function POST(
 
                             const rawRows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
                             const rows = rawRows as unknown as Record<string, unknown>[];
-                            const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number }[] = [];
+                            const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number, action?: { type: string, table: string, column?: string } }[] = [];
                             let driftResult = undefined;
 
                             if (query.toUpperCase().startsWith('EXPLAIN')) {
@@ -605,10 +605,18 @@ export async function POST(
                                             score = 95;
                                         }
 
+                                        let columnHint = undefined;
+                                        if (nextRow) {
+                                            const nextPlan = String(nextRow['QUERY PLAN'] || '');
+                                            const colMatch = nextPlan.match(/Filter: \((\w+)/);
+                                            if (colMatch) columnHint = colMatch[1];
+                                        }
+
                                         optimizationSuggestions.push({
                                             message: `POSTGRES: Full table scan detected on "${table}"${filterDetails}. Consider adding an index for the columns in the FILTER clause to improve performance.`,
                                             severity,
-                                            score
+                                            score,
+                                            action: columnHint ? { type: 'apply_index', table, column: columnHint } : undefined
                                         });
                                     }
                                 });
@@ -655,7 +663,7 @@ export async function POST(
 
                             const rawFinalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
                             const finalRows = rawFinalRows as unknown as Record<string, unknown>[];
-                            const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number }[] = [];
+                            const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number, action?: { type: string, table: string, column?: string } }[] = [];
                             let driftResult = undefined;
 
                             if (query.toUpperCase().startsWith('EXPLAIN')) {
@@ -667,7 +675,8 @@ export async function POST(
                                         optimizationSuggestions.push({
                                             message: `MYSQL: Full table scan (type: ALL) detected on "${row.table}". Consider adding an index to avoid scanning all ${row.rows} rows.`,
                                             severity: (row.rows as number) > 1000 ? 'high' : 'medium',
-                                            score: (row.rows as number) > 1000 ? 90 : 70
+                                            score: (row.rows as number) > 1000 ? 90 : 70,
+                                            action: { type: 'apply_index', table: String(row.table) }
                                         });
                                     }
                                     if (row.possible_keys === null && row.key === null && typeof row.rows === 'number' && row.rows > 100) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { listProjectsByUser, listProjectsByTeam } from '@/lib/db';
-import { getEstimatedMonthlyCost, getExternalMetrics } from '@/lib/gcp/monitoring';
+import { getEstimatedMonthlyCost, getExternalMetrics, getCostForecast } from '@/lib/gcp/monitoring';
 import type { Project } from '@/types';
 
 /**
@@ -39,8 +39,10 @@ export async function GET(request: NextRequest) {
         let connectorsWithScore = 0;
         let connectorsWithEfficiency = 0;
         let totalRisks = 0;
+        let totalForecastedCost3m = 0;
         const riskBreakdown = { critical: 0, high: 0, medium: 0, low: 0 };
         const costBreakdown: Record<string, number> = {};
+        const monthlyForecast: Record<string, number> = {};
         const optimizationBreakdown = { upgrade: 0, downgrade: 0, optimize: 0 };
         const regionalMappings: Array<{
             projectId: string;
@@ -139,6 +141,13 @@ export async function GET(request: NextRequest) {
                 projectCost += estimatedCost;
                 costBreakdown[result.type] = (costBreakdown[result.type] || 0) + estimatedCost;
 
+                // Aggregate Cost Forecast
+                const forecast = getCostForecast(result.type, tier, diskSizeGb, isHA);
+                forecast.forEach(f => {
+                    monthlyForecast[f.month] = (monthlyForecast[f.month] || 0) + f.cost;
+                    totalForecastedCost3m += f.cost;
+                });
+
                 // Aggregate Security Posture
                 if (result.metadata?.security) {
                     const security = result.metadata.security as { score: number, risks: Array<{ level: string }> };
@@ -207,6 +216,8 @@ export async function GET(request: NextRequest) {
                 totalEstimatedMonthlyCost: parseFloat(totalEstimatedMonthlyCost.toFixed(2)),
                 totalPotentialSavings: parseFloat(totalPotentialSavings.toFixed(2)),
                 costBreakdown,
+                costForecast: Object.entries(monthlyForecast).map(([month, cost]) => ({ month, cost })),
+                totalForecastedCost3m: parseFloat(totalForecastedCost3m.toFixed(2)),
                 totalRisks,
                 riskBreakdown,
                 averageSecurityScore: connectorsWithScore > 0 ? Math.round(totalSecurityScore / connectorsWithScore) : 100,
