@@ -22,7 +22,9 @@ import {
     DollarSign,
     Zap,
     X,
-    Download
+    Download,
+    TrendingUp,
+    BarChart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
@@ -45,7 +47,17 @@ interface FleetConnector extends StorageConfig {
 export default function InfrastructureFleetPage() {
     const [connectors, setConnectors] = useState<FleetConnector[]>([]);
     const [mappings, setMappings] = useState<RegionalProximityMapping[]>([]);
-    const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
+    const [summary, setSummary] = useState<{
+        averageEfficiencyScore?: number;
+        averageSecurityScore?: number;
+        totalEstimatedMonthlyCost?: number;
+        totalPotentialSavings?: number;
+        totalProjects?: number;
+        totalRisks?: number;
+        totalConnectors?: number;
+        costForecast?: { month: string; cost: number }[];
+        totalForecastedCost3m?: number;
+    } | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -323,6 +335,7 @@ export default function InfrastructureFleetPage() {
                     { label: 'Efficiency', value: loading ? '...' : `${String(summary?.averageEfficiencyScore || 0)}%`, icon: Zap, color: 'text-[var(--warning)]', onClick: () => { setOnlyOptimizable(true); } },
                     { label: 'Security', value: loading ? '...' : `${String(summary?.averageSecurityScore || 100)}%`, icon: ShieldCheck, color: 'text-[var(--success)]', onClick: () => setShowComplianceReport(true) },
                     { label: 'Est. Cost', value: loading ? '...' : `$${String(summary?.totalEstimatedMonthlyCost || 0)}`, icon: DollarSign, color: 'text-[var(--success)]', onClick: () => {}, subValue: (summary?.totalPotentialSavings as number) > 0 ? `-$${summary?.totalPotentialSavings} SAVINGS` : undefined },
+                    { label: '3M Forecast', value: loading ? '...' : `$${String(summary?.totalForecastedCost3m || 0)}`, icon: TrendingUp, color: 'text-[var(--primary)]', onClick: () => {} },
                 ].map((stat, i) => (
                     <Card
                         key={i}
@@ -450,6 +463,46 @@ export default function InfrastructureFleetPage() {
                         </div>
                     </Card>
                 </div>
+            )}
+
+            {/* Cost Forecast Chart Section */}
+            {summary?.costForecast && summary.costForecast.length > 0 && (
+                <Card className="p-6 border-[var(--primary)]/10 bg-[var(--card)]/50">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
+                                <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+                            </div>
+                            <div>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Financial Intelligence</span>
+                                <h3 className="text-[10px] font-bold">3-Month Cost Projection</h3>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Projected Growth</span>
+                            <div className="flex items-center gap-1.5 text-[var(--success)]">
+                                <Zap className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-bold">+5% MONTHLY</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="h-48 flex items-end gap-4 px-4">
+                        {summary.costForecast.map((f, i) => (
+                            <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
+                                <div className="w-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-t-xl transition-all group-hover:bg-[var(--primary)]/20 relative"
+                                     style={{ height: `${(f.cost / (summary.totalForecastedCost3m || 1)) * 250}%` }}>
+                                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        <span className="text-[8px] font-mono font-bold bg-[var(--popover)] border border-[var(--border)] px-2 py-1 rounded shadow-xl">
+                                            ${f.cost.toLocaleString()}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{f.month}</span>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
             )}
 
             {/* Fleet Grid */}

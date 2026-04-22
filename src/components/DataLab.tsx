@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send, ShieldAlert, Eye, Activity, FileSpreadsheet } from 'lucide-react';
+import { Database, Play, Terminal, AlertCircle, Loader2, CheckCircle2, Table, Info, Search, Download, BarChart2, TrendingUp, History, Save, Trash2, Clock, RefreshCw, ChevronRight, X, AlertTriangle, FileCode, ChevronLeft, Copy, AlignLeft, PieChart as PieChartIcon, LayoutTemplate, Network, Link as LinkIcon, MessageSquare, Send, ShieldAlert, Eye, Activity, FileSpreadsheet, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/store';
 import { SchemaMap } from '@/components/SchemaMap';
@@ -82,7 +82,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         timeseries?: { date: string, avgLatency: number }[],
         hotspots?: { query: string, avgLatency: number, count: number }[]
     } | null>(null);
-    const [optimizationSuggestions, setOptimizationSuggestions] = useState<{ message: string, severity: 'high' | 'medium' | 'low', score: number }[] | null>(null);
+    const [optimizationSuggestions, setOptimizationSuggestions] = useState<{ message: string, severity: 'high' | 'medium' | 'low', score: number, action?: { type: string, table: string, column?: string } }[] | null>(null);
     const [planDrift, setPlanDrift] = useState<{ drifted: boolean, reason?: string, impact?: 'high' | 'medium' | 'low' } | null>(null);
     const [showInsights, setShowInsights] = useState(false);
     const [history, setHistory] = useState<{ id: string, query: string, timestamp: string, executionTimeMs?: number, rowCount?: number, error?: string }[]>([]);
@@ -113,6 +113,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [schemaDocs, setSchemaDocs] = useState<{ id: string, entity: string, description: string, type: 'table' | 'column' }[]>([]);
     const [isSavingDoc, setIsSavingDoc] = useState<string | null>(null);
     const [viewingAuditQuery, setViewingAuditQuery] = useState<string | null>(null);
+    const [isApplyingIndex, setIsApplyingIndex] = useState<string | null>(null);
 
     useEffect(() => {
         // Detect :variable patterns
@@ -299,6 +300,30 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             } catch (e) {
                 console.error('Failed to apply NoSQL filter:', e);
             }
+        }
+    };
+
+    const applyIndex = async (table: string, column?: string) => {
+        if (!selectedId) return;
+        setIsApplyingIndex(`${table}_${column || 'auto'}`);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/apply-index`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ table, column }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success(`Index applied to ${table}${column ? ` (${column})` : ''}`);
+                // Re-discover schema to show new indexes
+                discoverSchema();
+            } else {
+                toast.error(data.error || 'Failed to apply index');
+            }
+        } catch (error) {
+            toast.error('Network error while applying index');
+        } finally {
+            setIsApplyingIndex(null);
         }
     };
 
@@ -2583,12 +2608,28 @@ runQuery();`;
                                                 <Info className="w-3.5 h-3.5" />
                                                 <span className="text-[7px] font-bold">{s.score}</span>
                                             </div>
-                                            <div className="space-y-1">
+                                            <div className="space-y-1 flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className="px-1 py-0.5 rounded bg-current/10 text-[7px]">{s.severity.toUpperCase()}</span>
                                                     <span className="opacity-90">{s.message}</span>
                                                 </div>
                                             </div>
+                                            {s.action?.type === 'apply_index' && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => applyIndex(s.action!.table, s.action!.column)}
+                                                    disabled={isApplyingIndex === `${s.action.table}_${s.action.column || 'auto'}`}
+                                                    className="h-7 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] border border-[var(--primary)]/20 hover:bg-[var(--primary)]/10 shrink-0"
+                                                >
+                                                    {isApplyingIndex === `${s.action.table}_${s.action.column || 'auto'}` ? (
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                                                    ) : (
+                                                        <Zap className="w-3.5 h-3.5 mr-1.5" />
+                                                    )}
+                                                    Apply Index
+                                                </Button>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
