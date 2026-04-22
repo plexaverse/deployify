@@ -83,6 +83,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         hotspots?: { query: string, avgLatency: number, count: number }[]
     } | null>(null);
     const [optimizationSuggestions, setOptimizationSuggestions] = useState<{ message: string, severity: 'high' | 'medium' | 'low', score: number }[] | null>(null);
+    const [planDrift, setPlanDrift] = useState<{ drifted: boolean, reason?: string, impact?: 'high' | 'medium' | 'low' } | null>(null);
     const [showInsights, setShowInsights] = useState(false);
     const [history, setHistory] = useState<{ id: string, query: string, timestamp: string, executionTimeMs?: number, rowCount?: number, error?: string }[]>([]);
     const [savedQueries, setSavedQueries] = useState<{ id: string, name: string, query: string, isPublic?: boolean, userId?: string }[]>([]);
@@ -378,6 +379,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
                     }
 
                     setOptimizationSuggestions(data.optimizationSuggestions || null);
+                    setPlanDrift(data.drift || null);
                     setExecutionTime(data.executionTimeMs);
                     // Re-fetch historical metrics and history after execution
                     if (!explain) {
@@ -804,6 +806,7 @@ runQuery();`;
         setExecutionTime(null);
         setError(null);
         setOptimizationSuggestions(null);
+        setPlanDrift(null);
         setFilterQuery('');
         setCurrentPage(1);
         setSortConfig(null);
@@ -2525,6 +2528,22 @@ runQuery();`;
                                 )}
                             </div>
                         </div>
+                        {planDrift && (
+                            <div className="p-4 rounded-xl bg-[var(--error)]/5 border border-[var(--error)]/20 animate-in slide-in-from-top-2 mb-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <ShieldAlert className="w-4 h-4 text-[var(--error)]" />
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--error)]">Performance Regression Detected (Plan Drift)</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className={cn(
+                                        "px-1.5 py-0.5 rounded text-[7px] font-bold uppercase",
+                                        planDrift.impact === 'high' ? "bg-[var(--error)] text-white" : "bg-[var(--warning)] text-black"
+                                    )}>{planDrift.impact} IMPACT</span>
+                                    <p className="text-[8px] font-bold uppercase text-[var(--foreground)]">{planDrift.reason}</p>
+                                </div>
+                            </div>
+                        )}
+
                         {optimizationSuggestions && (
                             <div className="p-4 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/20 animate-in slide-in-from-top-2 mb-4">
                                 <div className="flex items-center justify-between mb-3">

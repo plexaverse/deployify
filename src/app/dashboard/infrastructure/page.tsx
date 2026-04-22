@@ -19,7 +19,10 @@ import {
     Filter,
     ArrowUpDown,
     Moon,
-    DollarSign
+    DollarSign,
+    Zap,
+    X,
+    Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
@@ -47,6 +50,7 @@ export default function InfrastructureFleetPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [showComplianceReport, setShowComplianceReport] = useState(false);
     const [onlyOptimizable, setOnlyOptimizable] = useState(false);
     const [onlyDormant, setOnlyDormant] = useState(false);
     const [onlyAtRisk, setOnlyAtRisk] = useState(false);
@@ -316,9 +320,9 @@ export default function InfrastructureFleetPage() {
                     { label: 'Unhealthy', value: stats.unhealthy, icon: AlertCircle, color: 'text-[var(--error)]', onClick: () => { setStatusFilter('unhealthy'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
                     { label: 'At Risk', value: stats.atRisk, icon: ShieldAlert, color: 'text-[var(--error)]', onClick: () => { setOnlyAtRisk(true); setOnlyOptimizable(false); setOnlyDormant(false); setStatusFilter('all'); } },
                     { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
-                    { label: 'Optimizable', value: stats.optimizations, icon: Sparkles, color: 'text-[var(--primary)]', onClick: () => { setOnlyOptimizable(true); setOnlyDormant(false); setOnlyAtRisk(false); setStatusFilter('all'); } },
-                    { label: 'Security', value: loading ? '...' : `${summary?.averageSecurityScore || 100}%`, icon: ShieldCheck, color: 'text-[var(--success)]', onClick: () => {} },
-                    { label: 'Est. Cost', value: loading ? '...' : `$${summary?.totalEstimatedMonthlyCost || 0}`, icon: DollarSign, color: 'text-[var(--success)]', onClick: () => {}, subValue: (summary?.totalPotentialSavings as number) > 0 ? `-$${summary?.totalPotentialSavings} SAVINGS` : undefined },
+                    { label: 'Efficiency', value: loading ? '...' : `${String(summary?.averageEfficiencyScore || 0)}%`, icon: Zap, color: 'text-[var(--warning)]', onClick: () => { setOnlyOptimizable(true); } },
+                    { label: 'Security', value: loading ? '...' : `${String(summary?.averageSecurityScore || 100)}%`, icon: ShieldCheck, color: 'text-[var(--success)]', onClick: () => setShowComplianceReport(true) },
+                    { label: 'Est. Cost', value: loading ? '...' : `$${String(summary?.totalEstimatedMonthlyCost || 0)}`, icon: DollarSign, color: 'text-[var(--success)]', onClick: () => {}, subValue: (summary?.totalPotentialSavings as number) > 0 ? `-$${summary?.totalPotentialSavings} SAVINGS` : undefined },
                 ].map((stat, i) => (
                     <Card
                         key={i}
@@ -341,6 +345,112 @@ export default function InfrastructureFleetPage() {
                     </Card>
                 ))}
             </div>
+
+            {/* Compliance Report Modal */}
+            {showComplianceReport && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <Card className="w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                                    <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
+                                </div>
+                                <div>
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Governance</span>
+                                    <h3 className="text-[10px] font-bold">Compliance Report</h3>
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => setShowComplianceReport(false)} className="h-8 w-8">
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
+                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Avg Score</span>
+                                    <span className="text-xl font-bold text-[var(--primary)]">{String(summary?.averageSecurityScore || 0)}%</span>
+                                </div>
+                                <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
+                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Total Risks</span>
+                                    <span className="text-xl font-bold text-[var(--error)]">{String(summary?.totalRisks || 0)}</span>
+                                </div>
+                                <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
+                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Projects</span>
+                                    <span className="text-xl font-bold">{String(summary?.totalProjects || 0)}</span>
+                                </div>
+                                <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
+                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Connectors</span>
+                                    <span className="text-xl font-bold">{String(summary?.totalConnectors || 0)}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h4 className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-b border-[var(--border)] pb-2">Project Breakdown</h4>
+                                <div className="space-y-2">
+                                    {connectors.reduce((acc, c) => {
+                                        const proj = acc.find(p => p.id === c.projectId);
+                                        if (proj) proj.connectors.push(c);
+                                        else acc.push({ id: c.projectId, name: c.projectName, connectors: [c] });
+                                        return acc;
+                                    }, [] as { id: string, name: string, connectors: FleetConnector[] }[]).map(project => (
+                                        <div key={project.id} className="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)]">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-[10px] font-bold">{project.name}</span>
+                                                <Badge variant="outline" className="text-[8px] font-bold">{project.connectors.length} CONNECTORS</Badge>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {project.connectors.map((c: FleetConnector) => {
+                                                    const security = (c.metadata?.security as { score: number, risks: unknown[] } | undefined) || { score: 100, risks: [] };
+                                                    return (
+                                                        <div key={c.id} className="flex items-center justify-between p-2 rounded bg-[var(--muted)]/5 text-[8px]">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="font-bold">{c.name}</span>
+                                                                <span className="text-[var(--muted-foreground)] uppercase">{c.type}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-[var(--muted-foreground)]">SCORE:</span>
+                                                                    <span className={cn(
+                                                                        "font-bold",
+                                                                        security.score >= 90 ? "text-[var(--success)]" : security.score >= 70 ? "text-[var(--warning)]" : "text-[var(--error)]"
+                                                                    )}>{security.score}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-[var(--muted-foreground)]">RISKS:</span>
+                                                                    <span className={cn(
+                                                                        "font-bold",
+                                                                        security.risks.length > 0 ? "text-[var(--error)]" : "text-[var(--success)]"
+                                                                    )}>{security.risks.length}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="p-6 bg-[var(--muted)]/5 border-t border-[var(--border)] flex justify-end">
+                            <Button
+                                onClick={() => {
+                                    const blob = new Blob([JSON.stringify({ summary, connectors }, null, 2)], { type: 'application/json' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `compliance-report-${new Date().toISOString().split('T')[0]}.json`;
+                                    a.click();
+                                }}
+                                className="text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                            >
+                                <Download className="w-3.5 h-3.5 mr-2" />
+                                Export JSON Report
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+            )}
 
             {/* Fleet Grid */}
             {loading ? (
@@ -418,9 +528,21 @@ export default function InfrastructureFleetPage() {
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--primary)]/10 flex items-center justify-between col-span-2">
                                                     <div>
                                                         <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Resource Tier</span>
-                                                        <span className="text-[8px] font-mono font-bold text-[var(--primary)]">
-                                                            {(connector.metadata?.tier as string) || (connector.metadata?.memorySizeGb ? `${connector.metadata.memorySizeGb}GB` : 'UNMANAGED')}
-                                                        </span>
+                                                        <div className="flex items-baseline gap-2">
+                                                            <span className="text-[8px] font-mono font-bold text-[var(--primary)]">
+                                                                {(connector.metadata?.tier as string) || (connector.metadata?.memorySizeGb ? `${connector.metadata.memorySizeGb}GB` : 'UNMANAGED')}
+                                                            </span>
+                                                            {connector.metadata?.efficiencyScore !== undefined && (
+                                                                <span className={cn(
+                                                                    "text-[7px] font-bold px-1 rounded-sm",
+                                                                    (connector.metadata.efficiencyScore as number) >= 80 ? "bg-[var(--success)]/10 text-[var(--success)]" :
+                                                                    (connector.metadata.efficiencyScore as number) >= 50 ? "bg-[var(--warning)]/10 text-[var(--warning)]" :
+                                                                    "bg-[var(--error)]/10 text-[var(--error)]"
+                                                                )}>
+                                                                    {String(connector.metadata.efficiencyScore || 0)}% EFF
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <ArrowUpDown className="w-3.5 h-3.5 text-[var(--primary)]/30" />
                                                 </div>

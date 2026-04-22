@@ -735,3 +735,82 @@ async function fetchLatestMetricValue(projectId: string, accessToken: string, fi
 
     return typeof value === 'string' ? parseInt(value) : (value || 0);
 }
+
+/**
+ * Calculate infrastructure efficiency score (0-100)
+ * Normalizes resource utilization against allocation costs
+ */
+export function calculateEfficiencyScore(
+    metrics: ResourceMetrics,
+    monthlyCost: number
+): number {
+    if (monthlyCost <= 0) return 100; // Free tiers are always "efficient" in cost
+
+    const cpuWeight = 0.6;
+    const memWeight = 0.4;
+
+    // Ideal utilization is between 40% and 70%
+    // Below 40% is over-provisioned (low efficiency)
+    // Above 80% is risky but high efficiency (capped to avoid rewarding risk)
+
+    const calculateDimScore = (val: number) => {
+        if (val < 10) return 20;
+        if (val < 40) return 50 + (val - 10);
+        if (val <= 80) return 80 + (val - 40) * 0.5;
+        return 95; // Diminishing returns for over-utilization risk
+    };
+
+    const cpuScore = calculateDimScore(metrics.cpuUtilization);
+    const memScore = calculateDimScore(metrics.memoryUtilization);
+
+    const rawScore = (cpuScore * cpuWeight) + (memScore * memWeight);
+
+    // Cost Penalty: Higher absolute cost without high utilization reduces efficiency
+    const costFactor = Math.max(0.7, 1 - (monthlyCost / 2000)); // Cap penalty for extreme costs
+
+    return Math.round(rawScore * costFactor);
+}
+
+/**
+ * Detect regressions in SQL execution plans (Plan Drift)
+ */
+export function detectPlanDrift(
+    currentPlan: Record<string, unknown>[],
+    historicalPlans: Record<string, unknown>[][]
+): { drifted: boolean; reason?: string; impact?: 'high' | 'medium' | 'low' } {
+    if (historicalPlans.length === 0) return { drifted: false };
+
+    const getPlanSummary = (plan: Record<string, unknown>[]) => {
+        const text = JSON.stringify(plan);
+        return {
+            hasSeqScan: text.includes('Seq Scan') || text.includes('"type": "ALL"'),
+            totalCost: text.match(/cost=[\d\.]+..([\d\.]+)/)?.[1] || '0',
+            rows: text.match(/rows=(\d+)/)?.[1] || '0'
+        };
+    };
+
+    const current = getPlanSummary(currentPlan);
+    const historicalSummaries = historicalPlans.map(getPlanSummary);
+
+    // 1. Detection: Shift from Index to Seq Scan
+    const historicallyUsedIndices = historicalSummaries.every(h => !h.hasSeqScan);
+    if (current.hasSeqScan && historicallyUsedIndices) {
+        return {
+            drifted: true,
+            reason: 'Execution plan shifted from Index Scan to Sequential Scan (Full Table Scan).',
+            impact: 'high'
+        };
+    }
+
+    // 2. Detection: Significant Cost Increase (> 50%)
+    const avgHistoricalCost = historicalSummaries.reduce((acc, h) => acc + parseFloat(h.totalCost), 0) / historicalSummaries.length;
+    if (parseFloat(current.totalCost) > avgHistoricalCost * 1.5) {
+        return {
+            drifted: true,
+            reason: `Query execution cost increased by ${Math.round((parseFloat(current.totalCost) / avgHistoricalCost - 1) * 100)}% compared to baseline.`,
+            impact: 'medium'
+        };
+    }
+
+    return { drifted: false };
+}
