@@ -21,7 +21,8 @@ import {
     Moon,
     DollarSign,
     Zap,
-    X
+    X,
+    Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
