@@ -320,9 +320,9 @@ export default function InfrastructureFleetPage() {
                     { label: 'Unhealthy', value: stats.unhealthy, icon: AlertCircle, color: 'text-[var(--error)]', onClick: () => { setStatusFilter('unhealthy'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
                     { label: 'At Risk', value: stats.atRisk, icon: ShieldAlert, color: 'text-[var(--error)]', onClick: () => { setOnlyAtRisk(true); setOnlyOptimizable(false); setOnlyDormant(false); setStatusFilter('all'); } },
                     { label: 'Building', value: stats.provisioning, icon: Loader2, color: 'text-[var(--info)]', onClick: () => { setStatusFilter('provisioning'); setOnlyOptimizable(false); setOnlyDormant(false); setOnlyAtRisk(false); } },
-                    { label: 'Efficiency', value: loading ? '...' : `${summary?.averageEfficiencyScore || 0}%`, icon: Zap, color: 'text-[var(--warning)]', onClick: () => { setOnlyOptimizable(true); } },
-                    { label: 'Security', value: loading ? '...' : `${summary?.averageSecurityScore || 100}%`, icon: ShieldCheck, color: 'text-[var(--success)]', onClick: () => setShowComplianceReport(true) },
-                    { label: 'Est. Cost', value: loading ? '...' : `$${summary?.totalEstimatedMonthlyCost || 0}`, icon: DollarSign, color: 'text-[var(--success)]', onClick: () => {}, subValue: (summary?.totalPotentialSavings as number) > 0 ? `-$${summary?.totalPotentialSavings} SAVINGS` : undefined },
+                    { label: 'Efficiency', value: loading ? '...' : `${String(summary?.averageEfficiencyScore || 0)}%`, icon: Zap, color: 'text-[var(--warning)]', onClick: () => { setOnlyOptimizable(true); } },
+                    { label: 'Security', value: loading ? '...' : `${String(summary?.averageSecurityScore || 100)}%`, icon: ShieldCheck, color: 'text-[var(--success)]', onClick: () => setShowComplianceReport(true) },
+                    { label: 'Est. Cost', value: loading ? '...' : `$${String(summary?.totalEstimatedMonthlyCost || 0)}`, icon: DollarSign, color: 'text-[var(--success)]', onClick: () => {}, subValue: (summary?.totalPotentialSavings as number) > 0 ? `-$${summary?.totalPotentialSavings} SAVINGS` : undefined },
                 ].map((stat, i) => (
                     <Card
                         key={i}
@@ -368,19 +368,19 @@ export default function InfrastructureFleetPage() {
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Avg Score</span>
-                                    <span className="text-xl font-bold text-[var(--primary)]">{summary?.averageSecurityScore as number}%</span>
+                                    <span className="text-xl font-bold text-[var(--primary)]">{String(summary?.averageSecurityScore || 0)}%</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Total Risks</span>
-                                    <span className="text-xl font-bold text-[var(--error)]">{summary?.totalRisks as number}</span>
+                                    <span className="text-xl font-bold text-[var(--error)]">{String(summary?.totalRisks || 0)}</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Projects</span>
-                                    <span className="text-xl font-bold">{summary?.totalProjects as number}</span>
+                                    <span className="text-xl font-bold">{String(summary?.totalProjects || 0)}</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Connectors</span>
-                                    <span className="text-xl font-bold">{summary?.totalConnectors as number}</span>
+                                    <span className="text-xl font-bold">{String(summary?.totalConnectors || 0)}</span>
                                 </div>
                             </div>
 
@@ -539,7 +539,7 @@ export default function InfrastructureFleetPage() {
                                                                     (connector.metadata.efficiencyScore as number) >= 50 ? "bg-[var(--warning)]/10 text-[var(--warning)]" :
                                                                     "bg-[var(--error)]/10 text-[var(--error)]"
                                                                 )}>
-                                                                    {connector.metadata.efficiencyScore}% EFF
+                                                                    {String(connector.metadata.efficiencyScore || 0)}% EFF
                                                                 </span>
                                                             )}
                                                         </div>
