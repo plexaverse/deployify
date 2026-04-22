@@ -4,6 +4,8 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
 import { updateInstanceSettings } from '@/lib/gcp/cloudsql';
 import { syncExternalFirewall } from '@/lib/gcp/external-sync';
+import { grantCloudSqlInstanceUserRole } from '@/lib/gcp/iam';
+import { config } from '@/lib/config';
 import type { StorageConfig } from '@/types';
 
 /**
@@ -108,6 +110,26 @@ export async function POST(
                         pitrEnabled: true
                     };
                     message = 'Enabling Point-in-Time Recovery in GCP...';
+                }
+                break;
+
+            case 'iam_role_not_verified':
+                if (storage.type.includes('cloud-sql')) {
+                    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+                    const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
+                    const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
+
+                    const granted = await grantCloudSqlInstanceUserRole(gcpProjectId!, saEmail);
+                    if (!granted) {
+                        throw new Error('Failed to grant IAM role. Ensure the Deployify service account has Project IAM Admin permissions.');
+                    }
+
+                    storage.metadata = {
+                        ...storage.metadata,
+                        iamRoleVerified: true,
+                        lastIamSyncAt: new Date().toISOString()
+                    };
+                    message = 'IAM role granted successfully';
                 }
                 break;
 

@@ -150,9 +150,20 @@ export async function GET(
                 if (metrics) {
                     // A. Optimization Intelligence: Analyze for scaling recommendations
                     try {
+                        const { calculateEfficiencyScore } = await import('@/lib/gcp/monitoring');
                         const recommendations = await getScalingRecommendations(storage.type, metrics, storage.metadata);
+
+                        // Calculate Efficiency Score
+                        const tier = (storage.metadata?.tier as string) || (storage.type.includes('cloud-sql') ? 'db-f1-micro' : (storage.type === 'memorystore-redis' ? '1GB' : ''));
+                        const diskSizeGb = (storage.metadata?.diskSizeGb as number) || (storage.metadata?.memorySizeGb as number);
+                        const isHA = !!storage.metadata?.highAvailability;
+                        const { getEstimatedMonthlyCost } = await import('@/lib/gcp/monitoring');
+                        const monthlyCost = getEstimatedMonthlyCost(storage.type, tier, diskSizeGb, isHA);
+                        const efficiencyScore = calculateEfficiencyScore(metrics, monthlyCost);
+
                         storage.metadata = {
                             ...storage.metadata,
+                            efficiencyScore,
                             optimization: recommendations.length > 0 ? {
                                 recommendations,
                                 lastAnalyzedAt: now.toISOString()

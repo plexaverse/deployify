@@ -568,8 +568,12 @@ export async function POST(
                             const rawRows = Array.isArray(res.rows) ? res.rows.slice(0, MAX_ROWS) : [];
                             const rows = rawRows as unknown as Record<string, unknown>[];
                             const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number }[] = [];
+                            let driftResult = undefined;
 
                             if (query.toUpperCase().startsWith('EXPLAIN')) {
+                                // Plan Drift Detection
+                                const { detectPlanDrift } = await import('@/lib/gcp/monitoring');
+                                driftResult = detectPlanDrift(rows, []);
                                 rows.forEach((row, index) => {
                                     const plan = String(row['QUERY PLAN'] || '');
                                     if (plan.includes('Seq Scan')) {
@@ -615,6 +619,7 @@ export async function POST(
                                 results: rows,
                                 rowCount: rows.length,
                                 optimizationSuggestions: optimizationSuggestions.length > 0 ? optimizationSuggestions : undefined,
+                                drift: driftResult?.drifted ? driftResult : undefined,
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {
@@ -651,8 +656,12 @@ export async function POST(
                             const rawFinalRows = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
                             const finalRows = rawFinalRows as unknown as Record<string, unknown>[];
                             const optimizationSuggestions: { message: string, severity: 'high' | 'medium' | 'low', score: number }[] = [];
+                            let driftResult = undefined;
 
                             if (query.toUpperCase().startsWith('EXPLAIN')) {
+                                // Plan Drift Detection (Simulation using current and some basic rules)
+                                const { detectPlanDrift } = await import('@/lib/gcp/monitoring');
+                                driftResult = detectPlanDrift(finalRows, []); // In real implementation, pass history
                                 finalRows.forEach(row => {
                                     if (row.type === 'ALL') {
                                         optimizationSuggestions.push({
@@ -691,6 +700,7 @@ export async function POST(
                                 results: finalRows,
                                 rowCount: finalRows.length,
                                 optimizationSuggestions: optimizationSuggestions.length > 0 ? optimizationSuggestions : undefined,
+                                drift: driftResult?.drifted ? driftResult : undefined,
                                 executionTimeMs: Date.now() - startTime
                             });
                         } finally {

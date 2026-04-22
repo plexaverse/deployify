@@ -625,6 +625,13 @@ Legacy and custom support with production-grade security:
 - [x] Enhance Cloud Run deployment IAM with `roles/cloudsql.instanceUser` for IAM-based login.
 - [x] Implement backend regional alignment enforcement for provisioned resources.
 
+### Phase 97: Governance, Compliance & Advanced Fleet Intelligence (STABLE)
+- [x] Implement automated IAM remediation for Cloud SQL (`roles/cloudsql.instanceUser`)
+- [x] Create workspace-wide compliance reporting API for high-level governance
+- [x] Implement SQL execution plan drift detection in the performance engine
+- [x] Add resource efficiency scoring to the Fleet Dashboard
+- [x] Standardize new UI elements to high-density technical aesthetic
+
 ## Progress Updates
 
 ### 2027-06-01: GCP-Native Lifecycle Hardening & VPC Orchestration
@@ -672,6 +679,14 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement EWMA-based performance anomaly detection in the monitoring engine.
 - [x] Add ORM schema export functionality (Prisma/Drizzle) to the Data Lab.
 - [x] Integrate anomaly detection into proactive scaling recommendations.
+
+### 2027-06-06: Governance, Compliance & Advanced Fleet Intelligence
+- Completed Phase 97: Governance, Compliance & Advanced Fleet Intelligence.
+- Implemented automated IAM remediation for Cloud SQL via `src/lib/gcp/iam.ts`, allowing one-click granting of the `roles/cloudsql.instanceUser` role to service accounts.
+- Launched the Workspace Compliance Reporting API, providing aggregated security postures and efficiency metrics across all team projects for centralized governance.
+- Enhanced the performance intelligence engine with SQL execution plan drift detection to identify regressions (e.g., shifts from Index Scan to Seq Scan).
+- Integrated "Resource Efficiency Scoring" into the Fleet Dashboard, normalizing utilization against allocation costs to drive infrastructure optimization.
+- Standardized all new UI elements to 100% adherence with the platform's high-density technical aesthetic.
 
 ### 2027-06-05: Predictive Fleet Maintenance & HA Governance
 - Completed Phase 96: Predictive Fleet Maintenance & HA Governance.

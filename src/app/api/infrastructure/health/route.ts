@@ -35,7 +35,9 @@ export async function GET(request: NextRequest) {
         let totalEstimatedMonthlyCost = 0;
         let totalPotentialSavings = 0;
         let totalSecurityScore = 0;
+        let totalEfficiencyScore = 0;
         let connectorsWithScore = 0;
+        let connectorsWithEfficiency = 0;
         let totalRisks = 0;
         const riskBreakdown = { critical: 0, high: 0, medium: 0, low: 0 };
         const costBreakdown: Record<string, number> = {};
@@ -121,6 +123,12 @@ export async function GET(request: NextRequest) {
                     });
                 }
 
+                // Aggregate Efficiency Score
+                if (result.metadata?.efficiencyScore !== undefined) {
+                    totalEfficiencyScore += result.metadata.efficiencyScore as number;
+                    connectorsWithEfficiency++;
+                }
+
                 // Aggregate Cost Intelligence
                 const tier = (result.metadata?.tier as string) || (result.type.includes('cloud-sql') ? 'db-f1-micro' : (result.type === 'memorystore-redis' ? '1GB' : ''));
                 const diskSizeGb = (result.metadata?.diskSizeGb as number) || (result.metadata?.memorySizeGb as number);
@@ -202,6 +210,7 @@ export async function GET(request: NextRequest) {
                 totalRisks,
                 riskBreakdown,
                 averageSecurityScore: connectorsWithScore > 0 ? Math.round(totalSecurityScore / connectorsWithScore) : 100,
+                averageEfficiencyScore: connectorsWithEfficiency > 0 ? Math.round(totalEfficiencyScore / connectorsWithEfficiency) : 100,
                 uptimeScore: totalConnectors > 0 ? Math.round(((healthyConnectors + degradedConnectors) / totalConnectors) * 100) : 100
             },
             projectHealth,
