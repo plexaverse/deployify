@@ -20,7 +20,8 @@ import {
     ArrowUpDown,
     Moon,
     DollarSign,
-    Zap
+    Zap,
+    X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
