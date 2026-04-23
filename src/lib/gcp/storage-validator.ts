@@ -293,7 +293,22 @@ export async function diagnoseConnection(
             };
         }
 
-        // Step 1: Secret Retrieval
+        // Step 1: Connector Portability & Configuration
+        const portabilityStep = addStep('Connector Portability');
+        portabilityStep.status = 'running';
+
+        const configRegion = metadata?.region as string;
+        const projectRegion = projectContext?.region;
+
+        if (configRegion && projectRegion && configRegion !== projectRegion) {
+            portabilityStep.status = 'failure';
+            portabilityStep.error = 'Regional Mismatch';
+            portabilityStep.recommendation = `Compute (${projectRegion}) and Storage (${configRegion}) are in different regions. This will cause higher latency. Consider migrating the instance to ${projectRegion}.`;
+        } else {
+            portabilityStep.status = 'success';
+        }
+
+        // Step 2: Secret Retrieval
         const secretStep = addStep('Secret Retrieval');
         secretStep.status = 'running';
         const secretStart = Date.now();

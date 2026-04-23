@@ -614,7 +614,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     }, [storageConfigs, fetchMetrics, metrics, isLoadingMetrics]);
 
     const handleRotate = async (storageId: string) => {
-        if (!rotateConnectionString.trim()) return;
+        const config = storageConfigs.find(c => c.id === storageId);
+        const isAutoSync = !!config?.metadata?.autoSync;
+
+        if (!rotateConnectionString.trim() && !isAutoSync) return;
+
         setIsSubmitting(true);
         try {
             const success = await rotateStorageCredentials(projectId, storageId, rotateConnectionString);
@@ -1553,16 +1557,45 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         )}
                                         {isRotating === config.id && (
                                             <div className="mt-3 p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-fade-in">
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-[8px] font-bold uppercase tracking-wider">New Connection String</Label>
-                                                    <Input
-                                                        type="password"
-                                                        value={rotateConnectionString}
-                                                        onChange={(e) => setRotateConnectionString(e.target.value)}
-                                                        placeholder="PASTE NEW CONNECTION STRING..."
-                                                        className="font-mono text-[8px] h-8 placeholder:text-[8px]"
-                                                    />
-                                                </div>
+                                                {config.metadata?.autoSync ? (
+                                                    <div className="space-y-2">
+                                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                            THIS CONNECTOR SUPPORTS AUTOMATED ROTATION VIA PROVIDER API.
+                                                        </p>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex-1 space-y-1.5">
+                                                                <Label className="text-[8px] font-bold uppercase tracking-wider">Manual Override</Label>
+                                                                <Input
+                                                                    type="password"
+                                                                    value={rotateConnectionString}
+                                                                    onChange={(e) => setRotateConnectionString(e.target.value)}
+                                                                    placeholder="PASTE NEW CONNECTION STRING..."
+                                                                    className="font-mono text-[8px] h-8 placeholder:text-[8px]"
+                                                                />
+                                                            </div>
+                                                            <Button
+                                                                size="sm"
+                                                                onClick={() => handleRotate(config.id)}
+                                                                disabled={isSubmitting}
+                                                                className="h-10 px-4 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)] border border-[var(--primary)]/30 hover:bg-[var(--primary)]/90"
+                                                            >
+                                                                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <RefreshCw className="w-3.5 h-3.5 mr-2" />}
+                                                                Sync & Rotate via API
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[8px] font-bold uppercase tracking-wider">New Connection String</Label>
+                                                        <Input
+                                                            type="password"
+                                                            value={rotateConnectionString}
+                                                            onChange={(e) => setRotateConnectionString(e.target.value)}
+                                                            placeholder="PASTE NEW CONNECTION STRING..."
+                                                            className="font-mono text-[8px] h-8 placeholder:text-[8px]"
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="flex justify-end gap-2">
                                                     <Button
                                                         variant="ghost"
@@ -1579,10 +1612,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     <Button
                                                         size="sm"
                                                         onClick={() => handleRotate(config.id)}
-                                                        disabled={isSubmitting || !rotateConnectionString}
+                                                        disabled={isSubmitting || (!config.metadata?.autoSync && !rotateConnectionString)}
                                                         className="h-7 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                                                     >
-                                                        Rotate Credentials
+                                                        {config.metadata?.autoSync ? 'Rotate via Override' : 'Rotate Credentials'}
                                                     </Button>
                                                 </div>
                                             </div>
