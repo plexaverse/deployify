@@ -3,6 +3,9 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
+import { anonymizeData } from '@/lib/gcp/seeding';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -133,9 +136,34 @@ export async function syncDeploymentStatus(
             // Track deployment usage
             await trackDeployment(projectId, buildDurationMs);
 
-            await updateProject(projectId, {
-                productionUrl: effectiveUrl,
-            });
+            // Integrate Global Load Balancing and Security for Production
+            const project = await getProjectById(projectId);
+            if (deployment.type === 'production' && !project?.customDomain) {
+                try {
+                    console.log(`[Deployify Edge] Orchestrating Global Load Balancer for ${projectSlug}...`);
+                    const glb = await createGlobalLoadBalancer(generateServiceName(projectSlug), region || 'us-central1');
+
+                    // Enable Cloud CDN and Cloud Armor by default for enterprise-grade edge
+                    await enableCloudCdn(glb.backendServiceName);
+                    await enableCloudArmor(generateServiceName(projectSlug));
+
+                    await updateProject(projectId, {
+                        productionUrl: effectiveUrl,
+                        customDomain: glb.ipAddress, // Store Global IP as fallback/custom domain
+                        cloudArmorEnabled: true
+                    });
+                    console.log(`[Deployify Edge] GLB and Shield Security active at ${glb.ipAddress}`);
+                } catch (edgeErr) {
+                    console.error('[Deployify Edge] Failed to orchestrate edge resources:', edgeErr);
+                    await updateProject(projectId, {
+                        productionUrl: effectiveUrl,
+                    });
+                }
+            } else {
+                await updateProject(projectId, {
+                    productionUrl: effectiveUrl,
+                });
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
@@ -169,20 +197,40 @@ export async function syncDeploymentStatus(
 
             // Handle Database Branching/Cloning for Preview Environments
             if (deployment.type === 'preview' && pullRequestNumber) {
-                await updateProject(projectId, {}); // Just to get latest project state
-                const project = await getProjectById(projectId);
                 const storageConfigs = project?.storageConfigs || [];
 
                 for (const storage of storageConfigs) {
                     if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
                         const instanceName = storage.metadata?.resourceName as string;
+                        // Use default database name if not specified in metadata
+                        const sourceDb = (storage.metadata?.database as string) || 'postgres';
+
                         if (instanceName) {
                             try {
                                 console.log(`[Branching] Ensuring ephemeral database for PR #${pullRequestNumber} on ${instanceName}`);
-                                // For preview, we often want to clone the production database name with a PR suffix
+                                // Use the same naming logic as getBranchConnectionString
                                 const dbName = `pr_${pullRequestNumber}`;
-                                await ensureEphemeralDatabase(instanceName, dbName);
+
+                                // Step 1: Ensure database exists and is seeded from production
+                                await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
                                 console.log(`[Branching] Ephemeral database ${dbName} ready.`);
+
+                                // Step 2: Trigger data anonymization
+                                try {
+                                    // Derive connection string for the new branch
+                                    const connStr = storage.connectionStringSecretId ? await (await import('@/lib/gcp/secrets')).getSecretValue(storage.connectionStringSecretId) : '';
+                                    if (connStr) {
+                                        const branchedConn = (await import('@/lib/db')).getBranchConnectionString(connStr, storage.type, storage.branchingSettings, { pullRequestNumber });
+
+                                        console.log(`[Branching] Starting anonymization for ${dbName}...`);
+                                        await anonymizeData(branchedConn, [
+                                            { table: 'users', columns: ['email', 'name', 'password'] },
+                                            { table: 'orders', columns: ['billing_address', 'customer_name'] }
+                                        ]);
+                                    }
+                                } catch (anonymizeErr) {
+                                    console.error(`[Branching] Anonymization failed (non-critical):`, anonymizeErr);
+                                }
                             } catch (e) {
                                 console.error(`[Branching] Failed to setup ephemeral database:`, e);
                             }
