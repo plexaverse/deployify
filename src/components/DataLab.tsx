@@ -1142,17 +1142,17 @@ runQuery();`;
                                                 {isExplainResults && col === 'QUERY PLAN' ? (
                                                     <div className="flex flex-col gap-1">
                                                         <div className="flex items-center gap-2">
-                                                            {value.includes('Seq Scan') && <span className="text-[7px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold">FULL SCAN</span>}
-                                                            {value.includes('Index Scan') && <span className="text-[7px] px-1 rounded bg-[var(--success)]/20 text-[var(--success)] font-bold">INDEX</span>}
-                                                            {value.includes('Bitmap Index Scan') && <span className="text-[7px] px-1 rounded bg-[var(--success)]/10 text-[var(--success)] font-bold">BITMAP</span>}
-                                                            {value.includes('Hash Join') && <span className="text-[7px] px-1 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold">HASH JOIN</span>}
-                                                            {value.includes('Nested Loop') && <span className="text-[7px] px-1 rounded bg-[var(--warning)]/10 text-[var(--warning)] font-bold">LOOP</span>}
+                                                            {value.includes('Seq Scan') && <span className="text-[8px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold">FULL SCAN</span>}
+                                                            {value.includes('Index Scan') && <span className="text-[8px] px-1 rounded bg-[var(--success)]/20 text-[var(--success)] font-bold">INDEX</span>}
+                                                            {value.includes('Bitmap Index Scan') && <span className="text-[8px] px-1 rounded bg-[var(--success)]/10 text-[var(--success)] font-bold">BITMAP</span>}
+                                                            {value.includes('Hash Join') && <span className="text-[8px] px-1 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold">HASH JOIN</span>}
+                                                            {value.includes('Nested Loop') && <span className="text-[8px] px-1 rounded bg-[var(--warning)]/10 text-[var(--warning)] font-bold">LOOP</span>}
                                                             <span>{value}</span>
                                                         </div>
                                                     </div>
                                                 ) : isExplainResults && col === 'type' && value === 'ALL' ? (
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className="text-[7px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase">Critical</span>
+                                                        <span className="text-[8px] px-1 rounded bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase">Critical</span>
                                                         {value}
                                                     </div>
                                                 ) : (
@@ -2186,7 +2186,7 @@ runQuery();`;
                                                     key={t}
                                                     onClick={() => setEntityTypeFilter(t)}
                                                     className={cn(
-                                                        "h-5 px-2 text-[7px] font-bold uppercase tracking-wider rounded-md transition-all",
+                                                        "h-5 px-2 text-[8px] font-bold uppercase tracking-wider rounded-md transition-all",
                                                         entityTypeFilter === t ? "bg-[var(--background)] shadow-sm text-[var(--primary)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                                                     )}
                                                 >
@@ -2561,7 +2561,7 @@ runQuery();`;
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className={cn(
-                                        "px-1.5 py-0.5 rounded text-[7px] font-bold uppercase",
+                                        "px-1.5 py-0.5 rounded text-[8px] font-bold uppercase",
                                         planDrift.impact === 'high' ? "bg-[var(--error)] text-white" : "bg-[var(--warning)] text-black"
                                     )}>{planDrift.impact} IMPACT</span>
                                     <p className="text-[8px] font-bold uppercase text-[var(--foreground)]">{planDrift.reason}</p>
@@ -2577,7 +2577,7 @@ runQuery();`;
                                         <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Optimization Suggestions (Virtual DBA)</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[7px] font-bold uppercase text-[var(--muted-foreground)]">Avg Impact Score:</span>
+                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Avg Impact Score:</span>
                                         <div className="flex items-center gap-0.5">
                                             {(() => {
                                                 const total = optimizationSuggestions.length;
@@ -2606,11 +2606,11 @@ runQuery();`;
                                         )}>
                                             <div className="flex flex-col items-center gap-1 shrink-0 mt-0.5">
                                                 <Info className="w-3.5 h-3.5" />
-                                                <span className="text-[7px] font-bold">{s.score}</span>
+                                                <span className="text-[8px] font-bold">{s.score}</span>
                                             </div>
                                             <div className="space-y-1 flex-1">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="px-1 py-0.5 rounded bg-current/10 text-[7px]">{s.severity.toUpperCase()}</span>
+                                                    <span className="px-1 py-0.5 rounded bg-current/10 text-[8px]">{s.severity.toUpperCase()}</span>
                                                     <span className="opacity-90">{s.message}</span>
                                                 </div>
                                             </div>

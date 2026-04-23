@@ -74,7 +74,7 @@ export function ProximityMatrix({ mappings }: ProximityMatrixProps) {
                                             <div className="w-7 h-7 rounded-lg bg-[var(--muted)]/20 flex items-center justify-center">
                                                 <Server className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
                                             </div>
-                                            <span className="text-[7px] font-bold uppercase text-[var(--muted-foreground)]">{m.projectRegion}</span>
+                                            <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{m.projectRegion}</span>
                                         </div>
 
                                         <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--muted)]/20 via-[var(--primary)]/30 to-[var(--muted)]/20 relative">
@@ -90,14 +90,14 @@ export function ProximityMatrix({ mappings }: ProximityMatrixProps) {
                                             <div className="w-7 h-7 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
                                                 <Database className="w-3.5 h-3.5 text-[var(--primary)]" />
                                             </div>
-                                            <span className="text-[7px] font-bold uppercase text-[var(--primary)]">{m.storageRegion}</span>
+                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)]">{m.storageRegion}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between">
                                     <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{m.storageName}</span>
-                                    <span className="text-[7px] font-mono text-[var(--muted-foreground)] opacity-50">{m.storageType.toUpperCase()}</span>
+                                    <span className="text-[8px] font-mono text-[var(--muted-foreground)] opacity-50">{m.storageType.toUpperCase()}</span>
                                 </div>
                             </div>
                         ))}

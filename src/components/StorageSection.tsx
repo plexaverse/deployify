@@ -2478,7 +2478,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         {step.name.includes('IAM') && step.status === 'failure' && (
                                                             <div className="pt-1 flex flex-wrap gap-1">
                                                                 {['roles/secretmanager.secretAccessor', 'roles/cloudsql.client', 'roles/cloudsql.instanceUser'].map(role => (
-                                                                    <span key={role} className="text-[7px] px-1 rounded bg-black/20 font-mono border border-white/5">{role}</span>
+                                                                    <span key={role} className="text-[8px] px-1 rounded bg-black/20 font-mono border border-white/5">{role}</span>
                                                                 ))}
                                                             </div>
                                                         )}
@@ -2678,12 +2678,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <div className="p-2 bg-[var(--muted)]/20 rounded font-mono text-[8px] line-clamp-2 text-[var(--foreground)] group-hover:line-clamp-none transition-all">
                                                 {q.query}
                                             </div>
-                                            <div className="flex items-center justify-between text-[7px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                            <div className="flex items-center justify-between text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
                                                 <span>USER: {q.user}</span>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    className="h-5 px-1.5 text-[7px] font-bold uppercase"
+                                                    className="h-5 px-1.5 text-[8px] font-bold uppercase"
                                                     onClick={() => {
                                                         navigator.clipboard.writeText(q.query);
                                                         toast.success('Query copied for analysis');
