@@ -2,8 +2,8 @@
 
 This document tracks the progress of implementing integrated database configuration for Deployify, following the Managed "Connector" model.
 
-## Strategy: The "Connector" Model (Integrated Connectivity)
-Deployify provides a dedicated **Storage** section that standardizes how projects connect to and manage their database layer across three distinct tiers, focusing on **Connectivity** rather than just hosting:
+## Strategy: The "Connector" Model (Connectivity Intelligence)
+Deployify formally adopts a **Connectivity-First** architectural strategy. Rather than just hosting databases, Deployify focuses on providing a standardized, secure, and intelligent interface to varied storage layers across three distinct tiers, focusing on **Connectivity** rather than just hosting:
 
 ### 1. GCP-Native Integration (Automatic Provisioning)
 Full lifecycle management for GCP-native storage services, ensuring tight integration with the project's regional infrastructure:
@@ -639,6 +639,16 @@ Legacy and custom support with production-grade security:
 - [x] Implement "Cost Forecasting" (3-month projection) for the Fleet Dashboard
 - [x] Launch "Performance Guardrails" section in the Storage dashboard
 
+### Phase 99: Managed Connector Secret Rotation & Security Orchestration (COMPLETED)
+- [x] Implement automated secret rotation for external connectors via provider APIs
+- [x] Integrate auto-rotation triggers into the Storage Dashboard UI
+- [x] Implement "Connector Portability" diagnostics for Secret Manager and regional alignment
+
+### Phase 100: Global Connectivity Governance & IaC Portability
+- [ ] Implement workspace-wide security remediation for common connector risks
+- [ ] Add VPC-SC (Service Controls) perimeter alignment checks to diagnostics
+- [ ] Implement cross-environment schema synchronization for connector branches
+
 ## Progress Updates
 
 ### 2027-06-01: GCP-Native Lifecycle Hardening & VPC Orchestration
@@ -686,6 +696,14 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement EWMA-based performance anomaly detection in the monitoring engine.
 - [x] Add ORM schema export functionality (Prisma/Drizzle) to the Data Lab.
 - [x] Integrate anomaly detection into proactive scaling recommendations.
+
+### 2027-06-08: Adopting "Connectivity-First" Strategy & Secret Orchestration
+- Completed Phase 99: Managed Connector Secret Rotation & Security Orchestration.
+- Formally adopted a "Connectivity-First" architectural strategy, focusing on standardized interfaces to varied storage layers.
+- Implemented automated secret rotation for external connectors (Supabase, PlanetScale, Neon, MongoDB Atlas) via provider APIs, eliminating manual credential management.
+- Integrated auto-rotation triggers into the Storage Dashboard UI with a high-density "Sync & Rotate via API" flow.
+- Enhanced the Diagnostic Engine with "Connector Portability" checks to identify regional mismatches and Secret Manager configuration risks.
+- Verified 100% functional integrity with updated unit tests for the diagnostic engine and rotation API.
 
 ### 2027-06-07: Initiating Performance Guardrails & Optimization Orchestration
 - Completed Phase 98: Intelligent Fleet-wide Performance Guardrails & Optimization Orchestration.

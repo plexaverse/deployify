@@ -34,10 +34,6 @@ export async function POST(
         const body = await request.json();
         const { connectionString } = body;
 
-        if (!connectionString) {
-            return NextResponse.json({ error: 'New connection string is required' }, { status: 400 });
-        }
-
         const storageConfigs = project.storageConfigs || [];
         const index = storageConfigs.findIndex((s: StorageConfig) => s.id === storageId);
 
@@ -47,12 +43,38 @@ export async function POST(
 
         const storage = storageConfigs[index];
         const secretId = `deployify-${id}-${storageId}-conn`;
+        const now = new Date();
+
+        let finalConnectionString = connectionString;
+        let connectionStringSecretId = storage.connectionStringSecretId;
+
+        // Auto-Rotate via Provider API if supported and no manual string provided
+        const isExternal = ['supabase', 'mongodb-atlas', 'planetscale', 'neon'].includes(storage.type);
+        if (!finalConnectionString && isExternal && storage.metadata?.autoSync) {
+            try {
+                const { syncExternalConnector } = await import('@/lib/gcp/external-sync');
+                const syncResult = await syncExternalConnector(id, storage);
+                if (syncResult.success && syncResult.connectionString) {
+                    finalConnectionString = syncResult.connectionString;
+                } else {
+                    throw new Error(syncResult.error || 'Provider API sync failed to return a connection string');
+                }
+            } catch (e) {
+                console.error(`[AutoRotate] Sync failed for ${storage.name}:`, e);
+                return NextResponse.json({
+                    error: `Auto-rotation failed: ${e instanceof Error ? e.message : 'Unknown error'}`
+                }, { status: 503 });
+            }
+        }
+
+        if (!finalConnectionString) {
+            return NextResponse.json({ error: 'New connection string is required for manual rotation' }, { status: 400 });
+        }
 
         // Update Secret Manager
-        const connectionStringSecretId = await upsertSecret(secretId, connectionString);
+        connectionStringSecretId = await upsertSecret(secretId, finalConnectionString);
 
         // Update storage metadata
-        const now = new Date();
         const updatedStorage: StorageConfig = {
             ...storage,
             connectionStringSecretId,

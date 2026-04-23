@@ -124,6 +124,29 @@ describe('Storage Connectivity Health', () => {
 });
 
 describe('Storage Connection Diagnosis', () => {
+    test('should identify regional mismatch in portability check', async () => {
+        const originalMockDb = process.env.MOCK_DB;
+        process.env.MOCK_DB = 'false';
+
+        try {
+            // Mocking dependencies would be ideal but for now we test the step addition logic
+            const result = await diagnoseConnection(
+                'cloud-sql-postgres',
+                undefined, // Missing secret will fail Step 2, but Step 1 (Portability) should run
+                { region: 'us-east1' },
+                { region: 'us-central1' }
+            );
+
+            const portabilityStep = result.steps.find(s => s.name === 'Connector Portability');
+            assert.ok(portabilityStep, 'Portability step should exist');
+            assert.strictEqual(portabilityStep.status, 'failure');
+            assert.strictEqual(portabilityStep.error, 'Regional Mismatch');
+            assert.ok(portabilityStep.recommendation?.includes('us-central1'));
+        } finally {
+            process.env.MOCK_DB = originalMockDb;
+        }
+    });
+
     test('should include regional IPs in recommendations for external connectors', async () => {
         const originalMockDb = process.env.MOCK_DB;
         process.env.MOCK_DB = 'true';
