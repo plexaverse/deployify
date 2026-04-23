@@ -80,13 +80,13 @@ function ExplainTreeNode({ node, isRoot = false }: { node: ExplainNode; isRoot?:
                     <div className="flex flex-col items-end gap-1 shrink-0">
                         {node.cost && (
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[7px] font-bold text-[var(--muted-foreground)] uppercase">Cost</span>
+                                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase">Cost</span>
                                 <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{node.cost}</span>
                             </div>
                         )}
                         {node.rows && (
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[7px] font-bold text-[var(--muted-foreground)] uppercase">Rows</span>
+                                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase">Rows</span>
                                 <span className="text-[8px] font-mono font-bold text-[var(--success)]">{node.rows}</span>
                             </div>
                         )}

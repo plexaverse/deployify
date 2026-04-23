@@ -381,19 +381,19 @@ export default function InfrastructureFleetPage() {
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Avg Score</span>
-                                    <span className="text-xl font-bold text-[var(--primary)]">{String(summary?.averageSecurityScore || 0)}%</span>
+                                    <span className="text-[10px] font-bold text-[var(--primary)]">{String(summary?.averageSecurityScore || 0)}%</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Total Risks</span>
-                                    <span className="text-xl font-bold text-[var(--error)]">{String(summary?.totalRisks || 0)}</span>
+                                    <span className="text-[10px] font-bold text-[var(--error)]">{String(summary?.totalRisks || 0)}</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Projects</span>
-                                    <span className="text-xl font-bold">{String(summary?.totalProjects || 0)}</span>
+                                    <span className="text-[10px] font-bold">{String(summary?.totalProjects || 0)}</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
                                     <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Connectors</span>
-                                    <span className="text-xl font-bold">{String(summary?.totalConnectors || 0)}</span>
+                                    <span className="text-[10px] font-bold">{String(summary?.totalConnectors || 0)}</span>
                                 </div>
                             </div>
 
@@ -587,7 +587,7 @@ export default function InfrastructureFleetPage() {
                                                             </span>
                                                             {connector.metadata?.efficiencyScore !== undefined && (
                                                                 <span className={cn(
-                                                                    "text-[7px] font-bold px-1 rounded-sm",
+                                                                    "text-[8px] font-bold px-1 rounded-sm",
                                                                     (connector.metadata.efficiencyScore as number) >= 80 ? "bg-[var(--success)]/10 text-[var(--success)]" :
                                                                     (connector.metadata.efficiencyScore as number) >= 50 ? "bg-[var(--warning)]/10 text-[var(--warning)]" :
                                                                     "bg-[var(--error)]/10 text-[var(--error)]"

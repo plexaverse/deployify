@@ -4,8 +4,8 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import type { StorageConfig } from '@/types';
-import { Client as PgClient } from 'pg';
-import mysql from 'mysql2/promise';
+import { Client as PgClient, ClientConfig as PgClientConfig } from 'pg';
+import mysql, { ConnectionOptions as MysqlConnectionOptions } from 'mysql2/promise';
 
 /**
  * POST - Apply an index to a table (One-Click SQL Optimization)
@@ -90,7 +90,7 @@ export async function POST(
 
         try {
             if (isPostgres) {
-                let pgConfig: any = connectionString;
+                let pgConfig: string | PgClientConfig = connectionString;
                 if (isIamAuth) {
                     const url = new URL(connectionString);
                     const accessToken = await getGcpAccessToken();
@@ -113,7 +113,7 @@ export async function POST(
                     await client.end().catch(() => {});
                 }
             } else {
-                let mysqlConfig: any = connectionString;
+                let mysqlConfig: string | MysqlConnectionOptions = connectionString;
                 if (isIamAuth) {
                     const url = new URL(connectionString);
                     const accessToken = await getGcpAccessToken();
@@ -125,11 +125,13 @@ export async function POST(
                         user: url.username || 'deployify-sa',
                         password: accessToken,
                         database: url.pathname.split('/')[1] || 'mysql',
-                        ssl: socketPath ? false : (storageConfig.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
+                        ssl: socketPath ? undefined : (storageConfig.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
                     };
                 }
 
-                const connection = await mysql.createConnection(mysqlConfig);
+                const connection = typeof mysqlConfig === 'string'
+                    ? await mysql.createConnection(mysqlConfig)
+                    : await mysql.createConnection(mysqlConfig);
                 try {
                     await connection.query(sql);
                 } finally {
