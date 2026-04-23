@@ -454,6 +454,15 @@ export interface ResourceDormancy {
     analysisPeriodDays: number;
 }
 
+export type WorkloadType = 'READ_HEAVY' | 'WRITE_HEAVY' | 'BALANCED' | 'DORMANT' | 'COMPUTE_INTENSIVE';
+
+export interface WorkloadProfile {
+    type: WorkloadType;
+    confidence: number;
+    lastAnalyzedAt: string;
+    isColdStart?: boolean;
+}
+
 export interface StorageConfig {
     id: string;
     type: StorageType;
@@ -476,6 +485,9 @@ export interface StorageConfig {
     ssl?: boolean;
     activeAlerts?: string[];
     dormancy?: ResourceDormancy;
+    workloadProfile?: WorkloadProfile;
+    connectionSaturation?: number;
+    labelingStatus?: 'PENDING' | 'SYNCED' | 'FAILED';
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     metadata?: Record<string, unknown>;

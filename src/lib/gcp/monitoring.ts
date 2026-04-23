@@ -1,7 +1,7 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
 import { calculateEWMA, isDegraded } from './health-utils';
-import type { StorageAlertSettings, ResourceDormancy } from '@/types';
+import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile, WorkloadType } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -9,6 +9,7 @@ export interface ResourceMetrics {
     cpuUtilization: number;
     memoryUtilization: number;
     diskUtilization?: number;
+    connectionSaturation?: number;
     timestamp: string;
 }
 
@@ -183,12 +184,17 @@ async function fetchTimeSeriesData(
 /**
  * Fetch resource metrics for a Cloud SQL instance
  */
-export async function getCloudSqlMetrics(instanceId: string): Promise<ResourceMetrics> {
+export async function getCloudSqlMetrics(
+    instanceId: string,
+    dbType: 'postgresql' | 'mysql' = 'postgresql',
+    tier: string = 'db-f1-micro'
+): Promise<ResourceMetrics> {
     if (process.env.MOCK_DB === 'true') {
         return {
             cpuUtilization: Math.floor(Math.random() * 30) + 5,
             memoryUtilization: Math.floor(Math.random() * 40) + 20,
             diskUtilization: Math.floor(Math.random() * 10) + 5,
+            connectionSaturation: Math.floor(Math.random() * 15) + 2,
             timestamp: new Date().toISOString()
         };
     }
@@ -205,10 +211,22 @@ export async function getCloudSqlMetrics(instanceId: string): Promise<ResourceMe
         results[metric] = value * 100; // Convert to percentage
     }
 
+    // Fetch connection saturation (Postgres/MySQL)
+    // We fetch active connections and assume a default max for normalization if max is not easily fetchable
+    const saturationMetric = dbType === 'postgresql' ? 'network/active_connections' : 'mysql/net_connections';
+    const saturationFilter = `metric.type="cloudsql.googleapis.com/database/${saturationMetric}" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
+    const activeConnections = await fetchLatestMetricValue(gcpProjectId!, accessToken, saturationFilter);
+
+    // Normalize saturation: Assume default limit based on tier if possible, otherwise use a conservative 100
+    // In a full implementation, we'd fetch the actual max_connections flag from the instance settings
+    const estimatedMax = tier.includes('micro') ? 25 : (tier.includes('small') ? 50 : 100);
+    const saturation = Math.min(100, (activeConnections / estimatedMax) * 100);
+
     return {
         cpuUtilization: parseFloat(results['cpu/utilization'].toFixed(2)),
         memoryUtilization: parseFloat(results['memory/utilization'].toFixed(2)),
         diskUtilization: parseFloat(results['disk/utilization'].toFixed(2)),
+        connectionSaturation: parseFloat(saturation.toFixed(2)),
         timestamp: new Date().toISOString()
     };
 }
@@ -238,6 +256,7 @@ export async function getMemorystoreMetrics(instanceId: string, region: string):
     return {
         cpuUtilization: parseFloat((cpuValue * 100).toFixed(2)),
         memoryUtilization: parseFloat((memoryValue * 100).toFixed(2)),
+        connectionSaturation: 0, // Memorystore connections are usually not the primary bottleneck
         timestamp: new Date().toISOString()
     };
 }
@@ -837,6 +856,49 @@ export function getCostForecast(
     }
 
     return forecast;
+}
+
+/**
+ * Detect serverless Cold-Starts (latency > 150ms for lightweight heartbeats)
+ */
+export function detectColdStart(latencyMs: number, storageType: string): boolean {
+    if (!['neon', 'firestore'].includes(storageType)) return false;
+    return latencyMs > 150;
+}
+
+/**
+ * Intelligent Workload Profiling
+ * Analyzes resource metrics to categorize the workload pattern
+ */
+export function detectWorkloadProfile(
+    metrics: ResourceMetrics,
+    dormancy?: ResourceDormancy
+): WorkloadProfile {
+    const now = new Date().toISOString();
+
+    if (dormancy?.isDormant) {
+        return { type: 'DORMANT', confidence: 0.95, lastAnalyzedAt: now };
+    }
+
+    const { cpuUtilization, memoryUtilization, connectionSaturation = 0 } = metrics;
+
+    // READ_HEAVY: High memory (cache usage) but moderate CPU
+    if (memoryUtilization > 60 && cpuUtilization < 40 && connectionSaturation < 50) {
+        return { type: 'READ_HEAVY', confidence: 0.75, lastAnalyzedAt: now };
+    }
+
+    // WRITE_HEAVY: High connection saturation and moderate CPU/Memory
+    if (connectionSaturation > 60 && cpuUtilization < 60) {
+        return { type: 'WRITE_HEAVY', confidence: 0.7, lastAnalyzedAt: now };
+    }
+
+    // COMPUTE_INTENSIVE: Very high CPU utilization
+    if (cpuUtilization > 70) {
+        return { type: 'COMPUTE_INTENSIVE', confidence: 0.85, lastAnalyzedAt: now };
+    }
+
+    // Default to BALANCED
+    return { type: 'BALANCED', confidence: 0.6, lastAnalyzedAt: now };
 }
 
 /**

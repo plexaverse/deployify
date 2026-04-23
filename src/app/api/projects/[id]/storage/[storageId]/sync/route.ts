@@ -9,7 +9,8 @@ import { getGcpProjectNumber } from '@/lib/gcp/auth';
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart } from '@/lib/gcp/monitoring';
+import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
 import { getUserById } from '@/lib/db';
@@ -93,6 +94,9 @@ export async function GET(
                 const isDegraded = detectDegradation(health.latency, newBaseline);
                 const finalStatus = health.status === 'unhealthy' ? 'unhealthy' : (isDegraded ? 'degraded' : 'healthy');
 
+                // Phase 101: Detect Cold-Starts for serverless connectors
+                const isColdStart = detectColdStart(health.latency, storage.type);
+
                 storage.metadata = {
                     ...storage.metadata,
                     health: {
@@ -100,6 +104,7 @@ export async function GET(
                         latency: health.latency,
                         baselineLatency: parseFloat(newBaseline.toFixed(2)),
                         isDegraded,
+                        isColdStart,
                         timestamp: health.timestamp,
                         error: health.error
                     }
@@ -126,6 +131,17 @@ export async function GET(
                     console.error(`[SecurityAudit] Failed for ${storageId}:`, secErr);
                 }
 
+                // 0c. Phase 101: Automated Resource Labeling
+                if (storage.metadata?.provisioned && storage.labelingStatus !== 'SYNCED') {
+                    try {
+                        const labelResult = await syncResourceLabels(project, storage);
+                        storage.labelingStatus = labelResult.success ? 'SYNCED' : 'FAILED';
+                    } catch (labelErr) {
+                        console.error(`[Labeling] Sync failed for ${storageId}:`, labelErr);
+                        storage.labelingStatus = 'FAILED';
+                    }
+                }
+
                 // Persist health heartbeat and baselined connectivity metadata
                 storageConfigs[index] = storage;
                 await updateProject(id, { storageConfigs });
@@ -142,7 +158,9 @@ export async function GET(
 
                 let metrics;
                 if (storage.type.includes('cloud-sql')) {
-                    metrics = await getCloudSqlMetrics(resourceName);
+                    const dbType = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
+                    const tier = (storage.metadata?.tier as string) || 'db-f1-micro';
+                    metrics = await getCloudSqlMetrics(resourceName, dbType, tier);
                 } else if (storage.type === 'memorystore-redis') {
                     metrics = await getMemorystoreMetrics(resourceName, region);
                 }
@@ -177,6 +195,10 @@ export async function GET(
                     try {
                         const dormancy = await getResourceDormancy(storage.type, resourceName, region);
                         storage.dormancy = dormancy;
+
+                        // Phase 101: Intelligent Workload Profiling
+                        storage.workloadProfile = detectWorkloadProfile(metrics, dormancy);
+                        storage.connectionSaturation = metrics.connectionSaturation;
                     } catch (dormErr) {
                         console.error(`[DormancyInsight] Analysis failed for ${storageId}:`, dormErr);
                     }

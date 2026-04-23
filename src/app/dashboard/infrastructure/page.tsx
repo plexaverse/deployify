@@ -666,6 +666,38 @@ export default function InfrastructureFleetPage() {
                                                             <span className="text-[8px] font-bold uppercase">Safe</span>
                                                         </div>
                                                     )}
+
+                                                {/* Phase 101: Workload Profile & Saturation */}
+                                                {connector.workloadProfile && (
+                                                    <div className={cn(
+                                                        "flex items-center gap-1.5 px-1.5 py-0.5 rounded-sm border",
+                                                        connector.workloadProfile.type === 'COMPUTE_INTENSIVE' ? "border-[var(--error)]/20 text-[var(--error)] bg-[var(--error)]/5" :
+                                                        connector.workloadProfile.type === 'READ_HEAVY' ? "border-[var(--primary)]/20 text-[var(--primary)] bg-[var(--primary)]/5" :
+                                                        connector.workloadProfile.type === 'WRITE_HEAVY' ? "border-[var(--warning)]/20 text-[var(--warning)] bg-[var(--warning)]/5" :
+                                                        "border-[var(--success)]/20 text-[var(--success)] bg-[var(--success)]/5"
+                                                    )}>
+                                                        <Zap className="w-2.5 h-2.5" />
+                                                        <span className="text-[8px] font-bold uppercase">{connector.workloadProfile.type}</span>
+                                                    </div>
+                                                )}
+                                                {connector.connectionSaturation !== undefined && connector.connectionSaturation > 50 && (
+                                                    <div className="flex items-center gap-1.5 text-[var(--warning)] animate-pulse">
+                                                        <Activity className="w-2.5 h-2.5" />
+                                                        <span className="text-[8px] font-bold uppercase">{String(connector.connectionSaturation)}% SAT</span>
+                                                    </div>
+                                                )}
+                                                {(connector.metadata?.health as { isColdStart?: boolean })?.isColdStart && (
+                                                    <div className="flex items-center gap-1.5 text-[var(--warning)]">
+                                                        <Zap className="w-2.5 h-2.5" />
+                                                        <span className="text-[8px] font-bold uppercase">COLD</span>
+                                                    </div>
+                                                )}
+                                                {connector.labelingStatus === 'SYNCED' && (
+                                                    <div className="flex items-center gap-1.5 text-[var(--success)]/60">
+                                                        <ShieldCheck className="w-2.5 h-2.5" />
+                                                        <span className="text-[8px] font-bold uppercase">LBLD</span>
+                                                    </div>
+                                                )}
                                                 </div>
                                             )}
                                         </div>
