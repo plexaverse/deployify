@@ -320,9 +320,60 @@ export async function GET(
                 return NextResponse.json({ success: true, status: 'error', error: storage.lastError });
             }
 
-            // Handle Import/Export/Clone Completion
+            // Handle Import/Export/Clone/Sync Completion
             const lastOp = storage.metadata?.lastOperation;
-            if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import') {
+
+            if (lastOp === 'sync_schema_export') {
+                // Export for Sync finished, now trigger Import on this target instance
+                try {
+                    const syncStorageUri = storage.metadata?.syncStorageUri as string;
+                    const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const targetDatabase = (storage.metadata?.syncTargetDatabase as string) || project.slug;
+
+                    const { finalizeSync } = await import('@/lib/gcp/schema-sync');
+                    const importOp = await finalizeSync(resourceName, syncStorageUri, targetDatabase);
+
+                    storage.metadata = {
+                        ...storage.metadata,
+                        operationName: importOp,
+                        lastOperation: 'sync_schema_import'
+                    };
+                    storageConfigs[index] = storage;
+                    await updateProject(id, { storageConfigs });
+                    return NextResponse.json({
+                        success: true,
+                        status: 'provisioning',
+                        message: 'Schema export complete, now importing into target...'
+                    });
+                } catch (importErr) {
+                    console.error('[SyncSchemaImport] Failed to trigger import:', importErr);
+                    storage.status = 'error';
+                    storage.lastError = `Schema export complete, but import trigger failed: ${importErr instanceof Error ? importErr.message : 'Unknown'}`;
+                }
+            } else if (lastOp === 'sync_schema_import') {
+                // Final sync step complete
+                storage.status = 'active';
+                storage.lastSyncedAt = now;
+                storage.updatedAt = now;
+                storage.metadata = {
+                    ...storage.metadata,
+                    lastOperation: undefined,
+                    operationName: undefined,
+                    syncStorageUri: undefined,
+                    syncSourceInstance: undefined,
+                    syncTargetDatabase: undefined
+                };
+
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+
+                return NextResponse.json({
+                    success: true,
+                    status: 'active',
+                    message: 'Schema synchronization completed successfully',
+                    lastSyncedAt: storage.lastSyncedAt.toISOString()
+                });
+            } else if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import') {
                 if (lastOp === 'clone_export') {
                     // Export finished, now trigger Import on the clone
                     try {
@@ -480,7 +531,7 @@ export async function GET(
 
             // Ensure top-level region is synced from metadata if not already set
             if (!storage.region && storage.metadata?.region) {
-                storage.region = storage.metadata.region as string;
+                storage.region = storage.region as string;
             }
 
             // Final Fetch for detailed metadata (HA/PITR)
@@ -525,6 +576,8 @@ export async function GET(
             status: 'provisioning',
             message: storage.metadata?.lastOperation === 'import' ? 'Import in progress...' :
                      storage.metadata?.lastOperation === 'export' ? 'Export in progress...' :
+                     storage.metadata?.lastOperation === 'sync_schema_export' ? 'Sync export in progress...' :
+                     storage.metadata?.lastOperation === 'sync_schema_import' ? 'Sync import in progress...' :
                      'Operation still in progress'
         });
 
