@@ -1,7 +1,7 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
 import { calculateEWMA, isDegraded } from './health-utils';
-import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile, WorkloadType } from '@/types';
+import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -564,7 +564,7 @@ export async function getQueryInsights(
  */
 export async function getLongRunningQueries(
     instanceId: string,
-    dbType: 'postgresql' | 'mysql' = 'postgresql',
+
     thresholdMs: number = 1000
 ): Promise<LongRunningQuery[]> {
     if (process.env.MOCK_DB === 'true') {

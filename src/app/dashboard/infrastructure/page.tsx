@@ -24,7 +24,7 @@ import {
     X,
     Download,
     TrendingUp,
-    BarChart
+
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';

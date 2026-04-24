@@ -1,5 +1,5 @@
 import { getGcpAccessToken } from './auth';
-import { config } from '@/lib/config';
+
 
 const CRM_API = 'https://cloudresourcemanager.googleapis.com/v1';
 
