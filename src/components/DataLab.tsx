@@ -320,7 +320,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             } else {
                 toast.error(data.error || 'Failed to apply index');
             }
-        } catch (error) {
+        } catch {
             toast.error('Network error while applying index');
         } finally {
             setIsApplyingIndex(null);

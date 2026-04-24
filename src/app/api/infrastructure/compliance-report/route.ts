@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { listProjectsByUser, listProjectsByTeam } from '@/lib/db';
 import { checkSecurityPosture } from '@/lib/gcp/security-auditor';
-import type { Project, StorageConfig } from '@/types';
+import type { Project } from '@/types';
 
 /**
  * GET - Detailed workspace-wide compliance report for all projects and databases

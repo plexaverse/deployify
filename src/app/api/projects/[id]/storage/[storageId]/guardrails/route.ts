@@ -37,7 +37,7 @@ export async function GET(
         const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
         const dbType = storage.type.includes('mysql') ? 'mysql' : 'postgresql';
 
-        const queries = await getLongRunningQueries(resourceName, dbType);
+        const queries = await getLongRunningQueries(resourceName);
 
         return NextResponse.json({
             success: true,
