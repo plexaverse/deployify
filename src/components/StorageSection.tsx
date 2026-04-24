@@ -96,7 +96,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         updateStorageAlerts,
         remediateStorageRisk,
         addReadReplica,
-        promoteReadReplica
+        promoteReadReplica,
+        deleteReadReplica
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -151,6 +152,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isLoadingGuardrails, setIsLoadingGuardrails] = useState(false);
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
+    const [replicaRegion, setReplicaRegion] = useState('');
+    const [replicaTier, setReplicaTier] = useState('db-f1-micro');
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
     const [isTroubleshooting, setIsTroubleshooting] = useState<StorageConfig | null>(null);
     const [isDiagnosing, setIsDiagnosing] = useState(false);
@@ -2782,20 +2785,24 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
             <ConfirmationModal
                 isOpen={!!isManagingReplicas}
-                onClose={() => setIsManagingReplicas(null)}
+                onClose={() => {
+                    setIsManagingReplicas(null);
+                    setReplicaRegion('');
+                    setReplicaTier('db-f1-micro');
+                }}
                 title="Read Replica Management"
                 headerLabel="Scaling Intelligence"
                 icon={<Copy className="w-5 h-5 text-[var(--primary)]" />}
                 description={
                     <div className="space-y-6">
                         <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between border-b border-[var(--primary)]/10 pb-4 mb-4">
                                 <div className="flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
                                     <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Horizontal Scaling</span>
                                 </div>
                                 <Button
-                                    onClick={() => isManagingReplicas && addReadReplica(projectId, isManagingReplicas.id)}
+                                    onClick={() => isManagingReplicas && addReadReplica(projectId, isManagingReplicas.id, { region: replicaRegion, tier: replicaTier })}
                                     disabled={isSubmitting}
                                     className="h-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                                 >
@@ -2803,7 +2810,37 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     Create Read Replica
                                 </Button>
                             </div>
-                            <p className="text-[10px]">
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Region</Label>
+                                    <NativeSelect
+                                        value={replicaRegion}
+                                        onChange={(e) => setReplicaRegion(e.target.value)}
+                                        className="h-8 text-[8px] font-bold uppercase"
+                                    >
+                                        <option value="">PROJECT DEFAULT ({projectRegion})</option>
+                                        <option value="us-central1">US-CENTRAL1 (IOWA)</option>
+                                        <option value="us-east1">US-EAST1 (S. CAROLINA)</option>
+                                        <option value="europe-west1">EUROPE-WEST1 (BELGIUM)</option>
+                                        <option value="asia-east1">ASIA-EAST1 (TAIWAN)</option>
+                                    </NativeSelect>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Instance Tier</Label>
+                                    <NativeSelect
+                                        value={replicaTier}
+                                        onChange={(e) => setReplicaTier(e.target.value)}
+                                        className="h-8 text-[8px] font-bold uppercase"
+                                    >
+                                        <option value="db-f1-micro">DB-F1-MICRO (SHARED)</option>
+                                        <option value="db-g1-small">DB-G1-SMALL (SHARED)</option>
+                                        <option value="db-custom-1-3840">1 VCPU, 3.75GB</option>
+                                    </NativeSelect>
+                                </div>
+                            </div>
+
+                            <p className="text-[10px] mt-2">
                                 Read Replicas offload query traffic from your primary instance. They are ideal for read-heavy workloads and provide high-availability for read operations.
                             </p>
                         </div>
@@ -2850,6 +2887,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         </div>
                                                     </>
                                                 )}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        if (confirm('Are you sure you want to delete this read replica? The GCP resource will be destroyed.')) {
+                                                            if (isManagingReplicas) deleteReadReplica(projectId, isManagingReplicas.id, r.id);
+                                                        }
+                                                    }}
+                                                    className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error)]/10"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </Button>
                                             </div>
                                         </div>
                                     ))

@@ -668,7 +668,21 @@ Legacy and custom support with production-grade security:
 - [x] Implement smart query routing in Data Lab Proxy (offloading `SELECT` queries to replicas).
 - [x] Add "Promote to Primary" functionality to the Storage dashboard UI.
 
+### Phase 104: Cross-Region Resilience & Advanced Replica Lifecycle (COMPLETED)
+- [x] Implement cross-region read replica provisioning for Cloud SQL.
+- [x] Implement `DELETE` API for read replica removal with GCP resource cleanup.
+- [x] Enhance replica synchronization logic to handle promotions and deletions.
+- [x] Update UI with region selection and deletion controls in the Replica Management modal.
+
 ## Progress Updates
+
+### 2027-06-13: Cross-Region Resilience & Advanced Replica Lifecycle
+- Completed Phase 104: Cross-Region Resilience & Advanced Replica Lifecycle.
+- Enhanced the Read Replica API to support cross-region provisioning by allowing optional `region` and `tier` parameters in the `POST` request.
+- Implemented a new `DELETE` endpoint for read replicas, enabling secure removal of GCP instances and automated metadata cleanup.
+- Improved the Storage Sync engine to automatically reconcile the replica fleet, removing instances that have been promoted to primary or deleted in GCP.
+- Updated the Read Replica Management modal in the Storage dashboard with target region selection, tier selection, and deletion controls.
+- Verified 100% functional integrity with platform-wide audits and high-density UI validation.
 
 ### 2027-06-12: Intelligent Traffic Steering & Read-Replica Lifecycle Maturity
 - Completed Phase 103: Intelligent Traffic Steering & Read-Replica Lifecycle Maturity.

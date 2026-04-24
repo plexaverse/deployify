@@ -95,8 +95,9 @@ export interface ProjectSlice {
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
     cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string; includeData?: boolean }) => Promise<boolean>;
-    addReadReplica: (projectId: string, storageId: string) => Promise<boolean>;
+    addReadReplica: (projectId: string, storageId: string, options?: { region?: string, tier?: string }) => Promise<boolean>;
     promoteReadReplica: (projectId: string, storageId: string, replicaId: string) => Promise<boolean>;
+    deleteReadReplica: (projectId: string, storageId: string, replicaId: string) => Promise<boolean>;
     remediateStorageRisk: (projectId: string, storageId: string, riskId: string) => Promise<boolean>;
     runProjectMigration: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
     runProjectRollback: (projectId: string, storageId: string, command: string) => Promise<{ success: boolean; operationName?: string }>;
@@ -395,11 +396,13 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         }
     },
 
-    addReadReplica: async (projectId, storageId) => {
+    addReadReplica: async (projectId, storageId, options) => {
         const toastId = toast.loading('Provisioning read replica...');
         try {
             const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/replica`, {
-                method: 'POST'
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(options || {}),
             });
 
             const data = await response.json();
@@ -1019,6 +1022,40 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return true;
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to clone configuration', { id: toastId });
+            return false;
+        }
+    },
+
+    deleteReadReplica: async (projectId, storageId, replicaId) => {
+        const toastId = toast.loading('Deleting read replica...');
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/replica?replicaId=${replicaId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to delete replica');
+            }
+
+            const { projectStorageConfigs } = get();
+            set({
+                projectStorageConfigs: projectStorageConfigs.map(s =>
+                    s.id === storageId ? {
+                        ...s,
+                        metadata: {
+                            ...s.metadata,
+                            replicas: ((s.metadata?.replicas as Array<{ id: string }>) || []).filter(r => r.id !== replicaId)
+                        }
+                    } : s
+                )
+            });
+
+            toast.success('Read replica deletion initiated', { id: toastId });
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to delete replica', { id: toastId });
             return false;
         }
     },
