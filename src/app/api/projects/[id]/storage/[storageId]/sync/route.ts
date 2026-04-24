@@ -578,9 +578,15 @@ export async function GET(
                     // Sync Read Replicas Status
                     const replicas = (storage.metadata?.replicas as Array<{ id: string, name: string, status: string }>) || [];
                     if (replicas.length > 0) {
-                        const updatedReplicas = await Promise.all(replicas.map(async (r) => {
+                        const replicaResults = await Promise.all(replicas.map(async (r) => {
                             try {
                                 const replicaData = await getCloudSqlInstance(r.name);
+                                // If replica was promoted, it is now a standalone instance (CLOUD_SQL_INSTANCE)
+                                // We should remove it from the master's replica list
+                                if (replicaData.instanceType === 'CLOUD_SQL_INSTANCE') {
+                                    return null;
+                                }
+
                                 return {
                                     ...r,
                                     status: replicaData.state === 'RUNNING' ? 'active' : (replicaData.state === 'PENDING_CREATE' ? 'provisioning' : 'error'),
@@ -588,10 +594,14 @@ export async function GET(
                                     tier: (replicaData.settings as { tier?: string })?.tier
                                 };
                             } catch (e) {
+                                // If replica is not found, it might have been deleted manually in GCP
                                 console.error(`[ReplicaSync] Failed for ${r.name}:`, e);
-                                return r;
+                                return null;
                             }
                         }));
+
+                        // Filter out promoted or deleted replicas
+                        const updatedReplicas = replicaResults.filter(r => r !== null);
                         storage.metadata = { ...storage.metadata, replicas: updatedReplicas };
                     }
                 } catch (e) {
