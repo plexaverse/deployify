@@ -171,9 +171,16 @@ export async function POST(
             }
         }
 
-        // 1. Get credentials securely
+        // 1. Get credentials securely (Smart Routing for Replicas)
         let connectionString = '';
-        if (storageConfig.connectionStringSecretId) {
+        const activeReplica = (storageConfig.metadata?.replicas as Array<{ name: string, region: string, status: string }>)?.find(r => r.status === 'active');
+        const isReadOnlyQuery = query !== 'DISCOVER_SCHEMA' && !query.toUpperCase().includes(';') && (query.toUpperCase().startsWith('SELECT') || query.toUpperCase().startsWith('EXPLAIN') || query.toUpperCase().startsWith('WITH'));
+
+        if (activeReplica && isReadOnlyQuery && storageConfig.type.includes('cloud-sql')) {
+            const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
+            const dbType = storageConfig.type.includes('postgres') ? 'postgres' : 'mysql';
+            connectionString = getReplicaConnectionString(activeReplica.name, activeReplica.region, dbType);
+        } else if (storageConfig.connectionStringSecretId) {
             connectionString = await getSecretValue(storageConfig.connectionStringSecretId);
         }
 

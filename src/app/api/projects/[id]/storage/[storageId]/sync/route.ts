@@ -574,6 +574,26 @@ export async function GET(
                     if (instance.region) {
                         storage.region = instance.region as string;
                     }
+
+                    // Sync Read Replicas Status
+                    const replicas = (storage.metadata?.replicas as Array<{ id: string, name: string, status: string }>) || [];
+                    if (replicas.length > 0) {
+                        const updatedReplicas = await Promise.all(replicas.map(async (r) => {
+                            try {
+                                const replicaData = await getCloudSqlInstance(r.name);
+                                return {
+                                    ...r,
+                                    status: replicaData.state === 'RUNNING' ? 'active' : (replicaData.state === 'PENDING_CREATE' ? 'provisioning' : 'error'),
+                                    region: replicaData.region as string,
+                                    tier: (replicaData.settings as { tier?: string })?.tier
+                                };
+                            } catch (e) {
+                                console.error(`[ReplicaSync] Failed for ${r.name}:`, e);
+                                return r;
+                            }
+                        }));
+                        storage.metadata = { ...storage.metadata, replicas: updatedReplicas };
+                    }
                 } catch (e) {
                     console.error('Failed to fetch Cloud SQL details for final metadata sync:', e);
                 }

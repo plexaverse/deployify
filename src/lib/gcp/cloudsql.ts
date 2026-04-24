@@ -282,6 +282,46 @@ export async function createReadReplica(
 }
 
 /**
+ * Promote a read replica to a standalone Cloud SQL instance
+ */
+export async function promoteReplica(
+    instanceName: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/operations/promote-${instanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/promote`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to promote replica: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
+
+/**
+ * Derive an IAM-based connection string for a Cloud SQL replica
+ */
+export function getReplicaConnectionString(
+    instanceName: string,
+    region: string,
+    dbType: 'postgres' | 'mysql'
+): string {
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    return `${dbType === 'postgres' ? 'postgresql' : 'mysql'}://deployify-sa@/${instanceName}?host=/cloudsql/${gcpProjectId}:${region}:${instanceName}&enable_iam_auth=true`;
+}
+
+/**
  * Create a manual backup run
  */
 export async function createBackup(instanceName: string, description?: string): Promise<string> {
