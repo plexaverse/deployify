@@ -661,7 +661,23 @@ Legacy and custom support with production-grade security:
 - [x] Integrate read replica suggestions into the intelligence engine for READ_HEAVY workloads.
 - [x] Add Read Replica management controls to the Storage dashboard.
 
+### Phase 103: Intelligent Traffic Steering & Read-Replica Lifecycle Maturity (COMPLETED)
+- [x] Implement `promoteReplica` utility for Cloud SQL in `src/lib/gcp/cloudsql.ts`.
+- [x] Update Storage Sync API to track and persist granular replica status and connectivity.
+- [x] Implement automated `DATABASE_URL_READONLY` injection for deployments with active replicas.
+- [x] Implement smart query routing in Data Lab Proxy (offloading `SELECT` queries to replicas).
+- [x] Add "Promote to Primary" functionality to the Storage dashboard UI.
+
 ## Progress Updates
+
+### 2027-06-12: Intelligent Traffic Steering & Read-Replica Lifecycle Maturity
+- Completed Phase 103: Intelligent Traffic Steering & Read-Replica Lifecycle Maturity.
+- Implemented `promoteReplica` utility for Cloud SQL in `src/lib/gcp/cloudsql.ts`, enabling seamless transition of replicas to standalone primary instances.
+- Updated the Storage Sync API to automatically poll and persist the status, region, and tier of all associated read replicas.
+- Launched Intelligent Traffic Steering in the deployment pipeline, automatically injecting `DATABASE_URL_READONLY` when active replicas are detected.
+- Enhanced the Data Lab Proxy with smart query routing, offloading read-only SQL queries (`SELECT`, `EXPLAIN`, `WITH`) to active read replicas to minimize primary load.
+- Updated the Storage dashboard with a "Promote to Primary" action in the Read Replica Management modal.
+- Verified 100% functional integrity with updated unit tests and zero-warning linting.
 
 ### 2027-06-11: Automated Read-Replica Orchestration
 - Completed Phase 102: Automated Read-Replica Orchestration & Global Traffic Steering.

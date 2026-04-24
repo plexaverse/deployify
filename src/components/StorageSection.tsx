@@ -95,7 +95,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         clearMigrationStatus,
         updateStorageAlerts,
         remediateStorageRisk,
-        addReadReplica
+        addReadReplica,
+        promoteReadReplica
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -2832,12 +2833,24 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.tier}</span>
                                                 </div>
                                             </div>
-                                            {(r.status === 'DONE' || r.status === 'active') && (
-                                                <div className="flex items-center gap-1 text-[var(--success)]">
-                                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                                    <span className="text-[8px] font-bold uppercase">Online</span>
-                                                </div>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                {(r.status === 'DONE' || r.status === 'active') && (
+                                                    <>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => isManagingReplicas && promoteReadReplica(projectId, isManagingReplicas.id, r.id)}
+                                                            className="h-7 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20"
+                                                        >
+                                                            Promote to Primary
+                                                        </Button>
+                                                        <div className="flex items-center gap-1 text-[var(--success)]">
+                                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                                            <span className="text-[8px] font-bold uppercase">Online</span>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     ))
                                 )}

@@ -194,6 +194,20 @@ export async function getEnvVarsForDeployment(
                 if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
             }
 
+            // Handle Read Replicas (Traffic Steering)
+            const activeReplica = (storage.metadata?.replicas as Array<{ name: string, region: string, status: string }>)?.find(r => r.status === 'active');
+            if (activeReplica && storage.type.includes('cloud-sql')) {
+                const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
+                const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
+                const replicaConn = getReplicaConnectionString(activeReplica.name, activeReplica.region, dbType);
+                const readOnlyKey = `${envKey}_READONLY`;
+
+                runtimeEnvVars[readOnlyKey] = replicaConn;
+                if (storage.environment === 'both' || storage.environment === envTarget) {
+                    buildEnvVars[readOnlyKey] = replicaConn;
+                }
+            }
+
             // Handle Ephemeral Branching
             let branchedValue: string | undefined;
             if (envTarget === 'preview' && storage.branchingSettings?.enabled) {
