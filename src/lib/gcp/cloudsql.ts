@@ -241,6 +241,47 @@ export async function listBackups(instanceName: string): Promise<Backup[]> {
 }
 
 /**
+ * Create a read replica for an existing Cloud SQL instance
+ */
+export async function createReadReplica(
+    masterInstanceName: string,
+    replicaInstanceName: string,
+    region: string,
+    tier: string = 'db-f1-micro'
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/operations/create-replica-${replicaInstanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: replicaInstanceName,
+            region,
+            masterInstanceName,
+            instanceType: 'READ_REPLICA_INSTANCE',
+            settings: {
+                tier,
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to create read replica: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
+
+/**
  * Create a manual backup run
  */
 export async function createBackup(instanceName: string, description?: string): Promise<string> {

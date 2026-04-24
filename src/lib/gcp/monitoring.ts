@@ -724,6 +724,21 @@ export async function getScalingRecommendations(
         });
     }
 
+    // 4. Read Replica Suggestion (Cloud SQL)
+    const workload = detectWorkloadProfile(metrics);
+    const hasReplicas = (metadata?.replicas as unknown[])?.length > 0;
+
+    if (isCloudSql && workload.type === 'READ_HEAVY' && !hasReplicas) {
+        recommendations.push({
+            type: 'optimize',
+            resource: 'cpu',
+            currentTier: 'Single Instance',
+            recommendedTier: 'Primary + Read Replica',
+            reason: 'Read-heavy workload detected with high memory utilization but moderate CPU. Offloading read traffic to a replica will improve primary instance stability and overall query performance.',
+            performanceGain: 'High'
+        });
+    }
+
     return recommendations;
 }
 

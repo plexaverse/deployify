@@ -44,3 +44,8 @@
 - Added 'Explain' view mode to Data Lab with hierarchical tree visualization for SQL query plans.
 - Integrated color-coded performance badges (FULL SCAN, INDEX) and severity-based optimization cards.
 - Implemented high-density impact score stars for virtual DBA recommendations.
+
+## Session 216: Read Replica Orchestration UI
+- Launched "Read Replica Management" modal for Cloud SQL connectors, enabling horizontal scaling orchestration.
+- Implemented high-density replica status cards with `ACTIVE` and `PROVISIONING` states.
+- Standardized typography for scaling intelligence alerts using platform-standard `text-[8px]` and `text-[10px]`.
