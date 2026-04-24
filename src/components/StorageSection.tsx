@@ -94,7 +94,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         runProjectRollback,
         clearMigrationStatus,
         updateStorageAlerts,
-        remediateStorageRisk
+        remediateStorageRisk,
+        addReadReplica
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -148,6 +149,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [guardrailQueries, setGuardrailQueries] = useState<import('@/lib/gcp/monitoring').LongRunningQuery[]>([]);
     const [isLoadingGuardrails, setIsLoadingGuardrails] = useState(false);
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
+    const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
     const [isTroubleshooting, setIsTroubleshooting] = useState<StorageConfig | null>(null);
     const [isDiagnosing, setIsDiagnosing] = useState(false);
@@ -1726,6 +1728,17 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <ShieldAlert className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    {config.status === 'active' && !!config.metadata?.provisioned && config.type.includes('cloud-sql') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setIsManagingReplicas(config)}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Manage Read Replicas"
+                                        >
+                                            <Copy className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     {config.status === 'active' && !!config.metadata?.provisioned && (
                                         <Button
                                             variant="ghost"
@@ -2764,6 +2777,83 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 onClose={() => setIsManagingPortability(null)}
                 storage={isManagingPortability}
                 projectId={projectId}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingReplicas}
+                onClose={() => setIsManagingReplicas(null)}
+                title="Read Replica Management"
+                headerLabel="Scaling Intelligence"
+                icon={<Copy className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Horizontal Scaling</span>
+                                </div>
+                                <Button
+                                    onClick={() => isManagingReplicas && addReadReplica(projectId, isManagingReplicas.id)}
+                                    disabled={isSubmitting}
+                                    className="h-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                >
+                                    <Plus className="w-3.5 h-3.5 mr-1.5" />
+                                    Create Read Replica
+                                </Button>
+                            </div>
+                            <p className="text-[10px]">
+                                Read Replicas offload query traffic from your primary instance. They are ideal for read-heavy workloads and provide high-availability for read operations.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Active Replicas</Label>
+                            <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                                {!(isManagingReplicas?.metadata?.replicas as unknown[])?.length ? (
+                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">No replicas provisioned</span>
+                                    </div>
+                                ) : (
+                                    (isManagingReplicas?.metadata?.replicas as Array<{id: string, name: string, status: string, region: string, tier: string}>).map((r, i) => (
+                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn(
+                                                        "text-[8px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                        r.status === 'DONE' || r.status === 'active' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--info)]/10 text-[var(--info)] animate-pulse"
+                                                    )}>
+                                                        {r.status === 'DONE' || r.status === 'active' ? 'ACTIVE' : 'PROVISIONING'}
+                                                    </span>
+                                                    <span className="text-[8px] font-mono font-bold">{r.name}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.region}</span>
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.tier}</span>
+                                                </div>
+                                            </div>
+                                            {(r.status === 'DONE' || r.status === 'active') && (
+                                                <div className="flex items-center gap-1 text-[var(--success)]">
+                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                    <span className="text-[8px] font-bold uppercase">Online</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl flex items-start gap-2">
+                            <Zap className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                NOTE: Replicas use the same machine tier as the primary instance by default. You will be billed for the additional resource usage in GCP.
+                            </p>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
             />
         </Card>
     );
