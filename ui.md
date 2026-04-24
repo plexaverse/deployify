@@ -1976,3 +1976,13 @@ Conducted a final sweep to remove legacy typography sizes and ensure compliance 
 - **Standardization**:
     - Replaced remaining instances of `text-xl` with `text-[10px]` in `src/app/dashboard/infrastructure/page.tsx` to unify scale across metrics.
     - Replaced remaining instances of `text-[7px]` with `text-[8px]` across all components to ensure minimum readable scale is consistently `text-[8px]` for secondary/metadata elements.
+
+## Progressive UI & Layout Standardization (Session 213)
+
+Verified no more odd sizes exist in the platform and the rules have been enforced, resolving any remaining issues with text colors (e.g., removing `text-white` or `text-black` in favor of css variables).
+
+### Typography Standardization
+- **Files Updated**:
+  - `src/components/DataLab.tsx`
+- **Standardization**:
+    - Replaced `text-white` and `text-black` with dynamic variables `text-[var(--error-foreground)]` and `text-[var(--warning-foreground)]` for theme compatibility.

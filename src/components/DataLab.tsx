@@ -2562,7 +2562,7 @@ runQuery();`;
                                 <div className="flex items-center gap-3">
                                     <span className={cn(
                                         "px-1.5 py-0.5 rounded text-[8px] font-bold uppercase",
-                                        planDrift.impact === 'high' ? "bg-[var(--error)] text-white" : "bg-[var(--warning)] text-black"
+                                        planDrift.impact === 'high' ? "bg-[var(--error)] text-[var(--error-foreground)]" : "bg-[var(--warning)] text-[var(--warning-foreground)]"
                                     )}>{planDrift.impact} IMPACT</span>
                                     <p className="text-[8px] font-bold uppercase text-[var(--foreground)]">{planDrift.reason}</p>
                                 </div>
