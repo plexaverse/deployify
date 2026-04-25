@@ -482,6 +482,7 @@ export interface StorageConfig {
     autoMigration?: boolean;
     migrationCommand?: string;
     rollbackCommand?: string;
+    autoAlign?: boolean;
     ssl?: boolean;
     activeAlerts?: string[];
     dormancy?: ResourceDormancy;

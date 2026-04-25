@@ -168,13 +168,22 @@ export async function validateConnection(
             };
         }
 
-        if (!connectionStringSecretId && type !== 'firestore') {
+        if (!connectionStringSecretId && type !== 'firestore' && !(type.includes('cloud-sql') && metadata?.resourceName)) {
             return { valid: false, error: 'Connection string is required' };
         }
 
         let connectionString = '';
         if (connectionStringSecretId) {
             connectionString = await getSecretValue(connectionStringSecretId);
+        } else if (type.includes('cloud-sql') && metadata?.resourceName && metadata?.region) {
+            // Derive IAM connection string for validation if secret is missing but resource info is present
+            const { getReplicaConnectionString } = await import('./cloudsql');
+            const dbType = type.includes('postgres') ? 'postgres' : 'mysql';
+            connectionString = getReplicaConnectionString(
+                metadata.resourceName as string,
+                metadata.region as string,
+                dbType
+            );
         }
 
         // Implement validation logic based on type

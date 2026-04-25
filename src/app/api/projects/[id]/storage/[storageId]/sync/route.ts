@@ -131,7 +131,39 @@ export async function GET(
                     console.error(`[SecurityAudit] Failed for ${storageId}:`, secErr);
                 }
 
-                // 0c. Phase 101: Automated Resource Labeling
+                // 0c. Phase 107: Regional Auto-Alignment
+                if (storage.autoAlign && storage.metadata?.provisioned && storage.type.includes('cloud-sql') && storage.status === 'active') {
+                    const configRegion = (storage.metadata?.region as string) || storage.region;
+                    const projectRegion = project.region;
+
+                    if (configRegion && projectRegion && configRegion !== projectRegion) {
+                        try {
+                            const { migrateInstanceToRegion } = await import('@/lib/gcp/cloudsql');
+                            const resourceName = (storage.metadata?.resourceName as string);
+
+                            if (resourceName) {
+                                console.log(`[AutoAlign] Triggering regional migration for ${storageId} from ${configRegion} to ${projectRegion}`);
+                                const { operationName, targetInstanceName } = await migrateInstanceToRegion(resourceName, projectRegion);
+
+                                storage.status = 'provisioning';
+                                storage.metadata = {
+                                    ...storage.metadata,
+                                    operationName,
+                                    lastOperation: 'migrate_region',
+                                    targetInstanceName,
+                                    targetRegion: projectRegion
+                                };
+                                // Immediately update state to avoid multiple triggers
+                                storageConfigs[index] = storage;
+                                await updateProject(id, { storageConfigs });
+                            }
+                        } catch (alignErr) {
+                            console.error(`[AutoAlign] Failed for ${storageId}:`, alignErr);
+                        }
+                    }
+                }
+
+                // 0d. Phase 101: Automated Resource Labeling
                 if (storage.metadata?.provisioned && storage.labelingStatus !== 'SYNCED') {
                     try {
                         const labelResult = await syncResourceLabels(project, storage);
@@ -395,6 +427,46 @@ export async function GET(
                     message: 'Schema synchronization completed successfully',
                     lastSyncedAt: storage.lastSyncedAt.toISOString()
                 });
+            } else if (lastOp === 'migrate_region') {
+                // Regional migration finished. Update resource name and region.
+                const targetInstanceName = storage.metadata?.targetInstanceName as string;
+                const targetRegion = storage.metadata?.targetRegion as string;
+
+                storage.status = 'active';
+                storage.region = targetRegion;
+                storage.metadata = {
+                    ...storage.metadata,
+                    resourceName: targetInstanceName || storage.metadata?.resourceName,
+                    region: targetRegion || storage.metadata?.region,
+                    lastOperation: undefined,
+                    operationName: undefined,
+                    targetInstanceName: undefined,
+                    targetRegion: undefined
+                };
+
+                // For Cloud SQL, we also need to update the connection string secret if it's a provisioning-native instance
+                if (storage.type.includes('cloud-sql') && storage.connectionStringSecretId) {
+                    try {
+                        const { getGcpProjectNumber } = await import('@/lib/gcp/auth');
+                        const gcpProjectId = storage.providerProjectId || process.env.GCP_PROJECT_ID;
+                        const dbType = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
+                        const newConnStr = `${dbType}://deployify-sa@/${project.slug}?host=/cloudsql/${gcpProjectId}:${targetRegion}:${targetInstanceName}&enable_iam_auth=true`;
+
+                        const { upsertSecret } = await import('@/lib/gcp/secrets');
+                        await upsertSecret(storage.connectionStringSecretId, newConnStr);
+                    } catch (secErr) {
+                        console.error(`[AutoAlign] Failed to update connection string for ${storageId}:`, secErr);
+                    }
+                }
+
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+
+                return NextResponse.json({
+                    success: true,
+                    status: 'active',
+                    message: 'Regional auto-alignment completed successfully'
+                });
             } else if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import') {
                 if (lastOp === 'clone_export') {
                     // Export finished, now trigger Import on the clone
@@ -587,11 +659,39 @@ export async function GET(
                                     return null;
                                 }
 
+                                const replicaStatus = replicaData.state === 'RUNNING' ? 'active' : (replicaData.state === 'PENDING_CREATE' ? 'provisioning' : 'error');
+
+                                // Perform health heartbeat for active replicas (Phase 106)
+                                let healthMetadata = (r as any).health;
+                                if (replicaStatus === 'active') {
+                                    try {
+                                        const health = await checkConnectivityHealth(storage.type, undefined, {
+                                            resourceName: r.name,
+                                            region: replicaData.region as string,
+                                            health: healthMetadata
+                                        });
+
+                                        const newBaseline = calculateEWMA(health.latency, healthMetadata?.baselineLatency);
+                                        const isDegraded = detectDegradation(health.latency, newBaseline);
+
+                                        healthMetadata = {
+                                            status: health.status === 'unhealthy' ? 'unhealthy' : (isDegraded ? 'degraded' : 'healthy'),
+                                            latency: health.latency,
+                                            baselineLatency: parseFloat(newBaseline.toFixed(2)),
+                                            isDegraded,
+                                            timestamp: health.timestamp
+                                        };
+                                    } catch (hErr) {
+                                        console.error(`[ReplicaHealth] Heartbeat failed for ${r.name}:`, hErr);
+                                    }
+                                }
+
                                 return {
                                     ...r,
-                                    status: replicaData.state === 'RUNNING' ? 'active' : (replicaData.state === 'PENDING_CREATE' ? 'provisioning' : 'error'),
+                                    status: replicaStatus,
                                     region: replicaData.region as string,
-                                    tier: (replicaData.settings as { tier?: string })?.tier
+                                    tier: (replicaData.settings as { tier?: string })?.tier,
+                                    health: healthMetadata
                                 };
                             } catch (e) {
                                 // If replica is not found, it might have been deleted manually in GCP
