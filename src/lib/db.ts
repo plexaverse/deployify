@@ -195,14 +195,15 @@ export async function getEnvVarsForDeployment(
             }
 
             // Handle Read Replicas (Intelligent Traffic Steering)
-            const activeReplicas = (storage.metadata?.replicas as Array<{ name: string, region: string, status: string }>)?.filter(r => r.status === 'active' || r.status === 'DONE');
+            const activeReplicas = (storage.metadata?.replicas as Array<{ name: string, region: string, status: string, latency?: number }>)?.filter(r => r.status === 'active' || r.status === 'DONE');
             if (activeReplicas && activeReplicas.length > 0 && storage.type.includes('cloud-sql')) {
                 const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
                 const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
 
-                // Distribute load across replicas by picking one randomly during deployment generation
-                // This ensures that across multiple service revisions, traffic is spread across the fleet.
-                const selectedReplica = activeReplicas[Math.floor(Math.random() * activeReplicas.length)];
+                // Intelligent Traffic Steering: Prioritize the lowest-latency healthy read replica
+                // Phase 106: Health-Aware Routing
+                const sortedReplicas = [...activeReplicas].sort((a, b) => (a.latency || 9999) - (b.latency || 9999));
+                const selectedReplica = sortedReplicas[0];
 
                 const replicaConn = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
                 const readOnlyKey = `${envKey}_READONLY`;

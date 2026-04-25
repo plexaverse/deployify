@@ -463,6 +463,7 @@ Subcommands:
   tunnel <storage_id>                Create a secure local tunnel to your database
   import <storage_id> <uri>          Import data from GCS (SQL/CSV/RDB)
   export <storage_id> <uri>          Export data to GCS
+  upgrade <env_key>                  Upgrade env var to managed connector
   backups <action> <storage_id>      Manage database backups
   migrations <action> <storage_id>   Manage database migrations
   replicas <action> <storage_id>     Manage Cloud SQL read replicas
@@ -777,6 +778,26 @@ Actions:
             console.log('\nYou can poll for status using: deployify storage sync ' + storageId);
         } else {
             console.log(`❌ Export failed: ${data.error || 'Unknown error'}`);
+        }
+
+    } else if (subcommand === 'upgrade') {
+        const envKey = args[2];
+        if (!envKey) {
+            throw new Error('Usage: deployify storage upgrade <env_key>');
+        }
+
+        console.log(`Upgrading environment variable '${envKey}' to managed connector...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/upgrade`, token, {
+            method: 'POST',
+            body: { envKey }
+        });
+
+        if (data.success) {
+            console.log('✅ Upgrade successful!');
+            console.log(`New Connector: ${data.storageConfig.name} (${data.storageConfig.id})`);
+            console.log(`Type:          ${data.storageConfig.type.toUpperCase()}`);
+        } else {
+            console.log(`❌ Upgrade failed: ${data.error || 'Unknown error'}`);
         }
 
     } else if (subcommand === 'backups') {

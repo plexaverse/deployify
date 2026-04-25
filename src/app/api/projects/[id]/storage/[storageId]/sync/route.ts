@@ -6,7 +6,7 @@ import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getClo
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import { getGcpProjectNumber } from '@/lib/gcp/auth';
-import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
+import { checkConnectivityHealth, checkTcpReachability } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart } from '@/lib/gcp/monitoring';
@@ -127,6 +127,28 @@ export async function GET(
                         ...storage.metadata,
                         security: posture
                     };
+
+                    // Phase 107: Regional Auto-Alignment Orchestration
+                    if (storage.metadata?.autoAlign && storage.type.includes('cloud-sql') && project.region && storage.region && storage.region !== project.region) {
+                        const hasActiveMigration = storage.status === 'provisioning' || storage.metadata?.lastOperation === 'migrate_region';
+
+                        if (!hasActiveMigration) {
+                            console.log(`[AutoAlign] Triggering regional migration for ${storageId} to ${project.region}`);
+                            const { migrateInstanceToRegion } = await import('@/lib/gcp/cloudsql');
+                            const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+
+                            const migration = await migrateInstanceToRegion(resourceName, project.region);
+
+                            storage.status = 'provisioning';
+                            storage.metadata = {
+                                ...storage.metadata,
+                                operationName: migration.operationName,
+                                lastOperation: 'migrate_region',
+                                targetRegion: project.region,
+                                targetInstanceName: migration.targetInstanceName
+                            };
+                        }
+                    }
                 } catch (secErr) {
                     console.error(`[SecurityAudit] Failed for ${storageId}:`, secErr);
                 }
@@ -140,6 +162,34 @@ export async function GET(
                         console.error(`[Labeling] Sync failed for ${storageId}:`, labelErr);
                         storage.labelingStatus = 'FAILED';
                     }
+                }
+
+                // Phase 106: Intelligent Replica Heartbeats
+                const replicas = (storage.metadata?.replicas as Array<{ id: string, name: string, status: string, region: string, latency?: number, lastSeenAt?: string, baselineLatency?: number, ipAddress?: string }>) || [];
+                if (replicas.length > 0 && storage.type.includes('cloud-sql')) {
+                    const updatedReplicas = await Promise.all(replicas.map(async (r) => {
+                        if (r.status !== 'active' && r.status !== 'DONE') return r;
+
+                        const replicaHost = `${r.name}.sql.goog`; // Approximation for TCP probe if IP not in metadata
+                        // Cloud SQL instances often have IP in metadata after sync
+                        const host = r.ipAddress || replicaHost;
+                        const port = storage.type.includes('postgres') ? 5432 : 3306;
+
+                        const repStart = Date.now();
+                        const isReachable = await checkTcpReachability(host, port, 1500);
+                        const latency = Date.now() - repStart;
+
+                        const newReplicaBaseline = calculateEWMA(latency, r.baselineLatency);
+
+                        return {
+                            ...r,
+                            latency,
+                            baselineLatency: parseFloat(newReplicaBaseline.toFixed(2)),
+                            status: isReachable ? (detectDegradation(latency, newReplicaBaseline) ? 'degraded' : 'active') : 'unhealthy',
+                            lastSeenAt: now.toISOString()
+                        };
+                    }));
+                    storage.metadata = { ...storage.metadata, replicas: updatedReplicas };
                 }
 
                 // Persist health heartbeat and baselined connectivity metadata
@@ -456,6 +506,39 @@ export async function GET(
                         lastSyncedAt: storage.lastSyncedAt.toISOString()
                     });
                 }
+            } else if (lastOp === 'migrate_region') {
+                // Regional migration (AutoAlign) finished
+                storage.status = 'active';
+                storage.lastSyncedAt = now;
+                storage.updatedAt = now;
+                storage.region = storage.metadata?.targetRegion as string;
+                storage.metadata = {
+                    ...storage.metadata,
+                    lastOperation: undefined,
+                    operationName: undefined,
+                    resourceName: storage.metadata?.targetInstanceName,
+                    targetRegion: undefined,
+                    targetInstanceName: undefined
+                };
+
+                // Update connection string secret with new instance details
+                if (storage.connectionStringSecretId && storage.type.includes('cloud-sql')) {
+                    const dbType = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
+                    const gcpProjectId = storage.providerProjectId || process.env.GCP_PROJECT_ID;
+                    const newConnStr = `${dbType}://deployify-sa@/${storage.metadata.resourceName}?host=/cloudsql/${gcpProjectId}:${storage.region}:${storage.metadata.resourceName}&enable_iam_auth=true`;
+                    const { upsertSecret } = await import('@/lib/gcp/secrets');
+                    await upsertSecret(storage.connectionStringSecretId, newConnStr);
+                }
+
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+
+                return NextResponse.json({
+                    success: true,
+                    status: 'active',
+                    message: 'Regional auto-alignment completed successfully',
+                    lastSyncedAt: storage.lastSyncedAt.toISOString()
+                });
             }
 
             // Check if we need follow-up operations (e.g. create DB/User for Cloud SQL)
@@ -587,11 +670,13 @@ export async function GET(
                                     return null;
                                 }
 
+                                const ipAddress = (replicaData.ipAddresses as Array<{ ipAddress: string, type: string }>)?.find(ip => ip.type === 'PRIMARY')?.ipAddress;
                                 return {
                                     ...r,
                                     status: replicaData.state === 'RUNNING' ? 'active' : (replicaData.state === 'PENDING_CREATE' ? 'provisioning' : 'error'),
                                     region: replicaData.region as string,
-                                    tier: (replicaData.settings as { tier?: string })?.tier
+                                    tier: (replicaData.settings as { tier?: string })?.tier,
+                                    ipAddress
                                 };
                             } catch (e) {
                                 // If replica is not found, it might have been deleted manually in GCP

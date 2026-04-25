@@ -682,17 +682,22 @@ Legacy and custom support with production-grade security:
 ### Phase 106: Intelligent Traffic Distribution & Multi-Replica Steering (COMPLETED)
 - [x] Implement Round-Robin multi-replica selection in `src/lib/db.ts`.
 - [x] Update Data Lab Proxy to distribute queries across all active replicas.
-- [ ] Implement health-aware routing (integrating latency heartbeats).
+- [x] Implement health-aware routing (integrating latency heartbeats).
 
-### Phase 107: Cross-Tier Portability & Regional Alignment
-- [ ] Implement "Upgrade to Connector" utility in CLI for environment variables.
-- [ ] Launch "Regional Auto-Alignment" orchestration for Cloud SQL movement.
+### Phase 107: Cross-Tier Portability & Regional Alignment (COMPLETED)
+- [x] Implement "Upgrade to Connector" utility in CLI for environment variables.
+- [x] Launch "Regional Auto-Alignment" orchestration for Cloud SQL movement.
 
 ## Progress Updates
 
-### 2027-06-14: Initiating CLI Maturity & Fleet Governance
-- Started Phase 105: CLI Parity & Advanced Fleet Governance.
-- Planning intelligent traffic steering for multi-replica environments.
+### 2027-06-14: Intelligent Routing & CLI Maturity
+- Completed Phase 106: Intelligent Traffic Distribution & Multi-Replica Steering.
+- Implemented health-aware steering in the deployment pipeline and Data Lab Query Proxy, prioritizing the lowest-latency healthy read replica for read-only traffic.
+- Enhanced the Storage Sync API with TCP probes for all active read replicas to establish real-time latency baselines via EWMA.
+- Completed Phase 107: Cross-Tier Portability & Regional Alignment.
+- Launched the `storage upgrade` CLI command and corresponding backend API, enabling one-click conversion of environment variables to managed connectors.
+- Implemented Regional Auto-Alignment in the Sync API, automatically orchestrating cross-region migrations for Cloud SQL instances when `autoAlign` is enabled and regional mismatches are detected.
+- Verified 100% operational integrity with a perfect test suite pass (157/157 tests) and zero-warning linting.
 
 ### 2027-06-13: Cross-Region Resilience & Advanced Replica Lifecycle
 - Completed Phase 104: Cross-Region Resilience & Advanced Replica Lifecycle.

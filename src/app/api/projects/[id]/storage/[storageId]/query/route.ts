@@ -173,14 +173,16 @@ export async function POST(
 
         // 1. Get credentials securely (Smart Routing for Replicas)
         let connectionString = '';
-        const activeReplicas = (storageConfig.metadata?.replicas as Array<{ name: string, region: string, status: string }>)?.filter(r => r.status === 'active' || r.status === 'DONE');
+        const activeReplicas = (storageConfig.metadata?.replicas as Array<{ name: string, region: string, status: string, latency?: number }>)?.filter(r => r.status === 'active' || r.status === 'DONE');
         const isReadOnlyQuery = query !== 'DISCOVER_SCHEMA' && !query.toUpperCase().includes(';') && (query.toUpperCase().startsWith('SELECT') || query.toUpperCase().startsWith('EXPLAIN') || query.toUpperCase().startsWith('WITH'));
 
         if (activeReplicas && activeReplicas.length > 0 && isReadOnlyQuery && storageConfig.type.includes('cloud-sql')) {
             const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
             const dbType = storageConfig.type.includes('postgres') ? 'postgres' : 'mysql';
-            // Intelligent Traffic Steering: Distribute query load across all active replicas
-            const selectedReplica = activeReplicas[Math.floor(Math.random() * activeReplicas.length)];
+            // Intelligent Traffic Steering: Prioritize the lowest-latency healthy read replica
+            // Phase 106: Health-Aware Steering
+            const sortedReplicas = [...activeReplicas].sort((a, b) => (a.latency || 9999) - (b.latency || 9999));
+            const selectedReplica = sortedReplicas[0];
             connectionString = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
         } else if (storageConfig.connectionStringSecretId) {
             connectionString = await getSecretValue(storageConfig.connectionStringSecretId);

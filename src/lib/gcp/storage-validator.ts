@@ -631,7 +631,7 @@ export async function diagnoseConnection(
 /**
  * Helper to check TCP reachability
  */
-async function checkTcpReachability(host: string, port: number, timeout = 3000): Promise<boolean> {
+export async function checkTcpReachability(host: string, port: number, timeout = 3000): Promise<boolean> {
     return new Promise((resolve) => {
         const socket = new net.Socket();
         const timer = setTimeout(() => {
