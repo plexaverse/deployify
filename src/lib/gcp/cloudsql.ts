@@ -282,6 +282,40 @@ export async function createReadReplica(
 }
 
 /**
+ * Orchestrate an automated failover for a Cloud SQL instance
+ * This selects the healthiest replica (lowest latency), promotes it, and returns the new configuration metadata.
+ */
+export async function orchestrateFailover(
+    masterInstanceName: string,
+    replicas: Array<{ id: string, name: string, region: string, health?: { status: string, latency: number } }>
+): Promise<{ operationName: string, promotedReplicaId: string, promotedReplicaName: string }> {
+    if (process.env.MOCK_DB === 'true') {
+        const bestReplica = replicas[0] || { id: 'mock-rep', name: `${masterInstanceName}-rep` };
+        return {
+            operationName: `projects/mock/operations/failover-${bestReplica.name}`,
+            promotedReplicaId: bestReplica.id,
+            promotedReplicaName: bestReplica.name
+        };
+    }
+
+    // Selection logic: Pick the lowest-latency healthy replica
+    const healthyReplicas = replicas.filter(r => !r.health || r.health.status !== 'unhealthy');
+    if (healthyReplicas.length === 0) {
+        throw new Error(`Failover failed: No healthy replicas available for ${masterInstanceName}`);
+    }
+
+    const selectedReplica = healthyReplicas.sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0))[0];
+
+    const operationName = await promoteReplica(selectedReplica.name);
+
+    return {
+        operationName,
+        promotedReplicaId: selectedReplica.id,
+        promotedReplicaName: selectedReplica.name
+    };
+}
+
+/**
  * Promote a read replica to a standalone Cloud SQL instance
  */
 export async function promoteReplica(
