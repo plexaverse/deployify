@@ -16,7 +16,7 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
+import { deleteDatabase as deleteSqlDatabase, ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
@@ -159,6 +159,19 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         const migrations = await getMigrationsForDeployment(project, envTarget, {
             branch
         });
+
+        // Ensure ephemeral database exists for branch deployments if branching is enabled
+        if (deploymentType === 'branch' && project.storageConfigs) {
+            for (const storage of project.storageConfigs) {
+                if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                    const instanceName = storage.metadata?.resourceName as string;
+                    if (instanceName) {
+                        const dbName = branch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                        await ensureEphemeralDatabase(instanceName, dbName);
+                    }
+                }
+            }
+        }
 
         // Decrypt GitHub token if present
         const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
@@ -542,6 +555,19 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                 branch: pull_request.head.ref,
                 pullRequestNumber: pull_request.number
             });
+
+            // Ensure ephemeral database exists for preview deployments if branching is enabled
+            if (project.storageConfigs) {
+                for (const storage of project.storageConfigs) {
+                    if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                        const instanceName = storage.metadata?.resourceName as string;
+                        if (instanceName) {
+                            const dbName = `pr_${pull_request.number}`;
+                            await ensureEphemeralDatabase(instanceName, dbName);
+                        }
+                    }
+                }
+            }
 
             // Decrypt GitHub token if present
             const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;

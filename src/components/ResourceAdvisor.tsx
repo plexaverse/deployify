@@ -80,9 +80,9 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
 
     if (recommendations.length === 0) {
         return (
-            <div className="p-8 rounded-3xl border border-dashed border-[var(--border)] flex flex-col items-center justify-center text-center">
+            <div className="p-8 rounded-3xl border border-dashed border-[var(--border)] flex flex-col items-center justify-center text-center backdrop-blur-xl">
                 <BarChart3 className="w-12 h-12 text-[var(--muted-foreground)]/50 mb-4" />
-                <h3 className="text-[10px] font-bold">All optimized</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">All optimized</h3>
                 <p className="text-[var(--muted-foreground)] mt-1 max-w-xs uppercase tracking-[0.2em] text-[8px]">
                     Your resources are currently aligned with your usage patterns. Check back in 7 days.
                 </p>
