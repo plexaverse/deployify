@@ -114,9 +114,65 @@ export async function GET(
                 if (finalStatus === 'unhealthy' && storage.status === 'active') {
                     storage.status = 'error';
                     storage.lastError = health.error || 'Health check heartbeat failed';
+
+                    // Phase 108: Automated DR Failover
+                    if (storage.failoverSettings?.enabled && storage.type.includes('cloud-sql')) {
+                        const replicas = (storage.metadata?.replicas as Array<{ name: string, region: string, status: string, health?: { status: string } }>) || [];
+                        const healthyReplica = replicas.find(r => (r.status === 'active' || r.status === 'DONE') && r.health?.status === 'healthy');
+
+                        if (healthyReplica) {
+                            const failoverMetadata = (storage.metadata?.failover as { failureCount: number, lastFailureAt: string }) || { failureCount: 0 };
+                            failoverMetadata.failureCount = (failoverMetadata.failureCount || 0) + 1;
+                            failoverMetadata.lastFailureAt = now.toISOString();
+
+                            const threshold = storage.failoverSettings.maxRetries || 3;
+
+                            if (failoverMetadata.failureCount >= threshold) {
+                                console.log(`[Failover] Triggering automated failover for ${storageId} to replica ${healthyReplica.name}`);
+                                try {
+                                    const { orchestrateFailover } = await import('@/lib/gcp/cloudsql');
+                                    const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
+
+                                    const { operationName, newConnectionString } = await orchestrateFailover(
+                                        healthyReplica.name,
+                                        healthyReplica.region,
+                                        dbType as 'postgres' | 'mysql'
+                                    );
+
+                                    // Update Secret if enabled
+                                    if (storage.failoverSettings.autoSwitchSecrets && storage.connectionStringSecretId) {
+                                        const { upsertSecret } = await import('@/lib/gcp/secrets');
+                                        await upsertSecret(storage.connectionStringSecretId, newConnectionString);
+                                    }
+
+                                    storage.status = 'provisioning';
+                                    storage.metadata = {
+                                        ...storage.metadata,
+                                        operationName,
+                                        lastOperation: 'failover_promotion',
+                                        failover: {
+                                            ...failoverMetadata,
+                                            triggeredAt: now.toISOString(),
+                                            targetReplica: healthyReplica.name,
+                                            status: 'IN_PROGRESS'
+                                        }
+                                    };
+                                } catch (failoverErr) {
+                                    console.error(`[Failover] Failed to trigger for ${storageId}:`, failoverErr);
+                                }
+                            } else {
+                                storage.metadata = { ...storage.metadata, failover: failoverMetadata };
+                            }
+                        }
+                    }
                 } else if ((finalStatus === 'healthy' || finalStatus === 'degraded') && storage.status === 'error') {
                     storage.status = 'active';
                     storage.lastError = undefined;
+                    // Reset failure count on recovery
+                    if (storage.metadata?.failover) {
+                        const f = storage.metadata.failover as Record<string, unknown>;
+                        storage.metadata.failover = { ...f, failureCount: 0 };
+                    }
                 }
 
                 // 0b. Security Posture Audit
@@ -447,7 +503,6 @@ export async function GET(
                 // For Cloud SQL, we also need to update the connection string secret if it's a provisioning-native instance
                 if (storage.type.includes('cloud-sql') && storage.connectionStringSecretId) {
                     try {
-                        const { getGcpProjectNumber } = await import('@/lib/gcp/auth');
                         const gcpProjectId = storage.providerProjectId || process.env.GCP_PROJECT_ID;
                         const dbType = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
                         const newConnStr = `${dbType}://deployify-sa@/${project.slug}?host=/cloudsql/${gcpProjectId}:${targetRegion}:${targetInstanceName}&enable_iam_auth=true`;
@@ -466,6 +521,36 @@ export async function GET(
                     success: true,
                     status: 'active',
                     message: 'Regional auto-alignment completed successfully'
+                });
+            } else if (lastOp === 'failover_promotion') {
+                // Failover promotion finished.
+                const failover = storage.metadata?.failover as Record<string, unknown>;
+
+                storage.status = 'active';
+                storage.lastSyncedAt = now;
+                storage.metadata = {
+                    ...storage.metadata,
+                    lastOperation: undefined,
+                    operationName: undefined,
+                    resourceName: failover?.targetReplica || storage.metadata?.resourceName,
+                    failover: {
+                        ...failover,
+                        status: 'COMPLETED',
+                        completedAt: now.toISOString()
+                    }
+                };
+
+                // Remove the promoted replica from the list (it's now primary)
+                const replicas = (storage.metadata?.replicas as Array<{ name: string }>) || [];
+                storage.metadata.replicas = replicas.filter(r => r.name !== failover?.targetReplica);
+
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+
+                return NextResponse.json({
+                    success: true,
+                    status: 'active',
+                    message: 'Automated failover completed successfully. Replica promoted to primary.'
                 });
             } else if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import') {
                 if (lastOp === 'clone_export') {
@@ -662,7 +747,7 @@ export async function GET(
                                 const replicaStatus = replicaData.state === 'RUNNING' ? 'active' : (replicaData.state === 'PENDING_CREATE' ? 'provisioning' : 'error');
 
                                 // Perform health heartbeat for active replicas (Phase 106)
-                                let healthMetadata = (r as any).health;
+                                let healthMetadata = (r as { health?: { status: string, latency: number, baselineLatency: number, isDegraded: boolean, timestamp: string } }).health;
                                 if (replicaStatus === 'active') {
                                     try {
                                         const health = await checkConnectivityHealth(storage.type, undefined, {
