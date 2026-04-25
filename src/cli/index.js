@@ -460,6 +460,7 @@ Subcommands:
   provision <type> <name>            Provision a new storage instance
   branch <storage_id> <identifier>   Provision a storage branch (PR # or branch name)
   rotate <storage_id> [conn_str]     Rotate connector credentials
+  upgrade                            Scan and upgrade environment variables to connectors
   tunnel <storage_id>                Create a secure local tunnel to your database
   import <storage_id> <uri>          Import data from GCS (SQL/CSV/RDB)
   export <storage_id> <uri>          Export data to GCS
@@ -548,6 +549,67 @@ Actions:
         } else {
             console.log(`❌ Rotation failed: ${data.error || 'Unknown error'}`);
         }
+    } else if (subcommand === 'upgrade') {
+        console.log('🔍 Scanning environment variables for potential storage connectors...');
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}`, token);
+        const envVars = data.project?.envVariables || [];
+
+        const potentialConnectors = envVars.filter(env => {
+            const val = env.value.toLowerCase();
+            return val.includes('postgresql://') || val.includes('postgres://') ||
+                   val.includes('mysql://') || val.includes('redis://') ||
+                   val.includes('mongodb://') || val.includes('mongodb+srv://');
+        });
+
+        if (potentialConnectors.length === 0) {
+            console.log('✅ No legacy connection strings found in environment variables.');
+            return;
+        }
+
+        console.log(`\nFound ${potentialConnectors.length} potential legacy connectors:`);
+        potentialConnectors.forEach((env, i) => {
+            console.log(`${i + 1}) ${env.key} (${env.value.split('@')[1] || env.value})`);
+        });
+
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        const choice = await new Promise(resolve => {
+            rl.question('\nSelect variable to upgrade (or 0 to cancel): ', resolve);
+        });
+        rl.close();
+
+        const idx = parseInt(choice) - 1;
+        if (isNaN(idx) || idx < 0 || idx >= potentialConnectors.length) {
+            console.log('Upgrade cancelled.');
+            return;
+        }
+
+        const selected = potentialConnectors[idx];
+        let type = 'generic';
+        if (selected.value.includes('postgres')) type = 'cloud-sql-postgres';
+        if (selected.value.includes('mysql')) type = 'cloud-sql-mysql';
+        if (selected.value.includes('redis')) type = 'memorystore-redis';
+        if (selected.value.includes('mongodb')) type = 'mongodb-atlas';
+
+        console.log(`Upgrading ${selected.key} to ${type} connector...`);
+
+        const result = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage`, token, {
+            method: 'POST',
+            body: {
+                name: selected.key.replace(/_URL|_URI/i, '').replace(/_/g, ' '),
+                type,
+                connectionString: selected.value,
+                envKey: selected.key,
+                environment: selected.environment || 'both'
+            }
+        });
+
+        if (result.success) {
+            console.log('✅ Successfully upgraded to managed connector!');
+            console.log('Note: You may now want to remove the original environment variable.');
+        } else {
+            console.log(`❌ Upgrade failed: ${result.error}`);
+        }
+
     } else if (!subcommand || subcommand === 'list') {
         const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage`, token);
         if (data.storageConfigs && data.storageConfigs.length > 0) {
