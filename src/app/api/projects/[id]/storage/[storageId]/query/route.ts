@@ -173,13 +173,15 @@ export async function POST(
 
         // 1. Get credentials securely (Smart Routing for Replicas)
         let connectionString = '';
-        const activeReplica = (storageConfig.metadata?.replicas as Array<{ name: string, region: string, status: string }>)?.find(r => r.status === 'active');
+        const activeReplicas = (storageConfig.metadata?.replicas as Array<{ name: string, region: string, status: string }>)?.filter(r => r.status === 'active' || r.status === 'DONE');
         const isReadOnlyQuery = query !== 'DISCOVER_SCHEMA' && !query.toUpperCase().includes(';') && (query.toUpperCase().startsWith('SELECT') || query.toUpperCase().startsWith('EXPLAIN') || query.toUpperCase().startsWith('WITH'));
 
-        if (activeReplica && isReadOnlyQuery && storageConfig.type.includes('cloud-sql')) {
+        if (activeReplicas && activeReplicas.length > 0 && isReadOnlyQuery && storageConfig.type.includes('cloud-sql')) {
             const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
             const dbType = storageConfig.type.includes('postgres') ? 'postgres' : 'mysql';
-            connectionString = getReplicaConnectionString(activeReplica.name, activeReplica.region, dbType);
+            // Intelligent Traffic Steering: Distribute query load across all active replicas
+            const selectedReplica = activeReplicas[Math.floor(Math.random() * activeReplicas.length)];
+            connectionString = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
         } else if (storageConfig.connectionStringSecretId) {
             connectionString = await getSecretValue(storageConfig.connectionStringSecretId);
         }
