@@ -310,6 +310,31 @@ export async function promoteReplica(
 }
 
 /**
+ * Orchestrate a failover by promoting a read replica to primary.
+ * Returns the operation name and the new connection string.
+ */
+export async function orchestrateFailover(
+    replicaInstanceName: string,
+    region: string,
+    dbType: 'postgres' | 'mysql' = 'postgres'
+): Promise<{ operationName: string; newConnectionString: string }> {
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            operationName: `projects/mock/operations/failover-${replicaInstanceName}`,
+            newConnectionString: `postgresql://deployify-sa@/app?host=/cloudsql/mock-project:${region}:${replicaInstanceName}&enable_iam_auth=true`
+        };
+    }
+
+    const operationName = await promoteReplica(replicaInstanceName);
+    const newConnectionString = getReplicaConnectionString(replicaInstanceName, region, dbType);
+
+    return {
+        operationName,
+        newConnectionString
+    };
+}
+
+/**
  * Derive an IAM-based connection string for a Cloud SQL replica
  */
 export function getReplicaConnectionString(

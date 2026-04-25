@@ -171,6 +171,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [alertDisk, setAlertDisk] = useState(80);
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [alertEmailEnabled, setAlertEmailEnabled] = useState(false);
+    const [failoverEnabled, setFailoverEnabled] = useState(false);
+    const [failoverThreshold, setFailoverThreshold] = useState(3);
+    const [autoSwitchSecrets, setAutoSwitchSecrets] = useState(true);
+    const [readWeights, setReadWeights] = useState<Record<string, number>>({});
     const [autoMigrationEnabled, setAutoMigrationEnabled] = useState(false);
     const [autoMigrationCommand, setAutoMigrationCommand] = useState('prisma migrate deploy');
     const [customRollbackCommand, setCustomRollbackCommand] = useState('prisma migrate resolve --rolled-back');
@@ -238,6 +242,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 autoMigration: autoMigrationEnabled,
                 migrationCommand: autoMigrationCommand,
                 rollbackCommand: customRollbackCommand,
+                failoverSettings: {
+                    enabled: failoverEnabled,
+                    maxRetries: failoverThreshold,
+                    autoSwitchSecrets: autoSwitchSecrets
+                },
+                readWeights,
                 ssl: sslRequired,
                 metadata: {
                     ...metadata,
@@ -368,6 +378,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 autoMigration: autoMigrationEnabled,
                 migrationCommand: autoMigrationCommand,
                 rollbackCommand: customRollbackCommand,
+                failoverSettings: {
+                    enabled: failoverEnabled,
+                    maxRetries: failoverThreshold,
+                    autoSwitchSecrets: autoSwitchSecrets
+                },
+                readWeights,
                 ssl: sslRequired,
                 metadata: {
                     secretOnly,
@@ -410,6 +426,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setHighAvailability(false);
         setPitrEnabled(false);
         setDeletionProtection(false);
+        setFailoverEnabled(false);
+        setFailoverThreshold(3);
+        setAutoSwitchSecrets(true);
+        setReadWeights({});
         setProviderApiKey('');
         setSupabaseId('');
         setMongodbGroupId('');
@@ -438,6 +458,10 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
         setDeletionProtection(!!config.metadata?.deletionProtection);
+        setFailoverEnabled(config.failoverSettings?.enabled || false);
+        setFailoverThreshold(config.failoverSettings?.maxRetries || 3);
+        setAutoSwitchSecrets(config.failoverSettings?.autoSwitchSecrets ?? true);
+        setReadWeights(config.readWeights || {});
         setNeonProjectId((config.metadata?.neonProjectId as string) || '');
         setSupabaseId((config.metadata?.supabaseId as string) || '');
         setMongodbGroupId((config.metadata?.groupId as string) || '');
@@ -2811,6 +2835,48 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </Button>
                             </div>
 
+                            <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4 mb-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <ShieldAlert className="w-4 h-4 text-[var(--primary)]" />
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Auto-Failover Settings</span>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        checked={failoverEnabled}
+                                        onChange={(e) => setFailoverEnabled(e.target.checked)}
+                                        className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                    />
+                                </div>
+                                {failoverEnabled && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[8px] font-bold uppercase tracking-wider">Failure Threshold (Retries)</Label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="10"
+                                                value={failoverThreshold}
+                                                onChange={(e) => setFailoverThreshold(parseInt(e.target.value))}
+                                                className="w-full h-8 bg-black/20 border border-[var(--border)] rounded px-2 text-[10px] font-mono"
+                                            />
+                                        </div>
+                                        <div className="flex items-center justify-between p-2 rounded bg-black/20 border border-[var(--border)]">
+                                            <div className="space-y-0.5">
+                                                <Label className="text-[8px] font-bold uppercase tracking-wider">Auto-Switch Secrets</Label>
+                                                <p className="text-[7px] font-bold text-[var(--muted-foreground)] uppercase">Update primary connection on failover</p>
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                checked={autoSwitchSecrets}
+                                                onChange={(e) => setAutoSwitchSecrets(e.target.checked)}
+                                                className="w-3.5 h-3.5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Region</Label>
@@ -2854,52 +2920,74 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </div>
                                 ) : (
                                     (isManagingReplicas?.metadata?.replicas as Array<{id: string, name: string, status: string, region: string, tier: string}>).map((r, i) => (
-                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between">
-                                            <div className="space-y-1">
+                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={cn(
+                                                            "text-[8px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                            r.status === 'DONE' || r.status === 'active' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--info)]/10 text-[var(--info)] animate-pulse"
+                                                        )}>
+                                                            {r.status === 'DONE' || r.status === 'active' ? 'ACTIVE' : 'PROVISIONING'}
+                                                        </span>
+                                                        <span className="text-[8px] font-mono font-bold">{r.name}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.region}</span>
+                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.tier}</span>
+                                                    </div>
+                                                </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className={cn(
-                                                        "text-[8px] font-bold uppercase px-1.5 py-0.5 rounded",
-                                                        r.status === 'DONE' || r.status === 'active' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--info)]/10 text-[var(--info)] animate-pulse"
-                                                    )}>
-                                                        {r.status === 'DONE' || r.status === 'active' ? 'ACTIVE' : 'PROVISIONING'}
-                                                    </span>
-                                                    <span className="text-[8px] font-mono font-bold">{r.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.region}</span>
-                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.tier}</span>
+                                                    {(r.status === 'DONE' || r.status === 'active') && (
+                                                        <>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => isManagingReplicas && promoteReadReplica(projectId, isManagingReplicas.id, r.id)}
+                                                                className="h-7 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20"
+                                                            >
+                                                                Promote to Primary
+                                                            </Button>
+                                                            <div className="flex items-center gap-1 text-[var(--success)]">
+                                                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                                                <span className="text-[8px] font-bold uppercase">Online</span>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => {
+                                                            if (confirm('Are you sure you want to delete this read replica? The GCP resource will be destroyed.')) {
+                                                                if (isManagingReplicas) deleteReadReplica(projectId, isManagingReplicas.id, r.id);
+                                                            }
+                                                        }}
+                                                        className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error)]/10"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </Button>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                {(r.status === 'DONE' || r.status === 'active') && (
-                                                    <>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => isManagingReplicas && promoteReadReplica(projectId, isManagingReplicas.id, r.id)}
-                                                            className="h-7 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20"
-                                                        >
-                                                            Promote to Primary
-                                                        </Button>
-                                                        <div className="flex items-center gap-1 text-[var(--success)]">
-                                                            <CheckCircle2 className="w-3.5 h-3.5" />
-                                                            <span className="text-[8px] font-bold uppercase">Online</span>
-                                                        </div>
-                                                    </>
-                                                )}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => {
-                                                        if (confirm('Are you sure you want to delete this read replica? The GCP resource will be destroyed.')) {
-                                                            if (isManagingReplicas) deleteReadReplica(projectId, isManagingReplicas.id, r.id);
-                                                        }
-                                                    }}
-                                                    className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error)]/10"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </Button>
-                                            </div>
+                                            {(r.status === 'DONE' || r.status === 'active') && (
+                                                <div className="flex items-center justify-between gap-4 pt-2 border-t border-[var(--border)]">
+                                                    <div className="flex items-center gap-2">
+                                                        <TrendingUp className="w-3 h-3 text-[var(--muted-foreground)]" />
+                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Traffic Weight</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 flex-1 max-w-[200px]">
+                                                        <input
+                                                            type="range"
+                                                            min="0"
+                                                            max="100"
+                                                            step="10"
+                                                            value={readWeights[r.id] || 10}
+                                                            onChange={(e) => setReadWeights(prev => ({ ...prev, [r.id]: parseInt(e.target.value) }))}
+                                                            className="flex-1 h-1 accent-[var(--primary)] bg-[var(--muted)]/20 rounded-full"
+                                                        />
+                                                        <span className="text-[8px] font-mono font-bold w-6">{readWeights[r.id] || 10}%</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     ))
                                 )}

@@ -202,9 +202,29 @@ export async function getEnvVarsForDeployment(
                 const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
                 const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
 
-                // Health-Aware Steering: Sort by latency and pick the best one, or pick a random one from the healthy set
-                // For deployment-time injection, picking the lowest-latency one is often best
-                const selectedReplica = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0))[0];
+                // Phase 108: Weighted Traffic Steering
+                const weights = (storage.readWeights as Record<string, number>) || {};
+                let selectedReplica;
+
+                if (Object.keys(weights).length > 0) {
+                    // Use weighted selection
+                    const totalWeight = healthyReplicas.reduce((sum, r) => sum + (weights[r.id] || 10), 0);
+                    let random = Math.random() * totalWeight;
+
+                    for (const r of healthyReplicas) {
+                        const weight = weights[r.id] || 10;
+                        if (random <= weight) {
+                            selectedReplica = r;
+                            break;
+                        }
+                        random -= weight;
+                    }
+                }
+
+                // Fallback to Health-Aware Steering: pick the best one (lowest latency)
+                if (!selectedReplica) {
+                    selectedReplica = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0))[0];
+                }
 
                 const replicaConn = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
                 const readOnlyKey = `${envKey}_READONLY`;

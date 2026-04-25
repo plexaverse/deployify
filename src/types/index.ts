@@ -431,6 +431,13 @@ export interface StorageAlertSettings {
     emailNotifications?: boolean;
 }
 
+export interface StorageFailoverSettings {
+    enabled: boolean;
+    promotionThresholdMs?: number; // Latency threshold to trigger failover
+    maxRetries?: number;
+    autoSwitchSecrets?: boolean; // Whether to automatically update connection secrets
+}
+
 export interface StorageBranchingSettings {
     enabled: boolean;
     template?: string; // e.g., "db_{branch}" or "preview_{pr}"
@@ -477,6 +484,8 @@ export interface StorageConfig {
     lastAlertedAt?: Date;
     lastError?: string;
     alertSettings?: StorageAlertSettings;
+    failoverSettings?: StorageFailoverSettings;
+    readWeights?: Record<string, number>; // replicaId -> weight (0-100)
     branchingSettings?: StorageBranchingSettings;
     autoScalingSettings?: StorageAutoScalingSettings;
     autoMigration?: boolean;
