@@ -674,7 +674,25 @@ Legacy and custom support with production-grade security:
 - [x] Enhance replica synchronization logic to handle promotions and deletions.
 - [x] Update UI with region selection and deletion controls in the Replica Management modal.
 
+### Phase 105: CLI Parity & Advanced Fleet Governance (COMPLETED)
+- [x] Implement Read Replica management in CLI (`storage replicas list/create/delete/promote`).
+- [x] Add CLI support for Secret Rotation (`storage rotate <id>`).
+- [x] Implement Workspace-Wide Remediation and Compliance reporting in CLI (`infrastructure compliance/remediate`).
+
+### Phase 106: Intelligent Traffic Distribution & Multi-Replica Steering (COMPLETED)
+- [x] Implement Round-Robin multi-replica selection in `src/lib/db.ts`.
+- [x] Update Data Lab Proxy to distribute queries across all active replicas.
+- [ ] Implement health-aware routing (integrating latency heartbeats).
+
+### Phase 107: Cross-Tier Portability & Regional Alignment
+- [ ] Implement "Upgrade to Connector" utility in CLI for environment variables.
+- [ ] Launch "Regional Auto-Alignment" orchestration for Cloud SQL movement.
+
 ## Progress Updates
+
+### 2027-06-14: Initiating CLI Maturity & Fleet Governance
+- Started Phase 105: CLI Parity & Advanced Fleet Governance.
+- Planning intelligent traffic steering for multi-replica environments.
 
 ### 2027-06-13: Cross-Region Resilience & Advanced Replica Lifecycle
 - Completed Phase 104: Cross-Region Resilience & Advanced Replica Lifecycle.

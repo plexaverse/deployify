@@ -194,12 +194,17 @@ export async function getEnvVarsForDeployment(
                 if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
             }
 
-            // Handle Read Replicas (Traffic Steering)
-            const activeReplica = (storage.metadata?.replicas as Array<{ name: string, region: string, status: string }>)?.find(r => r.status === 'active');
-            if (activeReplica && storage.type.includes('cloud-sql')) {
+            // Handle Read Replicas (Intelligent Traffic Steering)
+            const activeReplicas = (storage.metadata?.replicas as Array<{ name: string, region: string, status: string }>)?.filter(r => r.status === 'active' || r.status === 'DONE');
+            if (activeReplicas && activeReplicas.length > 0 && storage.type.includes('cloud-sql')) {
                 const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
                 const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
-                const replicaConn = getReplicaConnectionString(activeReplica.name, activeReplica.region, dbType);
+
+                // Distribute load across replicas by picking one randomly during deployment generation
+                // This ensures that across multiple service revisions, traffic is spread across the fleet.
+                const selectedReplica = activeReplicas[Math.floor(Math.random() * activeReplicas.length)];
+
+                const replicaConn = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
                 const readOnlyKey = `${envKey}_READONLY`;
 
                 runtimeEnvVars[readOnlyKey] = replicaConn;

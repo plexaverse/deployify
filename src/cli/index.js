@@ -52,6 +52,9 @@ function main() {
         case 'storage':
             handleStorage(args).catch(err => console.error('Storage command failed:', err.message));
             break;
+        case 'infrastructure':
+            handleInfrastructure(args).catch(err => console.error('Infrastructure command failed:', err.message));
+            break;
         case 'help':
         case '--help':
         case '-h':
@@ -72,12 +75,13 @@ Usage:
   deployify <command> [options]
 
 Commands:
-  login     Authenticate with your Deployify instance
-  link      Link the current directory to a Deployify project
-  deploy    Deploy the current directory (must be a git repo) to Deployify
-  status    Check the status of the latest deployment
-  storage   Manage project database connectors
-  help      Show this help message
+  login           Authenticate with your Deployify instance
+  link            Link the current directory to a Deployify project
+  deploy          Deploy the current directory (must be a git repo) to Deployify
+  status          Check the status of the latest deployment
+  storage         Manage project database connectors
+  infrastructure  Manage fleet-wide infrastructure and compliance
+  help            Show this help message
 `);
 }
 
@@ -455,11 +459,30 @@ Subcommands:
   sync <storage_id>                  Sync provisioning status
   provision <type> <name>            Provision a new storage instance
   branch <storage_id> <identifier>   Provision a storage branch (PR # or branch name)
+  rotate <storage_id> [conn_str]     Rotate connector credentials
   tunnel <storage_id>                Create a secure local tunnel to your database
   import <storage_id> <uri>          Import data from GCS (SQL/CSV/RDB)
   export <storage_id> <uri>          Export data to GCS
   backups <action> <storage_id>      Manage database backups
   migrations <action> <storage_id>   Manage database migrations
+  replicas <action> <storage_id>     Manage Cloud SQL read replicas
+`);
+        return;
+    }
+
+    if (subcommand === 'replicas' && (action === '--help' || action === '-h')) {
+        console.log(`
+Usage: deployify storage replicas <action> <storage_id> [options]
+
+Actions:
+  list <storage_id>                  List read replicas for a connector
+  create <storage_id>                Create a new read replica
+  delete <storage_id> <replica_id>   Delete a read replica
+  promote <storage_id> <replica_id>  Promote replica to standalone primary
+
+Options:
+  --region <region>                  Target region for replica
+  --tier <tier>                      Machine tier for replica
 `);
         return;
     }
@@ -506,7 +529,26 @@ Actions:
         throw new Error('Project not linked. Run: deployify link');
     }
 
-    if (!subcommand || subcommand === 'list') {
+    if (subcommand === 'rotate') {
+        const storageId = args[2];
+        const connectionString = args[3];
+        if (!storageId) {
+            throw new Error('Storage ID required: deployify storage rotate <storage_id> [new_connection_string]');
+        }
+
+        console.log(`Rotating credentials for ${storageId}...`);
+        const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/rotate`, token, {
+            method: 'POST',
+            body: { connectionString }
+        });
+
+        if (data.success) {
+            console.log('✅ Credentials rotated successfully!');
+            console.log(`Last Rotated: ${new Date(data.lastRotatedAt).toLocaleString()}`);
+        } else {
+            console.log(`❌ Rotation failed: ${data.error || 'Unknown error'}`);
+        }
+    } else if (!subcommand || subcommand === 'list') {
         const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage`, token);
         if (data.storageConfigs && data.storageConfigs.length > 0) {
             console.log(`\nStorage Connectors for ${projectId}:`);
@@ -920,6 +962,84 @@ Actions:
             console.log('  deployify storage migrations status <storage_id> <operation_name>');
             console.log('  deployify storage migrations view <storage_id> <migration_name>');
         }
+    } else if (subcommand === 'replicas') {
+        const storageId = args[3];
+        if (!action || !storageId) {
+            console.log(`Usage: deployify storage replicas <list|create|delete|promote> <storage_id> [options]`);
+            return;
+        }
+
+        if (action === 'list') {
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage`, token);
+            const config = data.storageConfigs.find(s => s.id === storageId);
+            if (!config) throw new Error('Storage connector not found');
+
+            const replicas = config.metadata?.replicas || [];
+            if (replicas.length > 0) {
+                console.log(`\nRead Replicas for ${config.name}:`);
+                console.log('--------------------------------------------------');
+                replicas.forEach(r => {
+                    const status = r.status === 'active' || r.status === 'DONE' ? '✅ ACTIVE' : '⏳ ' + r.status.toUpperCase();
+                    console.log(`ID:      ${r.id}`);
+                    console.log(`Name:    ${r.name}`);
+                    console.log(`Region:  ${r.region}`);
+                    console.log(`Tier:    ${r.tier}`);
+                    console.log(`Status:  ${status}`);
+                    console.log('--------------------------------------------------');
+                });
+            } else {
+                console.log('No read replicas found for this connector.');
+            }
+        } else if (action === 'create') {
+            const regionIdx = args.indexOf('--region');
+            const region = regionIdx !== -1 ? args[regionIdx + 1] : undefined;
+            const tierIdx = args.indexOf('--tier');
+            const tier = tierIdx !== -1 ? args[tierIdx + 1] : undefined;
+
+            console.log(`Triggering read replica creation for ${storageId}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/replica`, token, {
+                method: 'POST',
+                body: { region, tier }
+            });
+
+            if (data.success) {
+                console.log('✅ Read replica creation started!');
+                console.log(`Replica ID: ${data.replica.id}`);
+                console.log(`Status:     PROVISIONING`);
+            } else {
+                console.log(`❌ Failed to create replica: ${data.error || 'Unknown error'}`);
+            }
+        } else if (action === 'delete') {
+            const replicaId = args[4];
+            if (!replicaId) throw new Error('Replica ID required: deployify storage replicas delete <storage_id> <replica_id>');
+
+            console.log(`Deleting read replica ${replicaId} from ${storageId}...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/replica?replicaId=${replicaId}`, token, {
+                method: 'DELETE'
+            });
+
+            if (data.success) {
+                console.log('✅ Read replica deletion initiated successfully.');
+            } else {
+                console.log(`❌ Failed to delete replica: ${data.error || 'Unknown error'}`);
+            }
+        } else if (action === 'promote') {
+            const replicaId = args[4];
+            if (!replicaId) throw new Error('Replica ID required: deployify storage replicas promote <storage_id> <replica_id>');
+
+            console.log(`Promoting replica ${replicaId} to standalone primary...`);
+            const data = await fetchJson(`${instanceUrl}/api/projects/${projectId}/storage/${storageId}/replica/promote`, token, {
+                method: 'POST',
+                body: { replicaId }
+            });
+
+            if (data.success) {
+                console.log('✅ Replica promotion started!');
+                console.log(`Operation: ${data.operationName}`);
+            } else {
+                console.log(`❌ Failed to promote replica: ${data.error || 'Unknown error'}`);
+            }
+        }
     } else {
         console.log(`Unknown storage subcommand: ${subcommand}`);
         console.log('Usage:');
@@ -1008,6 +1128,95 @@ function isAheadOfRemote(branch) {
     } catch {
         // If upstream not configured or error, assume false or handle elsewhere
         return false;
+    }
+}
+
+async function handleInfrastructure(args) {
+    const subcommand = args[1];
+
+    if (subcommand === '--help' || subcommand === '-h') {
+        console.log(`
+Usage: deployify infrastructure <subcommand> [options]
+
+Subcommands:
+  compliance [--team team_id]         Get fleet-wide compliance report
+  remediate <project> <storage> <risk> Bulk remediate security risks
+`);
+        return;
+    }
+
+    if (!fs.existsSync(CONFIG_PATH)) {
+        throw new Error('You must login first. Run: deployify login');
+    }
+
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    const { instanceUrl, token } = config;
+
+    if (subcommand === 'compliance') {
+        const teamIdx = args.indexOf('--team');
+        const teamId = teamIdx !== -1 ? args[teamIdx + 1] : undefined;
+
+        console.log('\n📊 Fetching Workspace Compliance Report...');
+        const url = `${instanceUrl}/api/infrastructure/compliance-report${teamId ? `?teamId=${teamId}` : ''}`;
+        const data = await fetchJson(url, token);
+
+        if (data.success) {
+            console.log(`\nCompliance Summary (as of ${new Date(data.timestamp).toLocaleString()}):`);
+            console.log('--------------------------------------------------');
+            console.log(`Avg Security Score: ${data.summary.averageWorkspaceScore}%`);
+            console.log(`Total Connectors:   ${data.summary.totalConnectors}`);
+            console.log(`Total Risks:        ${data.summary.totalRisks}`);
+            console.log(`Total Projects:     ${data.summary.totalProjects}`);
+            console.log('--------------------------------------------------');
+
+            data.report.forEach(p => {
+                if (p.totalRisks > 0) {
+                    console.log(`\nProject: ${p.projectName} (${p.projectId})`);
+                    console.log(`Score:   ${p.avgScore}%`);
+                    p.connectors.forEach(c => {
+                        if (c.risks.length > 0) {
+                            console.log(`  - ${c.connectorName} (${c.type}): ${c.risks.length} risks [${c.grade}]`);
+                            c.risks.forEach(r => console.log(`    ⚠️  [${r.level.toUpperCase()}] ${r.title}`));
+                        }
+                    });
+                }
+            });
+            console.log('\n✅ Compliance report complete.');
+        } else {
+            console.log(`❌ Failed to fetch report: ${data.error || 'Unknown error'}`);
+        }
+    } else if (subcommand === 'remediate') {
+        const projectId = args[2];
+        const storageId = args[3];
+        const riskId = args[4];
+
+        if (!projectId || !storageId || !riskId) {
+            throw new Error('Usage: deployify infrastructure remediate <project_id> <storage_id> <risk_id>');
+        }
+
+        console.log(`Remediating risk '${riskId}' for ${storageId} in ${projectId}...`);
+        const data = await fetchJson(`${instanceUrl}/api/infrastructure/remediate`, token, {
+            method: 'POST',
+            body: {
+                risks: [{ projectId, storageId, riskId }]
+            }
+        });
+
+        if (data.success) {
+            const result = data.results[0];
+            if (result.success) {
+                console.log(`✅ Remediation successful: ${result.message}`);
+            } else {
+                console.log(`❌ Remediation failed: ${result.error}`);
+            }
+        } else {
+            console.log(`❌ Bulk remediation failed: ${data.error || 'Unknown error'}`);
+        }
+    } else {
+        console.log(`Unknown infrastructure subcommand: ${subcommand}`);
+        console.log('Usage:');
+        console.log('  deployify infrastructure compliance [--team <id>]');
+        console.log('  deployify infrastructure remediate <project_id> <storage_id> <risk_id>');
     }
 }
 
