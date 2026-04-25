@@ -202,9 +202,36 @@ export async function getEnvVarsForDeployment(
                 const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
                 const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
 
-                // Health-Aware Steering: Sort by latency and pick the best one, or pick a random one from the healthy set
-                // For deployment-time injection, picking the lowest-latency one is often best
-                const selectedReplica = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0))[0];
+                // Phase 108: Weighted Traffic Steering
+                let selectedReplica;
+                const weights = storage.readWeights || {};
+
+                // Filter healthy replicas that have a defined weight > 0
+                const weightedHealthy = healthyReplicas.filter(r => {
+                    const rId = (r as unknown as { id: string }).id;
+                    return (weights[rId] || 0) > 0;
+                });
+
+                if (weightedHealthy.length > 0) {
+                    const totalWeight = weightedHealthy.reduce((acc, r) => {
+                        const rId = (r as unknown as { id: string }).id;
+                        return acc + (weights[rId] || 0);
+                    }, 0);
+                    let random = Math.random() * totalWeight;
+                    for (const r of weightedHealthy) {
+                        const rId = (r as unknown as { id: string }).id;
+                        random -= (weights[rId] || 0);
+                        if (random <= 0) {
+                            selectedReplica = r;
+                            break;
+                        }
+                    }
+                }
+
+                // Fallback to Health-Aware Steering (Lowest Latency) if no weights are defined or applicable
+                if (!selectedReplica) {
+                    selectedReplica = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0))[0];
+                }
 
                 const replicaConn = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
                 const readOnlyKey = `${envKey}_READONLY`;

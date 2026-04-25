@@ -152,6 +152,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isLoadingGuardrails, setIsLoadingGuardrails] = useState(false);
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
+    const [isManagingFailover, setIsManagingFailover] = useState<StorageConfig | null>(null);
+    const [replicaWeights, setReplicaWeights] = useState<Record<string, number>>({});
+    const [failoverEnabled, setFailoverEnabled] = useState(false);
+    const [failoverThreshold, setFailoverThreshold] = useState(3);
+    const [autoPromote, setAutoPromote] = useState(false);
     const [replicaRegion, setReplicaRegion] = useState('');
     const [replicaTier, setReplicaTier] = useState('db-f1-micro');
     const [isShowingGuide, setIsShowingGuide] = useState<StorageConfig | null>(null);
@@ -417,6 +422,38 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setPlanetscaleOrg('');
         setPlanetscaleDb('');
         setNeonProjectId('');
+    };
+
+    const handleUpdateFailover = async () => {
+        if (!isManagingFailover) return;
+        setIsSubmitting(true);
+        try {
+            const success = await updateStorageConfig(projectId, isManagingFailover.id, {
+                failoverSettings: {
+                    enabled: failoverEnabled,
+                    heartbeatThreshold: failoverThreshold,
+                    autoPromote
+                }
+            });
+            if (success) setIsManagingFailover(null);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleUpdateWeights = async () => {
+        if (!isManagingReplicas) return;
+        setIsSubmitting(true);
+        try {
+            const success = await updateStorageConfig(projectId, isManagingReplicas.id, {
+                readWeights: replicaWeights
+            });
+            if (success) {
+                toast.success('Replica weights updated');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const startEditing = (config: StorageConfig) => {
@@ -1736,11 +1773,33 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => setIsManagingReplicas(config)}
+                                            onClick={() => {
+                                                setIsManagingReplicas(config);
+                                                setReplicaWeights(config.readWeights || {});
+                                            }}
                                             className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
-                                            title="Manage Read Replicas"
+                                            title="Traffic Engineering & Replicas"
                                         >
                                             <Copy className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                    {config.status === 'active' && !!config.metadata?.provisioned && config.type.includes('cloud-sql') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsManagingFailover(config);
+                                                setFailoverEnabled(config.failoverSettings?.enabled || false);
+                                                setFailoverThreshold(config.failoverSettings?.heartbeatThreshold || 3);
+                                                setAutoPromote(config.failoverSettings?.autoPromote || false);
+                                            }}
+                                            className={cn(
+                                                "h-8 w-8",
+                                                config.failoverSettings?.enabled ? "text-[var(--warning)] hover:bg-[var(--warning)]/10" : "text-[var(--muted-foreground)] hover:text-[var(--warning)] hover:bg-[var(--warning)]/10"
+                                            )}
+                                            title="Disaster Recovery & Failover"
+                                        >
+                                            <ShieldAlert className="w-4 h-4" />
                                         </Button>
                                     )}
                                     {config.status === 'active' && !!config.metadata?.provisioned && (
@@ -2790,7 +2849,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     setReplicaRegion('');
                     setReplicaTier('db-f1-micro');
                 }}
-                title="Read Replica Management"
+                title="Traffic Engineering & Read Replicas"
                 headerLabel="Scaling Intelligence"
                 icon={<Copy className="w-5 h-5 text-[var(--primary)]" />}
                 description={
@@ -2839,14 +2898,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </NativeSelect>
                                 </div>
                             </div>
-
-                            <p className="text-[10px] mt-2">
-                                Read Replicas offload query traffic from your primary instance. They are ideal for read-heavy workloads and provide high-availability for read operations.
-                            </p>
                         </div>
 
                         <div className="space-y-3">
-                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Active Replicas</Label>
+                            <div className="flex items-center justify-between ml-1">
+                                <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Active Replicas & Weight Distribution</Label>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleUpdateWeights}
+                                    disabled={isSubmitting}
+                                    className="h-6 px-2 text-[8px] font-bold uppercase text-[var(--primary)]"
+                                >
+                                    Update Weights
+                                </Button>
+                            </div>
                             <div className="max-h-60 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                                 {!(isManagingReplicas?.metadata?.replicas as unknown[])?.length ? (
                                     <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
@@ -2854,52 +2920,66 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </div>
                                 ) : (
                                     (isManagingReplicas?.metadata?.replicas as Array<{id: string, name: string, status: string, region: string, tier: string}>).map((r, i) => (
-                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between">
-                                            <div className="space-y-1">
+                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={cn(
+                                                            "text-[8px] font-bold uppercase px-1.5 py-0.5 rounded",
+                                                            r.status === 'DONE' || r.status === 'active' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--info)]/10 text-[var(--info)] animate-pulse"
+                                                        )}>
+                                                            {r.status === 'DONE' || r.status === 'active' ? 'ACTIVE' : 'PROVISIONING'}
+                                                        </span>
+                                                        <span className="text-[8px] font-mono font-bold">{r.name}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.region}</span>
+                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.tier}</span>
+                                                    </div>
+                                                </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className={cn(
-                                                        "text-[8px] font-bold uppercase px-1.5 py-0.5 rounded",
-                                                        r.status === 'DONE' || r.status === 'active' ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--info)]/10 text-[var(--info)] animate-pulse"
-                                                    )}>
-                                                        {r.status === 'DONE' || r.status === 'active' ? 'ACTIVE' : 'PROVISIONING'}
-                                                    </span>
-                                                    <span className="text-[8px] font-mono font-bold">{r.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.region}</span>
-                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{r.tier}</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                {(r.status === 'DONE' || r.status === 'active') && (
-                                                    <>
+                                                    {(r.status === 'DONE' || r.status === 'active') && (
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() => isManagingReplicas && promoteReadReplica(projectId, isManagingReplicas.id, r.id)}
                                                             className="h-7 px-2 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10 border border-[var(--primary)]/20"
                                                         >
-                                                            Promote to Primary
+                                                            Promote
                                                         </Button>
-                                                        <div className="flex items-center gap-1 text-[var(--success)]">
-                                                            <CheckCircle2 className="w-3.5 h-3.5" />
-                                                            <span className="text-[8px] font-bold uppercase">Online</span>
-                                                        </div>
-                                                    </>
-                                                )}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => {
-                                                        if (confirm('Are you sure you want to delete this read replica? The GCP resource will be destroyed.')) {
-                                                            if (isManagingReplicas) deleteReadReplica(projectId, isManagingReplicas.id, r.id);
-                                                        }
-                                                    }}
-                                                    className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error)]/10"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => {
+                                                            if (confirm('Are you sure you want to delete this read replica? The GCP resource will be destroyed.')) {
+                                                                if (isManagingReplicas) deleteReadReplica(projectId, isManagingReplicas.id, r.id);
+                                                            }
+                                                        }}
+                                                        className="h-7 w-7 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error)]/10"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                </div>
                                             </div>
+
+                                            {(r.status === 'DONE' || r.status === 'active') && (
+                                                <div className="space-y-1.5 pt-2 border-t border-[var(--border)]">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Traffic Weight</span>
+                                                        <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{replicaWeights[r.id] ?? 100}%</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max="100"
+                                                        step="10"
+                                                        value={replicaWeights[r.id] ?? 100}
+                                                        onChange={(e) => setReplicaWeights(prev => ({ ...prev, [r.id]: parseInt(e.target.value) }))}
+                                                        className="w-full accent-[var(--primary)] h-1"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     ))
                                 )}
@@ -2909,13 +2989,84 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         <div className="p-3 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl flex items-start gap-2">
                             <Zap className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
                             <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
-                                NOTE: Replicas use the same machine tier as the primary instance by default. You will be billed for the additional resource usage in GCP.
+                                Weighted traffic steering allows you to distribute read-only traffic across replicas. If weights sum to 0, or a replica has 0 weight, it will only be used if no other healthy replicas are available.
                             </p>
                         </div>
                     </div>
                 }
                 showConfirm={false}
                 showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingFailover}
+                onClose={() => setIsManagingFailover(null)}
+                onConfirm={handleUpdateFailover}
+                title="Disaster Recovery & Failover"
+                headerLabel="Reliability Intelligence"
+                icon={<ShieldAlert className="w-5 h-5 text-[var(--warning)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                            <div className="space-y-0.5">
+                                <Label className="text-[10px] font-bold">Automated DR Failover</Label>
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Monitor primary health and auto-promote replica</p>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={failoverEnabled}
+                                onChange={(e) => setFailoverEnabled(e.target.checked)}
+                                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                            />
+                        </div>
+
+                        <div className={cn("space-y-6 transition-opacity", !failoverEnabled && "opacity-40 pointer-events-none")}>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Heartbeat Failure Threshold</Label>
+                                    <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{failoverThreshold} CYCLES</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="2"
+                                    max="10"
+                                    step="1"
+                                    value={failoverThreshold}
+                                    onChange={(e) => setFailoverThreshold(parseInt(e.target.value))}
+                                    className="w-full accent-[var(--primary)]"
+                                />
+                                <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                                    FAILOVER TRIGGERED AFTER {failoverThreshold} CONSECUTIVE UNHEALTHY HEARTBEATS.
+                                </p>
+                            </div>
+
+                            <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                <div className="space-y-0.5">
+                                    <Label className="text-[10px] font-bold">Auto-Promotion</Label>
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Immediately promote best healthy replica on failure</p>
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    checked={autoPromote}
+                                    onChange={(e) => setAutoPromote(e.target.checked)}
+                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-[var(--warning)]/5 border border-[var(--warning)]/20 rounded-xl flex items-start gap-3">
+                            <Activity className="w-4 h-4 text-[var(--warning)] shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--warning)]">Failover Mechanics</p>
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                    When failover is triggered, the lowest-latency healthy replica is promoted to a standalone primary. Deployify will automatically update Secret Manager and re-inject credentials into active services.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+                confirmText="Save Failover Settings"
+                loading={isSubmitting}
             />
         </Card>
     );

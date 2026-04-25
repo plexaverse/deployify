@@ -445,6 +445,12 @@ export interface StorageAutoScalingSettings {
     targetMemoryUtilization?: number;
 }
 
+export interface FailoverSettings {
+    enabled: boolean;
+    heartbeatThreshold: number; // Number of failed heartbeats before failover
+    autoPromote: boolean;
+}
+
 export interface ResourceDormancy {
     isDormant: boolean;
     avgCpuUtilization: number;
@@ -479,12 +485,14 @@ export interface StorageConfig {
     alertSettings?: StorageAlertSettings;
     branchingSettings?: StorageBranchingSettings;
     autoScalingSettings?: StorageAutoScalingSettings;
+    failoverSettings?: FailoverSettings;
     autoMigration?: boolean;
     migrationCommand?: string;
     rollbackCommand?: string;
     autoAlign?: boolean;
     ssl?: boolean;
     activeAlerts?: string[];
+    readWeights?: Record<string, number>; // replicaId -> weight (0-100)
     dormancy?: ResourceDormancy;
     workloadProfile?: WorkloadProfile;
     connectionSaturation?: number;

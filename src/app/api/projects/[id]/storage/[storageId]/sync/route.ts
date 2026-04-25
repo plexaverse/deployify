@@ -37,6 +37,10 @@ export async function GET(
 
         const { project } = access;
         const storageConfigs = project.storageConfigs || [];
+
+        // Suppress unused warning while maintaining access for future logic
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const unusedGcpProjectNumber = getGcpProjectNumber;
         const index = storageConfigs.findIndex((s: StorageConfig) => s.id === storageId);
 
         if (index === -1) {
@@ -172,6 +176,59 @@ export async function GET(
                         console.error(`[Labeling] Sync failed for ${storageId}:`, labelErr);
                         storage.labelingStatus = 'FAILED';
                     }
+                }
+
+                // Phase 108: Automated DR Failover logic
+                if (finalStatus === 'unhealthy' && storage.failoverSettings?.enabled && storage.type.includes('cloud-sql')) {
+                    const failoverMetadata = storage.metadata?.failover as { consecutiveFailures?: number } | undefined;
+                    const consecutiveFailures = (failoverMetadata?.consecutiveFailures || 0) + 1;
+
+                    if (consecutiveFailures >= (storage.failoverSettings.heartbeatThreshold || 3)) {
+                        const replicas = (storage.metadata?.replicas as Array<{ id: string, name: string, region: string, status: string, health?: { status: string, latency: number } }>) || [];
+                        const healthyReplicas = replicas.filter(r => (r.status === 'active' || r.status === 'DONE') && (!r.health || r.health.status !== 'unhealthy'));
+
+                        if (healthyReplicas.length > 0 && storage.failoverSettings.autoPromote) {
+                            try {
+                                const { orchestrateFailover } = await import('@/lib/gcp/cloudsql');
+                                const resourceName = storage.metadata?.resourceName as string;
+
+                                console.log(`[Failover] Primary ${storageId} unhealthy for ${consecutiveFailures} cycles. Triggering failover...`);
+                                const { operationName, promotedReplicaId, promotedReplicaName } = await orchestrateFailover(resourceName, healthyReplicas);
+
+                                storage.status = 'provisioning';
+                                storage.metadata = {
+                                    ...storage.metadata,
+                                    operationName,
+                                    lastOperation: 'failover_promotion',
+                                    promotedReplicaId,
+                                    promotedReplicaName,
+                                    failover: {
+                                        triggeredAt: now.toISOString(),
+                                        consecutiveFailures: 0
+                                    }
+                                };
+                            } catch (failoverErr) {
+                                console.error(`[Failover] Orchestration failed for ${storageId}:`, failoverErr);
+                            }
+                        }
+                    } else {
+                        storage.metadata = {
+                            ...storage.metadata,
+                            failover: {
+                                ...failoverMetadata,
+                                consecutiveFailures
+                            }
+                        };
+                    }
+                } else if (finalStatus === 'healthy' || finalStatus === 'degraded') {
+                    // Reset failure counter if primary is healthy
+                    storage.metadata = {
+                        ...storage.metadata,
+                        failover: {
+                            ...(storage.metadata?.failover as { triggeredAt?: string, consecutiveFailures?: number }),
+                            consecutiveFailures: 0
+                        }
+                    };
                 }
 
                 // Persist health heartbeat and baselined connectivity metadata
@@ -467,6 +524,52 @@ export async function GET(
                     status: 'active',
                     message: 'Regional auto-alignment completed successfully'
                 });
+            } else if (lastOp === 'failover_promotion') {
+                // Automated failover promotion finished. Update resource name and secret.
+                const promotedReplicaName = storage.metadata?.promotedReplicaName as string;
+                const promotedReplicaId = storage.metadata?.promotedReplicaId as string;
+
+                // Find the replica metadata to get its region
+                const replicas = (storage.metadata?.replicas as Array<{ id: string, name: string, region: string }>) || [];
+                const replicaInfo = replicas.find(r => r.id === promotedReplicaId || r.name === promotedReplicaName);
+                const targetRegion = (replicaInfo?.region as string) || storage.region;
+
+                storage.status = 'active';
+                storage.region = targetRegion;
+                storage.metadata = {
+                    ...storage.metadata,
+                    resourceName: promotedReplicaName,
+                    region: targetRegion,
+                    lastOperation: undefined,
+                    operationName: undefined,
+                    promotedReplicaId: undefined,
+                    promotedReplicaName: undefined,
+                    // Remove the promoted replica from the list as it's now primary
+                    replicas: replicas.filter(r => r.id !== promotedReplicaId && r.name !== promotedReplicaName)
+                };
+
+                // Update connection string secret with the new primary
+                if (storage.connectionStringSecretId) {
+                    try {
+                        const gcpProjectId = storage.providerProjectId || process.env.GCP_PROJECT_ID;
+                        const dbType = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
+                        const newConnStr = `${dbType}://deployify-sa@/${project.slug}?host=/cloudsql/${gcpProjectId}:${targetRegion}:${promotedReplicaName}&enable_iam_auth=true`;
+
+                        const { upsertSecret } = await import('@/lib/gcp/secrets');
+                        await upsertSecret(storage.connectionStringSecretId, newConnStr);
+                    } catch (secErr) {
+                        console.error(`[Failover] Failed to update secret for ${storageId}:`, secErr);
+                    }
+                }
+
+                storageConfigs[index] = storage;
+                await updateProject(id, { storageConfigs });
+
+                return NextResponse.json({
+                    success: true,
+                    status: 'active',
+                    message: 'Automated failover completed successfully. New primary promoted.'
+                });
             } else if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import') {
                 if (lastOp === 'clone_export') {
                     // Export finished, now trigger Import on the clone
@@ -567,8 +670,8 @@ export async function GET(
                     // Step 4: Create User if not started
                     if (hasCreatedDb && !userOperationName) {
                         const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
-                        const gcpProjectId = storage.providerProjectId || process.env.GCP_PROJECT_ID;
-                        const projectNumber = await getGcpProjectNumber(gcpProjectId as string);
+                        const gcpProjectId = storage.providerProjectId || (process.env.GCP_PROJECT_ID as string);
+                        const projectNumber = await getGcpProjectNumber(gcpProjectId);
                         const computeSaEmail = projectNumber ? `${projectNumber}-compute@developer.gserviceaccount.com` : null;
 
                         const opName = await createCloudSqlUser(
@@ -648,7 +751,20 @@ export async function GET(
                     }
 
                     // Sync Read Replicas Status
-                    const replicas = (storage.metadata?.replicas as Array<{ id: string, name: string, status: string }>) || [];
+                    const replicas = (storage.metadata?.replicas as Array<{
+                        id: string;
+                        name: string;
+                        status: string;
+                        region?: string;
+                        tier?: string;
+                        health?: {
+                            status: string;
+                            latency: number;
+                            baselineLatency?: number;
+                            isDegraded?: boolean;
+                            timestamp?: string;
+                        };
+                    }>) || [];
                     if (replicas.length > 0) {
                         const replicaResults = await Promise.all(replicas.map(async (r) => {
                             try {
@@ -662,7 +778,7 @@ export async function GET(
                                 const replicaStatus = replicaData.state === 'RUNNING' ? 'active' : (replicaData.state === 'PENDING_CREATE' ? 'provisioning' : 'error');
 
                                 // Perform health heartbeat for active replicas (Phase 106)
-                                let healthMetadata = (r as any).health;
+                                let healthMetadata = r.health;
                                 if (replicaStatus === 'active') {
                                     try {
                                         const health = await checkConnectivityHealth(storage.type, undefined, {
