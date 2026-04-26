@@ -116,9 +116,9 @@ export async function deleteInstance(
 export async function getInstance(
     instanceName: string,
     region: string
-): Promise<{ host: string; port: number }> {
+): Promise<{ host?: string; port?: number; state?: string }> {
     if (process.env.MOCK_DB === 'true') {
-        return { host: '127.0.0.1', port: 6379 };
+        return { host: '127.0.0.1', port: 6379, state: 'READY' };
     }
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
@@ -137,6 +137,7 @@ export async function getInstance(
     return {
         host: data.host,
         port: data.port || 6379,
+        state: data.state,
     };
 }
 

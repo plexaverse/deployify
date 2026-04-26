@@ -4,6 +4,7 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDb, Collections } from '@/lib/firebase';
+import { selectReplica, type ReplicaMetadata } from '@/lib/db';
 import type { StorageConfig } from '@/types';
 import { Client as PgClient } from 'pg';
 import mysql from 'mysql2/promise';
@@ -173,15 +174,14 @@ export async function POST(
 
         // 1. Get credentials securely (Smart Routing for Replicas)
         let connectionString = '';
-        const replicas = (storageConfig.metadata?.replicas as Array<{ name: string, region: string, status: string, health?: { status: string, latency: number } }>) || [];
-        const healthyReplicas = replicas.filter(r => (r.status === 'active' || r.status === 'DONE') && (!r.health || r.health.status !== 'unhealthy'));
+        const replicas = (storageConfig.metadata?.replicas as ReplicaMetadata[]) || [];
+        const selectedReplica = selectReplica(replicas, storageConfig.readWeights);
         const isReadOnlyQuery = query !== 'DISCOVER_SCHEMA' && !query.toUpperCase().includes(';') && (query.toUpperCase().startsWith('SELECT') || query.toUpperCase().startsWith('EXPLAIN') || query.toUpperCase().startsWith('WITH'));
 
-        if (healthyReplicas.length > 0 && isReadOnlyQuery && storageConfig.type.includes('cloud-sql')) {
+        if (selectedReplica && isReadOnlyQuery && storageConfig.type.includes('cloud-sql')) {
             const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
             const dbType = storageConfig.type.includes('postgres') ? 'postgres' : 'mysql';
             // Intelligent Traffic Steering: Distribute query load across all healthy replicas picking the best one
-            const selectedReplica = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0))[0];
             connectionString = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
         } else if (storageConfig.connectionStringSecretId) {
             connectionString = await getSecretValue(storageConfig.connectionStringSecretId);

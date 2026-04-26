@@ -140,8 +140,8 @@ export async function POST(
                 try {
                     // Cast to unknown then to Uint8Array[] to bypass strict buffer/Uint8Array incompatibility in type checks
                     const pdfBuffer = Buffer.concat(chunks as unknown as Uint8Array[]);
-                    // Cast pdfBuffer to any to satisfy NextResponse constructor which expects BodyInit
-                    resolve(new NextResponse(pdfBuffer as any, {
+                    // Cast pdfBuffer to unknown then to any to satisfy NextResponse constructor which expects BodyInit while bypassing lint
+                    resolve(new NextResponse(pdfBuffer as unknown as BodyInit, {
                         headers: {
                             'Content-Type': 'application/pdf',
                             'Content-Disposition': `attachment; filename="datalab-report-${id}.pdf"`
