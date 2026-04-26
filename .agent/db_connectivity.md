@@ -3,7 +3,7 @@
 This document tracks the progress of implementing integrated database configuration for Deployify, following the Managed "Connector" model.
 
 ## Strategy: The "Connector" Model (Connectivity Intelligence)
-Deployify formally adopts a **Connectivity-First** architectural strategy. Rather than just hosting databases, Deployify focuses on providing a standardized, secure, and intelligent interface to varied storage layers across three distinct tiers, focusing on **Connectivity** rather than just hosting:
+Deployify formally adopts a **Connectivity-First** architectural strategy. Rather than just hosting databases, Deployify focuses on providing a standardized, secure, and intelligent interface to varied storage layers across three distinct tiers, focusing on **Connectivity Intelligence** and the standardization of the interface to varied databases:
 
 ### 1. GCP-Native Integration (Automatic Provisioning)
 Full lifecycle management for GCP-native storage services, ensuring tight integration with the project's regional infrastructure:
@@ -693,6 +693,18 @@ Legacy and custom support with production-grade security:
 - [x] Implement weighted traffic steering in `src/lib/db.ts` for read-only traffic.
 - [x] Integrate failover triggers into the Storage Sync API based on heartbeat thresholds.
 - [x] Launch UI controls for failover settings and replica weights in the Storage dashboard.
+
+### Phase 109: External Provider Provisioning & Unified Lifecycle Orchestration
+- [ ] Implement Management API integration for Neon and Supabase provisioning.
+- [ ] Orchestrate automated project/database creation during connector setup.
+- [ ] Integrate external provisioning status into the Storage Sync API.
+- [ ] Add "One-Click" provisioning support for Neon and Supabase in the UI.
+
+### Phase 110: Universal Connector Governance & Intelligent Traffic Steering
+- [ ] Implement cross-provider health heartbeats for all managed connectors.
+- [ ] Enhance traffic steering to support weighted distribution for external replicas.
+- [ ] Implement automated IAM-based rotation for external service tokens.
+- [ ] Finalize the "Connectivity-First" architectural maturity audit.
 
 ## Progress Updates
 

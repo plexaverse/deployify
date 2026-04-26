@@ -73,7 +73,8 @@ export async function POST(
 
         const { project } = access;
         const body = await request.json();
-        const { type, name, environment = 'both', connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, provision = false, region } = body;
+        const { type, name, environment = 'both', connectionString, envKey, branchingSettings, autoMigration, migrationCommand, provision = false, region, providerApiKey, dbPassword } = body;
+        let metadata = body.metadata;
 
         // autoSync and secretOnly can be passed at top level or inside metadata
         const autoSync = body.autoSync || metadata?.autoSync || false;
@@ -129,6 +130,15 @@ export async function POST(
                 } else if (type === 'firestore' && resourceName) {
                     provisionResult = await createFirestoreDatabase(resourceName, targetRegion);
                     finalConnectionString = provisionResult.connectionString;
+                } else if (type === 'neon' || type === 'supabase') {
+                    const { provisionExternalConnector } = await import('@/lib/gcp/external-sync');
+                    provisionResult = await provisionExternalConnector(id, name, type, targetRegion, { ...metadata, providerApiKey, dbPassword });
+                    finalConnectionString = provisionResult.connectionString;
+
+                    // Merge external-specific metadata (like neonProjectId or supabaseId)
+                    if (provisionResult.metadata) {
+                        metadata = { ...metadata, ...provisionResult.metadata };
+                    }
                 }
                 operationName = provisionResult?.operationName;
             } catch (error) {
@@ -174,7 +184,13 @@ export async function POST(
         if (autoSync && (type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'neon')) {
             try {
                 const { syncExternalConnector } = await import('@/lib/gcp/external-sync');
-                const syncResult = await syncExternalConnector(id, newStorageConfig);
+                // Temporarily add providerApiKey for sync if provided in request
+                const configForSync = { ...newStorageConfig };
+                if (providerApiKey) {
+                    configForSync.metadata = { ...configForSync.metadata, providerApiKey };
+                }
+
+                const syncResult = await syncExternalConnector(id, configForSync);
                 if (syncResult.success) {
                     newStorageConfig.status = 'active';
                     newStorageConfig.lastSyncedAt = syncResult.lastSyncedAt;

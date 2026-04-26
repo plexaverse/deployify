@@ -231,6 +231,120 @@ export async function syncExternalConnector(
 }
 
 /**
+ * Provision a new external storage resource via Provider API
+ */
+export async function provisionExternalConnector(
+    projectId: string,
+    name: string,
+    type: string,
+    region: string,
+    metadata: Record<string, unknown>
+): Promise<{ operationName: string; connectionString: string; metadata?: Record<string, unknown> }> {
+    const providerApiKey = metadata.providerApiKey as string;
+
+    if (process.env.MOCK_DB === 'true') {
+        const mockId = `mock-${Date.now().toString(36)}`;
+        return {
+            operationName: `external/provision/${type}/${mockId}`,
+            connectionString: type === 'neon'
+                ? `postgresql://user:password@${mockId}.aws.neon.tech/main`
+                : `postgresql://postgres:password@db.${mockId}.supabase.co:5432/postgres`,
+            metadata: {
+                ...(type === 'neon' ? { neonProjectId: mockId } : { supabaseId: mockId }),
+                provisionStatus: 'DONE'
+            }
+        };
+    }
+
+    if (!providerApiKey) {
+        throw new Error(`Provisioning requires a Provider API Key for ${type}`);
+    }
+
+    // Generate a secure random password if not provided
+    const generatePassword = () => {
+        const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
+        let retVal = '';
+        for (let i = 0; i < 16; ++i) {
+            retVal += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        return retVal;
+    };
+
+    if (type === 'neon') {
+        // Neon Project Creation
+        const res = await fetch('https://console.neon.tech/api/v2/projects', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${providerApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project: {
+                    name,
+                    region_id: region || 'aws-us-east-1'
+                }
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error(`Neon Provisioning Error: ${await res.text()}`);
+        }
+
+        const data = await res.json();
+        const neonProjectId = data.project.id;
+
+        // Fetch connection string for main branch
+        const connRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/connection_uri?branch_id=main`, {
+            headers: { 'Authorization': `Bearer ${providerApiKey}` }
+        });
+        const connData = await connRes.json();
+
+        return {
+            operationName: `neon/projects/${neonProjectId}`,
+            connectionString: connData.connection_uri,
+            metadata: {
+                neonProjectId,
+                provisionStatus: 'DONE'
+            }
+        };
+    } else if (type === 'supabase') {
+        // Supabase Project Creation
+        const db_pass = (metadata.dbPassword as string) || generatePassword();
+        const res = await fetch('https://api.supabase.com/v1/projects', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${providerApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name,
+                region: region || 'us-east-1',
+                organization_id: metadata.organizationId || '', // Required for Supabase
+                db_pass
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error(`Supabase Provisioning Error: ${await res.text()}`);
+        }
+
+        const data = await res.json();
+        const supabaseId = data.id;
+
+        return {
+            operationName: `supabase/projects/${supabaseId}`,
+            connectionString: `postgresql://postgres:${db_pass}@db.${supabaseId}.supabase.co:5432/postgres`,
+            metadata: {
+                supabaseId,
+                provisionStatus: 'RUNNING' // Supabase usually takes a minute to provision DB
+            }
+        };
+    }
+
+    throw new Error(`Automated provisioning is not yet supported for ${type}`);
+}
+
+/**
  * Automatically allowlist Deployify egress IPs in the external provider's firewall
  */
 export async function syncExternalFirewall(

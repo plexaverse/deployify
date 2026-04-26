@@ -168,6 +168,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [pitrEnabled, setPitrEnabled] = useState(false);
     const [deletionProtection, setDeletionProtection] = useState(false);
     const [sslRequired, setSslRequired] = useState(false);
+    const [organizationId, setOrganizationId] = useState('');
+    const [dbPassword, setDbPassword] = useState('');
     const [discoveredResources, setDiscoveredResources] = useState<import('@/lib/gcp/discovery').DiscoveredResource[]>([]);
     const [isDiscovering, setIsDiscovering] = useState(false);
     const [isReclaiming, setIsReclaiming] = useState<string | null>(null);
@@ -212,8 +214,13 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setIsSubmitting(true);
         try {
             const metadata: Record<string, unknown> = { provisioned: provision, autoSync };
+            const sensitiveParams: Record<string, string> = {};
+
+            if (autoSync || provision) {
+                if (providerApiKey) sensitiveParams.providerApiKey = providerApiKey;
+            }
+
             if (autoSync) {
-                metadata.providerApiKey = providerApiKey;
                 if (type === 'supabase') metadata.supabaseId = supabaseId;
                 if (type === 'mongodb-atlas') {
                     metadata.groupId = mongodbGroupId;
@@ -225,6 +232,13 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 }
                 if (type === 'neon') {
                     metadata.neonProjectId = neonProjectId;
+                }
+            }
+
+            if (provision) {
+                if (type === 'supabase') {
+                    sensitiveParams.dbPassword = dbPassword;
+                    metadata.organizationId = organizationId;
                 }
             }
 
@@ -252,7 +266,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     deletionProtection: type.includes('cloud-sql') ? deletionProtection : undefined,
                     region: region || undefined // Ensure it persists in metadata for backward compatibility
                 }
-            }, provision ? '' : connectionString, provision);
+            }, provision ? '' : connectionString, provision, sensitiveParams);
 
             if (success) {
                 resetForm();
@@ -915,7 +929,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </optgroup>
                                     <optgroup label="MANAGED EXTERNAL">
                                         {STORAGE_TYPES.filter(t => t.category === 'EXTERNAL').map(t => (
-                                            <option key={t.value} value={t.value} disabled={provision}>{t.label}</option>
+                                            <option key={t.value} value={t.value} disabled={provision && (t.value !== 'neon' && t.value !== 'supabase')}>{t.label}</option>
                                         ))}
                                     </optgroup>
                                     <optgroup label="OTHER">
@@ -1009,7 +1023,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     value={provision ? 'provision' : 'connect'}
                                     onChange={(v) => {
                                         setProvision(v === 'provision');
-                                        if (v === 'provision' && (type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'generic')) {
+                                        if (v === 'provision' && (type !== 'neon' && type !== 'supabase' && (type === 'mongodb-atlas' || type === 'planetscale' || type === 'generic'))) {
                                             setType('cloud-sql-postgres');
                                         }
                                     }}
@@ -1209,6 +1223,47 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     onChange={(e) => setDeletionProtection(e.target.checked)}
                                                     className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
                                                 />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {(type === 'neon' || type === 'supabase') && (
+                                        <div className="space-y-4 pt-2">
+                                            <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4">
+                                                <div className="space-y-2">
+                                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Provider API Key (Required for Provisioning)</Label>
+                                                    <Input
+                                                        type="password"
+                                                        value={providerApiKey}
+                                                        onChange={(e) => setProviderApiKey(e.target.value)}
+                                                        placeholder="ENTER PROVIDER API KEY..."
+                                                        className="h-8 text-[8px] font-mono placeholder:text-[8px]"
+                                                    />
+                                                </div>
+
+                                                {type === 'supabase' && (
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Organization ID</Label>
+                                                            <Input
+                                                                value={organizationId}
+                                                                onChange={(e) => setOrganizationId(e.target.value)}
+                                                                placeholder="SUPABASE ORG ID"
+                                                                className="h-8 text-[8px] font-mono placeholder:text-[8px]"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">DB Password</Label>
+                                                            <Input
+                                                                type="password"
+                                                                value={dbPassword}
+                                                                onChange={(e) => setDbPassword(e.target.value)}
+                                                                placeholder="MIN 12 CHARS"
+                                                                className="h-8 text-[8px] font-mono placeholder:text-[8px]"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
