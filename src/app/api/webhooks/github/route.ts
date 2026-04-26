@@ -391,7 +391,11 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                     if (storage.type === 'planetscale') {
                         const organization = storage.metadata?.organization as string;
                         const database = storage.metadata?.database as string;
-                        const providerApiKey = storage.metadata?.providerApiKey as string;
+                        let providerApiKey = storage.metadata?.providerApiKey as string;
+                        if (!providerApiKey && storage.providerApiKeySecretId) {
+                            const { getSecretValue } = await import('@/lib/gcp/secrets');
+                            providerApiKey = await getSecretValue(storage.providerApiKeySecretId);
+                        }
 
                         if (organization && database && providerApiKey) {
                             const identifier = `pr${pull_request.number}`;
@@ -416,7 +420,11 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                     // 6. Supabase Cleanup
                     if (storage.type === 'supabase') {
                         const supabaseId = storage.metadata?.supabaseId as string;
-                        const providerApiKey = storage.metadata?.providerApiKey as string;
+                        let providerApiKey = storage.metadata?.providerApiKey as string;
+                        if (!providerApiKey && storage.providerApiKeySecretId) {
+                            const { getSecretValue } = await import('@/lib/gcp/secrets');
+                            providerApiKey = await getSecretValue(storage.providerApiKeySecretId);
+                        }
 
                         if (supabaseId && providerApiKey) {
                             const identifier = `pr${pull_request.number}`;
@@ -454,7 +462,11 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                     // 7. Neon Cleanup
                     if (storage.type === 'neon') {
                         const neonProjectId = storage.metadata?.neonProjectId as string;
-                        const providerApiKey = storage.metadata?.providerApiKey as string;
+                        let providerApiKey = storage.metadata?.providerApiKey as string;
+                        if (!providerApiKey && storage.providerApiKeySecretId) {
+                            const { getSecretValue } = await import('@/lib/gcp/secrets');
+                            providerApiKey = await getSecretValue(storage.providerApiKeySecretId);
+                        }
 
                         if (neonProjectId && providerApiKey) {
                             const identifier = `pr${pull_request.number}`;

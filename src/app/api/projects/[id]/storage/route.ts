@@ -34,9 +34,10 @@ export async function GET(
 
         const { project } = access;
         const storageConfigs = (project.storageConfigs || []).map(config => {
-            if (config.metadata?.providerApiKey) {
+            if (config.metadata?.providerApiKey || config.metadata?.dbPassword) {
                 const safeMetadata = { ...config.metadata };
                 delete safeMetadata.providerApiKey;
+                delete safeMetadata.dbPassword;
                 return { ...config, metadata: safeMetadata };
             }
             return config;
@@ -87,6 +88,7 @@ export async function POST(
         const storageId = generateStorageId();
         let finalConnectionString = connectionString;
         let connectionStringSecretId: string | undefined;
+        let providerApiKeySecretId: string | undefined;
         let status: StorageConfig['status'] = 'active';
         let operationName: string | undefined;
         let resourceName: string | undefined;
@@ -153,6 +155,18 @@ export async function POST(
             connectionStringSecretId = await upsertSecret(secretId, finalConnectionString);
         }
 
+        if (providerApiKey) {
+            // Store provider API key in GCP Secret Manager
+            const apiKeySecretId = `deployify-${id}-${storageId}-apikey`;
+            providerApiKeySecretId = await upsertSecret(apiKeySecretId, providerApiKey);
+        }
+
+        // Clean metadata of sensitive items before persistence
+        if (metadata) {
+            delete metadata.providerApiKey;
+            delete metadata.dbPassword;
+        }
+
         const newStorageConfig: StorageConfig = {
             id: storageId,
             type,
@@ -161,6 +175,7 @@ export async function POST(
             environment,
             envKey,
             connectionStringSecretId,
+            providerApiKeySecretId,
             branchingSettings,
             autoMigration,
             migrationCommand,
@@ -222,17 +237,9 @@ export async function POST(
             }
         );
 
-        // Sanitize for response
-        const sanitizedConfig = { ...newStorageConfig };
-        if (sanitizedConfig.metadata?.providerApiKey) {
-            const safeMetadata = { ...sanitizedConfig.metadata };
-            delete safeMetadata.providerApiKey;
-            sanitizedConfig.metadata = safeMetadata;
-        }
-
         return NextResponse.json({
             success: true,
-            storageConfig: sanitizedConfig,
+            storageConfig: newStorageConfig,
         });
     } catch (error) {
         console.error('Failed to add storage config:', error);
@@ -350,7 +357,7 @@ export async function PATCH(
 
         const { project } = access;
         const body = await request.json();
-        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand } = body;
+        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey } = body;
         const secretOnly = body.secretOnly !== undefined ? body.secretOnly : metadata?.secretOnly;
 
         if (!storageId) {
@@ -366,6 +373,7 @@ export async function PATCH(
 
         const storage = storageConfigs[index];
         let connectionStringSecretId = storage.connectionStringSecretId;
+        let providerApiKeySecretId = storage.providerApiKeySecretId;
         let operationName = storage.metadata?.operationName;
         let status = storage.status;
 
@@ -373,6 +381,18 @@ export async function PATCH(
             // Update connection string in GCP Secret Manager
             const secretId = `deployify-${id}-${storageId}-conn`;
             connectionStringSecretId = await upsertSecret(secretId, connectionString);
+        }
+
+        if (providerApiKey) {
+            // Update provider API key in GCP Secret Manager
+            const apiKeySecretId = `deployify-${id}-${storageId}-apikey`;
+            providerApiKeySecretId = await upsertSecret(apiKeySecretId, providerApiKey);
+        }
+
+        // Clean metadata of sensitive items before persistence
+        if (metadata) {
+            delete metadata.providerApiKey;
+            delete metadata.dbPassword;
         }
 
         // Handle Scaling (GCP Resource Update)
@@ -416,6 +436,7 @@ export async function PATCH(
             environment: environment || storage.environment,
             envKey: envKey !== undefined ? envKey : storage.envKey,
             connectionStringSecretId,
+            providerApiKeySecretId,
             branchingSettings: branchingSettings || storage.branchingSettings,
             autoMigration: autoMigration !== undefined ? autoMigration : storage.autoMigration,
             migrationCommand: migrationCommand !== undefined ? migrationCommand : storage.migrationCommand,
@@ -464,17 +485,9 @@ export async function PATCH(
             }
         );
 
-        // Sanitize for response
-        const sanitizedConfig = { ...updatedStorageConfig };
-        if (sanitizedConfig.metadata?.providerApiKey) {
-            const safeMetadata = { ...sanitizedConfig.metadata };
-            delete safeMetadata.providerApiKey;
-            sanitizedConfig.metadata = safeMetadata;
-        }
-
         return NextResponse.json({
             success: true,
-            storageConfig: sanitizedConfig,
+            storageConfig: updatedStorageConfig,
         });
     } catch (error) {
         console.error('Failed to update storage config:', error);

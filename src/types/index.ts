@@ -499,6 +499,7 @@ export interface StorageConfig {
     labelingStatus?: 'PENDING' | 'SYNCED' | 'FAILED';
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
+    providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
     metadata?: Record<string, unknown>;
     createdAt: Date;
     updatedAt: Date;
