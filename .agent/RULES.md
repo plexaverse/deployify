@@ -2,7 +2,7 @@
   - Secondary labels, metadata tags, and small utility buttons must strictly use `text-[8px] font-bold uppercase tracking-wider`.
   - Internal component titles, standard text, and form labels must strictly use `text-[10px] font-bold` or `text-[10px]`.
   - Main page titles and hero components must strictly use `text-[8px] md:text-[10px] font-bold`.
-  - Legacy sizes (`text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`) and odd sizes (`text-[11px]`, `text-[9px]`, `text-[7px]`) are strictly prohibited to maintain the extreme high-density technical aesthetic. Maintain the `ui.md` tracker concurrently with any style pass.
+  - Legacy sizes and odd sizes are strictly prohibited to maintain the extreme high-density technical aesthetic. Maintain the `ui.md` tracker concurrently with any style pass.
 
 - Phase 61 'Connectivity Intelligence & Security Hardening' is completed, featuring a new `diagnoseConnection` utility in `src/lib/gcp/storage-validator.ts` for multi-layer troubleshooting (DNS, TCP, Service Auth) and a corresponding UI troubleshooting modal in `StorageSection.tsx` that displays step-by-step progress and actionable recommendations.
 - Ensure TypeScript interfaces are fully leveraged to avoid unsafe `any` assertions, as demonstrated by the `drifted` property fix on the `Migration` interface in `src/lib/gcp/migrations.ts`.
