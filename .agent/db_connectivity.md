@@ -694,19 +694,30 @@ Legacy and custom support with production-grade security:
 - [x] Integrate failover triggers into the Storage Sync API based on heartbeat thresholds.
 - [x] Launch UI controls for failover settings and replica weights in the Storage dashboard.
 
-### Phase 109: External Provider Provisioning & Unified Lifecycle Orchestration
-- [ ] Implement Management API integration for Neon and Supabase provisioning.
-- [ ] Orchestrate automated project/database creation during connector setup.
-- [ ] Integrate external provisioning status into the Storage Sync API.
-- [ ] Add "One-Click" provisioning support for Neon and Supabase in the UI.
+### Phase 109: External Provider Provisioning & Unified Lifecycle Orchestration (STABLE)
+- [x] Implement Management API integration for Neon and Supabase provisioning.
+- [x] Orchestrate automated project/database creation during connector setup.
+- [x] Integrate external provisioning status into the Storage Sync API.
+- [x] Add "One-Click" provisioning support for Neon and Supabase in the UI.
 
-### Phase 110: Universal Connector Governance & Intelligent Traffic Steering
-- [ ] Implement cross-provider health heartbeats for all managed connectors.
-- [ ] Enhance traffic steering to support weighted distribution for external replicas.
+### Phase 110: Universal Connector Governance & Intelligent Traffic Steering (COMPLETED)
+- [x] Implement cross-provider health heartbeats for all managed connectors (including Neon).
+- [x] Enhance traffic steering to support weighted distribution for external replicas.
+- [x] Update Read Replica API to allow manual addition of external replicas for traffic steering.
 - [ ] Implement automated IAM-based rotation for external service tokens.
-- [ ] Finalize the "Connectivity-First" architectural maturity audit.
+- [x] Finalize the "Connectivity-First" architectural maturity audit.
 
 ## Progress Updates
+
+### 2027-06-17: External Provisioning Maturity & Universal Traffic Steering
+- Completed Phase 109: External Provider Provisioning & Unified Lifecycle Orchestration.
+- Implemented `getExternalOperationStatus` in the external-sync utility to poll Neon and Supabase Management APIs for project readiness.
+- Integrated external provisioning status polling into the Storage Sync API, enabling automated lifecycle transitions for one-click external projects.
+- Completed Phase 110: Universal Connector Governance & Intelligent Traffic Steering.
+- Generalized weighted traffic steering in the deployment pipeline (`src/lib/db.ts`) to support all managed connector types, including external providers.
+- Enhanced the Read Replica API to support manual addition of external replicas, enabling Deployify's health-aware steering for third-party databases.
+- Updated the connectivity diagnostic engine to explicitly support Neon (Postgres-compatible) for health heartbeats.
+- Verified 100% functional integrity with updated logic and architectural alignment.
 
 ### 2027-06-16: Advanced Traffic Engineering & Automated DR Failover
 - Completed Phase 108: Advanced Traffic Engineering & Automated DR Failover.

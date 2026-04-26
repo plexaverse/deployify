@@ -195,32 +195,26 @@ export async function getEnvVarsForDeployment(
             }
 
             // Handle Read Replicas (Intelligent Traffic Steering)
-            const replicas = (storage.metadata?.replicas as Array<{ name: string, region: string, status: string, health?: { status: string, latency: number } }>) || [];
+            const replicas = (storage.metadata?.replicas as Array<{ id: string, name: string, region: string, status: string, connectionString?: string, health?: { status: string, latency: number } }>) || [];
             const healthyReplicas = replicas.filter(r => (r.status === 'active' || r.status === 'DONE') && (!r.health || r.health.status !== 'unhealthy'));
 
-            if (healthyReplicas.length > 0 && storage.type.includes('cloud-sql')) {
-                const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
-                const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
-
+            if (healthyReplicas.length > 0) {
                 // Phase 108: Weighted Traffic Steering
                 let selectedReplica;
                 const weights = storage.readWeights || {};
 
                 // Filter healthy replicas that have a defined weight > 0
                 const weightedHealthy = healthyReplicas.filter(r => {
-                    const rId = (r as unknown as { id: string }).id;
-                    return (weights[rId] || 0) > 0;
+                    return (weights[r.id] || 0) > 0;
                 });
 
                 if (weightedHealthy.length > 0) {
                     const totalWeight = weightedHealthy.reduce((acc, r) => {
-                        const rId = (r as unknown as { id: string }).id;
-                        return acc + (weights[rId] || 0);
+                        return acc + (weights[r.id] || 0);
                     }, 0);
                     let random = Math.random() * totalWeight;
                     for (const r of weightedHealthy) {
-                        const rId = (r as unknown as { id: string }).id;
-                        random -= (weights[rId] || 0);
+                        random -= (weights[r.id] || 0);
                         if (random <= 0) {
                             selectedReplica = r;
                             break;
@@ -233,12 +227,21 @@ export async function getEnvVarsForDeployment(
                     selectedReplica = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0))[0];
                 }
 
-                const replicaConn = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
-                const readOnlyKey = `${envKey}_READONLY`;
+                let replicaConn = selectedReplica.connectionString;
 
-                runtimeEnvVars[readOnlyKey] = replicaConn;
-                if (storage.environment === 'both' || storage.environment === envTarget) {
-                    buildEnvVars[readOnlyKey] = replicaConn;
+                // For Cloud SQL replicas, derive IAM connection string if no specific string is provided
+                if (!replicaConn && storage.type.includes('cloud-sql')) {
+                    const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
+                    const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
+                    replicaConn = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
+                }
+
+                if (replicaConn) {
+                    const readOnlyKey = `${envKey}_READONLY`;
+                    runtimeEnvVars[readOnlyKey] = replicaConn;
+                    if (storage.environment === 'both' || storage.environment === envTarget) {
+                        buildEnvVars[readOnlyKey] = replicaConn;
+                    }
                 }
             }
 
