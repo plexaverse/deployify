@@ -423,7 +423,7 @@ export async function GET(
                 try {
                     const { getInstance } = await import('@/lib/gcp/cloudsql');
                     const instance = await getInstance(storage.metadata?.resourceName as string);
-                    if (instance.state === 'RUNNABLE') {
+                    if (instance && (instance as Record<string, unknown>).state === 'RUNNABLE') {
                         storage.status = 'active';
                         storage.updatedAt = now;
                         storageConfigs[index] = storage;
