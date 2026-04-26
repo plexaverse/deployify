@@ -410,6 +410,9 @@ export async function GET(
                 statusResult = await getMemorystoreOperationStatus(operationName);
             } else if (storage.type === 'firestore') {
                 statusResult = await getFirestoreOperationStatus(operationName);
+            } else if (storage.type === 'neon' || storage.type === 'supabase') {
+                const { getExternalOperationStatus } = await import('@/lib/gcp/external-sync');
+                statusResult = await getExternalOperationStatus(operationName, storage.metadata || {});
             } else {
                 return NextResponse.json({
                     success: false,

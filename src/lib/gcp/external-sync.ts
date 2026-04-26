@@ -345,6 +345,82 @@ export async function provisionExternalConnector(
 }
 
 /**
+ * Poll external provider for project provisioning status
+ */
+export async function getExternalOperationStatus(
+    operationName: string,
+    metadata: Record<string, unknown>
+): Promise<{ status: 'PENDING' | 'RUNNING' | 'DONE' | 'ERROR'; error?: string }> {
+    const providerApiKey = metadata.providerApiKey as string;
+
+    if (process.env.MOCK_DB === 'true') {
+        return { status: 'DONE' };
+    }
+
+    if (!providerApiKey) {
+        // In a real production scenario, we might want to fetch this from Secret Manager
+        // if we stored the Provider API Key there.
+        return { status: 'ERROR', error: 'Provider API Key is missing for status check' };
+    }
+
+    try {
+        if (operationName.startsWith('neon/')) {
+            const neonProjectId = operationName.split('/').pop();
+            const res = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
+                headers: { 'Authorization': `Bearer ${providerApiKey}` }
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Neon API error: ${errorText}`);
+            }
+
+            const data = await res.json();
+            const neonStatus = data.project?.status;
+
+            // Neon project statuses: 'initing', 'active', 'ready', 'failed'
+            if (neonStatus === 'ready' || neonStatus === 'active') {
+                return { status: 'DONE' };
+            }
+            if (neonStatus === 'failed') {
+                return { status: 'ERROR', error: 'Neon project creation failed' };
+            }
+            return { status: 'RUNNING' };
+
+        } else if (operationName.startsWith('supabase/')) {
+            const supabaseId = operationName.split('/').pop();
+            const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}`, {
+                headers: { 'Authorization': `Bearer ${providerApiKey}` }
+            });
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`Supabase API error: ${errorText}`);
+            }
+
+            const data = await res.json();
+            const supabaseStatus = data.status;
+
+            // Supabase project statuses: 'ACTIVE_HEALTHY', 'COMING_UP', 'GOING_DOWN', 'INACTIVE', 'INIT_DB', 'PAUSING', 'RESTORING'
+            if (supabaseStatus === 'ACTIVE_HEALTHY') {
+                return { status: 'DONE' };
+            }
+            if (supabaseStatus === 'INACTIVE' || supabaseStatus === 'PAUSED') {
+                return { status: 'ERROR', error: `Supabase project in unexpected state: ${supabaseStatus}` };
+            }
+            return { status: 'RUNNING' };
+        }
+    } catch (error) {
+        return {
+            status: 'ERROR',
+            error: error instanceof Error ? error.message : 'Unknown status check error'
+        };
+    }
+
+    return { status: 'DONE' };
+}
+
+/**
  * Automatically allowlist Deployify egress IPs in the external provider's firewall
  */
 export async function syncExternalFirewall(

@@ -190,6 +190,7 @@ export async function validateConnection(
         switch (type) {
             case 'cloud-sql-postgres':
             case 'supabase':
+            case 'neon':
                 return await validatePostgres(connectionString);
 
             case 'cloud-sql-mysql':

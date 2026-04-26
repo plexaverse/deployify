@@ -38,31 +38,66 @@ export async function POST(
             return NextResponse.json({ success: false, error: 'Storage connector not found' }, { status: 404 });
         }
 
-        if (!storage.type.includes('cloud-sql')) {
-            return NextResponse.json({ success: false, error: 'Replicas are only supported for Cloud SQL' }, { status: 400 });
+        const isExternal = ['supabase', 'neon', 'mongodb-atlas', 'planetscale'].includes(storage.type);
+
+        if (!storage.type.includes('cloud-sql') && !isExternal) {
+            return NextResponse.json({ success: false, error: 'Replicas are only supported for Cloud SQL and Managed External connectors' }, { status: 400 });
         }
 
         const body = await request.json().catch(() => ({}));
-        const masterInstanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
-        const region = body.region || (storage.metadata?.region as string) || project.region || 'us-central1';
-        const tier = body.tier || (storage.metadata?.tier as string) || 'db-f1-micro';
-
-        // Generate a unique name for the replica
         const replicaSuffix = Math.random().toString(36).substring(2, 6);
-        const replicaInstanceName = `${masterInstanceName}-replica-${replicaSuffix}`;
-
-        const operationName = await createReadReplica(masterInstanceName, replicaInstanceName, region, tier);
-
-        // Update storage metadata to track the replica
-        const replica = {
-            id: `replica-${replicaSuffix}`,
-            name: replicaInstanceName,
-            status: 'provisioning',
-            region,
-            tier,
-            operationName,
-            createdAt: new Date().toISOString()
+        let replica;
+        let auditDetails: Record<string, unknown> = {
+            projectId: id,
+            storageId
         };
+
+        if (storage.type.includes('cloud-sql')) {
+            const masterInstanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+            const region = body.region || (storage.metadata?.region as string) || project.region || 'us-central1';
+            const tier = body.tier || (storage.metadata?.tier as string) || 'db-f1-micro';
+            const replicaInstanceName = `${masterInstanceName}-replica-${replicaSuffix}`;
+
+            const operationName = await createReadReplica(masterInstanceName, replicaInstanceName, region, tier);
+
+            replica = {
+                id: `replica-${replicaSuffix}`,
+                name: replicaInstanceName,
+                status: 'provisioning',
+                region,
+                tier,
+                operationName,
+                createdAt: new Date().toISOString()
+            };
+
+            auditDetails = {
+                ...auditDetails,
+                masterInstance: masterInstanceName,
+                replicaInstance: replicaInstanceName
+            };
+        } else {
+            // External Replicas (developer provides connection string)
+            const { connectionString, name, region } = body;
+            if (!connectionString) {
+                return NextResponse.json({ success: false, error: 'Connection string is required for external replicas' }, { status: 400 });
+            }
+
+            const replicaName = name || `${storage.name} REPLICA`;
+            replica = {
+                id: `replica-${replicaSuffix}`,
+                name: replicaName,
+                connectionString,
+                status: 'active',
+                region: region || storage.region || 'external',
+                createdAt: new Date().toISOString()
+            };
+
+            auditDetails = {
+                ...auditDetails,
+                replicaName,
+                external: true
+            };
+        }
 
         const replicas = (storage.metadata?.replicas as unknown[]) || [];
         storage.metadata = {
@@ -77,12 +112,7 @@ export async function POST(
             project.teamId,
             session.user.id,
             'storage.replica.created',
-            {
-                projectId: id,
-                storageId,
-                masterInstance: masterInstanceName,
-                replicaInstance: replicaInstanceName
-            }
+            auditDetails
         );
 
         return NextResponse.json({
