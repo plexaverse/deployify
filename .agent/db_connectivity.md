@@ -700,7 +700,7 @@ Legacy and custom support with production-grade security:
 - [x] Integrate external provisioning status into the Storage Sync API.
 - [x] Add "One-Click" provisioning support for Neon and Supabase in the UI.
 
-### Phase 110: Universal Connector Governance & Intelligent Traffic Steering (COMPLETED)
+### Phase 110: Universal Connector Governance & Intelligent Traffic Steering (STABLE)
 - [x] Implement cross-provider health heartbeats for all managed connectors (including Neon).
 - [x] Enhance traffic steering to support weighted distribution for external replicas.
 - [x] Update Read Replica API to allow manual addition of external replicas for traffic steering.

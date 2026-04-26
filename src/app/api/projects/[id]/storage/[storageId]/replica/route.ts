@@ -47,6 +47,10 @@ export async function POST(
         const body = await request.json().catch(() => ({}));
         const replicaSuffix = Math.random().toString(36).substring(2, 6);
         let replica;
+        let auditDetails: Record<string, unknown> = {
+            projectId: id,
+            storageId
+        };
 
         if (storage.type.includes('cloud-sql')) {
             const masterInstanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
@@ -65,6 +69,12 @@ export async function POST(
                 operationName,
                 createdAt: new Date().toISOString()
             };
+
+            auditDetails = {
+                ...auditDetails,
+                masterInstance: masterInstanceName,
+                replicaInstance: replicaInstanceName
+            };
         } else {
             // External Replicas (developer provides connection string)
             const { connectionString, name, region } = body;
@@ -72,13 +82,20 @@ export async function POST(
                 return NextResponse.json({ success: false, error: 'Connection string is required for external replicas' }, { status: 400 });
             }
 
+            const replicaName = name || `${storage.name} REPLICA`;
             replica = {
                 id: `replica-${replicaSuffix}`,
-                name: name || `${storage.name} REPLICA`,
+                name: replicaName,
                 connectionString,
                 status: 'active',
                 region: region || storage.region || 'external',
                 createdAt: new Date().toISOString()
+            };
+
+            auditDetails = {
+                ...auditDetails,
+                replicaName,
+                external: true
             };
         }
 
@@ -95,12 +112,7 @@ export async function POST(
             project.teamId,
             session.user.id,
             'storage.replica.created',
-            {
-                projectId: id,
-                storageId,
-                masterInstance: masterInstanceName,
-                replicaInstance: replicaInstanceName
-            }
+            auditDetails
         );
 
         return NextResponse.json({
