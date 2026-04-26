@@ -361,7 +361,7 @@ export default function InfrastructureFleetPage() {
 
             {/* Compliance Report Modal */}
             {showComplianceReport && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--background)]/80 backdrop-blur-sm p-4">
                     <Card className="w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
                         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-[var(--muted)]/5">
                             <div className="flex items-center gap-3">

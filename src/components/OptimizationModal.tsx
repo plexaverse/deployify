@@ -71,7 +71,7 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                             {security.risks.length > 0 ? (
                                 <div className="space-y-3">
                                     {security.risks.map((risk, i) => (
-                                        <div key={i} className="p-3 bg-black/20 rounded-lg border border-[var(--border)] space-y-2">
+                                        <div key={i} className="p-3 bg-[var(--card)]/50 rounded-lg border border-[var(--border)] space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <span className={cn(

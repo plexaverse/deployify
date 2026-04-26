@@ -504,7 +504,7 @@ export async function GET(
                 // For Cloud SQL, we also need to update the connection string secret if it's a provisioning-native instance
                 if (storage.type.includes('cloud-sql') && storage.connectionStringSecretId) {
                     try {
-                        const { getGcpProjectNumber } = await import('@/lib/gcp/auth');
+                        // const { getGcpProjectNumber } = await import('@/lib/gcp/auth');
                         const gcpProjectId = storage.providerProjectId || process.env.GCP_PROJECT_ID;
                         const dbType = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
                         const newConnStr = `${dbType}://deployify-sa@/${project.slug}?host=/cloudsql/${gcpProjectId}:${targetRegion}:${targetInstanceName}&enable_iam_auth=true`;
