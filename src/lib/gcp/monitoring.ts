@@ -1,5 +1,6 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
+import { getSecretValue } from './secrets';
 import { calculateEWMA, isDegraded } from './health-utils';
 import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile } from '@/types';
 
@@ -419,7 +420,8 @@ export function getEstimatedMonthlyCost(
  */
 export async function getExternalMetrics(
     storageType: string,
-    metadata: Record<string, unknown>
+    metadata: Record<string, unknown>,
+    providerApiKeySecretId?: string
 ): Promise<{ status: string; usage?: number; limit?: number; unit?: string; tier?: string }> {
     if (process.env.MOCK_DB === 'true') {
         const isNeon = storageType === 'neon';
@@ -432,7 +434,16 @@ export async function getExternalMetrics(
         };
     }
 
-    const providerApiKey = metadata.providerApiKey as string;
+    let providerApiKey = metadata.providerApiKey as string;
+
+    if (!providerApiKey && providerApiKeySecretId) {
+        try {
+            providerApiKey = await getSecretValue(providerApiKeySecretId);
+        } catch (e) {
+            console.error(`[Monitoring] Failed to fetch API key for metrics:`, e);
+        }
+    }
+
     if (!providerApiKey) return { status: 'UNKNOWN' };
 
     try {

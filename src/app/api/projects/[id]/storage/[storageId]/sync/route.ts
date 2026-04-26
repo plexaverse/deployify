@@ -331,10 +331,30 @@ export async function GET(
             }
         }
 
-        // Handle External Connectors (Auto-Sync)
+        // Handle External Connectors (Auto-Sync & Token Rotation)
         if (storage.metadata?.autoSync && (storage.type === 'supabase' || storage.type === 'mongodb-atlas' || storage.type === 'planetscale' || storage.type === 'neon')) {
             try {
-                const { syncExternalConnector } = await import('@/lib/gcp/external-sync');
+                const { syncExternalConnector, rotateProviderToken } = await import('@/lib/gcp/external-sync');
+
+                // Automated Token Rotation (Phase 110)
+                // Rotate tokens every 30 days if rotation is supported
+                const lastRotated = storage.lastRotatedAt ? new Date(storage.lastRotatedAt) : storage.createdAt;
+                const daysSinceRotation = (now.getTime() - new Date(lastRotated).getTime()) / (1000 * 60 * 60 * 24);
+
+                if (daysSinceRotation >= 30 && storage.type === 'neon') {
+                    console.log(`[TokenRotation] Auto-rotating token for ${storageId} (Last rotated: ${daysSinceRotation.toFixed(1)} days ago)`);
+                    const rotateResult = await rotateProviderToken(id, storage);
+                    if (rotateResult.success) {
+                        storage.lastRotatedAt = now;
+                        if (rotateResult.providerApiKeySecretId) {
+                            storage.providerApiKeySecretId = rotateResult.providerApiKeySecretId;
+                        }
+                        // Persist immediately after rotation
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+                    }
+                }
+
                 const syncResult = await syncExternalConnector(id, storage);
 
                 if (!syncResult.success) {
@@ -412,7 +432,7 @@ export async function GET(
                 statusResult = await getFirestoreOperationStatus(operationName);
             } else if (storage.type === 'neon' || storage.type === 'supabase') {
                 const { getExternalOperationStatus } = await import('@/lib/gcp/external-sync');
-                statusResult = await getExternalOperationStatus(operationName, storage.metadata || {});
+                statusResult = await getExternalOperationStatus(operationName, storage.metadata || {}, storage.providerApiKeySecretId);
             } else {
                 return NextResponse.json({
                     success: false,

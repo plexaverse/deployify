@@ -1,4 +1,4 @@
-import { upsertSecret } from './secrets';
+import { upsertSecret, getSecretValue } from './secrets';
 import { getRegionalEgressIps } from './networks';
 import { getProjectById } from '@/lib/db';
 import type { StorageConfig } from '@/types';
@@ -13,6 +13,20 @@ export interface SyncResult {
 }
 
 /**
+ * Helper to fetch provider API key from Secret Manager or metadata
+ */
+async function getProviderApiKey(storage: StorageConfig): Promise<string | undefined> {
+    if (storage.providerApiKeySecretId) {
+        try {
+            return await getSecretValue(storage.providerApiKeySecretId);
+        } catch (e) {
+            console.error(`[ExternalSync] Failed to fetch API key from Secret Manager:`, e);
+        }
+    }
+    return storage.metadata?.providerApiKey as string | undefined;
+}
+
+/**
  * Synchronize external connector credentials from provider APIs
  */
 export async function syncExternalConnector(
@@ -20,7 +34,7 @@ export async function syncExternalConnector(
     storage: StorageConfig
 ): Promise<SyncResult> {
     const now = new Date();
-    const providerApiKey = storage.metadata?.providerApiKey as string;
+    const providerApiKey = await getProviderApiKey(storage);
 
     if (process.env.MOCK_DB !== 'true' && !providerApiKey) {
         return {
@@ -240,6 +254,8 @@ export async function provisionExternalConnector(
     region: string,
     metadata: Record<string, unknown>
 ): Promise<{ operationName: string; connectionString: string; metadata?: Record<string, unknown> }> {
+    // Note: for provision, the apiKey is passed directly in the request body
+    // which is merged into metadata temporarily in the route handler.
     const providerApiKey = metadata.providerApiKey as string;
 
     if (process.env.MOCK_DB === 'true') {
@@ -349,9 +365,18 @@ export async function provisionExternalConnector(
  */
 export async function getExternalOperationStatus(
     operationName: string,
-    metadata: Record<string, unknown>
+    metadata: Record<string, unknown>,
+    providerApiKeySecretId?: string
 ): Promise<{ status: 'PENDING' | 'RUNNING' | 'DONE' | 'ERROR'; error?: string }> {
-    const providerApiKey = metadata.providerApiKey as string;
+    let providerApiKey = metadata.providerApiKey as string;
+
+    if (!providerApiKey && providerApiKeySecretId) {
+        try {
+            providerApiKey = await getSecretValue(providerApiKeySecretId);
+        } catch (e) {
+            console.error(`[ExternalSync] Failed to fetch API key for status check:`, e);
+        }
+    }
 
     if (process.env.MOCK_DB === 'true') {
         return { status: 'DONE' };
@@ -423,11 +448,81 @@ export async function getExternalOperationStatus(
 /**
  * Automatically allowlist Deployify egress IPs in the external provider's firewall
  */
+/**
+ * Automatically rotate provider API keys (Tokens) for external connectors
+ * Currently supports: Neon
+ */
+export async function rotateProviderToken(
+    projectId: string,
+    storage: StorageConfig
+): Promise<{ success: boolean; error?: string; providerApiKeySecretId?: string }> {
+    if (process.env.MOCK_DB === 'true') {
+        return { success: true };
+    }
+
+    const providerApiKey = await getProviderApiKey(storage);
+    if (!providerApiKey) {
+        return { success: false, error: 'Current Provider API key is missing' };
+    }
+
+    try {
+        if (storage.type === 'neon') {
+            const neonProjectId = storage.metadata?.neonProjectId as string;
+            if (!neonProjectId) throw new Error('Neon Project ID is missing');
+
+            // 1. Create a new API key for the project
+            // Neon's V2 API allows creating project-level API keys (Service Tokens)
+            const createRes = await fetch('https://console.neon.tech/api/v2/api_keys', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${providerApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    api_key: {
+                        name: `deployify-rotation-${Date.now()}`
+                    }
+                })
+            });
+
+            if (!createRes.ok) {
+                const err = await createRes.text();
+                throw new Error(`Neon Token Rotation Error (Create): ${err}`);
+            }
+
+            const newKeyData = await createRes.json();
+            const newKey = newKeyData.key;
+
+            // 2. Update GCP Secret Manager
+            const secretId = storage.providerApiKeySecretId || `deployify-${projectId}-${storage.id}-apikey`;
+            const providerApiKeySecretId = await upsertSecret(secretId, newKey);
+
+            // 3. Optional: List and cleanup old keys if we had a naming convention
+            // (Neon key listing doesn't easily filter by name in V2 without manual iteration)
+
+            return { success: true, providerApiKeySecretId };
+        }
+
+        // Add other providers (Supabase, MongoDB Atlas, PlanetScale) if their APIs support it.
+        // PlanetScale: Uses service tokens which can be rotated.
+        // MongoDB Atlas: Uses API keys which can be managed via API.
+        // Supabase: Management API tokens are personal, not project-specific.
+
+        return { success: false, error: `Automated token rotation not yet implemented for ${storage.type}` };
+    } catch (error) {
+        console.error(`[TokenRotation] Failed for ${storage.type}:`, error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown token rotation error'
+        };
+    }
+}
+
 export async function syncExternalFirewall(
     projectId: string,
     storage: StorageConfig
 ): Promise<{ success: boolean; error?: string }> {
-    const providerApiKey = storage.metadata?.providerApiKey as string;
+    const providerApiKey = await getProviderApiKey(storage);
     if (process.env.MOCK_DB === 'true' || !providerApiKey) return { success: true };
 
     try {

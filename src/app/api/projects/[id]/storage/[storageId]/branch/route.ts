@@ -117,7 +117,10 @@ export async function POST(
         } else if (storageConfig.type === 'planetscale') {
             const organization = storageConfig.metadata?.organization as string;
             const database = storageConfig.metadata?.database as string;
-            const providerApiKey = storageConfig.metadata?.providerApiKey as string;
+            let providerApiKey = storageConfig.metadata?.providerApiKey as string;
+            if (!providerApiKey && storageConfig.providerApiKeySecretId) {
+                providerApiKey = await getSecretValue(storageConfig.providerApiKeySecretId);
+            }
 
             if (organization && database && providerApiKey) {
                 // Native PlanetScale Branching
@@ -173,7 +176,10 @@ export async function POST(
             }
         } else if (storageConfig.type === 'neon') {
             const neonProjectId = storageConfig.metadata?.neonProjectId as string;
-            const providerApiKey = storageConfig.metadata?.providerApiKey as string;
+            let providerApiKey = storageConfig.metadata?.providerApiKey as string;
+            if (!providerApiKey && storageConfig.providerApiKeySecretId) {
+                providerApiKey = await getSecretValue(storageConfig.providerApiKeySecretId);
+            }
 
             if (neonProjectId && providerApiKey) {
                 // Native Neon Branching
@@ -227,7 +233,10 @@ export async function POST(
             }
         } else if (storageConfig.type === 'supabase') {
             const supabaseId = storageConfig.metadata?.supabaseId as string;
-            const providerApiKey = storageConfig.metadata?.providerApiKey as string;
+            let providerApiKey = storageConfig.metadata?.providerApiKey as string;
+            if (!providerApiKey && storageConfig.providerApiKeySecretId) {
+                providerApiKey = await getSecretValue(storageConfig.providerApiKeySecretId);
+            }
 
             // Extract password from base connection string if possible
             let dbPassword = 'password';

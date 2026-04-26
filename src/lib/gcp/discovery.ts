@@ -1,5 +1,6 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
+import { getSecretValue } from './secrets';
 
 export interface DiscoveredResource {
     id: string;
@@ -183,24 +184,37 @@ export async function discoverResources(
             const project = await getProjectById(deployifyProjectId);
 
             if (project && project.storageConfigs) {
+                // Fetch API keys from Secret Manager or metadata
+                const resolvedConfigs = await Promise.all((project.storageConfigs || []).map(async (s) => {
+                    let apiKey = s.metadata?.providerApiKey as string;
+                    if (!apiKey && s.providerApiKeySecretId) {
+                        try {
+                            apiKey = await getSecretValue(s.providerApiKeySecretId);
+                        } catch (e) {
+                            console.error(`[Discovery] Failed to fetch API key from Secret Manager for ${s.id}:`, e);
+                        }
+                    }
+                    return { ...s, apiKey };
+                }));
+
                 // Find unique API keys for each provider
                 const supabaseKeys = Array.from(new Set(
-                    project.storageConfigs
-                        .filter(s => s.type === 'supabase' && s.metadata?.providerApiKey)
-                        .map(s => s.metadata?.providerApiKey as string)
+                    resolvedConfigs
+                        .filter(s => s.type === 'supabase' && s.apiKey)
+                        .map(s => s.apiKey as string)
                 ));
 
                 const neonKeys = Array.from(new Set(
-                    project.storageConfigs
-                        .filter(s => s.type === 'neon' && s.metadata?.providerApiKey)
-                        .map(s => s.metadata?.providerApiKey as string)
+                    resolvedConfigs
+                        .filter(s => s.type === 'neon' && s.apiKey)
+                        .map(s => s.apiKey as string)
                 ));
 
                 const mongodbKeys = Array.from(new Set(
-                    project.storageConfigs
-                        .filter(s => s.type === 'mongodb-atlas' && s.metadata?.providerApiKey)
+                    resolvedConfigs
+                        .filter(s => s.type === 'mongodb-atlas' && s.apiKey)
                         .map(s => ({
-                            apiKey: s.metadata?.providerApiKey as string,
+                            apiKey: s.apiKey as string,
                             groupId: s.metadata?.groupId as string
                         }))
                 ));

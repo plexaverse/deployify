@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
                         };
                     } else if (isNeon) {
                         // Fetch current usage for Neon (Management API)
-                        const ext = await getExternalMetrics(storage.type, storage.metadata || {});
+                        const ext = await getExternalMetrics(storage.type, storage.metadata || {}, storage.providerApiKeySecretId);
                         metrics = {
                             cpuUtilization: ext.usage || 0,
                             memoryUtilization: 0,
@@ -107,7 +107,11 @@ export async function GET(request: NextRequest) {
                                     memorySizeGb: parseInt(autoScalingRec.recommendedTier)
                                 });
                             } else if (isNeon) {
-                                const providerApiKey = storage.metadata?.providerApiKey as string;
+                                let providerApiKey = storage.metadata?.providerApiKey as string;
+                                if (!providerApiKey && storage.providerApiKeySecretId) {
+                                    const { getSecretValue } = await import('@/lib/gcp/secrets');
+                                    providerApiKey = await getSecretValue(storage.providerApiKeySecretId);
+                                }
                                 const neonProjectId = storage.metadata?.neonProjectId as string;
 
                                 if (providerApiKey && neonProjectId && process.env.MOCK_DB !== 'true') {

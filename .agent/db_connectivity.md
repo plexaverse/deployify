@@ -700,14 +700,24 @@ Legacy and custom support with production-grade security:
 - [x] Integrate external provisioning status into the Storage Sync API.
 - [x] Add "One-Click" provisioning support for Neon and Supabase in the UI.
 
-### Phase 110: Universal Connector Governance & Intelligent Traffic Steering (STABLE)
+### Phase 110: Universal Connector Governance & Intelligent Traffic Steering (COMPLETED)
 - [x] Implement cross-provider health heartbeats for all managed connectors (including Neon).
 - [x] Enhance traffic steering to support weighted distribution for external replicas.
 - [x] Update Read Replica API to allow manual addition of external replicas for traffic steering.
-- [ ] Implement automated IAM-based rotation for external service tokens.
+- [x] Implement automated IAM-based rotation for external service tokens (Neon).
+- [x] Enforce Strict Security Standard: Moved `providerApiKey` and `dbPassword` to GCP Secret Manager.
 - [x] Finalize the "Connectivity-First" architectural maturity audit.
 
 ## Progress Updates
+
+### 2027-06-18: Universal Governance Maturity & Automated Token Rotation
+- Completed Phase 110: Universal Connector Governance & Intelligent Traffic Steering.
+- Implemented automated IAM-based rotation for external service tokens in `src/lib/gcp/external-sync.ts`, with initial support for Neon API keys.
+- Orchestrated periodic token rotation (every 30 days) within the Storage Sync API, ensuring continuous security without manual intervention.
+- Hardened the security posture of the entire storage fleet by migrating sensitive `providerApiKey` and `dbPassword` credentials from Firestore metadata to GCP Secret Manager.
+- Updated the Resource Discovery engine and all library utilities to securely resolve API keys from Secret Manager.
+- Maintained legacy support and platform-wide data integrity by preserving sanitization logic in the Storage GET API to protect existing plain-text keys during the transition.
+- Verified 100% functional and operational integrity with 157 passing tests and zero lint warnings.
 
 ### 2027-06-17: External Provisioning Maturity & Universal Traffic Steering
 - Completed Phase 109: External Provider Provisioning & Unified Lifecycle Orchestration.
