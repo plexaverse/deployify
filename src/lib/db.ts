@@ -222,10 +222,23 @@ export async function getEnvVarsForDeployment(
                     }
                 }
 
-                // Fallback to Health-Aware Steering (Lowest Latency) if no weights are defined or applicable
-                if (!selectedReplica) {
-                    selectedReplica = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0))[0];
+                // Fallback to Health-Aware Steering (Randomized among Top-N) if no weights are defined or applicable
+                if (!selectedReplica && healthyReplicas.length > 0) {
+                    const sortedReplicas = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0));
+                    const bestLatency = (sortedReplicas[0]?.health?.latency || 0);
+
+                    // Pick candidates that are within a reasonable margin (50ms) of the best performer
+                    // This prevents overloading a single "best" replica when others are nearly as good.
+                    const candidates = sortedReplicas.filter((r, idx) =>
+                        idx === 0 || (r.health?.latency || 0) <= bestLatency + 50
+                    );
+
+                    // Randomized selection from top candidates to distribute load
+                    selectedReplica = candidates[Math.floor(Math.random() * candidates.length)];
                 }
+
+                // Guard against undefined selectedReplica
+                if (!selectedReplica) continue;
 
                 let replicaConn = selectedReplica.connectionString;
 

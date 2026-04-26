@@ -20,7 +20,8 @@ export function encrypt(text: string): string {
     // Ensure key is 32 bytes
     const key = crypto.createHash('sha256').update(ENCRYPTION_KEY).digest();
 
-    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+    // Cast key and iv to Uint8Array to satisfy strict TypeScript type checks for Buffer in newer Node versions
+    const cipher = crypto.createCipheriv(ALGORITHM, new Uint8Array(key), new Uint8Array(iv));
 
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -54,8 +55,10 @@ export function decrypt(text: string): string {
     // Ensure key is 32 bytes
     const key = crypto.createHash('sha256').update(ENCRYPTION_KEY).digest();
 
-    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-    decipher.setAuthTag(tag);
+    // Cast key and iv to Uint8Array to satisfy strict TypeScript type checks for Buffer in newer Node versions
+    const decipher = crypto.createDecipheriv(ALGORITHM, new Uint8Array(key), new Uint8Array(iv));
+    // Cast tag to Uint8Array to satisfy strict TypeScript type checks for Buffer in newer Node versions
+    decipher.setAuthTag(new Uint8Array(tag));
 
     let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
     decrypted += decipher.final('utf8');

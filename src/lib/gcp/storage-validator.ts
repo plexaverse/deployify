@@ -42,6 +42,10 @@ export interface DiagnosticResult {
         aligned: boolean;
         perimeter?: string;
     };
+    driftDetected?: {
+        metadataValue?: string;
+        secretValue?: string;
+    };
 }
 
 /**
@@ -599,6 +603,29 @@ export async function diagnoseConnection(
 
         // Step 9: Regional Alignment Check
         let regionMismatch: DiagnosticResult['regionMismatch'] | undefined;
+        // Step 10: Connectivity Drift Detection (Phase 111)
+        let driftDetected: DiagnosticResult['driftDetected'] | undefined;
+        if (connectionString && metadata?.resourceName && type.includes('cloud-sql')) {
+            const driftStep = addStep('Connectivity Drift Detection');
+            driftStep.status = 'running';
+
+            const resourceName = metadata.resourceName as string;
+            const isMatch = connectionString.includes(resourceName);
+
+            if (!isMatch) {
+                driftStep.status = 'failure';
+                driftStep.error = 'Connection string metadata drift detected';
+                driftStep.recommendation = 'The connection string in Secret Manager does not match the registered GCP resource name. This may happen after manual secret updates or failed migrations. Trigger a "Sync Status" to reconcile.';
+                driftDetected = {
+                    metadataValue: resourceName,
+                    secretValue: 'REDACTED' // Don't leak secret in diagnostic logs
+                };
+            } else {
+                driftStep.status = 'success';
+            }
+            driftStep.latency = 0;
+        }
+
         if (projectContext?.region && metadata?.region) {
             const alignmentStep = addStep('Regional Alignment');
             alignmentStep.status = 'running';
@@ -617,16 +644,12 @@ export async function diagnoseConnection(
             alignmentStep.latency = 0;
         }
 
-        if (metadata) {
-            // Use metadata to avoid unused var warning
-            console.debug('Diagnosing with metadata', metadata);
-        }
-
         return {
             success: true,
             steps,
             overallLatency: Date.now() - startTime,
-            regionMismatch
+            regionMismatch,
+            driftDetected
         };
     } catch (error) {
         console.error('Diagnostic error:', error);

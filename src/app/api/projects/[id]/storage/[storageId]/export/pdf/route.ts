@@ -138,8 +138,10 @@ export async function POST(
         return new Promise<NextResponse>((resolve, reject) => {
             doc.on('end', () => {
                 try {
-                    const pdfBuffer = Buffer.concat(chunks);
-                    resolve(new NextResponse(pdfBuffer, {
+                    // Cast to unknown then to Uint8Array[] to bypass strict buffer/Uint8Array incompatibility in type checks
+                    const pdfBuffer = Buffer.concat(chunks as unknown as Uint8Array[]);
+                    // Cast pdfBuffer to any to satisfy NextResponse constructor which expects BodyInit
+                    resolve(new NextResponse(pdfBuffer as any, {
                         headers: {
                             'Content-Type': 'application/pdf',
                             'Content-Disposition': `attachment; filename="datalab-report-${id}.pdf"`

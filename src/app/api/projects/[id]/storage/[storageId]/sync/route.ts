@@ -341,7 +341,7 @@ export async function GET(
                 const lastRotated = storage.lastRotatedAt ? new Date(storage.lastRotatedAt) : storage.createdAt;
                 const daysSinceRotation = (now.getTime() - new Date(lastRotated).getTime()) / (1000 * 60 * 60 * 24);
 
-                if (daysSinceRotation >= 30 && storage.type === 'neon') {
+                if (daysSinceRotation >= 30 && (storage.type === 'neon' || storage.type === 'planetscale')) {
                     console.log(`[TokenRotation] Auto-rotating token for ${storageId} (Last rotated: ${daysSinceRotation.toFixed(1)} days ago)`);
                     const rotateResult = await rotateProviderToken(id, storage);
                     if (rotateResult.success) {
@@ -408,6 +408,40 @@ export async function GET(
                 activeAlerts: storage.activeAlerts,
                 message: 'Storage is not in provisioning state'
             });
+        }
+
+        // Phase 111: Automated Recovery for stuck operations (> 30 mins)
+        // CRITICAL FIX: Only run recovery if status is actually 'provisioning'
+        const updatedAt = storage.updatedAt ? new Date(storage.updatedAt) : new Date(0);
+        const minsInProvisioning = (now.getTime() - updatedAt.getTime()) / (1000 * 60);
+
+        if (storage.status === 'provisioning' && minsInProvisioning > 30) {
+            console.warn(`[StorageSync] Operation timeout detected for ${storageId} (${minsInProvisioning.toFixed(1)} mins). Attempting recovery...`);
+
+            // For external projects that might have finished without us knowing
+            if (storage.type === 'neon' || storage.type === 'supabase') {
+                const { getExternalOperationStatus } = await import('@/lib/gcp/external-sync');
+                const operationName = storage.metadata?.operationName as string;
+                if (operationName) {
+                    const statusResult = await getExternalOperationStatus(operationName, storage.metadata || {}, storage.providerApiKeySecretId);
+                    if (statusResult.status === 'DONE') {
+                        storage.status = 'active';
+                        storage.lastSyncedAt = now;
+                        storage.updatedAt = now;
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'active', message: 'Stuck operation recovered successfully' });
+                    }
+                }
+            }
+
+            // If still stuck or GCP operation, mark as error to allow user intervention
+            storage.status = 'error';
+            storage.lastError = `Provisioning timed out after ${minsInProvisioning.toFixed(0)} minutes. Please verify resource state in the provider console.`;
+            storage.updatedAt = now;
+            storageConfigs[index] = storage;
+            await updateProject(id, { storageConfigs });
+            return NextResponse.json({ success: true, status: 'error', error: storage.lastError });
         }
 
         const operationName = storage.metadata?.operationName as string;
