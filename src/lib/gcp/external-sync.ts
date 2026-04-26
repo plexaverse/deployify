@@ -501,9 +501,69 @@ export async function rotateProviderToken(
             // (Neon key listing doesn't easily filter by name in V2 without manual iteration)
 
             return { success: true, providerApiKeySecretId };
+        } else if (storage.type === 'planetscale') {
+            const organization = storage.metadata?.organization as string;
+            const database = storage.metadata?.database as string;
+            if (!organization || !database) throw new Error('PlanetScale metadata missing');
+
+            // PlanetScale uses 'passwords' which act as tokens.
+            // Rotating here means creating a new password and updating the connection string.
+            const project = await getProjectById(projectId);
+            const { ips } = getRegionalEgressIps(project?.region || (storage.metadata?.region as string));
+
+            const createRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${providerApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: `deployify-rotation-${Date.now()}`,
+                    role: 'readwriter',
+                    trusted_ips: ips
+                })
+            });
+
+            if (!createRes.ok) {
+                const err = await createRes.text();
+                throw new Error(`PlanetScale Rotation Error: ${err}`);
+            }
+
+            const newPwd = await createRes.json();
+            const newConnStr = `mysql://${newPwd.username}:${newPwd.plain_text}@${newPwd.access_host}/${database}?ssl={"rejectUnauthorized":true}`;
+
+            // Update Connection String Secret
+            if (storage.connectionStringSecretId) {
+                await upsertSecret(storage.connectionStringSecretId, newConnStr);
+            }
+
+            // Cleanup old rotation passwords
+            try {
+                const listRes = await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords`, {
+                    headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                });
+
+                if (listRes.ok) {
+                    const passwords = await listRes.json();
+                    const oldPasswords = (passwords.data || []).filter((p: { name?: string; id?: string }) =>
+                        p.name?.startsWith('deployify-rotation-') && p.id !== newPwd.id
+                    );
+
+                    for (const oldPwd of oldPasswords) {
+                        await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords/${oldPwd.id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn(`[PlanetScaleRotation] Old password cleanup failed:`, e);
+            }
+
+            return { success: true };
         }
 
-        // Add other providers (Supabase, MongoDB Atlas, PlanetScale) if their APIs support it.
+        // Add other providers (Supabase, MongoDB Atlas) if their APIs support it.
         // PlanetScale: Uses service tokens which can be rotated.
         // MongoDB Atlas: Uses API keys which can be managed via API.
         // Supabase: Management API tokens are personal, not project-specific.
