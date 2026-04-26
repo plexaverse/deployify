@@ -16,7 +16,7 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
+import { deleteDatabase as deleteSqlDatabase, ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
@@ -150,6 +150,36 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     );
 
     try {
+        // Provision ephemeral databases BEFORE build if branching is enabled
+        if (envTarget === 'preview' && project.storageConfigs) {
+            for (const storage of project.storageConfigs) {
+                if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                    const instanceName = storage.metadata?.resourceName as string;
+                    if (instanceName) {
+                        try {
+                            const baseConnectionString = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : null;
+                            const url = baseConnectionString ? new URL(baseConnectionString) : null;
+                            const sourceDb = url ? url.pathname.split('/')[1] : 'postgres';
+
+                            const branchedConnectionString = getBranchConnectionString(
+                                baseConnectionString || '',
+                                storage.type,
+                                storage.branchingSettings,
+                                { branch }
+                            );
+                            const targetDb = new URL(branchedConnectionString).pathname.split('/')[1];
+
+                            if (targetDb) {
+                                await ensureEphemeralDatabase(instanceName, targetDb, sourceDb);
+                            }
+                        } catch (e) {
+                            console.error(`[Branching] Failed to provision database for ${storage.name}:`, e);
+                        }
+                    }
+                }
+            }
+        }
+
         // Get environment variables directly from project and split by target
         const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
             branch
@@ -530,8 +560,39 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         );
 
         try {
-            // Get environment variables directly from project and split by target
             const envTarget = 'preview';
+
+            // Provision ephemeral databases BEFORE build if branching is enabled
+            if (project.storageConfigs) {
+                for (const storage of project.storageConfigs) {
+                    if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                        const instanceName = storage.metadata?.resourceName as string;
+                        if (instanceName) {
+                            try {
+                                const baseConnectionString = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : null;
+                                const url = baseConnectionString ? new URL(baseConnectionString) : null;
+                                const sourceDb = url ? url.pathname.split('/')[1] : 'postgres';
+
+                                const branchedConnectionString = getBranchConnectionString(
+                                    baseConnectionString || '',
+                                    storage.type,
+                                    storage.branchingSettings,
+                                    { pullRequestNumber: pull_request.number }
+                                );
+                                const targetDb = new URL(branchedConnectionString).pathname.split('/')[1];
+
+                                if (targetDb) {
+                                    await ensureEphemeralDatabase(instanceName, targetDb, sourceDb);
+                                }
+                            } catch (e) {
+                                console.error(`[Branching] Failed to provision database for ${storage.name}:`, e);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Get environment variables directly from project and split by target
             const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
                 branch: pull_request.head.ref,
                 pullRequestNumber: pull_request.number

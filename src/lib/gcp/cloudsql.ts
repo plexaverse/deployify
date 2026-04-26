@@ -565,6 +565,27 @@ export async function createUser(
 }
 
 /**
+ * Wait for a Cloud SQL operation to complete
+ */
+export async function waitForOperation(operationName: string): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes with 5s delay
+
+    while (attempts < maxAttempts) {
+        const status = await getOperationStatus(operationName);
+        if (status.status === 'DONE') {
+            if (status.error) throw new Error(status.error);
+            return;
+        }
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+    throw new Error(`Operation ${operationName} timed out`);
+}
+
+/**
  * Ensure an ephemeral database exists for branching
  */
 export async function ensureEphemeralDatabase(
@@ -590,11 +611,31 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the target database
+    console.log(`[Branching] Creating ephemeral database ${databaseName} on ${instanceName}`);
+    await createDatabase(instanceName, databaseName);
+
+    // 3. If source database is provided, seed it using Export/Import via GCS
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        console.log(`[Branching] Seeding data from ${sourceDatabase} to ${databaseName}`);
+        const timestamp = Date.now();
+        const bucketName = `deployify-temp-${gcpProjectId}`;
+        const storageUri = `gs://${bucketName}/branch-seed-${instanceName}-${timestamp}.sql`;
+
+        try {
+            // Step A: Export source to GCS
+            const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+            await waitForOperation(exportOp);
+
+            // Step B: Import GCS to target
+            const importOp = await importInstance(instanceName, storageUri, databaseName);
+            await waitForOperation(importOp);
+
+            console.log(`[Branching] Database seeding completed successfully.`);
+        } catch (error) {
+            console.error(`[Branching] Seeding failed for ${databaseName}:`, error);
+            // We continue even if seeding fails, the app will start with an empty DB
+        }
     }
 }
 
