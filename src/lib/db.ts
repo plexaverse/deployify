@@ -56,6 +56,59 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
     }));
 }
 
+export interface ReplicaMetadata {
+    id: string;
+    name: string;
+    region: string;
+    status: string;
+    connectionString?: string;
+    health?: {
+        status: string;
+        latency: number;
+    };
+}
+
+/**
+ * Select the best replica based on health, weights, and latency.
+ * Implements Top-N Randomized selection with weighted fallback.
+ */
+export function selectReplica(
+    replicas: ReplicaMetadata[],
+    weights: Record<string, number> = {}
+): ReplicaMetadata | null {
+    const healthyReplicas = replicas.filter(r =>
+        (r.status === 'active' || r.status === 'DONE') &&
+        (!r.health || r.health.status !== 'unhealthy')
+    );
+
+    if (healthyReplicas.length === 0) return null;
+
+    // 1. Try Weighted Selection
+    const weightedHealthy = healthyReplicas.filter(r => (weights[r.id] || 0) > 0);
+    if (weightedHealthy.length > 0) {
+        const totalWeight = weightedHealthy.reduce((acc, r) => acc + (weights[r.id] || 0), 0);
+        let random = Math.random() * totalWeight;
+        for (const r of weightedHealthy) {
+            random -= (weights[r.id] || 0);
+            if (random <= 0) return r;
+        }
+    }
+
+    // 2. Fallback to Top-N Randomized (Health-Aware)
+    const sortedReplicas = [...healthyReplicas].sort((a, b) =>
+        (a.health?.latency || 0) - (b.health?.latency || 0)
+    );
+
+    const bestLatency = (sortedReplicas[0]?.health?.latency || 0);
+
+    // Margin of 50ms for Top-N candidates
+    const candidates = sortedReplicas.filter((r, idx) =>
+        idx === 0 || (r.health?.latency || 0) <= bestLatency + 50
+    );
+
+    return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
 /**
  * Clone a storage configuration to a new environment or project context
  */
@@ -195,50 +248,10 @@ export async function getEnvVarsForDeployment(
             }
 
             // Handle Read Replicas (Intelligent Traffic Steering)
-            const replicas = (storage.metadata?.replicas as Array<{ id: string, name: string, region: string, status: string, connectionString?: string, health?: { status: string, latency: number } }>) || [];
-            const healthyReplicas = replicas.filter(r => (r.status === 'active' || r.status === 'DONE') && (!r.health || r.health.status !== 'unhealthy'));
+            const replicas = (storage.metadata?.replicas as ReplicaMetadata[]) || [];
+            const selectedReplica = selectReplica(replicas, storage.readWeights);
 
-            if (healthyReplicas.length > 0) {
-                // Phase 108: Weighted Traffic Steering
-                let selectedReplica;
-                const weights = storage.readWeights || {};
-
-                // Filter healthy replicas that have a defined weight > 0
-                const weightedHealthy = healthyReplicas.filter(r => {
-                    return (weights[r.id] || 0) > 0;
-                });
-
-                if (weightedHealthy.length > 0) {
-                    const totalWeight = weightedHealthy.reduce((acc, r) => {
-                        return acc + (weights[r.id] || 0);
-                    }, 0);
-                    let random = Math.random() * totalWeight;
-                    for (const r of weightedHealthy) {
-                        random -= (weights[r.id] || 0);
-                        if (random <= 0) {
-                            selectedReplica = r;
-                            break;
-                        }
-                    }
-                }
-
-                // Fallback to Health-Aware Steering (Randomized among Top-N) if no weights are defined or applicable
-                if (!selectedReplica && healthyReplicas.length > 0) {
-                    const sortedReplicas = [...healthyReplicas].sort((a, b) => (a.health?.latency || 0) - (b.health?.latency || 0));
-                    const bestLatency = (sortedReplicas[0]?.health?.latency || 0);
-
-                    // Pick candidates that are within a reasonable margin (50ms) of the best performer
-                    // This prevents overloading a single "best" replica when others are nearly as good.
-                    const candidates = sortedReplicas.filter((r, idx) =>
-                        idx === 0 || (r.health?.latency || 0) <= bestLatency + 50
-                    );
-
-                    // Randomized selection from top candidates to distribute load
-                    selectedReplica = candidates[Math.floor(Math.random() * candidates.length)];
-                }
-
-                // Guard against undefined selectedReplica
-                if (!selectedReplica) continue;
+            if (selectedReplica) {
 
                 let replicaConn = selectedReplica.connectionString;
 

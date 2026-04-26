@@ -605,20 +605,41 @@ export async function diagnoseConnection(
         let regionMismatch: DiagnosticResult['regionMismatch'] | undefined;
         // Step 10: Connectivity Drift Detection (Phase 111)
         let driftDetected: DiagnosticResult['driftDetected'] | undefined;
-        if (connectionString && metadata?.resourceName && type.includes('cloud-sql')) {
+        if (connectionString && type !== 'firestore') {
             const driftStep = addStep('Connectivity Drift Detection');
             driftStep.status = 'running';
 
-            const resourceName = metadata.resourceName as string;
-            const isMatch = connectionString.includes(resourceName);
+            let isDrifted = false;
+            let driftError = '';
 
-            if (!isMatch) {
+            // A. Check Resource Name Match (Cloud SQL)
+            if (metadata?.resourceName && type.includes('cloud-sql')) {
+                const resourceName = metadata.resourceName as string;
+                if (!connectionString.includes(resourceName)) {
+                    isDrifted = true;
+                    driftError = 'Resource name mismatch';
+                }
+            }
+
+            // B. Check Host/Port Match (Generic/External)
+            const connectivity = metadata?.connectivity as { host: string; port: number } | undefined;
+            if (!isDrifted && connectivity?.host) {
+                if (!connectionString.includes(connectivity.host)) {
+                    isDrifted = true;
+                    driftError = 'Hostname mismatch';
+                } else if (connectivity.port && !connectionString.includes(String(connectivity.port)) && !connectionString.startsWith('mongodb+srv://')) {
+                    isDrifted = true;
+                    driftError = 'Port mismatch';
+                }
+            }
+
+            if (isDrifted) {
                 driftStep.status = 'failure';
-                driftStep.error = 'Connection string metadata drift detected';
-                driftStep.recommendation = 'The connection string in Secret Manager does not match the registered GCP resource name. This may happen after manual secret updates or failed migrations. Trigger a "Sync Status" to reconcile.';
+                driftStep.error = `Connectivity drift detected: ${driftError}`;
+                driftStep.recommendation = 'The configuration in Secret Manager does not match the registered metadata. Trigger a "Sync Status" to reconcile.';
                 driftDetected = {
-                    metadataValue: resourceName,
-                    secretValue: 'REDACTED' // Don't leak secret in diagnostic logs
+                    metadataValue: driftError,
+                    secretValue: 'REDACTED'
                 };
             } else {
                 driftStep.status = 'success';

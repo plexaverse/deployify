@@ -418,6 +418,33 @@ export async function GET(
         if (storage.status === 'provisioning' && minsInProvisioning > 30) {
             console.warn(`[StorageSync] Operation timeout detected for ${storageId} (${minsInProvisioning.toFixed(1)} mins). Attempting recovery...`);
 
+            // Direct resource state check for GCP types
+            if (storage.type.includes('cloud-sql')) {
+                try {
+                    const { getInstance } = await import('@/lib/gcp/cloudsql');
+                    const instance = await getInstance(storage.metadata?.resourceName as string);
+                    if (instance.state === 'RUNNABLE') {
+                        storage.status = 'active';
+                        storage.updatedAt = now;
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'active', message: 'Instance recovered from timeout' });
+                    }
+                } catch (e) { console.warn(`[StorageSync] GCP recovery check failed:`, e); }
+            } else if (storage.type === 'memorystore-redis') {
+                try {
+                    const { getInstance } = await import('@/lib/gcp/memorystore');
+                    const instance = await getInstance(storage.metadata?.resourceName as string, (storage.metadata?.region as string) || project.region || 'us-central1');
+                    if (instance.state === 'READY') {
+                        storage.status = 'active';
+                        storage.updatedAt = now;
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'active', message: 'Redis recovered from timeout' });
+                    }
+                } catch (e) { console.warn(`[StorageSync] Redis recovery check failed:`, e); }
+            }
+
             // For external projects that might have finished without us knowing
             if (storage.type === 'neon' || storage.type === 'supabase') {
                 const { getExternalOperationStatus } = await import('@/lib/gcp/external-sync');

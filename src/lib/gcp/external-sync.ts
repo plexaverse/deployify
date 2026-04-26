@@ -544,8 +544,9 @@ export async function rotateProviderToken(
                 });
 
                 if (listRes.ok) {
-                    const passwords = await listRes.json();
-                    const oldPasswords = (passwords.data || []).filter((p: { name?: string; id?: string }) =>
+                    const data = await listRes.json();
+                    const passwords = Array.isArray(data) ? data : (data.data || []);
+                    const oldPasswords = passwords.filter((p: { name?: string; id?: string }) =>
                         p.name?.startsWith('deployify-rotation-') && p.id !== newPwd.id
                     );
 
