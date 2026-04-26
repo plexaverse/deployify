@@ -37,7 +37,8 @@ async function main() {
     try {
         const pdfBuffer = await generateInvoicePDF(invoice);
         const outputPath = path.join(process.cwd(), 'test-invoice.pdf');
-        fs.writeFileSync(outputPath, pdfBuffer);
+        // Wrap in Uint8Array to satisfy strict TypeScript type checks for Buffer in newer Node versions
+        fs.writeFileSync(outputPath, new Uint8Array(pdfBuffer));
         console.log(`Invoice saved to ${outputPath}`);
     } catch (error) {
         console.error('Error generating invoice:', error);

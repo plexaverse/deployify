@@ -237,6 +237,9 @@ export async function getEnvVarsForDeployment(
                     selectedReplica = candidates[Math.floor(Math.random() * candidates.length)];
                 }
 
+                // Guard against undefined selectedReplica
+                if (!selectedReplica) continue;
+
                 let replicaConn = selectedReplica.connectionString;
 
                 // For Cloud SQL replicas, derive IAM connection string if no specific string is provided

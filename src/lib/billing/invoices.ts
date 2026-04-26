@@ -44,7 +44,8 @@ export async function generateInvoicePDF(invoice: Invoice): Promise<Buffer> {
 
         doc.on('data', buffers.push.bind(buffers));
         doc.on('end', () => {
-            const pdfData = Buffer.concat(buffers);
+            // Cast to unknown then to Uint8Array[] to bypass strict buffer/Uint8Array incompatibility in type checks
+            const pdfData = Buffer.concat(buffers as unknown as Uint8Array[]);
             resolve(pdfData);
         });
 

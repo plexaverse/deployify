@@ -65,9 +65,10 @@ export function verifyGitHubWebhookSignature(
         .digest('hex');
 
     try {
+        // Cast to Uint8Array to satisfy strict TypeScript type checks for Buffer in newer Node versions
         return crypto.timingSafeEqual(
-            Buffer.from(signature),
-            Buffer.from(expectedSignature)
+            new Uint8Array(Buffer.from(signature)),
+            new Uint8Array(Buffer.from(expectedSignature))
         );
     } catch {
         return false;
