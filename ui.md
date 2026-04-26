@@ -1986,3 +1986,19 @@ Verified no more odd sizes exist in the platform and the rules have been enforce
   - `src/components/DataLab.tsx`
 - **Standardization**:
     - Replaced `text-white` and `text-black` with dynamic variables `text-[var(--error-foreground)]` and `text-[var(--warning-foreground)]` for theme compatibility.
+
+## Progressive UI & Layout Standardization (Session 214)
+
+Replaced remaining hardcoded colors (e.g. `bg-black/40`, `border-white/5`) with dynamic CSS variables to maintain theme compatibility across components.
+
+### Color Standardization
+- **Files Updated**:
+  - `src/components/StorageSection.tsx`
+  - `src/components/DataLab.tsx`
+  - `src/components/OptimizationModal.tsx`
+  - `src/app/dashboard/infrastructure/page.tsx`
+- **Standardization**:
+    - Replaced `bg-black/40` with `bg-[var(--card)]`.
+    - Replaced `bg-black/20` with `bg-[var(--card)]/50`.
+    - Replaced `bg-black/60` with `bg-[var(--background)]/80`.
+    - Replaced `border-white/5` with `border-[var(--border)]/50`.

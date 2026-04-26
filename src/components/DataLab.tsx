@@ -2698,7 +2698,7 @@ runQuery();`;
 
             {/* View Audit Query Modal */}
             {viewingAuditQuery && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--background)]/80 backdrop-blur-sm p-4">
                     <Card className="w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -2712,7 +2712,7 @@ runQuery();`;
                             </Button>
                         </div>
                         <div className="p-6">
-                            <div className="p-4 bg-black/40 border border-[var(--border)] rounded-xl font-mono text-[8px] max-h-96 overflow-y-auto custom-scrollbar">
+                            <div className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl font-mono text-[8px] max-h-96 overflow-y-auto custom-scrollbar">
                                 <pre className="whitespace-pre-wrap break-all text-[var(--foreground)]/80 leading-relaxed">
                                     {viewingAuditQuery}
                                 </pre>
@@ -2750,7 +2750,7 @@ runQuery();`;
 
             {/* Save Query Modal */}
             {showSaveModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--background)]/80 backdrop-blur-sm p-4">
                     <Card className="w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
                             <div className="flex items-center gap-3">

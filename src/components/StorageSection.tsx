@@ -2104,7 +2104,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     {(activeMigrations[isManagingMigrations.id].status === 'QUEUED' || activeMigrations[isManagingMigrations.id].status === 'WORKING') && <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--primary)]" />}
                                 </div>
 
-                                <div className="p-4 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[8px] overflow-hidden">
+                                <div className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px] overflow-hidden">
                                     <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border)]">
                                         <span className="text-[var(--muted-foreground)] uppercase">Build Logs</span>
                                         <span className="text-[var(--primary)]">{activeMigrations[isManagingMigrations.id].operationName?.split('/').pop()?.substring(0, 8)}</span>
@@ -2255,7 +2255,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 </div>
                                             </div>
                                             {previewMigration?.name === m.name && (
-                                                <div className="p-4 bg-black/40 border border-[var(--primary)]/20 rounded-xl font-mono text-[8px] animate-in slide-in-from-top-2 fade-in">
+                                                <div className="p-4 bg-[var(--card)] border border-[var(--primary)]/20 rounded-xl font-mono text-[8px] animate-in slide-in-from-top-2 fade-in">
                                                     <div className="flex items-center justify-between mb-2 pb-2 border-b border-[var(--border)]">
                                                         <span className="text-[var(--muted-foreground)] uppercase">Migration Source: {m.name}</span>
                                                         <Button
@@ -2403,7 +2403,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         <div className="space-y-3">
                             <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment Variable</Label>
-                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[8px] flex items-center justify-between">
+                            <div className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px] flex items-center justify-between">
                                 <span className="text-[var(--primary)]">
                                     {isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}
                                 </span>
@@ -2425,7 +2425,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         <div className="space-y-3">
                             <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Node.js Access</Label>
-                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[8px]">
+                            <div className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px]">
                                 <code className="text-[var(--foreground)]/80">
                                     const connectionString = process.env.{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'};
                                 </code>
@@ -2434,7 +2434,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         <div className="space-y-3">
                             <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Python Access</Label>
-                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[8px]">
+                            <div className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px]">
                                 <code className="text-[var(--foreground)]/80">
                                     import os<br />
                                     conn_str = os.environ.get(&apos;{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}&apos;)
@@ -2444,7 +2444,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
                         <div className="space-y-3">
                             <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Go Access</Label>
-                            <div className="p-3 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[8px]">
+                            <div className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px]">
                                 <code className="text-[var(--foreground)]/80">
                                     import &quot;os&quot;<br />
                                     connStr := os.Getenv(&quot;{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}&quot;)
@@ -2471,7 +2471,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </p>
                                 <div className="space-y-2">
                                     {egressIps.ips.map(ip => (
-                                        <div key={ip} className="p-2 bg-black/40 border border-[var(--border)] rounded-lg font-mono text-[8px] flex items-center justify-between group">
+                                        <div key={ip} className="p-2 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px] flex items-center justify-between group">
                                             <span className="text-[var(--foreground)]/80">{ip}</span>
                                             <Button
                                                 variant="ghost"
@@ -2587,7 +2587,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         {step.name.includes('IAM') && step.status === 'failure' && (
                                                             <div className="pt-1 flex flex-wrap gap-1">
                                                                 {['roles/secretmanager.secretAccessor', 'roles/cloudsql.client', 'roles/cloudsql.instanceUser'].map(role => (
-                                                                    <span key={role} className="text-[8px] px-1 rounded bg-black/20 font-mono border border-white/5">{role}</span>
+                                                                    <span key={role} className="text-[8px] px-1 rounded bg-[var(--card)]/50 font-mono border border-[var(--border)]/50">{role}</span>
                                                                 ))}
                                                             </div>
                                                         )}
