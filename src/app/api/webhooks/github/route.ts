@@ -283,6 +283,19 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             if (dbName) {
                                 console.log(`[Cleanup] Deleting ephemeral database ${dbName} from ${instanceName}`);
                                 await deleteSqlDatabase(instanceName, dbName);
+
+                                await logAuditEvent(
+                                    project.teamId || null,
+                                    project.userId,
+                                    'storage.branch_deleted',
+                                    {
+                                        projectId: project.id,
+                                        storageId: storage.id,
+                                        resourceName: instanceName,
+                                        branchName: dbName,
+                                        type: storage.type
+                                    }
+                                );
                                 console.log(`[Cleanup] Successfully deleted SQL database ${dbName}.`);
                             }
                         } catch (e) {
@@ -309,6 +322,18 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             if (databaseId && databaseId !== '(default)') {
                                 console.log(`[Cleanup] Deleting ephemeral Firestore database ${databaseId}`);
                                 await deleteFirestoreDatabase(databaseId);
+
+                                await logAuditEvent(
+                                    project.teamId || null,
+                                    project.userId,
+                                    'storage.branch_deleted',
+                                    {
+                                        projectId: project.id,
+                                        storageId: storage.id,
+                                        resourceName: databaseId,
+                                        type: 'firestore'
+                                    }
+                                );
                                 console.log(`[Cleanup] Successfully deleted Firestore database ${databaseId}.`);
                             }
                         } catch (e) {
@@ -347,6 +372,18 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             });
                             await redis.flushdb();
                             redis.disconnect();
+
+                            await logAuditEvent(
+                                project.teamId || null,
+                                project.userId,
+                                'storage.branch_deleted',
+                                {
+                                    projectId: project.id,
+                                    storageId: storage.id,
+                                    type: 'memorystore-redis',
+                                    action: 'flushed'
+                                }
+                            );
                             console.log(`[Cleanup] Successfully flushed Redis DB index.`);
                         } catch (e) {
                             console.error(`[Cleanup] Failed to flush ephemeral Redis DB for ${storage.name}:`, e);
@@ -379,6 +416,18 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             const dbName = new URL(branchedConnectionString).pathname.split('/')[1];
                             if (dbName) {
                                 await client.db(dbName).dropDatabase();
+
+                                await logAuditEvent(
+                                    project.teamId || null,
+                                    project.userId,
+                                    'storage.branch_deleted',
+                                    {
+                                        projectId: project.id,
+                                        storageId: storage.id,
+                                        branchName: dbName,
+                                        type: 'mongodb-atlas'
+                                    }
+                                );
                                 console.log(`[Cleanup] Successfully dropped MongoDB database ${dbName}.`);
                             }
                             await client.close();
