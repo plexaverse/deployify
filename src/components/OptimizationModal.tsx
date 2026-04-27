@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
-import type { StorageConfig } from '@/types';
+import type { StorageConfig, WorkloadShift } from '@/types';
 import type { ScalingRecommendation } from '@/lib/gcp/monitoring';
 import type { SecurityPosture } from '@/lib/gcp/security-auditor';
 
@@ -38,6 +38,7 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
 
     const security = storage.metadata.security as SecurityPosture | undefined;
     const dormancy = storage.dormancy;
+    const workloadShift = storage.metadata.workloadShift as unknown as WorkloadShift;
 
     return (
         <ConfirmationModal
@@ -48,6 +49,24 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
             icon={<Sparkles className="w-5 h-5 text-[var(--primary)]" />}
             description={
                 <div className="space-y-6">
+                    {workloadShift?.shifted && (
+                        <div className="p-4 bg-[var(--warning)]/5 border border-[var(--warning)]/30 rounded-xl space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-[var(--warning)]">
+                                    <TrendingUp className="w-4 h-4" />
+                                    <span className="text-[8px] font-bold uppercase tracking-wider">Active Workload Shift Detected</span>
+                                </div>
+                                <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--warning)]/20 text-[var(--warning)]">
+                                    {new Date(workloadShift.detectedAt).toLocaleDateString()}
+                                </span>
+                            </div>
+                            <p className="text-[10px] font-bold text-[var(--foreground)]">{workloadShift.reason}</p>
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                RECOMMENDATION: {workloadShift.recommendation}
+                            </p>
+                        </div>
+                    )}
+
                     {security && (
                         <div className={cn(
                             "p-4 rounded-xl border space-y-4 animate-in fade-in slide-in-from-top-2",
@@ -105,9 +124,17 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                                     <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
                                     <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Scaling Analysis</span>
                                 </div>
-                                <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
-                                    Analyzed: {new Date(optimization.lastAnalyzedAt).toLocaleTimeString()}
-                                </span>
+                                <div className="flex items-center gap-3">
+                                    {storage.workloadProfile && (
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20">
+                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)]">{storage.workloadProfile.type}</span>
+                                            <span className="text-[8px] font-mono opacity-60 text-[var(--primary)]">{Math.round(storage.workloadProfile.confidence * 100)}% CONF</span>
+                                        </div>
+                                    )}
+                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
+                                        Analyzed: {new Date(optimization.lastAnalyzedAt).toLocaleTimeString()}
+                                    </span>
+                                </div>
                             </div>
                             <p className="text-[10px] leading-relaxed text-[var(--muted-foreground)]">
                                 Based on real-time utilization trends, we&apos;ve identified opportunities to improve the performance and cost-efficiency of <strong>{storage.name}</strong>.
