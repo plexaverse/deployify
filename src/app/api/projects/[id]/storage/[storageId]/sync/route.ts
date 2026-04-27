@@ -9,7 +9,8 @@ import { getGcpProjectNumber } from '@/lib/gcp/auth';
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart } from '@/lib/gcp/monitoring';
+import { logAuditEvent } from '@/lib/audit';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -53,38 +54,58 @@ export async function GET(
         // 0. Perform automated health heartbeat for active connectors
         if (storage.status === 'active' || storage.status === 'error') {
             try {
-                // Baseline connectivity metadata if missing to optimize future heartbeats
-                if (!storage.metadata?.connectivity && storage.connectionStringSecretId && storage.type !== 'firestore') {
+                // 0a. Connectivity Drift Detection & Reconciliation (Phase 112)
+                if (storage.connectionStringSecretId && storage.type !== 'firestore') {
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const connectionString = await getSecretValue(storage.connectionStringSecretId);
+                        let actualHost = '';
+                        let actualPort = 0;
 
-                        // Use URL to parse connection string
                         if (connectionString.startsWith('mongodb+srv://')) {
-                            const url = new URL(connectionString);
-                            storage.metadata = {
-                                ...storage.metadata,
-                                connectivity: { host: url.hostname, port: 27017 }
-                            };
+                            actualHost = new URL(connectionString).hostname;
+                            actualPort = 27017;
                         } else if (!connectionString.includes('enable_iam_auth=true')) {
-                            const url = new URL(connectionString);
-                            if (url.hostname && url.hostname !== 'localhost') {
+                            try {
+                                const url = new URL(connectionString);
+                                actualHost = url.hostname;
+                                actualPort = url.port ? parseInt(url.port, 10) : (
+                                    storage.type.includes('postgres') || storage.type === 'supabase' ? 5432 :
+                                    storage.type.includes('mysql') || storage.type === 'planetscale' ? 3306 :
+                                    storage.type === 'memorystore-redis' ? 6379 :
+                                    storage.type === 'mongodb-atlas' ? 27017 : 0
+                                );
+                            } catch { /* Invalid URL */ }
+                        }
+
+                        if (actualHost && actualHost !== 'localhost') {
+                            const currentConnectivity = storage.metadata?.connectivity as { host: string; port: number } | undefined;
+
+                            // Reconciliation: If metadata is missing OR differs from actual secret state
+                            if (!currentConnectivity || currentConnectivity.host !== actualHost || currentConnectivity.port !== actualPort) {
+                                console.log(`[Reconciliation] Drift detected for ${storageId}. Reconciling metadata with Secret Manager state.`);
+
                                 storage.metadata = {
                                     ...storage.metadata,
-                                    connectivity: {
-                                        host: url.hostname,
-                                        port: url.port ? parseInt(url.port, 10) : (
-                                            storage.type.includes('postgres') || storage.type === 'supabase' ? 5432 :
-                                            storage.type.includes('mysql') || storage.type === 'planetscale' ? 3306 :
-                                            storage.type === 'memorystore-redis' ? 6379 :
-                                            storage.type === 'mongodb-atlas' ? 27017 : 0
-                                        )
-                                    }
+                                    connectivity: { host: actualHost, port: actualPort }
                                 };
+
+                                await logAuditEvent(
+                                    project.teamId || null,
+                                    session.user.id,
+                                    'storage.reconcile_drift',
+                                    {
+                                        projectId: id,
+                                        storageId,
+                                        storageName: storage.name,
+                                        previous: currentConnectivity,
+                                        updated: { host: actualHost, port: actualPort }
+                                    }
+                                );
                             }
                         }
-                    } catch (baselineErr) {
-                        console.error(`[HealthHeartbeat] Failed to baseline connectivity for ${storageId}:`, baselineErr);
+                    } catch (driftErr) {
+                        console.error(`[DriftDetection] Failed for ${storageId}:`, driftErr);
                     }
                 }
 
@@ -286,8 +307,22 @@ export async function GET(
                         storage.dormancy = dormancy;
 
                         // Phase 101: Intelligent Workload Profiling
+                        const previousProfile = storage.workloadProfile;
                         storage.workloadProfile = detectWorkloadProfile(metrics, dormancy);
                         storage.connectionSaturation = metrics.connectionSaturation;
+
+                        // Phase 112: Workload Shift Detection
+                        const shift = detectWorkloadShift(storage.workloadProfile, previousProfile);
+                        if (shift.shifted) {
+                            console.log(`[WorkloadShift] ${storageId}: ${shift.reason}`);
+                            storage.metadata = {
+                                ...storage.metadata,
+                                workloadShift: {
+                                    ...shift,
+                                    detectedAt: now.toISOString()
+                                }
+                            };
+                        }
                     } catch (dormErr) {
                         console.error(`[DormancyInsight] Analysis failed for ${storageId}:`, dormErr);
                     }
@@ -372,6 +407,13 @@ export async function GET(
                     storage.metadata = {
                         ...storage.metadata,
                         tier: syncResult.tier
+                    };
+                }
+
+                if (syncResult.replicas) {
+                    storage.metadata = {
+                        ...storage.metadata,
+                        replicas: syncResult.replicas
                     };
                 }
 

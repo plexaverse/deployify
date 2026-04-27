@@ -9,6 +9,13 @@ export interface SyncResult {
     lastSyncedAt: Date;
     firewallSynced?: boolean;
     tier?: string;
+    replicas?: Array<{
+        id: string;
+        name: string;
+        region: string;
+        status: string;
+        connectionString?: string;
+    }>;
     error?: string;
 }
 
@@ -210,6 +217,43 @@ export async function syncExternalConnector(
                 } catch (e) {
                     console.warn(`[StorageSync] Neon tier discovery failed:`, e);
                 }
+
+                // 3. Phase 112: Discover Read-Replica Endpoints
+                try {
+                    const endpointsRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}/endpoints`, {
+                        headers: { 'Authorization': `Bearer ${providerApiKey}` }
+                    });
+                    if (endpointsRes.ok) {
+                        const endpointsData = await endpointsRes.json();
+                        const endpoints = endpointsData.endpoints || [];
+
+                        // Filter for read-only endpoints on the main branch
+                        interface NeonEndpoint {
+                            id: string;
+                            branch_id: string;
+                            type: string;
+                            current_state: string;
+                            region_id: string;
+                            host: string;
+                        }
+
+                        const readReplicas = (endpoints as NeonEndpoint[]).filter((ep) =>
+                            ep.branch_id === 'main' && ep.type === 'read_only' && ep.current_state === 'active'
+                        );
+
+                        if (readReplicas.length > 0) {
+                            (storage.metadata as Record<string, unknown>).discoveredReplicas = readReplicas.map((ep) => ({
+                                id: ep.id,
+                                name: `endpoint-${ep.id}`,
+                                region: ep.region_id,
+                                status: 'active',
+                                connectionString: newConnectionString.replace(new URL(newConnectionString).hostname, ep.host)
+                            }));
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`[StorageSync] Neon replica discovery failed:`, e);
+                }
             }
         }
 
@@ -232,7 +276,8 @@ export async function syncExternalConnector(
             connectionString: newConnectionString,
             lastSyncedAt: now,
             firewallSynced,
-            tier: discoveredTier || undefined
+            tier: discoveredTier || undefined,
+            replicas: (storage.metadata as Record<string, unknown>)?.discoveredReplicas as SyncResult['replicas']
         };
     } catch (error) {
         console.error(`External sync failed for ${storage.type}:`, error);
