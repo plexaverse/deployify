@@ -94,19 +94,35 @@ export function selectReplica(
         }
     }
 
-    // 2. Fallback to Top-N Randomized (Health-Aware)
+    // 2. Fallback to Latency-Weighted Probability (Phase 112)
+    // We only consider "Top-N" candidates (within 50ms of the best performer)
     const sortedReplicas = [...healthyReplicas].sort((a, b) =>
         (a.health?.latency || 0) - (b.health?.latency || 0)
     );
 
     const bestLatency = (sortedReplicas[0]?.health?.latency || 0);
-
-    // Margin of 50ms for Top-N candidates
     const candidates = sortedReplicas.filter((r, idx) =>
         idx === 0 || (r.health?.latency || 0) <= bestLatency + 50
     );
 
-    return candidates[Math.floor(Math.random() * candidates.length)];
+    if (candidates.length === 1) return candidates[0];
+
+    // Calculate inverse latency weights (lower latency = higher weight)
+    // We add a small constant to avoid division by zero and smooth distribution
+    const scoringReplicas = candidates.map(r => ({
+        replica: r,
+        score: 1 / ((r.health?.latency || 1) + 5)
+    }));
+
+    const totalScore = scoringReplicas.reduce((acc, s) => acc + s.score, 0);
+    let random = Math.random() * totalScore;
+
+    for (const s of scoringReplicas) {
+        random -= s.score;
+        if (random <= 0) return s.replica;
+    }
+
+    return candidates[0];
 }
 
 /**

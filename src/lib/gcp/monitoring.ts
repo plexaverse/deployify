@@ -928,6 +928,45 @@ export function detectWorkloadProfile(
 }
 
 /**
+ * Detect significant shifts in workload patterns (Phase 112)
+ */
+export function detectWorkloadShift(
+    current: WorkloadProfile,
+    previous?: WorkloadProfile
+): { shifted: boolean; reason?: string; recommendation?: string } {
+    if (!previous || current.type === previous.type) return { shifted: false };
+
+    // High-confidence shifts that require attention
+    if (current.confidence > 0.7) {
+        if (previous.type === 'BALANCED' && current.type === 'READ_HEAVY') {
+            return {
+                shifted: true,
+                reason: 'Workload shifted from BALANCED to READ_HEAVY',
+                recommendation: 'Consider provisioning a read replica to offload query traffic.'
+            };
+        }
+
+        if (previous.type === 'DORMANT' && current.type !== 'DORMANT') {
+            return {
+                shifted: true,
+                reason: 'Dormant resource has become active',
+                recommendation: 'Monitor resource utilization closely to ensure proper tiering.'
+            };
+        }
+
+        if (current.type === 'COMPUTE_INTENSIVE' && previous.type !== 'COMPUTE_INTENSIVE') {
+            return {
+                shifted: true,
+                reason: 'Significant increase in compute demand detected',
+                recommendation: 'Evaluate if a CPU tier upgrade is necessary to maintain stability.'
+            };
+        }
+    }
+
+    return { shifted: false };
+}
+
+/**
  * Detect regressions in SQL execution plans (Plan Drift)
  */
 export function detectPlanDrift(
