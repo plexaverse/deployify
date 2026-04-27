@@ -16,7 +16,7 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
+import { deleteDatabase as deleteSqlDatabase, ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
@@ -542,6 +542,25 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         );
 
         try {
+        // Orchestrate Database Branching if enabled
+        if (project.storageConfigs && project.storageConfigs.length > 0) {
+            for (const storage of project.storageConfigs) {
+                if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                    const instanceName = storage.metadata?.resourceName as string;
+                    if (instanceName) {
+                        try {
+                            const dbName = `pr_${pull_request.number}`;
+                            const sourceDb = storage.metadata?.database as string || 'postgres';
+                            console.log(`[Branching] Pre-provisioning database ${dbName} for PR #${pull_request.number}`);
+                            await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                        } catch (e) {
+                            console.error(`[Branching] Failed to pre-provision database:`, e);
+                        }
+                    }
+                }
+            }
+        }
+
             // Get environment variables directly from project and split by target
             const envTarget = 'preview';
             const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {

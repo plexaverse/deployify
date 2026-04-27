@@ -54,18 +54,18 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
     };
 
     return (
-        <Card className="overflow-hidden border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5">
+        <Card className="overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)]/50 backdrop-blur-xl">
             <div className="p-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                         <Shield className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployify Edge</span>
+                        <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Deployify Edge</span>
                         <h3 className="text-[10px] font-bold">Shield Security</h3>
                     </div>
                 </div>
-                <Badge variant={wafEnabled ? "success" : "outline"} className="text-[8px] font-bold uppercase tracking-wider">
+                <Badge variant={wafEnabled ? "success" : "outline"} className="text-[8px] font-bold uppercase tracking-[0.2em] rounded-xl">
                     {wafEnabled ? 'Protected' : 'Off'}
                 </Badge>
             </div>
@@ -106,7 +106,7 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
                         <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)] px-1">Top Mitigated Threats</div>
                         <div className="flex flex-wrap gap-2">
                             {metrics.topThreats.map((threat, i) => (
-                                <Badge key={i} variant="outline" className="text-[8px] font-bold uppercase tracking-wider bg-[var(--error)]/5 text-[var(--error)]/80 border-[var(--error)]/20">
+                                <Badge key={i} variant="outline" className="text-[8px] font-bold uppercase tracking-[0.2em] rounded-xl bg-[var(--error)]/5 text-[var(--error)]/80 border-[var(--error)]/20">
                                     {threat}
                                 </Badge>
                             ))}
