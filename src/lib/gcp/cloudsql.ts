@@ -430,6 +430,7 @@ export async function updateInstanceSettings(
         highAvailability?: boolean;
         pitrEnabled?: boolean;
         deletionProtectionEnabled?: boolean;
+        connectionPoolerEnabled?: boolean;
     }
 ): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
@@ -444,7 +445,8 @@ export async function updateInstanceSettings(
         settings: {
             tier?: string;
             availabilityType?: string;
-            backupConfiguration?: { pointInTimeRecoveryEnabled: boolean }
+            backupConfiguration?: { pointInTimeRecoveryEnabled: boolean };
+            connectionPoolerConfig?: { enabled: boolean };
         }
     } = {
         settings: {}
@@ -461,6 +463,12 @@ export async function updateInstanceSettings(
     if (settings.pitrEnabled !== undefined) {
         updatePayload.settings.backupConfiguration = {
             pointInTimeRecoveryEnabled: settings.pitrEnabled
+        };
+    }
+
+    if (settings.connectionPoolerEnabled !== undefined) {
+        updatePayload.settings.connectionPoolerConfig = {
+            enabled: settings.connectionPoolerEnabled
         };
     }
 
@@ -489,6 +497,16 @@ export async function updateInstanceTier(
     tier: string
 ): Promise<string> {
     return updateInstanceSettings(instanceName, { tier });
+}
+
+/**
+ * Enable or disable the built-in connection pooler (PgBouncer) for a Cloud SQL instance
+ */
+export async function updateConnectionPooler(
+    instanceName: string,
+    enabled: boolean
+): Promise<string> {
+    return updateInstanceSettings(instanceName, { connectionPoolerEnabled: enabled });
 }
 
 /**

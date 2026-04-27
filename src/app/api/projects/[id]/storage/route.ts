@@ -357,7 +357,7 @@ export async function PATCH(
 
         const { project } = access;
         const body = await request.json();
-        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey } = body;
+        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled } = body;
         const secretOnly = body.secretOnly !== undefined ? body.secretOnly : metadata?.secretOnly;
 
         if (!storageId) {
@@ -405,12 +405,14 @@ export async function PATCH(
                     const hasTierChange = metadata.tier && metadata.tier !== storage.metadata?.tier;
                     const hasHAChange = metadata.highAvailability !== undefined && metadata.highAvailability !== storage.metadata?.highAvailability;
                     const hasPITRChange = metadata.pitrEnabled !== undefined && metadata.pitrEnabled !== storage.metadata?.pitrEnabled;
+                    const hasPoolingChange = connectionPoolerEnabled !== undefined && connectionPoolerEnabled !== storage.metadata?.connectionPoolerEnabled;
 
-                    if (hasTierChange || hasHAChange || hasPITRChange) {
+                    if (hasTierChange || hasHAChange || hasPITRChange || hasPoolingChange) {
                         operationName = await updateCloudSqlSettings(resourceName, {
                             tier: metadata.tier,
                             highAvailability: metadata.highAvailability,
-                            pitrEnabled: metadata.pitrEnabled
+                            pitrEnabled: metadata.pitrEnabled,
+                            connectionPoolerEnabled: connectionPoolerEnabled !== undefined ? connectionPoolerEnabled : (storage.metadata?.connectionPoolerEnabled as boolean)
                         });
                         status = 'provisioning';
                     }
@@ -444,6 +446,7 @@ export async function PATCH(
                 ...(storage.metadata || {}),
                 ...(metadata || {}),
                 secretOnly: secretOnly !== undefined ? secretOnly : storage.metadata?.secretOnly,
+                connectionPoolerEnabled: connectionPoolerEnabled !== undefined ? connectionPoolerEnabled : storage.metadata?.connectionPoolerEnabled,
                 operationName
             },
             updatedAt: new Date(),
