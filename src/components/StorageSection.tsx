@@ -128,7 +128,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isScaling, setIsScaling] = useState<StorageConfig | null>(null);
     const [scaleTier, setScaleTier] = useState('');
     const [scaleSizeGb, setScaleSizeGb] = useState(1);
-    const [metrics, setMetrics] = useState<Record<string, { cpuUtilization: number, memoryUtilization: number, diskUtilization?: number }>>({});
+    const [metrics, setMetrics] = useState<Record<string, { cpuUtilization: number, memoryUtilization: number, diskUtilization?: number, connectionSaturation?: number, poolingRecommendation?: string }>>({});
     const [isLoadingMetrics, setIsLoadingMetrics] = useState<Record<string, boolean>>({});
     const [rotateConnectionString, setRotateConnectionString] = useState('');
     const [isManagingBackups, setIsManagingBackups] = useState<StorageConfig | null>(null);
@@ -1664,51 +1664,86 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             </div>
                                         )}
                                         {!!config.metadata?.provisioned && config.status === 'active' && (
-                                            <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in">
-                                                <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Cpu className="w-3 h-3 text-[var(--primary)]" />
-                                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU</span>
-                                                        </div>
-                                                        <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{metrics[config.id]?.cpuUtilization || 0}%</span>
-                                                    </div>
-                                                    <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-[var(--primary)] transition-all duration-500"
-                                                            style={{ width: `${metrics[config.id]?.cpuUtilization || 0}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Zap className="w-3 h-3 text-[var(--success)]" />
-                                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory</span>
-                                                        </div>
-                                                        <span className="text-[8px] font-mono font-bold text-[var(--success)]">{metrics[config.id]?.memoryUtilization || 0}%</span>
-                                                    </div>
-                                                    <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-[var(--success)] transition-all duration-500"
-                                                            style={{ width: `${metrics[config.id]?.memoryUtilization || 0}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                                {metrics[config.id]?.diskUtilization !== undefined && (
-                                                    <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)] col-span-2 md:col-span-1">
+                                            <div className="space-y-3">
+                                                <div className={cn(
+                                                    "mt-3 grid gap-4 animate-fade-in",
+                                                    metrics[config.id]?.connectionSaturation !== undefined && metrics[config.id]?.diskUtilization !== undefined ? "grid-cols-2 md:grid-cols-4" : "grid-cols-2 md:grid-cols-3"
+                                                )}>
+                                                    <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
                                                         <div className="flex items-center justify-between mb-1">
                                                             <div className="flex items-center gap-1.5">
-                                                                <HardDrive className="w-3 h-3 text-[var(--warning)]" />
-                                                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Disk</span>
+                                                                <Cpu className="w-3 h-3 text-[var(--primary)]" />
+                                                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">CPU</span>
                                                             </div>
-                                                            <span className="text-[8px] font-mono font-bold text-[var(--warning)]">{metrics[config.id]?.diskUtilization}%</span>
+                                                            <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{metrics[config.id]?.cpuUtilization || 0}%</span>
                                                         </div>
                                                         <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
                                                             <div
-                                                                className="h-full bg-[var(--warning)] transition-all duration-500"
-                                                                style={{ width: `${metrics[config.id]?.diskUtilization}%` }}
+                                                                className="h-full bg-[var(--primary)] transition-all duration-500"
+                                                                style={{ width: `${metrics[config.id]?.cpuUtilization || 0}%` }}
                                                             />
+                                                        </div>
+                                                    </div>
+                                                    <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Zap className="w-3 h-3 text-[var(--success)]" />
+                                                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Memory</span>
+                                                            </div>
+                                                            <span className="text-[8px] font-mono font-bold text-[var(--success)]">{metrics[config.id]?.memoryUtilization || 0}%</span>
+                                                        </div>
+                                                        <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-[var(--success)] transition-all duration-500"
+                                                                style={{ width: `${metrics[config.id]?.memoryUtilization || 0}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    {metrics[config.id]?.diskUtilization !== undefined && (
+                                                        <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <HardDrive className="w-3 h-3 text-[var(--warning)]" />
+                                                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Disk</span>
+                                                                </div>
+                                                                <span className="text-[8px] font-mono font-bold text-[var(--warning)]">{metrics[config.id]?.diskUtilization}%</span>
+                                                            </div>
+                                                            <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className="h-full bg-[var(--warning)] transition-all duration-500"
+                                                                    style={{ width: `${metrics[config.id]?.diskUtilization}%` }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {metrics[config.id]?.connectionSaturation !== undefined && (
+                                                        <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <Activity className="w-3 h-3 text-[var(--info)]" />
+                                                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Conns</span>
+                                                                </div>
+                                                                <span className="text-[8px] font-mono font-bold text-[var(--info)]">{metrics[config.id]?.connectionSaturation}%</span>
+                                                            </div>
+                                                            <div className="h-1.5 w-full bg-[var(--muted)]/20 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className={cn(
+                                                                        "h-full transition-all duration-500",
+                                                                        (metrics[config.id]?.connectionSaturation || 0) > 80 ? "bg-[var(--error)]" : "bg-[var(--info)]"
+                                                                    )}
+                                                                    style={{ width: `${metrics[config.id]?.connectionSaturation || 0}%` }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {metrics[config.id]?.poolingRecommendation && (
+                                                    <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/30 rounded-lg flex items-start gap-3 animate-pulse">
+                                                        <ShieldCheck className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
+                                                        <div>
+                                                            <p className="text-[8px] font-bold uppercase text-[var(--info)] tracking-wider">Performance Recommendation</p>
+                                                            <p className="text-[10px] font-bold text-[var(--foreground)]">{metrics[config.id]?.poolingRecommendation}</p>
                                                         </div>
                                                     </div>
                                                 )}

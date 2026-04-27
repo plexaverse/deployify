@@ -11,6 +11,7 @@ export interface ResourceMetrics {
     memoryUtilization: number;
     diskUtilization?: number;
     connectionSaturation?: number;
+    poolingRecommendation?: string;
     timestamp: string;
 }
 
@@ -182,6 +183,27 @@ async function fetchTimeSeriesData(
     }));
 }
 
+const TIER_CONNECTION_LIMITS: Record<string, number> = {
+    'micro': 25,
+    'small': 50,
+    'custom-1': 100,
+    'custom-2': 200,
+    'custom-4': 400,
+    'standard-1': 100,
+    'standard-2': 200,
+    'standard-4': 400,
+    'highmem-2': 200,
+    'highmem-4': 400,
+};
+
+/**
+ * Helper to get estimated max connections for a tier (Phase 114)
+ */
+export function getEstimatedMaxConnections(tier: string): number {
+    const matchedKey = Object.keys(TIER_CONNECTION_LIMITS).find(key => tier.includes(key));
+    return matchedKey ? TIER_CONNECTION_LIMITS[matchedKey] : 100; // Default fallback
+}
+
 /**
  * Fetch resource metrics for a Cloud SQL instance
  */
@@ -191,11 +213,15 @@ export async function getCloudSqlMetrics(
     tier: string = 'db-f1-micro'
 ): Promise<ResourceMetrics> {
     if (process.env.MOCK_DB === 'true') {
+        const saturation = Math.floor(Math.random() * 85) + 5;
         return {
             cpuUtilization: Math.floor(Math.random() * 30) + 5,
             memoryUtilization: Math.floor(Math.random() * 40) + 20,
             diskUtilization: Math.floor(Math.random() * 10) + 5,
-            connectionSaturation: Math.floor(Math.random() * 15) + 2,
+            connectionSaturation: saturation,
+            poolingRecommendation: (dbType === 'postgresql' && saturation > 80)
+                ? 'High connection saturation detected. Deployify recommends enabling PgBouncer for optimal connection pooling.'
+                : undefined,
             timestamp: new Date().toISOString()
         };
     }
@@ -213,21 +239,26 @@ export async function getCloudSqlMetrics(
     }
 
     // Fetch connection saturation (Postgres/MySQL)
-    // We fetch active connections and assume a default max for normalization if max is not easily fetchable
     const saturationMetric = dbType === 'postgresql' ? 'network/active_connections' : 'mysql/net_connections';
     const saturationFilter = `metric.type="cloudsql.googleapis.com/database/${saturationMetric}" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
     const activeConnections = await fetchLatestMetricValue(gcpProjectId!, accessToken, saturationFilter);
 
-    // Normalize saturation: Assume default limit based on tier if possible, otherwise use a conservative 100
-    // In a full implementation, we'd fetch the actual max_connections flag from the instance settings
-    const estimatedMax = tier.includes('micro') ? 25 : (tier.includes('small') ? 50 : 100);
+    // Normalize saturation using tier-aware limits (Phase 114)
+    const estimatedMax = getEstimatedMaxConnections(tier);
     const saturation = Math.min(100, (activeConnections / estimatedMax) * 100);
+
+    // Connection Pooling Governance (Phase 114)
+    let poolingRecommendation;
+    if (dbType === 'postgresql' && saturation > 80) {
+        poolingRecommendation = 'High connection saturation detected. Deployify recommends enabling PgBouncer for optimal connection pooling.';
+    }
 
     return {
         cpuUtilization: parseFloat(results['cpu/utilization'].toFixed(2)),
         memoryUtilization: parseFloat(results['memory/utilization'].toFixed(2)),
         diskUtilization: parseFloat(results['disk/utilization'].toFixed(2)),
         connectionSaturation: parseFloat(saturation.toFixed(2)),
+        poolingRecommendation,
         timestamp: new Date().toISOString()
     };
 }
