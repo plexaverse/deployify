@@ -1559,6 +1559,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     TIER: {config.metadata.tier as string}
                                                 </span>
                                             )}
+                                            {!!config.metadata?.connectionPoolerEnabled && (
+                                                <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title="PgBouncer connection pooling enabled">
+                                                    <Zap className="w-2.5 h-2.5" />
+                                                    POOLING ACTIVE
+                                                </span>
+                                            )}
                                             {config.activeAlerts && config.activeAlerts.length > 0 && (
                                                 <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={config.activeAlerts.join('\n')}>
                                                     <AlertTriangle className="w-2.5 h-2.5" />
@@ -1738,13 +1744,22 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     )}
                                                 </div>
 
-                                                {metrics[config.id]?.poolingRecommendation && (
-                                                    <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/30 rounded-lg flex items-start gap-3 animate-pulse">
-                                                        <ShieldCheck className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
-                                                        <div>
-                                                            <p className="text-[8px] font-bold uppercase text-[var(--info)] tracking-wider">Performance Recommendation</p>
-                                                            <p className="text-[10px] font-bold text-[var(--foreground)]">{metrics[config.id]?.poolingRecommendation}</p>
+                                                {metrics[config.id]?.poolingRecommendation && !config.metadata?.connectionPoolerEnabled && (
+                                                    <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/30 rounded-lg flex items-start justify-between gap-3 animate-pulse">
+                                                        <div className="flex items-start gap-3">
+                                                            <ShieldCheck className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
+                                                            <div>
+                                                                <p className="text-[8px] font-bold uppercase text-[var(--info)] tracking-wider">Performance Recommendation</p>
+                                                                <p className="text-[10px] font-bold text-[var(--foreground)]">{metrics[config.id]?.poolingRecommendation}</p>
+                                                            </div>
                                                         </div>
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => updateStorageConfig(projectId, config.id, { connectionPoolerEnabled: true })}
+                                                            className="h-7 px-3 text-[8px] font-bold uppercase bg-[var(--info)] hover:bg-[var(--info)]/90 shrink-0"
+                                                        >
+                                                            Enable PgBouncer
+                                                        </Button>
                                                     </div>
                                                 )}
                                             </div>
@@ -2919,6 +2934,16 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Total Scan Time</span>
                                     <span className="text-[8px] font-mono font-bold">{diagnosticResult.overallLatency}ms</span>
                                 </div>
+
+                                {diagnosticResult.steps.some(s => s.name === 'VPC-SC Perimeter Alignment' && s.status === 'success') && (
+                                    <div className="p-3 bg-[var(--success)]/5 border border-[var(--success)]/20 rounded-xl flex items-center justify-between animate-in slide-in-from-bottom-2">
+                                        <div className="flex items-center gap-2">
+                                            <ShieldCheck className="w-3.5 h-3.5 text-[var(--success)]" />
+                                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]">Infrastructure Lockdown</span>
+                                        </div>
+                                        <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--success)]/10 text-[var(--success)] border border-[var(--success)]/20">VPC-SC COMPLIANT</span>
+                                    </div>
+                                )}
 
                                 <Button
                                     variant="outline"

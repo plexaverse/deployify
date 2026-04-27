@@ -498,6 +498,7 @@ export interface StorageConfig {
     rollbackCommand?: string;
     autoAlign?: boolean;
     ssl?: boolean;
+    connectionPoolerEnabled?: boolean;
     activeAlerts?: string[];
     readWeights?: Record<string, number>; // replicaId -> weight (0-100)
     dormancy?: ResourceDormancy;

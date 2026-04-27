@@ -698,6 +698,12 @@ export default function InfrastructureFleetPage() {
                                                         <span className="text-[8px] font-bold uppercase">LBLD</span>
                                                     </div>
                                                 )}
+                                                {connector.type.includes('cloud-sql') && (
+                                                    <div className="flex items-center gap-1.5 text-[var(--success)]">
+                                                        <ShieldCheck className="w-2.5 h-2.5" />
+                                                        <span className="text-[8px] font-bold uppercase">LOCK</span>
+                                                    </div>
+                                                )}
                                                 </div>
                                             )}
                                         </div>
