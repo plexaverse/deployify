@@ -727,7 +727,39 @@ Legacy and custom support with production-grade security:
 - [x] Harden Auto-Pilot Backend Logic to respect user-defined scaling boundaries.
 - [x] Integrate high-density workload confidence visualization in Optimization insights.
 
+### Phase 114: Performance Guardrails Maturity & Connection Pooling Governance (COMPLETED)
+- [x] Refine Cloud SQL connection saturation logic with tier-aware limits.
+- [x] Implement automated PgBouncer pooling recommendations for high-saturation Postgres instances.
+- [x] Update Resource Metrics API to include connection saturation trends and pooling insights.
+- [x] Enhance Storage dashboard UI with a dedicated Connection Saturation gauge and performance alerts.
+
+## Strategic Roadmap: Unified Connector Model
+Deployify adopts a three-tier "Connector" model to standardize database lifecycle management while preserving deployment flexibility.
+
+### Tier 1: GCP-Native Integration (Automated Provisioning)
+- **Status**: Active (Phase 102, 104, 114)
+- **Capabilities**: One-click Cloud SQL/Memorystore/Firestore setup, IAM-based auth, automated HA/PITR, and tier-aware saturation monitoring.
+- **Future**: Automated VPC-SC perimeter alignment and cross-project resource sharing.
+
+### Tier 2: Managed External Connectors (Vercel Model)
+- **Status**: In-Progress (Phase 109, 110, 112)
+- **Capabilities**: API-driven credential sync for Neon, Supabase, and PlanetScale. Standardized environment injection.
+- **Future**: Automated "Import to Native" migration tools and deeper cost-intelligence integration for external providers.
+
+### Tier 3: Generic Environment Variables (Fallback)
+- **Status**: Operational
+- **Capabilities**: Raw connection string support with Secret Manager backing.
+- **Future**: Health-probe discovery for generic endpoints to bridge them into the monitoring dashboard.
+
 ## Progress Updates
+
+### 2027-06-22: Completed Phase 114: Performance Guardrails Maturity
+- Completed Phase 114: Performance Guardrails Maturity & Connection Pooling Governance.
+- Hardened Cloud SQL connection monitoring by implementing tier-aware saturation limits, accurately reflecting the `max_connections` constraints of various machine types (from `micro` to `highmem`).
+- Launched Connection Pooling Governance, automatically providing technical recommendations for PgBouncer activation when PostgreSQL instances exceed 80% connection saturation.
+- Enhanced the Storage dashboard UI with a dedicated high-density Connection Saturation gauge and updated the resource metrics layout to a 4-column grid on large screens.
+- Updated the Resource Metrics API to surface real-time pooling insights and saturation trends, improving operational visibility for high-scale applications.
+- Verified 100% functional integrity with platform-wide audits and zero-warning build completion.
 
 ### 2027-06-21: Completed Phase 113: Intelligent Auto-Pilot Governance
 - Completed Phase 113: Intelligent Auto-Pilot Governance & Workload-Aware UI.

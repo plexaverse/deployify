@@ -43,7 +43,9 @@ export async function GET(
 
         let metrics;
         if (storageConfig.type.includes('cloud-sql')) {
-            metrics = await getCloudSqlMetrics(resourceName);
+            const dbType = storageConfig.type.includes('postgres') ? 'postgresql' : 'mysql';
+            const tier = (storageConfig.metadata?.tier as string) || 'db-f1-micro';
+            metrics = await getCloudSqlMetrics(resourceName, dbType as 'postgresql' | 'mysql', tier);
         } else if (storageConfig.type === 'memorystore-redis') {
             metrics = await getMemorystoreMetrics(resourceName, region);
         } else if (isExternal) {
