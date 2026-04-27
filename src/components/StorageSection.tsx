@@ -55,7 +55,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
-import type { StorageType, StorageConfig, Backup, Migration } from '@/types';
+import type { StorageType, StorageConfig, Backup, Migration, WorkloadShift } from '@/types';
 import type { DiagnosticResult } from '@/lib/gcp/storage-validator';
 
 interface StorageSectionProps {
@@ -146,6 +146,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isMigratingRegion, setIsMigratingRegion] = useState<StorageConfig | null>(null);
 
     const [isManagingAlerts, setIsManagingAlerts] = useState<StorageConfig | null>(null);
+    const [isManagingAutoPilot, setIsManagingAutoPilot] = useState<StorageConfig | null>(null);
     const [isManagingOptimization, setIsManagingOptimization] = useState<StorageConfig | null>(null);
     const [isManagingGuardrails, setIsManagingGuardrails] = useState<StorageConfig | null>(null);
     const [guardrailQueries, setGuardrailQueries] = useState<import('@/lib/gcp/monitoring').LongRunningQuery[]>([]);
@@ -178,6 +179,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [alertDisk, setAlertDisk] = useState(80);
     const [alertsEnabled, setAlertsEnabled] = useState(false);
     const [alertEmailEnabled, setAlertEmailEnabled] = useState(false);
+    const [autoPilotEnabled, setAutoPilotEnabled] = useState(false);
+    const [autoPilotMinTier, setAutoPilotMinTier] = useState('');
+    const [autoPilotMaxTier, setAutoPilotMaxTier] = useState('');
+    const [autoPilotTargetCpu, setAutoPilotTargetCpu] = useState(70);
+    const [autoPilotTargetMemory, setAutoPilotTargetMemory] = useState(70);
     const [autoMigrationEnabled, setAutoMigrationEnabled] = useState(false);
     const [autoMigrationCommand, setAutoMigrationCommand] = useState('prisma migrate deploy');
     const [customRollbackCommand, setCustomRollbackCommand] = useState('prisma migrate resolve --rolled-back');
@@ -271,6 +277,27 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             if (success) {
                 resetForm();
                 if (onUpdate) onUpdate();
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleUpdateAutoPilot = async () => {
+        if (!isManagingAutoPilot) return;
+        setIsSubmitting(true);
+        try {
+            const success = await updateStorageConfig(projectId, isManagingAutoPilot.id, {
+                autoScalingSettings: {
+                    enabled: autoPilotEnabled,
+                    minTier: autoPilotMinTier || undefined,
+                    maxTier: autoPilotMaxTier || undefined,
+                    targetCpuUtilization: autoPilotTargetCpu,
+                    targetMemoryUtilization: autoPilotTargetMemory
+                }
+            });
+            if (success) {
+                setIsManagingAutoPilot(null);
             }
         } finally {
             setIsSubmitting(false);
@@ -1496,6 +1523,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     AUTO-MIGRATE
                                                 </span>
                                             )}
+                                            {config.autoScalingSettings?.enabled && (
+                                                <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1" title={`Auto-Pilot active: ${config.autoScalingSettings.minTier} to ${config.autoScalingSettings.maxTier}`}>
+                                                    <Sparkles className="w-2.5 h-2.5" />
+                                                    AUTO-PILOT
+                                                </span>
+                                            )}
                                             {!!config.metadata?.optimization && (
                                                 <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1 animate-pulse">
                                                     <Sparkles className="w-2.5 h-2.5" />
@@ -1602,6 +1635,34 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 )}
                                             </div>
                                         </div>
+                                        {(config.metadata?.workloadShift as unknown as WorkloadShift)?.shifted && (
+                                            <div className="mt-3 p-3 bg-[var(--warning)]/5 border border-[var(--warning)]/30 rounded-lg flex items-start justify-between gap-3 animate-pulse">
+                                                <div className="flex items-start gap-2.5">
+                                                    <TrendingUp className="w-3.5 h-3.5 text-[var(--warning)] shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <p className="text-[8px] font-bold uppercase text-[var(--warning)] tracking-wider">Workload Shift Detected</p>
+                                                        <p className="text-[10px] font-bold text-[var(--foreground)]">{(config.metadata?.workloadShift as unknown as WorkloadShift)?.reason}</p>
+                                                        <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] mt-0.5">REC: {(config.metadata?.workloadShift as unknown as WorkloadShift)?.recommendation}</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        const shift = config.metadata?.workloadShift as unknown as WorkloadShift;
+                                                        if (shift?.recommendation?.toLowerCase().includes('replica')) {
+                                                            setIsManagingReplicas(config);
+                                                            setReplicaWeights(config.readWeights || {});
+                                                        } else {
+                                                            setIsManagingOptimization(config);
+                                                        }
+                                                    }}
+                                                    className="h-7 px-2 text-[8px] font-bold uppercase border-[var(--warning)]/30 text-[var(--warning)] hover:bg-[var(--warning)]/10 shrink-0"
+                                                >
+                                                    Resolve
+                                                </Button>
+                                            </div>
+                                        )}
                                         {!!config.metadata?.provisioned && config.status === 'active' && (
                                             <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in">
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
@@ -1878,6 +1939,27 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {config.alertSettings?.enabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
                                         </Button>
                                     )}
+                                    {config.status === 'active' && !!config.metadata?.provisioned && (config.type.includes('cloud-sql') || config.type === 'memorystore-redis' || config.type === 'neon') && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsManagingAutoPilot(config);
+                                                setAutoPilotEnabled(config.autoScalingSettings?.enabled || false);
+                                                setAutoPilotMinTier(config.autoScalingSettings?.minTier || '');
+                                                setAutoPilotMaxTier(config.autoScalingSettings?.maxTier || '');
+                                                setAutoPilotTargetCpu(config.autoScalingSettings?.targetCpuUtilization || 70);
+                                                setAutoPilotTargetMemory(config.autoScalingSettings?.targetMemoryUtilization || 70);
+                                            }}
+                                            className={cn(
+                                                "h-8 w-8",
+                                                config.autoScalingSettings?.enabled ? "text-[var(--primary)] hover:bg-[var(--primary)]/10" : "text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            )}
+                                            title="Auto-Pilot Settings"
+                                        >
+                                            <Sparkles className={cn("w-4 h-4", config.autoScalingSettings?.enabled && "animate-pulse")} />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -2011,6 +2093,151 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     </div>
                 }
                 confirmText="Apply Scaling"
+                loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingAutoPilot}
+                onClose={() => setIsManagingAutoPilot(null)}
+                onConfirm={handleUpdateAutoPilot}
+                title="Auto-Pilot Scaling Governance"
+                headerLabel="Intelligence Settings"
+                icon={<Sparkles className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                            <div className="space-y-0.5">
+                                <Label className="text-[10px] font-bold">Enable Auto-Pilot Scaling</Label>
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Automatically adjust tiers based on utilization</p>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={autoPilotEnabled}
+                                onChange={(e) => setAutoPilotEnabled(e.target.checked)}
+                                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                            />
+                        </div>
+
+                        <div className={cn("space-y-6 transition-opacity", !autoPilotEnabled && "opacity-40 pointer-events-none")}>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Minimum Tier</Label>
+                                    {isManagingAutoPilot?.type.includes('cloud-sql') ? (
+                                        <NativeSelect
+                                            value={autoPilotMinTier}
+                                            onChange={(e) => setAutoPilotMinTier(e.target.value)}
+                                            className="h-8 text-[8px] font-bold uppercase"
+                                        >
+                                            <option value="">NOT SET</option>
+                                            <option value="db-f1-micro">DB-F1-MICRO</option>
+                                            <option value="db-g1-small">DB-G1-SMALL</option>
+                                            <option value="db-custom-1-3840">1 VCPU, 3.75GB</option>
+                                        </NativeSelect>
+                                    ) : isManagingAutoPilot?.type === 'memorystore-redis' ? (
+                                        <NativeSelect
+                                            value={autoPilotMinTier}
+                                            onChange={(e) => setAutoPilotMinTier(e.target.value)}
+                                            className="h-8 text-[8px] font-bold uppercase"
+                                        >
+                                            <option value="">NOT SET</option>
+                                            <option value="1GB">1 GB</option>
+                                            <option value="2GB">2 GB</option>
+                                            <option value="4GB">4 GB</option>
+                                        </NativeSelect>
+                                    ) : (
+                                        <NativeSelect
+                                            value={autoPilotMinTier}
+                                            onChange={(e) => setAutoPilotMinTier(e.target.value)}
+                                            className="h-8 text-[8px] font-bold uppercase"
+                                        >
+                                            <option value="">NOT SET</option>
+                                            <option value="FREE">FREE</option>
+                                            <option value="LAUNCH">LAUNCH</option>
+                                            <option value="PRO">PRO</option>
+                                        </NativeSelect>
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Maximum Tier</Label>
+                                    {isManagingAutoPilot?.type.includes('cloud-sql') ? (
+                                        <NativeSelect
+                                            value={autoPilotMaxTier}
+                                            onChange={(e) => setAutoPilotMaxTier(e.target.value)}
+                                            className="h-8 text-[8px] font-bold uppercase"
+                                        >
+                                            <option value="">NOT SET</option>
+                                            <option value="db-custom-2-7680">2 VCPU, 7.5GB</option>
+                                            <option value="db-custom-4-15360">4 VCPU, 15GB</option>
+                                            <option value="db-custom-8-30720">8 VCPU, 30GB</option>
+                                        </NativeSelect>
+                                    ) : isManagingAutoPilot?.type === 'memorystore-redis' ? (
+                                        <NativeSelect
+                                            value={autoPilotMaxTier}
+                                            onChange={(e) => setAutoPilotMaxTier(e.target.value)}
+                                            className="h-8 text-[8px] font-bold uppercase"
+                                        >
+                                            <option value="">NOT SET</option>
+                                            <option value="5GB">5 GB</option>
+                                            <option value="10GB">10 GB</option>
+                                            <option value="20GB">20 GB</option>
+                                        </NativeSelect>
+                                    ) : (
+                                        <NativeSelect
+                                            value={autoPilotMaxTier}
+                                            onChange={(e) => setAutoPilotMaxTier(e.target.value)}
+                                            className="h-8 text-[8px] font-bold uppercase"
+                                        >
+                                            <option value="">NOT SET</option>
+                                            <option value="LAUNCH">LAUNCH</option>
+                                            <option value="PRO">PRO</option>
+                                            <option value="SCALE">SCALE</option>
+                                        </NativeSelect>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target CPU Utilization</Label>
+                                    <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{autoPilotTargetCpu}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="30"
+                                    max="90"
+                                    step="5"
+                                    value={autoPilotTargetCpu}
+                                    onChange={(e) => setAutoPilotTargetCpu(parseInt(e.target.value))}
+                                    className="w-full accent-[var(--primary)]"
+                                />
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Memory Utilization</Label>
+                                    <span className="text-[8px] font-mono font-bold text-[var(--success)]">{autoPilotTargetMemory}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="30"
+                                    max="90"
+                                    step="5"
+                                    value={autoPilotTargetMemory}
+                                    onChange={(e) => setAutoPilotTargetMemory(parseInt(e.target.value))}
+                                    className="w-full accent-[var(--success)]"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-3">
+                            <Activity className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                Auto-Pilot runs every 6 hours to analyze historical utilization. If thresholds are breached and within your min/max boundaries, a tier adjustment will be triggered automatically.
+                            </p>
+                        </div>
+                    </div>
+                }
+                confirmText="Save Auto-Pilot Settings"
                 loading={isSubmitting}
             />
 

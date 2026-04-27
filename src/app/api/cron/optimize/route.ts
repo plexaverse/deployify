@@ -8,6 +8,24 @@ import { securityHeaders } from '@/lib/security';
 import type { Project } from '@/types';
 
 /**
+ * Helper to get numeric order of tiers for comparison
+ */
+function getTierOrder(tier: string, type: string): number {
+    if (type.includes('cloud-sql')) {
+        const order = ['db-f1-micro', 'db-g1-small', 'db-custom-1-3840', 'db-custom-2-7680', 'db-custom-4-15360', 'db-custom-8-30720'];
+        return order.indexOf(tier);
+    }
+    if (type === 'neon') {
+        const order = ['FREE', 'LAUNCH', 'PRO', 'SCALE'];
+        return order.indexOf(tier.toUpperCase());
+    }
+    if (type === 'memorystore-redis') {
+        return parseInt(tier) || 0;
+    }
+    return -1;
+}
+
+/**
  * Cron job to analyze resource utilization and apply auto-scaling recommendations.
  * This should be triggered periodically (e.g., via GitHub Actions or Cloud Scheduler).
  */
@@ -95,6 +113,29 @@ export async function GET(request: NextRequest) {
                     const autoScalingRec = recommendations.find(r => r.type === 'upgrade' || r.type === 'downgrade');
 
                     if (autoScalingRec) {
+                        // Phase 113: Respect Min/Max Tier Boundaries
+                        const targetTier = autoScalingRec.recommendedTier;
+                        const minTier = storage.autoScalingSettings?.minTier;
+                        const maxTier = storage.autoScalingSettings?.maxTier;
+
+                        if (minTier) {
+                            const targetOrder = getTierOrder(targetTier, storage.type);
+                            const minOrder = getTierOrder(minTier, storage.type);
+                            if (targetOrder !== -1 && minOrder !== -1 && targetOrder < minOrder) {
+                                console.log(`[Auto-Pilot] Skipping ${autoScalingRec.type} for ${resourceName}: Target ${targetTier} is below minTier ${minTier}`);
+                                continue;
+                            }
+                        }
+
+                        if (maxTier) {
+                            const targetOrder = getTierOrder(targetTier, storage.type);
+                            const maxOrder = getTierOrder(maxTier, storage.type);
+                            if (targetOrder !== -1 && maxOrder !== -1 && targetOrder > maxOrder) {
+                                console.log(`[Auto-Pilot] Skipping ${autoScalingRec.type} for ${resourceName}: Target ${targetTier} is above maxTier ${maxTier}`);
+                                continue;
+                            }
+                        }
+
                         console.log(`[Auto-Pilot] Applying ${autoScalingRec.type} to ${resourceName} (${storage.type}): ${autoScalingRec.currentTier} -> ${autoScalingRec.recommendedTier}`);
 
                         try {

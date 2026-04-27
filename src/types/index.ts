@@ -462,6 +462,13 @@ export interface ResourceDormancy {
 
 export type WorkloadType = 'READ_HEAVY' | 'WRITE_HEAVY' | 'BALANCED' | 'DORMANT' | 'COMPUTE_INTENSIVE';
 
+export interface WorkloadShift {
+    shifted: boolean;
+    reason?: string;
+    recommendation?: string;
+    detectedAt: string;
+}
+
 export interface WorkloadProfile {
     type: WorkloadType;
     confidence: number;
@@ -495,6 +502,7 @@ export interface StorageConfig {
     readWeights?: Record<string, number>; // replicaId -> weight (0-100)
     dormancy?: ResourceDormancy;
     workloadProfile?: WorkloadProfile;
+    workloadShift?: WorkloadShift;
     connectionSaturation?: number;
     labelingStatus?: 'PENDING' | 'SYNCED' | 'FAILED';
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
