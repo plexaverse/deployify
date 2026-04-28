@@ -167,29 +167,6 @@ export async function syncDeploymentStatus(
                 });
             }
 
-            // Handle Database Branching/Cloning for Preview Environments
-            if (deployment.type === 'preview' && pullRequestNumber) {
-                await updateProject(projectId, {}); // Just to get latest project state
-                const project = await getProjectById(projectId);
-                const storageConfigs = project?.storageConfigs || [];
-
-                for (const storage of storageConfigs) {
-                    if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
-                        const instanceName = storage.metadata?.resourceName as string;
-                        if (instanceName) {
-                            try {
-                                console.log(`[Branching] Ensuring ephemeral database for PR #${pullRequestNumber} on ${instanceName}`);
-                                // For preview, we often want to clone the production database name with a PR suffix
-                                const dbName = `pr_${pullRequestNumber}`;
-                                await ensureEphemeralDatabase(instanceName, dbName);
-                                console.log(`[Branching] Ephemeral database ${dbName} ready.`);
-                            } catch (e) {
-                                console.error(`[Branching] Failed to setup ephemeral database:`, e);
-                            }
-                        }
-                    }
-                }
-            }
 
             // Send PR Comment if applicable
             if (pullRequestNumber && repoFullName && accessToken) {

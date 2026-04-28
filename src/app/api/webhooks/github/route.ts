@@ -16,7 +16,7 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
+import { deleteDatabase as deleteSqlDatabase, ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
@@ -150,6 +150,24 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     );
 
     try {
+        // Handle Database Branching before build submission (to support migrations)
+        if (project.storageConfigs && project.storageConfigs.length > 0) {
+            for (const storage of project.storageConfigs) {
+                if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                    const instanceName = storage.metadata?.resourceName as string;
+                    if (instanceName) {
+                        try {
+                            const dbName = `br_${branch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
+                            const sourceDb = storage.metadata?.database as string || 'postgres';
+                            await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                        } catch (e) {
+                            console.error(`[Branching] Failed to setup ephemeral database:`, e);
+                        }
+                    }
+                }
+            }
+        }
+
         // Get environment variables directly from project and split by target
         const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
             branch
@@ -542,6 +560,24 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         );
 
         try {
+            // Handle Database Branching before build submission (to support migrations)
+            if (project.storageConfigs && project.storageConfigs.length > 0) {
+                for (const storage of project.storageConfigs) {
+                    if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                        const instanceName = storage.metadata?.resourceName as string;
+                        if (instanceName) {
+                            try {
+                                const dbName = `pr_${pull_request.number}`;
+                                const sourceDb = storage.metadata?.database as string || 'postgres';
+                                await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                            } catch (e) {
+                                console.error(`[Branching] Failed to setup ephemeral database:`, e);
+                            }
+                        }
+                    }
+                }
+            }
+
             // Get environment variables directly from project and split by target
             const envTarget = 'preview';
             const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {

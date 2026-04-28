@@ -8,6 +8,7 @@ import { getBranchLatestCommit } from '@/lib/github';
 import { validateRepository } from '@/lib/github/validator';
 import { parseRepoFullName, getProjectSlugForDeployment } from '@/lib/utils';
 import { isRunningOnGCP } from '@/lib/gcp/auth';
+import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
@@ -146,6 +147,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Check if running on GCP - use real Cloud Build
         if (isRunningOnGCP()) {
             try {
+                // Handle Database Branching before build submission (to support migrations)
+                if (project.storageConfigs && project.storageConfigs.length > 0) {
+                    for (const storage of project.storageConfigs) {
+                        if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                            const instanceName = storage.metadata?.resourceName as string;
+                            if (instanceName) {
+                                try {
+                                    const dbName = `br_${branch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}`;
+                                    const sourceDb = storage.metadata?.database as string || 'postgres';
+                                    await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                                } catch (e) {
+                                    console.error(`[Branching] Failed to setup ephemeral database:`, e);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Determine env target based on branch
                 let envTarget: 'production' | 'preview' = isDefaultBranch ? 'production' : 'preview';
                 if (project.branchEnvironments) {
