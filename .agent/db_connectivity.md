@@ -927,6 +927,16 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Add ORM schema export functionality (Prisma/Drizzle) to the Data Lab.
 - [x] Integrate anomaly detection into proactive scaling recommendations.
 
+### Phase 116: Unified Resource Ingestion & Cross-Project Connectivity Orchestration (IN-PROGRESS)
+- [ ] Implement "Import to Native" orchestration for migrating external SQL to Cloud SQL.
+- [ ] Implement Cross-Project Connector Sharing with granular IAM secret access.
+- [ ] Implement automated VPC-SC Perimeter Remediation in the diagnostic engine.
+- [ ] Add "Migrate to Native" triggers to the Storage Dashboard UI.
+
+### 2027-06-24: Initiating Phase 116: Unified Resource Ingestion
+- Started Phase 116: Unified Resource Ingestion & Cross-Project Connectivity Orchestration.
+- Defining the architectural bridge for "Import to Native" migrations and cross-project database sharing.
+
 ### 2027-06-08: Adopting "Connectivity-First" Strategy & Secret Orchestration
 - Completed Phase 99: Managed Connector Secret Rotation & Security Orchestration.
 - Formally adopted a "Connectivity-First" architectural strategy, focusing on standardized interfaces to varied storage layers.
