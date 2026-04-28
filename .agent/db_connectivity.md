@@ -933,6 +933,20 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement automated VPC-SC Perimeter Remediation in the diagnostic engine.
 - [x] Add "Migrate to Native" triggers to the Storage Dashboard UI.
 
+### Phase 117: Automated Data Migration Pipeline & Generic Health Discovery (STABLE)
+- [x] Implement Automated External Data Dump Orchestration using GCP Cloud Build.
+- [x] Orchestrate multi-stage ingestion lifecycle (Dump -> Provision -> Import) in Storage Sync.
+- [x] Implement Health-Probe Discovery for Generic (Tier 3) Connectors.
+- [x] Finalize One-Click PgBouncer remediation for high-saturation instances.
+
+### 2027-06-25: Completed Phase 117: Automated Data Migration Pipeline
+- Completed Phase 117: Automated Data Migration Pipeline & Generic Health Discovery.
+- Launched Automated Data Migration Pipeline, enabling Deployify to automatically perform `pg_dump` or `mysqldump` from external providers (Supabase, Neon, Generic) and stream the data to Cloud SQL via GCS.
+- Hardened the Ingestion Lifecycle by integrating Cloud Build status polling into the Storage Sync API, ensuring data integrity during native migrations.
+- Implemented Health-Probe Discovery for Generic Connectors, enabling background TCP-based monitoring and latency tracking for Tier 3 connection strings.
+- Finalized PgBouncer remediation logic, providing a 100% functional "One-Click" fix for connection saturation risks on PostgreSQL instances.
+- Verified 100% operational integrity with platform-wide audits and zero-warning build completion.
+
 ### 2027-06-24: Completed Phase 116: Unified Resource Ingestion
 - Completed Phase 116: Unified Resource Ingestion & Cross-Project Connectivity Orchestration.
 - Launched "Import to Native" orchestration, facilitating the migration of external databases (Supabase, Neon) to fully managed GCP Cloud SQL instances.

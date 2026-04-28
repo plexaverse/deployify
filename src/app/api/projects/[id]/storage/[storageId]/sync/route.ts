@@ -513,6 +513,36 @@ export async function GET(
             return NextResponse.json({ success: true, status: 'error', error: storage.lastError });
         }
 
+        // Phase 117: Handle Automated Ingestion Lifecycle (Dump -> Provision -> Import)
+        const dumpBuildId = storage.metadata?.dumpBuildId as string;
+        const ingestionStage = storage.metadata?.ingestionStage as string;
+
+        if (dumpBuildId && ingestionStage === 'PROVISIONING_INSTANCE') {
+            try {
+                const { getBuildStatus } = await import('@/lib/gcp/cloudbuild');
+                const buildStatus = await getBuildStatus(dumpBuildId);
+
+                if (buildStatus.status === 'SUCCESS') {
+                    console.log(`[Ingestion] Dump Build ${dumpBuildId} finished. Ready for import.`);
+                    // We keep PROVISIONING_INSTANCE until the Cloud SQL operation itself is DONE
+                    // The standard Cloud SQL polling below will handle the transition once the instance is ready.
+                    storage.metadata = {
+                        ...storage.metadata,
+                        dumpBuildStatus: 'SUCCESS'
+                    };
+                } else if (buildStatus.status === 'FAILURE' || buildStatus.status === 'TIMEOUT') {
+                    storage.status = 'error';
+                    storage.lastError = `Automated data dump failed (Build: ${dumpBuildId}). Please check Cloud Build logs.`;
+                    storage.updatedAt = now;
+                    storageConfigs[index] = storage;
+                    await updateProject(id, { storageConfigs });
+                    return NextResponse.json({ success: true, status: 'error', error: storage.lastError });
+                }
+            } catch (buildErr) {
+                console.error(`[Ingestion] Failed to poll dump build ${dumpBuildId}:`, buildErr);
+            }
+        }
+
         const operationName = storage.metadata?.operationName as string;
 
         if (!operationName) {
@@ -817,8 +847,49 @@ export async function GET(
                         if (userStatus.status === 'DONE') {
                             if (userStatus.error) throw new Error(`User creation failed: ${userStatus.error}`);
                             storage.metadata = { ...storage.metadata, userCreated: true };
-                            storage.status = 'active';
-                            storage.lastSyncedAt = now;
+
+                            // Phase 117: Trigger Import if data ingestion is pending
+                            const pendingImportUri = storage.metadata?.pendingImportUri as string;
+                            const dumpBuildStatus = storage.metadata?.dumpBuildStatus as string;
+
+                            if (pendingImportUri) {
+                                if (storage.metadata?.dumpBuildId && dumpBuildStatus !== 'SUCCESS') {
+                                    // Wait for dump build to finish before starting import
+                                    storageConfigs[index] = storage;
+                                    await updateProject(id, { storageConfigs });
+                                    return NextResponse.json({
+                                        success: true,
+                                        status: 'provisioning',
+                                        message: 'Instance ready, waiting for source data dump to complete...'
+                                    });
+                                }
+
+                                try {
+                                    const { importInstance } = await import('@/lib/gcp/cloudsql');
+                                    const importDatabase = (storage.metadata?.importDatabase as string) || project.slug;
+                                    const importOp = await importInstance(instanceName, pendingImportUri, importDatabase);
+
+                                    storage.metadata = {
+                                        ...storage.metadata,
+                                        operationName: importOp,
+                                        lastOperation: 'import',
+                                        ingestionStage: 'IMPORTING_DATA'
+                                    };
+                                    await updateProject(id, { storageConfigs });
+                                    return NextResponse.json({
+                                        success: true,
+                                        status: 'provisioning',
+                                        message: 'Cloud SQL ready. Starting data import...'
+                                    });
+                                } catch (importErr) {
+                                    console.error(`[Ingestion] Failed to trigger final import for ${storageId}:`, importErr);
+                                    storage.status = 'error';
+                                    storage.lastError = `Instance ready, but data import failed: ${importErr instanceof Error ? importErr.message : 'Unknown'}`;
+                                }
+                            } else {
+                                storage.status = 'active';
+                                storage.lastSyncedAt = now;
+                            }
                         } else {
                             return NextResponse.json({ success: true, status: 'provisioning', message: 'User creation in progress...' });
                         }

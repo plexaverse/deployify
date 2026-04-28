@@ -899,5 +899,36 @@ async function validateGeneric(connectionString: string): Promise<ValidationResu
     if (!connectionString) {
         return { valid: false, error: 'Connection string is empty' };
     }
+
+    try {
+        const url = new URL(connectionString);
+        const host = url.hostname;
+        let port = url.port ? parseInt(url.port, 10) : 0;
+
+        if (!port) {
+            // Attempt to infer port from protocol
+            const protocol = url.protocol.replace(':', '');
+            const portMap: Record<string, number> = {
+                'postgres': 5432,
+                'postgresql': 5432,
+                'mysql': 3306,
+                'redis': 6379,
+                'rediss': 6379,
+                'mongodb': 27017,
+                'mongodb+srv': 27017
+            };
+            port = portMap[protocol] || 0;
+        }
+
+        if (host && port && host !== 'localhost') {
+            const reachable = await checkTcpReachability(host, port, 2000);
+            if (!reachable) {
+                return { valid: false, error: `Could not reach ${host}:${port}` };
+            }
+        }
+    } catch {
+        // If not a valid URL, we just consider it valid if it's not empty (legacy/custom formats)
+    }
+
     return { valid: true };
 }

@@ -1,5 +1,5 @@
 import { updateProject } from '@/lib/db';
-import { updateInstanceSettings } from '@/lib/gcp/cloudsql';
+import { updateInstanceSettings, updateConnectionPooler } from '@/lib/gcp/cloudsql';
 import { syncExternalFirewall } from '@/lib/gcp/external-sync';
 import { grantCloudSqlInstanceUserRole } from '@/lib/gcp/iam';
 import { config } from '@/lib/config';
@@ -133,6 +133,22 @@ export async function remediateRisk(
                     pendingPerimeterSync: true
                 };
                 message = 'VPC Service Controls perimeter alignment initiated';
+                break;
+
+            case 'connection_saturation_risk':
+                if (storage.type === 'cloud-sql-postgres') {
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    operationName = await updateConnectionPooler(instanceName, true);
+                    storage.status = 'provisioning';
+                    storage.connectionPoolerEnabled = true;
+                    storage.metadata = {
+                        ...storage.metadata,
+                        operationName,
+                    };
+                    message = 'Enabling PgBouncer connection pooler...';
+                } else {
+                    throw new Error('PgBouncer is only supported for PostgreSQL instances');
+                }
                 break;
 
             default:

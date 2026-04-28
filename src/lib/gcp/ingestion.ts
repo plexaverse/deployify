@@ -1,5 +1,4 @@
-import { createInstance, createUser, importInstance, createDatabase, getOperationStatus } from './cloudsql';
-import { getSecretValue } from './secrets';
+import { createInstance } from './cloudsql';
 import { config } from '@/lib/config';
 import { updateProject } from '@/lib/db';
 import type { StorageConfig, Project } from '@/types';
@@ -13,11 +12,85 @@ export interface IngestionResult {
 }
 
 /**
+ * Triggers a Cloud Build job to perform a database dump from an external provider
+ */
+export async function runExternalDump(
+    projectId: string,
+    storageConfig: StorageConfig,
+    gcsUri: string
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return 'mock-build-id';
+    }
+
+    const { submitCloudBuild } = await import('./cloudbuild');
+    const isPostgres = storageConfig.type.includes('postgres') ||
+                       storageConfig.type === 'supabase' ||
+                       storageConfig.type === 'neon';
+
+    const secretId = storageConfig.connectionStringSecretId;
+    if (!secretId) throw new Error('Connection string secret ID missing');
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+
+    // Build configuration for the dump
+    const buildConfig = {
+        steps: [
+            {
+                name: isPostgres ? 'postgres:15-alpine' : 'mysql:8',
+                entrypoint: 'sh',
+                args: [
+                    '-c',
+                    isPostgres
+                        ? 'pg_dump "$$DATABASE_URL" > dump.sql'
+                        : `
+                            # Simple URI parser for MySQL
+                            URI="$$DATABASE_URL"
+                            URL="\${URI#*://}"
+                            USERPASS="\${URL%%@*}"
+                            HOSTPORTDB="\${URL#*@}"
+                            USER="\${USERPASS%%:*}"
+                            PASS="\${USERPASS#*:}"
+                            HOSTPORT="\${HOSTPORTDB%%/*}"
+                            DB="\${HOSTPORTDB#*/}"
+                            DB="\${DB%%\\?*}"
+                            HOST="\${HOSTPORT%%:*}"
+                            PORT="\${HOSTPORT#*:}"
+                            if [ "$HOSTPORT" = "$HOST" ]; then PORT=3306; fi
+
+                            mysqldump -h "$HOST" -P "$PORT" -u "$USER" -p"$PASS" "$DB" > dump.sql
+                          `
+                ],
+                secretEnv: ['DATABASE_URL']
+            },
+            {
+                name: 'gcr.io/cloud-builders/gsutil',
+                args: ['cp', 'dump.sql', gcsUri]
+            }
+        ],
+        availableSecrets: {
+            secretManager: [
+                {
+                    versionName: `projects/${gcpProjectId}/secrets/${secretId}/versions/latest`,
+                    env: 'DATABASE_URL'
+                }
+            ]
+        },
+        options: {
+            logging: 'CLOUD_LOGGING_ONLY'
+        }
+    };
+
+    const { buildId } = await submitCloudBuild(buildConfig);
+    return buildId;
+}
+
+/**
  * Orchestrates the ingestion of an external database into a newly provisioned Cloud SQL instance.
  * This is a high-level multi-step process:
  * 1. Provision a new Cloud SQL instance (IAM-based)
  * 2. Create target database and user
- * 3. [Future] Orchestrate external dump via Cloud Build
+ * 3. Orchestrate external dump via Cloud Build
  * 4. Trigger GCP Import from Storage
  */
 export async function ingestExternalToNative(
@@ -43,7 +116,7 @@ export async function ingestExternalToNative(
         const dbName = 'app'; // Default DB name
 
         // 1. Provision Cloud SQL
-        const { operationName, connectionString } = await createInstance(
+        const { operationName } = await createInstance(
             targetInstanceName,
             options.dbType,
             region,
@@ -78,14 +151,27 @@ export async function ingestExternalToNative(
         const updatedConfigs = [...(project.storageConfigs || []), newStorage];
         await updateProject(projectId, { storageConfigs: updatedConfigs });
 
-        // Note: In a real environment, we would need to wait for the instance to be RUNNABLE
-        // before creating users and databases. The Storage Sync API handles this lifecycle.
-        // If storageUri is provided, we'll queue the import task in the metadata.
-        if (options.storageUri) {
+        // 3. Trigger Data Dump if no URI provided but source exists
+        let storageUri = options.storageUri;
+        let dumpBuildId;
+
+        if (!storageUri && sourceStorage.connectionStringSecretId) {
+            const bucket = `${gcpProjectId}_deployify_ingestion`;
+            storageUri = `gs://${bucket}/dumps/${sourceStorage.id}-${Date.now()}.sql`;
+
+            try {
+                dumpBuildId = await runExternalDump(projectId, sourceStorage, storageUri);
+            } catch (dumpErr) {
+                console.warn('[Ingestion] Failed to trigger automated dump:', dumpErr);
+            }
+        }
+
+        if (storageUri) {
             newStorage.metadata = {
                 ...newStorage.metadata,
-                pendingImportUri: options.storageUri,
-                importDatabase: dbName
+                pendingImportUri: storageUri,
+                importDatabase: dbName,
+                dumpBuildId
             };
             await updateProject(projectId, { storageConfigs: updatedConfigs.map(s => s.id === targetStorageId ? newStorage : s) });
         }
