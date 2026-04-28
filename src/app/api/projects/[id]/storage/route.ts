@@ -74,7 +74,7 @@ export async function POST(
 
         const { project } = access;
         const body = await request.json();
-        const { type, name, environment = 'both', connectionString, envKey, branchingSettings, autoMigration, migrationCommand, provision = false, region, providerApiKey, dbPassword } = body;
+        const { type, name, environment = 'both', connectionString, envKey, branchingSettings, autoMigration, migrationCommand, provision = false, region, providerApiKey, dbPassword, providerProjectId } = body;
         let metadata = body.metadata;
 
         // autoSync and secretOnly can be passed at top level or inside metadata
@@ -176,6 +176,7 @@ export async function POST(
             envKey,
             connectionStringSecretId,
             providerApiKeySecretId,
+            providerProjectId,
             branchingSettings,
             autoMigration,
             migrationCommand,
@@ -357,7 +358,7 @@ export async function PATCH(
 
         const { project } = access;
         const body = await request.json();
-        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled } = body;
+        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled, providerProjectId } = body;
         const secretOnly = body.secretOnly !== undefined ? body.secretOnly : metadata?.secretOnly;
 
         if (!storageId) {
@@ -439,6 +440,7 @@ export async function PATCH(
             envKey: envKey !== undefined ? envKey : storage.envKey,
             connectionStringSecretId,
             providerApiKeySecretId,
+            providerProjectId: providerProjectId !== undefined ? providerProjectId : storage.providerProjectId,
             branchingSettings: branchingSettings || storage.branchingSettings,
             autoMigration: autoMigration !== undefined ? autoMigration : storage.autoMigration,
             migrationCommand: migrationCommand !== undefined ? migrationCommand : storage.migrationCommand,

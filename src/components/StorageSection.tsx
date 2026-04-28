@@ -38,7 +38,8 @@ import {
     Bell,
     BellOff,
     AlertTriangle,
-    Sparkles
+    Sparkles,
+    ArrowRight
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { DataPortabilityModal } from '@/components/DataPortabilityModal';
@@ -119,6 +120,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [region, setRegion] = useState('');
     const [providerProjectId, setProviderProjectId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [allProjects, setAllProjects] = useState<import('@/types').Project[]>([]);
+    const [selectedImportProjectId, setSelectedImportProjectId] = useState('');
+    const [importableConnectors, setImportableConnectors] = useState<StorageConfig[]>([]);
     const [storageToDelete, setStorageToDelete] = useState<StorageConfig | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [deleteResource, setDeleteResource] = useState(false);
@@ -192,10 +196,32 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [seedCommand, setSeedCommand] = useState('');
     const [isCloningId, setIsCloningId] = useState<string | null>(null);
     const [cloneWithData, setCloneWithData] = useState(false);
+    const [isIngesting, setIsIngesting] = useState<StorageConfig | null>(null);
+    const [ingestTargetName, setIngestTargetName] = useState('');
+    const [ingestRegion, setIngestRegion] = useState('');
+    const [ingestStorageUri, setIngestStorageUri] = useState('');
 
     useEffect(() => {
         fetchProjectStorage(projectId);
+        // Fetch all projects for cross-project sharing
+        fetch('/api/projects').then(res => res.json()).then(data => {
+            if (data.success) {
+                setAllProjects(data.projects.filter((p: import('@/types').Project) => p.id !== projectId));
+            }
+        });
     }, [projectId, fetchProjectStorage]);
+
+    useEffect(() => {
+        if (selectedImportProjectId) {
+            fetch(`/api/projects/${selectedImportProjectId}/storage`).then(res => res.json()).then(data => {
+                if (data.success) {
+                    setImportableConnectors(data.storageConfigs);
+                }
+            });
+        } else {
+            setImportableConnectors([]);
+        }
+    }, [selectedImportProjectId]);
 
     useEffect(() => {
         if (isShowingGuide) {
@@ -582,6 +608,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         }
     };
 
+    const handleImportConnector = (sourceConnector: StorageConfig) => {
+        setName(sourceConnector.name);
+        setType(sourceConnector.type);
+        setRegion(sourceConnector.region || (sourceConnector.metadata?.region as string) || '');
+        setProviderProjectId(sourceConnector.providerProjectId || '');
+        setEnvKey(sourceConnector.envKey || getStorageEnvKey(sourceConnector));
+        setSslRequired(!!sourceConnector.ssl);
+        // We'll clone this connector's configuration
+        // In a real impl, we might want to just reference it, but cloning ensures isolation
+        toast.success(`Imported configuration for ${sourceConnector.name}`);
+        setSelectedImportProjectId('');
+    };
+
     const handleApplyDiscovery = (resource: import('@/lib/gcp/discovery').DiscoveredResource) => {
         setName(resource.name.toUpperCase());
         setRegion(resource.region);
@@ -824,6 +863,38 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         }
     }, [projectId]);
 
+    const handleIngest = async () => {
+        if (!isIngesting) return;
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${isIngesting.id}/ingest`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    targetName: ingestTargetName,
+                    region: ingestRegion,
+                    dbType: isIngesting.type.includes('postgres') || isIngesting.type === 'supabase' || isIngesting.type === 'neon' ? 'postgres' : 'mysql',
+                    storageUri: ingestStorageUri
+                }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setIsIngesting(null);
+                setIngestTargetName('');
+                setIngestStorageUri('');
+                if (onUpdate) onUpdate();
+                toast.success('Migration to GCP Native started');
+            } else {
+                toast.error(data.error || 'Failed to start migration');
+            }
+        } catch (e) {
+            console.error('Ingestion error:', e);
+            toast.error('An error occurred during ingestion initiation');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const handleRestoreBackup = async (backupId: string, pointInTime?: string) => {
         if (!isManagingBackups) return;
         const confirmMsg = pointInTime
@@ -905,7 +976,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     <div className="mb-8 p-6 border border-[var(--border)] rounded-xl bg-[var(--background)] animate-fade-in space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-bold">Connector Name</Label>
+                                <Label className="text-[10px] font-bold flex items-center justify-between">
+                                    Connector Name
+                                    <NativeSelect
+                                        value={selectedImportProjectId}
+                                        onChange={(e) => setSelectedImportProjectId(e.target.value)}
+                                        className="h-5 px-1 text-[8px] font-bold uppercase w-28 bg-[var(--primary)]/5 border-none"
+                                    >
+                                        <option value="">IMPORT FROM...</option>
+                                        {allProjects.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>
+                                        ))}
+                                    </NativeSelect>
+                                </Label>
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
@@ -967,6 +1050,30 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </NativeSelect>
                             </div>
                         </div>
+
+                        {importableConnectors.length > 0 && (
+                            <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2">
+                                <div className="flex items-center justify-between border-b border-[var(--primary)]/10 pb-2">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Import Existing Connector</Label>
+                                    <Button variant="ghost" size="sm" onClick={() => setSelectedImportProjectId('')} className="h-5 text-[8px] font-bold uppercase">Cancel</Button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                                    {importableConnectors.map((conn) => (
+                                        <button
+                                            key={conn.id}
+                                            onClick={() => handleImportConnector(conn)}
+                                            className="flex flex-col items-start p-2 text-left border border-[var(--border)] rounded-md bg-[var(--background)] hover:border-[var(--primary)] transition-colors"
+                                        >
+                                            <span className="text-[8px] font-bold uppercase truncate w-full">{conn.name}</span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{conn.type.replace(/-/g, ' ')}</span>
+                                                {conn.region && <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{conn.region}</span>}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {discoveredResources.length > 0 && (
                             <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2">
@@ -2010,6 +2117,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <Sparkles className={cn("w-4 h-4", config.autoScalingSettings?.enabled && "animate-pulse")} />
                                         </Button>
                                     )}
+                                    {['supabase', 'mongodb-atlas', 'planetscale', 'neon'].includes(config.type) && config.status === 'active' && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => {
+                                                setIsIngesting(config);
+                                                setIngestTargetName(`${config.name}-NATIVE`);
+                                                setIngestRegion(projectRegion || (config.metadata?.region as string) || '');
+                                            }}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Migrate to GCP Native"
+                                        >
+                                            <ArrowRight className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -3050,6 +3172,71 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     </div>
                 }
                 confirmText="Duplicate Connector"
+            />
+
+            <ConfirmationModal
+                isOpen={!!isIngesting}
+                onClose={() => setIsIngesting(null)}
+                onConfirm={handleIngest}
+                title="Migrate to GCP Native"
+                headerLabel="Unified Ingestion"
+                icon={<ArrowRight className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-3">
+                            <Zap className="w-5 h-5 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-[var(--primary)] uppercase">Seamless Transition</p>
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                    MIGRATE YOUR EXTERNAL DATA FROM <strong>{isIngesting?.name}</strong> INTO A FULLY MANAGED GCP CLOUD SQL INSTANCE. DEPLOYIFY WILL ORCHESTRATE THE PROVISIONING AND IAM-BASED CONNECTIVITY.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Instance Name</Label>
+                                <Input
+                                    value={ingestTargetName}
+                                    onChange={(e) => setIngestTargetName(e.target.value)}
+                                    placeholder="NATIVE-INSTANCE-NAME"
+                                    className="h-8 text-[8px] font-bold uppercase"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Region</Label>
+                                <Input
+                                    value={ingestRegion}
+                                    onChange={(e) => setIngestRegion(e.target.value)}
+                                    placeholder="US-CENTRAL1"
+                                    className="h-8 text-[8px] font-bold uppercase"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Source SQL Dump URI (Optional)</Label>
+                            <Input
+                                value={ingestStorageUri}
+                                onChange={(e) => setIngestStorageUri(e.target.value)}
+                                placeholder="GS://MY-BUCKET/BACKUP.SQL"
+                                className="h-8 text-[8px] font-mono"
+                            />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                                IF PROVIDED, DEPLOYIFY WILL AUTOMATICALLY IMPORT THIS FILE INTO THE NEW INSTANCE.
+                            </p>
+                        </div>
+
+                        <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/20 rounded-xl flex items-start gap-2">
+                            <AlertCircle className="w-3.5 h-3.5 text-[var(--info)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                DATA INGESTION WILL BEGIN AFTER THE NEW GCP RESOURCE IS FULLY RUNNABLE. THE NEW CONNECTOR WILL APPEAR IN PROVISIONING STATE.
+                            </p>
+                        </div>
+                    </div>
+                }
+                confirmText="Start Ingestion"
+                loading={isSubmitting}
             />
 
             <ConfirmationModal
