@@ -74,7 +74,7 @@ export async function POST(
 
         const { project } = access;
         const body = await request.json();
-        const { type, name, environment = 'both', connectionString, envKey, branchingSettings, autoMigration, migrationCommand, provision = false, region, providerApiKey, dbPassword, providerProjectId } = body;
+        const { type, name, environment = 'both', connectionString, envKey, branchingSettings, autoMigration, migrationCommand, provision = false, region, providerApiKey, dbPassword, providerProjectId, autoMaintenanceWindow } = body;
         let metadata = body.metadata;
 
         // autoSync and secretOnly can be passed at top level or inside metadata
@@ -180,6 +180,7 @@ export async function POST(
             branchingSettings,
             autoMigration,
             migrationCommand,
+            autoMaintenanceWindow,
             metadata: {
                 ...(metadata || {}),
                 provisioned: provision,
@@ -358,7 +359,7 @@ export async function PATCH(
 
         const { project } = access;
         const body = await request.json();
-        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled, providerProjectId } = body;
+        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled, providerProjectId, autoMaintenanceWindow } = body;
         const secretOnly = body.secretOnly !== undefined ? body.secretOnly : metadata?.secretOnly;
 
         if (!storageId) {
@@ -444,6 +445,7 @@ export async function PATCH(
             branchingSettings: branchingSettings || storage.branchingSettings,
             autoMigration: autoMigration !== undefined ? autoMigration : storage.autoMigration,
             migrationCommand: migrationCommand !== undefined ? migrationCommand : storage.migrationCommand,
+            autoMaintenanceWindow: autoMaintenanceWindow !== undefined ? autoMaintenanceWindow : storage.autoMaintenanceWindow,
             metadata: {
                 ...(storage.metadata || {}),
                 ...(metadata || {}),

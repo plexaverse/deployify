@@ -137,7 +137,17 @@ export async function orchestrateCutover(
 
             if (projectModified) {
                 await updateProject(p.id, { storageConfigs: updatedConfigs });
-                console.log(`[Cutover] Updated project ${p.id} with new native connector`);
+
+                // Verification Check (Phase 118)
+                const verifiedProject = await getProjectById(p.id);
+                const isUpdated = verifiedProject?.storageConfigs?.some(s => s.id === sourceStorageId && s.name.includes('MIGRATED'));
+
+                if (!isUpdated) {
+                    console.error(`[Cutover] Verification failed for project ${p.id}. Storage ID not correctly updated.`);
+                    throw new Error(`Workspace cutover failed: Project ${p.id} state could not be verified after update.`);
+                }
+
+                console.log(`[Cutover] Updated and verified project ${p.id} with new native connector`);
             }
         }
 

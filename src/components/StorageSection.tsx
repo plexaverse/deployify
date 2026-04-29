@@ -188,6 +188,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [autoPilotMaxTier, setAutoPilotMaxTier] = useState('');
     const [autoPilotTargetCpu, setAutoPilotTargetCpu] = useState(70);
     const [autoPilotTargetMemory, setAutoPilotTargetMemory] = useState(70);
+    const [autoMaintenanceEnabled, setAutoMaintenanceEnabled] = useState(false);
     const [autoMigrationEnabled, setAutoMigrationEnabled] = useState(false);
     const [autoMigrationCommand, setAutoMigrationCommand] = useState('prisma migrate deploy');
     const [customRollbackCommand, setCustomRollbackCommand] = useState('prisma migrate resolve --rolled-back');
@@ -321,7 +322,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     maxTier: autoPilotMaxTier || undefined,
                     targetCpuUtilization: autoPilotTargetCpu,
                     targetMemoryUtilization: autoPilotTargetMemory
-                }
+                },
+                autoMaintenanceWindow: autoMaintenanceEnabled
             });
             if (success) {
                 setIsManagingAutoPilot(null);
@@ -540,6 +542,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         setAutoMigrationCommand(config.migrationCommand || 'prisma migrate deploy');
         setCustomRollbackCommand(config.rollbackCommand || 'prisma migrate resolve --rolled-back');
         setSslRequired(!!config.ssl);
+        setAutoMaintenanceEnabled(!!config.autoMaintenanceWindow);
         setHighAvailability(!!config.metadata?.highAvailability);
         setPitrEnabled(!!config.metadata?.pitrEnabled);
         setDeletionProtection(!!config.metadata?.deletionProtection);
@@ -2177,6 +2180,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 setAutoPilotMaxTier(config.autoScalingSettings?.maxTier || '');
                                                 setAutoPilotTargetCpu(config.autoScalingSettings?.targetCpuUtilization || 70);
                                                 setAutoPilotTargetMemory(config.autoScalingSettings?.targetMemoryUtilization || 70);
+                                                setAutoMaintenanceEnabled(!!config.autoMaintenanceWindow);
                                             }}
                                             className={cn(
                                                 "h-8 w-8",
@@ -2512,6 +2516,29 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 Auto-Pilot runs every 6 hours to analyze historical utilization. If thresholds are breached and within your min/max boundaries, a tier adjustment will be triggered automatically.
                             </p>
                         </div>
+
+                        {isManagingAutoPilot?.type.includes('cloud-sql') && (
+                            <div className="pt-4 border-t border-[var(--border)] space-y-4">
+                                <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-[10px] font-bold">Autonomous Maintenance Alignment</Label>
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Automatically align GCP maintenance windows with low-usage periods</p>
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        checked={autoMaintenanceEnabled}
+                                        onChange={(e) => setAutoMaintenanceEnabled(e.target.checked)}
+                                        className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                                    />
+                                </div>
+                                <div className="p-4 bg-[var(--info)]/5 border border-[var(--info)]/20 rounded-xl flex items-start gap-3">
+                                    <HistoryIcon className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
+                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                        When enabled, Deployify will use historical utilization data (last 7 days) to find the absolute minimum activity window and automatically re-configure your Cloud SQL maintenance settings.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 }
                 confirmText="Save Auto-Pilot Settings"

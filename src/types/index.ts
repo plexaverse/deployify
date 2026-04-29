@@ -497,6 +497,7 @@ export interface StorageConfig {
     migrationCommand?: string;
     rollbackCommand?: string;
     autoAlign?: boolean;
+    autoMaintenanceWindow?: boolean;
     ssl?: boolean;
     connectionPoolerEnabled?: boolean;
     activeAlerts?: string[];

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, Collections } from '@/lib/firebase';
-import { getCloudSqlHistoricalMetrics, getMemorystoreHistoricalMetrics, getScalingRecommendations, getExternalMetrics } from '@/lib/gcp/monitoring';
-import { updateInstanceSettings as updateSqlSettings } from '@/lib/gcp/cloudsql';
+import { getCloudSqlHistoricalMetrics, getMemorystoreHistoricalMetrics, getScalingRecommendations, getExternalMetrics, getMaintenanceRecommendation } from '@/lib/gcp/monitoring';
+import { updateInstanceSettings as updateSqlSettings, updateMaintenanceWindow } from '@/lib/gcp/cloudsql';
 import { updateInstanceSettings as updateRedisSettings } from '@/lib/gcp/memorystore';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
@@ -99,6 +99,18 @@ export async function GET(request: NextRequest) {
 
                     if (!metrics) continue;
 
+                    // Phase 118: Generate Maintenance Recommendation for Cloud SQL
+                    if (isSql && historicalMetrics) {
+                        const maintenanceRec = getMaintenanceRecommendation(historicalMetrics);
+                        if (maintenanceRec) {
+                            storage.metadata = {
+                                ...storage.metadata,
+                                maintenanceRecommendation: maintenanceRec
+                            };
+                            projectUpdated = true;
+                        }
+                    }
+
                     // Get recommendations
                     const recommendations = await getScalingRecommendations(
                         storage.type,
@@ -111,6 +123,40 @@ export async function GET(request: NextRequest) {
 
                     // Apply the first actionable recommendation (Auto-Pilot)
                     const autoScalingRec = recommendations.find(r => r.type === 'upgrade' || r.type === 'downgrade');
+
+                    // Phase 118: Autonomous Maintenance Window Alignment
+                    if (isSql && storage.autoMaintenanceWindow) {
+                        const rec = storage.metadata?.maintenanceRecommendation as { day: number; hour: number } | undefined;
+                        const isSynced = !!storage.metadata?.maintenanceWindowSynced;
+
+                        if (rec && !isSynced) {
+                            console.log(`[Auto-Pilot] Aligning maintenance window for ${resourceName}: Day ${rec.day}, Hour ${rec.hour}`);
+                            try {
+                                await updateMaintenanceWindow(resourceName, rec.day, rec.hour);
+                                storage.metadata = {
+                                    ...storage.metadata,
+                                    maintenanceWindowSynced: true,
+                                    lastMaintenanceSyncAt: new Date().toISOString()
+                                };
+                                projectUpdated = true;
+
+                                await logAuditEvent(
+                                    project.teamId || null,
+                                    project.userId,
+                                    'storage.maintenance_aligned',
+                                    {
+                                        projectId: project.id,
+                                        storageId: storage.id,
+                                        resourceName,
+                                        day: rec.day,
+                                        hour: rec.hour
+                                    }
+                                );
+                            } catch (maintErr) {
+                                console.error(`[Auto-Pilot] Failed to align maintenance window for ${resourceName}:`, maintErr);
+                            }
+                        }
+                    }
 
                     if (autoScalingRec) {
                         // Phase 113: Respect Min/Max Tier Boundaries
