@@ -385,7 +385,33 @@ export async function GET(
         // Handle External Connectors (Auto-Sync & Token Rotation)
         if (storage.metadata?.autoSync && (storage.type === 'supabase' || storage.type === 'mongodb-atlas' || storage.type === 'planetscale' || storage.type === 'neon')) {
             try {
-                const { syncExternalConnector, rotateProviderToken } = await import('@/lib/gcp/external-sync');
+                const { syncExternalConnector, rotateProviderToken, remediateFirewallDrift } = await import('@/lib/gcp/external-sync');
+
+                // Phase 121: Autonomous Firewall Resilience
+                try {
+                    const fwResult = await remediateFirewallDrift(id, storage);
+                    if (fwResult.remediated) {
+                        console.log(`[FirewallResilience] Automatically remediated drift for ${storageId}`);
+                        storage.metadata = {
+                            ...storage.metadata,
+                            firewallSynced: true,
+                            firewallStatus: 'SYNCED',
+                            lastFirewallSyncAt: now.toISOString()
+                        };
+                    } else if (fwResult.error && fwResult.error.includes('drift')) {
+                        storage.metadata = {
+                            ...storage.metadata,
+                            firewallStatus: 'DRIFT'
+                        };
+                    } else {
+                        storage.metadata = {
+                            ...storage.metadata,
+                            firewallStatus: 'SYNCED'
+                        };
+                    }
+                } catch (fwErr) {
+                    console.warn(`[FirewallResilience] Failed for ${storageId}:`, fwErr);
+                }
 
                 // Automated Token Rotation (Phase 110)
                 // Rotate tokens every 30 days if rotation is supported

@@ -3,6 +3,7 @@ import type { User, Project, Deployment, Team, TeamMembership, TeamWithRole, Tea
 import { generateId, cleanFirestoreData } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
 import { getSecretValue, upsertSecret } from '@/lib/gcp/secrets';
+import { deriveTopology } from '@/lib/gcp/topology';
 import { config } from '@/lib/config';
 import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 // ============= User Operations =============
@@ -243,6 +244,9 @@ export async function getEnvVarsForDeployment(
     // 2. Process Storage configurations (Connectors)
     const storageConfigs = project.storageConfigs || [];
     for (const storage of storageConfigs) {
+        // Phase 120: Calculate Connectivity Topology
+        const topology = deriveTopology(storage);
+
         // Filter by environment
         if (storage.environment && storage.environment !== 'both' && storage.environment !== envTarget) {
             continue;
@@ -252,6 +256,9 @@ export async function getEnvVarsForDeployment(
         if (storage.metadata?.secretOnly) {
             continue;
         }
+
+        // Update topology for current context
+        storage.topology = topology;
 
         if (storage.connectionStringSecretId) {
             // Determine variable name based on custom key or type defaults
