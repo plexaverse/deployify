@@ -624,6 +624,57 @@ export async function rotateProviderToken(
     }
 }
 
+/**
+ * Detect firewall drift and automatically remediate if needed
+ */
+export async function remediateFirewallDrift(
+    projectId: string,
+    storage: StorageConfig
+): Promise<{ success: boolean; remediated: boolean; error?: string }> {
+    const providerApiKey = await getProviderApiKey(storage);
+    if (process.env.MOCK_DB === 'true' || !providerApiKey) return { success: true, remediated: false };
+
+    try {
+        const project = await getProjectById(projectId);
+        const { ips: targetIps } = getRegionalEgressIps(project?.region || (storage.metadata?.region as string));
+
+        let currentIps: string[] = [];
+        let needsSync = false;
+
+        if (storage.type === 'supabase') {
+            const supabaseId = storage.metadata?.supabaseId as string;
+            const res = await fetch(`https://api.supabase.com/v1/projects/${supabaseId}/network-restrictions`, {
+                headers: { 'Authorization': `Bearer ${providerApiKey}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                currentIps = data.db_allowed_cidrs || [];
+            }
+        } else if (storage.type === 'neon') {
+            const neonProjectId = storage.metadata?.neonProjectId as string;
+            const res = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
+                headers: { 'Authorization': `Bearer ${providerApiKey}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                currentIps = data.project?.settings?.ip_allow?.allowed_ips || [];
+            }
+        }
+
+        // Simple subset check for drift detection
+        needsSync = targetIps.some(ip => !currentIps.includes(ip));
+
+        if (needsSync) {
+            const result = await syncExternalFirewall(projectId, storage);
+            return { success: result.success, remediated: result.success, error: result.error };
+        }
+
+        return { success: true, remediated: false };
+    } catch (error) {
+        return { success: false, remediated: false, error: error instanceof Error ? error.message : 'Unknown' };
+    }
+}
+
 export async function syncExternalFirewall(
     projectId: string,
     storage: StorageConfig

@@ -476,6 +476,13 @@ export interface WorkloadProfile {
     isColdStart?: boolean;
 }
 
+export interface ConnectivityTopology {
+    injectionMethod: 'VPC' | 'PROXY' | 'SECRET' | 'DIRECT';
+    path: string[]; // e.g., ["Cloud Run", "Direct VPC Egress", "Memorystore"]
+    isEncrypted: boolean;
+    lastVerifiedAt: string;
+}
+
 export interface StorageConfig {
     id: string;
     type: StorageType;
@@ -506,6 +513,7 @@ export interface StorageConfig {
     workloadProfile?: WorkloadProfile;
     workloadShift?: WorkloadShift;
     connectionSaturation?: number;
+    topology?: ConnectivityTopology;
     labelingStatus?: 'PENDING' | 'SYNCED' | 'FAILED';
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors

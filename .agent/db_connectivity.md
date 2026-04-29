@@ -951,6 +951,26 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Integrate Cold-Start Awareness into Scaling Intelligence for serverless connectors.
 - [x] Enhance Backup Management UI with retention and transaction log controls.
 
+### Phase 120: Integrated Connectivity Topology & Injection Transparency (PLANNED)
+- [ ] Implement a "Connectivity Topology" visualization in the Storage dashboard.
+- [ ] Add "Injection Metadata" badges (VPC, Proxy, Secret) to connector cards.
+- [ ] Update `src/lib/db.ts` to track and persist injection methods for every deployment.
+
+### Phase 121: Autonomous Connectivity Resilience & Firewall Self-Healing (PLANNED)
+- [ ] Implement proactive firewall drift detection for external providers.
+- [ ] Automate firewall remediation in the Storage Sync pipeline.
+- [ ] Add "Firewall Health" status visibility in the UI.
+
+### Phase 122: Global Infrastructure Portability & IaC Export (PLANNED)
+- [ ] Implement "Project-to-Project" connector migration and duplication.
+- [ ] Add "Export as Config" functionality for local development and CI/CD.
+- [ ] Standardize infrastructure-as-code snippets for all storage types.
+
+### Phase 123: Connectivity Governance & Zero-Trust Verification (PLANNED)
+- [ ] Implement workspace-wide connectivity compliance dashboards.
+- [ ] Add "Zero-Trust" verification for IAM roles and service account scopes.
+- [ ] Automate remediation of over-privileged service account roles for database access.
+
 ### 2027-06-27: Completed Phase 119: Intelligent Capacity Forecasting
 - Completed Phase 119: Intelligent Capacity Forecasting & Automated Resource Governance.
 - Refactored the Cost Intelligence engine to use trend-based growth modeling, analyzing historical storage utilization to provide more accurate 3-month cost projections across the fleet.

@@ -204,6 +204,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [ingestRegion, setIngestRegion] = useState('');
     const [ingestStorageUri, setIngestStorageUri] = useState('');
     const [isFinalizingCutover, setIsFinalizingCutover] = useState<StorageConfig | null>(null);
+    const [isShowingTopology, setIsShowingTopology] = useState<StorageConfig | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -1671,9 +1672,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 </span>
                                             )}
                                             {!!config.metadata?.firewallSynced && (
-                                                <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1" title={`Regional egress IPs allowed in provider firewall. Last sync: ${config.metadata.lastFirewallSyncAt ? new Date(config.metadata.lastFirewallSyncAt as string).toLocaleString() : 'N/A'}`}>
+                                                <span className={cn(
+                                                    "text-[8px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider border flex items-center gap-1",
+                                                    config.metadata.firewallStatus === 'DRIFT' ? "bg-[var(--error)]/10 text-[var(--error)] border-[var(--error)]/20 animate-pulse" : "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20"
+                                                )} title={`Regional egress IPs allowed in provider firewall. Last sync: ${config.metadata.lastFirewallSyncAt ? new Date(config.metadata.lastFirewallSyncAt as string).toLocaleString() : 'N/A'}`}>
                                                     <Network className="w-2.5 h-2.5" />
-                                                    FIREWALL SYNCED
+                                                    {config.metadata.firewallStatus === 'DRIFT' ? 'FIREWALL DRIFT' : 'FIREWALL SYNCED'}
                                                 </span>
                                             )}
                                             {config.type.includes('cloud-sql') && (
@@ -1741,6 +1745,25 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     <ArrowRight className="w-2.5 h-2.5" />
                                                     READY FOR CUTOVER
                                                 </span>
+                                            )}
+                                            {config.topology && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsShowingTopology(config);
+                                                    }}
+                                                    className={cn(
+                                                        "text-[8px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider border flex items-center gap-1 hover:brightness-110 transition-all",
+                                                        config.topology.injectionMethod === 'VPC' ? "bg-[var(--info)]/10 text-[var(--info)] border-[var(--info)]/20" :
+                                                        config.topology.injectionMethod === 'PROXY' ? "bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20" :
+                                                        config.topology.injectionMethod === 'DIRECT' ? "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20" :
+                                                        "bg-[var(--muted)]/20 text-[var(--muted-foreground)] border-[var(--border)]"
+                                                    )}
+                                                    title="View Connectivity Topology"
+                                                >
+                                                    <Network className="w-2.5 h-2.5" />
+                                                    {config.topology.injectionMethod}
+                                                </button>
                                             )}
                                             {config.activeAlerts && config.activeAlerts.length > 0 && (
                                                 <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={config.activeAlerts.join('\n')}>
@@ -3447,6 +3470,88 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 }
                 confirmText="Start Ingestion"
                 loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isShowingTopology}
+                onClose={() => setIsShowingTopology(null)}
+                title="Connectivity Topology"
+                headerLabel="Injection Transparency"
+                icon={<Network className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Injection Method</span>
+                                <span className={cn(
+                                    "text-[8px] px-2 py-0.5 rounded-full font-bold border",
+                                    isShowingTopology?.topology?.injectionMethod === 'VPC' ? "bg-[var(--info)]/10 text-[var(--info)] border-[var(--info)]/20" :
+                                    isShowingTopology?.topology?.injectionMethod === 'PROXY' ? "bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20" :
+                                    isShowingTopology?.topology?.injectionMethod === 'DIRECT' ? "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20" :
+                                    "bg-[var(--muted)]/20 text-[var(--muted-foreground)] border-[var(--border)]"
+                                )}>
+                                    {isShowingTopology?.topology?.injectionMethod}
+                                </span>
+                            </div>
+
+                            <div className="relative flex flex-col gap-6 py-2">
+                                {isShowingTopology?.topology?.path.map((node, i) => (
+                                    <div key={i} className="flex items-center gap-4 group">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <div className={cn(
+                                                "w-6 h-6 rounded-lg flex items-center justify-center border transition-all",
+                                                i === 0 ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]" :
+                                                i === (isShowingTopology?.topology?.path.length || 0) - 1 ? "bg-[var(--success)]/20 text-[var(--success)] border-[var(--success)]/30" :
+                                                "bg-[var(--card)] border-[var(--border)]"
+                                            )}>
+                                                {i === 0 ? <Server className="w-3 h-3" /> :
+                                                 i === (isShowingTopology?.topology?.path.length || 0) - 1 ? <Database className="w-3 h-3" /> :
+                                                 <ShieldCheck className="w-3 h-3 text-[var(--muted-foreground)]" />}
+                                            </div>
+                                            {i < (isShowingTopology?.topology?.path.length || 0) - 1 && (
+                                                <div className="w-0.5 h-6 bg-[var(--border)] group-hover:bg-[var(--primary)]/30 transition-colors" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[10px] font-bold">{node.toUpperCase()}</p>
+                                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-60">
+                                                {i === 0 ? 'COMPUTE ENGINE' : i === (isShowingTopology?.topology?.path.length || 0) - 1 ? 'STORAGE LAYER' : 'INTEGRATION NODE'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 border border-[var(--border)] rounded-xl space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-[var(--success)]" />
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Encryption</span>
+                                </div>
+                                <p className="text-[8px] font-bold uppercase">{isShowingTopology?.topology?.isEncrypted ? 'SSL ENFORCED' : 'PLAINTEXT/IAM'}</p>
+                            </div>
+                            <div className="p-3 border border-[var(--border)] rounded-xl space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Activity className="w-3.5 h-3.5 text-[var(--info)]" />
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Verification</span>
+                                </div>
+                                <p className="text-[8px] font-bold uppercase truncate">
+                                    {isShowingTopology?.topology?.lastVerifiedAt ? new Date(isShowingTopology.topology.lastVerifiedAt).toLocaleDateString() : 'NEVER'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-2">
+                            <Zap className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                Deployify uses <strong>{isShowingTopology?.topology?.injectionMethod}</strong> to securely bridge your {isShowingTopology?.topology?.path[0]} to {isShowingTopology?.topology?.path[isShowingTopology.topology.path.length - 1]}. This path is managed automatically.
+                            </p>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
             />
 
             <ConfirmationModal

@@ -7,6 +7,7 @@ import { upsertSecret, deleteSecret } from '@/lib/gcp/secrets';
 import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloudSqlInstance, updateInstanceSettings as updateCloudSqlSettings } from '@/lib/gcp/cloudsql';
 import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance, updateInstanceSize as updateMemorystoreSize } from '@/lib/gcp/memorystore';
 import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
+import { deriveTopology } from '@/lib/gcp/topology';
 import type { StorageConfig } from '@/types';
 
 // Generate unique ID for storage configs
@@ -34,6 +35,9 @@ export async function GET(
 
         const { project } = access;
         const storageConfigs = (project.storageConfigs || []).map(config => {
+            // Phase 120: Attach Topology
+            config.topology = deriveTopology(config);
+
             if (config.metadata?.providerApiKey || config.metadata?.dbPassword) {
                 const safeMetadata = { ...config.metadata };
                 delete safeMetadata.providerApiKey;
