@@ -725,6 +725,17 @@ export default function InfrastructureFleetPage() {
                                                         <span className="text-[8px] font-bold uppercase">LOCK</span>
                                                     </div>
                                                 )}
+                                                {connector.type.includes('cloud-sql') && !!connector.metadata?.maintenanceRecommendation && (
+                                                    <div className={cn(
+                                                        "flex items-center gap-1.5",
+                                                        connector.metadata.maintenanceWindowSynced ? "text-[var(--success)]/60" : "text-[var(--primary)] animate-pulse"
+                                                    )}>
+                                                        <HistoryIcon className="w-2.5 h-2.5" />
+                                                        <span className="text-[8px] font-bold uppercase" title={`Recommended: ${['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][(connector.metadata.maintenanceRecommendation as {day: number}).day]} @ ${(connector.metadata.maintenanceRecommendation as {hour: number}).hour}:00`}>
+                                                            {connector.metadata.maintenanceWindowSynced ? 'MAINT SYNCED' : 'MAINT READY'}
+                                                        </span>
+                                                    </div>
+                                                )}
                                                 {!!connector.metadata?.readyForCutover && !connector.metadata?.cutoverComplete && (
                                                     <div className="flex items-center gap-1.5 text-[var(--primary)] animate-pulse">
                                                         <ArrowRight className="w-2.5 h-2.5" />
