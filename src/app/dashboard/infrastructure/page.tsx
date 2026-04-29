@@ -24,7 +24,8 @@ import {
     X,
     Download,
     TrendingUp,
-
+    History as HistoryIcon,
+    ArrowRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTeam } from '@/contexts/TeamContext';
@@ -66,6 +67,7 @@ export default function InfrastructureFleetPage() {
     const [onlyOptimizable, setOnlyOptimizable] = useState(false);
     const [onlyDormant, setOnlyDormant] = useState(false);
     const [onlyAtRisk, setOnlyAtRisk] = useState(false);
+    const [onlyUpcomingMaint, setOnlyUpcomingMaint] = useState(false);
     const { activeTeam, isLoading: isTeamLoading } = useTeam();
 
     useEffect(() => {
@@ -143,10 +145,11 @@ export default function InfrastructureFleetPage() {
             const matchesOptimization = !onlyOptimizable || !!c.metadata?.optimization;
             const matchesDormancy = !onlyDormant || !!c.dormancy?.isDormant;
             const matchesRisk = !onlyAtRisk || (((c.metadata?.security as Record<string, unknown>)?.risks as unknown[])?.length > 0);
+            const matchesMaint = !onlyUpcomingMaint || !!c.metadata?.maintenanceRecommendation;
 
-            return matchesSearch && matchesStatus && matchesType && matchesOptimization && matchesDormancy && matchesRisk;
+            return matchesSearch && matchesStatus && matchesType && matchesOptimization && matchesDormancy && matchesRisk && matchesMaint;
         });
-    }, [connectors, searchQuery, statusFilter, typeFilter, onlyOptimizable, onlyDormant, onlyAtRisk]);
+    }, [connectors, searchQuery, statusFilter, typeFilter, onlyOptimizable, onlyDormant, onlyAtRisk, onlyUpcomingMaint]);
 
     const stats = useMemo(() => ({
         total: connectors.length,
@@ -308,6 +311,7 @@ export default function InfrastructureFleetPage() {
                                     setOnlyOptimizable(false);
                                     setOnlyDormant(false);
                                     setOnlyAtRisk(false);
+                                    setOnlyUpcomingMaint(false);
                                 }}
                                 className="h-7 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                             >
@@ -315,6 +319,23 @@ export default function InfrastructureFleetPage() {
                             </Button>
                         </div>
                     </div>
+                </div>
+
+                {/* Maintenance Visibility (Phase 118) */}
+                <div className="flex flex-wrap items-center gap-3">
+                    {connectors.filter(c => c.metadata?.maintenanceRecommendation).length > 0 && (
+                        <div
+                            onClick={() => setOnlyUpcomingMaint(!onlyUpcomingMaint)}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all",
+                                onlyUpcomingMaint ? "bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--primary)]" : "bg-[var(--muted)]/5 border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)]/30"
+                            )}
+                        >
+                            <HistoryIcon className="w-3 h-3" />
+                            <span className="text-[8px] font-bold uppercase tracking-wider">Show Maintenance Recommendations</span>
+                            <Badge variant="outline" className="h-4 px-1 text-[8px] font-mono">{connectors.filter(c => c.metadata?.maintenanceRecommendation).length}</Badge>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -702,6 +723,12 @@ export default function InfrastructureFleetPage() {
                                                     <div className="flex items-center gap-1.5 text-[var(--success)]">
                                                         <ShieldCheck className="w-2.5 h-2.5" />
                                                         <span className="text-[8px] font-bold uppercase">LOCK</span>
+                                                    </div>
+                                                )}
+                                                {!!connector.metadata?.readyForCutover && !connector.metadata?.cutoverComplete && (
+                                                    <div className="flex items-center gap-1.5 text-[var(--primary)] animate-pulse">
+                                                        <ArrowRight className="w-2.5 h-2.5" />
+                                                        <span className="text-[8px] font-bold uppercase">READY</span>
                                                     </div>
                                                 )}
                                                 </div>

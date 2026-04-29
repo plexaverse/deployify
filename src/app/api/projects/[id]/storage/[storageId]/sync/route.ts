@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -310,6 +310,22 @@ export async function GET(
                         const previousProfile = storage.workloadProfile;
                         storage.workloadProfile = detectWorkloadProfile(metrics, dormancy);
                         storage.connectionSaturation = metrics.connectionSaturation;
+
+                        // Phase 118: Maintenance Window Governance
+                        if (storage.type.includes('cloud-sql')) {
+                            try {
+                                const historical = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                                const maintenanceRec = getMaintenanceRecommendation(historical, dormancy);
+                                if (maintenanceRec) {
+                                    storage.metadata = {
+                                        ...storage.metadata,
+                                        maintenanceRecommendation: maintenanceRec
+                                    };
+                                }
+                            } catch (maintErr) {
+                                console.error(`[MaintenanceInsight] Failed for ${storageId}:`, maintErr);
+                            }
+                        }
 
                         // Phase 112: Workload Shift Detection
                         const shift = detectWorkloadShift(storage.workloadProfile, previousProfile);
@@ -889,6 +905,14 @@ export async function GET(
                             } else {
                                 storage.status = 'active';
                                 storage.lastSyncedAt = now;
+
+                                // Phase 118: Mark as ready for cutover if it was an ingestion
+                                if (storage.metadata?.ingestedFrom) {
+                                    storage.metadata = {
+                                        ...storage.metadata,
+                                        readyForCutover: true
+                                    };
+                                }
                             }
                         } else {
                             return NextResponse.json({ success: true, status: 'provisioning', message: 'User creation in progress...' });

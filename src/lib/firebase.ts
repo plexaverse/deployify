@@ -155,6 +155,12 @@ function createMockFirestore(): Firestore {
                         metadata: {
                             provisioned: false,
                             autoSync: true,
+                            readyForCutover: true,
+                            maintenanceRecommendation: {
+                                day: 7,
+                                hour: 4,
+                                reason: 'Dormant period detected between 02:00 and 06:00 UTC'
+                            },
                             neonProjectId: 'ep-mock-123456',
                             firewallSynced: false,
                             region: 'us-central1',

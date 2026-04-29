@@ -34,6 +34,12 @@ export interface ScalingRecommendation {
     performanceGain?: string;
 }
 
+export interface MaintenanceRecommendation {
+    day: number; // 1-7 (Monday-Sunday)
+    hour: number; // 0-23
+    reason: string;
+}
+
 export interface AlertResult {
     triggered: boolean;
     reason?: string;
@@ -995,6 +1001,63 @@ export function detectWorkloadShift(
     }
 
     return { shifted: false };
+}
+
+/**
+ * Analyze workload patterns to recommend an optimal maintenance window (Phase 118)
+ * Suggests a window during identified DORMANT or low-utilization periods.
+ */
+export function getMaintenanceRecommendation(
+    metrics: ResourceMetrics[],
+    dormancy?: ResourceDormancy
+): MaintenanceRecommendation | null {
+    if (dormancy?.isDormant) {
+        // If dormant, any window is likely fine, but we'll suggest Sunday 03:00 AM
+        return {
+            day: 7,
+            hour: 3,
+            reason: 'Resource identified as dormant. Sunday 03:00 AM recommended for maintenance.'
+        };
+    }
+
+    if (metrics.length === 0) return null;
+
+    // In a real implementation, we would group metrics by day and hour to find the absolute minimum.
+    // For this implementation, we analyze the provided historical metrics to find the lowest CPU/Conn period.
+    const hourlyStats: Record<string, { cpu: number, count: number }> = {};
+
+    metrics.forEach(m => {
+        const date = new Date(m.timestamp);
+        const day = date.getDay() || 7; // Convert 0 (Sun) to 7
+        const hour = date.getHours();
+        const key = `${day}-${hour}`;
+
+        if (!hourlyStats[key]) hourlyStats[key] = { cpu: 0, count: 0 };
+        hourlyStats[key].cpu += m.cpuUtilization;
+        hourlyStats[key].count += 1;
+    });
+
+    let bestKey = '';
+    let minAvgCpu = Infinity;
+
+    Object.entries(hourlyStats).forEach(([key, stats]) => {
+        const avgCpu = stats.cpu / stats.count;
+        if (avgCpu < minAvgCpu) {
+            minAvgCpu = avgCpu;
+            bestKey = key;
+        }
+    });
+
+    if (!bestKey) return null;
+
+    const [day, hour] = bestKey.split('-').map(Number);
+    const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    return {
+        day,
+        hour,
+        reason: `Lowest historical utilization detected on ${dayNames[day]}s around ${hour.toString().padStart(2, '0')}:00.`
+    };
 }
 
 /**
