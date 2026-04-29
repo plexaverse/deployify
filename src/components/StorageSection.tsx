@@ -139,6 +139,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [backups, setBackups] = useState<Backup[]>([]);
     const [isLoadingBackups, setIsLoadingBackups] = useState(false);
     const [backupDescription, setBackupDescription] = useState('');
+    const [pitrTimestamp, setPitrTimestamp] = useState('');
     const [backupRetentionDays, setBackupRetentionDays] = useState(7);
     const [transactionLogRetentionDays, setTransactionLogRetentionDays] = useState(7);
     const [isManagingMigrations, setIsManagingMigrations] = useState<StorageConfig | null>(null);
