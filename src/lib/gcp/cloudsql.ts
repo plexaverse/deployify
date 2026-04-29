@@ -431,6 +431,7 @@ export async function updateInstanceSettings(
         pitrEnabled?: boolean;
         deletionProtectionEnabled?: boolean;
         connectionPoolerEnabled?: boolean;
+        maintenanceWindow?: { day: number; hour: number };
     }
 ): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
@@ -447,6 +448,7 @@ export async function updateInstanceSettings(
             availabilityType?: string;
             backupConfiguration?: { pointInTimeRecoveryEnabled: boolean };
             connectionPoolerConfig?: { enabled: boolean };
+            maintenanceWindow?: { day: number; hour: number; updateTrack: string };
         }
     } = {
         settings: {}
@@ -469,6 +471,13 @@ export async function updateInstanceSettings(
     if (settings.connectionPoolerEnabled !== undefined) {
         updatePayload.settings.connectionPoolerConfig = {
             enabled: settings.connectionPoolerEnabled
+        };
+    }
+
+    if (settings.maintenanceWindow) {
+        updatePayload.settings.maintenanceWindow = {
+            ...settings.maintenanceWindow,
+            updateTrack: 'stable'
         };
     }
 
@@ -507,6 +516,17 @@ export async function updateConnectionPooler(
     enabled: boolean
 ): Promise<string> {
     return updateInstanceSettings(instanceName, { connectionPoolerEnabled: enabled });
+}
+
+/**
+ * Update the maintenance window for a Cloud SQL instance (Phase 118)
+ */
+export async function updateMaintenanceWindow(
+    instanceName: string,
+    day: number,
+    hour: number
+): Promise<string> {
+    return updateInstanceSettings(instanceName, { maintenanceWindow: { day, hour } });
 }
 
 /**

@@ -157,9 +157,21 @@ export function checkSecurityPosture(
             });
             score -= 15;
         }
+
+        // 8. Maintenance Window Alignment Check (Phase 118)
+        if (metadata.maintenanceRecommendation && !metadata.maintenanceWindowSynced) {
+            risks.push({
+                id: 'maintenance_window_misalignment',
+                level: 'low',
+                title: 'Maintenance Misalignment',
+                description: 'The Cloud SQL maintenance window is not aligned with your detected low-utilization patterns.',
+                remediation: 'Use the "Align Window" remediation to synchronize maintenance with your dormant periods.'
+            });
+            score -= 5;
+        }
     }
 
-    // 8. Public Access Risk (Simplified)
+    // 9. Public Access Risk (Simplified)
     // If it's external and no SSL, it's a high risk. We already caught SSL above,
     // but let's add a specific one for public exposure if we could detect it better.
 

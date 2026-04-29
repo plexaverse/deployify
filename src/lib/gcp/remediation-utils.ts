@@ -151,6 +151,30 @@ export async function remediateRisk(
                 }
                 break;
 
+            case 'maintenance_window_misalignment':
+                if (storage.type.includes('cloud-sql')) {
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const rec = storage.metadata?.maintenanceRecommendation as { day: number; hour: number };
+
+                    if (!rec) {
+                        throw new Error('No maintenance recommendation found in metadata');
+                    }
+
+                    operationName = await updateInstanceSettings(instanceName, {
+                        maintenanceWindow: { day: rec.day, hour: rec.hour }
+                    });
+
+                    storage.status = 'provisioning';
+                    storage.metadata = {
+                        ...storage.metadata,
+                        operationName,
+                        maintenanceWindowSynced: true,
+                        lastMaintenanceSyncAt: new Date().toISOString()
+                    };
+                    message = 'Aligning maintenance window with workload patterns...';
+                }
+                break;
+
             default:
                 return { success: false, message: `Unsupported risk remediation: ${riskId}`, error: 'Unsupported risk' };
         }

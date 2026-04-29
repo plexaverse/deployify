@@ -939,6 +939,16 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement Health-Probe Discovery for Generic (Tier 3) Connectors.
 - [x] Finalize One-Click PgBouncer remediation for high-saturation instances.
 
+### Phase 118: Autonomous Maintenance Alignment & Migration Cutover Orchestration (IN-PROGRESS)
+- [ ] Implement Autonomous Cloud SQL Maintenance Window Alignment with dormant usage patterns.
+- [ ] Implement Workspace-wide Migration Cutover Orchestration for native transitions.
+- [ ] Add "Ready for Cutover" lifecycle triggers and UI actions.
+- [ ] Integrate maintenance window visibility into the Global Infrastructure Dashboard.
+
+### 2027-06-26: Initiating Phase 118: Autonomous Maintenance Alignment
+- Started Phase 118: Autonomous Maintenance Alignment & Migration Cutover Orchestration.
+- Planning workspace-wide cutover logic and maintenance window governance.
+
 ### 2027-06-25: Completed Phase 117: Automated Data Migration Pipeline
 - Completed Phase 117: Automated Data Migration Pipeline & Generic Health Discovery.
 - Launched Automated Data Migration Pipeline, enabling Deployify to automatically perform `pg_dump` or `mysqldump` from external providers (Supabase, Neon, Generic) and stream the data to Cloud SQL via GCS.

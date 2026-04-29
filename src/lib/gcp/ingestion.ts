@@ -1,6 +1,6 @@
 import { createInstance } from './cloudsql';
 import { config } from '@/lib/config';
-import { updateProject } from '@/lib/db';
+import { updateProject, getProjectById, listProjectsByTeam, listProjectsByUser } from '@/lib/db';
 import type { StorageConfig, Project } from '@/types';
 
 export interface IngestionResult {
@@ -83,6 +83,97 @@ export async function runExternalDump(
 
     const { buildId } = await submitCloudBuild(buildConfig);
     return buildId;
+}
+
+/**
+ * Orchestrate workspace-wide cutover from a source external connector to a newly migrated native connector.
+ * Swaps envKey/secrets and re-points dependent projects. (Phase 118)
+ */
+export async function orchestrateCutover(
+    projectId: string,
+    sourceStorageId: string,
+    targetStorageId: string,
+    userId: string
+): Promise<{ success: boolean; message: string; error?: string }> {
+    try {
+        const project = await getProjectById(projectId);
+        if (!project) throw new Error('Project not found');
+
+        const sourceStorage = project.storageConfigs?.find(s => s.id === sourceStorageId);
+        const targetStorage = project.storageConfigs?.find(s => s.id === targetStorageId);
+
+        if (!sourceStorage || !targetStorage) throw new Error('Connectors not found');
+
+        // 1. Fetch all projects in the workspace (Team or Personal)
+        let workspaceProjects: Project[] = [];
+        if (project.teamId) {
+            workspaceProjects = await listProjectsByTeam(project.teamId);
+        } else {
+            workspaceProjects = await listProjectsByUser(userId);
+        }
+
+        const targetSecretId = targetStorage.connectionStringSecretId;
+
+        if (!targetSecretId) throw new Error('Target connector secret missing');
+
+        // 2. Iterate through all projects and re-point any that use the source connector
+        for (const p of workspaceProjects) {
+            let projectModified = false;
+            const updatedConfigs = (p.storageConfigs || []).map(s => {
+                if (s.id === sourceStorageId) {
+                    projectModified = true;
+                    // In a real cutover, we might want to preserve the source but mark it as 'deprecated'
+                    // For this implementation, we swap the ID and metadata to the target
+                    return {
+                        ...targetStorage,
+                        id: sourceStorageId, // Preserve original ID to maintain deployment bindings
+                        name: `${sourceStorage.name} (MIGRATED)`,
+                        environment: s.environment,
+                        envKey: s.envKey
+                    };
+                }
+                return s;
+            });
+
+            if (projectModified) {
+                await updateProject(p.id, { storageConfigs: updatedConfigs });
+                console.log(`[Cutover] Updated project ${p.id} with new native connector`);
+            }
+        }
+
+        // 3. Mark target as active and source as disconnected
+        const finalConfigs = (project.storageConfigs || []).map(s => {
+            if (s.id === targetStorageId) {
+                return {
+                    ...s,
+                    metadata: {
+                        ...s.metadata,
+                        cutoverComplete: true,
+                        cutoverAt: new Date().toISOString()
+                    }
+                };
+            }
+            if (s.id === sourceStorageId) {
+                return { ...s, status: 'disconnected' as const };
+            }
+            return s;
+        });
+
+        await updateProject(projectId, { storageConfigs: finalConfigs });
+
+        return {
+            success: true,
+            message: 'Workspace-wide migration cutover completed successfully. Deployment configurations updated.'
+        };
+
+    } catch (error) {
+        console.error('[Cutover] Error:', error);
+        return {
+            success: false,
+            message: 'Failed to execute cutover orchestration',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        };
+    }
 }
 
 /**

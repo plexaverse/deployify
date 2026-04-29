@@ -200,6 +200,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [ingestTargetName, setIngestTargetName] = useState('');
     const [ingestRegion, setIngestRegion] = useState('');
     const [ingestStorageUri, setIngestStorageUri] = useState('');
+    const [isFinalizingCutover, setIsFinalizingCutover] = useState<StorageConfig | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -862,6 +863,33 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             setIsLoadingGuardrails(false);
         }
     }, [projectId]);
+
+    const handleCutover = async () => {
+        if (!isFinalizingCutover) return;
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${isFinalizingCutover.id}/cutover`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sourceStorageId: isFinalizingCutover.metadata?.ingestedFrom
+                }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setIsFinalizingCutover(null);
+                if (onUpdate) onUpdate();
+                toast.success('Migration cutover completed successfully');
+            } else {
+                toast.error(data.error || 'Cutover failed');
+            }
+        } catch (e) {
+            console.error('Cutover error:', e);
+            toast.error('An error occurred during cutover orchestration');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleIngest = async () => {
         if (!isIngesting) return;
@@ -1672,6 +1700,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     POOLING ACTIVE
                                                 </span>
                                             )}
+                                            {!!config.metadata?.readyForCutover && !config.metadata?.cutoverComplete && (
+                                                <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/20 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/30 flex items-center gap-1 animate-pulse">
+                                                    <ArrowRight className="w-2.5 h-2.5" />
+                                                    READY FOR CUTOVER
+                                                </span>
+                                            )}
                                             {config.activeAlerts && config.activeAlerts.length > 0 && (
                                                 <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1" title={config.activeAlerts.join('\n')}>
                                                     <AlertTriangle className="w-2.5 h-2.5" />
@@ -1748,6 +1782,25 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 )}
                                             </div>
                                         </div>
+                                        {!!config.metadata?.readyForCutover && !config.metadata?.cutoverComplete && (
+                                            <div className="mt-3 p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/30 rounded-lg flex items-start justify-between gap-3 animate-in fade-in slide-in-from-top-2">
+                                                <div className="flex items-start gap-2.5">
+                                                    <Zap className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <p className="text-[8px] font-bold uppercase text-[var(--primary)] tracking-wider">Migration Verified</p>
+                                                        <p className="text-[10px] font-bold text-[var(--foreground)]">Native instance ready for workspace-wide cutover.</p>
+                                                        <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] mt-0.5">THIS WILL RE-POINT ALL DEPENDENT SERVICES TO THE NEW GCP NATIVE RESOURCE.</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => setIsFinalizingCutover(config)}
+                                                    className="h-7 px-3 text-[8px] font-bold uppercase bg-[var(--primary)] hover:bg-[var(--primary)]/90 shrink-0"
+                                                >
+                                                    Finalize Cutover
+                                                </Button>
+                                            </div>
+                                        )}
                                         {(config.metadata?.workloadShift as unknown as WorkloadShift)?.shifted && (
                                             <div className="mt-3 p-3 bg-[var(--warning)]/5 border border-[var(--warning)]/30 rounded-lg flex items-start justify-between gap-3 animate-pulse">
                                                 <div className="flex items-start gap-2.5">
@@ -1850,6 +1903,23 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         </div>
                                                     )}
                                                 </div>
+
+                                                {config.type.includes('cloud-sql') && config.metadata?.maintenanceRecommendation && (
+                                                    <div className="mt-2 flex items-center justify-between text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60 bg-[var(--muted)]/5 p-1.5 rounded border border-[var(--border)]">
+                                                        <div className="flex items-center gap-2">
+                                                            <HistoryIcon className="w-3 h-3" />
+                                                            <span>Recommended Maintenance: {['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][(config.metadata.maintenanceRecommendation as {day: number}).day]} @ {(config.metadata.maintenanceRecommendation as {hour: number}).hour}:00</span>
+                                                        </div>
+                                                        {!config.metadata.maintenanceWindowSynced && (
+                                                            <button
+                                                                onClick={() => remediateStorageRisk(projectId, config.id, 'maintenance_window_misalignment')}
+                                                                className="text-[var(--primary)] hover:underline"
+                                                            >
+                                                                Align Window
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
 
                                                 {metrics[config.id]?.poolingRecommendation && !config.metadata?.connectionPoolerEnabled && (
                                                     <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/30 rounded-lg flex items-start justify-between gap-3 animate-pulse">
@@ -2265,6 +2335,41 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     </div>
                 }
                 confirmText="Apply Scaling"
+                loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isFinalizingCutover}
+                onClose={() => setIsFinalizingCutover(null)}
+                onConfirm={handleCutover}
+                title="Finalize Migration Cutover"
+                headerLabel="Orchestration"
+                icon={<ArrowRight className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-4">
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-3">
+                            <Zap className="w-5 h-5 text-[var(--primary)] shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-[var(--primary)] uppercase">Architectural Transition</p>
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                    YOU ARE ABOUT TO PERFORM A WORKSPACE-WIDE CUTOVER TO <strong>{isFinalizingCutover?.name}</strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p className="text-[10px]">
+                            This operation will update the storage connector reference in all projects within your workspace that were using the source external connector. Credentials will be re-injected automatically.
+                        </p>
+
+                        <div className="p-3 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl flex items-start gap-2">
+                            <AlertCircle className="w-3.5 h-3.5 text-[var(--error)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--error)] leading-relaxed">
+                                WARNING: ENSURE YOUR APPLICATION IS COMPATIBLE WITH THE NEW NATIVE CLOUD SQL INSTANCE BEFORE PROCEEDING. THE SOURCE CONNECTOR WILL BE DISCONNECTED.
+                            </p>
+                        </div>
+                    </div>
+                }
+                confirmText="Finalize Cutover"
                 loading={isSubmitting}
             />
 
