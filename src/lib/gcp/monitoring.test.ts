@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { getScalingRecommendations, detectPerformanceAnomaly } from './monitoring';
+import { getScalingRecommendations, detectPerformanceAnomaly, type ResourceMetrics } from './monitoring';
 
 describe('Scaling Recommendations Logic', () => {
     const mockMetrics: ResourceMetrics = {

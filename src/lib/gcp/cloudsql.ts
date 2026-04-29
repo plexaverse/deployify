@@ -530,6 +530,49 @@ export async function updateMaintenanceWindow(
 }
 
 /**
+ * Update the backup retention policy for a Cloud SQL instance (Phase 119)
+ */
+export async function updateBackupPolicy(
+    instanceName: string,
+    backupRetentionDays: number,
+    transactionLogRetentionDays?: number
+): Promise<string> {
+    if (process.env.MOCK_DB === 'true') {
+        return `projects/mock/operations/update-backup-policy-${instanceName}`;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}`, {
+        method: 'PATCH',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            settings: {
+                backupConfiguration: {
+                    enabled: true,
+                    retentionSettings: {
+                        retentionUnit: 'COUNT',
+                        retainedBackups: backupRetentionDays
+                    },
+                    transactionLogRetentionDays: transactionLogRetentionDays || 7
+                }
+            }
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update backup policy: ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    return data.name;
+}
+
+/**
  * Get detailed information about a Cloud SQL instance
  */
 export async function getInstance(instanceName: string, projectId?: string): Promise<Record<string, unknown>> {

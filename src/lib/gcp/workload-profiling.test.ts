@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { detectWorkloadProfile, detectColdStart } from './monitoring';
-import type { ResourceMetrics, ResourceDormancy } from '@/types';
+import { detectWorkloadProfile, detectColdStart, type ResourceMetrics } from './monitoring';
+import type { ResourceDormancy } from '@/types';
 
 test('detectColdStart', () => {
     // Should be false for non-serverless types
