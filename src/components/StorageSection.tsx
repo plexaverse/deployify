@@ -139,7 +139,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [backups, setBackups] = useState<Backup[]>([]);
     const [isLoadingBackups, setIsLoadingBackups] = useState(false);
     const [backupDescription, setBackupDescription] = useState('');
-    const [pitrTimestamp, setPitrTimestamp] = useState('');
+    const [backupRetentionDays, setBackupRetentionDays] = useState(7);
+    const [transactionLogRetentionDays, setTransactionLogRetentionDays] = useState(7);
     const [isManagingMigrations, setIsManagingMigrations] = useState<StorageConfig | null>(null);
     const [migrations, setMigrations] = useState<Migration[]>([]);
     const [isLoadingMigrations, setIsLoadingMigrations] = useState(false);
@@ -765,13 +766,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             const data = await response.json();
             if (data.success) {
                 setBackups(data.backups);
+                // Phase 119: Load retention settings from metadata if available
+                const config = storageConfigs.find(c => c.id === storageId);
+                if (config?.metadata) {
+                    setBackupRetentionDays((config.metadata.backupRetentionDays as number) || 7);
+                    setTransactionLogRetentionDays((config.metadata.transactionLogRetentionDays as number) || 7);
+                }
             }
         } catch (e) {
             console.error('Failed to fetch backups:', e);
         } finally {
             setIsLoadingBackups(false);
         }
-    }, [projectId]);
+    }, [projectId, storageConfigs]);
 
     const handleCreateBackup = async () => {
         if (!isManagingBackups) return;
@@ -786,9 +793,34 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             if (data.success) {
                 setBackupDescription('');
                 fetchBackups(isManagingBackups.id);
+                toast.success('Backup triggered successfully');
             }
         } catch (e) {
             console.error('Failed to create backup:', e);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleUpdateBackupPolicy = async () => {
+        if (!isManagingBackups) return;
+        setIsSubmitting(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${isManagingBackups.id}/backups`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    retentionDays: backupRetentionDays,
+                    transactionLogRetentionDays
+                }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success('Backup retention policy updated');
+                await syncStorageStatus(projectId, isManagingBackups.id);
+            }
+        } catch (e) {
+            console.error('Failed to update policy:', e);
         } finally {
             setIsSubmitting(false);
         }
@@ -2551,6 +2583,51 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 title="Database Backup Management"
                 description={
                     <div className="space-y-6">
+                        <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4">
+                            <div className="flex items-center justify-between border-b border-[var(--primary)]/10 pb-3 mb-3">
+                                <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Retention Policy (Phase 119)</Label>
+                                <Button
+                                    onClick={handleUpdateBackupPolicy}
+                                    disabled={isSubmitting}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-[8px] font-bold uppercase text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                >
+                                    Update Policy
+                                </Button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Retained Backups</Label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="365"
+                                            value={backupRetentionDays}
+                                            onChange={(e) => setBackupRetentionDays(parseInt(e.target.value))}
+                                            className="flex-1 accent-[var(--primary)] h-1"
+                                        />
+                                        <span className="text-[8px] font-mono font-bold w-12 text-right">{backupRetentionDays} Days</span>
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Transaction Logs</Label>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="7"
+                                            value={transactionLogRetentionDays}
+                                            onChange={(e) => setTransactionLogRetentionDays(parseInt(e.target.value))}
+                                            className="flex-1 accent-[var(--primary)] h-1"
+                                        />
+                                        <span className="text-[8px] font-mono font-bold w-12 text-right">{transactionLogRetentionDays} Days</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-xl space-y-4">
                             <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Trigger Manual Backup</Label>
                             <div className="flex gap-2">

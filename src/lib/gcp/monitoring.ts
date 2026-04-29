@@ -787,6 +787,21 @@ export async function getScalingRecommendations(
         });
     }
 
+    // 5. Phase 119: Serverless Cold-Start Optimization (Neon/Firestore)
+    if ((isNeon || storageType === 'firestore') && metadata?.health) {
+        const health = metadata.health as { isColdStart?: boolean, status?: string };
+        if (health.isColdStart || health.status === 'degraded') {
+            recommendations.push({
+                type: 'optimize',
+                resource: 'cpu',
+                currentTier: currentTier,
+                recommendedTier: isNeon ? 'LAUNCH' : 'NATIVE',
+                reason: 'Persistent serverless cold-starts or degraded latency detected. Upgrading to a provisioned or higher-performance tier will minimize request latency for critical paths.',
+                performanceGain: 'Medium'
+            });
+        }
+    }
+
     return recommendations;
 }
 
@@ -894,17 +909,30 @@ export function calculateEfficiencyScore(
 }
 
 /**
- * Project 3-month storage costs based on current tiers and estimated growth
+ * Project 3-month storage costs based on current tiers and estimated growth.
+ * Enhanced in Phase 119 to use historical trends if metrics are provided.
  */
 export function getCostForecast(
     storageType: string,
     tier: string,
     diskSizeGb: number = 10,
     isHA: boolean = false,
-    growthRate: number = 0.05 // 5% monthly growth in storage
+    historicalMetrics: ResourceMetrics[] = []
 ): { month: string; cost: number }[] {
     const forecast = [];
     const now = new Date();
+
+    // Phase 119: Calculate trend-based growth rate if historical data is available
+    let growthRate = 0.05; // 5% default monthly
+    if (historicalMetrics.length > 1) {
+        const first = historicalMetrics[0].diskUtilization || 5;
+        const last = historicalMetrics[historicalMetrics.length - 1].diskUtilization || 5;
+        if (last > first) {
+            // Calculate weekly growth and extrapolate to monthly
+            const weeklyGrowth = (last - first) / first;
+            growthRate = Math.min(0.2, weeklyGrowth * 4); // Cap at 20% monthly to avoid extreme outliers
+        }
+    }
 
     for (let i = 1; i <= 3; i++) {
         // Simple linear projection for storage growth
