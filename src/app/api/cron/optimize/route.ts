@@ -63,14 +63,15 @@ export async function GET(request: NextRequest) {
                     const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
                     let metrics;
+                    let historicalMetrics;
 
                     if (isSql || isRedis) {
                         // Fetch historical metrics (7 days)
-                        const historicalMetrics = isSql
+                        historicalMetrics = isSql
                             ? await getCloudSqlHistoricalMetrics(resourceName, 7)
                             : await getMemorystoreHistoricalMetrics(resourceName, region, 7);
 
-                        if (historicalMetrics.length === 0) continue;
+                        if (!historicalMetrics || historicalMetrics.length === 0) continue;
 
                         // Calculate averages
                         const count = historicalMetrics.length;
