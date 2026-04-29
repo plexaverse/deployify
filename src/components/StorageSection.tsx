@@ -1904,7 +1904,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     )}
                                                 </div>
 
-                                                {config.type.includes('cloud-sql') && config.metadata?.maintenanceRecommendation && (
+                                                {config.type.includes('cloud-sql') && !!config.metadata?.maintenanceRecommendation && (
                                                     <div className="mt-2 flex items-center justify-between text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60 bg-[var(--muted)]/5 p-1.5 rounded border border-[var(--border)]">
                                                         <div className="flex items-center gap-2">
                                                             <HistoryIcon className="w-3 h-3" />
