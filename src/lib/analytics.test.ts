@@ -37,14 +37,14 @@ const mockBigQueryInstance = {
     ])
 };
 
-mock.module('@/lib/firebase', {
+(mock as any).module('@/lib/firebase', {
     namedExports: {
         getDb: () => mockDb,
         Collections: { ANALYTICS_EVENTS: 'analytics_events' }
     }
 });
 
-mock.module('@google-cloud/bigquery', {
+(mock as any).module('@google-cloud/bigquery', {
     namedExports: {
         BigQuery: class {
             constructor() { return mockBigQueryInstance as unknown as import('@google-cloud/bigquery').BigQuery; }

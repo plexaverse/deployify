@@ -39,7 +39,7 @@ test('Billing Backend Verification', async (t) => {
         }))
     };
 
-    mock.module('@/lib/firebase', {
+    (mock as any).module('@/lib/firebase', {
         namedExports: {
             getDb: () => mockDb,
             Collections: { INVOICES: 'invoices' }
