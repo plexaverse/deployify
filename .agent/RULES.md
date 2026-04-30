@@ -13,3 +13,4 @@
 - When using `mysql2/promise` with a configuration variable that can be either a string URI or a `ConnectionOptions` object, use type narrowing (e.g., `typeof config === 'string' ? await mysql.createConnection(config) : await mysql.createConnection(config)`) before calling `createConnection()` to prevent TypeScript overload resolution errors.
 - Phase 102 'Automated Read-Replica Orchestration & Global Traffic Steering' is completed, enabling horizontal scaling for Cloud SQL via the `/replica` API and intelligence-driven suggestions for read-heavy workloads.
 - Strict Code Quality: Maintain a 100% warning-free codebase. Any new code must have zero `@typescript-eslint/no-unused-vars` and other ESLint issues to uphold maximum operational integrity.
+- Ensure all new features are thoroughly documented in both .agent/IMPROVEMENTS.md and .agent/RULES.md after implementation.
