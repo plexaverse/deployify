@@ -137,6 +137,24 @@ export async function syncDeploymentStatus(
                 productionUrl: effectiveUrl,
             });
 
+            // Phase 120: Global Edge Acceleration & Advanced Security (Deployify Edge)
+            // Triggered for production deployments to ensure global availability and WAF protection.
+            if (deployment.type === 'production') {
+                const { createGlobalLoadBalancer, enableCloudCdn } = await import('@/lib/gcp/loadbalancer');
+                const { enableCloudArmor } = await import('@/lib/gcp/armor');
+
+                console.log(`[Deployify Edge] Provisioning Global Load Balancer for ${serviceName}...`);
+                try {
+                    const glb = await createGlobalLoadBalancer(serviceName, region!);
+                    await enableCloudCdn(glb.backendServiceName);
+                    await enableCloudArmor(serviceName);
+
+                    console.log(`[Deployify Edge] Global Edge Acceleration enabled at ${glb.ipAddress}`);
+                } catch (edgeErr) {
+                    console.error(`[Deployify Edge] Failed to enable edge acceleration:`, edgeErr);
+                }
+            }
+
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
                 console.error(`[ArtifactRegistry] Image pruning failed for ${serviceName}:`, err)

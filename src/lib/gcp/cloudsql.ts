@@ -646,6 +646,22 @@ export async function createUser(
 }
 
 /**
+ * Wait for a Cloud SQL operation to complete
+ */
+export async function waitForOperation(operationName: string): Promise<void> {
+    const maxAttempts = 60; // 5 minutes
+    for (let i = 0; i < maxAttempts; i++) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+    throw new Error(`Operation ${operationName} timed out after 5 minutes`);
+}
+
+/**
  * Ensure an ephemeral database exists for branching
  */
 export async function ensureEphemeralDatabase(
@@ -671,11 +687,26 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the new database
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, seed it using export/import
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
+        const storageUri = `gs://${bucket}/seeding/${instanceName}-${sourceDatabase}-${Date.now()}.sql`;
+
+        console.log(`[Branching] Seeding ${databaseName} from ${sourceDatabase} via ${storageUri}`);
+
+        // Export source
+        const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+        await waitForOperation(exportOp);
+
+        // Import to target
+        const importOp = await importInstance(instanceName, storageUri, databaseName);
+        await waitForOperation(importOp);
+
+        console.log(`[Branching] Seeding completed.`);
     }
 }
 
