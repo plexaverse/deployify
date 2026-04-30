@@ -39,9 +39,10 @@ export async function GET(
         const { project } = access;
         const storageConfigs = project.storageConfigs || [];
 
-        // Suppress unused warning while maintaining access for future logic
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const unusedGcpProjectNumber = getGcpProjectNumber;
+
+
         const index = storageConfigs.findIndex((s: StorageConfig) => s.id === storageId);
 
         if (index === -1) {

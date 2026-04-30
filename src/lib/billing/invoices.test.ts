@@ -39,6 +39,7 @@ test('Billing Backend Verification', async (t) => {
         }))
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (mock as any).module('@/lib/firebase', {
         namedExports: {
             getDb: () => mockDb,
