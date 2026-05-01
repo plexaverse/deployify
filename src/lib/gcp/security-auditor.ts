@@ -185,7 +185,7 @@ export function checkSecurityPosture(
         score -= 30;
     }
 
-    // 10. Zero-Trust: Broad Secret Access (Phase 123)
+    // 10. Zero-Trust: Broad Secret Access (Phase 124)
     if (metadata?.broadSecretAccess) {
         risks.push({
             id: 'broad_secret_access',

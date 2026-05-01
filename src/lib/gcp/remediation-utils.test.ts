@@ -74,3 +74,52 @@ test('remediateRisk - storage not found', async () => {
     assert.strictEqual(result.success, false);
     assert.strictEqual(result.error, 'Storage connector not found');
 });
+
+test('remediateRisk - overprivileged_service_account', async () => {
+    process.env.MOCK_DB = 'true';
+    const storageWithRoles = {
+        ...mockStorage,
+        metadata: {
+            ...mockStorage.metadata,
+            provisioned: true,
+            iamOverprivileged: true,
+            excessiveRoles: ['roles/owner'],
+            connectionStringSecretId: 'test-secret'
+        }
+    };
+    const projectWithRoles = {
+        ...mockProject,
+        storageConfigs: [storageWithRoles]
+    };
+
+    const result = await remediateRisk('proj-123', 'store-123', 'overprivileged_service_account', projectWithRoles);
+
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.storageConfig?.metadata?.iamOverprivileged, false);
+    assert.strictEqual(result.storageConfig?.metadata?.broadSecretAccess, false);
+    assert.deepStrictEqual(result.storageConfig?.metadata?.excessiveRoles, []);
+    assert.match(result.message, /IAM Hardening complete/);
+});
+
+test('remediateRisk - broad_secret_access', async () => {
+    process.env.MOCK_DB = 'true';
+    const storageWithBroadAccess = {
+        ...mockStorage,
+        metadata: {
+            ...mockStorage.metadata,
+            provisioned: true,
+            broadSecretAccess: true
+        },
+        connectionStringSecretId: 'test-secret'
+    };
+    const projectWithBroadAccess = {
+        ...mockProject,
+        storageConfigs: [storageWithBroadAccess]
+    };
+
+    const result = await remediateRisk('proj-123', 'store-123', 'broad_secret_access', projectWithBroadAccess);
+
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.storageConfig?.metadata?.broadSecretAccess, false);
+    assert.match(result.message, /Secret access restricted/);
+});

@@ -2,6 +2,7 @@ import { updateProject } from '@/lib/db';
 import { updateInstanceSettings, updateConnectionPooler } from '@/lib/gcp/cloudsql';
 import { syncExternalFirewall } from '@/lib/gcp/external-sync';
 import { grantCloudSqlInstanceUserRole, revokeProjectRole, grantProjectRole } from '@/lib/gcp/iam';
+import { grantSecretAccess } from '@/lib/gcp/secrets';
 import { config } from '@/lib/config';
 import type { StorageConfig, Project } from '@/types';
 
@@ -189,17 +190,54 @@ export async function remediateRisk(
                     }
 
                     // 2. Ensure minimal required roles are present
-                    await grantProjectRole(gcpProjectId!, saEmail, 'roles/cloudsql.client');
-                    await grantProjectRole(gcpProjectId!, saEmail, 'roles/secretmanager.secretAccessor');
+                    if (storage.type.includes('cloud-sql')) {
+                        await grantProjectRole(gcpProjectId!, saEmail, 'roles/cloudsql.client');
+                    }
+
+                    // 3. Phase 124: Use granular secret access instead of broad roles if possible
+                    if (storage.connectionStringSecretId) {
+                        await grantSecretAccess(storage.connectionStringSecretId, saEmail, gcpProjectId!);
+                    }
+                    if (storage.providerApiKeySecretId) {
+                        await grantSecretAccess(storage.providerApiKeySecretId, saEmail, gcpProjectId!);
+                    }
 
                     storage.metadata = {
                         ...storage.metadata,
                         iamOverprivileged: false,
                         excessiveRoles: [],
                         iamRoleVerified: true,
+                        broadSecretAccess: false,
                         lastIamHardeningAt: new Date().toISOString()
                     };
-                    message = 'IAM Hardening complete: Revoked excessive roles and enforced least-privilege.';
+                    message = 'IAM Hardening complete: Revoked excessive roles and enforced least-privilege with granular secret scoping.';
+                }
+                break;
+
+            case 'broad_secret_access':
+                if (storage.metadata?.provisioned) {
+                    const gcpProjectId = (storage.metadata?.projectId as string) || config.gcp.projectId || process.env.GCP_PROJECT_ID;
+                    const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
+                    const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
+
+                    // 1. Grant granular access to this specific secret(s)
+                    if (storage.connectionStringSecretId) {
+                        await grantSecretAccess(storage.connectionStringSecretId, saEmail, gcpProjectId!);
+                    }
+                    if (storage.providerApiKeySecretId) {
+                        await grantSecretAccess(storage.providerApiKeySecretId, saEmail, gcpProjectId!);
+                    }
+
+                    // 2. Revoke broad roles
+                    await revokeProjectRole(gcpProjectId!, saEmail, 'roles/secretmanager.secretAccessor');
+                    await revokeProjectRole(gcpProjectId!, saEmail, 'roles/secretmanager.admin');
+
+                    storage.metadata = {
+                        ...storage.metadata,
+                        broadSecretAccess: false,
+                        lastIamHardeningAt: new Date().toISOString()
+                    };
+                    message = 'Secret access restricted to granular scope (resource-level).';
                 }
                 break;
 

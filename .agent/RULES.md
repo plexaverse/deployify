@@ -16,3 +16,4 @@
 - Ensure all new features are thoroughly documented in both .agent/IMPROVEMENTS.md and .agent/RULES.md after implementation.
 - Always run MOCK_DB=true npm run audit before submitting code.
 - MOCK_DB=true is strictly required when running the pre-launch audit to bypass active Firestore connections and test solely the environment/API route health.
+- Phase 124 'Granular Secret Governance & Automated IAM Scoping' is completed, implementing resource-level least-privilege for GCP Secret Manager access via `grantSecretAccess` in `src/lib/gcp/secrets.ts`. The platform now detects and remediates broad project-level secret accessor roles, restricting service account access to only the specific credentials required by each storage connector.

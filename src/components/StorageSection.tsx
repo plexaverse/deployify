@@ -1781,7 +1781,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 </span>
                                             )}
                                             {(config.metadata?.security as { risks: Array<{ id: string, level: string, title: string }> })?.risks?.filter(risk =>
-                                                ['unencrypted_connection', 'deletion_protection_disabled', 'unmanaged_firewall'].includes(risk.id)
+                                                ['unencrypted_connection', 'deletion_protection_disabled', 'unmanaged_firewall', 'overprivileged_service_account', 'broad_secret_access'].includes(risk.id)
                                             ).map(risk => (
                                                 <button
                                                     key={risk.id}
