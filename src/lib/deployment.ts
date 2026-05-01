@@ -137,6 +137,23 @@ export async function syncDeploymentStatus(
                 productionUrl: effectiveUrl,
             });
 
+            // Global Edge Acceleration & Advanced Security (Phase 113)
+            // Automatically enable GLB, CDN, and Cloud Armor for production services without a custom domain
+            if (deployment.type === 'production') {
+                const project = await getProjectById(projectId);
+                if (project && !project.customDomain) {
+                    console.log(`[Deployify Edge] Automatically enabling edge acceleration for ${serviceName}`);
+                    try {
+                        const { backendServiceName } = await import('@/lib/gcp/loadbalancer').then(m => m.createGlobalLoadBalancer(serviceName, region || config.gcp.region));
+                        await import('@/lib/gcp/loadbalancer').then(m => m.enableCloudCdn(backendServiceName));
+                        await import('@/lib/gcp/armor').then(m => m.enableCloudArmor(serviceName));
+                        console.log(`[Deployify Edge] Edge acceleration enabled successfully.`);
+                    } catch (edgeErr) {
+                        console.error(`[Deployify Edge] Failed to enable edge acceleration:`, edgeErr);
+                    }
+                }
+            }
+
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
                 console.error(`[ArtifactRegistry] Image pruning failed for ${serviceName}:`, err)
