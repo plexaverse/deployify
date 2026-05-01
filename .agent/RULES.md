@@ -14,3 +14,5 @@
 - Phase 102 'Automated Read-Replica Orchestration & Global Traffic Steering' is completed, enabling horizontal scaling for Cloud SQL via the `/replica` API and intelligence-driven suggestions for read-heavy workloads.
 - Strict Code Quality: Maintain a 100% warning-free codebase. Any new code must have zero `@typescript-eslint/no-unused-vars` and other ESLint issues to uphold maximum operational integrity.
 - Ensure all new features are thoroughly documented in both .agent/IMPROVEMENTS.md and .agent/RULES.md after implementation.
+- Always run MOCK_DB=true npm run audit before submitting code.
+- MOCK_DB=true is strictly required when running the pre-launch audit to bypass active Firestore connections and test solely the environment/API route health.
