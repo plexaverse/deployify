@@ -214,7 +214,7 @@ export async function checkBroadSecretAccess(
 
         return false;
     } catch (error) {
-        console.error(`[IAM] Failed to check least privilege for ${member}:`, error);
-        return { overprivileged: false, excessiveRoles: [] };
+        console.error(`[IAM] Failed to check broad secret access for ${member}:`, error);
+        return false;
     }
 }
