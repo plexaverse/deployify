@@ -168,7 +168,13 @@ export async function checkLeastPrivilege(
         const policy = await getProjectIamPolicy(projectId);
         const memberName = member.startsWith('serviceAccount:') ? member : `serviceAccount:${member}`;
 
-        const excessiveRoles = ['roles/owner', 'roles/editor', 'roles/resourcemanager.projectIamAdmin'];
+        const excessiveRoles = [
+            'roles/owner',
+            'roles/editor',
+            'roles/resourcemanager.projectIamAdmin',
+            'roles/secretmanager.secretAccessor',
+            'roles/secretmanager.admin'
+        ];
         const foundExcessive: string[] = [];
 
         for (const binding of (policy.bindings || [])) {
@@ -181,6 +187,32 @@ export async function checkLeastPrivilege(
             overprivileged: foundExcessive.length > 0,
             excessiveRoles: foundExcessive
         };
+    } catch (error) {
+        console.error(`[IAM] Failed to check least privilege for ${member}:`, error);
+        return { overprivileged: false, excessiveRoles: [] };
+    }
+}
+
+/**
+ * Check if a member has broad (project-level) secret manager access
+ */
+export async function checkBroadSecretAccess(
+    projectId: string,
+    member: string
+): Promise<boolean> {
+    try {
+        const policy = await getProjectIamPolicy(projectId);
+        const memberName = member.startsWith('serviceAccount:') ? member : `serviceAccount:${member}`;
+
+        const broadRoles = ['roles/secretmanager.secretAccessor', 'roles/secretmanager.admin', 'roles/editor', 'roles/owner'];
+
+        for (const binding of (policy.bindings || [])) {
+            if (broadRoles.includes(binding.role) && binding.members.includes(memberName)) {
+                return true;
+            }
+        }
+
+        return false;
     } catch (error) {
         console.error(`[IAM] Failed to check least privilege for ${member}:`, error);
         return { overprivileged: false, excessiveRoles: [] };

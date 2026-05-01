@@ -971,6 +971,21 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Add "Zero-Trust" verification for IAM roles and service account scopes.
 - [x] Automate remediation of over-privileged service account roles for database access.
 
+### Phase 124: Granular Secret Governance & Automated IAM Scoping (COMPLETED)
+- [x] Implement resource-level IAM scoping for Secret Manager access.
+- [x] Add proactive detection of project-level broad secret access roles.
+- [x] Automate remediation of over-privileged secret scopes in the IAM hardening engine.
+- [x] Surface granular vs. broad secret access transparency in the dashboard.
+
+### 2027-07-04: Completed Phase 124: Granular Secret Governance
+- Completed Phase 124: Granular Secret Governance & Automated IAM Scoping.
+- Implemented `grantSecretAccess` in `src/lib/gcp/secrets.ts` to support resource-level least-privilege for database credentials and API keys.
+- Enhanced the Zero-Trust auditing engine in `src/lib/gcp/iam.ts` to detect project-level broad secret roles (Secret Manager Accessor/Admin).
+- Integrated broad secret access detection into the Storage Sync API and persisted `broadSecretAccess` metadata across the infrastructure fleet.
+- Launched automated IAM Hardening remediation that restricts service account access to only the specific secrets required by the connector, revoking broad project-level permissions.
+- Updated the Storage UI to surface "FIX SECRET SCOPE" actions on connector cards with identified broad access risks.
+- Verified 100% operational integrity with new unit tests and platform-wide system audits.
+
 ### 2027-07-03: Completed Phase 123: Connectivity Governance & Zero-Trust Verification
 - Completed Phase 123: Connectivity Governance & Zero-Trust Verification.
 - Implemented Zero-Trust IAM verification in `src/lib/gcp/iam.ts`, enabling the platform to detect over-privileged service accounts with excessive roles (Owner/Editor).

@@ -189,20 +189,24 @@ export async function GET(
                     }
                 }
 
-                // 0d. Phase 123: Zero-Trust IAM Verification
+                // 0d. Phase 123/124: Zero-Trust IAM & Secret Governance
                 if (storage.metadata?.provisioned && storage.status === 'active') {
                     try {
-                        const { checkLeastPrivilege } = await import('@/lib/gcp/iam');
+                        const { checkLeastPrivilege, checkBroadSecretAccess } = await import('@/lib/gcp/iam');
                         const gcpProjectId = (storage.metadata?.projectId as string) || project.id; // Fallback to id as projectId if not in metadata
                         const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
                         const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
 
-                        const iamResult = await checkLeastPrivilege(gcpProjectId, saEmail);
+                        const [iamResult, hasBroadSecretAccess] = await Promise.all([
+                            checkLeastPrivilege(gcpProjectId, saEmail),
+                            checkBroadSecretAccess(gcpProjectId, saEmail)
+                        ]);
 
                         storage.metadata = {
                             ...storage.metadata,
                             iamOverprivileged: iamResult.overprivileged,
-                            excessiveRoles: iamResult.excessiveRoles
+                            excessiveRoles: iamResult.excessiveRoles,
+                            broadSecretAccess: hasBroadSecretAccess
                         };
                     } catch (iamErr) {
                         console.error(`[ZeroTrustSync] IAM check failed for ${storageId}:`, iamErr);

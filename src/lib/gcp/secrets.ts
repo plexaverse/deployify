@@ -65,6 +65,77 @@ export async function upsertSecret(
 }
 
 /**
+ * Grant a service account access to a specific secret (Least Privilege)
+ */
+export async function grantSecretAccess(
+    secretId: string,
+    member: string,
+    projectId?: string
+): Promise<boolean> {
+    if (process.env.MOCK_DB === 'true') {
+        console.log(`[Secrets] MOCK: Granting accessor role on ${secretId} to ${member}`);
+        return true;
+    }
+
+    try {
+        const gcpProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
+        const accessToken = await getGcpAccessToken();
+        const secretName = `projects/${gcpProjectId}/secrets/${secretId}`;
+        const memberName = member.startsWith('serviceAccount:') ? member : `serviceAccount:${member}`;
+
+        // 1. Get current IAM policy for the secret
+        const getPolicyRes = await fetch(`${SECRET_MANAGER_API}/${secretName}:getIamPolicy`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!getPolicyRes.ok) {
+            throw new Error(`Failed to get secret IAM policy: ${await getPolicyRes.text()}`);
+        }
+
+        const policy = await getPolicyRes.json();
+        policy.bindings = policy.bindings || [];
+
+        // 2. Add member to roles/secretmanager.secretAccessor
+        let bindingFound = false;
+        for (const binding of policy.bindings) {
+            if (binding.role === 'roles/secretmanager.secretAccessor') {
+                bindingFound = true;
+                if (!binding.members.includes(memberName)) {
+                    binding.members.push(memberName);
+                }
+                break;
+            }
+        }
+
+        if (!bindingFound) {
+            policy.bindings.push({
+                role: 'roles/secretmanager.secretAccessor',
+                members: [memberName],
+            });
+        }
+
+        // 3. Set updated IAM policy
+        const setPolicyRes = await fetch(`${SECRET_MANAGER_API}/${secretName}:setIamPolicy`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ policy }),
+        });
+
+        if (!setPolicyRes.ok) {
+            throw new Error(`Failed to set secret IAM policy: ${await setPolicyRes.text()}`);
+        }
+
+        return true;
+    } catch (error) {
+        console.error(`[Secrets] Failed to grant access to ${secretId}:`, error);
+        return false;
+    }
+}
+
+/**
  * Access a secret value from GCP Secret Manager
  */
 export async function getSecretValue(
