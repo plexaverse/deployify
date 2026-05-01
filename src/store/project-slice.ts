@@ -94,7 +94,7 @@ export interface ProjectSlice {
     updateStorageAlerts: (projectId: string, storageId: string, alerts: StorageConfig['alertSettings']) => Promise<boolean>;
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
-    cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string; includeData?: boolean }) => Promise<boolean>;
+    cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string; includeData?: boolean; targetProjectId?: string }) => Promise<boolean>;
     addReadReplica: (projectId: string, storageId: string, options?: { region?: string, tier?: string }) => Promise<boolean>;
     promoteReadReplica: (projectId: string, storageId: string, replicaId: string) => Promise<boolean>;
     deleteReadReplica: (projectId: string, storageId: string, replicaId: string) => Promise<boolean>;
@@ -1015,10 +1015,16 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 throw new Error(data.error || 'Failed to clone configuration');
             }
 
-            const { projectStorageConfigs } = get();
-            set({ projectStorageConfigs: [...projectStorageConfigs, data.storageConfig] });
+            const { projectStorageConfigs, activeProjectId } = get();
 
-            toast.success('Configuration cloned successfully', { id: toastId });
+            // Only update local state if we cloned within the same project
+            if (!overrides?.targetProjectId || overrides.targetProjectId === activeProjectId) {
+                set({ projectStorageConfigs: [...projectStorageConfigs, data.storageConfig] });
+            }
+
+            toast.success(overrides?.targetProjectId && overrides.targetProjectId !== projectId
+                ? 'Connector duplicated to target project'
+                : 'Configuration cloned successfully', { id: toastId });
             return true;
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to clone configuration', { id: toastId });

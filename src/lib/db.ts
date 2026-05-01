@@ -137,6 +137,7 @@ export async function cloneStorageConfig(
         environment?: 'production' | 'preview' | 'both';
         envKey?: string;
         includeData?: boolean;
+        targetProjectId?: string;
     } = {}
 ): Promise<import('@/types').StorageConfig | null> {
     const project = await getProjectById(projectId);
@@ -184,8 +185,16 @@ export async function cloneStorageConfig(
         }
     };
 
-    const updatedConfigs = [...project.storageConfigs, cloned];
-    await updateProject(projectId, { storageConfigs: updatedConfigs });
+    if (overrides.targetProjectId && overrides.targetProjectId !== projectId) {
+        const targetProject = await getProjectById(overrides.targetProjectId);
+        if (targetProject) {
+            const updatedConfigs = [...(targetProject.storageConfigs || []), cloned];
+            await updateProject(overrides.targetProjectId, { storageConfigs: updatedConfigs });
+        }
+    } else {
+        const updatedConfigs = [...project.storageConfigs, cloned];
+        await updateProject(projectId, { storageConfigs: updatedConfigs });
+    }
 
     return cloned;
 }

@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { DataPortabilityModal } from '@/components/DataPortabilityModal';
+import { IaCExportModal } from '@/components/IaCExportModal';
 import { OptimizationModal } from '@/components/OptimizationModal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -158,6 +159,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [guardrailQueries, setGuardrailQueries] = useState<import('@/lib/gcp/monitoring').LongRunningQuery[]>([]);
     const [isLoadingGuardrails, setIsLoadingGuardrails] = useState(false);
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
+    const [isManagingIaC, setIsManagingIaC] = useState<StorageConfig | null>(null);
     const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
     const [isManagingFailover, setIsManagingFailover] = useState<StorageConfig | null>(null);
     const [replicaWeights, setReplicaWeights] = useState<Record<string, number>>({});
@@ -198,6 +200,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [branchingTemplate, setBranchingTemplate] = useState('{base}_{identifier}');
     const [seedCommand, setSeedCommand] = useState('');
     const [isCloningId, setIsCloningId] = useState<string | null>(null);
+    const [targetProjectId, setTargetProjectId] = useState('');
     const [cloneWithData, setCloneWithData] = useState(false);
     const [isIngesting, setIsIngesting] = useState<StorageConfig | null>(null);
     const [ingestTargetName, setIngestTargetName] = useState('');
@@ -2267,6 +2270,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         size="icon"
                                         onClick={() => {
                                             setIsCloningId(config.id);
+                                            setTargetProjectId(projectId);
                                             setCloneWithData(false);
                                         }}
                                         className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
@@ -2277,14 +2281,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => {
-                                            const envKey = getStorageEnvKey(config);
-                                            const snippet = `${envKey}="PASTE_YOUR_CONNECTION_STRING_HERE"`;
-                                            navigator.clipboard.writeText(snippet);
-                                            toast.success(`Config snippet copied: ${envKey}`);
-                                        }}
+                                        onClick={() => setIsManagingIaC(config)}
                                         className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
-                                        title="Copy .env Snippet"
+                                        title="IaC Export"
                                     >
                                         <FileCode className="w-4 h-4" />
                                     </Button>
@@ -2669,6 +2668,45 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5 mr-1.5" />}
                                     Create
                                 </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Terraform (IaC)</Label>
+                            <div className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px]">
+                                <code className="text-[var(--foreground)]/80">
+                                    {isShowingGuide?.type.includes('cloud-sql') ? (
+                                        <>
+                                            resource &quot;google_sql_database_instance&quot; &quot;{isShowingGuide.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}&quot; &#123;<br />
+                                            &nbsp;&nbsp;name = &quot;{isShowingGuide.metadata?.resourceName || isShowingGuide.name.toLowerCase().replace(/\s+/g, '-')}&quot;<br />
+                                            &nbsp;&nbsp;region = &quot;{isShowingGuide.region || 'us-central1'}&quot;<br />
+                                            &nbsp;&nbsp;settings &#123; tier = &quot;{isShowingGuide.metadata?.tier || 'db-f1-micro'}&quot; &#125;<br />
+                                            &#125;
+                                        </>
+                                    ) : (
+                                        <>
+                                            resource &quot;google_secret_manager_secret&quot; &quot;{isShowingGuide?.name.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'db'}_secret&quot; &#123;<br />
+                                            &nbsp;&nbsp;secret_id = &quot;{isShowingGuide?.connectionStringSecretId || '...'}&quot;<br />
+                                            &nbsp;&nbsp;replication &#123; auto &#123;&#125; &#125;<br />
+                                            &#125;
+                                        </>
+                                    )}
+                                </code>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Kubernetes (IaC)</Label>
+                            <div className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px]">
+                                <code className="text-[var(--foreground)]/80">
+                                    apiVersion: v1<br />
+                                    kind: Secret<br />
+                                    metadata:<br />
+                                    &nbsp;&nbsp;name: {isShowingGuide?.name.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'db'}-secret<br />
+                                    type: Opaque<br />
+                                    data:<br />
+                                    &nbsp;&nbsp;{isShowingGuide ? getStorageEnvKey(isShowingGuide) : 'DATABASE_URL'}: BASE64_ENCODED_VALUE
+                                </code>
                             </div>
                         </div>
 
@@ -3370,16 +3408,35 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 onClose={() => setIsCloningId(null)}
                 onConfirm={async () => {
                     if (isCloningId) {
-                        await cloneStorageConfig(projectId, isCloningId, { includeData: cloneWithData });
+                        await cloneStorageConfig(projectId, isCloningId, {
+                            includeData: cloneWithData,
+                            targetProjectId: targetProjectId !== projectId ? targetProjectId : undefined
+                        });
                         setIsCloningId(null);
                     }
                 }}
                 title="Duplicate Storage Connector"
+                headerLabel="IaC Portability"
+                icon={<CopyPlus className="w-5 h-5 text-[var(--primary)]" />}
                 description={
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <p className="text-[10px]">
                             Create a new storage connector with identical configuration. Secrets will be isolated in GCP Secret Manager.
                         </p>
+
+                        <div className="space-y-2">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Project</Label>
+                            <NativeSelect
+                                value={targetProjectId}
+                                onChange={(e) => setTargetProjectId(e.target.value)}
+                                className="h-9 text-[10px] font-bold uppercase"
+                            >
+                                <option value={projectId}>CURRENT PROJECT (LOCAL CLONE)</option>
+                                {allProjects.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name.toUpperCase()} (CROSS-PROJECT)</option>
+                                ))}
+                            </NativeSelect>
+                        </div>
 
                         {(storageConfigs.find(c => c.id === isCloningId)?.type.includes('cloud-sql') || storageConfigs.find(c => c.id === isCloningId)?.type === 'memorystore-redis' || storageConfigs.find(c => c.id === isCloningId)?.type === 'firestore') && (
                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
@@ -3404,7 +3461,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
                     </div>
                 }
-                confirmText="Duplicate Connector"
+                confirmText={targetProjectId !== projectId ? "Duplicate to Project" : "Duplicate Connector"}
             />
 
             <ConfirmationModal
@@ -3683,6 +3740,13 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 isOpen={!!isManagingPortability}
                 onClose={() => setIsManagingPortability(null)}
                 storage={isManagingPortability}
+                projectId={projectId}
+            />
+
+            <IaCExportModal
+                isOpen={!!isManagingIaC}
+                onClose={() => setIsManagingIaC(null)}
+                storage={isManagingIaC}
                 projectId={projectId}
             />
 
