@@ -189,7 +189,27 @@ export async function GET(
                     }
                 }
 
-                // 0d. Phase 101: Automated Resource Labeling
+                // 0d. Phase 123: Zero-Trust IAM Verification
+                if (storage.metadata?.provisioned && storage.status === 'active') {
+                    try {
+                        const { checkLeastPrivilege } = await import('@/lib/gcp/iam');
+                        const gcpProjectId = (storage.metadata?.projectId as string) || project.id; // Fallback to id as projectId if not in metadata
+                        const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
+                        const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
+
+                        const iamResult = await checkLeastPrivilege(gcpProjectId, saEmail);
+
+                        storage.metadata = {
+                            ...storage.metadata,
+                            iamOverprivileged: iamResult.overprivileged,
+                            excessiveRoles: iamResult.excessiveRoles
+                        };
+                    } catch (iamErr) {
+                        console.error(`[ZeroTrustSync] IAM check failed for ${storageId}:`, iamErr);
+                    }
+                }
+
+                // 0e. Phase 101: Automated Resource Labeling
                 if (storage.metadata?.provisioned && storage.labelingStatus !== 'SYNCED') {
                     try {
                         const labelResult = await syncResourceLabels(project, storage);

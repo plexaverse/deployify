@@ -1,7 +1,7 @@
 import { updateProject } from '@/lib/db';
 import { updateInstanceSettings, updateConnectionPooler } from '@/lib/gcp/cloudsql';
 import { syncExternalFirewall } from '@/lib/gcp/external-sync';
-import { grantCloudSqlInstanceUserRole } from '@/lib/gcp/iam';
+import { grantCloudSqlInstanceUserRole, revokeProjectRole, grantProjectRole } from '@/lib/gcp/iam';
 import { config } from '@/lib/config';
 import type { StorageConfig, Project } from '@/types';
 
@@ -172,6 +172,34 @@ export async function remediateRisk(
                         lastMaintenanceSyncAt: new Date().toISOString()
                     };
                     message = 'Aligning maintenance window with workload patterns...';
+                }
+                break;
+
+            case 'overprivileged_service_account':
+                if (storage.metadata?.provisioned) {
+                    const gcpProjectId = (storage.metadata?.projectId as string) || config.gcp.projectId || process.env.GCP_PROJECT_ID;
+                    const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
+                    const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
+
+                    const excessiveRoles = (storage.metadata?.excessiveRoles as string[]) || ['roles/owner', 'roles/editor'];
+
+                    // 1. Revoke excessive roles
+                    for (const role of excessiveRoles) {
+                        await revokeProjectRole(gcpProjectId!, saEmail, role);
+                    }
+
+                    // 2. Ensure minimal required roles are present
+                    await grantProjectRole(gcpProjectId!, saEmail, 'roles/cloudsql.client');
+                    await grantProjectRole(gcpProjectId!, saEmail, 'roles/secretmanager.secretAccessor');
+
+                    storage.metadata = {
+                        ...storage.metadata,
+                        iamOverprivileged: false,
+                        excessiveRoles: [],
+                        iamRoleVerified: true,
+                        lastIamHardeningAt: new Date().toISOString()
+                    };
+                    message = 'IAM Hardening complete: Revoked excessive roles and enforced least-privilege.';
                 }
                 break;
 

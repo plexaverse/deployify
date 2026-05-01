@@ -29,7 +29,14 @@ export async function GET(request: NextRequest) {
         const report = projects.map(project => {
             const configs = project.storageConfigs || [];
             const complianceItems = configs.map(storage => {
-                const posture = checkSecurityPosture(storage, project.region);
+                // In a real environment, we'd fetch actual IAM state here.
+                // For the report, we'll use metadata if available or a default least-privilege check.
+                const iamPosture = storage.metadata?.iamOverprivileged !== undefined ? {
+                    overprivileged: !!storage.metadata.iamOverprivileged,
+                    excessiveRoles: (storage.metadata.excessiveRoles as string[]) || []
+                } : undefined;
+
+                const posture = checkSecurityPosture(storage, project.region, iamPosture);
                 return {
                     connectorId: storage.id,
                     connectorName: storage.name,

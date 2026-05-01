@@ -20,7 +20,8 @@ export interface SecurityPosture {
  */
 export function checkSecurityPosture(
     storage: StorageConfig,
-    projectRegion?: string | null
+    projectRegion?: string | null,
+    iamPosture?: { overprivileged: boolean; excessiveRoles: string[] }
 ): SecurityPosture {
     const risks: SecurityRisk[] = [];
     let score = 100;
@@ -171,7 +172,32 @@ export function checkSecurityPosture(
         }
     }
 
-    // 9. Public Access Risk (Simplified)
+    // 9. Zero-Trust: Over-privileged Service Account (Phase 123)
+    if (iamPosture?.overprivileged || metadata?.iamOverprivileged) {
+        const roles = iamPosture?.excessiveRoles || (metadata?.excessiveRoles as string[]) || [];
+        risks.push({
+            id: 'overprivileged_service_account',
+            level: 'critical',
+            title: 'Over-privileged Service Account',
+            description: `The service account has excessive project-level roles: ${roles.join(', ')}. This violates Zero-Trust principles.`,
+            remediation: 'Run "IAM Hardening" to revoke excessive roles and grant minimum required permissions.'
+        });
+        score -= 30;
+    }
+
+    // 10. Zero-Trust: Broad Secret Access (Phase 123)
+    if (metadata?.broadSecretAccess) {
+        risks.push({
+            id: 'broad_secret_access',
+            level: 'high',
+            title: 'Broad Secret Manager Access',
+            description: 'The service account has broad access to all secrets in the project.',
+            remediation: 'Restrict IAM permissions to only the specific secrets required by this connector.'
+        });
+        score -= 20;
+    }
+
+    // 11. Public Access Risk (Simplified)
     // If it's external and no SSL, it's a high risk. We already caught SSL above,
     // but let's add a specific one for public exposure if we could detect it better.
 

@@ -966,10 +966,17 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Add "Export as Config" functionality for local development and CI/CD.
 - [x] Standardize infrastructure-as-code snippets for all storage types.
 
-### Phase 123: Connectivity Governance & Zero-Trust Verification (PLANNED)
-- [ ] Implement workspace-wide connectivity compliance dashboards.
-- [ ] Add "Zero-Trust" verification for IAM roles and service account scopes.
-- [ ] Automate remediation of over-privileged service account roles for database access.
+### Phase 123: Connectivity Governance & Zero-Trust Verification (COMPLETED)
+- [x] Implement workspace-wide connectivity compliance dashboards.
+- [x] Add "Zero-Trust" verification for IAM roles and service account scopes.
+- [x] Automate remediation of over-privileged service account roles for database access.
+
+### 2027-07-03: Completed Phase 123: Connectivity Governance & Zero-Trust Verification
+- Completed Phase 123: Connectivity Governance & Zero-Trust Verification.
+- Implemented Zero-Trust IAM verification in `src/lib/gcp/iam.ts`, enabling the platform to detect over-privileged service accounts with excessive roles (Owner/Editor).
+- Upgraded the Security Auditor with new Zero-Trust checks and integrated automated IAM hardening into the remediation engine.
+- Enhanced the Infrastructure Fleet dashboard and Compliance Report with high-density "ZERO TRUST" and "OVERPRIV" status indicators.
+- Verified 100% operational integrity with system-wide audits and zero-warning build completion.
 
 ### 2027-07-02: Completed Phase 122: Global Infrastructure Portability & IaC Export
 - Completed Phase 122: Global Infrastructure Portability & IaC Export.
