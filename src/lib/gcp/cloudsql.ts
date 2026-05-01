@@ -432,6 +432,9 @@ export async function updateInstanceSettings(
         deletionProtectionEnabled?: boolean;
         connectionPoolerEnabled?: boolean;
         maintenanceWindow?: { day: number; hour: number };
+        publicIpEnabled?: boolean;
+        iamAuthEnabled?: boolean;
+        dbType?: 'postgres' | 'mysql';
     }
 ): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
@@ -449,6 +452,8 @@ export async function updateInstanceSettings(
             backupConfiguration?: { pointInTimeRecoveryEnabled: boolean };
             connectionPoolerConfig?: { enabled: boolean };
             maintenanceWindow?: { day: number; hour: number; updateTrack: string };
+            ipConfiguration?: { ipv4Enabled: boolean };
+            databaseFlags?: Array<{ name: string; value: string }>;
         }
     } = {
         settings: {}
@@ -479,6 +484,33 @@ export async function updateInstanceSettings(
             ...settings.maintenanceWindow,
             updateTrack: 'stable'
         };
+    }
+
+    if (settings.publicIpEnabled !== undefined) {
+        updatePayload.settings.ipConfiguration = {
+            ipv4Enabled: settings.publicIpEnabled
+        };
+    }
+
+    if (settings.iamAuthEnabled !== undefined) {
+        const flagName = settings.dbType === 'mysql' ? 'cloudsql_iam_authentication' : 'cloudsql.iam_authentication';
+
+        // Phase 125 Hardening: Merge with existing flags to avoid regression
+        try {
+            const currentInstance = await getInstance(instanceName);
+            const currentFlags = (currentInstance.settings as any)?.databaseFlags || [];
+            const otherFlags = currentFlags.filter((f: any) => f.name !== flagName);
+
+            updatePayload.settings.databaseFlags = [
+                ...otherFlags,
+                { name: flagName, value: 'on' }
+            ];
+        } catch (e) {
+            console.warn(`[CloudSQL] Failed to fetch existing flags for ${instanceName}, proceeding with single flag:`, e);
+            updatePayload.settings.databaseFlags = [
+                { name: flagName, value: 'on' }
+            ];
+        }
     }
 
     const response = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}`, {
