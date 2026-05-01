@@ -30,6 +30,22 @@ export async function POST(
 
         const body = await request.json();
         const { overrides = {} } = body;
+        const targetProjectId = overrides.targetProjectId || id;
+
+        // Security: Verify access to target project if it's different from source project (BOLA fix)
+        if (targetProjectId !== id) {
+            const targetAccess = await checkProjectAccess(session.user.id, targetProjectId);
+            if (!targetAccess.allowed) {
+                return NextResponse.json({
+                    error: `Target Project Access Denied: ${targetAccess.error}`
+                }, { status: targetAccess.status });
+            }
+            if (targetAccess.role === 'viewer') {
+                return NextResponse.json({
+                    error: 'Forbidden: You must be an editor or owner of the target project to clone resources into it.'
+                }, { status: 403 });
+            }
+        }
 
         const clonedConfig = await cloneStorageConfig(id, storageId, overrides);
 
@@ -74,19 +90,25 @@ export async function POST(
 
                     if (operationName) {
                         // Update the clone with the operation tracking
-                        const { updateProject } = await import('@/lib/db');
-                        const updatedConfigs = (project.storageConfigs || []).map(c =>
-                            c.id === clonedConfig.id ? {
-                                ...c,
-                                metadata: {
-                                    ...c.metadata,
-                                    operationName,
-                                    lastOperation: 'clone_export',
-                                    portabilityUri: gcsUri
-                                }
-                            } : c
-                        );
-                        await updateProject(id, { storageConfigs: updatedConfigs });
+                        const { updateProject, getProjectById } = await import('@/lib/db');
+                        const targetId = overrides.targetProjectId || id;
+
+                        const targetProject = targetId === id ? project : await getProjectById(targetId);
+
+                        if (targetProject) {
+                            const updatedConfigs = (targetProject.storageConfigs || []).map(c =>
+                                c.id === clonedConfig.id ? {
+                                    ...c,
+                                    metadata: {
+                                        ...c.metadata,
+                                        operationName,
+                                        lastOperation: 'clone_export',
+                                        portabilityUri: gcsUri
+                                    }
+                                } : c
+                            );
+                            await updateProject(targetId, { storageConfigs: updatedConfigs });
+                        }
                     }
                 }
             } catch (e) {

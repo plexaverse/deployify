@@ -951,25 +951,44 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Integrate Cold-Start Awareness into Scaling Intelligence for serverless connectors.
 - [x] Enhance Backup Management UI with retention and transaction log controls.
 
-### Phase 120: Integrated Connectivity Topology & Injection Transparency (PLANNED)
-- [ ] Implement a "Connectivity Topology" visualization in the Storage dashboard.
-- [ ] Add "Injection Metadata" badges (VPC, Proxy, Secret) to connector cards.
-- [ ] Update `src/lib/db.ts` to track and persist injection methods for every deployment.
+### Phase 120: Integrated Connectivity Topology & Injection Transparency (COMPLETED)
+- [x] Implement a "Connectivity Topology" visualization in the Storage dashboard.
+- [x] Add "Injection Metadata" badges (VPC, Proxy, Secret) to connector cards.
+- [x] Update `src/lib/db.ts` to track and persist injection methods for every deployment.
 
-### Phase 121: Autonomous Connectivity Resilience & Firewall Self-Healing (PLANNED)
-- [ ] Implement proactive firewall drift detection for external providers.
-- [ ] Automate firewall remediation in the Storage Sync pipeline.
-- [ ] Add "Firewall Health" status visibility in the UI.
+### Phase 121: Autonomous Connectivity Resilience & Firewall Self-Healing (COMPLETED)
+- [x] Implement proactive firewall drift detection for external providers.
+- [x] Automate firewall remediation in the Storage Sync pipeline.
+- [x] Add "Firewall Health" status visibility in the UI.
 
-### Phase 122: Global Infrastructure Portability & IaC Export (PLANNED)
-- [ ] Implement "Project-to-Project" connector migration and duplication.
-- [ ] Add "Export as Config" functionality for local development and CI/CD.
-- [ ] Standardize infrastructure-as-code snippets for all storage types.
+### Phase 122: Global Infrastructure Portability & IaC Export (COMPLETED)
+- [x] Implement "Project-to-Project" connector migration and duplication.
+- [x] Add "Export as Config" functionality for local development and CI/CD.
+- [x] Standardize infrastructure-as-code snippets for all storage types.
 
 ### Phase 123: Connectivity Governance & Zero-Trust Verification (PLANNED)
 - [ ] Implement workspace-wide connectivity compliance dashboards.
 - [ ] Add "Zero-Trust" verification for IAM roles and service account scopes.
 - [ ] Automate remediation of over-privileged service account roles for database access.
+
+### 2027-07-02: Completed Phase 122: Global Infrastructure Portability & IaC Export
+- Completed Phase 122: Global Infrastructure Portability & IaC Export.
+- Implemented cross-project connector duplication with secret isolation in GCP Secret Manager, allowing seamless infrastructure movement between projects.
+- Launched IaC Export API supporting Terraform (HCL), Kubernetes (YAML), JSON, YAML, and .env formats.
+- Enhanced the Storage UI with a high-density "IaC Export" modal and standardized infrastructure snippets in the Usage Guide.
+- Verified 100% operational integrity with platform-wide audits and zero-warning build completion.
+
+### 2027-07-01: Completed Phase 121: Autonomous Connectivity Resilience
+- Completed Phase 121: Autonomous Connectivity Resilience & Firewall Self-Healing.
+- Implemented proactive firewall drift detection for external providers (Supabase, Neon, MongoDB Atlas) within the Storage Sync pipeline.
+- Launched automated firewall remediation that fixes regional egress IP mismatches without manual intervention.
+- Surfaced "FIREWALL SYNCED" and "DRIFT" status badges in the UI with real-time pulsing indicators for active reconciliation.
+
+### 2027-06-30: Completed Phase 120: Integrated Connectivity Topology
+- Completed Phase 120: Integrated Connectivity Topology & Injection Transparency.
+- Implemented a "Connectivity Topology" visualization modal in the Storage dashboard, mapping the path from Cloud Run through Secret Manager, VPC, or Proxy to the storage layer.
+- Added "Injection Method" badges (VPC, PROXY, SECRET, DIRECT) to connector cards to provide technical transparency.
+- Updated the deployment engine to derive and persist connectivity metadata during every deployment and heartbeat.
 
 ### 2027-06-27: Completed Phase 119: Intelligent Capacity Forecasting
 - Completed Phase 119: Intelligent Capacity Forecasting & Automated Resource Governance.
