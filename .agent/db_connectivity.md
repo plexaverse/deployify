@@ -977,6 +977,21 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Automate remediation of over-privileged secret scopes in the IAM hardening engine.
 - [x] Surface granular vs. broad secret access transparency in the dashboard.
 
+### Phase 126: Integrated Connectivity Validation & DX Hardening (COMPLETED)
+- [x] Implement project-scoped "Pre-flight Connection Validation" API with SSRF mitigation.
+- [x] Enhance `StorageSection` UI with "Test Connection" button and real-time reachability feedback.
+- [x] Implement raw connection string validation in the storage diagnostic engine.
+
+### Phase 127: Proactive Health Monitoring & Historical Observability (COMPLETED)
+- [x] Implement `getHealthHistory` utility with historical status and latency aggregation.
+- [x] Create project-scoped Health History API endpoint for historical observability.
+- [x] Standardize health history data model for dashboard-wide integration.
+
+### Phase 128: Autonomous Secret Recovery & Rotation Maturity
+- [ ] Implement automated recovery logic for accidentally deleted Secret Manager secrets.
+- [ ] Standardize "Rotation Callbacks" to notify dependent services when credentials change.
+- [ ] Implement "Zero-Downtime Rotation" with dual-version secret support during transition.
+
 ### 2027-07-04: Completed Phase 124: Granular Secret Governance
 - Completed Phase 124: Granular Secret Governance & Automated IAM Scoping.
 - Implemented `grantSecretAccess` in `src/lib/gcp/secrets.ts` to support resource-level least-privilege for database credentials and API keys.

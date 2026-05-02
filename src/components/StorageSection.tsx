@@ -208,6 +208,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [ingestStorageUri, setIngestStorageUri] = useState('');
     const [isFinalizingCutover, setIsFinalizingCutover] = useState<StorageConfig | null>(null);
     const [isShowingTopology, setIsShowingTopology] = useState<StorageConfig | null>(null);
+    const [preFlightStatus, setPreFlightStatus] = useState<{ loading: boolean, valid?: boolean, error?: string, latency?: number } | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -429,6 +430,39 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         }
     };
 
+    const handlePreFlightValidate = async () => {
+        if (!connectionString.trim() && type !== 'firestore') return;
+
+        setPreFlightStatus({ loading: true });
+        try {
+            const res = await fetch(`/api/projects/${projectId}/storage/validate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, connectionString, metadata: { region } }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setPreFlightStatus({
+                    loading: false,
+                    valid: data.valid,
+                    error: data.error,
+                    latency: data.latency
+                });
+                if (data.valid) toast.success('Connection string verified');
+                else toast.error('Connection verification failed');
+            } else {
+                throw new Error(data.error || 'Validation failed');
+            }
+        } catch (e) {
+            setPreFlightStatus({
+                loading: false,
+                valid: false,
+                error: e instanceof Error ? e.message : 'Validation failed'
+            });
+            toast.error('Pre-flight validation failed');
+        }
+    };
+
     const handleUpdate = async () => {
         if (!editingId || !name.trim()) return;
 
@@ -471,6 +505,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const resetForm = () => {
         setIsAdding(false);
         setEditingId(null);
+        setPreFlightStatus(null);
         setName('');
         setConnectionString('');
         setEnvKey('');
@@ -1249,14 +1284,45 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[10px] font-bold">Connection String / Secret</Label>
-                                    <Input
-                                        type="password"
-                                        value={connectionString}
-                                        onChange={(e) => setConnectionString(e.target.value)}
-                                        placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
-                                        className="font-mono text-[10px] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
-                                    />
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-[10px] font-bold">Connection String / Secret</Label>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={handlePreFlightValidate}
+                                                disabled={preFlightStatus?.loading || (!connectionString && type !== 'firestore')}
+                                                className="h-5 px-1.5 text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            >
+                                                {preFlightStatus?.loading ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Zap className="w-3 h-3 mr-1" />}
+                                                Test Connection
+                                            </Button>
+                                        </div>
+                                        <Input
+                                            type="password"
+                                            value={connectionString}
+                                            onChange={(e) => {
+                                                setConnectionString(e.target.value);
+                                                setPreFlightStatus(null);
+                                            }}
+                                            placeholder={editingId ? "LEAVE BLANK TO KEEP CURRENT SECRET" : "POSTGRESQL://USER:PASSWORD@HOST:PORT/DB"}
+                                            className="font-mono text-[10px] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        />
+                                        {preFlightStatus && !preFlightStatus.loading && (
+                                            <div className={cn(
+                                                "p-2 rounded border flex items-center justify-between gap-3 animate-in slide-in-from-top-1",
+                                                preFlightStatus.valid ? "bg-[var(--success)]/5 border-[var(--success)]/20" : "bg-[var(--error)]/5 border-[var(--error)]/20"
+                                            )}>
+                                                <div className="flex items-center gap-2">
+                                                    {preFlightStatus.valid ? <CheckCircle2 className="w-3 h-3 text-[var(--success)]" /> : <AlertCircle className="w-3 h-3 text-[var(--error)]" />}
+                                                    <span className={cn("text-[8px] font-bold uppercase", preFlightStatus.valid ? "text-[var(--success)]" : "text-[var(--error)]")}>
+                                                        {preFlightStatus.valid ? 'REACHABLE' : (preFlightStatus.error || 'UNREACHABLE')}
+                                                    </span>
+                                                </div>
+                                                {preFlightStatus.latency !== undefined && (
+                                                    <span className="text-[8px] font-mono font-bold opacity-60">{preFlightStatus.latency}ms</span>
+                                                )}
+                                            </div>
+                                        )}
                                         <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
                                             <AlertCircle className="w-3.5 h-3.5" />
                                             Stored securely in Google Cloud Secret Manager.
