@@ -41,7 +41,8 @@ import {
     Sparkles,
     ArrowRight,
     MonitorPlay,
-    UserX
+    UserX,
+    FileText
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { ConnectivityHealthChart } from '@/components/ConnectivityHealthChart';
@@ -165,6 +166,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isManagingSessions, setIsManagingSessions] = useState<StorageConfig | null>(null);
     const [sessions, setSessions] = useState<import('@/lib/gcp/cloudsql').DatabaseSession[]>([]);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+    const [isManagingLogs, setIsManagingLogs] = useState<StorageConfig | null>(null);
+    const [logs, setLogs] = useState<import('@/lib/gcp/monitoring').LogEntry[]>([]);
+    const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+    const [logSeverity, setLogSeverity] = useState('');
+    const [logSearch, setLogSearch] = useState('');
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isManagingIaC, setIsManagingIaC] = useState<StorageConfig | null>(null);
     const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
@@ -996,6 +1002,25 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             toast.error('Failed to terminate session');
         }
     };
+
+    const fetchLogs = useCallback(async (storageId: string, severity?: string) => {
+        setIsLoadingLogs(true);
+        try {
+            const url = `/api/projects/${projectId}/storage/${storageId}/logs${severity ? `?severity=${severity}` : ''}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.success) {
+                setLogs(data.logs);
+            } else {
+                toast.error(data.error || 'Failed to fetch engine logs');
+            }
+        } catch (e) {
+            console.error('Failed to fetch logs:', e);
+            toast.error('Failed to fetch engine logs');
+        } finally {
+            setIsLoadingLogs(false);
+        }
+    }, [projectId]);
 
     const handleCutover = async () => {
         if (!isFinalizingCutover) return;
@@ -2460,6 +2485,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <ArrowRight className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            setIsManagingLogs(config);
+                                            fetchLogs(config.id);
+                                        }}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="Engine Logs"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -4188,6 +4225,105 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <AlertTriangle className="w-3.5 h-3.5 text-[var(--warning)] shrink-0 mt-0.5" />
                             <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
                                 TERMINATING A SESSION WILL IMMEDIATELY ROLL BACK ANY UNCOMMITTED TRANSACTIONS. USE WITH CAUTION IN PRODUCTION ENVIRONMENTS.
+                            </p>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingLogs}
+                onClose={() => {
+                    setIsManagingLogs(null);
+                    setLogs([]);
+                }}
+                title="Database Engine Logs"
+                headerLabel="Infrastructure Logs"
+                icon={<FileText className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-4">
+                            <div className="flex flex-wrap items-center justify-between gap-4">
+                                <div className="flex items-center gap-2">
+                                    <Activity className="w-4 h-4 text-[var(--primary)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">Log Streaming</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="relative w-48">
+                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)]" />
+                                        <Input
+                                            value={logSearch}
+                                            onChange={(e) => setLogSearch(e.target.value)}
+                                            placeholder="SEARCH LOGS..."
+                                            className="h-8 pl-8 text-[8px] font-bold uppercase"
+                                        />
+                                    </div>
+                                    <NativeSelect
+                                        value={logSeverity}
+                                        onChange={(e) => {
+                                            setLogSeverity(e.target.value);
+                                            if (isManagingLogs) fetchLogs(isManagingLogs.id, e.target.value);
+                                        }}
+                                        className="h-8 text-[8px] font-bold uppercase w-28"
+                                    >
+                                        <option value="">ALL SEVERITIES</option>
+                                        <option value="INFO">INFO</option>
+                                        <option value="WARNING">WARNING</option>
+                                        <option value="ERROR">ERROR</option>
+                                        <option value="CRITICAL">CRITICAL</option>
+                                    </NativeSelect>
+                                    <Button
+                                        onClick={() => isManagingLogs && fetchLogs(isManagingLogs.id, logSeverity)}
+                                        disabled={isLoadingLogs}
+                                        className="h-8 px-2 text-[8px] font-bold uppercase bg-[var(--primary)]"
+                                    >
+                                        {isLoadingLogs ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                                    </Button>
+                                </div>
+                            </div>
+                            <p className="text-[10px]">
+                                Real-time access to Cloud SQL database engine logs. Monitor connection events, system warnings, and error traces.
+                            </p>
+                        </div>
+
+                        <div className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl font-mono text-[10px] overflow-hidden">
+                            <div className="max-h-[400px] overflow-y-auto custom-scrollbar space-y-1.5 pr-2">
+                                {isLoadingLogs ? (
+                                    <div className="py-20 flex flex-col items-center justify-center gap-3">
+                                        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Connecting to log stream...</span>
+                                    </div>
+                                ) : logs.length === 0 ? (
+                                    <div className="py-20 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No log entries found matching criteria</p>
+                                    </div>
+                                ) : (
+                                    logs.filter(l => !logSearch || l.textPayload.toLowerCase().includes(logSearch.toLowerCase())).map((l, i) => (
+                                        <div key={l.insertId || i} className="group border-b border-[var(--border)]/30 pb-1.5 last:border-0 hover:bg-[var(--primary)]/5 px-1 rounded transition-colors">
+                                            <div className="flex items-center gap-3 mb-0.5">
+                                                <span className="text-[8px] font-bold text-[var(--muted-foreground)]/60 min-w-[120px]">{new Date(l.timestamp).toLocaleString()}</span>
+                                                <span className={cn(
+                                                    "text-[8px] font-bold px-1 rounded border",
+                                                    l.severity === 'ERROR' || l.severity === 'CRITICAL' ? "bg-[var(--error)]/10 text-[var(--error)] border-[var(--error)]/20" :
+                                                    l.severity === 'WARNING' ? "bg-[var(--warning)]/10 text-[var(--warning)] border-[var(--warning)]/20" :
+                                                    "bg-[var(--info)]/10 text-[var(--info)] border-[var(--info)]/20"
+                                                )}>{l.severity}</span>
+                                            </div>
+                                            <p className="text-[10px] text-[var(--foreground)]/90 leading-relaxed whitespace-pre-wrap break-all">
+                                                {l.textPayload}
+                                            </p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/20 rounded-xl flex items-start gap-2">
+                            <Activity className="w-3.5 h-3.5 text-[var(--info)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                TIP: USE THE FILTER DROPDOWN TO ISOLATE ERROR-LEVEL LOGS DURING INCIDENT RESPONSE. SEARCH FOR &quot;DEADLOCK&quot; OR &quot;TIMEOUT&quot; TO IDENTIFY CONCURRENCY ISSUES.
                             </p>
                         </div>
                     </div>

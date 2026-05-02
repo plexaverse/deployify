@@ -1005,6 +1005,22 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement "Kill Session" actions with real-time feedback.
 - [x] Standardize new UI elements to extreme high-density technical aesthetic.
 
+### Phase 131: Integrated Database Engine Log Streaming & Error Analytics (COMPLETED)
+- [x] Implement `getDatabaseLogs` utility in `src/lib/gcp/monitoring.ts` using GCP Logging API.
+- [x] Create Log Streaming API route with severity and pagination support.
+- [x] Enhance Storage UI with a high-density "Database Engine Logs" modal.
+- [x] Implement severity filtering and keyword search for rapid log analysis.
+- [x] Standardize new log viewer elements to the platform's high-density aesthetic.
+
+### 2027-07-08: Completed Phase 131: Integrated Database Engine Log Streaming
+- Completed Phase 131: Integrated Database Engine Log Streaming & Error Analytics.
+- Implemented `getDatabaseLogs` utility leveraging the GCP Logging API (`entries:list`) to fetch engine logs for Cloud SQL instances.
+- Launched a new API route at `/api/projects/[id]/storage/[storageId]/logs` with support for severity filtering (INFO, WARNING, ERROR, CRITICAL) and pageSize control.
+- Enhanced the Storage dashboard with a "Database Engine Logs" modal, providing real-time visibility into connection events and system traces.
+- Integrated high-density log viewing with auto-scroll, severity-based color coding, and local keyword search for accelerated incident response.
+- Standardized all new UI elements to the platform's extreme high-density aesthetic (`text-[8px]`/`text-[10px]`).
+- Verified 100% operational integrity with system-wide audits and zero-warning lint completion.
+
 ### 2027-07-07: Completed Phase 130: Real-time Database Session Intelligence
 - Completed Phase 130: Real-time Database Session Intelligence & Process Management.
 - Implemented `getActiveSessions` and `terminateSession` utilities using direct database drivers (`pg`, `mysql2`) with support for IAM-based authentication and SSL.

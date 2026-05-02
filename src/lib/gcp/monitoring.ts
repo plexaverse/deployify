@@ -46,6 +46,13 @@ export interface AlertResult {
     metrics: ResourceMetrics;
 }
 
+export interface LogEntry {
+    timestamp: string;
+    severity: 'DEFAULT' | 'DEBUG' | 'INFO' | 'NOTICE' | 'WARNING' | 'ERROR' | 'CRITICAL' | 'ALERT' | 'EMERGENCY';
+    textPayload: string;
+    insertId: string;
+}
+
 /**
  * Check if resource metrics exceed configured thresholds
  */
@@ -1130,4 +1137,79 @@ export function detectPlanDrift(
     }
 
     return { drifted: false };
+}
+
+/**
+ * Fetch database engine logs for a Cloud SQL instance (Phase 131)
+ */
+export async function getDatabaseLogs(
+    instanceId: string,
+    options: {
+        severity?: string;
+        pageSize?: number;
+        projectId?: string;
+    } = {}
+): Promise<LogEntry[]> {
+    const { severity, pageSize = 50, projectId } = options;
+
+    if (process.env.MOCK_DB === 'true') {
+        const severities: LogEntry['severity'][] = ['INFO', 'WARNING', 'ERROR'];
+        const logs: LogEntry[] = [];
+        const now = Date.now();
+
+        for (let i = 0; i < pageSize; i++) {
+            const logSeverity = severity as LogEntry['severity'] || severities[Math.floor(Math.random() * severities.length)];
+            let message = 'Database connection established';
+            if (logSeverity === 'ERROR') message = 'Connection terminated unexpectedly: timeout';
+            if (logSeverity === 'WARNING') message = 'Slow query detected: SELECT * FROM large_table';
+
+            logs.push({
+                timestamp: new Date(now - i * 60000).toISOString(),
+                severity: logSeverity,
+                textPayload: `[MOCK] ${message}`,
+                insertId: `mock-log-${i}-${now}`
+            });
+        }
+        return logs;
+    }
+
+    const gcpProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    let filter = `resource.type="cloudsql_database" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
+    if (severity) {
+        filter += ` AND severity >= "${severity}"`;
+    }
+
+    try {
+        const response = await fetch('https://logging.googleapis.com/v2/entries:list', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                resourceNames: [`projects/${gcpProjectId}`],
+                filter,
+                orderBy: 'timestamp desc',
+                pageSize
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch logs: ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (data.entries || []).map((entry: any) => ({
+            timestamp: entry.timestamp,
+            severity: entry.severity || 'DEFAULT',
+            textPayload: entry.textPayload || entry.jsonPayload?.message || JSON.stringify(entry.jsonPayload) || 'No content',
+            insertId: entry.insertId
+        }));
+    } catch (e) {
+        console.error(`[Monitoring] Error fetching database logs for ${instanceId}:`, e);
+        return [];
+    }
 }
