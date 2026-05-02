@@ -127,6 +127,7 @@ function createMockFirestore(): Firestore {
                         metadata: {
                             provisioned: true,
                             region: 'us-central1',
+                            resourceName: 'primary-db',
                             security: {
                                 score: 70,
                                 grade: 'C',

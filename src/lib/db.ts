@@ -63,7 +63,8 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
  */
 export async function refreshProjectDeployments(
     projectId: string,
-    _storageId: string
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _storageId: string // Reserved for future filtering by storage connector
 ): Promise<{ refreshed: string[]; failed: string[] }> {
     const project = await getProjectById(projectId);
     if (!project) return { refreshed: [], failed: [] };
