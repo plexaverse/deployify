@@ -29,6 +29,7 @@ export interface ProjectSlice {
     projectDomains: Domain[];
     projectStorageConfigs: StorageConfig[];
     projectStorageAuditLogs: DataLabAuditLog[];
+    projectStorageHealth: Record<string, import('@/lib/gcp/storage-validator').HealthResult[]>;
     activeMigrations: Record<string, { status: string; logs?: string; error?: string; operationName?: string }>;
 
     // Saving States
@@ -93,6 +94,7 @@ export interface ProjectSlice {
     diagnoseStorageConnection: (projectId: string, storageId: string) => Promise<{ success: boolean; diagnostic?: import('@/lib/gcp/storage-validator').DiagnosticResult }>;
     updateStorageAlerts: (projectId: string, storageId: string, alerts: StorageConfig['alertSettings']) => Promise<boolean>;
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
+    fetchStorageHealthHistory: (projectId: string, storageId: string, days?: number) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
     cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string; includeData?: boolean; targetProjectId?: string }) => Promise<boolean>;
     addReadReplica: (projectId: string, storageId: string, options?: { region?: string, tier?: string }) => Promise<boolean>;
@@ -131,6 +133,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     projectDomains: [],
     projectStorageConfigs: [],
     projectStorageAuditLogs: [],
+    projectStorageHealth: {},
     userRole: null,
     activeMigrations: {},
 
@@ -921,6 +924,24 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         } catch (error) {
             console.error('Failed to diagnose connection:', error);
             return { success: false };
+        }
+    },
+
+    fetchStorageHealthHistory: async (projectId, storageId, days = 7) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/health-history?days=${days}`);
+            if (response.ok) {
+                const data = await response.json();
+                const { projectStorageHealth } = get();
+                set({
+                    projectStorageHealth: {
+                        ...projectStorageHealth,
+                        [storageId]: data.history || []
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch storage health history:', error);
         }
     },
 

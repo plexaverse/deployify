@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { cn, getStorageEnvKey } from '@/lib/utils';
 import { getRegionalEgressIps } from '@/lib/gcp/networks';
@@ -42,6 +42,7 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { useStore } from '@/store';
+import { ConnectivityHealthChart } from '@/components/ConnectivityHealthChart';
 import { DataPortabilityModal } from '@/components/DataPortabilityModal';
 import { IaCExportModal } from '@/components/IaCExportModal';
 import { OptimizationModal } from '@/components/OptimizationModal';
@@ -99,7 +100,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         remediateStorageRisk,
         addReadReplica,
         promoteReadReplica,
-        deleteReadReplica
+        deleteReadReplica,
+        projectStorageHealth: storageHealth,
+        fetchStorageHealthHistory
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
@@ -134,7 +137,6 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [scaleTier, setScaleTier] = useState('');
     const [scaleSizeGb, setScaleSizeGb] = useState(1);
     const [metrics, setMetrics] = useState<Record<string, { cpuUtilization: number, memoryUtilization: number, diskUtilization?: number, connectionSaturation?: number, poolingRecommendation?: string }>>({});
-    const [isLoadingMetrics, setIsLoadingMetrics] = useState<Record<string, boolean>>({});
     const [rotateConnectionString, setRotateConnectionString] = useState('');
     const [isManagingBackups, setIsManagingBackups] = useState<StorageConfig | null>(null);
     const [backups, setBackups] = useState<Backup[]>([]);
@@ -209,6 +211,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isFinalizingCutover, setIsFinalizingCutover] = useState<StorageConfig | null>(null);
     const [isShowingTopology, setIsShowingTopology] = useState<StorageConfig | null>(null);
     const [preFlightStatus, setPreFlightStatus] = useState<{ loading: boolean, valid?: boolean, error?: string, latency?: number } | null>(null);
+    const [expandedHealthId, setExpandedHealthId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProjectStorage(projectId);
@@ -749,7 +752,6 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     };
 
     const fetchMetrics = useCallback(async (storageId: string) => {
-        setIsLoadingMetrics(prev => ({ ...prev, [storageId]: true }));
         try {
             const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/resource-metrics`);
             const data = await response.json();
@@ -758,28 +760,44 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             }
         } catch (e) {
             console.error('Failed to fetch metrics:', e);
-        } finally {
-            setIsLoadingMetrics(prev => ({ ...prev, [storageId]: false }));
         }
     }, [projectId]);
 
-    useEffect(() => {
-        const provisionedConfigs = storageConfigs.filter(c => c.metadata?.provisioned && c.status === 'active');
+    // Ref to track initial fetches and avoid thundering herd on state updates
+    const initialFetchedRef = useRef<Set<string>>(new Set());
 
-        // Initial fetch for those that don't have metrics yet
+    useEffect(() => {
+        const activeConfigs = storageConfigs.filter(c => c.status === 'active' || c.status === 'error');
+        const provisionedConfigs = activeConfigs.filter(c => c.metadata?.provisioned);
+
+        // Initial fetch for new connectors
         provisionedConfigs.forEach(c => {
-            if (!metrics[c.id] && !isLoadingMetrics[c.id]) {
+            if (!initialFetchedRef.current.has(`metrics-${c.id}`)) {
                 fetchMetrics(c.id);
+                initialFetchedRef.current.add(`metrics-${c.id}`);
             }
         });
 
-        // Refresh metrics every 60s
+        activeConfigs.forEach(c => {
+            if (!initialFetchedRef.current.has(`health-${c.id}`)) {
+                fetchStorageHealthHistory(projectId, c.id);
+                initialFetchedRef.current.add(`health-${c.id}`);
+            }
+        });
+    }, [storageConfigs, projectId, fetchMetrics, fetchStorageHealthHistory]);
+
+    // Background refresh interval
+    useEffect(() => {
         const interval = setInterval(() => {
+            const activeConfigs = storageConfigs.filter(c => c.status === 'active' || c.status === 'error');
+            const provisionedConfigs = activeConfigs.filter(c => c.metadata?.provisioned);
+
             provisionedConfigs.forEach(c => fetchMetrics(c.id));
+            activeConfigs.forEach(c => fetchStorageHealthHistory(projectId, c.id));
         }, 60000);
 
         return () => clearInterval(interval);
-    }, [storageConfigs, fetchMetrics, metrics, isLoadingMetrics]);
+    }, [projectId, fetchMetrics, fetchStorageHealthHistory, storageConfigs]);
 
     const handleRotate = async (storageId: string) => {
         const config = storageConfigs.find(c => c.id === storageId);
@@ -1877,6 +1895,31 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     )}
                                                 </span>
                                             )}
+                                            {storageHealth[config.id] && storageHealth[config.id].length > 0 && (
+                                                <div className="flex items-center gap-2">
+                                                    <ConnectivityHealthChart
+                                                        data={storageHealth[config.id]}
+                                                        height={16}
+                                                        className="w-20"
+                                                    />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (expandedHealthId === config.id) {
+                                                                setExpandedHealthId(null);
+                                                            } else {
+                                                                setExpandedHealthId(config.id);
+                                                                fetchStorageHealthHistory(projectId, config.id);
+                                                            }
+                                                        }}
+                                                        className="h-5 px-1 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                    >
+                                                        Trends
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
@@ -1910,6 +1953,28 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 )}
                                             </div>
                                         </div>
+
+                                        {expandedHealthId === config.id && storageHealth[config.id] && (
+                                            <div className="mt-3 p-4 bg-[var(--card)] border border-[var(--primary)]/20 rounded-xl space-y-4 animate-in slide-in-from-top-2 fade-in">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Activity className="w-4 h-4 text-[var(--primary)]" />
+                                                        <span className="text-[10px] font-bold uppercase">Connectivity Health Analytics</span>
+                                                    </div>
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Last 7 Days</span>
+                                                </div>
+                                                <ConnectivityHealthChart
+                                                    data={storageHealth[config.id]}
+                                                    height={60}
+                                                    showStats={true}
+                                                />
+                                                <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-lg">
+                                                    <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                                        HISTORICAL LATENCY BASELINING ASSISTS IN DETECTING NETWORK JITTER AND REGIONAL CONGESTION. HEALTHY CONNECTORS SHOULD MAINTAIN A STABLE TREND LINE WITHIN 2X OF THE ESTABLISHED BASELINE.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                         {!!config.metadata?.readyForCutover && !config.metadata?.cutoverComplete && (
                                             <div className="mt-3 p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/30 rounded-lg flex items-start justify-between gap-3 animate-in fade-in slide-in-from-top-2">
                                                 <div className="flex items-start gap-2.5">

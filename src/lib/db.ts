@@ -63,7 +63,7 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
  */
 export async function refreshProjectDeployments(
     projectId: string,
-    storageId: string
+    _storageId: string
 ): Promise<{ refreshed: string[]; failed: string[] }> {
     const project = await getProjectById(projectId);
     if (!project) return { refreshed: [], failed: [] };
