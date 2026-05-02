@@ -141,7 +141,7 @@ export function IaCExportModal({ isOpen, onClose, storage, projectId }: IaCExpor
                             </Button>
                         </div>
 
-                        <div className="p-4 bg-[var(--muted)]/20 border border-[var(--border)] rounded-xl font-mono text-[9px] min-h-[160px] max-h-[300px] overflow-auto custom-scrollbar">
+                        <div className="p-4 bg-[var(--muted)]/20 border border-[var(--border)] rounded-xl font-mono text-[10px] min-h-[160px] max-h-[300px] overflow-auto custom-scrollbar">
                             {isLoading ? (
                                 <div className="h-32 flex flex-col items-center justify-center gap-3">
                                     <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />

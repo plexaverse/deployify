@@ -498,8 +498,8 @@ export async function updateInstanceSettings(
         // Phase 125 Hardening: Merge with existing flags to avoid regression
         try {
             const currentInstance = await getInstance(instanceName);
-            const currentFlags = (currentInstance.settings as any)?.databaseFlags || [];
-            const otherFlags = currentFlags.filter((f: any) => f.name !== flagName);
+            const currentFlags = (currentInstance.settings as { databaseFlags?: { name: string; value: string }[] })?.databaseFlags || [];
+            const otherFlags = currentFlags.filter((f: { name: string; value: string }) => f.name !== flagName);
 
             updatePayload.settings.databaseFlags = [
                 ...otherFlags,
