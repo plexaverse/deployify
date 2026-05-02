@@ -55,3 +55,9 @@
 - Added color-coded status indicators for active/idle sessions and duration-based highlighting for slow queries.
 - Integrated "Kill Session" actions with `UserX` iconography and high-density feedback loops.
 - Standardized all new session management elements to the platform's `text-[8px]` and `text-[10px]` aesthetic.
+
+## Session 235: Database Engine Log Streaming UI
+- Implemented "Database Engine Logs" modal with high-density log streaming and auto-scroll capabilities.
+- Added severity-based filtering (INFO, WARNING, ERROR, CRITICAL) and local keyword search.
+- Integrated `FileText` iconography for log access and standardized all log elements to `text-[8px]` (metadata) and `text-[10px]` (content).
+- Enhanced visual feedback with color-coded severity badges and hover states.
