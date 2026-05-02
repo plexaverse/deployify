@@ -247,6 +247,42 @@ export function getServiceUrl(serviceName: string, projectRegion?: string | null
 }
 
 /**
+ * Refresh a service to pick up new secrets/config without a full rebuild
+ */
+export async function refreshService(
+    serviceName: string,
+    accessToken: string,
+    projectRegion?: string | null
+): Promise<void> {
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const fullName = `projects/${gcpProjectId}/locations/${region}/services/${serviceName}`;
+
+    // Cloud Run V2 PATCH allows updating annotations to trigger a new revision
+    const response = await fetch(
+        `${CLOUD_RUN_API}/${fullName}`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                template: {
+                    annotations: {
+                        'deployify.dev/last-refresh': new Date().toISOString(),
+                    },
+                },
+            }),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`Failed to refresh service: ${await response.text()}`);
+    }
+}
+
+/**
  * Generate preview service name for a PR
  */
 export function getPreviewServiceName(projectSlug: string, prNumber: number): string {

@@ -542,7 +542,11 @@ export async function rotateProviderToken(
             const secretId = storage.providerApiKeySecretId || `deployify-${projectId}-${storage.id}-apikey`;
             const providerApiKeySecretId = await upsertSecret(secretId, newKey);
 
-            // 3. Optional: List and cleanup old keys if we had a naming convention
+            // 3. Refresh project deployments to pick up the new key
+            const { refreshProjectDeployments } = await import('@/lib/db');
+            await refreshProjectDeployments(projectId, storage.id);
+
+            // 4. Optional: List and cleanup old keys if we had a naming convention
             // (Neon key listing doesn't easily filter by name in V2 without manual iteration)
 
             return { success: true, providerApiKeySecretId };
@@ -581,6 +585,10 @@ export async function rotateProviderToken(
             if (storage.connectionStringSecretId) {
                 await upsertSecret(storage.connectionStringSecretId, newConnStr);
             }
+
+            // 3. Refresh project deployments to pick up the new connection string
+            const { refreshProjectDeployments } = await import('@/lib/db');
+            await refreshProjectDeployments(projectId, storage.id);
 
             // Cleanup old rotation passwords
             try {

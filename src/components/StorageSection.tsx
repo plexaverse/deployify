@@ -2110,27 +2110,37 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         />
                                                     </div>
                                                 )}
-                                                <div className="flex justify-end gap-2">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            setIsRotating(null);
-                                                            setRotateConnectionString('');
-                                                        }}
-                                                        disabled={isSubmitting}
-                                                        className="h-7 text-[8px] font-bold uppercase tracking-wider"
-                                                    >
-                                                        Cancel
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        onClick={() => handleRotate(config.id)}
-                                                        disabled={isSubmitting || (!config.metadata?.autoSync && !rotateConnectionString)}
-                                                        className="h-7 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
-                                                    >
-                                                        {config.metadata?.autoSync ? 'Rotate via Override' : 'Rotate Credentials'}
-                                                    </Button>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        {isSubmitting && (
+                                                            <div className="flex items-center gap-2 animate-pulse">
+                                                                <Loader2 className="w-3 h-3 animate-spin text-[var(--primary)]" />
+                                                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Refreshing services...</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setIsRotating(null);
+                                                                setRotateConnectionString('');
+                                                            }}
+                                                            disabled={isSubmitting}
+                                                            className="h-7 text-[8px] font-bold uppercase tracking-wider"
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handleRotate(config.id)}
+                                                            disabled={isSubmitting || (!config.metadata?.autoSync && !rotateConnectionString)}
+                                                            className="h-7 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                                        >
+                                                            {config.metadata?.autoSync ? 'Rotate via Override' : 'Rotate Credentials'}
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}

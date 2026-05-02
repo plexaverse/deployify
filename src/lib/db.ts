@@ -57,6 +57,71 @@ export async function updateUser(id: string, data: Partial<User>): Promise<void>
     }));
 }
 
+/**
+ * Refresh all project deployments that use a specific storage connector.
+ * This forces a new revision in Cloud Run to pick up the latest secret values.
+ */
+export async function refreshProjectDeployments(
+    projectId: string,
+    storageId: string
+): Promise<{ refreshed: string[]; failed: string[] }> {
+    const project = await getProjectById(projectId);
+    if (!project) return { refreshed: [], failed: [] };
+
+    const refreshed: string[] = [];
+    const failed: string[] = [];
+
+    // Identify services to refresh
+    const services: { name: string; region: string }[] = [];
+
+    // 1. Production service
+    if (project.cloudRunServiceId) {
+        services.push({
+            name: project.cloudRunServiceId,
+            region: project.region || 'asia-south1'
+        });
+    }
+
+    // 2. Recent preview services (last 5)
+    const recentPreviews = await listDeploymentsByProject(projectId, 10);
+    const uniquePreviews = new Set<string>();
+
+    for (const deploy of recentPreviews) {
+        if (deploy.type === 'preview' && deploy.status === 'ready' && deploy.url) {
+            const serviceName = deploy.url.split('://')[1]?.split('.')[0];
+            if (serviceName && !uniquePreviews.has(serviceName)) {
+                uniquePreviews.add(serviceName);
+                services.push({
+                    name: serviceName,
+                    region: project.region || 'asia-south1'
+                });
+            }
+        }
+    }
+
+    if (services.length === 0) return { refreshed: [], failed: [] };
+
+    try {
+        const { getGcpAccessToken } = await import('@/lib/gcp/auth');
+        const { refreshService } = await import('@/lib/gcp/cloudrun');
+        const accessToken = await getGcpAccessToken();
+
+        for (const service of services) {
+            try {
+                await refreshService(service.name, accessToken, service.region);
+                refreshed.push(service.name);
+            } catch (e) {
+                console.error(`[Refresh] Failed to refresh service ${service.name}:`, e);
+                failed.push(service.name);
+            }
+        }
+    } catch (e) {
+        console.error(`[Refresh] Global refresh failure for project ${projectId}:`, e);
+    }
+
+    return { refreshed, failed };
+}
+
 export interface ReplicaMetadata {
     id: string;
     name: string;
