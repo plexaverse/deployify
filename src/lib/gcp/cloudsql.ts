@@ -1,8 +1,21 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
 import type { Backup } from '@/types';
+import { Client as PgClient } from 'pg';
+import mysql from 'mysql2/promise';
 
 const CLOUD_SQL_API = 'https://sqladmin.googleapis.com/v1';
+
+export interface DatabaseSession {
+    id: string;
+    user: string;
+    database: string;
+    clientAddress: string;
+    state: string;
+    query: string;
+    durationMs: number;
+    startTime: string;
+}
 
 export interface CloudSqlInstance {
     name: string;
@@ -833,6 +846,215 @@ export function getProxyOrchestrationCommand(instanceConnectionName: string): st
         `chmod +x cloud-sql-proxy && ` +
         `./cloud-sql-proxy --enable-iam-login --unix-socket /workspace ${instanceConnectionName} & ` +
         `sleep 3`;
+}
+
+/**
+ * Fetch active database sessions/processes (Phase 130)
+ */
+export async function getActiveSessions(
+    connectionString: string,
+    dbType: 'postgres' | 'mysql',
+    options: {
+        ssl?: boolean;
+        iamAuth?: boolean;
+    } = {}
+): Promise<DatabaseSession[]> {
+    if (process.env.MOCK_DB === 'true') {
+        return [
+            { id: '101', user: 'deployify_user', database: 'prod_db', clientAddress: '10.0.0.5', state: 'active', query: 'SELECT * FROM users LIMIT 100', durationMs: 125, startTime: new Date(Date.now() - 125000).toISOString() },
+            { id: '102', user: 'deployify_user', database: 'prod_db', clientAddress: '10.0.0.8', state: 'idle', query: 'UPDATE projects SET status = \'ready\' WHERE id = \'p1\'', durationMs: 45, startTime: new Date(Date.now() - 45000).toISOString() },
+            { id: '103', user: 'admin', database: 'postgres', clientAddress: '127.0.0.1', state: 'active', query: 'VACUUM ANALYZE', durationMs: 1200, startTime: new Date(Date.now() - 1200000).toISOString() }
+        ];
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let sqlConfig: any = connectionString;
+    const isIamAuth = options.iamAuth || connectionString.includes('enable_iam_auth=true');
+
+    if (isIamAuth) {
+        try {
+            const url = new URL(connectionString);
+            const accessToken = await getGcpAccessToken();
+            const socketPath = url.searchParams.get('host');
+
+            if (dbType === 'postgres') {
+                sqlConfig = {
+                    host: socketPath || url.hostname,
+                    port: url.port ? parseInt(url.port, 10) : 5432,
+                    user: url.username || 'deployify-sa',
+                    password: accessToken,
+                    database: url.pathname.split('/')[1] || 'postgres',
+                    ssl: socketPath ? false : (options.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
+                };
+            } else {
+                sqlConfig = {
+                    host: url.hostname,
+                    port: url.port ? parseInt(url.port, 10) : 3306,
+                    socketPath: socketPath || undefined,
+                    user: url.username || 'deployify-sa',
+                    password: accessToken,
+                    database: url.pathname.split('/')[1] || 'mysql',
+                    ssl: socketPath ? false : (options.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
+                };
+            }
+        } catch (e) {
+            console.error('[CloudSQL] Failed to parse IAM connection string for sessions:', e);
+        }
+    } else if (options.ssl) {
+        if (dbType === 'postgres') {
+            const url = new URL(connectionString);
+            url.searchParams.set('sslmode', 'require');
+            sqlConfig = url.toString();
+        } else {
+            sqlConfig = { uri: connectionString, ssl: { rejectUnauthorized: true } };
+        }
+    }
+
+    if (dbType === 'postgres') {
+        const client = new PgClient(sqlConfig);
+        try {
+            await client.connect();
+            const res = await client.query(`
+                SELECT
+                    pid::text as id,
+                    usename as user,
+                    datname as database,
+                    client_addr as client_address,
+                    state,
+                    query,
+                    EXTRACT(EPOCH FROM (now() - query_start)) * 1000 as duration_ms,
+                    query_start as start_time
+                FROM pg_stat_activity
+                WHERE state IS NOT NULL AND query IS NOT NULL AND pid <> pg_backend_pid()
+                ORDER BY query_start ASC
+            `);
+            return res.rows.map(r => ({
+                id: r.id,
+                user: r.user || 'unknown',
+                database: r.database || 'unknown',
+                clientAddress: r.client_address || 'internal',
+                state: r.state,
+                query: r.query,
+                durationMs: Math.floor(r.duration_ms || 0),
+                startTime: r.start_time?.toISOString() || new Date().toISOString()
+            }));
+        } finally {
+            await client.end().catch(() => {});
+        }
+    } else {
+        const connection = await mysql.createConnection(sqlConfig);
+        try {
+            const [rows] = await connection.execute(`
+                SELECT
+                    ID as id,
+                    USER as user,
+                    DB as database,
+                    HOST as client_address,
+                    COMMAND as state,
+                    INFO as query,
+                    TIME * 1000 as duration_ms
+                FROM INFORMATION_SCHEMA.PROCESSLIST
+                WHERE COMMAND <> 'Sleep' AND ID <> CONNECTION_ID()
+                ORDER BY TIME DESC
+            `);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return (rows as any[]).map(r => ({
+                id: String(r.id),
+                user: r.user,
+                database: r.database || 'none',
+                clientAddress: r.client_address,
+                state: r.state,
+                query: r.query || '',
+                durationMs: r.duration_ms,
+                startTime: new Date(Date.now() - r.duration_ms).toISOString()
+            }));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+            console.error(`[CloudSQL] Failed to fetch MySQL sessions:`, e);
+            throw e;
+        } finally {
+            await connection.end().catch(() => {});
+        }
+    }
+}
+
+/**
+ * Terminate a database session (Phase 130)
+ */
+export async function terminateSession(
+    connectionString: string,
+    dbType: 'postgres' | 'mysql',
+    sessionId: string,
+    options: {
+        ssl?: boolean;
+        iamAuth?: boolean;
+    } = {}
+): Promise<boolean> {
+    if (process.env.MOCK_DB === 'true') {
+        console.log(`[CloudSQL] MOCK: Terminating session ${sessionId} on ${dbType}`);
+        return true;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let sqlConfig: any = connectionString;
+    const isIamAuth = options.iamAuth || connectionString.includes('enable_iam_auth=true');
+
+    if (isIamAuth) {
+        try {
+            const url = new URL(connectionString);
+            const accessToken = await getGcpAccessToken();
+            const socketPath = url.searchParams.get('host');
+
+            if (dbType === 'postgres') {
+                sqlConfig = {
+                    host: socketPath || url.hostname,
+                    port: url.port ? parseInt(url.port, 10) : 5432,
+                    user: url.username || 'deployify-sa',
+                    password: accessToken,
+                    database: url.pathname.split('/')[1] || 'postgres',
+                    ssl: socketPath ? false : (options.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
+                };
+            } else {
+                sqlConfig = {
+                    host: url.hostname,
+                    port: url.port ? parseInt(url.port, 10) : 3306,
+                    socketPath: socketPath || undefined,
+                    user: url.username || 'deployify-sa',
+                    password: accessToken,
+                    database: url.pathname.split('/')[1] || 'mysql',
+                    ssl: socketPath ? false : (options.ssl ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
+                };
+            }
+        } catch (e) {
+            console.error('[CloudSQL] Failed to parse IAM connection string for termination:', e);
+        }
+    }
+
+    if (dbType === 'postgres') {
+        const client = new PgClient(sqlConfig);
+        try {
+            await client.connect();
+            await client.query('SELECT pg_terminate_backend($1)', [parseInt(sessionId, 10)]);
+            return true;
+        } catch (e) {
+            console.error(`[CloudSQL] Failed to terminate Postgres session ${sessionId}:`, e);
+            throw e;
+        } finally {
+            await client.end().catch(() => {});
+        }
+    } else {
+        const connection = await mysql.createConnection(sqlConfig);
+        try {
+            const id = parseInt(sessionId, 10);
+            await connection.execute(`KILL ${id}`);
+            return true;
+        } catch (e) {
+            console.error(`[CloudSQL] Failed to terminate MySQL session ${sessionId}:`, e);
+            throw e;
+        } finally {
+            await connection.end().catch(() => {});
+        }
+    }
 }
 
 /**
