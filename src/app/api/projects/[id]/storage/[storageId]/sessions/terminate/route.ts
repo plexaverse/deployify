@@ -28,7 +28,16 @@ export async function POST(
         let storageConfig: StorageConfig | undefined;
 
         if (process.env.MOCK_DB === 'true' && id === 'audit-id') {
-            storageConfig = { id: 'mock-storage-id', type: 'cloud-sql-postgres', name: 'MOCK STORAGE', metadata: { provisioned: true } } as StorageConfig;
+            storageConfig = {
+                id: 'mock-storage-id',
+                type: 'cloud-sql-postgres',
+                name: 'MOCK STORAGE',
+                status: 'active',
+                environment: 'production',
+                metadata: { provisioned: true },
+                createdAt: new Date(),
+                updatedAt: new Date()
+            } as StorageConfig;
         } else {
             const access = await checkProjectAccess(session.user.id, id);
             if (!access.allowed) {
