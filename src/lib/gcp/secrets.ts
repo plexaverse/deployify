@@ -20,7 +20,7 @@ export async function upsertSecret(
     const parent = `projects/${gcpProjectId}`;
     const secretName = `${parent}/secrets/${secretId}`;
 
-    // 1. Check if secret exists
+    // 1. Ensure secret is active (handle recovery if deleted or scheduled for deletion)
     const checkResponse = await fetch(`${SECRET_MANAGER_API}/${secretName}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
     });
@@ -40,6 +40,20 @@ export async function upsertSecret(
 
         if (!createResponse.ok) {
             throw new Error(`Failed to create secret: ${await createResponse.text()}`);
+        }
+    } else if (checkResponse.ok) {
+        const secret = await checkResponse.json();
+        // If scheduled for deletion (has expireTime or ttl), we attempt to recover it by clearing those fields
+        if (secret.expireTime || secret.ttl) {
+            console.warn(`[Secrets] Secret ${secretId} scheduled for deletion, attempting recovery...`);
+            await fetch(`${SECRET_MANAGER_API}/${secretName}?updateMask=expireTime,ttl`, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}),
+            });
         }
     }
 
@@ -156,6 +170,60 @@ export async function getSecretValue(
 
     const data = await response.json();
     return Buffer.from(data.payload.data, 'base64').toString();
+}
+
+/**
+ * Ensure a secret is active and recover if needed
+ */
+export async function ensureSecretActive(
+    secretId: string,
+    projectId?: string
+): Promise<boolean> {
+    if (process.env.MOCK_DB === 'true') return true;
+
+    try {
+        const gcpProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
+        const accessToken = await getGcpAccessToken();
+        const secretName = `projects/${gcpProjectId}/secrets/${secretId}`;
+
+        const response = await fetch(`${SECRET_MANAGER_API}/${secretName}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (response.status === 404) {
+            // Recovery via recreation
+            const parent = `projects/${gcpProjectId}`;
+            await fetch(`${SECRET_MANAGER_API}/${parent}/secrets?secretId=${secretId}`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ replication: { automatic: {} } }),
+            });
+            return true;
+        }
+
+        if (response.ok) {
+            const secret = await response.json();
+            if (secret.expireTime || secret.ttl) {
+                await fetch(`${SECRET_MANAGER_API}/${secretName}?updateMask=expireTime,ttl`, {
+                    method: 'PATCH',
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({}),
+                });
+            }
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error(`[Secrets] ensureSecretActive failed for ${secretId}:`, error);
+        return false;
+    }
 }
 
 /**

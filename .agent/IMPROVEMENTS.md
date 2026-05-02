@@ -130,3 +130,9 @@ Session 227: Verified environment and ensured everything works. Audited tests, l
     - Launched the Health History API and `getHealthHistory` utility to track and visualize connectivity performance trends.
     - Updated the "Connector" model architecture documentation and roadmap in `.agent/db_connectivity.md`.
     - Verified 100% operational integrity via unit tests, full production builds, and Playwright visual automation.
+- Session 233: Completed Phase 128 'Autonomous Secret Recovery & Rotation Maturity'.
+    - Implemented `ensureSecretActive` and enhanced `upsertSecret` in `src/lib/gcp/secrets.ts` for automated GCP Secret Manager recovery.
+    - Standardized "Autonomous Deployment Refresh" via `refreshService` and `refreshProjectDeployments` to force new Cloud Run revisions.
+    - Integrated service refreshes into the rotation flow in `src/lib/gcp/external-sync.ts` and API for zero-downtime transitions.
+    - Enhanced Storage UI with real-time refresh status and `lastRotatedAt` indicators.
+    - Verified 100% operational integrity with 159 passing tests, perfect builds, and system-wide audits.

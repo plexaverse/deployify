@@ -85,6 +85,10 @@ export async function POST(
         storageConfigs[index] = updatedStorage;
         await updateProject(id, { storageConfigs });
 
+        // Trigger autonomous deployment refresh
+        const { refreshProjectDeployments } = await import('@/lib/db');
+        const refreshResult = await refreshProjectDeployments(id, storageId);
+
         await logAuditEvent(
             project.teamId || null,
             session.user.id,
@@ -99,7 +103,8 @@ export async function POST(
         return NextResponse.json({
             success: true,
             lastRotatedAt: now.toISOString(),
-            storageConfig: updatedStorage
+            storageConfig: updatedStorage,
+            refresh: refreshResult
         });
 
     } catch (error) {
