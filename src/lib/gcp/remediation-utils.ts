@@ -1,5 +1,5 @@
 import { updateProject } from '@/lib/db';
-import { updateInstanceSettings, updateConnectionPooler } from '@/lib/gcp/cloudsql';
+import { updateInstanceSettings, updateConnectionPooler, migrateInstanceToRegion } from '@/lib/gcp/cloudsql';
 import { syncExternalFirewall } from '@/lib/gcp/external-sync';
 import { grantCloudSqlInstanceUserRole, revokeProjectRole, grantProjectRole } from '@/lib/gcp/iam';
 import { grantSecretAccess } from '@/lib/gcp/secrets';
@@ -238,6 +238,60 @@ export async function remediateRisk(
                         lastIamHardeningAt: new Date().toISOString()
                     };
                     message = 'Secret access restricted to granular scope (resource-level).';
+                }
+                break;
+
+            case 'public_ip_exposed':
+                if (storage.type.includes('cloud-sql')) {
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    operationName = await updateInstanceSettings(instanceName, {
+                        publicIpEnabled: false
+                    });
+                    storage.status = 'provisioning';
+                    storage.metadata = {
+                        ...storage.metadata,
+                        operationName,
+                        publicIpEnabled: false
+                    };
+                    message = 'Disabling public IP to enforce private IP networking...';
+                }
+                break;
+
+            case 'password_auth_used':
+                if (storage.type.includes('cloud-sql')) {
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
+                    operationName = await updateInstanceSettings(instanceName, {
+                        iamAuthEnabled: true,
+                        dbType
+                    });
+                    storage.status = 'provisioning';
+                    storage.metadata = {
+                        ...storage.metadata,
+                        operationName,
+                        iamAuthEnabled: true
+                    };
+                    message = 'Enabling IAM Database Authentication for passwordless access...';
+                }
+                break;
+
+            case 'regional_mismatch':
+                if (storage.type.includes('cloud-sql')) {
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const projectRegion = project.region || config.gcp.region || 'asia-south1';
+
+                    const result = await migrateInstanceToRegion(instanceName, projectRegion);
+
+                    storage.status = 'provisioning';
+                    const originalRegion = storage.region;
+                    storage.region = projectRegion;
+                    storage.metadata = {
+                        ...storage.metadata,
+                        operationName: result.operationName,
+                        resourceName: result.targetInstanceName,
+                        migratingFromRegion: originalRegion
+                    };
+                    message = 'Initiating instance clone migration to align with target region...';
                 }
                 break;
 
