@@ -992,12 +992,25 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Standardize "Deployment Refresh" logic to notify and update dependent services when credentials change.
 - [x] Implement "Zero-Downtime" rotation patterns for managed external connectors (Neon, PlanetScale).
 
+### Phase 129: Visual Connectivity Health Analytics & Latency Trends (COMPLETED)
+- [x] Implement `ConnectivityHealthChart` component for high-density sparklines.
+- [x] Integrate historical health analytics into the Storage dashboard.
+- [x] Add real-time status transition tracking for visual health baselining.
+- [x] Implement automated 60s background refresh for health history.
+
 ### 2027-07-05: Completed Phase 128: Autonomous Secret Recovery & Rotation Maturity
 - Completed Phase 128: Autonomous Secret Recovery & Rotation Maturity.
 - Implemented `ensureSecretActive` and enhanced `upsertSecret` in `src/lib/gcp/secrets.ts` to automatically detect and recover secrets scheduled for deletion (via `expireTime` or `ttl`) in GCP Secret Manager.
 - Standardized "Autonomous Deployment Refresh" by implementing `refreshService` in `src/lib/gcp/cloudrun.ts` and `refreshProjectDeployments` in `src/lib/db.ts`, enabling the platform to force new Cloud Run revisions via annotation updates to pick up latest secret values.
 - Integrated deployment refreshes into the `rotateProviderToken` flow in `src/lib/gcp/external-sync.ts` and the rotation API route, ensuring zero-downtime transitions for Neon and PlanetScale connectors.
 - Enhanced the Storage UI with "Refreshing services..." visual feedback and `lastRotatedAt` visibility on connector cards.
+- Verified 100% operational integrity with system-wide audits and 159 passing tests.
+
+### 2027-07-06: Completed Phase 129: Visual Connectivity Health Analytics
+- Completed Phase 129: Visual Connectivity Health Analytics & Latency Trends.
+- Implemented `ConnectivityHealthChart.tsx`, an SVG-based sparkline component with dynamic colors tied to health status.
+- Integrated historical health analytics into the Storage dashboard with high-density sparklines and a detailed "Trends" view.
+- Implemented automated background refreshes (60s) for storage health history in the Zustand store.
 - Verified 100% operational integrity with system-wide audits and 159 passing tests.
 
 ### 2027-07-04: Completed Phase 124: Granular Secret Governance
