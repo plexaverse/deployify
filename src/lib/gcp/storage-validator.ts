@@ -177,7 +177,9 @@ export async function validateConnection(
         }
 
         let connectionString = '';
-        if (connectionStringSecretId) {
+        if (metadata?.rawConnectionString) {
+            connectionString = metadata.rawConnectionString as string;
+        } else if (connectionStringSecretId) {
             connectionString = await getSecretValue(connectionStringSecretId);
         } else if (type.includes('cloud-sql') && metadata?.resourceName && metadata?.region) {
             // Derive IAM connection string for validation if secret is missing but resource info is present
@@ -720,6 +722,36 @@ export async function diagnoseConnection(
             overallLatency: Date.now() - startTime
         };
     }
+}
+
+/**
+ * Fetch health history for a connector (Simulated in this Phase)
+ */
+export async function getHealthHistory(
+    storageId: string,
+    days: number = 7
+): Promise<HealthResult[]> {
+    if (process.env.MOCK_DB === 'true') {
+        const history: HealthResult[] = [];
+        const now = Date.now();
+        // Generate points every 4 hours
+        for (let i = 0; i < (days * 24) / 4; i++) {
+            const timestamp = new Date(now - i * 4 * 3600000).toISOString();
+            const latency = Math.floor(Math.random() * 50) + 5;
+            const status = Math.random() > 0.95 ? 'unhealthy' : (Math.random() > 0.8 ? 'degraded' : 'healthy');
+
+            history.push({
+                status,
+                latency,
+                timestamp,
+                isDegraded: status === 'degraded'
+            });
+        }
+        return history.reverse();
+    }
+
+    // In production, this would fetch from a specialized 'health_checks' collection or Cloud Monitoring
+    return [];
 }
 
 /**
