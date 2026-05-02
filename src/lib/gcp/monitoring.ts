@@ -3,6 +3,7 @@ import { config } from '@/lib/config';
 import { getSecretValue } from './secrets';
 import { calculateEWMA, isDegraded } from './health-utils';
 import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile } from '@/types';
+import type { LogEntry } from './logging';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -1085,6 +1086,93 @@ export function getMaintenanceRecommendation(
         day,
         hour,
         reason: `Lowest historical utilization detected on ${dayNames[day]}s around ${hour.toString().padStart(2, '0')}:00.`
+    };
+}
+
+/**
+ * Fetch database engine logs from GCP Logging (Phase 131)
+ */
+export async function getDatabaseLogs(
+    instanceId: string,
+    options: {
+        severity?: string;
+        pageSize?: number;
+        pageToken?: string;
+        startTime?: string;
+    } = {}
+): Promise<{ entries: LogEntry[], nextPageToken?: string }> {
+    if (process.env.MOCK_DB === 'true') {
+        const severities = ['INFO', 'WARNING', 'ERROR', 'CRITICAL'];
+        const entries = [];
+        const count = options.pageSize || 20;
+        const now = Date.now();
+
+        for (let i = 0; i < count; i++) {
+            const severity = options.severity && options.severity !== 'ALL'
+                ? options.severity
+                : severities[Math.floor(Math.random() * severities.length)];
+
+            entries.push({
+                timestamp: new Date(now - i * 10000).toISOString(),
+                severity,
+                textPayload: `[Simulation] Database log message ${i + 1} for instance ${instanceId}. Query execution took ${Math.floor(Math.random() * 500)}ms.`,
+                resource: { type: 'cloudsql_database', labels: { database_id: instanceId } },
+                logName: `projects/mock/logs/cloudsql.googleapis.com%2F${severity.toLowerCase()}`,
+                insertId: `sim-log-${i}`
+            });
+        }
+
+        return { entries };
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    // Cloud SQL log filter
+    let filter = `resource.type="cloudsql_database" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
+
+    if (options.severity && options.severity !== 'ALL') {
+        filter += ` AND severity="${options.severity}"`;
+    }
+
+    if (options.startTime) {
+        filter += ` AND timestamp >= "${options.startTime}"`;
+    }
+
+    const body = {
+        resourceNames: [`projects/${gcpProjectId}`],
+        filter,
+        orderBy: 'timestamp desc',
+        pageSize: options.pageSize || 50,
+        pageToken: options.pageToken
+    };
+
+    const response = await fetch('https://logging.googleapis.com/v2/entries:list', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch database logs: ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return {
+        entries: (data.entries || []).map((entry: LogEntry) => ({
+            timestamp: entry.timestamp,
+            severity: entry.severity || 'DEFAULT',
+            textPayload: entry.textPayload,
+            jsonPayload: entry.jsonPayload,
+            resource: entry.resource,
+            logName: entry.logName,
+            insertId: entry.insertId
+        })),
+        nextPageToken: data.nextPageToken
     };
 }
 

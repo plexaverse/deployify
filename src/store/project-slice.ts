@@ -94,6 +94,7 @@ export interface ProjectSlice {
     diagnoseStorageConnection: (projectId: string, storageId: string) => Promise<{ success: boolean; diagnostic?: import('@/lib/gcp/storage-validator').DiagnosticResult }>;
     updateStorageAlerts: (projectId: string, storageId: string, alerts: StorageConfig['alertSettings']) => Promise<boolean>;
     fetchProjectStorageAuditLogs: (projectId: string, storageId: string) => Promise<void>;
+    fetchStorageLogs: (projectId: string, storageId: string, options?: { severity?: string, pageToken?: string }) => Promise<{ logs: import('@/lib/gcp/logging').LogEntry[], nextPageToken?: string }>;
     fetchStorageHealthHistory: (projectId: string, storageId: string, days?: number) => Promise<void>;
     rotateStorageCredentials: (projectId: string, storageId: string, connectionString: string) => Promise<boolean>;
     cloneStorageConfig: (projectId: string, storageId: string, overrides?: { name?: string; environment?: 'production' | 'preview' | 'both'; envKey?: string; includeData?: boolean; targetProjectId?: string }) => Promise<boolean>;
@@ -984,6 +985,28 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             }
         } catch (error) {
             console.error('Failed to fetch storage audit logs:', error);
+        }
+    },
+
+    fetchStorageLogs: async (projectId, storageId, options = {}) => {
+        try {
+            const { severity = 'ALL', pageToken } = options;
+            let url = `/api/projects/${projectId}/storage/${storageId}/logs?severity=${severity}`;
+            if (pageToken) url += `&pageToken=${encodeURIComponent(pageToken)}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                return {
+                    logs: data.logs || [],
+                    nextPageToken: data.nextPageToken
+                };
+            }
+            throw new Error(data.error || 'Failed to fetch database logs');
+        } catch (error) {
+            console.error('Failed to fetch database logs:', error);
+            return { logs: [] };
         }
     },
 

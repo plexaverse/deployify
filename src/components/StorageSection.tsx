@@ -41,7 +41,8 @@ import {
     Sparkles,
     ArrowRight,
     MonitorPlay,
-    UserX
+    UserX,
+    FileText
 } from 'lucide-react';
 import { useStore } from '@/store';
 import { ConnectivityHealthChart } from '@/components/ConnectivityHealthChart';
@@ -100,6 +101,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         clearMigrationStatus,
         updateStorageAlerts,
         remediateStorageRisk,
+        fetchStorageLogs,
         addReadReplica,
         promoteReadReplica,
         deleteReadReplica,
@@ -165,6 +167,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isManagingSessions, setIsManagingSessions] = useState<StorageConfig | null>(null);
     const [sessions, setSessions] = useState<import('@/lib/gcp/cloudsql').DatabaseSession[]>([]);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+    const [isManagingLogs, setIsManagingLogs] = useState<StorageConfig | null>(null);
+    const [dbLogs, setDbLogs] = useState<import('@/lib/gcp/logging').LogEntry[]>([]);
+    const [isLoadingDbLogs, setIsLoadingDbLogs] = useState(false);
+    const [logSeverity, setLogSeverity] = useState('ALL');
+    const [logNextPageToken, setLogNextPageToken] = useState<string | undefined>(undefined);
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isManagingIaC, setIsManagingIaC] = useState<StorageConfig | null>(null);
     const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
@@ -976,6 +983,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             setIsLoadingSessions(false);
         }
     }, [projectId]);
+
+    const fetchDbLogs = useCallback(async (storageId: string, severity: string = 'ALL', pageToken?: string) => {
+        setIsLoadingDbLogs(true);
+        try {
+            const result = await fetchStorageLogs(projectId, storageId, { severity, pageToken });
+            if (pageToken) {
+                setDbLogs(prev => [...prev, ...result.logs]);
+            } else {
+                setDbLogs(result.logs);
+            }
+            setLogNextPageToken(result.nextPageToken);
+        } finally {
+            setIsLoadingDbLogs(false);
+        }
+    }, [projectId, fetchStorageLogs]);
 
     const handleTerminateSession = async (storageId: string, sessionId: string) => {
         try {
@@ -2460,6 +2482,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <ArrowRight className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            setIsManagingLogs(config);
+                                            fetchDbLogs(config.id, 'ALL');
+                                        }}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="Database Logs"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -4265,6 +4299,116 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 }
                 confirmText="Save Failover Settings"
                 loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingLogs}
+                onClose={() => {
+                    setIsManagingLogs(null);
+                    setDbLogs([]);
+                    setLogNextPageToken(undefined);
+                }}
+                title="Database Engine Logs"
+                headerLabel="Observability & Analytics"
+                icon={<FileText className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between gap-4 p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
+                                    <Activity className="w-4 h-4 text-[var(--primary)]" />
+                                </div>
+                                <div className="space-y-0.5">
+                                    <p className="text-[10px] font-bold">Real-time Engine Logs</p>
+                                    <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Fetched directly from GCP Cloud Logging</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <NativeSelect
+                                    value={logSeverity}
+                                    onChange={(e) => {
+                                        setLogSeverity(e.target.value);
+                                        if (isManagingLogs) fetchDbLogs(isManagingLogs.id, e.target.value);
+                                    }}
+                                    className="h-8 text-[8px] font-bold uppercase w-28"
+                                >
+                                    <option value="ALL">ALL SEVERITIES</option>
+                                    <option value="INFO">INFO</option>
+                                    <option value="WARNING">WARNING</option>
+                                    <option value="ERROR">ERROR</option>
+                                    <option value="CRITICAL">CRITICAL</option>
+                                </NativeSelect>
+                                <Button
+                                    onClick={() => isManagingLogs && fetchDbLogs(isManagingLogs.id, logSeverity)}
+                                    disabled={isLoadingDbLogs}
+                                    className="h-8 text-[8px] font-bold uppercase bg-[var(--primary)]"
+                                >
+                                    {isLoadingDbLogs ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                                    Sync
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="max-h-[500px] overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
+                                {dbLogs.length === 0 && !isLoadingDbLogs ? (
+                                    <div className="py-20 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                                        <FileText className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto mb-3" />
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No logs found for selected criteria</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {dbLogs.map((log, i) => (
+                                            <div key={log.insertId || i} className="p-2 border border-[var(--border)] rounded bg-[var(--card)]/50 font-mono text-[8px] space-y-1 group hover:border-[var(--primary)]/30 transition-all">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={cn(
+                                                            "px-1.5 py-0.5 rounded font-bold uppercase",
+                                                            log.severity === 'ERROR' || log.severity === 'CRITICAL' ? "bg-[var(--error)]/20 text-[var(--error)]" :
+                                                            log.severity === 'WARNING' ? "bg-[var(--warning)]/20 text-[var(--warning)]" :
+                                                            "bg-[var(--info)]/20 text-[var(--info)]"
+                                                        )}>
+                                                            {log.severity}
+                                                        </span>
+                                                        <span className="text-[var(--muted-foreground)] opacity-60">
+                                                            {new Date(log.timestamp).toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-[var(--muted-foreground)] opacity-40 uppercase">{log.logName.split('%2F').pop()}</span>
+                                                </div>
+                                                <p className={cn(
+                                                    "whitespace-pre-wrap break-all leading-relaxed",
+                                                    log.severity === 'ERROR' || log.severity === 'CRITICAL' ? "text-[var(--error)]" : "text-[var(--foreground)]/90"
+                                                )}>
+                                                    {log.textPayload || JSON.stringify(log.jsonPayload, null, 2)}
+                                                </p>
+                                            </div>
+                                        ))}
+                                        {logNextPageToken && (
+                                            <Button
+                                                variant="ghost"
+                                                onClick={() => isManagingLogs && fetchDbLogs(isManagingLogs.id, logSeverity, logNextPageToken)}
+                                                disabled={isLoadingDbLogs}
+                                                className="w-full h-8 text-[8px] font-bold uppercase text-[var(--primary)] hover:bg-[var(--primary)]/5"
+                                            >
+                                                {isLoadingDbLogs ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : 'Load More Logs'}
+                                            </Button>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/20 rounded-xl flex items-start gap-2">
+                            <AlertTriangle className="w-3.5 h-3.5 text-[var(--info)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                NOTE: LOGS ARE RETAINED BY GCP FOR 30 DAYS BY DEFAULT. FOR PRODUCTION TROUBLESHOOTING, USE THE DATA LAB TO CORRELATE THESE LOGS WITH SPECIFIC QUERY PERFORMANCE.
+                            </p>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
             />
         </Card>
     );
