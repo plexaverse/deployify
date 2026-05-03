@@ -12,12 +12,14 @@ export interface IngestionResult {
 }
 
 /**
- * Triggers a Cloud Build job to perform a database dump from an external provider
+ * Triggers a Cloud Build job to perform a database dump from an external provider.
+ * Supports multi-database dumps (Phase 132).
  */
 export async function runExternalDump(
     projectId: string,
     storageConfig: StorageConfig,
-    gcsUri: string
+    gcsUri: string, // Base GCS URI (folder)
+    databases: string[] = []
 ): Promise<string> {
     if (process.env.MOCK_DB === 'true') {
         return 'mock-build-id';
@@ -32,42 +34,57 @@ export async function runExternalDump(
     if (!secretId) throw new Error('Connection string secret ID missing');
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const dbsToDump = databases.length > 0 ? databases : ['app']; // Default to 'app' if not specified
+
+    // Build steps for each database
+    const steps = [];
+
+    for (const db of dbsToDump) {
+        steps.push({
+            name: isPostgres ? 'postgres:15-alpine' : 'mysql:8',
+            entrypoint: 'sh',
+            args: [
+                '-c',
+                isPostgres
+                    ? `
+                        # Simple URI parser for Postgres to swap DB
+                        URI="$$DATABASE_URL"
+                        BASE_URI="\${URI%\\?*}"
+                        PARAMS="\${URI#*?}"
+                        if [ "$PARAMS" = "$URI" ]; then PARAMS=""; else PARAMS="?$PARAMS"; fi
+                        WITHOUT_DB="\${BASE_URI%/*}"
+                        NEW_URL="\${WITHOUT_DB}/${db}\${PARAMS}"
+                        pg_dump "$NEW_URL" | sed "s/CREATE DATABASE/-- CREATE DATABASE/g" > ${db}.sql
+                      `
+                    : `
+                        # Simple URI parser for MySQL
+                        URI="$$DATABASE_URL"
+                        URL="\${URI#*://}"
+                        USERPASS="\${URL%%@*}"
+                        HOSTPORTDB="\${URL#*@}"
+                        USER="\${USERPASS%%:*}"
+                        PASS="\${USERPASS#*:}"
+                        HOSTPORT="\${HOSTPORTDB%%/*}"
+                        DB="${db}"
+                        HOST="\${HOSTPORT%%:*}"
+                        PORT="\${HOSTPORT#*:}"
+                        if [ "$HOSTPORT" = "$HOST" ]; then PORT=3306; fi
+
+                        mysqldump -h "$HOST" -P "$PORT" -u "$USER" -p"$PASS" "$DB" > ${db}.sql
+                      `
+            ],
+            secretEnv: ['DATABASE_URL']
+        });
+
+        steps.push({
+            name: 'gcr.io/cloud-builders/gsutil',
+            args: ['cp', `${db}.sql`, `${gcsUri.endsWith('/') ? gcsUri : gcsUri + '/'}${db}.sql`]
+        });
+    }
 
     // Build configuration for the dump
     const buildConfig = {
-        steps: [
-            {
-                name: isPostgres ? 'postgres:15-alpine' : 'mysql:8',
-                entrypoint: 'sh',
-                args: [
-                    '-c',
-                    isPostgres
-                        ? 'pg_dump "$$DATABASE_URL" > dump.sql'
-                        : `
-                            # Simple URI parser for MySQL
-                            URI="$$DATABASE_URL"
-                            URL="\${URI#*://}"
-                            USERPASS="\${URL%%@*}"
-                            HOSTPORTDB="\${URL#*@}"
-                            USER="\${USERPASS%%:*}"
-                            PASS="\${USERPASS#*:}"
-                            HOSTPORT="\${HOSTPORTDB%%/*}"
-                            DB="\${HOSTPORTDB#*/}"
-                            DB="\${DB%%\\?*}"
-                            HOST="\${HOSTPORT%%:*}"
-                            PORT="\${HOSTPORT#*:}"
-                            if [ "$HOSTPORT" = "$HOST" ]; then PORT=3306; fi
-
-                            mysqldump -h "$HOST" -P "$PORT" -u "$USER" -p"$PASS" "$DB" > dump.sql
-                          `
-                ],
-                secretEnv: ['DATABASE_URL']
-            },
-            {
-                name: 'gcr.io/cloud-builders/gsutil',
-                args: ['cp', 'dump.sql', gcsUri]
-            }
-        ],
+        steps,
         availableSecrets: {
             secretManager: [
                 {
@@ -221,7 +238,8 @@ export async function ingestExternalToNative(
         targetName?: string;
         region?: string;
         dbType: 'postgres' | 'mysql';
-        storageUri?: string; // GCS URI for the SQL dump
+        storageUri?: string; // GCS URI for the SQL dump (or folder for multi-db)
+        databases?: string | string[]; // Comma separated or array of database names (Phase 132)
     }
 ): Promise<IngestionResult> {
     try {
@@ -233,7 +251,16 @@ export async function ingestExternalToNative(
         const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
         const region = options.region || project.region || 'us-central1';
         const targetInstanceName = options.targetName || `${sourceStorage.name.toLowerCase().replace(/\s+/g, '-')}-native`;
-        const dbName = 'app'; // Default DB name
+
+        // Normalize databases (Phase 132)
+        let dbsToIngest: string[] = [];
+        if (Array.isArray(options.databases)) {
+            dbsToIngest = options.databases;
+        } else if (typeof options.databases === 'string') {
+            dbsToIngest = options.databases.split(',').map(s => s.trim()).filter(Boolean);
+        }
+
+        if (dbsToIngest.length === 0) dbsToIngest = ['app'];
 
         // 1. Provision Cloud SQL
         const { operationName } = await createInstance(
@@ -262,7 +289,8 @@ export async function ingestExternalToNative(
                 resourceName: targetInstanceName,
                 operationName,
                 ingestedFrom: sourceStorageId,
-                ingestionStage: 'PROVISIONING_INSTANCE'
+                ingestionStage: 'PROVISIONING_INSTANCE',
+                totalDatabases: dbsToIngest.length
             },
             createdAt: new Date(),
             updatedAt: new Date()
@@ -277,20 +305,28 @@ export async function ingestExternalToNative(
 
         if (!storageUri && sourceStorage.connectionStringSecretId) {
             const bucket = `${gcpProjectId}_deployify_ingestion`;
-            storageUri = `gs://${bucket}/dumps/${sourceStorage.id}-${Date.now()}.sql`;
+            // Use a folder for multi-db dumps
+            storageUri = `gs://${bucket}/dumps/${sourceStorage.id}-${Date.now()}/`;
 
             try {
-                dumpBuildId = await runExternalDump(projectId, sourceStorage, storageUri);
+                dumpBuildId = await runExternalDump(projectId, sourceStorage, storageUri, dbsToIngest);
             } catch (dumpErr) {
                 console.warn('[Ingestion] Failed to trigger automated dump:', dumpErr);
             }
         }
 
         if (storageUri) {
+            // Setup pending imports queue (Phase 132)
+            const pendingImports = dbsToIngest.map(db => ({
+                database: db,
+                uri: storageUri?.endsWith('.sql') ? storageUri : `${storageUri}${db}.sql`
+            }));
+
             newStorage.metadata = {
                 ...newStorage.metadata,
-                pendingImportUri: storageUri,
-                importDatabase: dbName,
+                pendingImports,
+                currentImportIndex: 0,
+                baseIngestionUri: storageUri,
                 dumpBuildId
             };
             await updateProject(projectId, { storageConfigs: updatedConfigs.map(s => s.id === targetStorageId ? newStorage : s) });

@@ -793,7 +793,7 @@ export async function GET(
                     status: 'active',
                     message: 'Automated failover completed successfully. New primary promoted.'
                 });
-            } else if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import') {
+            } else if (lastOp === 'import' || lastOp === 'export' || lastOp === 'clone_export' || lastOp === 'clone_import' || lastOp === 'ingestion_db_create') {
                 if (lastOp === 'clone_export') {
                     // Export finished, now trigger Import on the clone
                     try {
@@ -832,27 +832,130 @@ export async function GET(
                         storage.status = 'error';
                         storage.lastError = `Export complete, but import trigger failed: ${importErr instanceof Error ? importErr.message : 'Unknown'}`;
                     }
+                } else if (lastOp === 'ingestion_db_create') {
+                    // Database created, now trigger import for this database
+                    const pendingImports = storage.metadata?.pendingImports as Array<{ database: string, uri: string }> | undefined;
+                    const currentIndex = (storage.metadata?.currentImportIndex as number) ?? 0;
+                    const currentImport = pendingImports?.[currentIndex];
+                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+
+                    if (currentImport) {
+                        try {
+                            const { importInstance } = await import('@/lib/gcp/cloudsql');
+                            const importOp = await importInstance(instanceName, currentImport.uri, currentImport.database);
+
+                            storage.metadata = {
+                                ...storage.metadata,
+                                operationName: importOp,
+                                lastOperation: 'import',
+                                ingestionStage: `IMPORTING_DATABASE_${currentIndex + 1}_OF_${pendingImports?.length}`
+                            };
+                            storageConfigs[index] = storage;
+                            await updateProject(id, { storageConfigs });
+                            return NextResponse.json({
+                                success: true,
+                                status: 'provisioning',
+                                message: `Database ${currentImport.database} created. Starting import...`
+                            });
+                        } catch (importErr) {
+                            console.error(`[Ingestion] Failed to trigger import for ${currentImport.database}:`, importErr);
+                            storage.status = 'error';
+                            storage.lastError = `Import failed for ${currentImport.database}: ${importErr instanceof Error ? importErr.message : 'Unknown'}`;
+                        }
+                    }
                 } else {
-                    // Normal import/export or final clone_import finished
-                    storage.status = 'active';
-                    storage.lastSyncedAt = now;
-                    storage.updatedAt = now;
-                    storage.metadata = {
-                        ...storage.metadata,
-                        lastOperation: undefined,
-                        operationName: undefined,
-                        portabilityUri: lastOp === 'clone_import' ? undefined : storage.metadata?.portabilityUri
-                    };
+                    // Phase 132: Multi-database Ingestion Orchestration
+                    const pendingImports = storage.metadata?.pendingImports as Array<{ database: string, uri: string }> | undefined;
+                    const currentIndex = (storage.metadata?.currentImportIndex as number) ?? 0;
 
-                    storageConfigs[index] = storage;
-                    await updateProject(id, { storageConfigs });
+                    if (pendingImports && currentIndex < pendingImports.length - 1) {
+                        // More imports pending - Trigger NEXT database creation
+                        const nextIndex = currentIndex + 1;
+                        const nextImport = pendingImports[nextIndex];
+                        const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
 
-                    return NextResponse.json({
-                        success: true,
-                        status: 'active',
-                        message: `${lastOp === 'clone_import' ? 'Clone with data' : (lastOp === 'import' ? 'Import' : 'Export')} completed successfully`,
-                        lastSyncedAt: storage.lastSyncedAt.toISOString()
-                    });
+                        try {
+                            const { createDatabase } = await import('@/lib/gcp/cloudsql');
+                            const dbOp = await createDatabase(instanceName, nextImport.database);
+
+                            storage.metadata = {
+                                ...storage.metadata,
+                                operationName: dbOp,
+                                lastOperation: 'ingestion_db_create',
+                                currentImportIndex: nextIndex,
+                                ingestionStage: `CREATING_DATABASE_${nextIndex + 1}_OF_${pendingImports.length}`
+                            };
+
+                            storageConfigs[index] = storage;
+                            await updateProject(id, { storageConfigs });
+
+                            return NextResponse.json({
+                                success: true,
+                                status: 'provisioning',
+                                message: `Import for database ${currentIndex + 1} complete. Creating database ${nextImport.database}...`
+                            });
+
+                        } catch (dbErr) {
+                            // If database creation fails (e.g. already exists), try to skip to import
+                            console.warn(`[Ingestion] Database creation failed for ${nextImport.database}, attempting direct import:`, dbErr);
+                            try {
+                                const { importInstance } = await import('@/lib/gcp/cloudsql');
+                                const importOp = await importInstance(instanceName, nextImport.uri, nextImport.database);
+                                storage.metadata = {
+                                    ...storage.metadata,
+                                    operationName: importOp,
+                                    lastOperation: 'import',
+                                    currentImportIndex: nextIndex,
+                                    ingestionStage: `IMPORTING_DATABASE_${nextIndex + 1}_OF_${pendingImports.length}`
+                                };
+                                await updateProject(id, { storageConfigs });
+                                return NextResponse.json({ success: true, status: 'provisioning', message: `Database ${nextImport.database} already exists. Starting import...` });
+                            } catch (importErr) {
+                                storage.status = 'error';
+                                storage.lastError = `Failed to process ${nextImport.database}: ${importErr instanceof Error ? importErr.message : 'Unknown'}`;
+                            }
+                        }
+                    } else {
+                        // Normal import/export or final clone_import / multi-db ingestion finished
+                        storage.status = 'active';
+                        storage.lastSyncedAt = now;
+                        storage.updatedAt = now;
+
+                        const baseIngestionUri = storage.metadata?.baseIngestionUri as string;
+
+                        // Phase 132: Automated GCS Cleanup
+                        if (baseIngestionUri) {
+                            try {
+                                const { deleteFolder } = await import('@/lib/gcp/gcs');
+                                await deleteFolder(baseIngestionUri);
+                                console.log(`[IngestionCleanup] Successfully cleaned up GCS artifacts at ${baseIngestionUri}`);
+                            } catch (cleanupErr) {
+                                console.warn(`[IngestionCleanup] Failed to cleanup GCS:`, cleanupErr);
+                            }
+                        }
+
+                        storage.metadata = {
+                            ...storage.metadata,
+                            lastOperation: undefined,
+                            operationName: undefined,
+                            portabilityUri: lastOp === 'clone_import' ? undefined : storage.metadata?.portabilityUri,
+                            baseIngestionUri: undefined,
+                            pendingImports: undefined,
+                            currentImportIndex: undefined,
+                            ingestionStage: storage.metadata?.ingestedFrom ? 'COMPLETED' : undefined,
+                            readyForCutover: !!storage.metadata?.ingestedFrom
+                        };
+
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+
+                        return NextResponse.json({
+                            success: true,
+                            status: 'active',
+                            message: `${lastOp === 'clone_import' ? 'Clone with data' : (lastOp === 'import' ? 'Import' : 'Export')} completed successfully`,
+                            lastSyncedAt: storage.lastSyncedAt.toISOString()
+                        });
+                    }
                 }
             }
 
@@ -915,11 +1018,11 @@ export async function GET(
                             if (userStatus.error) throw new Error(`User creation failed: ${userStatus.error}`);
                             storage.metadata = { ...storage.metadata, userCreated: true };
 
-                            // Phase 117: Trigger Import if data ingestion is pending
-                            const pendingImportUri = storage.metadata?.pendingImportUri as string;
+                            // Phase 132: Multi-database Ingestion Entry Point
+                            const pendingImports = storage.metadata?.pendingImports as Array<{ database: string, uri: string }> | undefined;
                             const dumpBuildStatus = storage.metadata?.dumpBuildStatus as string;
 
-                            if (pendingImportUri) {
+                            if (pendingImports && pendingImports.length > 0) {
                                 if (storage.metadata?.dumpBuildId && dumpBuildStatus !== 'SUCCESS') {
                                     // Wait for dump build to finish before starting import
                                     storageConfigs[index] = storage;
@@ -932,26 +1035,45 @@ export async function GET(
                                 }
 
                                 try {
-                                    const { importInstance } = await import('@/lib/gcp/cloudsql');
-                                    const importDatabase = (storage.metadata?.importDatabase as string) || project.slug;
-                                    const importOp = await importInstance(instanceName, pendingImportUri, importDatabase);
+                                    const { createDatabase } = await import('@/lib/gcp/cloudsql');
+                                    const firstImport = pendingImports[0];
+
+                                    // 1. Trigger first database creation (Phase 132)
+                                    const dbOp = await createDatabase(instanceName, firstImport.database);
 
                                     storage.metadata = {
                                         ...storage.metadata,
-                                        operationName: importOp,
-                                        lastOperation: 'import',
-                                        ingestionStage: 'IMPORTING_DATA'
+                                        operationName: dbOp,
+                                        lastOperation: 'ingestion_db_create',
+                                        currentImportIndex: 0,
+                                        ingestionStage: `CREATING_DATABASE_1_OF_${pendingImports.length}`
                                     };
                                     await updateProject(id, { storageConfigs });
                                     return NextResponse.json({
                                         success: true,
                                         status: 'provisioning',
-                                        message: 'Cloud SQL ready. Starting data import...'
+                                        message: `Cloud SQL ready. Creating database ${firstImport.database}...`
                                     });
-                                } catch (importErr) {
-                                    console.error(`[Ingestion] Failed to trigger final import for ${storageId}:`, importErr);
-                                    storage.status = 'error';
-                                    storage.lastError = `Instance ready, but data import failed: ${importErr instanceof Error ? importErr.message : 'Unknown'}`;
+                                } catch (dbErr) {
+                                    // Fallback: If creation fails, try to trigger import immediately
+                                    console.warn(`[Ingestion] First database creation failed, attempting direct import:`, dbErr);
+                                    try {
+                                        const { importInstance } = await import('@/lib/gcp/cloudsql');
+                                        const firstImport = pendingImports[0];
+                                        const importOp = await importInstance(instanceName, firstImport.uri, firstImport.database);
+                                        storage.metadata = {
+                                            ...storage.metadata,
+                                            operationName: importOp,
+                                            lastOperation: 'import',
+                                            currentImportIndex: 0,
+                                            ingestionStage: `IMPORTING_DATABASE_1_OF_${pendingImports.length}`
+                                        };
+                                        await updateProject(id, { storageConfigs });
+                                        return NextResponse.json({ success: true, status: 'provisioning', message: `Database ${firstImport.database} exists. Starting import...` });
+                                    } catch (importErr) {
+                                        storage.status = 'error';
+                                        storage.lastError = `Instance ready, but data import failed: ${importErr instanceof Error ? importErr.message : 'Unknown'}`;
+                                    }
                                 }
                             } else {
                                 storage.status = 'active';

@@ -218,6 +218,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isIngesting, setIsIngesting] = useState<StorageConfig | null>(null);
     const [ingestTargetName, setIngestTargetName] = useState('');
     const [ingestRegion, setIngestRegion] = useState('');
+    const [ingestDatabases, setIngestDatabases] = useState('app');
     const [ingestStorageUri, setIngestStorageUri] = useState('');
     const [isFinalizingCutover, setIsFinalizingCutover] = useState<StorageConfig | null>(null);
     const [cutoverValidate, setCutoverValidate] = useState(true);
@@ -1062,13 +1063,15 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     targetName: ingestTargetName,
                     region: ingestRegion,
                     dbType: isIngesting.type.includes('postgres') || isIngesting.type === 'supabase' || isIngesting.type === 'neon' ? 'postgres' : 'mysql',
-                    storageUri: ingestStorageUri
+                    storageUri: ingestStorageUri,
+                    databases: ingestDatabases
                 }),
             });
             const data = await response.json();
             if (data.success) {
                 setIsIngesting(null);
                 setIngestTargetName('');
+                setIngestDatabases('app');
                 setIngestStorageUri('');
                 if (onUpdate) onUpdate();
                 toast.success('Migration to GCP Native started');
@@ -1929,6 +1932,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {config.status === 'error' && config.lastError && (
                                                 <span className="text-[8px] font-bold text-[var(--error)] uppercase truncate max-w-[200px]" title={config.lastError}>
                                                     — {config.lastError}
+                                                </span>
+                                            )}
+                                            {config.status === 'provisioning' && config.metadata?.ingestionStage && (
+                                                <span className="text-[8px] font-bold text-[var(--primary)] uppercase animate-pulse">
+                                                    — {String(config.metadata.ingestionStage).replace(/_/g, ' ')}
                                                 </span>
                                             )}
                                             {(config.metadata?.security as { risks: Array<{ id: string, level: string, title: string }> })?.risks?.filter(risk =>
@@ -3766,15 +3774,28 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         <div className="space-y-2">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Databases to Migrate (Comma separated)</Label>
+                            <Input
+                                value={ingestDatabases}
+                                onChange={(e) => setIngestDatabases(e.target.value)}
+                                placeholder="app, auth, analytics"
+                                className="h-8 text-[8px] font-bold uppercase"
+                            />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">
+                                DEPLOYIFY WILL PERFORM SEQUENTIAL DUMPS AND IMPORTS FOR EACH DATABASE LISTED.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
                             <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Source SQL Dump URI (Optional)</Label>
                             <Input
                                 value={ingestStorageUri}
                                 onChange={(e) => setIngestStorageUri(e.target.value)}
-                                placeholder="GS://MY-BUCKET/BACKUP.SQL"
+                                placeholder="GS://MY-BUCKET/DUMPS/"
                                 className="h-8 text-[8px] font-mono"
                             />
                             <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">
-                                IF PROVIDED, DEPLOYIFY WILL AUTOMATICALLY IMPORT THIS FILE INTO THE NEW INSTANCE.
+                                IF PROVIDED, DEPLOYIFY WILL AUTOMATICALLY IMPORT FILES FROM THIS PATH (MATCHING DB NAMES).
                             </p>
                         </div>
 
