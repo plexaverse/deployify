@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getDb, Collections } from '@/lib/firebase';
-import { getQueryInsights } from '@/lib/gcp/monitoring';
+import { getQueryInsights, getExternalQueryInsights } from '@/lib/gcp/monitoring';
+import { getSecretValue } from '@/lib/gcp/secrets';
 import type { StorageConfig } from '@/types';
 
 /**
@@ -117,6 +118,7 @@ export async function GET(
             .sort((a, b) => b.avgLatency - a.avgLatency)
             .slice(0, 5);
 
+
         // Fetch production query insights if available
         let queryInsights: { query: string, avgLatency: number, count: number }[] = [];
         try {
@@ -126,10 +128,26 @@ export async function GET(
                 const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                 const dbType = storage.type === 'cloud-sql-mysql' ? 'mysql' : 'postgresql';
                 queryInsights = await getQueryInsights(resourceName, dbType);
+            } else if (storage && ['neon', 'supabase', 'planetscale'].includes(storage.type)) {
+                let connectionString = '';
+                if (storage.metadata?.connectionString) {
+                    connectionString = storage.metadata.connectionString as string;
+                } else if (storage.connectionStringSecretId) {
+                    try {
+                        connectionString = await getSecretValue(storage.connectionStringSecretId);
+                    } catch (e) {
+                        console.error(`[MetricsAPI] Failed to fetch secret for ${storage.id}`, e);
+                    }
+                }
+
+                if (connectionString) {
+                    queryInsights = await getExternalQueryInsights(storage.type, connectionString);
+                }
             }
         } catch (insightsErr) {
             console.warn(`[MetricsAPI] Failed to fetch query insights for ${storageId}:`, insightsErr);
         }
+
 
         return NextResponse.json({
             success: true,

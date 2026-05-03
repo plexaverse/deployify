@@ -759,6 +759,14 @@ Deployify adopts a three-tier "Connector" model to standardize database lifecycl
 
 ## Progress Updates
 
+### 2026-05-03: Completed Phase 133: Connectivity Intelligence
+- Completed Phase 133: Connectivity Intelligence - Proxy-less Query Sampling.
+- Implemented `getExternalQueryInsights` utility in `src/lib/gcp/monitoring.ts` to fetch proxy-less query execution metrics directly from external databases.
+- Utilized native DB extensions (`pg_stat_statements` for PostgreSQL/Neon/Supabase and `performance_schema.events_statements_summary_by_digest` for MySQL/PlanetScale).
+- Updated `query-insights` API route to utilize the new utility for external connectors.
+- Integrated accurate production statistics into the `metrics` API route, replacing fallback proxy-based metrics for non-GCP-native storage.
+
+
 ### 2027-06-23: Completed Phase 115: Automated Connection Pooling Orchestration
 - Completed Phase 115: Automated Connection Pooling Orchestration & VPC-SC Governance.
 - Launched Automated Connection Pooling Orchestration for Cloud SQL, enabling one-click PgBouncer activation directly from saturation alerts in the Storage dashboard.
@@ -1018,10 +1026,10 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Enhance ingestion tracking to support multi-database SQL dumps.
 - [x] Implement automated GCS cleanup for post-ingestion dump artifacts.
 
-### Phase 133: Connectivity Intelligence - Proxy-less Query Sampling
-- [ ] Implement middleware-based query sampling for external connectors.
-- [ ] Create Query Analytics bridge for non-GCP-native storage.
-- [ ] Surface external query hotspots in the Data Lab Insights dashboard.
+### Phase 133: Connectivity Intelligence - Proxy-less Query Sampling (COMPLETED)
+- [x] Implement middleware-based query sampling for external connectors.
+- [x] Create Query Analytics bridge for non-GCP-native storage.
+- [x] Surface external query hotspots in the Data Lab Insights dashboard.
 
 ### Phase 134: Global Infrastructure Portability - Cross-Project Resource Sharing
 - [ ] Implement "Resource Invitation" system for sharing connectors between team projects.

@@ -1,5 +1,7 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
+import { Client as PgClient } from 'pg';
+import mysql from 'mysql2/promise';
 import { getSecretValue } from './secrets';
 import { calculateEWMA, isDegraded } from './health-utils';
 import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile } from '@/types';
@@ -617,6 +619,88 @@ export async function getQueryInsights(
 /**
  * Detect long-running or resource-intensive queries (Performance Guardrails)
  */
+
+/**
+ * Fetch proxy-less query execution metrics directly from the external databases
+ * Uses pg_stat_statements for PostgreSQL/Neon/Supabase and
+ * performance_schema.events_statements_summary_by_digest for MySQL/PlanetScale
+ */
+export async function getExternalQueryInsights(
+    storageType: string,
+    connectionString: string,
+    limit: number = 5
+): Promise<{ query: string, avgLatency: number, count: number }[]> {
+    if (process.env.MOCK_DB === 'true') {
+        return [
+            { query: 'SELECT * FROM products WHERE category = "electronics" ORDER BY price DESC', avgLatency: 1450, count: 24 },
+            { query: 'SELECT u.name, COUNT(o.id) FROM users u JOIN orders o ON u.id = o.user_id GROUP BY u.id', avgLatency: 920, count: 156 },
+            { query: 'UPDATE inventory SET stock = stock - 1 WHERE product_id = ?', avgLatency: 450, count: 890 },
+            { query: 'SELECT * FROM logs WHERE severity = "ERROR" AND timestamp > NOW() - INTERVAL 1 DAY', avgLatency: 320, count: 45 },
+            { query: 'SELECT DISTINCT city FROM users', avgLatency: 150, count: 1200 }
+        ].slice(0, limit);
+    }
+
+    try {
+        if (storageType === 'neon' || storageType === 'supabase' || storageType === 'cloud-sql-postgres') {
+            const client = new PgClient({
+                connectionString,
+                ssl: storageType !== 'cloud-sql-postgres' ? { rejectUnauthorized: false } : undefined
+            });
+
+            try {
+                await client.connect();
+                // Query pg_stat_statements
+                const res = await client.query(`
+                    SELECT query, calls, mean_exec_time
+                    FROM pg_stat_statements
+                    WHERE query NOT LIKE '%pg_stat_statements%'
+                      AND query NOT LIKE '%EXPLAIN%'
+                    ORDER BY mean_exec_time DESC
+                    LIMIT $1
+                `, [limit]);
+
+                return res.rows.map(row => ({
+                    query: row.query,
+                    avgLatency: Math.round(row.mean_exec_time),
+                    count: parseInt(row.calls, 10)
+                }));
+            } finally {
+                await client.end();
+            }
+        } else if (storageType === 'planetscale' || storageType === 'cloud-sql-mysql') {
+            const connection = await mysql.createConnection({
+                uri: connectionString,
+                ssl: storageType === 'planetscale' ? { rejectUnauthorized: true } : undefined
+            });
+
+            try {
+                const [rows] = await connection.execute(`
+                    SELECT DIGEST_TEXT as query, COUNT_STAR as calls, AVG_TIMER_WAIT / 1000000000 as mean_exec_time
+                    FROM performance_schema.events_statements_summary_by_digest
+                    WHERE DIGEST_TEXT IS NOT NULL
+                      AND DIGEST_TEXT NOT LIKE '%events_statements_summary_by_digest%'
+                      AND DIGEST_TEXT NOT LIKE '%EXPLAIN%'
+                    ORDER BY AVG_TIMER_WAIT DESC
+                    LIMIT ?
+                `, [limit]);
+
+                return (rows as { query: string, calls: string, mean_exec_time: number }[]).map(row => ({
+                    query: row.query,
+                    avgLatency: Math.round(row.mean_exec_time),
+                    count: parseInt(row.calls, 10)
+                }));
+            } finally {
+                await connection.end();
+            }
+        }
+
+        return [];
+    } catch (error) {
+        console.error(`Failed to fetch external query insights for ${storageType}:`, error);
+        return [];
+    }
+}
+
 export async function getLongRunningQueries(
     instanceId: string,
 
