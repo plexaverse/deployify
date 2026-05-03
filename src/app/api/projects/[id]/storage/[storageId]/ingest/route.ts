@@ -26,13 +26,14 @@ export async function POST(
 
         const { project } = access;
         const body = await req.json();
-        const { targetName, region, dbType, storageUri } = body;
+        const { targetName, region, dbType, storageUri, databases } = body;
 
         const result = await ingestExternalToNative(projectId, storageId, project, {
             targetName,
             region,
             dbType: dbType || 'postgres',
-            storageUri
+            storageUri,
+            databases
         });
 
         if (!result.success) {
