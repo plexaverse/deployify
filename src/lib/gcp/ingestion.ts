@@ -93,7 +93,8 @@ export async function orchestrateCutover(
     projectId: string,
     sourceStorageId: string,
     targetStorageId: string,
-    userId: string
+    userId: string,
+    options: { validate?: boolean } = {}
 ): Promise<{ success: boolean; message: string; error?: string }> {
     try {
         const project = await getProjectById(projectId);
@@ -103,6 +104,24 @@ export async function orchestrateCutover(
         const targetStorage = project.storageConfigs?.find(s => s.id === targetStorageId);
 
         if (!sourceStorage || !targetStorage) throw new Error('Connectors not found');
+
+        // Phase 132: Readiness Validation Pass
+        if (options.validate) {
+            const { validateConnection } = await import('./storage-validator');
+            const result = await validateConnection(
+                targetStorage.type,
+                targetStorage.connectionStringSecretId,
+                targetStorage.metadata
+            );
+
+            if (!result.valid) {
+                return {
+                    success: false,
+                    message: 'Pre-cutover validation failed. Native connector is not yet reachable.',
+                    error: result.error
+                };
+            }
+        }
 
         // 1. Fetch all projects in the workspace (Team or Personal)
         let workspaceProjects: Project[] = [];

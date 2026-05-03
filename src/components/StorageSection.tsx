@@ -220,6 +220,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [ingestRegion, setIngestRegion] = useState('');
     const [ingestStorageUri, setIngestStorageUri] = useState('');
     const [isFinalizingCutover, setIsFinalizingCutover] = useState<StorageConfig | null>(null);
+    const [cutoverValidate, setCutoverValidate] = useState(true);
     const [isShowingTopology, setIsShowingTopology] = useState<StorageConfig | null>(null);
     const [preFlightStatus, setPreFlightStatus] = useState<{ loading: boolean, valid?: boolean, error?: string, latency?: number } | null>(null);
     const [expandedHealthId, setExpandedHealthId] = useState<string | null>(null);
@@ -1030,7 +1031,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    sourceStorageId: isFinalizingCutover.metadata?.ingestedFrom
+                    sourceStorageId: isFinalizingCutover.metadata?.ingestedFrom,
+                    validate: cutoverValidate
                 }),
             });
             const data = await response.json();
@@ -2050,13 +2052,27 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] mt-0.5">THIS WILL RE-POINT ALL DEPENDENT SERVICES TO THE NEW GCP NATIVE RESOURCE.</p>
                                                     </div>
                                                 </div>
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => setIsFinalizingCutover(config)}
-                                                    className="h-7 px-3 text-[8px] font-bold uppercase bg-[var(--primary)] hover:bg-[var(--primary)]/90 shrink-0"
-                                                >
-                                                    Finalize Cutover
-                                                </Button>
+                                                <div className="flex flex-col gap-2 shrink-0">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setIsTroubleshooting(config);
+                                                            setTimeout(handleDiagnose, 100);
+                                                        }}
+                                                        className="h-7 px-3 text-[8px] font-bold uppercase border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                                    >
+                                                        Verify Readiness
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        onClick={() => setIsFinalizingCutover(config)}
+                                                        className="h-7 px-3 text-[8px] font-bold uppercase bg-[var(--primary)] hover:bg-[var(--primary)]/90"
+                                                    >
+                                                        Finalize Cutover
+                                                    </Button>
+                                                </div>
                                             </div>
                                         )}
                                         {(config.metadata?.workloadShift as unknown as WorkloadShift)?.shifted && (
@@ -2651,6 +2667,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         <p className="text-[10px]">
                             This operation will update the storage connector reference in all projects within your workspace that were using the source external connector. Credentials will be re-injected automatically.
                         </p>
+
+                        <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                            <div className="space-y-0.5">
+                                <Label className="text-[10px] font-bold">Pre-cutover Validation</Label>
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Verify connectivity before re-pointing traffic</p>
+                            </div>
+                            <input
+                                type="checkbox"
+                                checked={cutoverValidate}
+                                onChange={(e) => setCutoverValidate(e.target.checked)}
+                                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
+                            />
+                        </div>
 
                         <div className="p-3 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl flex items-start gap-2">
                             <AlertCircle className="w-3.5 h-3.5 text-[var(--error)] shrink-0 mt-0.5" />

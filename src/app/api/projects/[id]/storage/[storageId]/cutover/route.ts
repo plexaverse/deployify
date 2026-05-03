@@ -31,7 +31,15 @@ export async function POST(
             return NextResponse.json({ error: 'Source storage ID is required' }, { status: 400 });
         }
 
-        const result = await orchestrateCutover(projectId, sourceStorageId, targetStorageId, session.user.id);
+        const { validate } = body;
+
+        const result = await orchestrateCutover(
+            projectId,
+            sourceStorageId,
+            targetStorageId,
+            session.user.id,
+            { validate: !!validate }
+        );
 
         if (!result.success) {
             return NextResponse.json(result, { status: 400 });
