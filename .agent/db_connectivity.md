@@ -1012,6 +1012,27 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement severity filtering and keyword search for rapid log analysis.
 - [x] Standardize new log viewer elements to the platform's high-density aesthetic.
 
+### Phase 132: Universal Migration Cutover & Ingestion Resilience (IN-PROGRESS)
+- [x] Implement pre-cutover validation pass in `orchestrateCutover` for credential reachability.
+- [x] Add "Dry-run" verification triggers in the Storage Section UI.
+- [ ] Enhance ingestion tracking to support multi-database SQL dumps.
+- [ ] Implement automated GCS cleanup for post-ingestion dump artifacts.
+
+### Phase 133: Connectivity Intelligence - Proxy-less Query Sampling
+- [ ] Implement middleware-based query sampling for external connectors.
+- [ ] Create Query Analytics bridge for non-GCP-native storage.
+- [ ] Surface external query hotspots in the Data Lab Insights dashboard.
+
+### Phase 134: Global Infrastructure Portability - Cross-Project Resource Sharing
+- [ ] Implement "Resource Invitation" system for sharing connectors between team projects.
+- [ ] Automate cross-project IAM Secret Accessor grants during resource mounting.
+- [ ] Add "Shared with me" indicators to the Infrastructure Fleet dashboard.
+
+### Phase 135: Predictive Connectivity Resilience
+- [ ] Implement "Latency Anomaly Forecasting" based on historical Health History data.
+- [ ] Add proactive "Migration Recommendation" alerts for high-jitter regional connectors.
+- [ ] Automate read-replica scaling suggestions based on predictive saturation models.
+
 ### 2027-07-08: Completed Phase 131: Integrated Database Engine Log Streaming
 - Completed Phase 131: Integrated Database Engine Log Streaming & Error Analytics.
 - Implemented `getDatabaseLogs` utility leveraging the GCP Logging API (`entries:list`) to fetch engine logs for Cloud SQL instances.
