@@ -1934,9 +1934,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     — {config.lastError}
                                                 </span>
                                             )}
-                                            {config.status === 'provisioning' && config.metadata?.ingestionStage && (
+                                            {config.status === 'provisioning' && !!config.metadata?.ingestionStage && (
                                                 <span className="text-[8px] font-bold text-[var(--primary)] uppercase animate-pulse">
-                                                    — {String(config.metadata.ingestionStage).replace(/_/g, ' ')}
+                                                    — {String(config.metadata?.ingestionStage || '').replace(/_/g, ' ')}
                                                 </span>
                                             )}
                                             {(config.metadata?.security as { risks: Array<{ id: string, level: string, title: string }> })?.risks?.filter(risk =>
