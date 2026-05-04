@@ -144,6 +144,8 @@ export interface Project {
     vpcSubnet?: string; // VPC Subnet name
     githubToken?: string | null; // Stored OAuth token for private repo access
     analyticsApiKey?: string; // API key for internal analytics collector
+    globalIpAddress?: string | null; // Global Load Balancer IP
+    cloudArmorMode?: 'detection' | 'prevention' | null; // WAF mode
     resources?: {
         cpu?: number;
         memory?: string;

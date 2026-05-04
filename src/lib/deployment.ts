@@ -3,6 +3,8 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -136,6 +138,29 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Global Edge Acceleration & Advanced Security (Deployify Edge)
+            // Apply GLB, CDN, and Armor automatically for production services without custom domains
+            if (deployment.type === 'production') {
+                const project = await getProjectById(projectId);
+                if (project && !project.customDomain) {
+                    console.log(`[Deployify Edge] Provisioning Global Load Balancer for ${projectSlug}...`);
+                    try {
+                        const serviceName = generateServiceName(projectSlug);
+                        const { ipAddress } = await createGlobalLoadBalancer(serviceName, region);
+
+                        await enableCloudCdn(`${serviceName}-backend`);
+                        await enableCloudArmor(serviceName);
+
+                        await updateProject(projectId, {
+                            globalIpAddress: ipAddress,
+                        });
+                        console.log(`[Deployify Edge] Global Edge Acceleration active at ${ipAddress}`);
+                    } catch (edgeErr) {
+                        console.error('[Deployify Edge] Failed to provision edge resources:', edgeErr);
+                    }
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
