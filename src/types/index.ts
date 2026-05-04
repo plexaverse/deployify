@@ -515,6 +515,7 @@ export interface StorageConfig {
     connectionSaturation?: number;
     topology?: ConnectivityTopology;
     labelingStatus?: 'PENDING' | 'SYNCED' | 'FAILED';
+    sharedWithProjects?: string[]; // IDs of projects this connector is shared with
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
