@@ -171,7 +171,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isLoadingLogs, setIsLoadingLogs] = useState(false);
     const [isManagingTelemetry, setIsManagingTelemetry] = useState<StorageConfig | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [telemetryData, setTelemetryData] = useState<any[]>([]);
+    const [telemetryData, setTelemetryData] = useState<any>(null);
     const [isLoadingTelemetry, setIsLoadingTelemetry] = useState(false);
     const [isManagingSharing, setIsManagingSharing] = useState<StorageConfig | null>(null);
     const [logSeverity, setLogSeverity] = useState('');
@@ -4671,40 +4671,40 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
                                 <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Processing telemetry data...</span>
                             </div>
-                        ) : !telemetryData || (Array.isArray(telemetryData) && telemetryData.length === 0) || (typeof telemetryData === 'object' && !telemetryData.summary) ? (
+                        ) : !telemetryData || (Array.isArray(telemetryData) && (telemetryData as any[]).length === 0) || (typeof telemetryData === 'object' && !Array.isArray(telemetryData) && !(telemetryData as any).summary) ? (
                             <div className="py-20 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <Activity className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto mb-3" />
                                 <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No telemetry data received yet</p>
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && telemetryData.summary && (
+                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && (telemetryData as any).summary && (
                                     <div className="grid grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2">
                                         <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                             <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">P99 Latency</span>
-                                            <span className={cn("text-[10px] font-mono font-bold", telemetryData.summary.p99 > 500 ? "text-[var(--error)]" : "text-[var(--primary)]")}>
-                                                {telemetryData.summary.p99}ms
+                                            <span className={cn("text-[10px] font-mono font-bold", (telemetryData as any).summary.p99 > 500 ? "text-[var(--error)]" : "text-[var(--primary)]")}>
+                                                {(telemetryData as any).summary.p99}ms
                                             </span>
                                         </div>
                                         <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                             <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Error Rate</span>
-                                            <span className={cn("text-[10px] font-mono font-bold", telemetryData.summary.errorRate > 5 ? "text-[var(--error)]" : "text-[var(--success)]")}>
-                                                {telemetryData.summary.errorRate}%
+                                            <span className={cn("text-[10px] font-mono font-bold", (telemetryData as any).summary.errorRate > 5 ? "text-[var(--error)]" : "text-[var(--success)]")}>
+                                                {(telemetryData as any).summary.errorRate}%
                                             </span>
                                         </div>
                                         <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                             <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Requests (24H)</span>
-                                            <span className="text-[10px] font-mono font-bold">{telemetryData.summary.totalRequests}</span>
+                                            <span className="text-[10px] font-mono font-bold">{(telemetryData as any).summary.totalRequests}</span>
                                         </div>
                                     </div>
                                 )}
 
-                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && telemetryData.timeseries && (
+                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && (telemetryData as any).timeseries && (
                                     <div className="space-y-3">
                                         <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Performance Trend (24H)</Label>
                                         <div className="h-32 flex items-end gap-1.5 px-2 pb-2 border-b border-[var(--border)] bg-[var(--card)] rounded-xl relative overflow-hidden">
-                                            {telemetryData.timeseries.map((point: any, i: number) => {
-                                                const maxLatency = Math.max(...telemetryData.timeseries.map((p: any) => p.avgLatency), 1);
+                                            {(telemetryData as any).timeseries.map((point: any, i: number) => {
+                                                const maxLatency = Math.max(...(telemetryData as any).timeseries.map((p: any) => p.avgLatency), 1);
                                                 const height = (point.avgLatency / maxLatency) * 80;
                                                 return (
                                                     <div key={i} className="flex-1 bg-[var(--primary)]/20 border-t-2 border-[var(--primary)] rounded-t-sm transition-all hover:bg-[var(--primary)]/40 relative group/point" style={{ height: `${height}%` }}>
@@ -4720,11 +4720,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     </div>
                                 )}
 
-                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && telemetryData.insights && (
+                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && (telemetryData as any).insights && (
                                     <div className="space-y-3">
                                         <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Top Query Bottlenecks</Label>
                                         <div className="space-y-2">
-                                            {telemetryData.insights.map((insight: any, i: number) => (
+                                            {(telemetryData as any).insights.map((insight: any, i: number) => (
                                                 <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between group hover:border-[var(--primary)]/30 transition-all">
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-2">
@@ -4746,7 +4746,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                     <div className="space-y-3">
                                         <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Raw Telemetry Event Stream</Label>
                                         <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
-                                            {telemetryData.map((t, i) => (
+                                            {(telemetryData as any[]).map((t, i) => (
                                                 <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-2">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2">
