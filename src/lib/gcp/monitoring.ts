@@ -672,12 +672,14 @@ export function detectPerformanceAnomaly(
 }
 
 /**
- * Analyze resource metrics and provide scaling recommendations
+ * Analyze resource metrics and provide scaling recommendations.
+ * Enhanced in Phase 136 to incorporate application-runtime telemetry for deeper profiling.
  */
 export async function getScalingRecommendations(
     storageType: string,
     metrics: ResourceMetrics,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
+    telemetry?: { p90: number; p99: number; errorRate: number }
 ): Promise<ScalingRecommendation[]> {
     const recommendations: ScalingRecommendation[] = [];
     const isCloudSql = storageType.includes('cloud-sql');
@@ -804,6 +806,31 @@ export async function getScalingRecommendations(
                 currentTier: currentTier,
                 recommendedTier: isNeon ? 'LAUNCH' : 'NATIVE',
                 reason: 'Persistent serverless cold-starts or degraded latency detected. Upgrading to a provisioned or higher-performance tier will minimize request latency for critical paths.',
+                performanceGain: 'Medium'
+            });
+        }
+    }
+
+    // 6. Phase 136: Application-Aware Scaling (Telemetry-driven)
+    if (telemetry) {
+        if (telemetry.p99 > 500 && isCloudSql && !hasReplicas) {
+            recommendations.push({
+                type: 'upgrade',
+                resource: 'cpu',
+                currentTier,
+                recommendedTier: 'Higher Tier or Read Replica',
+                reason: `Application P99 latency is high (${telemetry.p99}ms). GCP metrics show moderate load, but runtime telemetry indicates query queuing or index misses. Upgrading tier or adding replicas is recommended.`,
+                performanceGain: 'High'
+            });
+        }
+
+        if (telemetry.errorRate > 5 && storageType === 'memorystore-redis') {
+            recommendations.push({
+                type: 'optimize',
+                resource: 'memory',
+                currentTier,
+                recommendedTier: 'Next Capacity Tier',
+                reason: `High application-level error rate (${telemetry.errorRate.toFixed(1)}%) detected for Redis. This often indicates connection timeouts or memory pressure not yet reflected in 1m metrics.`,
                 performanceGain: 'Medium'
             });
         }

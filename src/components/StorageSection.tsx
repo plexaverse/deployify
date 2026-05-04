@@ -1052,7 +1052,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const fetchTelemetry = useCallback(async (storageId: string) => {
         setIsLoadingTelemetry(true);
         try {
-            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/telemetry`);
+            // Phase 136: Support aggregated profiling in Telemetry UI
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/telemetry?aggregate=true`);
             const data = await response.json();
             if (data.success) {
                 setTelemetryData(data.data);
@@ -2007,20 +2008,28 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 </button>
                                             ))}
                                             {config.status === 'active' && !!config.metadata?.health && (
-                                                <span className={cn(
-                                                    "text-[8px] font-bold uppercase flex items-center gap-1",
-                                                    (config.metadata.health as { status: string }).status === 'healthy' ? "text-[var(--success)]" :
-                                                    (config.metadata.health as { status: string }).status === 'degraded' ? "text-[var(--warning)]" : "text-[var(--error)]"
-                                                )}>
-                                                    — {(config.metadata.health as { status: string }).status}
-                                                    {((config.metadata.health as { status: string }).status === 'healthy' || (config.metadata.health as { status: string }).status === 'degraded') && (
-                                                        <span className="text-[8px] font-mono opacity-60">
-                                                            ({(config.metadata.health as { latency: number }).latency}ms
-                                                            {(config.metadata.health as { baselineLatency: number }).baselineLatency && ` / BASE: ${(config.metadata.health as { baselineLatency: number }).baselineLatency}ms`}
-                                                            )
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn(
+                                                        "text-[8px] font-bold uppercase flex items-center gap-1",
+                                                        (config.metadata.health as { status: string }).status === 'healthy' ? "text-[var(--success)]" :
+                                                        (config.metadata.health as { status: string }).status === 'degraded' ? "text-[var(--warning)]" : "text-[var(--error)]"
+                                                    )}>
+                                                        — {(config.metadata.health as { status: string }).status}
+                                                        {((config.metadata.health as { status: string }).status === 'healthy' || (config.metadata.health as { status: string }).status === 'degraded') && (
+                                                            <span className="text-[8px] font-mono opacity-60">
+                                                                ({(config.metadata.health as { latency: number }).latency}ms
+                                                                {(config.metadata.health as { baselineLatency: number }).baselineLatency && ` / BASE: ${(config.metadata.health as { baselineLatency: number }).baselineLatency}ms`}
+                                                                )
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    {(config.metadata.health as { isPredictiveDegraded?: boolean }).isPredictiveDegraded && (
+                                                        <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/20 flex items-center gap-1 animate-pulse" title={`Predictive Latency Anomaly: Jitter Score ${(config.metadata.health as { jitterScore: number }).jitterScore.toFixed(3)}`}>
+                                                            <TrendingUp className="w-2.5 h-2.5" />
+                                                            PREDICTIVE RISK
                                                         </span>
                                                     )}
-                                                </span>
+                                                </div>
                                             )}
                                             {storageHealth[config.id] && storageHealth[config.id].length > 0 && (
                                                 <div className="flex items-center gap-2">
@@ -4657,42 +4666,110 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             </p>
                         </div>
 
-                        <div className="space-y-3">
-                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Live Telemetry Stream</Label>
-                            <div className="max-h-96 overflow-y-auto space-y-2 custom-scrollbar">
-                                {isLoadingTelemetry ? (
-                                    <div className="py-12 flex flex-col items-center justify-center gap-2">
-                                        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Awaiting telemetry...</span>
-                                    </div>
-                                ) : telemetryData.length === 0 ? (
-                                    <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
-                                        <Activity className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto mb-3" />
-                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No telemetry data received yet</p>
-                                    </div>
-                                ) : (
-                                    telemetryData.map((t, i) => (
-                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={cn(
-                                                        "text-[8px] font-mono font-bold px-1.5 py-0.5 rounded",
-                                                        t.success ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
-                                                    )}>
-                                                        {t.durationMs}ms
-                                                    </span>
-                                                    <span className="text-[8px] font-bold uppercase text-[var(--primary)]">{t.queryHash}</span>
-                                                </div>
-                                                <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(t.timestamp).toLocaleTimeString()}</span>
-                                            </div>
-                                            {t.error && (
-                                                <p className="text-[8px] font-bold text-[var(--error)] uppercase truncate">Error: {t.error}</p>
-                                            )}
+                        {isLoadingTelemetry ? (
+                            <div className="py-20 flex flex-col items-center justify-center gap-3">
+                                <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Processing telemetry data...</span>
+                            </div>
+                        ) : !telemetryData || (Array.isArray(telemetryData) && telemetryData.length === 0) || (typeof telemetryData === 'object' && !telemetryData.summary) ? (
+                            <div className="py-20 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                                <Activity className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto mb-3" />
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No telemetry data received yet</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && telemetryData.summary && (
+                                    <div className="grid grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2">
+                                        <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">P99 Latency</span>
+                                            <span className={cn("text-[10px] font-mono font-bold", telemetryData.summary.p99 > 500 ? "text-[var(--error)]" : "text-[var(--primary)]")}>
+                                                {telemetryData.summary.p99}ms
+                                            </span>
                                         </div>
-                                    ))
+                                        <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Error Rate</span>
+                                            <span className={cn("text-[10px] font-mono font-bold", telemetryData.summary.errorRate > 5 ? "text-[var(--error)]" : "text-[var(--success)]")}>
+                                                {telemetryData.summary.errorRate}%
+                                            </span>
+                                        </div>
+                                        <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Requests (24H)</span>
+                                            <span className="text-[10px] font-mono font-bold">{telemetryData.summary.totalRequests}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && telemetryData.timeseries && (
+                                    <div className="space-y-3">
+                                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Performance Trend (24H)</Label>
+                                        <div className="h-32 flex items-end gap-1.5 px-2 pb-2 border-b border-[var(--border)] bg-[var(--card)] rounded-xl relative overflow-hidden">
+                                            {telemetryData.timeseries.map((point: any, i: number) => {
+                                                const maxLatency = Math.max(...telemetryData.timeseries.map((p: any) => p.avgLatency), 1);
+                                                const height = (point.avgLatency / maxLatency) * 80;
+                                                return (
+                                                    <div key={i} className="flex-1 bg-[var(--primary)]/20 border-t-2 border-[var(--primary)] rounded-t-sm transition-all hover:bg-[var(--primary)]/40 relative group/point" style={{ height: `${height}%` }}>
+                                                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover/point:opacity-100 transition-opacity z-10">
+                                                            <div className="bg-[var(--popover)] border border-[var(--border)] px-2 py-1 rounded shadow-xl text-[8px] font-mono font-bold whitespace-nowrap">
+                                                                {point.avgLatency}ms | {point.requestCount} REQS
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {typeof telemetryData === 'object' && !Array.isArray(telemetryData) && telemetryData.insights && (
+                                    <div className="space-y-3">
+                                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Top Query Bottlenecks</Label>
+                                        <div className="space-y-2">
+                                            {telemetryData.insights.map((insight: any, i: number) => (
+                                                <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between group hover:border-[var(--primary)]/30 transition-all">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)]">{insight.queryHash}</span>
+                                                            <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">({insight.count} calls)</span>
+                                                        </div>
+                                                        <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">AVG LATENCY: <span className="text-[var(--foreground)]">{insight.avgLatency}ms</span></p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-[8px] font-mono font-bold text-[var(--error)]">MAX {insight.maxLatency}ms</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {Array.isArray(telemetryData) && (
+                                    <div className="space-y-3">
+                                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Raw Telemetry Event Stream</Label>
+                                        <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
+                                            {telemetryData.map((t, i) => (
+                                                <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={cn(
+                                                                "text-[8px] font-mono font-bold px-1.5 py-0.5 rounded",
+                                                                t.success ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
+                                                            )}>
+                                                                {t.durationMs}ms
+                                                            </span>
+                                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)]">{t.queryHash}</span>
+                                                        </div>
+                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(t.timestamp).toLocaleTimeString()}</span>
+                                                    </div>
+                                                    {t.error && (
+                                                        <p className="text-[8px] font-bold text-[var(--error)] uppercase truncate">Error: {t.error}</p>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
-                        </div>
+                        )}
 
                         <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/20 rounded-xl flex items-start gap-2">
                             <ShieldCheck className="w-3.5 h-3.5 text-[var(--info)] shrink-0 mt-0.5" />
