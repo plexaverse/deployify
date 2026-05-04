@@ -7,7 +7,7 @@ import { getOperationStatus as getMemorystoreOperationStatus, getInstance as get
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import { getGcpProjectNumber } from '@/lib/gcp/auth';
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
-import { calculateEWMA, isDegraded as detectDegradation } from '@/lib/gcp/health-utils';
+import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
 import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation } from '@/lib/gcp/monitoring';
@@ -112,13 +112,18 @@ export async function GET(
 
                 const health = await checkConnectivityHealth(storage.type, storage.connectionStringSecretId, storage.metadata);
 
-                // Predictive Health: Implement EWMA (alpha=0.2) for baseline latency
-                const currentHealth = storage.metadata?.health as { baselineLatency?: number } | undefined;
+                // Phase 135: Predictive Connectivity Resilience
+                const currentHealth = storage.metadata?.health as { baselineLatency?: number, history?: number[] } | undefined;
                 const newBaseline = calculateEWMA(health.latency, currentHealth?.baselineLatency);
+
+                // Maintain small rolling history for forecasting
+                const history = [...(currentHealth?.history || []), health.latency].slice(-10);
+                const { predicted, jitter } = forecastLatency(history);
+                const isPredictiveDegraded = predicted > (newBaseline * 1.5) || jitter > 0.5;
 
                 // Detect degradation
                 const isDegraded = detectDegradation(health.latency, newBaseline);
-                const finalStatus = health.status === 'unhealthy' ? 'unhealthy' : (isDegraded ? 'degraded' : 'healthy');
+                const finalStatus = health.status === 'unhealthy' ? 'unhealthy' : (isDegraded ? 'degraded' : (isPredictiveDegraded ? 'degraded' : 'healthy'));
 
                 // Phase 101: Detect Cold-Starts for serverless connectors
                 const isColdStart = detectColdStart(health.latency, storage.type);
@@ -129,8 +134,12 @@ export async function GET(
                         status: finalStatus,
                         latency: health.latency,
                         baselineLatency: parseFloat(newBaseline.toFixed(2)),
+                        predictedLatency: parseFloat(predicted.toFixed(2)),
+                        jitterScore: parseFloat(jitter.toFixed(3)),
                         isDegraded,
+                        isPredictiveDegraded,
                         isColdStart,
+                        history,
                         timestamp: health.timestamp,
                         error: health.error
                     }

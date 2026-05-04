@@ -317,7 +317,26 @@ export async function getEnvVarsForDeployment(
     }
 
     // 2. Process Storage configurations (Connectors)
-    const storageConfigs = project.storageConfigs || [];
+    let storageConfigs = project.storageConfigs || [];
+
+    // Phase 134: Discovery Shared Connectors from other projects in the same team
+    if (project.teamId) {
+        const teamProjects = await listProjectsByTeam(project.teamId);
+        for (const tp of teamProjects) {
+            if (tp.id === project.id) continue;
+            const shared = (tp.storageConfigs || []).filter(s => s.sharedWithProjects?.includes(project.id));
+            if (shared.length > 0) {
+                // Annotate as shared and from which project
+                const sharedAnnotated = shared.map(s => ({
+                    ...s,
+                    name: `${s.name} (SHARED: ${tp.name.toUpperCase()})`,
+                    metadata: { ...s.metadata, sharedFromProject: tp.id }
+                }));
+                storageConfigs = [...storageConfigs, ...sharedAnnotated];
+            }
+        }
+    }
+
     for (const storage of storageConfigs) {
         // Phase 120: Calculate Connectivity Topology
         const topology = deriveTopology(storage);

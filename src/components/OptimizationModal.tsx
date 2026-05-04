@@ -39,6 +39,12 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
     const security = storage.metadata.security as SecurityPosture | undefined;
     const dormancy = storage.dormancy;
     const workloadShift = storage.metadata.workloadShift as unknown as WorkloadShift;
+    const health = storage.metadata.health as {
+        status: string,
+        predictedLatency?: number,
+        isPredictiveDegraded?: boolean,
+        jitterScore?: number
+    } | undefined;
 
     return (
         <ConfirmationModal
@@ -49,6 +55,32 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
             icon={<Sparkles className="w-5 h-5 text-[var(--primary)]" />}
             description={
                 <div className="space-y-6">
+                    {health?.isPredictiveDegraded && (
+                        <div className="p-4 bg-[var(--error)]/5 border border-[var(--error)]/30 rounded-xl space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-[var(--error)]">
+                                    <TrendingUp className="w-4 h-4" />
+                                    <span className="text-[8px] font-bold uppercase tracking-wider">Predictive Latency Anomaly</span>
+                                </div>
+                                <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--error)]/20 text-[var(--error)]">
+                                    Risk Detected
+                                </span>
+                            </div>
+                            <p className="text-[10px] font-bold text-[var(--foreground)]">
+                                Connectivity trend analysis predicts a significant latency increase ({health.predictedLatency}ms) within the next 24 hours.
+                            </p>
+                            <div className="p-2.5 rounded-lg bg-[var(--error)]/10 border border-[var(--error)]/20 space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[8px] font-bold uppercase text-[var(--error)]">Jitter Score</span>
+                                    <span className="text-[8px] font-mono font-bold text-[var(--error)]">{(health.jitterScore || 0).toFixed(3)}</span>
+                                </div>
+                                <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                    RECOMMENDATION: Consider a regional migration to a lower-jitter GCP region to stabilize connection performance.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {workloadShift?.shifted && (
                         <div className="p-4 bg-[var(--warning)]/5 border border-[var(--warning)]/30 rounded-xl space-y-3 animate-in fade-in slide-in-from-top-2">
                             <div className="flex items-center justify-between">

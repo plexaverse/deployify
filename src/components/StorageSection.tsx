@@ -169,6 +169,11 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isManagingLogs, setIsManagingLogs] = useState<StorageConfig | null>(null);
     const [logs, setLogs] = useState<import('@/lib/gcp/monitoring').LogEntry[]>([]);
     const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+    const [isManagingTelemetry, setIsManagingTelemetry] = useState<StorageConfig | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [telemetryData, setTelemetryData] = useState<any[]>([]);
+    const [isLoadingTelemetry, setIsLoadingTelemetry] = useState(false);
+    const [isManagingSharing, setIsManagingSharing] = useState<StorageConfig | null>(null);
     const [logSeverity, setLogSeverity] = useState('');
     const [logSearch, setLogSearch] = useState('');
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
@@ -264,6 +269,26 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             setEnvKey(getStorageEnvKey({ type }));
         }
     }, [type, isAdding, editingId, envKey]);
+
+    const handleShare = async (storageId: string, targetId: string, action: 'share' | 'revoke') => {
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(`/api/projects/${projectId}/storage/${storageId}/share`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ targetProjectId: targetId, action }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success(action === 'share' ? 'Resource shared' : 'Sharing revoked');
+                if (onUpdate) onUpdate();
+            } else {
+                toast.error(data.error || 'Failed to update sharing');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleAdd = async () => {
         if (!name.trim()) return;
@@ -1021,6 +1046,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             toast.error('Failed to fetch engine logs');
         } finally {
             setIsLoadingLogs(false);
+        }
+    }, [projectId]);
+
+    const fetchTelemetry = useCallback(async (storageId: string) => {
+        setIsLoadingTelemetry(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/telemetry`);
+            const data = await response.json();
+            if (data.success) {
+                setTelemetryData(data.data);
+            }
+        } catch (e) {
+            console.error('Failed to fetch telemetry:', e);
+        } finally {
+            setIsLoadingTelemetry(false);
         }
     }, [projectId]);
 
@@ -1903,6 +1943,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     READY FOR CUTOVER
                                                 </span>
                                             )}
+                                            {config.sharedWithProjects && config.sharedWithProjects.length > 0 && (
+                                                <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1" title={`Shared with ${config.sharedWithProjects.length} other projects`}>
+                                                    <RefreshCw className="w-2.5 h-2.5" />
+                                                    SHARED: {config.sharedWithProjects.length}
+                                                </span>
+                                            )}
+                                            {config.metadata?.sharedFromProject && (
+                                                <span className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1">
+                                                    <RefreshCw className="w-2.5 h-2.5" />
+                                                    SHARED FROM UPSTREAM
+                                                </span>
+                                            )}
                                             {config.topology && (
                                                 <button
                                                     onClick={(e) => {
@@ -2302,6 +2354,17 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </div>
 
                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {!config.metadata?.sharedFromProject && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setIsManagingSharing(config)}
+                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            title="Manage Sharing"
+                                        >
+                                            <RefreshCw className="w-4 h-4" />
+                                        </Button>
+                                    )}
                                     {config.status === 'provisioning' ? (
                                         <Button
                                             variant="ghost"
@@ -2314,16 +2377,30 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <Activity className={`w-4 h-4 ${syncingId === config.id ? 'animate-spin' : ''}`} />
                                         </Button>
                                     ) : (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleValidate(config.id)}
-                                            disabled={validatingId === config.id}
-                                            className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
-                                            title="Check Connection"
-                                        >
-                                            <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
-                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => {
+                                                    setIsManagingTelemetry(config);
+                                                    fetchTelemetry(config.id);
+                                                }}
+                                                className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                                title="View Runtime Telemetry"
+                                            >
+                                                <TrendingUp className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleValidate(config.id)}
+                                                disabled={validatingId === config.id}
+                                                className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                                title="Check Connection"
+                                            >
+                                                <Activity className={`w-4 h-4 ${validatingId === config.id ? 'animate-pulse' : ''}`} />
+                                            </Button>
+                                        </div>
                                     )}
                                     {!!config.metadata?.provisioned && config.status === 'active' && (config.type.includes('cloud-sql') || config.type === 'memorystore-redis') && (
                                         <Button
@@ -3447,6 +3524,23 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                         </div>
 
                         <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Runtime Telemetry (Prisma)</Label>
+                            <div className="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg font-mono text-[8px]">
+                                <code className="text-[var(--foreground)]/80">
+                                    prisma.$use(async (params, next) =&gt; &#123;<br />
+                                    &nbsp;&nbsp;const start = Date.now();<br />
+                                    &nbsp;&nbsp;const result = await next(params);<br />
+                                    &nbsp;&nbsp;fetch(&apos;/api/projects/{projectId}/storage/{isShowingGuide?.id}/telemetry&apos;, &#123;<br />
+                                    &nbsp;&nbsp;&nbsp;&nbsp;method: &apos;POST&apos;,<br />
+                                    &nbsp;&nbsp;&nbsp;&nbsp;body: JSON.stringify(&#123; queryHash: params.model, durationMs: Date.now() - start, success: true &#125;)<br />
+                                    &nbsp;&nbsp;&#125;);<br />
+                                    &nbsp;&nbsp;return result;<br />
+                                    &#125;)
+                                </code>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
                             <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployment Region</Label>
                             <div className="flex items-center gap-2 px-1">
                                 <Server className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
@@ -4438,7 +4532,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             </div>
                         </div>
 
-                        <div className="p-4 bg-[var(--warning)]/5 border border-[var(--warning)]/20 rounded-xl flex items-start gap-3">
+                        <div className="p-4 bg-[var(--warning)]/5 border border(--warning)]/20 rounded-xl flex items-start gap-3">
                             <Activity className="w-4 h-4 text-[var(--warning)] shrink-0 mt-0.5" />
                             <div className="space-y-1">
                                 <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--warning)]">Failover Mechanics</p>
@@ -4451,6 +4545,165 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 }
                 confirmText="Save Failover Settings"
                 loading={isSubmitting}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingSharing}
+                onClose={() => setIsManagingSharing(null)}
+                title="Cross-Project Resource Sharing"
+                headerLabel="Global Infrastructure"
+                icon={<RefreshCw className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-4">
+                            <div className="flex items-center gap-2">
+                                <MonitorPlay className="w-4 h-4 text-[var(--primary)]" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider">Multi-Project Connectivity</span>
+                            </div>
+                            <p className="text-[10px]">
+                                Share this database connector with other projects in your team. Deployify will automatically manage Secret Manager access for the target projects.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Share with Project</Label>
+                            <div className="flex gap-2">
+                                <NativeSelect
+                                    value={selectedImportProjectId}
+                                    onChange={(e) => setSelectedImportProjectId(e.target.value)}
+                                    className="h-9 text-[10px] font-bold uppercase"
+                                >
+                                    <option value="">SELECT PROJECT...</option>
+                                    {allProjects.filter(p => !isManagingSharing?.sharedWithProjects?.includes(p.id)).map(p => (
+                                        <option key={p.id} value={p.id}>{p.name.toUpperCase()}</option>
+                                    ))}
+                                </NativeSelect>
+                                <Button
+                                    disabled={!selectedImportProjectId || isSubmitting}
+                                    onClick={() => isManagingSharing && handleShare(isManagingSharing.id, selectedImportProjectId, 'share')}
+                                    className="h-9 px-4 text-[8px] font-bold uppercase bg-[var(--primary)]"
+                                >
+                                    Share
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Currently Shared With</Label>
+                            <div className="space-y-2">
+                                {!isManagingSharing?.sharedWithProjects?.length ? (
+                                    <div className="py-6 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Not shared with any other projects</p>
+                                    </div>
+                                ) : (
+                                    isManagingSharing.sharedWithProjects.map((pId) => {
+                                        const p = allProjects.find(proj => proj.id === pId);
+                                        return (
+                                            <div key={pId} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
+                                                        <Server className="w-4 h-4 text-[var(--primary)]" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold">{p?.name.toUpperCase() || 'UNKNOWN PROJECT'}</p>
+                                                        <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{pId}</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleShare(isManagingSharing.id, pId, 'revoke')}
+                                                    className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error)]/10"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </Button>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingTelemetry}
+                onClose={() => setIsManagingTelemetry(null)}
+                title="Runtime Performance Telemetry"
+                headerLabel="Connectivity Intelligence"
+                icon={<Activity className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">Proxy-less Insights</span>
+                                </div>
+                                <Button
+                                    onClick={() => isManagingTelemetry && fetchTelemetry(isManagingTelemetry.id)}
+                                    disabled={isLoadingTelemetry}
+                                    className="h-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                >
+                                    {isLoadingTelemetry ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                                    Refresh
+                                </Button>
+                            </div>
+                            <p className="text-[10px]">
+                                Real-time query performance reported directly from your application runtime. This data bypasses the Deployify proxy for zero-overhead observability.
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Live Telemetry Stream</Label>
+                            <div className="max-h-96 overflow-y-auto space-y-2 custom-scrollbar">
+                                {isLoadingTelemetry ? (
+                                    <div className="py-12 flex flex-col items-center justify-center gap-2">
+                                        <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Awaiting telemetry...</span>
+                                    </div>
+                                ) : telemetryData.length === 0 ? (
+                                    <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                                        <Activity className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto mb-3" />
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No telemetry data received yet</p>
+                                    </div>
+                                ) : (
+                                    telemetryData.map((t, i) => (
+                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn(
+                                                        "text-[8px] font-mono font-bold px-1.5 py-0.5 rounded",
+                                                        t.success ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
+                                                    )}>
+                                                        {t.durationMs}ms
+                                                    </span>
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--primary)]">{t.queryHash}</span>
+                                                </div>
+                                                <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">{new Date(t.timestamp).toLocaleTimeString()}</span>
+                                            </div>
+                                            {t.error && (
+                                                <p className="text-[8px] font-bold text-[var(--error)] uppercase truncate">Error: {t.error}</p>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/20 rounded-xl flex items-start gap-2">
+                            <ShieldCheck className="w-3.5 h-3.5 text-[var(--info)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                SECURE INGESTION: THIS ENDPOINT REQUIRES AUTHENTICATION VIA PROJECT API KEY OR SESSION TOKEN. DATA IS PERSISTED FOR 24 HOURS.
+                            </p>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
             />
         </Card>
     );

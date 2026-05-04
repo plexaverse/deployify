@@ -273,4 +273,5 @@ export const Collections = {
     QUERY_COMMENTS: 'query_comments',
     SCHEMA_DOCS: 'schema_docs',
     DATA_LAB_AUDIT: 'dataLabAudit',
+    RUNTIME_TELEMETRY: 'runtime_telemetry',
 } as const;
