@@ -977,6 +977,11 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Automate remediation of over-privileged secret scopes in the IAM hardening engine.
 - [x] Surface granular vs. broad secret access transparency in the dashboard.
 
+### Phase 125: Advanced Security Perimeter Hardening & Migration Resilience (COMPLETED)
+- [x] Implement automated remediation for `public_ip_exposed`.
+- [x] Implement automated remediation for `password_auth_used` (IAM auth migration).
+- [x] Implement automated remediation for `regional_mismatch` using instance cloning.
+
 ### Phase 126: Integrated Connectivity Validation & DX Hardening (COMPLETED)
 - [x] Implement project-scoped "Pre-flight Connection Validation" API with SSRF mitigation.
 - [x] Enhance `StorageSection` UI with "Test Connection" button and real-time reachability feedback.
@@ -1033,6 +1038,19 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement latency anomaly forecasting using linear regression trends.
 - [x] Integrate predictive degradation detection into the Storage Sync pipeline.
 - [x] Add proactive regional migration recommendations based on jitter analysis.
+
+### Phase 136: Advanced Telemetry Intelligence & Global Performance Profiling (COMPLETED)
+- [x] Implement real-time aggregation for runtime telemetry (P90/P99).
+- [x] Add performance timeseries (24H) to the Telemetry Modal.
+- [x] Implement Application-Aware Scaling suggestions driven by telemetry thresholds.
+- [x] Surface Top Query Bottlenecks in the Storage dashboard.
+
+### 2027-07-11: Completed Phase 136: Advanced Telemetry Intelligence
+- Completed Phase 136: Advanced Telemetry Intelligence & Global Performance Profiling.
+- Enhanced the Telemetry API to support real-time aggregation and performance profiling, calculating P90/P99 latencies and error rates from application runtime events.
+- Upgraded the Scaling Intelligence engine to be application-aware, incorporating runtime telemetry into `getScalingRecommendations` to suggest tier upgrades or read replicas based on P99 latency breaches.
+- Hardened the Storage UI with a high-density "PREDICTIVE RISK" badge for latency anomalies and a detailed Telemetry Modal featuring a 24-hour performance trend chart and query bottleneck insights.
+- Verified 100% operational integrity via backend unit tests, API audits, and high-density UI validation.
 
 ### 2027-07-08: Completed Phase 131: Integrated Database Engine Log Streaming
 - Completed Phase 131: Integrated Database Engine Log Streaming & Error Analytics.

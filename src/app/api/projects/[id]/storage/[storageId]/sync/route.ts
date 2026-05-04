@@ -39,10 +39,6 @@ export async function GET(
         const { project } = access;
         const storageConfigs = project.storageConfigs || [];
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const unusedGcpProjectNumber = getGcpProjectNumber;
-
-
         const index = storageConfigs.findIndex((s: StorageConfig) => s.id === storageId);
 
         if (index === -1) {
@@ -313,7 +309,31 @@ export async function GET(
                     // A. Optimization Intelligence: Analyze for scaling recommendations
                     try {
                         const { calculateEfficiencyScore } = await import('@/lib/gcp/monitoring');
-                        const recommendations = await getScalingRecommendations(storage.type, metrics, storage.metadata);
+
+                        // Phase 136: Fetch recent runtime telemetry for application-aware scaling
+                        let telemetry;
+                        try {
+                            const { getDb, Collections } = await import('@/lib/firebase');
+                            const db = getDb();
+                            const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                            const telSnapshot = await db.collection(Collections.RUNTIME_TELEMETRY)
+                                .where('projectId', '==', id)
+                                .where('storageId', '==', storageId)
+                                .where('timestamp', '>=', dayAgo)
+                                .get();
+
+                            if (!telSnapshot.empty) {
+                                const latencies = telSnapshot.docs.map(doc => Number(doc.data().durationMs) || 0).sort((a, b) => a - b);
+                                const p90 = latencies[Math.floor(latencies.length * 0.9)];
+                                const p99 = latencies[Math.floor(latencies.length * 0.99)];
+                                const errors = telSnapshot.docs.filter(doc => !doc.data().success).length;
+                                telemetry = { p90, p99, errorRate: (errors / telSnapshot.docs.length) * 100 };
+                            }
+                        } catch (telErr) {
+                            console.warn(`[StorageSync] Failed to fetch telemetry for optimization:`, telErr);
+                        }
+
+                        const recommendations = await getScalingRecommendations(storage.type, metrics, storage.metadata, telemetry);
 
                         // Calculate Efficiency Score
                         const tier = (storage.metadata?.tier as string) || (storage.type.includes('cloud-sql') ? 'db-f1-micro' : (storage.type === 'memorystore-redis' ? '1GB' : ''));
