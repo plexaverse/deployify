@@ -96,10 +96,16 @@ export async function GET(
                 .orderBy('timestamp', 'desc')
                 .get();
 
-            const rawData = snapshot.docs.map(doc => ({
-                ...doc.data(),
-                timestamp: doc.data().timestamp?.toDate?.() || doc.data().timestamp
-            }));
+            const rawData = snapshot.docs.map(doc => {
+                const d = doc.data();
+                return {
+                    ...d,
+                    durationMs: Number(d.durationMs) || 0,
+                    success: Boolean(d.success),
+                    queryHash: String(d.queryHash || 'unknown'),
+                    timestamp: d.timestamp?.toDate?.() || d.timestamp
+                };
+            });
 
             if (rawData.length === 0) {
                 return NextResponse.json({ success: true, data: { summary: null, timeseries: [], insights: [] } });
