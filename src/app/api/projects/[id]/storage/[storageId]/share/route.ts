@@ -4,7 +4,6 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { getProjectById, updateProject } from '@/lib/db';
 import { grantSecretAccess } from '@/lib/gcp/secrets';
 import { getGcpProjectNumber } from '@/lib/gcp/auth';
-import type { StorageConfig } from '@/types';
 
 /**
  * Manage cross-project resource sharing for a storage connector

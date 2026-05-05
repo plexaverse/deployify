@@ -523,3 +523,36 @@ export interface StorageConfig {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface TelemetryData {
+    summary?: {
+        p90: number;
+        p99: number;
+        errorRate: number;
+        totalRequests: number;
+    };
+    timeseries?: Array<{
+        timestamp: string;
+        avgLatency: number;
+        requestCount: number;
+    }>;
+    insights?: Array<{
+        queryHash: string;
+        avgLatency: number;
+        maxLatency: number;
+        count: number;
+    }>;
+}
+
+export interface TelemetryEvent {
+    id: string;
+    projectId: string;
+    storageId: string;
+    queryHash: string;
+    durationMs: number;
+    success: boolean;
+    error: string | null;
+    rowCount: number;
+    timestamp: Date | string;
+    source: string;
+}
