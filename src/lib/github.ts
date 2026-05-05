@@ -451,3 +451,103 @@ export async function createPRComment(
         console.error('Failed to create PR comment:', error);
     }
 }
+
+/**
+ * Create a new branch in a repository
+ */
+export async function createBranch(
+    accessToken: string,
+    owner: string,
+    repo: string,
+    branchName: string,
+    baseBranch: string = 'main'
+): Promise<void> {
+    if (accessToken === 'mock-access-token') return;
+    const octokit = createGitHubClient(accessToken);
+
+    const { data: baseRef } = await octokit.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${baseBranch}`,
+    });
+
+    await octokit.git.createRef({
+        owner,
+        repo,
+        ref: `refs/heads/${branchName}`,
+        sha: baseRef.object.sha,
+    });
+}
+
+/**
+ * Create or update a file in a repository
+ */
+export async function createOrUpdateFile(
+    accessToken: string,
+    owner: string,
+    repo: string,
+    path: string,
+    content: string,
+    message: string,
+    branch: string
+): Promise<void> {
+    if (accessToken === 'mock-access-token') return;
+    const octokit = createGitHubClient(accessToken);
+
+    let sha: string | undefined;
+    try {
+        const { data } = await octokit.repos.getContent({
+            owner,
+            repo,
+            path,
+            ref: branch,
+        });
+        if ('sha' in data) {
+            sha = (data as { sha: string }).sha;
+        }
+    } catch {
+        // File doesn't exist, which is fine
+    }
+
+    await octokit.repos.createOrUpdateFileContents({
+        owner,
+        repo,
+        path,
+        message,
+        content: Buffer.from(content).toString('base64'),
+        branch,
+        sha,
+    });
+}
+
+/**
+ * Create a Pull Request
+ */
+export async function createPullRequest(
+    accessToken: string,
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    head: string,
+    base: string = 'main'
+): Promise<{ number: number; html_url: string }> {
+    if (accessToken === 'mock-access-token') {
+        return { number: 123, html_url: `https://github.com/${owner}/${repo}/pull/123` };
+    }
+    const octokit = createGitHubClient(accessToken);
+
+    const { data } = await octokit.pulls.create({
+        owner,
+        repo,
+        title,
+        body,
+        head,
+        base,
+    });
+
+    return {
+        number: data.number,
+        html_url: data.html_url,
+    };
+}

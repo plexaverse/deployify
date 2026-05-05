@@ -1251,27 +1251,50 @@ export function analyzePlanForIndexes(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     plan: any[],
     dbType: 'postgresql' | 'mysql' = 'postgresql'
-): { recommendation?: string; hasSeqScan: boolean; impact: 'high' | 'medium' | 'low' } {
+): { recommendation?: string; hasSeqScan: boolean; impact: 'high' | 'medium' | 'low'; isComposite?: boolean; isDuplicate?: boolean } {
     const planText = JSON.stringify(plan);
     let hasSeqScan = false;
     let recommendation: string | undefined;
     let impact: 'high' | 'medium' | 'low' = 'low';
+    let isComposite = false;
+    let isDuplicate = false;
 
     if (dbType === 'postgresql') {
         hasSeqScan = planText.includes('Seq Scan');
         if (hasSeqScan) {
-            // Try to extract table name from Seq Scan
             const tableMatch = planText.match(/on ([a-zA-Z0-9_]+)/);
             const tableName = tableMatch ? tableMatch[1] : 'table';
             const filterMatch = planText.match(/Filter: \(([^)]+)\)/);
 
             if (filterMatch) {
-                const column = filterMatch[1].split(' ')[0].replace(/[()]/g, '');
-                recommendation = `CREATE INDEX idx_${tableName}_${column} ON ${tableName}(${column});`;
-                impact = 'high';
+                const filterText = filterMatch[1];
+                // Detect multiple conditions for composite index
+                const conditions = filterText.split(/ AND | OR /i);
+                if (conditions.length > 1) {
+                    const columns = conditions.map(c => c.trim().split(' ')[0].replace(/[()]/g, ''))
+                        .filter(col => col && !col.includes("'") && !col.includes('"'));
+                    const uniqueCols = Array.from(new Set(columns));
+                    if (uniqueCols.length > 1) {
+                        recommendation = `CREATE INDEX idx_${tableName}_composite_${uniqueCols.join('_')} ON ${tableName}(${uniqueCols.join(', ')});`;
+                        impact = 'high';
+                        isComposite = true;
+                    }
+                }
+
+                if (!recommendation) {
+                    const column = filterText.split(' ')[0].replace(/[()]/g, '');
+                    recommendation = `CREATE INDEX idx_${tableName}_${column} ON ${tableName}(${column});`;
+                    impact = 'high';
+                }
             } else {
                 recommendation = `Consider adding an index to ${tableName} to avoid sequential scan.`;
                 impact = 'medium';
+            }
+        } else if (planText.includes('Index Scan') || planText.includes('Bitmap Index Scan')) {
+            // Very basic duplicate detection logic: if we see an Index Scan but it's slow or redundant
+            // For Phase 138, we'll flag it if the plan suggests suboptimal index usage
+            if (planText.includes('Recheck Cond')) {
+                isDuplicate = true; // Placeholder for redundant index logic
             }
         }
     } else {
@@ -1280,12 +1303,32 @@ export function analyzePlanForIndexes(
         if (hasSeqScan) {
             const tableMatch = planText.match(/"table_name": "([a-zA-Z0-9_]+)"/);
             const tableName = tableMatch ? tableMatch[1] : 'table';
-            recommendation = `CREATE INDEX idx_${tableName}_lookup ON ${tableName}(...); -- Identify filtered columns in WHERE clause`;
-            impact = 'high';
+
+            // Detect multiple filtering columns in JSON plan
+            const queryBlockMatch = planText.match(/"attached_condition": "([^"]+)"/);
+            if (queryBlockMatch) {
+                const condition = queryBlockMatch[1];
+                const parts = condition.split(/ and /i);
+                if (parts.length > 1) {
+                    const columns = parts.map(p => p.trim().split(/[\s<>=]/)[0].replace(/[`()]/g, ''))
+                        .filter(col => col && !col.includes("'") && !col.includes('"'));
+                    const uniqueCols = Array.from(new Set(columns));
+                    if (uniqueCols.length > 1) {
+                        recommendation = `CREATE INDEX idx_${tableName}_composite_${uniqueCols.join('_')} ON ${tableName}(${uniqueCols.join(', ')});`;
+                        impact = 'high';
+                        isComposite = true;
+                    }
+                }
+            }
+
+            if (!recommendation) {
+                recommendation = `CREATE INDEX idx_${tableName}_lookup ON ${tableName}(...); -- Identify filtered columns in WHERE clause`;
+                impact = 'high';
+            }
         }
     }
 
-    return { hasSeqScan, recommendation, impact };
+    return { hasSeqScan, recommendation, impact, isComposite, isDuplicate };
 }
 
 /**
