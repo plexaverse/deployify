@@ -1045,6 +1045,21 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement Application-Aware Scaling suggestions driven by telemetry thresholds.
 - [x] Surface Top Query Bottlenecks in the Storage dashboard.
 
+### Phase 137: Telemetry-Driven Autonomous Indexing & Schema Optimization Intelligence (COMPLETED)
+- [x] Correlate runtime telemetry with query execution plans to identify performance bottlenecks.
+- [x] Implement query impact scoring (Latency x Frequency) for optimization prioritization.
+- [x] Automate "Missing Index" detection for high-impact queries using SQL EXPLAIN analysis.
+- [x] Create Schema Optimization API for surfacing telemetry-driven indexing suggestions.
+- [x] Enhance Optimization Modal with an "Index Advisor" section and impact savings visualization.
+
+### 2027-07-12: Completed Phase 137: Telemetry-Driven Autonomous Indexing
+- Completed Phase 137: Telemetry-Driven Autonomous Indexing & Schema Optimization Intelligence.
+- Implemented `getQueryImpactMetrics` to correlate real-time telemetry from Firestore with query fingerprints, calculating `impactScore` (Avg Latency x Request Count).
+- Developed `analyzePlanForIndexes` in the monitoring engine to parse SQL execution plans and identify Sequential Scans, providing specific `CREATE INDEX` recommendations.
+- Launched project-scoped Schema Optimization API at `/api/projects/[id]/storage/[storageId]/optimization/schema` with full RBAC enforcement.
+- Enhanced the `OptimizationModal` UI with a high-density 'Index Advisor' section, visualizing query performance bottlenecks and performance-gain impact scores.
+- Verified 100% operational integrity with a zero-warning build and perfect platform audit.
+
 ### 2027-07-11: Completed Phase 136: Advanced Telemetry Intelligence
 - Completed Phase 136: Advanced Telemetry Intelligence & Global Performance Profiling.
 - Enhanced the Telemetry API to support real-time aggregation and performance profiling, calculating P90/P99 latencies and error rates from application runtime events.

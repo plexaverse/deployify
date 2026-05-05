@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import {
     Sparkles,
     ArrowRight,
@@ -11,35 +12,61 @@ import {
     Clock,
     ShieldAlert,
     ShieldCheck,
-    Lock
+    Lock,
+    Search,
+    Copy
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import type { StorageConfig, WorkloadShift } from '@/types';
-import type { ScalingRecommendation } from '@/lib/gcp/monitoring';
+import type { ScalingRecommendation, QueryImpactMetric } from '@/lib/gcp/monitoring';
 import type { SecurityPosture } from '@/lib/gcp/security-auditor';
 
 interface OptimizationModalProps {
     isOpen: boolean;
     onClose: () => void;
     storage: StorageConfig | null;
+    projectId?: string;
     onApply?: (recommendation: ScalingRecommendation) => void;
 }
 
-export function OptimizationModal({ isOpen, onClose, storage, onApply }: OptimizationModalProps) {
-    if (!storage || !storage.metadata?.optimization) return null;
+export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply }: OptimizationModalProps) {
+    const [schemaOptimizations, setSchemaOptimizations] = useState<QueryImpactMetric[]>([]);
 
-    const optimization = storage.metadata.optimization as {
+    const fetchSchemaOptimizations = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            const res = await fetch(`/api/projects/${projectId}/storage/${storage.id}/optimization/schema`);
+            const data = await res.json();
+            if (data.success) {
+                setSchemaOptimizations(data.recommendations || []);
+            }
+        } catch (e) {
+            console.error('Failed to fetch schema optimizations:', e);
+        }
+    }, [storage, projectId]);
+
+    useEffect(() => {
+        if (isOpen && storage) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            fetchSchemaOptimizations();
+        }
+    }, [isOpen, storage, fetchSchemaOptimizations]);
+
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length)) return null;
+
+    const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
         lastAnalyzedAt: string
     } | undefined;
 
-    const security = storage.metadata.security as SecurityPosture | undefined;
+    const security = storage.metadata?.security as SecurityPosture | undefined;
     const dormancy = storage.dormancy;
-    const workloadShift = storage.metadata.workloadShift as unknown as WorkloadShift;
-    const health = storage.metadata.health as {
+    const workloadShift = storage.metadata?.workloadShift as unknown as WorkloadShift;
+    const health = storage.metadata?.health as {
         status: string,
         predictedLatency?: number,
         isPredictiveDegraded?: boolean,
@@ -207,6 +234,71 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                             <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/70 leading-relaxed italic">
                                 This resource shows near-zero activity. Consider downgrading to the minimum tier or archiving data to reduce costs.
                             </p>
+                        </div>
+                    )}
+
+                    {schemaOptimizations.length > 0 && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Index Advisor (Telemetry-Driven)</Label>
+                            <div className="space-y-3">
+                                {schemaOptimizations.map((opt, i) => (
+                                    <div key={i} className="p-4 border border-[var(--primary)]/20 rounded-xl bg-[var(--primary)]/5 space-y-3 group hover:border-[var(--primary)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                                    <Search className="w-4 h-4 text-[var(--primary)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Missing Index Detected</span>
+                                                        <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-[var(--success)]/10 text-[var(--success)] uppercase">
+                                                            High Impact
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)] line-clamp-1 group-hover:line-clamp-none transition-all">{opt.queryHash}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Avg Latency</span>
+                                                <span className="text-[8px] font-mono font-bold text-[var(--error)]">{opt.avgLatency}ms</span>
+                                            </div>
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Frequency</span>
+                                                <span className="text-[8px] font-mono font-bold">{opt.requestCount} Reqs/24H</span>
+                                            </div>
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Impact Score</span>
+                                                <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{Math.round(opt.impactScore / 1000)}k</span>
+                                            </div>
+                                        </div>
+
+                                        {opt.recommendation && (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Proposed Optimization</span>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-5 w-5 text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(opt.recommendation!);
+                                                            toast.success('SQL copied to clipboard');
+                                                        }}
+                                                    >
+                                                        <Copy className="w-3 h-3" />
+                                                    </Button>
+                                                </div>
+                                                <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[8px] text-[var(--primary)]">
+                                                    {opt.recommendation}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 

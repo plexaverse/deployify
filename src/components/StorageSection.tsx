@@ -4109,6 +4109,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 isOpen={!!isManagingOptimization}
                 onClose={() => setIsManagingOptimization(null)}
                 storage={isManagingOptimization}
+                projectId={projectId}
                 onApply={(rec) => {
                     setIsScaling(isManagingOptimization);
                     if (isManagingOptimization?.type.includes('cloud-sql')) {
