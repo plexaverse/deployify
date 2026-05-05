@@ -11,10 +11,6 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        if (process.env.MOCK_DB === 'true') {
-            return NextResponse.json({ success: true, id: 'mock-dashboard-id' });
-        }
-
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -31,19 +27,22 @@ export async function GET(
         const widgets: Record<string, unknown>[] = [];
 
         if (process.env.MOCK_DB === 'true') {
-            widgets.push({
-                id: 'mock-widget-1',
-                name: 'MOCK WIDGET',
-                query: 'SELECT * FROM users',
-                storageId: 'mock-storage-id',
-                isPublic: true,
-                refreshInterval: 0,
-                createdAt: new Date()
+            return NextResponse.json({
+                success: true,
+                widgets: [{
+                    id: 'mock-widget-1',
+                    name: 'MOCK WIDGET',
+                    query: 'SELECT * FROM users',
+                    storageId: 'mock-storage-id',
+                    isPublic: true,
+                    refreshInterval: 0,
+                    createdAt: new Date()
+                }]
             });
-        } else {
-            const snapshot = await db.collection(Collections.PROJECTS).doc(id).collection('storage_dashboards').orderBy('createdAt', 'desc').get();
-            widgets.push(...snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         }
+
+        const snapshot = await db.collection(Collections.PROJECTS).doc(id).collection('storage_dashboards').orderBy('createdAt', 'desc').get();
+        widgets.push(...snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
         return NextResponse.json({
             success: true,
