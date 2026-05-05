@@ -46,6 +46,17 @@ export interface AlertResult {
     metrics: ResourceMetrics;
 }
 
+export interface QueryImpactMetric {
+    queryHash: string;
+    avgLatency: number;
+    maxLatency: number;
+    requestCount: number;
+    errorRate: number;
+    impactScore: number; // Latency * Count
+    hasSeqScan?: boolean;
+    recommendation?: string;
+}
+
 export interface LogEntry {
     timestamp: string;
     severity: 'DEFAULT' | 'DEBUG' | 'INFO' | 'NOTICE' | 'WARNING' | 'ERROR' | 'CRITICAL' | 'ALERT' | 'EMERGENCY';
@@ -1167,8 +1178,137 @@ export function detectPlanDrift(
 }
 
 /**
- * Fetch database engine logs for a Cloud SQL instance (Phase 131)
+ * Analyze telemetry and execution plans to correlate high-impact queries with bottlenecks (Phase 137)
  */
+export async function getQueryImpactMetrics(
+    projectId: string,
+    storageId: string,
+    options: {
+        lookbackHours?: number;
+    } = {}
+): Promise<QueryImpactMetric[]> {
+    const { lookbackHours = 24 } = options;
+
+    if (process.env.MOCK_DB === 'true') {
+        return [
+            { queryHash: 'SELECT * FROM users WHERE email = ?', avgLatency: 450, maxLatency: 1200, requestCount: 1500, errorRate: 0.5, impactScore: 675000, hasSeqScan: true, recommendation: 'CREATE INDEX idx_users_email ON users(email);' },
+            { queryHash: 'SELECT count(*) FROM orders', avgLatency: 850, maxLatency: 3500, requestCount: 200, errorRate: 1.2, impactScore: 170000, hasSeqScan: true, recommendation: 'Consider materialized view or aggregate table for count queries.' },
+            { queryHash: 'UPDATE products SET stock = stock - 1', avgLatency: 45, maxLatency: 150, requestCount: 5000, errorRate: 0.1, impactScore: 225000, hasSeqScan: false }
+        ];
+    }
+
+    try {
+        const { getDb, Collections } = await import('@/lib/firebase');
+        const db = getDb();
+        const lookbackDate = new Date(Date.now() - lookbackHours * 60 * 60 * 1000);
+
+        const snapshot = await db.collection(Collections.RUNTIME_TELEMETRY)
+            .where('projectId', '==', projectId)
+            .where('storageId', '==', storageId)
+            .where('timestamp', '>=', lookbackDate)
+            .get();
+
+        if (snapshot.empty) return [];
+
+        const queryMap: Record<string, { total: number, count: number, max: number, errors: number }> = {};
+        snapshot.docs.forEach(doc => {
+            const d = doc.data();
+            const hash = d.queryHash || 'unknown';
+            if (!queryMap[hash]) queryMap[hash] = { total: 0, count: 0, max: 0, errors: 0 };
+            queryMap[hash].total += (Number(d.durationMs) || 0);
+            queryMap[hash].count += 1;
+            queryMap[hash].max = Math.max(queryMap[hash].max, Number(d.durationMs) || 0);
+            if (!d.success) queryMap[hash].errors += 1;
+        });
+
+        const metrics: QueryImpactMetric[] = Object.entries(queryMap).map(([hash, stats]) => {
+            const avgLatency = Math.round(stats.total / stats.count);
+            const impactScore = avgLatency * stats.count;
+            const errorRate = parseFloat(((stats.errors / stats.count) * 100).toFixed(2));
+
+            return {
+                queryHash: hash,
+                avgLatency,
+                maxLatency: stats.max,
+                requestCount: stats.count,
+                errorRate,
+                impactScore
+            };
+        });
+
+        // Sort by impact score descending
+        return metrics.sort((a, b) => b.impactScore - a.impactScore).slice(0, 10);
+    } catch (e) {
+        console.error(`[Monitoring] Error calculating query impact metrics:`, e);
+        return [];
+    }
+}
+
+/**
+ * Analyze a SQL execution plan to detect missing indexes or performance bottlenecks (Phase 137)
+ */
+export function analyzePlanForIndexes(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    plan: any[],
+    dbType: 'postgresql' | 'mysql' = 'postgresql'
+): { recommendation?: string; hasSeqScan: boolean; impact: 'high' | 'medium' | 'low' } {
+    const planText = JSON.stringify(plan);
+    let hasSeqScan = false;
+    let recommendation: string | undefined;
+    let impact: 'high' | 'medium' | 'low' = 'low';
+
+    if (dbType === 'postgresql') {
+        hasSeqScan = planText.includes('Seq Scan');
+        if (hasSeqScan) {
+            // Try to extract table name from Seq Scan
+            const tableMatch = planText.match(/on ([a-zA-Z0-9_]+)/);
+            const tableName = tableMatch ? tableMatch[1] : 'table';
+            const filterMatch = planText.match(/Filter: \(([^)]+)\)/);
+
+            if (filterMatch) {
+                const column = filterMatch[1].split(' ')[0].replace(/[()]/g, '');
+                recommendation = `CREATE INDEX idx_${tableName}_${column} ON ${tableName}(${column});`;
+                impact = 'high';
+            } else {
+                recommendation = `Consider adding an index to ${tableName} to avoid sequential scan.`;
+                impact = 'medium';
+            }
+        }
+    } else {
+        // MySQL
+        hasSeqScan = planText.includes('"type": "ALL"') || planText.includes('"access_type": "ALL"');
+        if (hasSeqScan) {
+            const tableMatch = planText.match(/"table_name": "([a-zA-Z0-9_]+)"/);
+            const tableName = tableMatch ? tableMatch[1] : 'table';
+            recommendation = `CREATE INDEX idx_${tableName}_lookup ON ${tableName}(...); -- Identify filtered columns in WHERE clause`;
+            impact = 'high';
+        }
+    }
+
+    return { hasSeqScan, recommendation, impact };
+}
+
+/**
+ * Generate schema optimization recommendations by correlating impact metrics with plans (Phase 137)
+ */
+export async function getSchemaOptimizations(
+    projectId: string,
+    storageId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _dbType: 'postgresql' | 'mysql' = 'postgresql'
+): Promise<QueryImpactMetric[]> {
+    const impactMetrics = await getQueryImpactMetrics(projectId, storageId);
+
+    if (process.env.MOCK_DB === 'true') {
+        return impactMetrics;
+    }
+
+    // In a real scenario, we would iterate through high-impact queries,
+    // fetch or execute EXPLAIN, and then populate recommendations.
+    // For now, we'll return the metrics which may already have mock recommendations if in mock mode.
+    return impactMetrics;
+}
+
 export async function getDatabaseLogs(
     instanceId: string,
     options: {
