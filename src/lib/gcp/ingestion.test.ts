@@ -39,13 +39,13 @@ const mockProject: Project = {
     updatedAt: new Date()
 };
 
-test('runExternalDump handles multiple databases', async (t) => {
+test('runExternalDump handles multiple databases', async () => {
     process.env.MOCK_DB = 'true';
     const buildId = await runExternalDump('project-id', mockStorage, 'gs://bucket/folder/', ['db1', 'db2']);
     assert.strictEqual(buildId, 'mock-build-id');
 });
 
-test('ingestExternalToNative initializes metadata for multi-db', async (t) => {
+test('ingestExternalToNative initializes metadata for multi-db', async () => {
     process.env.MOCK_DB = 'true';
     const result = await ingestExternalToNative('project-id', 'source-id', mockProject, {
         dbType: 'postgres',
