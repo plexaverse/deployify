@@ -154,6 +154,9 @@ export interface Project {
     envVariables?: EnvVariable[];
     domains?: Domain[];
     storageConfigs?: StorageConfig[];
+    globalIpAddress?: string | null;
+    cloudArmorMode?: 'detection' | 'prevention' | null;
+    metadata?: Record<string, unknown>;
     ipRules?: {
         allow: string[];
         block: string[];
