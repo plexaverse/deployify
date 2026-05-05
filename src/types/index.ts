@@ -476,6 +476,15 @@ export interface WorkloadProfile {
     isColdStart?: boolean;
 }
 
+export interface IndexRecommendation {
+    table: string;
+    column: string;
+    indexName: string;
+    impactScore: number;
+    reason: string;
+    suggestedSql: string;
+}
+
 export interface ConnectivityTopology {
     injectionMethod: 'VPC' | 'PROXY' | 'SECRET' | 'DIRECT';
     path: string[]; // e.g., ["Cloud Run", "Direct VPC Egress", "Memorystore"]

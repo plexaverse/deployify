@@ -34,6 +34,8 @@ export interface ScalingRecommendation {
     performanceGain?: string;
 }
 
+import type { IndexRecommendation } from '@/types';
+
 export interface MaintenanceRecommendation {
     day: number; // 1-7 (Monday-Sunday)
     hour: number; // 0-23
@@ -669,6 +671,97 @@ export function detectPerformanceAnomaly(
     const deviation = currentValue - baseline;
 
     return { isAnomaly, baseline, deviation };
+}
+
+/**
+ * Calculate query impact score (Latency x Frequency) for optimization ranking
+ */
+export function getQueryImpactScore(avgLatencyMs: number, frequency: number): number {
+    return Math.round(avgLatencyMs * frequency);
+}
+
+/**
+ * Analyze SQL execution plans to identify missing indexes
+ */
+export function analyzePlanForIndexes(
+    plan: Record<string, unknown>[],
+    dbType: 'postgresql' | 'mysql'
+): IndexRecommendation[] {
+    const recommendations: IndexRecommendation[] = [];
+
+    if (dbType === 'postgresql') {
+        // Look for Sequential Scans on tables
+        // PostgreSQL JSON plan format: [{"Plan": {"Node Type": "Seq Scan", "Relation Name": "users", "Filter": "(id = 1)", ...}}]
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const findSeqScans = (node: any) => {
+            if (!node) return;
+
+            if (node['Node Type'] === 'Seq Scan' && node['Relation Name']) {
+                const table = node['Relation Name'];
+                const filter = node['Filter'] || '';
+
+                // Extract column name from filter (e.g., "(id = 1)" -> "id")
+                const colMatch = filter.match(/\(?([a-zA-Z0-9_]+)\s*[=<>]/);
+                if (colMatch && colMatch[1]) {
+                    const column = colMatch[1];
+                    const indexName = `idx_${table}_${column}_auto`;
+                    recommendations.push({
+                        table,
+                        column,
+                        indexName,
+                        impactScore: 0, // To be filled by API using telemetry
+                        reason: `Sequential scan detected on table "${table}" using filter "${filter}". Adding an index on "${column}" will significantly improve performance.`,
+                        suggestedSql: `CREATE INDEX CONCURRENTLY IF NOT EXISTS "${indexName}" ON "${table}" ("${column}")`
+                    });
+                }
+            }
+
+            if (node.Plans) {
+                node.Plans.forEach(findSeqScans);
+            }
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        plan.forEach(p => findSeqScans((p as any).Plan));
+    } else {
+        // MySQL JSON plan format: {"query_block": {"select_id": 1, "table": {"table_name": "users", "access_type": "ALL", ...}}}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const findFullScans = (obj: any) => {
+            if (!obj || typeof obj !== 'object') return;
+
+            if (obj.table && obj.table.access_type === 'ALL' && obj.table.table_name) {
+                const table = obj.table.table_name;
+                // MySQL doesn't always show the filter column clearly in the basic JSON plan,
+                // but we can look for attached_condition
+                const condition = obj.table.attached_condition || '';
+                const colMatch = condition.match(/`?([a-zA-Z0-9_]+)`?\s*[=<>]/);
+
+                if (colMatch && colMatch[1]) {
+                    const column = colMatch[1];
+                    const indexName = `idx_${table}_${column}_auto`;
+                    recommendations.push({
+                        table,
+                        column,
+                        indexName,
+                        impactScore: 0,
+                        reason: `Full table scan (ALL) detected on table "${table}" with condition "${condition}".`,
+                        suggestedSql: `CREATE INDEX \`${indexName}\` ON \`${table}\` (\`${column}\`)`
+                    });
+                }
+            }
+
+            Object.values(obj).forEach(val => {
+                if (typeof val === 'object') findFullScans(val);
+            });
+        };
+
+        plan.forEach(findFullScans);
+    }
+
+    // De-duplicate recommendations by table and column
+    return recommendations.filter((rec, index, self) =>
+        index === self.findIndex((t) => t.table === rec.table && t.column === rec.column)
+    );
 }
 
 /**

@@ -1045,6 +1045,20 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement Application-Aware Scaling suggestions driven by telemetry thresholds.
 - [x] Surface Top Query Bottlenecks in the Storage dashboard.
 
+### Phase 137: Telemetry-Driven Autonomous Indexing & Schema Optimization Intelligence (COMPLETED)
+- [x] Implement automated query impact scoring (Latency x Frequency).
+- [x] Implement missing index detection via execution plan analysis.
+- [x] Create project-scoped Schema Optimization API.
+- [x] Launch high-density 'Index Advisor' in the Optimization Modal.
+
+### 2027-07-12: Completed Phase 137: Telemetry-Driven Autonomous Indexing
+- Completed Phase 137: Telemetry-Driven Autonomous Indexing & Schema Optimization Intelligence.
+- Introduced automated query impact scoring that combines average latency with query frequency to prioritize optimization efforts.
+- Implemented execution plan analysis (`analyzePlanForIndexes`) to identify missing indexes in PostgreSQL and MySQL by detecting Sequential Scans on queried tables.
+- Launched a new Schema Optimization API that correlates runtime telemetry with infrastructure state to provide ranked index recommendations.
+- Enhanced the Optimization Modal with a high-density "Index Advisor" section, enabling developers to apply suggested performance optimizations with a single click.
+- Verified 100% operational integrity via unit tests for plan analysis and high-density UI validation.
+
 ### 2027-07-11: Completed Phase 136: Advanced Telemetry Intelligence
 - Completed Phase 136: Advanced Telemetry Intelligence & Global Performance Profiling.
 - Enhanced the Telemetry API to support real-time aggregation and performance profiling, calculating P90/P99 latencies and error rates from application runtime events.

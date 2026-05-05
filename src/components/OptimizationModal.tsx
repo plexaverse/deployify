@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import {
     Sparkles,
     ArrowRight,
@@ -11,13 +12,16 @@ import {
     Clock,
     ShieldAlert,
     ShieldCheck,
-    Lock
+    Lock,
+    Search,
+    Loader2,
+    CheckCircle2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
-import type { StorageConfig, WorkloadShift } from '@/types';
+import type { StorageConfig, WorkloadShift, IndexRecommendation } from '@/types';
 import type { ScalingRecommendation } from '@/lib/gcp/monitoring';
 import type { SecurityPosture } from '@/lib/gcp/security-auditor';
 
@@ -28,7 +32,62 @@ interface OptimizationModalProps {
     onApply?: (recommendation: ScalingRecommendation) => void;
 }
 
+interface IndexRec extends IndexRecommendation {
+    isApplied?: boolean;
+}
+
 export function OptimizationModal({ isOpen, onClose, storage, onApply }: OptimizationModalProps) {
+    const [indexRecs, setIndexRecs] = useState<IndexRec[]>([]);
+    const [isLoadingRecs, setIsLoadingRecs] = useState(false);
+    const [applyingIndex, setApplyingIndex] = useState<string | null>(null);
+
+    const fetchIndexRecommendations = useCallback(async () => {
+        if (!storage) return;
+        setIsLoadingRecs(true);
+        try {
+            const res = await fetch(`/api/projects/${storage.providerProjectId || 'current'}/storage/${storage.id}/schema-optimization`);
+            const data = await res.json();
+            if (data.success) {
+                setIndexRecs(data.recommendations || []);
+            }
+        } catch (e) {
+            console.error('Failed to fetch index recs:', e);
+        } finally {
+            setIsLoadingRecs(false);
+        }
+    }, [storage]);
+
+    useEffect(() => {
+        if (isOpen && storage && (storage.type.includes('sql') || storage.type === 'supabase' || storage.type === 'planetscale')) {
+            fetchIndexRecommendations();
+        }
+    }, [isOpen, storage, fetchIndexRecommendations]);
+
+    const handleApplyIndex = async (rec: IndexRec) => {
+        if (!storage) return;
+        setApplyingIndex(rec.indexName);
+        try {
+            const res = await fetch(`/api/projects/${storage.providerProjectId || 'current'}/storage/${storage.id}/apply-index`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    table: rec.table,
+                    column: rec.column,
+                    indexName: rec.indexName,
+                    customSql: rec.suggestedSql
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setIndexRecs(prev => prev.map(r => r.indexName === rec.indexName ? { ...r, isApplied: true } : r));
+            }
+        } catch (e) {
+            console.error('Failed to apply index:', e);
+        } finally {
+            setApplyingIndex(null);
+        }
+    };
+
     if (!storage || !storage.metadata?.optimization) return null;
 
     const optimization = storage.metadata.optimization as {
@@ -207,6 +266,73 @@ export function OptimizationModal({ isOpen, onClose, storage, onApply }: Optimiz
                             <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/70 leading-relaxed italic">
                                 This resource shows near-zero activity. Consider downgrading to the minimum tier or archiving data to reduce costs.
                             </p>
+                        </div>
+                    )}
+
+                    {indexRecs.length > 0 && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    Index Advisor (Phase 137)
+                                </Label>
+                                <div className="flex items-center gap-2">
+                                    {isLoadingRecs && <Loader2 className="w-3 h-3 animate-spin text-[var(--primary)]" />}
+                                    <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)]">
+                                        Telemetry Driven
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                {indexRecs.map((rec, i) => (
+                                    <div key={i} className="p-4 border border-[var(--border)] rounded-xl bg-[var(--background)] space-y-3 group hover:border-[var(--primary)]/30 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] shrink-0">
+                                                    <Search className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[8px] font-bold uppercase tracking-wider">Missing Index: {rec.table}.{rec.column}</span>
+                                                        <span className={cn(
+                                                            "text-[8px] font-bold px-1.5 py-0.5 rounded uppercase",
+                                                            rec.impactScore > 10000 ? "bg-[var(--error)]/10 text-[var(--error)]" : "bg-[var(--warning)]/10 text-[var(--warning)]"
+                                                        )}>
+                                                            Impact: {rec.impactScore.toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-[var(--foreground)] mt-1">{rec.reason}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-2.5 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
+                                            <code className="text-[8px] font-mono text-[var(--muted-foreground)] block break-all">
+                                                {rec.suggestedSql}
+                                            </code>
+                                        </div>
+
+                                        <Button
+                                            onClick={() => handleApplyIndex(rec)}
+                                            disabled={rec.isApplied || applyingIndex === rec.indexName}
+                                            className={cn(
+                                                "w-full h-8 text-[8px] font-bold uppercase tracking-wider",
+                                                rec.isApplied ? "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20" : ""
+                                            )}
+                                            variant={rec.isApplied ? "outline" : "primary"}
+                                        >
+                                            {rec.isApplied ? (
+                                                <span className="flex items-center gap-2">
+                                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                                    Optimization Applied
+                                                </span>
+                                            ) : (
+                                                applyingIndex === rec.indexName ? 'Applying Optimization...' : 'Apply Index Optimization'
+                                            )}
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
