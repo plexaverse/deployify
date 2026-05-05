@@ -14,7 +14,8 @@ import {
     ShieldCheck,
     Lock,
     Search,
-    Copy
+    Copy,
+    GitPullRequest
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -35,6 +36,7 @@ interface OptimizationModalProps {
 
 export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply }: OptimizationModalProps) {
     const [schemaOptimizations, setSchemaOptimizations] = useState<QueryImpactMetric[]>([]);
+    const [applyingId, setApplyingId] = useState<string | null>(null);
 
     const fetchSchemaOptimizations = useCallback(async () => {
         if (!storage || !projectId) return;
@@ -51,10 +53,38 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
 
     useEffect(() => {
         if (isOpen && storage) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             fetchSchemaOptimizations();
         }
     }, [isOpen, storage, fetchSchemaOptimizations]);
+
+    const applyOptimization = async (opt: QueryImpactMetric) => {
+        if (!projectId || !storage) return;
+        setApplyingId(opt.queryHash);
+        try {
+            const res = await fetch(`/api/projects/${projectId}/storage/${storage.id}/optimization/apply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recommendation: opt.recommendation,
+                    queryHash: opt.queryHash
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Optimization Pull Request created!');
+                if (data.pullRequestUrl) {
+                    window.open(data.pullRequestUrl, '_blank');
+                }
+            } else {
+                toast.error(data.error || 'Failed to create PR');
+            }
+        } catch (e) {
+            toast.error('An unexpected error occurred');
+            console.error(e);
+        } finally {
+            setApplyingId(null);
+        }
+    };
 
     if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length)) return null;
 
@@ -279,21 +309,39 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Proposed Optimization</span>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-5 w-5 text-[var(--muted-foreground)] hover:text-[var(--primary)]"
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(opt.recommendation!);
-                                                            toast.success('SQL copied to clipboard');
-                                                        }}
-                                                    >
-                                                        <Copy className="w-3 h-3" />
-                                                    </Button>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-5 w-5 text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(opt.recommendation!);
+                                                                toast.success('SQL copied to clipboard');
+                                                            }}
+                                                        >
+                                                            <Copy className="w-3 h-3" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            disabled={applyingId === opt.queryHash}
+                                                            className="h-5 w-5 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                                            onClick={() => applyOptimization(opt)}
+                                                        >
+                                                            <GitPullRequest className={cn("w-3 h-3", applyingId === opt.queryHash && "animate-pulse")} />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                                 <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[8px] text-[var(--primary)]">
                                                     {opt.recommendation}
                                                 </div>
+                                                <Button
+                                                    onClick={() => applyOptimization(opt)}
+                                                    disabled={applyingId === opt.queryHash}
+                                                    className="w-full h-7 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 border border-[var(--primary)]/20"
+                                                >
+                                                    {applyingId === opt.queryHash ? 'Creating PR...' : 'Create Optimization PR'}
+                                                </Button>
                                             </div>
                                         )}
                                     </div>
