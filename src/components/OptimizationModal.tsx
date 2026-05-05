@@ -63,10 +63,10 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         lastAnalyzedAt: string
     } | undefined;
 
-    const security = storage.metadata.security as SecurityPosture | undefined;
+    const security = storage.metadata?.security as SecurityPosture | undefined;
     const dormancy = storage.dormancy;
-    const workloadShift = storage.metadata.workloadShift as unknown as WorkloadShift;
-    const health = storage.metadata.health as {
+    const workloadShift = storage.metadata?.workloadShift as unknown as WorkloadShift;
+    const health = storage.metadata?.health as {
         status: string,
         predictedLatency?: number,
         isPredictiveDegraded?: boolean,
