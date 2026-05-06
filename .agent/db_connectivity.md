@@ -1058,6 +1058,12 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement automated GitHub PR creation for schema optimizations.
 - [x] Support Prisma, Drizzle, and raw SQL migration formats.
 
+### Phase 139: Intelligent Deployment Safety & Automated Performance Regression Detection (COMPLETED)
+- [x] Implement deployment event correlation with database telemetry.
+- [x] Develop `detectPerformanceRegressions` logic to identify latency/error shifts post-deployment.
+- [x] Create project-scoped Performance Regression API endpoint.
+- [x] Enhance Storage UI with 'REGRESSION RISK' badges and performance shift visualization.
+
 ### 2027-07-13: Completed Phase 138: Autonomous Database Lifecycle
 - Completed Phase 138: Autonomous Database Lifecycle - AI-Driven Migration & Schema Hardening.
 - Enhanced the GitHub library (`src/lib/github.ts`) with `createBranch`, `createOrUpdateFile`, and `createPullRequest` functions to support automated schema hardening workflows.
