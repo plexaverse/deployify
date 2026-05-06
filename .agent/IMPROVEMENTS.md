@@ -193,3 +193,6 @@ Session 227: Verified environment and ensured everything works. Audited tests, l
     - Enhanced the Storage UI with pulsating 'CONNECTION LEAK' badges and a detailed analysis modal for one-click session recovery.
     - Integrated background leak detection into the `StorageSync` heartbeat pipeline for real-time fleet health monitoring.
     - Verified 100% operational integrity with a zero-warning build and 166 passing tests.
+- Session 246: Ensured  and  are up to date and confirmed platform operational integrity.
+- Session 246: Ensured `.agent/RULES.md` and `.agent/IMPROVEMENTS.md` are up to date and confirmed platform operational integrity.
+- Session 246: Ensured \`.agent/RULES.md\` and \`.agent/IMPROVEMENTS.md\` are up to date and confirmed platform operational integrity. Updated `.agent/RULES.md` to explicitly forbid legacy and odd typography sizes.
