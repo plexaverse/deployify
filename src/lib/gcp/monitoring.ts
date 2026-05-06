@@ -2,7 +2,7 @@ import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
 import { getSecretValue } from './secrets';
 import { calculateEWMA, isDegraded } from './health-utils';
-import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile } from '@/types';
+import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile, ConnectionLeakReport } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -1502,6 +1502,57 @@ export function analyzePlanForIndexes(
     }
 
     return { hasSeqScan, recommendation, impact, isComposite, isDuplicate };
+}
+
+/**
+ * Detect potential connection leaks by analyzing idle session distribution (Phase 141)
+ */
+export function detectConnectionLeaks(
+    sessions: import('./cloudsql').DatabaseSession[]
+): ConnectionLeakReport {
+    const totalSessions = sessions.length;
+    const idleSessions = sessions.filter(s => s.state === 'idle' || s.state === 'Sleep').length;
+
+    const clientMap = new Map<string, { idleCount: number, oldestStart: string }>();
+
+    sessions.forEach(s => {
+        if (s.state === 'idle' || s.state === 'Sleep') {
+            const existing = clientMap.get(s.clientAddress) || { idleCount: 0, oldestStart: s.startTime };
+            clientMap.set(s.clientAddress, {
+                idleCount: existing.idleCount + 1,
+                oldestStart: new Date(s.startTime) < new Date(existing.oldestStart) ? s.startTime : existing.oldestStart
+            });
+        }
+    });
+
+    const leakedClients = Array.from(clientMap.entries())
+        .filter(([, stats]) => stats.idleCount > 10) // Threshold for potential leak
+        .map(([address, stats]) => ({
+            address,
+            idleCount: stats.idleCount,
+            oldestSessionStart: stats.oldestStart
+        }))
+        .sort((a, b) => b.idleCount - a.idleCount);
+
+    const hasLeak = leakedClients.length > 0 || (totalSessions > 50 && idleSessions / totalSessions > 0.8);
+
+    let recommendation: string | undefined;
+    if (hasLeak) {
+        if (leakedClients.length > 0) {
+            recommendation = `Detected ${leakedClients.length} clients with excessive idle connections. This typically indicates unclosed database connections in your application code.`;
+        } else {
+            recommendation = `High ratio of idle connections (${Math.round((idleSessions / totalSessions) * 100)}%) detected. Consider implementing a connection pooler or reducing your application's pool size.`;
+        }
+    }
+
+    return {
+        hasLeak,
+        totalSessions,
+        idleSessions,
+        leakedClients,
+        recommendation,
+        timestamp: new Date().toISOString()
+    };
 }
 
 /**

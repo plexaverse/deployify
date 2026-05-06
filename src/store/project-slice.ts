@@ -106,6 +106,7 @@ export interface ProjectSlice {
     fetchMigrationStatus: (projectId: string, storageId: string, operationName: string) => Promise<{ status: string; logs?: string; error?: string }>;
     startMigrationPolling: (projectId: string, storageId: string, operationName: string) => void;
     clearMigrationStatus: (storageId: string) => void;
+    healConnectionPool: (projectId: string, storageId: string, clientAddress?: string) => Promise<boolean>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -556,6 +557,32 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             delete activeMigrations[storageId];
             return { activeMigrations };
         });
+    },
+
+    healConnectionPool: async (projectId, storageId, clientAddress) => {
+        const toastId = toast.loading('Healing connection pool...');
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/health/heal`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clientAddress }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to heal connection pool');
+            }
+
+            // Trigger sync to refresh the leak status
+            await get().syncStorageStatus(projectId, storageId);
+
+            toast.success(data.message || 'Connection pool healed', { id: toastId });
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to heal pool', { id: toastId });
+            return false;
+        }
     },
 
     fetchProjectEnvVariables: async (projectId) => {
