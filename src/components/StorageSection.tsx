@@ -3336,6 +3336,17 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                             </span>
                                                         )}
                                                         <span className="text-[8px] font-mono font-bold text-[var(--muted-foreground)]">{m.provider?.toUpperCase()}</span>
+                                                        {m.performanceImpact !== undefined && (
+                                                            <span className={cn(
+                                                                "text-[8px] font-bold uppercase px-1.5 py-0.5 rounded border flex items-center gap-1",
+                                                                m.regressionSeverity === 'high' ? "bg-[var(--error)]/10 text-[var(--error)] border-[var(--error)]/20" :
+                                                                m.regressionSeverity === 'medium' ? "bg-[var(--warning)]/10 text-[var(--warning)] border-[var(--warning)]/20" :
+                                                                "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20"
+                                                            )}>
+                                                                <TrendingUp className="w-2.5 h-2.5" />
+                                                                {m.performanceImpact > 0 ? `+${m.performanceImpact}%` : `${m.performanceImpact}%`} IMPACT
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <p className="text-[8px] font-bold uppercase text-[var(--foreground)] truncate max-w-[280px]" title={m.name}>{m.name}</p>
                                                     <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]/60">
@@ -4739,6 +4750,37 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                             BASELINE: {q.previousLatency}ms → <span className="text-[var(--foreground)]">{q.currentLatency}ms</span>
                                                         </p>
                                                     </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {regressionReport.correlatedMigrations && regressionReport.correlatedMigrations.length > 0 && (
+                                    <div className="space-y-3">
+                                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Correlated Migrations (Cause)</Label>
+                                        <div className="space-y-2">
+                                            {regressionReport.correlatedMigrations.map((m) => (
+                                                <div key={m.id} className="p-3 border border-[var(--error)]/30 rounded-xl bg-[var(--error)]/5 flex items-center justify-between">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[8px] font-bold uppercase text-[var(--error)]">HIGH IMPACT</span>
+                                                            <span className="text-[8px] font-mono font-bold">{m.name}</span>
+                                                        </div>
+                                                        <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">APPLIED: {new Date(m.appliedAt).toLocaleString()}</p>
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setIsManagingMigrations(isManagingRegression);
+                                                            setRollbackCommand(`${m.provider === 'prisma' ? 'prisma migrate resolve --rolled-back ' : ''}${m.name}`);
+                                                            setIsManagingRegression(null);
+                                                        }}
+                                                        className="h-7 text-[8px] font-bold uppercase tracking-wider border-[var(--error)]/30 text-[var(--error)] hover:bg-[var(--error)]/10"
+                                                    >
+                                                        SAFE ROLLBACK
+                                                    </Button>
                                                 </div>
                                             ))}
                                         </div>

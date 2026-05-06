@@ -37,6 +37,9 @@ export async function GET(
                 report: {
                     hasRegression: false,
                     severity: 'none',
+                    metrics: { latencyDelta: 0, errorRateDelta: 0, p99Delta: 0 },
+                    regressedQueries: [],
+                    timestamp: new Date().toISOString(),
                     reason: 'No successful production deployment found for analysis.'
                 }
             });

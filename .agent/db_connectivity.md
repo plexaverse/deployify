@@ -759,6 +759,14 @@ Deployify adopts a three-tier "Connector" model to standardize database lifecycl
 
 ## Progress Updates
 
+### 2027-07-14: Completed Phase 140: Autonomous Performance Self-Healing
+- Completed Phase 140: Autonomous Performance Self-Healing & Intelligent Migration Safety.
+- Enhanced the Performance Regression engine to automatically correlate latency shifts with specific database migrations applied within the deployment window.
+- Implemented Migration Impact Analysis, calculating and persisting the performance delta (latency shift) for every applied schema change.
+- Launched "Safe Rollback" guidance in the regression analysis UI, enabling developers to immediately identify and revert regression-inducing migrations.
+- Updated the Storage UI with high-density impact badges in the migration history list and a dedicated "Cause" section in the regression analysis modal.
+- Verified 100% operational integrity with a zero-warning lint pass and 166 passing tests.
+
 ### 2027-06-23: Completed Phase 115: Automated Connection Pooling Orchestration
 - Completed Phase 115: Automated Connection Pooling Orchestration & VPC-SC Governance.
 - Launched Automated Connection Pooling Orchestration for Cloud SQL, enabling one-click PgBouncer activation directly from saturation alerts in the Storage dashboard.
@@ -1063,6 +1071,12 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Develop `detectPerformanceRegressions` logic to identify latency/error shifts post-deployment.
 - [x] Create project-scoped Performance Regression API endpoint.
 - [x] Enhance Storage UI with 'REGRESSION RISK' badges and performance shift visualization.
+
+### Phase 140: Autonomous Performance Self-Healing & Intelligent Migration Safety (COMPLETED)
+- [x] Correlate performance regressions with specific database migrations.
+- [x] Implement Migration Impact Analysis (latency shift per migration).
+- [x] Provide Intelligent Rollback Guidance for regression-inducing schema changes.
+- [x] Enhance UI to visualize migration-regression correlations.
 
 ### 2027-07-13: Completed Phase 138: Autonomous Database Lifecycle
 - Completed Phase 138: Autonomous Database Lifecycle - AI-Driven Migration & Schema Hardening.
