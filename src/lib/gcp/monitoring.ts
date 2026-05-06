@@ -64,6 +64,24 @@ export interface LogEntry {
     insertId: string;
 }
 
+export interface PerformanceRegressionReport {
+    hasRegression: boolean;
+    severity: 'high' | 'medium' | 'low' | 'none';
+    metrics: {
+        latencyDelta: number; // Percentage change in average latency
+        errorRateDelta: number; // Percentage point change in error rate
+        p99Delta: number; // Change in P99 latency in ms
+    };
+    regressedQueries: {
+        queryHash: string;
+        previousLatency: number;
+        currentLatency: number;
+        delta: number;
+    }[];
+    deploymentId?: string;
+    timestamp: string;
+}
+
 /**
  * Check if resource metrics exceed configured thresholds
  */
@@ -622,6 +640,133 @@ export async function getQueryInsights(
     } catch (e) {
         console.error('Failed to fetch query insights:', e);
         return [];
+    }
+}
+
+/**
+ * Detect performance regressions by comparing telemetry before and after a deployment (Phase 139)
+ */
+export async function detectPerformanceRegressions(
+    projectId: string,
+    storageId: string,
+    deploymentTimestamp: Date | string,
+    options: {
+        lookbackHours?: number;
+        deploymentId?: string;
+    } = {}
+): Promise<PerformanceRegressionReport> {
+    const { lookbackHours = 12, deploymentId } = options;
+    const deployDate = new Date(deploymentTimestamp);
+    const windowStart = new Date(deployDate.getTime() - lookbackHours * 60 * 60 * 1000);
+    const windowEnd = new Date(deployDate.getTime() + lookbackHours * 60 * 60 * 1000);
+    const now = new Date();
+    const currentEnd = windowEnd > now ? now : windowEnd;
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasRegression = Math.random() > 0.7;
+        return {
+            hasRegression,
+            severity: hasRegression ? 'medium' : 'none',
+            metrics: {
+                latencyDelta: hasRegression ? 25.5 : 2.1,
+                errorRateDelta: hasRegression ? 1.5 : 0.05,
+                p99Delta: hasRegression ? 120 : 5
+            },
+            regressedQueries: hasRegression ? [
+                { queryHash: 'SELECT * FROM users WHERE active = ?', previousLatency: 45, currentLatency: 85, delta: 88.8 }
+            ] : [],
+            deploymentId,
+            timestamp: now.toISOString()
+        };
+    }
+
+    try {
+        const { getDb, Collections } = await import('@/lib/firebase');
+        const db = getDb();
+
+        // 1. Fetch baseline (Pre-deployment)
+        const baselineSnapshot = await db.collection(Collections.RUNTIME_TELEMETRY)
+            .where('projectId', '==', projectId)
+            .where('storageId', '==', storageId)
+            .where('timestamp', '>=', windowStart)
+            .where('timestamp', '<', deployDate)
+            .get();
+
+        // 2. Fetch current (Post-deployment)
+        const currentSnapshot = await db.collection(Collections.RUNTIME_TELEMETRY)
+            .where('projectId', '==', projectId)
+            .where('storageId', '==', storageId)
+            .where('timestamp', '>=', deployDate)
+            .where('timestamp', '<=', currentEnd)
+            .get();
+
+        const calculateStats = (docs: import('firebase-admin/firestore').QueryDocumentSnapshot<import('firebase-admin/firestore').DocumentData>[]) => {
+            if (docs.length === 0) return { avg: 0, p99: 0, errorRate: 0, queryMap: new Map<string, { total: number, count: number }>() };
+            const latencies = docs.map(d => Number(d.data().durationMs) || 0).sort((a, b) => a - b);
+            const errors = docs.filter(d => !d.data().success).length;
+            const avg = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+            const p99 = latencies[Math.floor(latencies.length * 0.99)] || latencies[latencies.length - 1];
+
+            const queryMap = new Map<string, { total: number, count: number }>();
+            docs.forEach(d => {
+                const data = d.data();
+                const hash = (data.queryHash as string) || 'unknown';
+                const existing = queryMap.get(hash) || { total: 0, count: 0 };
+                queryMap.set(hash, { total: existing.total + (Number(data.durationMs) || 0), count: existing.count + 1 });
+            });
+
+            return { avg, p99, errorRate: (errors / docs.length) * 100, queryMap };
+        };
+
+        const baseline = calculateStats(baselineSnapshot.docs);
+        const current = calculateStats(currentSnapshot.docs);
+
+        const latencyDelta = baseline.avg > 0 ? ((current.avg - baseline.avg) / baseline.avg) * 100 : 0;
+        const errorRateDelta = current.errorRate - baseline.errorRate;
+        const p99Delta = current.p99 - baseline.p99;
+
+        const regressedQueries: PerformanceRegressionReport['regressedQueries'] = [];
+        current.queryMap.forEach((stats, hash) => {
+            const currentAvg = stats.total / stats.count;
+            const baselineStats = baseline.queryMap.get(hash);
+            if (baselineStats) {
+                const baselineAvg = baselineStats.total / baselineStats.count;
+                if (currentAvg > baselineAvg * 1.3) { // 30% regression
+                    regressedQueries.push({
+                        queryHash: hash,
+                        previousLatency: Math.round(baselineAvg),
+                        currentLatency: Math.round(currentAvg),
+                        delta: parseFloat((((currentAvg - baselineAvg) / baselineAvg) * 100).toFixed(1))
+                    });
+                }
+            }
+        });
+
+        const hasRegression = latencyDelta > 15 || errorRateDelta > 1 || p99Delta > 100 || regressedQueries.length > 0;
+        const severity = (latencyDelta > 50 || errorRateDelta > 5) ? 'high' : (hasRegression ? 'medium' : 'none');
+
+        return {
+            hasRegression,
+            severity,
+            metrics: {
+                latencyDelta: parseFloat(latencyDelta.toFixed(1)),
+                errorRateDelta: parseFloat(errorRateDelta.toFixed(2)),
+                p99Delta: Math.round(p99Delta)
+            },
+            regressedQueries: regressedQueries.sort((a, b) => b.delta - a.delta).slice(0, 5),
+            deploymentId,
+            timestamp: now.toISOString()
+        };
+
+    } catch (e) {
+        console.error(`[Monitoring] Error detecting performance regressions:`, e);
+        return {
+            hasRegression: false,
+            severity: 'none',
+            metrics: { latencyDelta: 0, errorRateDelta: 0, p99Delta: 0 },
+            regressedQueries: [],
+            timestamp: new Date().toISOString()
+        };
     }
 }
 

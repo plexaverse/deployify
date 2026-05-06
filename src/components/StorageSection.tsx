@@ -167,6 +167,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [sessions, setSessions] = useState<import('@/lib/gcp/cloudsql').DatabaseSession[]>([]);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
     const [isManagingLogs, setIsManagingLogs] = useState<StorageConfig | null>(null);
+    const [isManagingRegression, setIsManagingRegression] = useState<StorageConfig | null>(null);
+    const [regressionReport, setRegressionReport] = useState<import('@/lib/gcp/monitoring').PerformanceRegressionReport | null>(null);
+    const [isLoadingRegression, setIsLoadingRegression] = useState(false);
     const [logs, setLogs] = useState<import('@/lib/gcp/monitoring').LogEntry[]>([]);
     const [isLoadingLogs, setIsLoadingLogs] = useState(false);
     const [isManagingTelemetry, setIsManagingTelemetry] = useState<StorageConfig | null>(null);
@@ -1061,6 +1064,21 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             console.error('Failed to fetch telemetry:', e);
         } finally {
             setIsLoadingTelemetry(false);
+        }
+    }, [projectId]);
+
+    const fetchRegressionReport = useCallback(async (storageId: string) => {
+        setIsLoadingRegression(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/performance-regression`);
+            const data = await response.json();
+            if (data.success) {
+                setRegressionReport(data.report);
+            }
+        } catch (e) {
+            console.error('Failed to fetch regression report:', e);
+        } finally {
+            setIsLoadingRegression(false);
         }
     }, [projectId]);
 
@@ -2008,6 +2026,20 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             ))}
                                             {config.status === 'active' && !!config.metadata?.health && (
                                                 <div className="flex items-center gap-2">
+                                                    {!!config.metadata?.hasRegression && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setIsManagingRegression(config);
+                                                                fetchRegressionReport(config.id);
+                                                            }}
+                                                            className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/30 flex items-center gap-1 animate-pulse"
+                                                            title="Deployment Performance Regression Detected"
+                                                        >
+                                                            <ShieldAlert className="w-2.5 h-2.5" />
+                                                            REGRESSION RISK
+                                                        </button>
+                                                    )}
                                                     <span className={cn(
                                                         "text-[8px] font-bold uppercase flex items-center gap-1",
                                                         (config.metadata.health as { status: string }).status === 'healthy' ? "text-[var(--success)]" :
@@ -4632,6 +4664,95 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 )}
                             </div>
                         </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingRegression}
+                onClose={() => {
+                    setIsManagingRegression(null);
+                    setRegressionReport(null);
+                }}
+                title="Performance Regression Analysis"
+                headerLabel="Deployment Safety"
+                icon={<Activity className="w-5 h-5 text-[var(--error)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl space-y-4">
+                            <div className="flex items-center gap-2">
+                                <ShieldAlert className="w-4 h-4 text-[var(--error)]" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Post-Deployment Regression</span>
+                            </div>
+                            <p className="text-[10px]">
+                                Deployify detected a significant performance shift following the latest production deployment. Comparing current telemetry against pre-deployment baselines.
+                            </p>
+                        </div>
+
+                        {isLoadingRegression ? (
+                            <div className="py-20 flex flex-col items-center justify-center gap-3">
+                                <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Analyzing deployment impact...</span>
+                            </div>
+                        ) : !regressionReport || !regressionReport.hasRegression ? (
+                            <div className="py-20 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
+                                <CheckCircle2 className="w-8 h-8 text-[var(--success)]/30 mx-auto mb-3" />
+                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No significant regressions detected</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Latency Shift</span>
+                                        <span className={cn("text-[10px] font-mono font-bold", regressionReport.metrics.latencyDelta > 15 ? "text-[var(--error)]" : "text-[var(--primary)]")}>
+                                            +{regressionReport.metrics.latencyDelta}%
+                                        </span>
+                                    </div>
+                                    <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">P99 Delta</span>
+                                        <span className={cn("text-[10px] font-mono font-bold", regressionReport.metrics.p99Delta > 50 ? "text-[var(--error)]" : "text-[var(--primary)]")}>
+                                            +{regressionReport.metrics.p99Delta}ms
+                                        </span>
+                                    </div>
+                                    <div className="p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Error Delta</span>
+                                        <span className={cn("text-[10px] font-mono font-bold", regressionReport.metrics.errorRateDelta > 0.5 ? "text-[var(--error)]" : "text-[var(--success)]")}>
+                                            +{regressionReport.metrics.errorRateDelta}%
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {regressionReport.regressedQueries.length > 0 && (
+                                    <div className="space-y-3">
+                                        <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Regressed Queries</Label>
+                                        <div className="space-y-2">
+                                            {regressionReport.regressedQueries.map((q, i) => (
+                                                <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between group hover:border-[var(--error)]/30 transition-all">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)]">{q.queryHash}</span>
+                                                            <span className="text-[8px] font-bold uppercase text-[var(--error)] px-1.5 py-0.5 bg-[var(--error)]/10 rounded">+{q.delta}%</span>
+                                                        </div>
+                                                        <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
+                                                            BASELINE: {q.previousLatency}ms → <span className="text-[var(--foreground)]">{q.currentLatency}ms</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="p-3 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl flex items-start gap-2">
+                                    <ShieldAlert className="w-3.5 h-3.5 text-[var(--error)] shrink-0 mt-0.5" />
+                                    <p className="text-[8px] font-bold uppercase text-[var(--error)] leading-relaxed">
+                                        CRITICAL: Telemetry indicates that deployment {regressionReport.deploymentId?.substring(0, 8)} has introduced performance regressions. Rollback or index optimization may be required.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 }
                 showConfirm={false}
