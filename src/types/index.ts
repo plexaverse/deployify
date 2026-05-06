@@ -558,3 +558,16 @@ export interface TelemetryEvent {
     timestamp: Date | string;
     source: string;
 }
+
+export interface ConnectionLeakReport {
+    hasLeak: boolean;
+    totalSessions: number;
+    idleSessions: number;
+    leakedClients: Array<{
+        address: string;
+        idleCount: number;
+        oldestSessionStart: string;
+    }>;
+    recommendation?: string;
+    timestamp: string;
+}

@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -218,7 +218,29 @@ export async function GET(
                     }
                 }
 
-                // 0e. Phase 101: Automated Resource Labeling
+                // 0e. Phase 141: Intelligent Connection Leak Detection
+                if (storage.status === 'active' && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const { getActiveSessions } = await import('@/lib/gcp/cloudsql');
+
+                        const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
+                        if (connStr) {
+                            const dbType = (storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
+                            const sessions = await getActiveSessions(connStr, dbType as 'postgres' | 'mysql', { ssl: !!storage.ssl });
+                            const leakReport = detectConnectionLeaks(sessions);
+
+                            storage.metadata = {
+                                ...storage.metadata,
+                                connectionLeak: leakReport.hasLeak ? leakReport : undefined
+                            };
+                        }
+                    } catch (leakErr) {
+                        console.error(`[ConnectionLeakSync] Check failed for ${storageId}:`, leakErr);
+                    }
+                }
+
+                // 0f. Phase 101: Automated Resource Labeling
                 if (storage.metadata?.provisioned && storage.labelingStatus !== 'SYNCED') {
                     try {
                         const labelResult = await syncResourceLabels(project, storage);

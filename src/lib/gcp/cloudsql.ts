@@ -1058,6 +1058,42 @@ export async function terminateSession(
 }
 
 /**
+ * Terminate all idle sessions from a specific client address or all clients (Phase 141)
+ */
+export async function terminateIdleSessions(
+    connectionString: string,
+    dbType: 'postgres' | 'mysql',
+    clientAddress?: string,
+    options: {
+        ssl?: boolean;
+        iamAuth?: boolean;
+    } = {}
+): Promise<{ terminatedCount: number }> {
+    if (process.env.MOCK_DB === 'true') {
+        console.log(`[CloudSQL] MOCK: Terminating idle sessions from ${clientAddress || 'all clients'} on ${dbType}`);
+        return { terminatedCount: 5 };
+    }
+
+    const sessions = await getActiveSessions(connectionString, dbType, options);
+    const idleSessions = sessions.filter(s =>
+        (s.state === 'idle' || s.state === 'Sleep') &&
+        (!clientAddress || s.clientAddress === clientAddress)
+    );
+
+    let terminatedCount = 0;
+    for (const session of idleSessions) {
+        try {
+            const success = await terminateSession(connectionString, dbType, session.id, options);
+            if (success) terminatedCount++;
+        } catch (e) {
+            console.warn(`[CloudSQL] Failed to terminate session ${session.id}:`, e);
+        }
+    }
+
+    return { terminatedCount };
+}
+
+/**
  * Delete a Cloud SQL instance
  */
 export async function deleteInstance(instanceName: string, projectId?: string): Promise<string> {

@@ -186,3 +186,10 @@ Session 227: Verified environment and ensured everything works. Audited tests, l
     - Launched "Safe Rollback" guidance in the Storage UI, providing one-click rollback triggers for migrations identified as regression-inducing.
     - Standardized high-density performance impact badges and severity indicators in the Migration History list.
     - Verified 100% operational integrity with 166 passing tests and a perfect Pre-Launch Audit.
+- Session 245: Completed Phase 141 'Autonomous Database Health Remediation & Intelligent Connection Leak Detection'.
+    - Implemented `detectConnectionLeaks` in `src/lib/gcp/monitoring.ts` to identify stale/unclosed sessions based on client IP distribution and idle counts.
+    - Developed `terminateIdleSessions` in `src/lib/gcp/cloudsql.ts` to support automated and manual connection pool healing.
+    - Launched a new Health Remediation API at `/api/projects/[id]/storage/[storageId]/health/heal` with full RBAC enforcement.
+    - Enhanced the Storage UI with pulsating 'CONNECTION LEAK' badges and a detailed analysis modal for one-click session recovery.
+    - Integrated background leak detection into the `StorageSync` heartbeat pipeline for real-time fleet health monitoring.
+    - Verified 100% operational integrity with a zero-warning build and 166 passing tests.

@@ -99,6 +99,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         runProjectMigration,
         runProjectRollback,
         clearMigrationStatus,
+        healConnectionPool,
         updateStorageAlerts,
         remediateStorageRisk,
         addReadReplica,
@@ -176,6 +177,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [telemetryData, setTelemetryData] = useState<TelemetryData | TelemetryEvent[] | null>(null);
     const [isLoadingTelemetry, setIsLoadingTelemetry] = useState(false);
     const [isManagingSharing, setIsManagingSharing] = useState<StorageConfig | null>(null);
+    const [isManagingLeaks, setIsManagingLeaks] = useState<StorageConfig | null>(null);
     const [logSeverity, setLogSeverity] = useState('');
     const [logSearch, setLogSearch] = useState('');
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
@@ -2061,6 +2063,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                         </span>
                                                     )}
                                                 </div>
+                                            )}
+                                            {config.status === 'active' && !!config.metadata?.connectionLeak && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingLeaks(config);
+                                                    }}
+                                                    className="text-[8px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/30 flex items-center gap-1 animate-pulse"
+                                                    title="Potential connection leak detected"
+                                                >
+                                                    <Zap className="w-2.5 h-2.5" />
+                                                    CONNECTION LEAK
+                                                </button>
                                             )}
                                             {storageHealth[config.id] && storageHealth[config.id].length > 0 && (
                                                 <div className="flex items-center gap-2">
@@ -4795,6 +4810,77 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </div>
                             </div>
                         )}
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingLeaks}
+                onClose={() => setIsManagingLeaks(null)}
+                title="Connection Leak Analysis"
+                headerLabel="Health Remediation"
+                icon={<Zap className="w-5 h-5 text-[var(--error)]" />}
+                description={
+                    <div className="space-y-6">
+                        <div className="p-4 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Activity className="w-4 h-4 text-[var(--error)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Leak Detected</span>
+                                </div>
+                                <Button
+                                    onClick={() => isManagingLeaks && healConnectionPool(projectId, isManagingLeaks.id)}
+                                    className="h-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                >
+                                    Heal Global Pool
+                                </Button>
+                            </div>
+                            <p className="text-[10px]">
+                                {isManagingLeaks?.metadata?.connectionLeak?.recommendation as string || 'Potential connection leak detected. Multiple idle sessions from the same source often indicate unclosed connections.'}
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Leaked Clients (Last Sync)</Label>
+                            <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
+                                {!isManagingLeaks?.metadata?.connectionLeak?.leakedClients?.length ? (
+                                    <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No specific leaked clients identified</p>
+                                    </div>
+                                ) : (
+                                    (isManagingLeaks.metadata.connectionLeak.leakedClients as Array<{address: string, idleCount: number, oldestSessionStart: string}>).map((c, i) => (
+                                        <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between group hover:border-[var(--primary)]/30 transition-all">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{c.address}</span>
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--error)] px-1.5 py-0.5 bg-[var(--error)]/10 rounded">{c.idleCount} IDLE</span>
+                                                </div>
+                                                <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
+                                                    OLDEST SESSION: {new Date(c.oldestSessionStart).toLocaleString()}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => isManagingLeaks && healConnectionPool(projectId, isManagingLeaks.id, c.address)}
+                                                className="h-7 text-[8px] font-bold uppercase tracking-wider border-[var(--primary)]/30 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            >
+                                                TERMINATE
+                                            </Button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="p-3 bg-[var(--warning)]/5 border border-[var(--warning)]/20 rounded-xl flex items-start gap-2">
+                            <AlertTriangle className="w-3.5 h-3.5 text-[var(--warning)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                CRITICAL: Connection leaks can saturate the database, leading to application downtime. The &quot;Heal Pool&quot; action terminates idle sessions to reclaim connection slots immediately.
+                            </p>
+                        </div>
                     </div>
                 }
                 showConfirm={false}
