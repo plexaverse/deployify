@@ -61,7 +61,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { EmptyState } from '@/components/EmptyState';
 import { NoEnvVarsIllustration } from '@/components/ui/illustrations';
-import type { StorageType, StorageConfig, Backup, Migration, WorkloadShift, TelemetryData, TelemetryEvent } from '@/types';
+import type { StorageType, StorageConfig, Backup, Migration, WorkloadShift, TelemetryData, TelemetryEvent, ConnectionLeakReport } from '@/types';
 import type { DiagnosticResult } from '@/lib/gcp/storage-validator';
 
 interface StorageSectionProps {
@@ -4838,19 +4838,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </Button>
                             </div>
                             <p className="text-[10px]">
-                                {isManagingLeaks?.metadata?.connectionLeak?.recommendation as string || 'Potential connection leak detected. Multiple idle sessions from the same source often indicate unclosed connections.'}
+                                {(isManagingLeaks?.metadata?.connectionLeak as ConnectionLeakReport | undefined)?.recommendation || 'Potential connection leak detected. Multiple idle sessions from the same source often indicate unclosed connections.'}
                             </p>
                         </div>
 
                         <div className="space-y-3">
                             <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Leaked Clients (Last Sync)</Label>
                             <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
-                                {!isManagingLeaks?.metadata?.connectionLeak?.leakedClients?.length ? (
+                                {!(isManagingLeaks?.metadata?.connectionLeak as ConnectionLeakReport | undefined)?.leakedClients?.length ? (
                                     <div className="py-8 text-center border border-dashed border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                         <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No specific leaked clients identified</p>
                                     </div>
                                 ) : (
-                                    (isManagingLeaks.metadata.connectionLeak.leakedClients as Array<{address: string, idleCount: number, oldestSessionStart: string}>).map((c, i) => (
+                                    ((isManagingLeaks!.metadata!.connectionLeak as ConnectionLeakReport).leakedClients).map((c, i) => (
                                         <div key={i} className="p-3 border border-[var(--border)] rounded-xl bg-[var(--background)] flex items-center justify-between group hover:border-[var(--primary)]/30 transition-all">
                                             <div className="space-y-1">
                                                 <div className="flex items-center gap-2">
