@@ -78,6 +78,7 @@ export interface PerformanceRegressionReport {
         currentLatency: number;
         delta: number;
     }[];
+    correlatedMigrations?: import('@/types').Migration[];
     deploymentId?: string;
     timestamp: string;
 }
@@ -675,6 +676,9 @@ export async function detectPerformanceRegressions(
             regressedQueries: hasRegression ? [
                 { queryHash: 'SELECT * FROM users WHERE active = ?', previousLatency: 45, currentLatency: 85, delta: 88.8 }
             ] : [],
+            correlatedMigrations: hasRegression ? [
+                { id: 'mig-101', name: '20240701_add_active_index', appliedAt: new Date(deployDate.getTime() + 1000).toISOString(), status: 'SUCCESS', performanceImpact: 88.8, regressionSeverity: 'medium' }
+            ] : [],
             deploymentId,
             timestamp: now.toISOString()
         };
@@ -742,6 +746,29 @@ export async function detectPerformanceRegressions(
             }
         });
 
+        // 3. Correlate with Migrations (Phase 140)
+        const migrationsSnapshot = await db.collection(Collections.PROJECTS).doc(projectId).get();
+        const projectData = migrationsSnapshot.data();
+        const storageConfig = projectData?.storageConfigs?.find((s: import('@/types').StorageConfig) => s.id === storageId);
+        const connectionString = storageConfig?.connectionStringSecretId ? await getSecretValue(storageConfig.connectionStringSecretId) : '';
+
+        const { listMigrations } = await import('./migrations');
+        const allMigrations = await listMigrations(connectionString, storageConfig?.type || 'cloud-sql-postgres');
+
+        // Find migrations applied around the deployment window (within 1 hour of deployment)
+        const oneHour = 60 * 60 * 1000;
+        const correlatedMigrations = allMigrations.filter(m => {
+            if (!m.appliedAt) return false;
+            const appliedDate = new Date(m.appliedAt);
+            return Math.abs(appliedDate.getTime() - deployDate.getTime()) < oneHour;
+        });
+
+        // Enrich migrations with impact data
+        correlatedMigrations.forEach(m => {
+            m.performanceImpact = parseFloat(latencyDelta.toFixed(1));
+            m.regressionSeverity = (latencyDelta > 50) ? 'high' : (latencyDelta > 15 ? 'medium' : 'low');
+        });
+
         const hasRegression = latencyDelta > 15 || errorRateDelta > 1 || p99Delta > 100 || regressedQueries.length > 0;
         const severity = (latencyDelta > 50 || errorRateDelta > 5) ? 'high' : (hasRegression ? 'medium' : 'none');
 
@@ -754,6 +781,7 @@ export async function detectPerformanceRegressions(
                 p99Delta: Math.round(p99Delta)
             },
             regressedQueries: regressedQueries.sort((a, b) => b.delta - a.delta).slice(0, 5),
+            correlatedMigrations: correlatedMigrations.length > 0 ? correlatedMigrations : undefined,
             deploymentId,
             timestamp: now.toISOString()
         };

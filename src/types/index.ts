@@ -70,6 +70,8 @@ export interface Migration {
     checksum?: string;
     provider?: 'prisma' | 'drizzle' | 'typeorm' | 'knex' | 'manual';
     drifted?: boolean;
+    performanceImpact?: number; // Avg latency shift in ms or percentage
+    regressionSeverity?: 'high' | 'medium' | 'low';
 }
 
 export type TeamRole = 'owner' | 'admin' | 'member' | 'viewer';
