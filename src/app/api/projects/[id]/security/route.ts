@@ -78,7 +78,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         // Update database
         await updateProject(id, {
-            cloudArmorEnabled: body.enabled
+            cloudArmorEnabled: body.enabled,
+            cloudArmorMode: body.mode || 'prevention'
         });
 
         // Trigger GCP action if enabling

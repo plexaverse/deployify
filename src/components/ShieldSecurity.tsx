@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
     const [metrics, setMetrics] = useState<{ blockedRequests: number; topThreats: string[]; status: string } | null>(null);
     const [wafEnabled, setWafEnabled] = useState(true);
+    const [wafMode, setWafMode] = useState<'detection' | 'prevention'>('prevention');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -39,16 +40,25 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
 
     const handleToggleWaf = async (enabled: boolean) => {
         setWafEnabled(enabled);
+        updateSecuritySettings({ enabled, mode: wafMode });
+    };
+
+    const handleToggleWafMode = async (mode: 'detection' | 'prevention') => {
+        setWafMode(mode);
+        updateSecuritySettings({ enabled: wafEnabled, mode });
+    };
+
+    const updateSecuritySettings = (settings: { enabled: boolean; mode: string }) => {
         toast.promise(
             fetch(`/api/projects/${projectId}/security`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ enabled })
+                body: JSON.stringify(settings)
             }),
             {
-                loading: `${enabled ? 'Enabling' : 'Disabling'} Global WAF...`,
-                success: `Global WAF ${enabled ? 'enabled' : 'disabled'} successfully`,
-                error: `Failed to ${enabled ? 'enable' : 'disable'} Global WAF`
+                loading: 'Updating security settings...',
+                success: 'Security settings updated successfully',
+                error: 'Failed to update security settings'
             }
         );
     };
@@ -71,15 +81,42 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
             </div>
 
             <div className="p-6 pt-0 space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
-                    <div className="space-y-1">
-                        <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Global WAF</div>
-                        <div className="text-[10px] font-bold">SQLi & XSS Protection</div>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)]">
+                        <div className="space-y-1">
+                            <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Global WAF</div>
+                            <div className="text-[10px] font-bold">SQLi & XSS Protection</div>
+                        </div>
+                        <Switch
+                            checked={wafEnabled}
+                            onCheckedChange={handleToggleWaf}
+                        />
                     </div>
-                    <Switch
-                        checked={wafEnabled}
-                        onCheckedChange={handleToggleWaf}
-                    />
+
+                    {wafEnabled && (
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] animate-in fade-in slide-in-from-top-2">
+                            <div className="space-y-1">
+                                <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">WAF Mode</div>
+                                <div className="text-[10px] font-bold">
+                                    {wafMode === 'prevention' ? 'Prevention (Block Threats)' : 'Detection (Log only)'}
+                                </div>
+                            </div>
+                            <div className="flex bg-[var(--muted)]/30 p-1 rounded-lg border border-[var(--border)]">
+                                <button
+                                    onClick={() => handleToggleWafMode('detection')}
+                                    className={`px-3 py-1 rounded-md text-[8px] font-bold uppercase tracking-wider transition-all ${wafMode === 'detection' ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}
+                                >
+                                    Detect
+                                </button>
+                                <button
+                                    onClick={() => handleToggleWafMode('prevention')}
+                                    className={`px-3 py-1 rounded-md text-[8px] font-bold uppercase tracking-wider transition-all ${wafMode === 'prevention' ? 'bg-[var(--card)] text-[var(--foreground)] shadow-sm' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}
+                                >
+                                    Prevent
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

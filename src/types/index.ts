@@ -135,6 +135,7 @@ export interface Project {
     webhookUrl?: string | null; // Webhook URL for build notifications
     emailNotifications?: boolean; // Send email notifications on deployment
     cloudArmorEnabled?: boolean; // Enable Cloud Armor WAF
+    cloudArmorMode?: 'detection' | 'prevention'; // WAF operation mode
     autoDeployPrs?: boolean; // Whether to automatically deploy Pull Requests
     autodeployBranches?: string[]; // Branches to auto-deploy
     branchEnvironments?: {
