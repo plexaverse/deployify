@@ -146,6 +146,27 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Check if running on GCP - use real Cloud Build
         if (isRunningOnGCP()) {
             try {
+                // Orchestrate Database Branching if enabled (for branch deployments)
+                if (!isDefaultBranch && project.storageConfigs && project.storageConfigs.length > 0) {
+                    for (const storage of project.storageConfigs) {
+                        if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                            const instanceName = storage.metadata?.resourceName as string;
+                            if (instanceName) {
+                                try {
+                                    const identifier = branch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                                    const dbName = `br_${identifier}`;
+                                    const sourceDb = storage.metadata?.database as string || 'postgres';
+                                    console.log(`[Branching] Pre-provisioning database ${dbName} for branch ${branch}`);
+                                    const { ensureEphemeralDatabase } = await import('@/lib/gcp/cloudsql');
+                                    await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                                } catch (e) {
+                                    console.error(`[Branching] Failed to pre-provision database:`, e);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Determine env target based on branch
                 let envTarget: 'production' | 'preview' = isDefaultBranch ? 'production' : 'preview';
                 if (project.branchEnvironments) {

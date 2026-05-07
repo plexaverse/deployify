@@ -3,6 +3,8 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -136,6 +138,22 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Handle Deployify Edge (Global LB, CDN, Armor) for Production without custom domain
+            if (deployment.type === 'production') {
+                const project = await getProjectById(projectId);
+                if (project && !project.customDomain) {
+                    try {
+                        console.log(`[Deployify Edge] Provisioning edge resources for ${serviceName}`);
+                        const { backendServiceName } = await createGlobalLoadBalancer(serviceName, region || 'us-central1');
+                        await enableCloudCdn(backendServiceName);
+                        await enableCloudArmor(serviceName);
+                        console.log(`[Deployify Edge] Edge acceleration and security enabled.`);
+                    } catch (e) {
+                        console.error(`[Deployify Edge] Failed to provision edge resources:`, e);
+                    }
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
