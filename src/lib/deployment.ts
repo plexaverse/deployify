@@ -3,6 +3,8 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -136,6 +138,24 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Phase 122: Integrate Deployify Edge (GLB, CDN, WAF) for Production
+            if (deployment.type === 'production') {
+                console.log(`[Deployify Edge] Provisioning global infrastructure for ${serviceName}`);
+                try {
+                    const { ipAddress } = await createGlobalLoadBalancer(serviceName, region || config.gcp.region);
+                    await enableCloudCdn(`${serviceName}-backend`);
+                    await enableCloudArmor(serviceName);
+
+                    await updateProject(projectId, {
+                        globalIpAddress: ipAddress,
+                        cloudArmorMode: 'detection'
+                    });
+                    console.log(`[Deployify Edge] Global infrastructure ready at ${ipAddress}`);
+                } catch (edgeErr) {
+                    console.error('[Deployify Edge] Provisioning failed:', edgeErr);
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>

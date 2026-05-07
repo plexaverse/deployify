@@ -9,6 +9,7 @@ import { validateRepository } from '@/lib/github/validator';
 import { parseRepoFullName, getProjectSlugForDeployment } from '@/lib/utils';
 import { isRunningOnGCP } from '@/lib/gcp/auth';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
+import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
@@ -146,6 +147,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Check if running on GCP - use real Cloud Build
         if (isRunningOnGCP()) {
             try {
+                // Phase 112: Orchestrate Ephemeral Database Branching before build
+                if (!isDefaultBranch && project.storageConfigs) {
+                    for (const storage of project.storageConfigs) {
+                        if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                            const instanceName = storage.metadata?.resourceName as string;
+                            if (instanceName) {
+                                try {
+                                    const dbName = `pr_branch_${branch.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                                    const sourceDb = storage.metadata?.database as string || 'postgres';
+                                    await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                                } catch (e) {
+                                    console.error(`[Branching] Pre-build seeding failed for ${branch}:`, e);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Determine env target based on branch
                 let envTarget: 'production' | 'preview' = isDefaultBranch ? 'production' : 'preview';
                 if (project.branchEnvironments) {
