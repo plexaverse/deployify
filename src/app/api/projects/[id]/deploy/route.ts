@@ -9,6 +9,7 @@ import { validateRepository } from '@/lib/github/validator';
 import { parseRepoFullName, getProjectSlugForDeployment } from '@/lib/utils';
 import { isRunningOnGCP } from '@/lib/gcp/auth';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
+import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
@@ -164,6 +165,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 const migrations = await getMigrationsForDeployment(project, envTarget, {
                     branch,
                 });
+
+                // Ensure ephemeral database exists for branch/preview deployments if branching is enabled
+                if (deploymentType === 'branch' && project.storageConfigs) {
+                    for (const storage of project.storageConfigs) {
+                        if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                            const instanceName = storage.metadata?.resourceName as string;
+                            if (instanceName) {
+                                const dbName = branch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                                await ensureEphemeralDatabase(instanceName, dbName);
+                            }
+                        }
+                    }
+                }
 
                 // Decrypt GitHub token if present
                 const projectGitToken = project.githubToken ? decrypt(project.githubToken) : undefined;

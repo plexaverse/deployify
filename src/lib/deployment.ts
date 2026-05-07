@@ -3,6 +3,8 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -136,6 +138,19 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Handle Deployify Edge (Global Load Balancing, CDN, WAF) for Production
+            if (deployment.type === 'production') {
+                try {
+                    console.log(`[Deployify Edge] Orchestrating infrastructure for ${serviceName}...`);
+                    const { backendServiceName } = await createGlobalLoadBalancer(serviceName, region || config.gcp.region);
+                    await enableCloudCdn(backendServiceName);
+                    await enableCloudArmor(serviceName);
+                    console.log(`[Deployify Edge] Infrastructure orchestrated successfully.`);
+                } catch (edgeError) {
+                    console.error(`[Deployify Edge] Failed to orchestrate edge infrastructure:`, edgeError);
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
