@@ -56,7 +56,7 @@ export function ConfirmationModal({
                 ))}
               </div>
               <div className="space-y-0.5">
-                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                   {headerLabel || (variant === 'destructive' ? 'Critical Action' : 'Confirmation Required')}
                 </span>
                 <h3 className="text-[10px] font-bold tracking-tight text-[var(--foreground)]">
@@ -77,7 +77,7 @@ export function ConfirmationModal({
 
           {/* Content */}
           <div className="p-6">
-            <div className="text-[var(--muted-foreground)] text-[10px] leading-relaxed">
+            <div className="text-[var(--muted-foreground)] text-[10px] font-bold leading-relaxed">
               {description}
             </div>
           </div>

@@ -83,7 +83,7 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
             <div className="p-8 rounded-3xl border border-dashed border-[var(--border)] flex flex-col items-center justify-center text-center">
                 <BarChart3 className="w-12 h-12 text-[var(--muted-foreground)]/50 mb-4" />
                 <h3 className="text-[10px] font-bold">All optimized</h3>
-                <p className="text-[var(--muted-foreground)] mt-1 max-w-xs uppercase tracking-[0.2em] text-[8px]">
+                <p className="text-[var(--muted-foreground)] mt-1 max-w-xs uppercase tracking-[0.2em] text-[10px] font-bold">
                     Your resources are currently aligned with your usage patterns. Check back in 7 days.
                 </p>
             </div>
@@ -93,8 +93,8 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em]">Resource Advisor</h2>
-                <div className="flex items-center space-x-2 text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+                <h2 className="text-[10px] font-bold uppercase tracking-[0.2em]">Resource Advisor</h2>
+                <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
                     <Zap className="w-3 h-3 text-[var(--warning)]" />
                     <span>Powered by Intelligent Insights</span>
                 </div>
@@ -117,11 +117,11 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
                             header={
                                 <div className="flex flex-col space-y-2">
                                     <div className="flex justify-between items-end">
-                                        <div className="text-[8px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Current Tier</div>
+                                        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Current Tier</div>
                                         <div className="text-[10px] font-mono">{rec.currentTier}</div>
                                     </div>
                                     <div className="flex justify-between items-end">
-                                        <div className="text-[8px] uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Recommended</div>
+                                        <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Recommended</div>
                                         <div className="text-[10px] font-mono text-[var(--foreground)]">{rec.recommendedTier}</div>
                                     </div>
                                     <div className="mt-4 p-3 rounded-xl bg-[var(--card)] border border-[var(--border)]">
@@ -142,7 +142,7 @@ export const ResourceAdvisor = ({ projectId }: { projectId: string }) => {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="mt-4 w-full rounded-xl text-[8px] uppercase tracking-[0.2em] font-bold"
+                                        className="mt-4 w-full rounded-xl text-[10px] uppercase tracking-[0.2em] font-bold"
                                         onClick={() => handleApply(storage.storageId, rec)}
                                     >
                                         Apply Optimization

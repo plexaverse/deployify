@@ -70,7 +70,7 @@ export default function NewProjectPage() {
             <div className="space-y-4 relative z-10">
                 <Link
                     href="/dashboard"
-                    className="inline-flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Back to projects
@@ -82,13 +82,13 @@ export default function NewProjectPage() {
                             <Rocket className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
-                            <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Create New Project</h1>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Creation</span>
+                            <h1 className="text-[10px] font-bold tracking-tight">Create New Project</h1>
                         </div>
                     </div>
 
                     {/* Stepper Indicator */}
-                    <div className="flex items-center gap-4 text-[10px]">
+                    <div className="flex items-center gap-4 text-[10px] font-bold">
                         <StepIndicator current={step} number={1} label="Select" />
                         <div className="w-8 h-[1px] bg-[var(--border)]" />
                         <StepIndicator current={step} number={2} label="Configure" />
@@ -256,7 +256,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                     {search ? null : (
-                        <div className="hidden sm:flex items-center gap-0.5 text-[8px] text-[var(--muted)] font-bold uppercase tracking-wider border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
+                        <div className="hidden sm:flex items-center gap-0.5 text-[10px] text-[var(--muted)] font-bold uppercase tracking-wider border border-[var(--border)] rounded px-1.5 py-0.5 bg-[var(--background)]">
                             <span>{isMac ? '⌘' : 'Ctrl'}</span>
                             <span>K</span>
                         </div>
@@ -317,15 +317,15 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                                                 <h3 className="text-[10px] font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors flex items-center gap-2">
                                                     {repo.full_name.toUpperCase()}
                                                     {repo.private && (
-                                                        <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--warning-bg)] text-[var(--warning)] border border-[var(--warning)]/20">
                                                             Private
                                                         </span>
                                                     )}
                                                 </h3>
-                                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1 line-clamp-1">
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1 line-clamp-1">
                                                     {repo.description || 'No description'}
                                                 </p>
-                                                <div className="flex items-center gap-4 mt-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                <div className="flex items-center gap-4 mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                     {repo.language && (
                                                         <span className="flex items-center gap-1.5">
                                                             <span className="w-2 h-2 rounded-full bg-[var(--info)]" />
@@ -352,7 +352,7 @@ function Step1SelectRepo({ onSelect }: { onSelect: (repo: GitHubRepo) => void })
                     {filteredRepos.length === 0 && (
                         <Card className="overflow-hidden p-0">
                             <div className="text-center py-12 text-[var(--muted-foreground)]">
-                                <p className="text-[8px] font-bold uppercase tracking-wider">No repositories found matching your search.</p>
+                                <p className="text-[10px] font-bold uppercase tracking-wider">No repositories found matching your search.</p>
                             </div>
                         </Card>
                     )}
@@ -485,8 +485,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         <Settings className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                        <h2 className="text-[8px] md:text-[10px] font-bold">Project Settings</h2>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
+                        <h2 className="text-[10px] font-bold">Project Settings</h2>
                     </div>
                 </div>
 
@@ -520,7 +520,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 <option value="docker">DOCKER</option>
                             </NativeSelect>
                             {framework === 'docker' && (
-                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--info)] pt-1">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] pt-1">
                                     Deployify will use the <code>Dockerfile</code> in your repository root.
                                 </p>
                             )}
@@ -532,7 +532,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 value={rootDirectory}
                                 onChange={(e) => setRootDirectory(e.target.value)}
                                 placeholder="./"
-                                className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -575,7 +575,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                                 value={buildCommand}
                                                 onChange={(e) => setBuildCommand(e.target.value)}
                                                 placeholder="NPM RUN BUILD"
-                                                className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -586,7 +586,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                                 value={installCommand}
                                                 onChange={(e) => setInstallCommand(e.target.value)}
                                                 placeholder="NPM INSTALL"
-                                                className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -597,7 +597,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                                 value={outputDirectory}
                                                 onChange={(e) => setOutputDirectory(e.target.value)}
                                                 placeholder=".NEXT"
-                                                className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                             />
                                         </div>
                                     </div>
@@ -614,8 +614,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         <Terminal className="w-5 h-5 text-[var(--success)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
-                        <h2 className="text-[8px] md:text-[10px] font-bold">Environment Variables</h2>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
+                        <h2 className="text-[10px] font-bold">Environment Variables</h2>
                     </div>
                 </div>
 
@@ -627,16 +627,16 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                             <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
                                 <div className="flex-1 grid grid-cols-5 gap-4 items-center">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">{env.key}</span>
+                                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{env.key}</span>
                                         {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
                                     </div>
-                                    <span className="font-mono text-[8px] font-bold uppercase tracking-wider text-[var(--foreground)] truncate">
+                                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] truncate">
                                         {env.isSecret ? '••••••••' : env.value}
                                     </span>
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
                                         {(env.target === 'both' ? 'Build & Runtime' : env.target).toUpperCase()}
                                     </span>
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
                                         {(env.environment === 'both' ? 'All Envs' : env.environment).toUpperCase()}
                                     </span>
                                 </div>
@@ -659,21 +659,21 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 placeholder="KEY"
                                 value={newEnvKey}
                                 onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
-                                className="font-mono text-[8px] font-bold uppercase tracking-wider placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <Input
                                 type={newEnvIsSecret ? "password" : "text"}
                                 placeholder="VALUE"
                                 value={newEnvValue}
                                 onChange={(e) => setNewEnvValue(e.target.value)}
-                                className="font-mono text-[8px] font-bold uppercase tracking-wider placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={handleAddEnv}
                                 disabled={!newEnvKey || !newEnvValue}
-                                className="text-[var(--primary)] px-4 text-[8px] font-bold uppercase tracking-wider"
+                                className="text-[var(--primary)] px-4 text-[10px] font-bold uppercase tracking-wider"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add
@@ -729,7 +729,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                 <Button
                     variant="ghost"
                     onClick={onBack}
-                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-[8px] font-bold uppercase tracking-wider"
+                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-[10px] font-bold uppercase tracking-wider"
                 >
                     Back to Select
                 </Button>
@@ -737,7 +737,7 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                     onClick={handleDeploy}
                     disabled={deploying || !projectName}
                     containerClassName="h-12 w-48"
-                    className="text-[8px] font-bold uppercase tracking-wider"
+                    className="text-[10px] font-bold uppercase tracking-wider"
                 >
                     {deploying ? <Loader2 className="mr-2 w-5 h-5 animate-spin" /> : null}
                     {deploying ? 'Deploying...' : 'Deploy Project'}
@@ -843,7 +843,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         <span className="opacity-50">•</span>
                         <span>{initialDeployment.gitBranch.toUpperCase()}</span>
                         <span className="opacity-50">•</span>
-                        <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider font-mono">{initialDeployment.gitCommitSha.substring(0, 7).toUpperCase()}</code>
+                        <code className="bg-[var(--muted)]/20 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-mono">{initialDeployment.gitCommitSha.substring(0, 7).toUpperCase()}</code>
                     </p>
                 </div>
 
@@ -862,7 +862,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                 >
                                     <MovingBorderButton
                                         containerClassName="h-11 w-40"
-                                        className="text-[8px] font-bold uppercase tracking-wider"
+                                        className="text-[10px] font-bold uppercase tracking-wider"
                                     >
                                         <Globe className="w-4 h-4 mr-2" />
                                         Visit App
@@ -872,7 +872,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                             <Button
                                 variant="secondary"
                                 onClick={() => router.push(`/dashboard/${project.id}`)}
-                                className="h-11 px-6 rounded-xl text-[8px] font-bold uppercase tracking-wider"
+                                className="h-11 px-6 rounded-xl text-[10px] font-bold uppercase tracking-wider"
                             >
                                 Dashboard
                             </Button>
@@ -882,7 +882,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         <Button
                             variant="primary"
                             onClick={() => window.location.reload()}
-                            className="h-11 px-8 rounded-xl text-[8px] font-bold uppercase tracking-wider"
+                            className="h-11 px-8 rounded-xl text-[10px] font-bold uppercase tracking-wider"
                         >
                             Try Again
                         </Button>
@@ -905,16 +905,16 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                                     </div>
                                     <div>
                                         <h3 className="text-[10px] font-bold">Your project is live!</h3>
-                                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Everything is configured and running on Cloud Run.</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Everything is configured and running on Cloud Run.</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Production URL</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Production URL</span>
                                         <p className="text-[10px] font-mono truncate uppercase">{project.productionUrl?.replace(/^https?:\/\//, '').toUpperCase()}</p>
                                     </div>
                                     <div className="p-3 rounded-xl bg-[var(--background)]/50 border border-[var(--border)]">
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Environment</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] block mb-1">Environment</span>
                                         <p className="text-[10px] font-bold">Production</p>
                                     </div>
                                 </div>
@@ -924,7 +924,7 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                 </motion.div>
             )}
 
-            <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-[10px] shadow-2xl relative">
+            <div className="flex-1 bg-[var(--terminal-bg)] rounded-xl border border-[var(--terminal-border)] overflow-hidden flex flex-col font-mono text-[10px] font-bold shadow-2xl relative">
                 <div className="bg-[var(--terminal-header-bg)] p-3 flex items-center justify-between border-b border-[var(--terminal-border)]">
                     <div className="flex items-center gap-4">
                         <div className="flex gap-1.5">
@@ -934,10 +934,10 @@ function Step3Deploy({ project, initialDeployment }: { project: Project, initial
                         </div>
                         <div className="flex items-center gap-2 text-[var(--terminal-foreground)]/40">
                             <Terminal className="w-3.5 h-3.5" />
-                            <span className="text-[8px] font-bold uppercase tracking-wider">Build Logs</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Build Logs</span>
                         </div>
                     </div>
-                    <div className="text-[var(--terminal-foreground)]/20 text-[8px] font-bold uppercase tracking-wider">build-log.txt</div>
+                    <div className="text-[var(--terminal-foreground)]/20 text-[10px] font-bold uppercase tracking-wider">build-log.txt</div>
                 </div>
 
                 <div className="flex-1 overflow-hidden relative">

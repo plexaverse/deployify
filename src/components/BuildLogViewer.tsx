@@ -45,7 +45,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
                     <RefreshCw className="w-6 h-6 animate-spin" />
                 </div>
                 <div className="space-y-1 text-center">
-                   <p className="text-[8px] font-bold uppercase tracking-wider">Initialization</p>
+                   <p className="text-[10px] font-bold uppercase tracking-wider">Initialization</p>
                    <p className="text-[10px] font-bold">Waiting for build logs...</p>
                 </div>
             </div>
@@ -55,12 +55,12 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
     return (
         <div
             ref={containerRef}
-            className={cn("h-full overflow-y-auto p-6 font-mono text-[8px] leading-relaxed bg-[var(--terminal-bg)] selection:bg-[var(--primary)]/30", className)}
+            className={cn("h-full overflow-y-auto p-6 font-mono text-[10px] font-bold leading-relaxed bg-[var(--terminal-bg)] selection:bg-[var(--primary)]/30", className)}
         >
             <div className="flex flex-col space-y-0.5 text-[var(--terminal-foreground)]/80">
                 {logs?.split('\n').map((line, i) => (
                     <div key={i} className="break-all whitespace-pre-wrap hover:bg-[var(--terminal-foreground)]/5 transition-colors duration-200 px-2 rounded-sm -mx-2 group flex gap-4">
-                        <span className="shrink-0 text-[8px] font-bold uppercase tracking-wider opacity-30 select-none w-10 text-right">
+                        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider opacity-30 select-none w-10 text-right">
                            {(i + 1).toString().padStart(3, '0')}
                         </span>
                         <span className="flex-1">{line || '\u00A0'}</span>
@@ -71,7 +71,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
             {logs && !error && !loading && (
                 <div className="flex items-center gap-2 mt-8 py-3 px-4 rounded-lg bg-[var(--success)]/5 border border-[var(--success)]/10 text-[var(--success)]">
                     <CheckCircle2 className="w-4 h-4" />
-                    <span className="text-[8px] font-bold uppercase tracking-wider">Build process completed successfully</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Build process completed successfully</span>
                 </div>
             )}
 
@@ -79,7 +79,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
                 <div className="flex flex-col items-start mt-8 p-6 rounded-xl bg-[var(--error)]/5 border border-[var(--error)]/10 gap-4">
                     <div className="flex items-center gap-2 text-[var(--error)]">
                         <AlertCircle className="w-5 h-5" />
-                        <span className="text-[8px] font-bold uppercase tracking-wider">Deployment Pipeline Error</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Deployment Pipeline Error</span>
                     </div>
                     <p className="text-[10px] font-bold text-[var(--error)]/90 break-all whitespace-pre-wrap">{error}</p>
                     {onRetry && (
@@ -87,7 +87,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
                             onClick={onRetry}
                             variant="secondary"
                             size="sm"
-                            className="text-[8px] font-bold uppercase tracking-wider h-8 px-4"
+                            className="text-[10px] font-bold uppercase tracking-wider h-8 px-4"
                         >
                             <RefreshCw className="w-3.5 h-3.5 mr-2" />
                             Retry Deployment

@@ -149,8 +149,8 @@ export default function DeploymentsPage() {
                         <GitCommit className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project History</span>
-                        <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Deployments</h1>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project History</span>
+                        <h1 className="text-[10px] font-bold tracking-tight">Deployments</h1>
                     </div>
                 </div>
                 {deployments.length >= 2 && (

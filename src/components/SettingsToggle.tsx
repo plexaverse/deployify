@@ -41,7 +41,7 @@ export function SettingsToggle({
                     {title}
                 </Label>
                 <p className={cn(
-                    "text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1",
+                    "text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1",
                     disabled && "opacity-50"
                 )}>
                     {description}

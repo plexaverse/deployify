@@ -117,16 +117,16 @@ export function CommandPalette() {
                    <X className="w-4 h-4" />
                  </Button>
                )}
-               <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5">ESC</span>
+               <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono border border-[var(--border)] rounded px-1.5 py-0.5">ESC</span>
             </div>
           </div>
           <div className="max-h-[60vh] overflow-y-auto p-2 relative z-10">
              {!isOpen ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-[10px]">Loading...</div>
+               <div className="p-4 text-center text-[var(--muted-foreground)] text-[10px] font-bold">Loading...</div>
              ) : filtered.length === 0 && projects.length > 0 ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-[10px]">No results found.</div>
+               <div className="p-4 text-center text-[var(--muted-foreground)] text-[10px] font-bold">No results found.</div>
              ) : projects.length === 0 ? (
-               <div className="p-4 text-center text-[var(--muted-foreground)] text-[10px]">Loading projects...</div>
+               <div className="p-4 text-center text-[var(--muted-foreground)] text-[10px] font-bold">Loading projects...</div>
              ) : (
                <div className="space-y-1" role="listbox" id="command-results">
                  <AnimatePresence>
@@ -151,16 +151,16 @@ export function CommandPalette() {
                        <Rocket className={`w-4 h-4 transition-colors ${selectedIndex === index ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]'}`} />
                        <div className="flex-1">
                           <div className="text-[10px] font-bold text-[var(--foreground)]">{project.name}</div>
-                          <div className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{project.repoFullName}</div>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{project.repoFullName}</div>
                        </div>
-                       <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-all">Jump to</span>
+                       <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--foreground)] opacity-0 group-hover:opacity-100 transition-all">Jump to</span>
                      </motion.button>
                    ))}
                  </AnimatePresence>
                </div>
              )}
           </div>
-          <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/50 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex justify-between px-4 relative z-10">
+          <div className="p-3 border-t border-[var(--border)] bg-[var(--background)]/50 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex justify-between px-4 relative z-10">
              <span>Deployify Command</span>
              <span>{projects.length} projects</span>
           </div>

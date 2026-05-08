@@ -216,7 +216,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                         <Shield className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
                         <h3 className="text-[10px] font-bold">Environment Variables</h3>
                     </div>
                 </div>
@@ -224,7 +224,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     <MovingBorderButton
                         onClick={() => setIsAdding(true)}
                         containerClassName="h-10 w-36"
-                        className="text-[8px] font-bold uppercase tracking-wider"
+                        className="text-[10px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Variable
@@ -243,7 +243,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             </div>
                             <div className="flex-1 space-y-1">
                                 <h4 className="text-[10px] font-bold text-[var(--foreground)]">Detected Database Connection String</h4>
-                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
                                     Deployify has a managed **Database Connector** model that provides secure credential storage via Secret Manager and automated health checks.
                                 </p>
                                 <div className="flex items-center gap-3 pt-3">
@@ -251,7 +251,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                         size="sm"
                                         onClick={handleAddAsConnector}
                                         disabled={isSubmitting}
-                                        className="h-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)]"
+                                        className="h-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)]"
                                     >
                                         Use Managed Connector
                                         <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
@@ -261,7 +261,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                         size="sm"
                                         onClick={handleAdd}
                                         disabled={isSubmitting}
-                                        className="h-8 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]"
+                                        className="h-8 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]"
                                     >
                                         Keep as Plain Variable
                                     </Button>
@@ -272,7 +272,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 )}
 
                 {error && (
-                    <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-[8px] font-bold uppercase tracking-wider">
+                    <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-[10px] font-bold uppercase tracking-wider">
                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {error}
                     </div>
@@ -288,7 +288,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 value={newKey}
                                 onChange={(e) => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="API_KEY"
-                                className="font-mono text-[10px] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -298,7 +298,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 value={newValue}
                                 onChange={(e) => setNewValue(e.target.value)}
                                 placeholder="SECRET-VALUE"
-                                className="font-mono text-[10px] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2 md:col-span-2">
@@ -310,7 +310,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                     value={newGroup}
                                     onChange={(e) => setNewGroup(e.target.value)}
                                     placeholder="E.G. DATABASE, AUTH, GENERAL"
-                                    className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <datalist id="existing-groups">
                                     {uniqueGroups.map(group => (
@@ -341,7 +341,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
 
                         <div className="flex-1 space-y-4">
                             <div className="space-y-2">
-                                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider block">Target Environment Type</span>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider block">Target Environment Type</span>
                                 <SegmentedControl
                                     options={[
                                         { value: 'both', label: 'BUILD & RUNTIME' },
@@ -354,7 +354,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             </div>
 
                             <div className="space-y-2">
-                                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider block">Scope</span>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider block">Scope</span>
                                 <SegmentedControl
                                     options={[
                                         { value: 'both', label: 'ALL ENVIRONMENTS' },
@@ -381,7 +381,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             disabled={isSubmitting}
                             loading={isSubmitting}
                             containerClassName="h-10 w-36"
-                            className="text-[8px] font-bold uppercase tracking-wider"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             Add Variable
                         </MovingBorderButton>
@@ -406,7 +406,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     {uniqueGroups.map((group) => (
                         <div key={group} className="space-y-2">
                              <div className="flex items-center gap-2 px-1">
-                                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{group}</span>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{group}</span>
                                 <div className="h-[1px] flex-1 bg-[var(--border)]" />
                             </div>
 
@@ -414,11 +414,11 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="border-b border-[var(--border)] bg-[var(--muted)]/5">
-                                            <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Key</th>
-                                            <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Value</th>
-                                            <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
-                                            <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scope</th>
-                                            <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Key</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Value</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scope</th>
+                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -426,7 +426,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                             <tr key={env.id} className="border-b border-[var(--border)] group hover:bg-[var(--card-hover)] transition-colors last:border-0">
                                                 <td className="py-4 px-4 font-mono">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[var(--primary)] text-[10px]">{env.key}</span>
+                                                        <span className="text-[var(--primary)] text-[10px] font-bold">{env.key}</span>
                                                         {env.isSecret && (
                                                             <span title="Secret">
                                                                 <Shield className="w-3 h-3 text-[var(--info)]" />
@@ -467,12 +467,12 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                     </div>
                                                 </td>
                                                 <td className="py-4 px-4">
-                                                    <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] text-[var(--muted-foreground)]">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] text-[var(--muted-foreground)]">
                                                         {getTargetLabel(env.target)}
                                                     </span>
                                                 </td>
                                                 <td className="py-4 px-4">
-                                                    <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] text-[var(--muted-foreground)]">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--muted)]/10 border border-[var(--border)] text-[var(--muted-foreground)]">
                                                         {env.environment === 'both' || !env.environment ? 'ALL ENVIRONMENTS' : env.environment.toUpperCase()}
                                                     </span>
                                                 </td>
@@ -499,7 +499,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
 
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
                     <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
-                    <div className="text-[10px]">
+                    <div className="text-[10px] font-bold">
                         <p className="font-bold text-[var(--info)] mb-1">Deployment required</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changes to environment variables will apply to new deployments. Existing deployments will keep their current variables until redeployed.

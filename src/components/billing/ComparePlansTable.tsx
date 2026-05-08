@@ -88,7 +88,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                     <div className="flex flex-col items-center gap-1">
                                         <span className="font-bold">{plan.name}</span>
                                         {plan.id === currentPlanId && (
-                                            <Badge variant="secondary" className="text-[8px] font-bold uppercase tracking-wider px-1.5 h-5">
+                                            <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider px-1.5 h-5">
                                                 Current
                                             </Badge>
                                         )}
@@ -101,7 +101,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                         {features.map((section) => (
                             <React.Fragment key={section.category}>
                                 <tr className="bg-[var(--muted)]/20">
-                                    <td colSpan={plans.length + 1} className="p-4 py-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
+                                    <td colSpan={plans.length + 1} className="p-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
                                         {section.category}
                                     </td>
                                 </tr>
@@ -113,7 +113,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                                 {feature.info && (
                                                     <div className="group/tooltip relative">
                                                         <HelpCircle className="w-3.5 h-3.5 text-[var(--muted-foreground)] cursor-help" />
-                                                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-48 p-2 bg-[var(--popover)] text-[var(--popover-foreground)] text-[8px] font-bold uppercase tracking-wider rounded-md shadow-md opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-20 border border-[var(--border)]">
+                                                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-48 p-2 bg-[var(--popover)] text-[var(--popover-foreground)] text-[10px] font-bold uppercase tracking-wider rounded-md shadow-md opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-opacity z-20 border border-[var(--border)]">
                                                             {feature.info}
                                                         </div>
                                                     </div>
@@ -123,7 +123,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                         {plans.map((plan) => {
                                             const value = feature.values[plan.id];
                                             return (
-                                                <td key={`${plan.id}-${feature.name}`} className="p-4 border-b border-[var(--border)] text-center text-[10px]">
+                                                <td key={`${plan.id}-${feature.name}`} className="p-4 border-b border-[var(--border)] text-center text-[10px] font-bold">
                                                     {value === true ? (
                                                         <div className="flex justify-center">
                                                             <div className="bg-[var(--primary)]/10 rounded-full p-1">

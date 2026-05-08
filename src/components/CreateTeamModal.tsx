@@ -66,7 +66,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 <Users className="w-5 h-5 text-[var(--primary)]" />
                             </div>
                             <div className="space-y-0.5">
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Management</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Management</span>
                                 <h3 className="text-[10px] font-bold tracking-tight text-[var(--foreground)]">Create New Team</h3>
                             </div>
                         </div>
@@ -89,7 +89,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 value={name}
                                 onChange={handleNameChange}
                                 placeholder="ACME CORP"
-                                className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 required
                             />
                         </div>
@@ -100,12 +100,12 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 value={slug}
                                 onChange={(e) => setSlug(e.target.value)}
                                 placeholder="ACME-CORP"
-                                className="font-mono text-[10px] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 required
                                 pattern="^[a-z0-9-]+$"
                                 title="Only lowercase letters, numbers, and hyphens allowed"
                             />
-                            <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Used in URLs. Only lowercase letters, numbers, and hyphens.
                             </p>
                         </div>
@@ -123,7 +123,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 type="submit"
                                 disabled={isSubmitting || !name || !slug}
                                 containerClassName="h-10 w-32"
-                                className="text-[8px] font-bold uppercase tracking-wider"
+                                className="text-[10px] font-bold uppercase tracking-wider"
                             >
                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                 {isSubmitting ? 'Creating...' : 'Create Team'}
