@@ -2,7 +2,7 @@ import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
 import { getSecretValue } from './secrets';
 import { calculateEWMA, isDegraded } from './health-utils';
-import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile, ConnectionLeakReport } from '@/types';
+import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile, ConnectionLeakReport, ReliabilityMetrics, SaturationRisk } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -642,6 +642,142 @@ export async function getQueryInsights(
         console.error('Failed to fetch query insights:', e);
         return [];
     }
+}
+
+/**
+ * Predict resource exhaustion by analyzing historical utilization trends (Phase 142)
+ * Uses linear regression to forecast when a resource will hit 100% utilization.
+ */
+export function predictResourceExhaustion(
+    historicalMetrics: ResourceMetrics[],
+    resource: 'cpu' | 'memory' | 'disk' | 'connections'
+): number {
+    if (historicalMetrics.length < 5) return -1; // Not enough data for prediction
+
+    const values = historicalMetrics.map(m => {
+        if (resource === 'cpu') return m.cpuUtilization;
+        if (resource === 'memory') return m.memoryUtilization;
+        if (resource === 'disk') return m.diskUtilization || 0;
+        if (resource === 'connections') return m.connectionSaturation || 0;
+        return 0;
+    });
+
+    const n = values.length;
+    let sumX = 0;
+    let sumY = 0;
+    let sumXY = 0;
+    let sumX2 = 0;
+
+    for (let i = 0; i < n; i++) {
+        sumX += i;
+        sumY += values[i];
+        sumXY += i * values[i];
+        sumX2 += i * i;
+    }
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    // If slope is negative or zero, utilization is stable or declining
+    if (slope <= 0) return -1;
+
+    // Solve for x when y = 100: 100 = slope * x + intercept => x = (100 - intercept) / slope
+    const exhaustionIndex = (100 - intercept) / slope;
+    const pointsRemaining = exhaustionIndex - (n - 1);
+
+    // Convert points (usually hourly) to days
+    return Math.max(0, parseFloat((pointsRemaining / 24).toFixed(1)));
+}
+
+/**
+ * Calculate reliability score (0-100) based on uptime and SLO targets (Phase 142)
+ */
+export function calculateReliabilityScore(
+    healthHistory: import('./storage-validator').HealthResult[],
+    sloTargets: { uptime: number; p99Latency: number } = { uptime: 99.9, p99Latency: 500 }
+): ReliabilityMetrics {
+    const total = healthHistory.length;
+    if (total === 0) {
+        return {
+            score: 100,
+            uptime: 100,
+            avgLatency: 0,
+            p99Latency: 0,
+            sloViolations: 0,
+            lastAnalyzedAt: new Date().toISOString()
+        };
+    }
+
+    const healthy = healthHistory.filter(h => h.status === 'healthy' || h.status === 'degraded').length;
+    const uptime = (healthy / total) * 100;
+
+    const latencies = healthHistory.map(h => h.latency).sort((a, b) => a - b);
+    const avgLatency = latencies.reduce((a, b) => a + b, 0) / total;
+    const p99Latency = latencies[Math.floor(total * 0.99)] || latencies[total - 1];
+
+    const availabilityViolations = healthHistory.filter(h => h.status === 'unhealthy').length;
+    const latencyViolations = healthHistory.filter(h => h.latency > sloTargets.p99Latency).length;
+    const totalViolations = availabilityViolations + latencyViolations;
+
+    // Score calculation logic:
+    // Availability accounts for 60% of the score
+    // Latency SLO accounts for 40% of the score
+    const availabilityScore = Math.max(0, 100 - (100 - uptime) * 20); // 1% downtime = -20 points
+    const latencyScore = Math.max(0, 100 - (latencyViolations / total) * 100);
+
+    const score = Math.round((availabilityScore * 0.6) + (latencyScore * 0.4));
+
+    return {
+        score,
+        uptime: parseFloat(uptime.toFixed(3)),
+        avgLatency: Math.round(avgLatency),
+        p99Latency: Math.round(p99Latency),
+        sloViolations: totalViolations,
+        lastAnalyzedAt: new Date().toISOString()
+    };
+}
+
+/**
+ * Check for SLO violations and saturation risks (Phase 142)
+ */
+export function checkSLOViolations(
+    storage: import('@/types').StorageConfig,
+    metrics: ResourceMetrics,
+    historicalMetrics: ResourceMetrics[] = []
+): SaturationRisk | undefined {
+    const resources: ('cpu' | 'memory' | 'disk' | 'connections')[] = ['cpu', 'memory', 'disk', 'connections'];
+
+    for (const r of resources) {
+        const daysToExhaustion = predictResourceExhaustion(historicalMetrics, r);
+        const utilization = r === 'cpu' ? metrics.cpuUtilization :
+                          r === 'memory' ? metrics.memoryUtilization :
+                          r === 'disk' ? metrics.diskUtilization || 0 :
+                          metrics.connectionSaturation || 0;
+
+        if (daysToExhaustion >= 0 && daysToExhaustion <= 7) {
+            return {
+                hasRisk: true,
+                resource: r,
+                currentUtilization: utilization,
+                predictedDaysToExhaustion: daysToExhaustion,
+                recommendation: `Resource ${r.toUpperCase()} is predicted to reach 100% utilization in ${daysToExhaustion} days based on current growth trends. Immediate scaling is recommended.`,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        if (utilization > 90) {
+            return {
+                hasRisk: true,
+                resource: r,
+                currentUtilization: utilization,
+                predictedDaysToExhaustion: 0.5,
+                recommendation: `Resource ${r.toUpperCase()} utilization is critically high (${utilization.toFixed(1)}%). Performance degradation or service failure is imminent.`,
+                timestamp: new Date().toISOString()
+            };
+        }
+    }
+
+    return undefined;
 }
 
 /**

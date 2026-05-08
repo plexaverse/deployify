@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -401,6 +401,19 @@ export async function GET(
                             } catch (maintErr) {
                                 console.error(`[MaintenanceInsight] Failed for ${storageId}:`, maintErr);
                             }
+                        }
+
+                        // Phase 142: Reliability & SLO Analysis
+                        try {
+                            const { getHealthHistory } = await import('@/lib/gcp/storage-validator');
+                            const healthHistory = await getHealthHistory(storageId, 7);
+                            storage.reliability = calculateReliabilityScore(healthHistory);
+
+                            const historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                            const saturationRisk = checkSLOViolations(storage, metrics, historicalMetrics);
+                            storage.saturationRisk = saturationRisk;
+                        } catch (relErr) {
+                            console.error(`[ReliabilitySync] Analysis failed for ${storageId}:`, relErr);
                         }
 
                         // Phase 112: Workload Shift Detection
