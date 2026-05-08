@@ -96,12 +96,12 @@ export function IaCExportModal({ isOpen, onClose, storage, projectId }: IaCExpor
             icon={<FileCode className="w-5 h-5 text-[var(--primary)]" />}
             description={
                 <div className="space-y-6">
-                    <p className="text-[10px]">
+                    <p className="text-[10px] font-bold">
                         Export the configuration for <strong>{storage?.name}</strong> in various standard IaC formats for use in external automation or local development.
                     </p>
 
                     <div className="space-y-3">
-                        <label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Select Format</label>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Select Format</label>
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                             {formats.map((f) => (
                                 <button
@@ -115,7 +115,7 @@ export function IaCExportModal({ isOpen, onClose, storage, projectId }: IaCExpor
                                     )}
                                 >
                                     <f.icon className="w-4 h-4" />
-                                    <span className="text-[8px] font-bold uppercase">{f.label}</span>
+                                    <span className="text-[10px] font-bold uppercase">{f.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -141,11 +141,11 @@ export function IaCExportModal({ isOpen, onClose, storage, projectId }: IaCExpor
                             </Button>
                         </div>
 
-                        <div className="p-4 bg-[var(--muted)]/20 border border-[var(--border)] rounded-xl font-mono text-[10px] min-h-[160px] max-h-[300px] overflow-auto custom-scrollbar">
+                        <div className="p-4 bg-[var(--muted)]/20 border border-[var(--border)] rounded-xl font-mono text-[10px] font-bold min-h-[160px] max-h-[300px] overflow-auto custom-scrollbar">
                             {isLoading ? (
                                 <div className="h-32 flex flex-col items-center justify-center gap-3">
                                     <Loader2 className="w-6 h-6 animate-spin text-[var(--primary)]" />
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Generating config...</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Generating config...</span>
                                 </div>
                             ) : (
                                 <pre className="text-[var(--foreground)]/80 leading-relaxed whitespace-pre-wrap break-all">
@@ -157,7 +157,7 @@ export function IaCExportModal({ isOpen, onClose, storage, projectId }: IaCExpor
 
                     <div className="p-3 bg-[var(--info)]/5 border border-[var(--info)]/20 rounded-xl flex items-start gap-2">
                         <Terminal className="w-3.5 h-3.5 text-[var(--info)] shrink-0 mt-0.5" />
-                        <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                        <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
                             NOTE: EXPORTED CONFIGURATIONS INCLUDE SENSITIVE CONNECTION STRINGS. HANDLE WITH CARE AND STORE SECURELY.
                         </p>
                     </div>

@@ -34,7 +34,7 @@ export function VisualExplain({ data, type }: VisualExplainProps) {
         <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
             <div className="flex items-center gap-2 mb-4">
                 <Activity className="w-4 h-4 text-[var(--primary)]" />
-                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">Visual Query Plan</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Visual Query Plan</span>
             </div>
             <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--background)] overflow-x-auto">
                 <ExplainTreeNode node={tree} isRoot />
@@ -70,7 +70,7 @@ function ExplainTreeNode({ node, isRoot = false }: { node: ExplainNode; isRoot?:
                             )}
                         </div>
                         {node.details && node.details.map((detail, i) => (
-                            <div key={i} className="flex items-center gap-1.5 text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-70">
+                            <div key={i} className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-70">
                                 <ArrowDownRight className="w-2.5 h-2.5" />
                                 {detail}
                             </div>
@@ -80,14 +80,14 @@ function ExplainTreeNode({ node, isRoot = false }: { node: ExplainNode; isRoot?:
                     <div className="flex flex-col items-end gap-1 shrink-0">
                         {node.cost && (
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase">Cost</span>
-                                <span className="text-[8px] font-mono font-bold text-[var(--primary)]">{node.cost}</span>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Cost</span>
+                                <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{node.cost}</span>
                             </div>
                         )}
                         {node.rows && (
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase">Rows</span>
-                                <span className="text-[8px] font-mono font-bold text-[var(--success)]">{node.rows}</span>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Rows</span>
+                                <span className="text-[10px] font-mono font-bold text-[var(--success)]">{node.rows}</span>
                             </div>
                         )}
                     </div>

@@ -45,7 +45,7 @@ export function ConnectivityHealthChart({
     if (!data || data.length < 2) {
         return (
             <div className={cn("flex flex-col items-center justify-center bg-[var(--muted)]/5 border border-dashed border-[var(--border)] rounded-lg", className)} style={{ height }}>
-                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] opacity-50">Insufficient Data</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] opacity-50">Insufficient Data</span>
             </div>
         );
     }
@@ -108,7 +108,7 @@ export function ConnectivityHealthChart({
                 {/* Hover indicator (simplified) */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
                     <div className="absolute right-0 top-0 bg-[var(--background)] border border-[var(--border)] rounded px-1.5 py-0.5 shadow-sm">
-                        <p className="text-[8px] font-mono font-bold whitespace-nowrap">
+                        <p className="text-[10px] font-mono font-bold whitespace-nowrap">
                             LATEST: {latestLatency}ms
                         </p>
                     </div>
@@ -119,16 +119,16 @@ export function ConnectivityHealthChart({
                 <div className="flex items-center justify-between px-1">
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col">
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Average</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Average</span>
                             <span className="text-[10px] font-mono font-bold">{avgLatency}ms</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Samples</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Samples</span>
                             <span className="text-[10px] font-mono font-bold">{data.length}</span>
                         </div>
                     </div>
                     <div className="flex flex-col items-end">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Trend</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Trend</span>
                         <span className={cn(
                             "text-[10px] font-bold uppercase",
                             latestLatency <= avgLatency ? "text-[var(--success)]" : "text-[var(--warning)]"

@@ -192,13 +192,13 @@ export default function BillingPage() {
     if (billingError || !usageData) {
         return (
             <div className="min-h-screen bg-[var(--background)] p-8 flex flex-col items-center justify-center text-center">
-                <h1 className="text-[8px] md:text-[10px] font-bold mb-4">Error</h1>
+                <h1 className="text-[10px] font-bold mb-4">Error</h1>
                 <p className="text-[var(--muted-foreground)] mb-6">{billingError || 'Something went wrong'}</p>
                 <Link
                     href="/dashboard"
                     className={cn(
                         buttonVariants({ variant: 'ghost' }),
-                        "mt-4 text-[8px] font-bold uppercase tracking-wider"
+                        "mt-4 text-[10px] font-bold uppercase tracking-wider"
                     )}
                 >
                     Back to Dashboard
@@ -234,22 +234,22 @@ export default function BillingPage() {
                         <CreditCard className="w-8 h-8 text-[var(--primary)]" />
                     </div>
                     <div className="space-y-1">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
-                        <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Billing & Usage</h1>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
+                        <h1 className="text-[10px] font-bold tracking-tight">Billing & Usage</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <Link
                         href="/dashboard"
-                        className="inline-flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                        className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back to projects
                     </Link>
                     <div className="h-8 w-[1px] bg-[var(--border)]" />
                     <div className="flex flex-col items-end">
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Current Plan</span>
-                        <Badge variant="default" className="text-[8px] font-bold uppercase tracking-wider px-3 py-1">{tier.name.toUpperCase()}</Badge>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Current Plan</span>
+                        <Badge variant="default" className="text-[10px] font-bold uppercase tracking-wider px-3 py-1">{tier.name.toUpperCase()}</Badge>
                     </div>
                 </div>
             </div>
@@ -262,7 +262,7 @@ export default function BillingPage() {
                             <BarChart3 className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Resource Monitoring</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Resource Monitoring</span>
                             <h3 className="text-[10px] font-bold">Usage</h3>
                         </div>
                     </div>
@@ -301,9 +301,9 @@ export default function BillingPage() {
                         <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-4">
                             <CreditCard className="w-8 h-8 text-[var(--primary)]" />
                         </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
                         <h3 className="text-[10px] font-bold tracking-tight mb-4">Simple, transparent pricing</h3>
-                        <p className="text-[10px] text-[var(--muted-foreground)]">
+                        <p className="text-[10px] font-bold text-[var(--muted-foreground)]">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
                         </p>
                     </div>
@@ -328,7 +328,7 @@ export default function BillingPage() {
                         <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mb-3">
                             <Layers className="w-5 h-5 text-[var(--primary)]" />
                         </div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</span>
                         <h3 className="text-[10px] font-bold">Compare features</h3>
                     </div>
                     <ComparePlansTable plans={PLANS} currentPlanId={tier.id} />
@@ -342,21 +342,21 @@ export default function BillingPage() {
                                 <History className="w-5 h-5 text-[var(--primary)]" />
                             </div>
                             <div>
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Billing History</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Billing History</span>
                                 <h3 className="text-[10px] font-bold">Invoices</h3>
                             </div>
                         </div>
 
                         <Separator className="bg-[var(--border)]" />
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-[10px]">
+                            <table className="w-full text-left text-[10px] font-bold">
                                 <thead className="bg-[var(--muted)]/10 border-b border-[var(--border)]">
                                     <tr>
-                                        <th className="p-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Invoice #</th>
-                                        <th className="p-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Date</th>
-                                        <th className="p-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Amount</th>
-                                        <th className="p-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
-                                        <th className="p-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Action</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Invoice #</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Date</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Amount</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
+                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--border)]">
@@ -378,7 +378,7 @@ export default function BillingPage() {
                                                             invoice.status === 'paid' ? 'success' :
                                                             invoice.status === 'pending' ? 'warning' : 'secondary'
                                                         }
-                                                        className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5"
+                                                        className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5"
                                                     >
                                                         {invoice.status.toUpperCase()}
                                                     </Badge>

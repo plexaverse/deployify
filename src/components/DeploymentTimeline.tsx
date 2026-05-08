@@ -88,7 +88,7 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
                             <div className={cn("w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors", colorClass)}>
                                 {icon}
                             </div>
-                            <span className={cn("text-[8px] font-bold uppercase tracking-wider transition-colors",
+                            <span className={cn("text-[10px] font-bold uppercase tracking-wider transition-colors",
                                 stepStatus === 'current' || stepStatus === 'completed' ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
                             )}>
                                 {step.label}
@@ -100,13 +100,13 @@ export function DeploymentTimeline({ deployment }: DeploymentTimelineProps) {
 
              {/* Error Message Display */}
              {isError && (
-                <div className="mt-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 flex items-start gap-2 text-[10px] text-[var(--error)]">
+                <div className="mt-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 flex items-start gap-2 text-[10px] font-bold text-[var(--error)]">
                     <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                     <p>{deployment.errorMessage || 'An unknown error occurred during deployment.'}</p>
                 </div>
             )}
              {isCancelled && (
-                <div className="mt-4 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)] flex items-start gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                <div className="mt-4 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)] flex items-start gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                     <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                     <p>Deployment was cancelled.</p>
                 </div>

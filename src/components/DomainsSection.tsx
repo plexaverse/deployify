@@ -135,7 +135,7 @@ export function DomainsSection({
                         <Globe className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Networking</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Networking</span>
                         <h3 className="text-[10px] font-bold">Custom Domains</h3>
                     </div>
                 </div>
@@ -144,7 +144,7 @@ export function DomainsSection({
                         onClick={() => setIsAdding(true)}
                         disabled={isLoading}
                         containerClassName="h-10 w-36"
-                        className="text-[8px] font-bold uppercase tracking-wider"
+                        className="text-[10px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Domain
@@ -157,12 +157,12 @@ export function DomainsSection({
             <div className="p-6">
                 {/* Error/Success Messages */}
                 {error && (
-                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-[8px] font-bold uppercase tracking-wider">
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--error-bg)] border border-[var(--error)]/20 text-[var(--error)] text-[10px] font-bold uppercase tracking-wider">
                         {error}
                     </div>
                 )}
                 {success && (
-                    <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-[8px] font-bold uppercase tracking-wider">
+                    <div className="mb-4 p-3 rounded-lg bg-[var(--success-bg)] border border-[var(--success)]/20 text-[var(--success)] text-[10px] font-bold uppercase tracking-wider">
                         {success}
                     </div>
                 )}
@@ -177,9 +177,9 @@ export function DomainsSection({
                             value={newDomain}
                             onChange={(e) => setNewDomain(e.target.value)}
                             placeholder="APP.EXAMPLE.COM"
-                            className="placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                            className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                         />
-                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Enter your domain or subdomain (e.g., app.example.com)
                         </p>
                     </div>
@@ -189,7 +189,7 @@ export function DomainsSection({
                             disabled={isSubmitting || !newDomain.trim()}
                             loading={isSubmitting}
                             containerClassName="h-10 w-32"
-                            className="text-[8px] font-bold uppercase tracking-wider"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             Add Domain
                         </MovingBorderButton>
@@ -220,48 +220,48 @@ export function DomainsSection({
                         </div>
                         <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[var(--warning-bg)] border border-[var(--warning)]/20">
                             <span className="flex h-1.5 w-1.5 rounded-full bg-[var(--warning)] animate-pulse"></span>
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--warning)]">Analyzing...</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)]">Analyzing...</span>
                         </div>
                     </div>
 
                     <div className="mb-8 flex items-center gap-4">
                         <div className="flex items-center gap-2 text-[var(--foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[8px] font-bold uppercase tracking-wider">1</div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider">DNS Configuration</span>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] text-[10px] font-bold uppercase tracking-wider">1</div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">DNS Configuration</span>
                         </div>
                         <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
                         <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[8px] font-bold uppercase tracking-wider">2</div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider">Securing site</span>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">2</div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Securing site</span>
                         </div>
                         <div className="h-[1px] flex-1 bg-[var(--border)]"></div>
                         <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
-                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[8px] font-bold uppercase tracking-wider">3</div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider">Ready</span>
+                            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--muted)] text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">3</div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Ready</span>
                         </div>
                     </div>
 
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                         Please add the following DNS records to your domain provider to verify ownership.
                     </p>
 
                     <div className="overflow-hidden rounded-lg border border-[var(--border)] mb-4 shadow-sm">
-                        <table className="w-full text-[10px] border-collapse">
+                        <table className="w-full text-[10px] font-bold border-collapse">
                             <thead className="bg-[var(--muted)]/5">
                                 <tr className="text-left">
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Host</th>
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Value</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Host</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Value</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[var(--border)]">
                                 {dnsRecords.map((record, index) => (
                                     <tr key={index} className="bg-[var(--background)] hover:bg-[var(--card-hover)] transition-colors">
-                                        <td className="py-3 px-4 font-mono font-bold text-[var(--primary)] text-[8px] uppercase tracking-wider">{record.type}</td>
-                                        <td className="py-3 px-4 font-mono text-[var(--muted-foreground)] text-[8px] font-bold uppercase tracking-wider">{record.name}</td>
+                                        <td className="py-3 px-4 font-mono font-bold text-[var(--primary)] text-[10px] font-bold uppercase tracking-wider">{record.type}</td>
+                                        <td className="py-3 px-4 font-mono text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">{record.name}</td>
                                         <td className="py-3 px-4">
                                             <div className="flex items-center gap-3">
-                                                <code className="font-mono text-[8px] bg-[var(--muted)]/20 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate text-[var(--foreground)] font-bold uppercase tracking-wider" title={record.value}>
+                                                <code className="font-mono text-[10px] bg-[var(--muted)]/20 px-2 py-1 rounded border border-[var(--border)] max-w-[200px] truncate text-[var(--foreground)] font-bold uppercase tracking-wider" title={record.value}>
                                                     {record.value}
                                                 </code>
                                                 <Button
@@ -308,27 +308,27 @@ export function DomainsSection({
                             </svg>
                             <h3 className="text-[10px] font-bold text-[var(--warning)]">Cloudflare Setup (Recommended)</h3>
                         </div>
-                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
                             For global CDN and faster performance, use Cloudflare instead of GCP domain mapping:
                         </p>
-                    <ol className="text-[10px] space-y-4 text-[var(--muted-foreground)] list-decimal list-inside mb-6">
+                    <ol className="text-[10px] font-bold space-y-4 text-[var(--muted-foreground)] list-decimal list-inside mb-6">
                         <li>Add your domain to <a href="https://cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-[var(--warning)] font-bold hover:underline">Cloudflare</a> (free)</li>
                         <li>Update nameservers at your registrar to Cloudflare&apos;s</li>
                         <li>
                             Add a CNAME record in Cloudflare:
                             <div className="mt-4 ml-4 overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-sm max-w-md">
-                                <table className="w-full text-[8px] font-bold uppercase tracking-wider">
+                                <table className="w-full text-[10px] font-bold uppercase tracking-wider">
                                     <tbody className="divide-y divide-[var(--border)]">
                                         <tr>
-                                            <td className="py-2 px-3 text-[8px] font-bold uppercase tracking-wider bg-[var(--muted)]/5 w-20">Type</td>
-                                            <td className="py-2 px-3 font-mono text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">CNAME</td>
+                                            <td className="py-2 px-3 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/5 w-20">Type</td>
+                                            <td className="py-2 px-3 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">CNAME</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 text-[8px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Name</td>
-                                            <td className="py-2 px-3 font-mono text-[8px] font-bold uppercase tracking-wider">@ or subdomain</td>
+                                            <td className="py-2 px-3 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Name</td>
+                                            <td className="py-2 px-3 font-mono text-[10px] font-bold uppercase tracking-wider">@ or subdomain</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 text-[8px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Target</td>
+                                            <td className="py-2 px-3 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/5">Target</td>
                                             <td className="py-2 px-3">
                                                 <div className="flex items-center gap-2">
                                                     <code className="font-mono text-[var(--foreground)] bg-[var(--muted)]/10 px-1.5 py-0.5 rounded truncate">
@@ -359,7 +359,7 @@ export function DomainsSection({
                         </ol>
                         <div className="flex items-center gap-2 p-2 px-3 rounded-full bg-[var(--success-bg)] w-fit border border-[var(--success)]/20">
                             <Check className="w-3.5 h-3.5 text-[var(--success)]" />
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)]">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">
                                 No need to add domain here when using Cloudflare
                             </span>
                         </div>
@@ -373,7 +373,7 @@ export function DomainsSection({
                     <div className="absolute inset-0 flex items-center">
                         <div className="w-full border-t border-[var(--border)]"></div>
                     </div>
-                    <div className="relative flex justify-center text-[8px] font-bold uppercase tracking-wider">
+                    <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-wider">
                         <span className="bg-[var(--card)] px-2 text-[var(--muted-foreground)]">Or use GCP Domain Mapping</span>
                     </div>
                 </div>
@@ -385,13 +385,13 @@ export function DomainsSection({
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Globe className="w-4 h-4 text-[var(--muted-foreground)]" />
-                            <span className="text-[8px] font-bold uppercase tracking-wider">Cloud Run URL</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Cloud Run URL</span>
                         </div>
                         <a
                             href={productionUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline flex items-center gap-1"
+                            className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline flex items-center gap-1"
                         >
                             {productionUrl.replace('https://', '')}
                             <ExternalLink className="w-3 h-3" />
@@ -435,12 +435,12 @@ export function DomainsSection({
                                         href={`https://${domain.domain}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-[8px] font-bold uppercase tracking-wider hover:text-[var(--primary)] flex items-center gap-1"
+                                        className="text-[10px] font-bold uppercase tracking-wider hover:text-[var(--primary)] flex items-center gap-1"
                                     >
                                         {domain.domain}
                                         <ExternalLink className="w-3 h-3" />
                                     </a>
-                                    <span className={`text-[8px] font-bold uppercase tracking-wider ${domain.status === 'active' ? 'text-[var(--success)]' :
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${domain.status === 'active' ? 'text-[var(--success)]' :
                                         domain.status === 'pending' ? 'text-[var(--warning)]' :
                                             'text-[var(--error)]'
                                         }`}>
@@ -454,7 +454,7 @@ export function DomainsSection({
                                         variant="ghost"
                                         size="sm"
                                         onClick={() => fetchProjectDomains(projectId)}
-                                        className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline"
+                                        className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:underline"
                                     >
                                         Refresh
                                     </Button>
@@ -475,7 +475,7 @@ export function DomainsSection({
             )}
 
             {/* Info */}
-                <div className="mt-6 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-t border-[var(--border)] pt-4">
+                <div className="mt-6 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-t border-[var(--border)] pt-4">
                     <p><strong>Note:</strong> DNS changes may take up to 48 hours to propagate worldwide.</p>
                     <p className="mt-1">SSL certificates are automatically provisioned by Google Cloud.</p>
                 </div>

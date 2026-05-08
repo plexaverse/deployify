@@ -12,16 +12,16 @@ export default function DashboardNotFound() {
                 <FileQuestion className="w-10 h-10 text-[var(--primary)]" />
             </div>
             <div className="space-y-1 mb-6">
-                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">404 Error</span>
-                <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">404 Error</span>
+                <h1 className="text-[10px] font-bold tracking-tight">
                     Page Not Found
                 </h1>
             </div>
-            <p className="text-[var(--muted-foreground)] text-[8px] font-bold uppercase tracking-wider mb-8 max-w-[280px]">
+            <p className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-8 max-w-[280px]">
                 The resource you are looking for within the dashboard could not be found.
             </p>
             <Link href="/dashboard" className="w-full">
-                <Button variant="outline" className="w-full h-12 text-[8px] font-bold uppercase tracking-wider">
+                <Button variant="outline" className="w-full h-12 text-[10px] font-bold uppercase tracking-wider">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Return to Dashboard
                 </Button>

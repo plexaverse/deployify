@@ -114,7 +114,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                         <Clock className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scheduling</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scheduling</span>
                         <h3 className="text-[10px] font-bold">Cron Jobs</h3>
                     </div>
                 </div>
@@ -122,7 +122,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                     <MovingBorderButton
                         onClick={() => setIsAdding(true)}
                         containerClassName="h-10 w-36"
-                        className="text-[8px] font-bold uppercase tracking-wider"
+                        className="text-[10px] font-bold uppercase tracking-wider"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Cron Job
@@ -134,7 +134,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
 
             <div className="p-6">
                 {error && (
-                    <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-[10px]">
+                    <div className="mb-6 p-3 bg-[var(--error-bg)] border border-[var(--error)]/50 rounded-md flex items-center gap-3 text-[var(--error)] text-[10px] font-bold">
                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         {error}
                     </div>
@@ -150,9 +150,9 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                 value={newPath}
                                 onChange={(e) => setNewPath(e.target.value)}
                                 placeholder="/API/CRON/DAILY-REPORT"
-                                className="font-mono text-[10px] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
-                            <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 Relative path to call (GET request).
                             </p>
                         </div>
@@ -173,9 +173,9 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                     value={customSchedule}
                                     onChange={(e) => setCustomSchedule(e.target.value)}
                                     placeholder="0 0 * * *"
-                                    className="font-mono text-[10px] placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
-                                <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Standard cron format: minute hour day(month) month day(week)
                                 </p>
                             </div>
@@ -195,7 +195,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                             disabled={isSubmitting}
                             loading={isSubmitting}
                             containerClassName="h-10 w-36"
-                            className="text-[8px] font-bold uppercase tracking-wider"
+                            className="text-[10px] font-bold uppercase tracking-wider"
                         >
                             Add Cron Job
                         </MovingBorderButton>
@@ -215,9 +215,9 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/5">
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Path</th>
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Schedule</th>
-                                    <th className="py-3 px-4 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Path</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Schedule</th>
+                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -249,8 +249,8 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
 
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
                 <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
-                <div className="text-[10px]">
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">How it works</p>
+                <div className="text-[10px] font-bold">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">How it works</p>
                     <p className="text-[var(--muted-foreground)] leading-relaxed">
                         Deployify uses Google Cloud Scheduler to trigger your application&apos;s endpoints via HTTP GET requests.
                         Ensure your application is deployed and the endpoints are accessible.

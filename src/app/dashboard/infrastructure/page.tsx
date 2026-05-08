@@ -167,7 +167,7 @@ export default function InfrastructureFleetPage() {
             {/* Breadcrumb */}
             <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Dashboard
@@ -181,8 +181,8 @@ export default function InfrastructureFleetPage() {
                             <Activity className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <div className="space-y-1">
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Global Fleet</span>
-                            <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Infrastructure Intelligence</h1>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Global Fleet</span>
+                            <h1 className="text-[10px] font-bold tracking-tight">Infrastructure Intelligence</h1>
                         </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
@@ -203,16 +203,16 @@ export default function InfrastructureFleetPage() {
                 <div className="flex flex-wrap items-center gap-4 p-4 border border-[var(--primary)]/10 rounded-2xl bg-[var(--card)]/30">
                     <div className="flex items-center gap-2 px-2 mr-2 border-r border-[var(--primary)]/10">
                         <Filter className="w-3.5 h-3.5 text-[var(--muted-foreground)]" />
-                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fleet Filters</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Fleet Filters</span>
                     </div>
 
                     <div className="flex items-center gap-4 flex-1">
                         <div className="space-y-1.5 min-w-[140px]">
-                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Status</Label>
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Status</Label>
                             <NativeSelect
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="h-8 text-[8px] uppercase font-bold"
+                                className="h-8 text-[10px] uppercase font-bold"
                             >
                                 <option value="all">ALL STATUSES</option>
                                 <option value="healthy">HEALTHY</option>
@@ -223,11 +223,11 @@ export default function InfrastructureFleetPage() {
                         </div>
 
                         <div className="space-y-1.5 min-w-[160px]">
-                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Storage Type</Label>
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Storage Type</Label>
                             <NativeSelect
                                 value={typeFilter}
                                 onChange={(e) => setTypeFilter(e.target.value)}
-                                className="h-8 text-[8px] uppercase font-bold"
+                                className="h-8 text-[10px] uppercase font-bold"
                             >
                                 <option value="all">ALL TYPES</option>
                                 <optgroup label="CATEGORIES">
@@ -261,7 +261,7 @@ export default function InfrastructureFleetPage() {
                                     }}
                                     className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
-                                <Label htmlFor="only-optimizable" className="text-[8px] font-bold uppercase tracking-wider cursor-pointer">
+                                <Label htmlFor="only-optimizable" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer">
                                     Optimizable
                                 </Label>
                             </div>
@@ -279,7 +279,7 @@ export default function InfrastructureFleetPage() {
                                     }}
                                     className="w-4 h-4 rounded border-[var(--primary)]/20 text-[var(--primary)] focus:ring-[var(--primary)]"
                                 />
-                                <Label htmlFor="only-dormant" className="text-[8px] font-bold uppercase tracking-wider cursor-pointer">
+                                <Label htmlFor="only-dormant" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer">
                                     Dormant
                                 </Label>
                             </div>
@@ -297,7 +297,7 @@ export default function InfrastructureFleetPage() {
                                     }}
                                     className="w-4 h-4 rounded border-[var(--error)]/20 text-[var(--error)] focus:ring-[var(--error)]"
                                 />
-                                <Label htmlFor="only-at-risk" className="text-[8px] font-bold uppercase tracking-wider cursor-pointer text-[var(--error)]">
+                                <Label htmlFor="only-at-risk" className="text-[10px] font-bold uppercase tracking-wider cursor-pointer text-[var(--error)]">
                                     At Risk
                                 </Label>
                             </div>
@@ -313,7 +313,7 @@ export default function InfrastructureFleetPage() {
                                     setOnlyAtRisk(false);
                                     setOnlyUpcomingMaint(false);
                                 }}
-                                className="h-7 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                className="h-7 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--primary)]"
                             >
                                 Reset
                             </Button>
@@ -332,8 +332,8 @@ export default function InfrastructureFleetPage() {
                             )}
                         >
                             <HistoryIcon className="w-3 h-3" />
-                            <span className="text-[8px] font-bold uppercase tracking-wider">Show Maintenance Recommendations</span>
-                            <Badge variant="outline" className="h-4 px-1 text-[8px] font-mono">{connectors.filter(c => c.metadata?.maintenanceRecommendation).length}</Badge>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Show Maintenance Recommendations</span>
+                            <Badge variant="outline" className="h-4 px-1 text-[10px] font-mono">{connectors.filter(c => c.metadata?.maintenanceRecommendation).length}</Badge>
                         </div>
                     )}
                 </div>
@@ -368,12 +368,12 @@ export default function InfrastructureFleetPage() {
                     >
                         <div className="flex items-center gap-2 mb-1">
                             <stat.icon className={cn("w-3 h-3 transition-transform group-hover:scale-110", stat.color)} />
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{stat.label}</span>
                         </div>
                         <div className="flex items-baseline justify-between gap-2">
                             <span className="text-[10px] font-bold">{loading ? '...' : stat.value}</span>
                             {'subValue' in stat && stat.subValue && !loading && (
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--success)] animate-pulse truncate whitespace-nowrap">{stat.subValue}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)] animate-pulse truncate whitespace-nowrap">{stat.subValue}</span>
                             )}
                         </div>
                     </Card>
@@ -390,7 +390,7 @@ export default function InfrastructureFleetPage() {
                                     <ShieldCheck className="w-4 h-4 text-[var(--primary)]" />
                                 </div>
                                 <div>
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Governance</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Governance</span>
                                     <h3 className="text-[10px] font-bold">Compliance Report</h3>
                                 </div>
                             </div>
@@ -401,25 +401,25 @@ export default function InfrastructureFleetPage() {
                         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
-                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Avg Score</span>
+                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Avg Score</span>
                                     <span className="text-[10px] font-bold text-[var(--primary)]">{String(summary?.averageSecurityScore || 0)}%</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
-                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Total Risks</span>
+                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Total Risks</span>
                                     <span className="text-[10px] font-bold text-[var(--error)]">{String(summary?.totalRisks || 0)}</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
-                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Projects</span>
+                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Projects</span>
                                     <span className="text-[10px] font-bold">{String(summary?.totalProjects || 0)}</span>
                                 </div>
                                 <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5">
-                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Connectors</span>
+                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Connectors</span>
                                     <span className="text-[10px] font-bold">{String(summary?.totalConnectors || 0)}</span>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
-                                <h4 className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-b border-[var(--border)] pb-2">Project Breakdown</h4>
+                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-b border-[var(--border)] pb-2">Project Breakdown</h4>
                                 <div className="space-y-2">
                                     {connectors.reduce((acc, c) => {
                                         const proj = acc.find(p => p.id === c.projectId);
@@ -430,13 +430,13 @@ export default function InfrastructureFleetPage() {
                                         <div key={project.id} className="p-3 rounded-lg border border-[var(--border)] bg-[var(--background)]">
                                             <div className="flex items-center justify-between mb-3">
                                                 <span className="text-[10px] font-bold">{project.name}</span>
-                                                <Badge variant="outline" className="text-[8px] font-bold">{project.connectors.length} CONNECTORS</Badge>
+                                                <Badge variant="outline" className="text-[10px] font-bold">{project.connectors.length} CONNECTORS</Badge>
                                             </div>
                                             <div className="space-y-2">
                                                 {project.connectors.map((c: FleetConnector) => {
                                                     const security = (c.metadata?.security as { score: number, risks: unknown[] } | undefined) || { score: 100, risks: [] };
                                                     return (
-                                                        <div key={c.id} className="flex items-center justify-between p-2 rounded bg-[var(--muted)]/5 text-[8px]">
+                                                        <div key={c.id} className="flex items-center justify-between p-2 rounded bg-[var(--muted)]/5 text-[10px] font-bold">
                                                             <div className="flex items-center gap-3">
                                                                 <span className="font-bold">{c.name}</span>
                                                                 <span className="text-[var(--muted-foreground)] uppercase">{c.type}</span>
@@ -476,7 +476,7 @@ export default function InfrastructureFleetPage() {
                                     a.download = `compliance-report-${new Date().toISOString().split('T')[0]}.json`;
                                     a.click();
                                 }}
-                                className="text-[8px] font-bold uppercase tracking-wider bg-[var(--primary)]"
+                                className="text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]"
                             >
                                 <Download className="w-3.5 h-3.5 mr-2" />
                                 Export JSON Report
@@ -495,12 +495,12 @@ export default function InfrastructureFleetPage() {
                                 <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
                             </div>
                             <div>
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Financial Intelligence</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Financial Intelligence</span>
                                 <h3 className="text-[10px] font-bold">3-Month Cost Projection</h3>
                             </div>
                         </div>
                         <div className="text-right">
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Projected Growth</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Projected Growth</span>
                             <div className="flex items-center gap-1.5 text-[var(--success)]">
                                 <Zap className="w-3.5 h-3.5" />
                                 <span className="text-[10px] font-bold">+5% MONTHLY</span>
@@ -514,12 +514,12 @@ export default function InfrastructureFleetPage() {
                                 <div className="w-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-t-xl transition-all group-hover:bg-[var(--primary)]/20 relative"
                                      style={{ height: `${(f.cost / (summary.totalForecastedCost3m || 1)) * 250}%` }}>
                                     <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                        <span className="text-[8px] font-mono font-bold bg-[var(--popover)] border border-[var(--border)] px-2 py-1 rounded shadow-xl">
+                                        <span className="text-[10px] font-mono font-bold bg-[var(--popover)] border border-[var(--border)] px-2 py-1 rounded shadow-xl">
                                             ${f.cost.toLocaleString()}
                                         </span>
                                     </div>
                                 </div>
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{f.month}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{f.month}</span>
                             </div>
                         ))}
                     </div>
@@ -544,7 +544,7 @@ export default function InfrastructureFleetPage() {
                     </div>
                     <div className="space-y-2">
                         <h2 className="text-[10px] font-bold">No Connectors Found</h2>
-                        <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
                             {searchQuery ? `No managed connectors match "${searchQuery}"` : "You haven't connected any databases to your projects yet."}
                         </p>
                     </div>
@@ -571,11 +571,11 @@ export default function InfrastructureFleetPage() {
                                                             status === 'healthy' ? 'success' :
                                                             status === 'degraded' ? 'warning' :
                                                             status === 'provisioning' ? 'secondary' : 'destructive'
-                                                        } className="text-[8px] font-bold uppercase px-1.5 py-0.5 h-4">
+                                                        } className="text-[10px] font-bold uppercase px-1.5 py-0.5 h-4">
                                                             {status}
                                                         </Badge>
                                                     </div>
-                                                    <div className="flex items-center gap-1 text-[8px] font-bold uppercase text-[var(--muted-foreground)]">
+                                                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
                                                         <Layout className="w-3 h-3" />
                                                         <span className="truncate max-w-[120px]">{connector.projectName}</span>
                                                     </div>
@@ -589,26 +589,26 @@ export default function InfrastructureFleetPage() {
 
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
-                                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Provider</span>
-                                                    <span className="text-[8px] font-bold uppercase truncate block">{connector.type.replace(/-/g, ' ')}</span>
+                                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Provider</span>
+                                                    <span className="text-[10px] font-bold uppercase truncate block">{connector.type.replace(/-/g, ' ')}</span>
                                                 </div>
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
-                                                    <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Region</span>
-                                                    <span className="text-[8px] font-bold uppercase truncate block">{(connector.region || (connector.metadata?.region as string) || 'GLOBAL').toUpperCase()}</span>
+                                                    <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-1">Region</span>
+                                                    <span className="text-[10px] font-bold uppercase truncate block">{(connector.region || (connector.metadata?.region as string) || 'GLOBAL').toUpperCase()}</span>
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div className="p-2 rounded-lg bg-[var(--muted)]/10 border border-[var(--primary)]/10 flex items-center justify-between col-span-2">
                                                     <div>
-                                                        <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Resource Tier</span>
+                                                        <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Resource Tier</span>
                                                         <div className="flex items-baseline gap-2">
-                                                            <span className="text-[8px] font-mono font-bold text-[var(--primary)]">
+                                                            <span className="text-[10px] font-mono font-bold text-[var(--primary)]">
                                                                 {(connector.metadata?.tier as string) || (connector.metadata?.memorySizeGb ? `${connector.metadata.memorySizeGb}GB` : 'UNMANAGED')}
                                                             </span>
                                                             {connector.metadata?.efficiencyScore !== undefined && (
                                                                 <span className={cn(
-                                                                    "text-[8px] font-bold px-1 rounded-sm",
+                                                                    "text-[10px] font-bold px-1 rounded-sm",
                                                                     (connector.metadata.efficiencyScore as number) >= 80 ? "bg-[var(--success)]/10 text-[var(--success)]" :
                                                                     (connector.metadata.efficiencyScore as number) >= 50 ? "bg-[var(--warning)]/10 text-[var(--warning)]" :
                                                                     "bg-[var(--error)]/10 text-[var(--error)]"
@@ -622,10 +622,10 @@ export default function InfrastructureFleetPage() {
                                                 </div>
                                                 <div className="p-2 rounded-lg bg-[var(--success-bg)]/5 border border-[var(--success)]/10 flex items-center justify-between col-span-2">
                                                     <div>
-                                                        <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Monthly Est.</span>
+                                                        <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Monthly Est.</span>
                                                         <div className="flex items-center gap-1">
                                                             <DollarSign className="w-2.5 h-2.5 text-[var(--success)]" />
-                                                            <span className="text-[8px] font-mono font-bold text-[var(--success)]">
+                                                            <span className="text-[10px] font-mono font-bold text-[var(--success)]">
                                                                 {(() => {
                                                                     // Define a simple version here for client-side to avoid require/import issues
                                                                     const type = connector.type;
@@ -657,34 +657,34 @@ export default function InfrastructureFleetPage() {
                                                 <div className="flex items-center gap-4 pt-1">
                                                     <div className="flex items-center gap-1.5">
                                                         <Cpu className="w-3 h-3 text-[var(--primary)]" />
-                                                        <span className="text-[8px] font-mono font-bold">ACTV</span>
+                                                        <span className="text-[10px] font-mono font-bold">ACTV</span>
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
                                                         <ShieldCheck className="w-3 h-3 text-[var(--success)]" />
-                                                        <span className="text-[8px] font-mono font-bold">SEC</span>
+                                                        <span className="text-[10px] font-mono font-bold">SEC</span>
                                                     </div>
                                                     {optimization && (
                                                         <div className="flex items-center gap-1.5 animate-pulse">
                                                             <Sparkles className="w-3 h-3 text-[var(--primary)]" />
-                                                            <span className="text-[8px] font-bold uppercase text-[var(--primary)]">Opt</span>
+                                                            <span className="text-[10px] font-bold uppercase text-[var(--primary)]">Opt</span>
                                                         </div>
                                                     )}
                                                     {connector.dormancy?.isDormant && (
                                                         <div className="flex items-center gap-1.5 text-[var(--muted-foreground)]">
                                                             <Moon className="w-3 h-3" />
-                                                            <span className="text-[8px] font-bold uppercase">Idl</span>
+                                                            <span className="text-[10px] font-bold uppercase">Idl</span>
                                                         </div>
                                                     )}
                                                     {(((connector.metadata?.security as Record<string, unknown>)?.risks as unknown[])?.length > 0) && (
                                                         <div className="flex items-center gap-1.5 text-[var(--error)]">
                                                             <ShieldAlert className="w-3 h-3" />
-                                                            <span className="text-[8px] font-bold uppercase">Risk</span>
+                                                            <span className="text-[10px] font-bold uppercase">Risk</span>
                                                         </div>
                                                     )}
                                                     {(((connector.metadata?.security as Record<string, unknown>)?.score as number) >= 90) && (
                                                         <div className="flex items-center gap-1.5 text-[var(--success)]">
                                                             <ShieldCheck className="w-3 h-3" />
-                                                            <span className="text-[8px] font-bold uppercase">Safe</span>
+                                                            <span className="text-[10px] font-bold uppercase">Safe</span>
                                                         </div>
                                                     )}
 
@@ -698,42 +698,42 @@ export default function InfrastructureFleetPage() {
                                                         "border-[var(--success)]/20 text-[var(--success)] bg-[var(--success)]/5"
                                                     )}>
                                                         <Zap className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase">{connector.workloadProfile.type}</span>
+                                                        <span className="text-[10px] font-bold uppercase">{connector.workloadProfile.type}</span>
                                                     </div>
                                                 )}
                                                 {connector.connectionSaturation !== undefined && connector.connectionSaturation > 50 && (
                                                     <div className="flex items-center gap-1.5 text-[var(--warning)] animate-pulse">
                                                         <Activity className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase">{String(connector.connectionSaturation)}% SAT</span>
+                                                        <span className="text-[10px] font-bold uppercase">{String(connector.connectionSaturation)}% SAT</span>
                                                     </div>
                                                 )}
                                                 {(connector.metadata?.health as { isColdStart?: boolean })?.isColdStart && (
                                                     <div className="flex items-center gap-1.5 text-[var(--warning)]">
                                                         <Zap className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase">COLD</span>
+                                                        <span className="text-[10px] font-bold uppercase">COLD</span>
                                                     </div>
                                                 )}
                                                 {connector.labelingStatus === 'SYNCED' && (
                                                     <div className="flex items-center gap-1.5 text-[var(--success)]/60">
                                                         <ShieldCheck className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase">LBLD</span>
+                                                        <span className="text-[10px] font-bold uppercase">LBLD</span>
                                                     </div>
                                                 )}
                                                 {(connector.type as string).includes('cloud-sql') ? (
                                                     <div className="flex items-center gap-1.5 text-[var(--success)]">
                                                         <ShieldCheck className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase" title="Infrastructure Lockdown (VPC-SC Aligned)">LOCK</span>
+                                                        <span className="text-[10px] font-bold uppercase" title="Infrastructure Lockdown (VPC-SC Aligned)">LOCK</span>
                                                     </div>
                                                 ) : <></>}
                                                 {connector.metadata?.iamOverprivileged ? (
                                                     <div className="flex items-center gap-1.5 text-[var(--error)] animate-pulse">
                                                         <ShieldAlert className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase" title={`Excessive roles: ${(connector.metadata.excessiveRoles as string[])?.join(', ')}`}>OVERPRIV</span>
+                                                        <span className="text-[10px] font-bold uppercase" title={`Excessive roles: ${(connector.metadata.excessiveRoles as string[])?.join(', ')}`}>OVERPRIV</span>
                                                     </div>
                                                 ) : connector.metadata?.iamOverprivileged === false ? (
                                                     <div className="flex items-center gap-1.5 text-[var(--success)]/60">
                                                         <ShieldCheck className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase">ZERO TRUST</span>
+                                                        <span className="text-[10px] font-bold uppercase">ZERO TRUST</span>
                                                     </div>
                                                 ) : <></>}
                                                 {connector.type.includes('cloud-sql') && !!connector.metadata?.maintenanceRecommendation && (
@@ -742,7 +742,7 @@ export default function InfrastructureFleetPage() {
                                                         connector.metadata.maintenanceWindowSynced ? "text-[var(--success)]/60" : "text-[var(--primary)] animate-pulse"
                                                     )}>
                                                         <HistoryIcon className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase" title={`Recommended: ${['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][(connector.metadata.maintenanceRecommendation as {day: number}).day]} @ ${(connector.metadata.maintenanceRecommendation as {hour: number}).hour}:00`}>
+                                                        <span className="text-[10px] font-bold uppercase" title={`Recommended: ${['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][(connector.metadata.maintenanceRecommendation as {day: number}).day]} @ ${(connector.metadata.maintenanceRecommendation as {hour: number}).hour}:00`}>
                                                             {connector.metadata.maintenanceWindowSynced ? 'MAINT SYNCED' : 'MAINT READY'}
                                                         </span>
                                                     </div>
@@ -750,7 +750,7 @@ export default function InfrastructureFleetPage() {
                                                 {!!connector.metadata?.readyForCutover && !connector.metadata?.cutoverComplete && (
                                                     <div className="flex items-center gap-1.5 text-[var(--primary)] animate-pulse">
                                                         <ArrowRight className="w-2.5 h-2.5" />
-                                                        <span className="text-[8px] font-bold uppercase">READY</span>
+                                                        <span className="text-[10px] font-bold uppercase">READY</span>
                                                     </div>
                                                 )}
                                                 </div>
@@ -761,23 +761,23 @@ export default function InfrastructureFleetPage() {
                                             <div className="flex items-center gap-3">
                                                 {health?.latency && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Latency</span>
+                                                        <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Latency</span>
                                                         <span className={cn(
-                                                            "text-[8px] font-mono font-bold",
+                                                            "text-[10px] font-mono font-bold",
                                                             status === 'healthy' ? "text-[var(--success)]" : "text-[var(--warning)]"
                                                         )}>{health.latency}ms</span>
                                                     </div>
                                                 )}
                                                 {health?.baselineLatency && (
                                                     <div className="flex flex-col">
-                                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Baseline</span>
-                                                        <span className="text-[8px] font-mono font-bold opacity-60">{health.baselineLatency}ms</span>
+                                                        <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Baseline</span>
+                                                        <span className="text-[10px] font-mono font-bold opacity-60">{health.baselineLatency}ms</span>
                                                     </div>
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Environment</span>
-                                                <span className="text-[8px] font-bold uppercase">{connector.environment}</span>
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Environment</span>
+                                                <span className="text-[10px] font-bold uppercase">{connector.environment}</span>
                                             </div>
                                         </div>
                                     </div>

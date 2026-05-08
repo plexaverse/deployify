@@ -236,7 +236,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
                     <Badge
                         variant={isConnected ? 'success' : 'destructive'}
-                        className="text-[8px] font-bold uppercase tracking-wider py-0 px-2 h-5 gap-1.5"
+                        className="text-[10px] font-bold uppercase tracking-wider py-0 px-2 h-5 gap-1.5"
                     >
                         {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
                         {isConnected ? 'Connected' : 'Disconnected'}
@@ -253,7 +253,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                 placeholder="FILTER LOGS..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-8 pl-8 pr-8 text-[8px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 placeholder:text-[8px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="h-8 pl-8 pr-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             {searchQuery && (
                                 <Button
@@ -274,7 +274,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                     variant="ghost"
                                     onClick={() => toggleSeverityFilter(sev)}
                                     className={cn(
-                                        "h-7 px-2 py-0 text-[8px] font-bold uppercase tracking-wider border transition-all",
+                                        "h-7 px-2 py-0 text-[10px] font-bold uppercase tracking-wider border transition-all",
                                         severityFilter.has(sev)
                                             ? sev === 'ERROR' ? 'bg-[var(--error-bg)] text-[var(--error)] border-[var(--error)]/30 hover:bg-[var(--error-bg)]/80'
                                             : sev === 'WARNING' ? 'bg-[var(--warning-bg)] text-[var(--warning)] border-[var(--warning)]/30 hover:bg-[var(--warning-bg)]/80'
@@ -328,7 +328,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
 
             {/* Error Message */}
             {error && (
-                <div className="bg-[var(--error-bg)] text-[var(--error)] px-4 py-2 text-[8px] font-bold uppercase tracking-wider border-b border-[var(--error)]/20 flex items-center gap-2">
+                <div className="bg-[var(--error-bg)] text-[var(--error)] px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-b border-[var(--error)]/20 flex items-center gap-2">
                     <Activity className="w-4 h-4" />
                     Error: {error}
                 </div>
@@ -338,7 +338,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
             <div
                 ref={containerRef}
                 onScroll={handleScroll}
-                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[8px] leading-relaxed relative"
+                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[10px] font-bold leading-relaxed relative"
             >
                 {logs.length === 0 && isLoading ? (
                     <div className="space-y-2 p-2">
@@ -365,13 +365,13 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                     <div className="flex flex-col">
                         {filteredLogs.map((log, index) => (
                             <div key={log.insertId || index} className="flex items-start gap-4 hover:bg-[var(--terminal-foreground)]/5 px-1 py-0.5 rounded -mx-1 group transition-colors">
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted)] shrink-0 select-none w-[110px] opacity-70 group-hover:opacity-100 transition-opacity pt-0.5">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] shrink-0 select-none w-[110px] opacity-70 group-hover:opacity-100 transition-opacity pt-0.5">
                                     {formatTimestamp(log.timestamp)}
                                 </span>
-                                <span className={`text-[8px] font-bold uppercase tracking-wider shrink-0 w-[70px] select-none pt-0.5 ${getSeverityColor(log.severity)}`}>
+                                <span className={`text-[10px] font-bold uppercase tracking-wider shrink-0 w-[70px] select-none pt-0.5 ${getSeverityColor(log.severity)}`}>
                                     {log.severity}
                                 </span>
-                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-[8px] font-bold">
+                                <span className="text-[var(--muted)] break-all whitespace-pre-wrap flex-1 text-[10px] font-bold">
                                     {log.textPayload || (log.jsonPayload ? JSON.stringify(log.jsonPayload) : '')}
                                 </span>
                             </div>

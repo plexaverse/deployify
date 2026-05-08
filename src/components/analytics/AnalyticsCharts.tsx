@@ -110,7 +110,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                             <BarChart3 className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <div>
-                            <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Traffic Trends</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Traffic Trends</span>
                             <h3 className="text-[10px] font-bold">Traffic Over Time</h3>
                         </div>
                     </div>
@@ -183,7 +183,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                 <Share2 className="w-5 h-5 text-[var(--primary)]" />
                             </div>
                             <div>
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Referral Traffic</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Referral Traffic</span>
                                 <h3 className="text-[10px] font-bold">Top Sources</h3>
                             </div>
                         </div>
@@ -194,15 +194,15 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                     <div key={index} className="flex items-center justify-between group">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 rounded-full bg-[var(--primary)] group-hover:scale-125 transition-transform duration-200" />
-                                            <span className="text-[8px] font-bold uppercase tracking-wider">{source.source}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">{source.source}</span>
                                         </div>
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono">
                                             {source.visitors.toLocaleString()}
                                         </span>
                                     </div>
                                 ))}
                                 {sources.length === 0 && (
-                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
                                 )}
                             </div>
                         </div>
@@ -215,7 +215,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                 <Globe className="w-5 h-5 text-[var(--info)]" />
                             </div>
                             <div>
-                                <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Geographic Reach</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Geographic Reach</span>
                                 <h3 className="text-[10px] font-bold">Top Locations</h3>
                             </div>
                         </div>
@@ -226,15 +226,15 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                     <div key={index} className="flex items-center justify-between group">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 rounded-full bg-[var(--info)] group-hover:scale-125 transition-transform duration-200" />
-                                            <span className="text-[8px] font-bold uppercase tracking-wider">{location.country}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">{location.country}</span>
                                         </div>
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono">
                                             {location.visitors.toLocaleString()}
                                         </span>
                                     </div>
                                 ))}
                                 {locations.length === 0 && (
-                                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
                                 )}
                             </div>
                         </div>
@@ -258,7 +258,7 @@ function WebVitalCard({ title, value, unit, status, description }: {
         <Card className="overflow-hidden p-0 hover:border-[var(--primary)] hover:shadow-md transition-all duration-200 group">
             <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
-                    <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{title}</span>
+                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-wider">{title}</span>
                     <div className={cn("w-2 h-2 rounded-full animate-pulse",
                         status === 'good' ? 'bg-[var(--success)]' :
                         status === 'needs-improvement' ? 'bg-[var(--warning)]' :
@@ -268,14 +268,14 @@ function WebVitalCard({ title, value, unit, status, description }: {
                     <span className="text-[10px] font-bold font-mono tracking-tight group-hover:text-[var(--primary)] transition-colors">
                         {value < 1 ? value.toFixed(3) : Math.round(value)}
                     </span>
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{unit}</span>
                 </div>
                 <div className="mt-2">
-                    <Badge variant={variant} className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5">
+                    <Badge variant={variant} className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5">
                         {status.replace('-', ' ')}
                     </Badge>
                 </div>
-                <p className="mt-3 text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
                     {description}
                 </p>
             </div>
@@ -288,12 +288,12 @@ function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payloa
         return (
             <Card className="overflow-hidden p-0 shadow-2xl bg-[var(--card)] border-[var(--border)]">
                 <div className="p-3">
-                    <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
                         {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
                     </p>
                     <div className="space-y-1">
                         {payload.map((entry: TooltipEntry, index: number) => (
-                            <div key={index} className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-wider">
+                            <div key={index} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
                                 <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
                                 <span className="text-[var(--muted-foreground)]">{entry.name}:</span>
                                 <span className="text-[var(--foreground)]">{(entry.value as number).toLocaleString()}</span>
@@ -311,7 +311,7 @@ function SummaryCard({ title, value }: { title: string; value: string }) {
     return (
         <Card className="overflow-hidden p-0 hover:border-[var(--primary)] hover:shadow-md transition-all duration-300 group">
             <div className="p-6">
-                <h3 className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
                     {title}
                 </h3>
                 <div className="mt-3 text-[10px] font-bold font-mono tracking-tighter text-[var(--foreground)]">

@@ -33,7 +33,7 @@ export function SegmentedControl<T extends string = string>({ options, value, on
                         type="button"
                         onClick={() => onChange(option.value)}
                         className={cn(
-                            "relative px-4 py-1.5 text-[8px] font-bold uppercase tracking-wider rounded-full transition-colors duration-200 focus:outline-none",
+                            "relative px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors duration-200 focus:outline-none",
                             isFullWidth && "flex-1 flex items-center justify-center",
                             isActive ? "text-[var(--primary-foreground)]" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                         )}

@@ -14,15 +14,15 @@ export default function NotFound() {
                     <FileQuestion className="w-8 h-8 text-[var(--primary)]" />
                 </div>
                 <div className="space-y-1 mb-6">
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">404 Error</span>
-                    <h1 className="text-[8px] md:text-[10px] font-bold tracking-tight">Page Not Found</h1>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">404 Error</span>
+                    <h1 className="text-[10px] font-bold tracking-tight">Page Not Found</h1>
                 </div>
-                <p className="text-[var(--muted-foreground)] text-[10px] mb-8">
+                <p className="text-[var(--muted-foreground)] text-[10px] font-bold mb-8">
                     The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
                 </p>
                 <div className="flex flex-col w-full gap-4">
                     <Link href="/" className="w-full">
-                        <Button size="lg" className="font-bold w-full text-[8px] uppercase tracking-wider" variant="outline">
+                        <Button size="lg" className="font-bold w-full text-[10px] font-bold uppercase tracking-wider" variant="outline">
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Home
                         </Button>
