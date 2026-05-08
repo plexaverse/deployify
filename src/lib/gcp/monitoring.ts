@@ -84,6 +84,118 @@ export interface PerformanceRegressionReport {
 }
 
 /**
+ * Autonomously discover sensitive data (PII) by sampling database records (Phase 143)
+ */
+export async function discoverSensitiveData(
+    storage: import('@/types').StorageConfig,
+    connectionString: string
+): Promise<import('@/types').ComplianceReport> {
+    const risks: import('@/types').ComplianceRisk[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasRisk = Math.random() > 0.7;
+        return {
+            hasRisk,
+            risks: hasRisk ? [
+                { type: 'EMAIL', entity: 'users', field: 'email', sampleValue: 'j***@example.com' },
+                { type: 'PHONE', entity: 'profiles', field: 'phone_number', sampleValue: '***-***-1234' }
+            ] : [],
+            lastScannedAt: now
+        };
+    }
+
+    try {
+        const { PII_PATTERNS } = await import('@/lib/utils/masking');
+
+        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
+            const dbType = (storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
+
+            if (dbType === 'postgres') {
+                const { Client } = await import('pg');
+                const client = new Client({
+                    connectionString,
+                    ssl: storage.ssl ? { rejectUnauthorized: false } : false,
+                    connectionTimeoutMillis: 5000
+                });
+                await client.connect();
+
+                try {
+                    const tableRes = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' LIMIT 10");
+                    for (const row of tableRes.rows) {
+                        const tableName = row.table_name;
+                        const sampleRes = await client.query(`SELECT * FROM "${tableName}" LIMIT 5`);
+                        for (const sample of sampleRes.rows) {
+                            for (const [field, value] of Object.entries(sample)) {
+                                if (typeof value === 'string') {
+                                    if (value.match(PII_PATTERNS.email)) risks.push({ type: 'EMAIL', entity: tableName, field, sampleValue: value.substring(0, 3) + '...' });
+                                    else if (value.match(PII_PATTERNS.phone)) risks.push({ type: 'PHONE', entity: tableName, field, sampleValue: '***-***-' + value.slice(-4) });
+                                    else if (value.match(PII_PATTERNS.ssn)) risks.push({ type: 'SSN', entity: tableName, field, sampleValue: '***-**-****' });
+                                    else if (value.match(PII_PATTERNS.creditCard)) risks.push({ type: 'CREDIT_CARD', entity: tableName, field, sampleValue: '****-****-****-' + value.slice(-4) });
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    await client.end().catch(() => {});
+                }
+            } else {
+                const mysql = await import('mysql2/promise');
+                const connection = await mysql.createConnection(connectionString);
+                try {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const [tables]: any = await connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() LIMIT 10");
+                    for (const table of tables as Record<string, string>[]) {
+                        const tableName = table.TABLE_NAME || table.table_name;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const [samples]: any = await connection.execute(`SELECT * FROM \`${tableName}\` LIMIT 5`);
+                        for (const sample of samples as Record<string, unknown>[]) {
+                            for (const [field, value] of Object.entries(sample)) {
+                                if (typeof value === 'string') {
+                                    if (value.match(PII_PATTERNS.email)) risks.push({ type: 'EMAIL', entity: tableName, field, sampleValue: value.substring(0, 3) + '...' });
+                                    else if (value.match(PII_PATTERNS.phone)) risks.push({ type: 'PHONE', entity: tableName, field, sampleValue: '***-***-' + value.slice(-4) });
+                                    else if (value.match(PII_PATTERNS.ssn)) risks.push({ type: 'SSN', entity: tableName, field, sampleValue: '***-**-****' });
+                                    else if (value.match(PII_PATTERNS.creditCard)) risks.push({ type: 'CREDIT_CARD', entity: tableName, field, sampleValue: '****-****-****-' + value.slice(-4) });
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    await connection.end().catch(() => {});
+                }
+            }
+        } else if (storage.type === 'firestore') {
+            const { getDb } = await import('@/lib/firebase');
+            const db = getDb();
+            const collections = await db.listCollections();
+
+            for (const col of collections.slice(0, 5)) {
+                const snapshot = await col.limit(5).get();
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    for (const [field, value] of Object.entries(data)) {
+                        if (typeof value === 'string') {
+                            if (value.match(PII_PATTERNS.email)) risks.push({ type: 'EMAIL', entity: col.id, field, sampleValue: value.substring(0, 3) + '...' });
+                            else if (value.match(PII_PATTERNS.phone)) risks.push({ type: 'PHONE', entity: col.id, field, sampleValue: '***-***-' + value.slice(-4) });
+                        }
+                    }
+                });
+            }
+        }
+    } catch (e) {
+        console.error(`[PIIDiscovery] Failed for ${storage.id}:`, e);
+    }
+
+    const uniqueRisks = risks.filter((v, i, a) => a.findIndex(t => t.entity === v.entity && t.field === v.field) === i);
+
+    return {
+        hasRisk: uniqueRisks.length > 0,
+        risks: uniqueRisks,
+        lastScannedAt: now
+    };
+}
+
+/**
  * Check if resource metrics exceed configured thresholds
  */
 export function checkAlertThresholds(

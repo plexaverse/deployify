@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -237,6 +237,27 @@ export async function GET(
                         }
                     } catch (leakErr) {
                         console.error(`[ConnectionLeakSync] Check failed for ${storageId}:`, leakErr);
+                    }
+                }
+
+                // 0g. Phase 143: Autonomous PII Discovery & Governance
+                const complianceReport = storage.metadata?.complianceReport as import('@/types').ComplianceReport | undefined;
+                const lastComplianceScan = complianceReport?.lastScannedAt ? new Date(complianceReport.lastScannedAt) : new Date(0);
+                const hoursSinceComplianceScan = (now.getTime() - lastComplianceScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && hoursSinceComplianceScan >= 24) {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
+                        if (connStr || storage.type === 'firestore') {
+                            const report = await discoverSensitiveData(storage, connStr);
+                            storage.metadata = {
+                                ...storage.metadata,
+                                complianceReport: report
+                            };
+                        }
+                    } catch (complianceErr) {
+                        console.error(`[ComplianceSync] PII discovery failed for ${storageId}:`, complianceErr);
                     }
                 }
 
