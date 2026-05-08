@@ -574,6 +574,19 @@ export interface ConnectionLeakReport {
     timestamp: string;
 }
 
+export interface ComplianceRisk {
+    type: 'EMAIL' | 'PHONE' | 'CREDIT_CARD' | 'SSN' | 'API_TOKEN';
+    entity: string; // Table name or Collection name
+    field: string;  // Column name or Field path
+    sampleValue: string;
+}
+
+export interface ComplianceReport {
+    hasRisk: boolean;
+    risks: ComplianceRisk[];
+    lastScannedAt: string;
+}
+
 export interface ReliabilityMetrics {
     score: number; // 0-100
     uptime: number; // Percentage
