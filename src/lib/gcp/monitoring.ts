@@ -427,6 +427,7 @@ export function getEstimatedMonthlyCost(
             'db-custom-1-3840': 52.00,
             'db-custom-2-7680': 104.00,
             'db-custom-4-15360': 208.00,
+            'db-custom-8-30720': 416.00,
             'db-n1-standard-1': 50.00,
             'db-n1-standard-2': 100.00,
             'db-n1-standard-4': 200.00,
@@ -449,7 +450,16 @@ export function getEstimatedMonthlyCost(
     } else if (storageType === 'memorystore-redis') {
         // Redis Cost (~$35 per GB for Basic, ~$70 for Standard/HA)
         const sizeGb = parseInt(tier) || 1;
-        cost = sizeGb * (isHA ? 72.00 : 36.00);
+        const redisBaseCosts: Record<number, number> = {
+            1: 36.00,
+            2: 72.00,
+            3: 108.00,
+            4: 144.00,
+            5: 180.00,
+            10: 360.00
+        };
+        cost = redisBaseCosts[sizeGb] || (sizeGb * 36.00);
+        if (isHA) cost *= 2;
     } else if (storageType === 'firestore') {
         // Firestore is usage-based, but we'll show a minimum platform overhead/estimated starting cost
         cost = 0; // Truly serverless/pay-as-you-go
