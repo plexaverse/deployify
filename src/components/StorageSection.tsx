@@ -2077,6 +2077,23 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     CONNECTION LEAK
                                                 </button>
                                             )}
+                                            {config.reliability && (
+                                                <span className={cn(
+                                                    "text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider border flex items-center gap-1",
+                                                    config.reliability.score > 90 ? "bg-[var(--success)]/10 text-[var(--success)] border-[var(--success)]/20" :
+                                                    config.reliability.score > 70 ? "bg-[var(--warning)]/10 text-[var(--warning)] border-[var(--warning)]/20" :
+                                                    "bg-[var(--error)]/10 text-[var(--error)] border-[var(--error)]/20 animate-pulse"
+                                                )} title={`Reliability Score based on availability and SLOs. Uptime: ${config.reliability.uptime}%, SLO Violations: ${config.reliability.sloViolations}`}>
+                                                    <ShieldCheck className="w-2.5 h-2.5" />
+                                                    RELIABILITY: {config.reliability.score}
+                                                </span>
+                                            )}
+                                            {config.saturationRisk?.hasRisk && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/30 flex items-center gap-1 animate-pulse" title={config.saturationRisk.recommendation}>
+                                                    <TrendingUp className="w-2.5 h-2.5" />
+                                                    SATURATION RISK: {config.saturationRisk.resource.toUpperCase()}
+                                                </span>
+                                            )}
                                             {storageHealth[config.id] && storageHealth[config.id].length > 0 && (
                                                 <div className="flex items-center gap-2">
                                                     <ConnectivityHealthChart

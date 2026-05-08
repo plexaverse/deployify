@@ -518,6 +518,8 @@ export interface StorageConfig {
     topology?: ConnectivityTopology;
     labelingStatus?: 'PENDING' | 'SYNCED' | 'FAILED';
     sharedWithProjects?: string[]; // IDs of projects this connector is shared with
+    reliability?: ReliabilityMetrics;
+    saturationRisk?: SaturationRisk;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
@@ -568,6 +570,24 @@ export interface ConnectionLeakReport {
         idleCount: number;
         oldestSessionStart: string;
     }>;
+    recommendation?: string;
+    timestamp: string;
+}
+
+export interface ReliabilityMetrics {
+    score: number; // 0-100
+    uptime: number; // Percentage
+    avgLatency: number;
+    p99Latency: number;
+    sloViolations: number;
+    lastAnalyzedAt: string;
+}
+
+export interface SaturationRisk {
+    hasRisk: boolean;
+    resource: 'cpu' | 'memory' | 'disk' | 'connections';
+    currentUtilization: number;
+    predictedDaysToExhaustion: number;
     recommendation?: string;
     timestamp: string;
 }
