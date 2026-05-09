@@ -1809,7 +1809,7 @@ export function detectConnectionLeaks(
 export async function getSchemaOptimizations(
     projectId: string,
     storageId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     _dbType: 'postgresql' | 'mysql' = 'postgresql'
 ): Promise<QueryImpactMetric[]> {
     const impactMetrics = await getQueryImpactMetrics(projectId, storageId);
