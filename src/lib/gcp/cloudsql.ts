@@ -26,6 +26,28 @@ export interface CloudSqlInstance {
 }
 
 /**
+ * Wait for a long-running operation to complete
+ */
+export async function waitForOperation(operationName: string): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes (60 * 5s)
+
+    while (attempts < maxAttempts) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        attempts++;
+    }
+
+    throw new Error(`Timeout waiting for operation ${operationName} to complete`);
+}
+
+/**
  * Provision a new Cloud SQL instance
  */
 export async function createInstance(
@@ -716,11 +738,31 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the target database
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, seed data using Export/Import
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        console.log(`[Branching] Seeding data from ${sourceDatabase} to ${databaseName} on ${instanceName}`);
+
+        const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
+        const storageUri = `gs://${bucket}/seeding/${instanceName}-${sourceDatabase}-${Date.now()}.sql`;
+
+        try {
+            // Export source to GCS
+            const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+            await waitForOperation(exportOp);
+
+            // Import from GCS to target
+            const importOp = await importInstance(instanceName, storageUri, databaseName);
+            await waitForOperation(importOp);
+
+            console.log(`[Branching] Seeding complete for ${databaseName}`);
+        } catch (error) {
+            console.error(`[Branching] Seeding failed for ${databaseName}:`, error);
+            // We don't throw here to allow the deployment to proceed even if seeding fails
+        }
     }
 }
 

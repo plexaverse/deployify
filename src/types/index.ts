@@ -129,12 +129,14 @@ export interface Project {
     rootDirectory: string;
     cloudRunServiceId: string | null;
     productionUrl: string | null;
+    globalIpAddress?: string | null; // Global IP for GLB/Deployify Edge
     region: string | null; // GCP region for Cloud Run deployment (e.g., 'us-central1', 'asia-south1')
     customDomain: string | null;
     buildTimeout?: number; // Custom build timeout in seconds
     webhookUrl?: string | null; // Webhook URL for build notifications
     emailNotifications?: boolean; // Send email notifications on deployment
     cloudArmorEnabled?: boolean; // Enable Cloud Armor WAF
+    cloudArmorMode?: 'detection' | 'prevention'; // WAF Mode (Phase 3)
     autoDeployPrs?: boolean; // Whether to automatically deploy Pull Requests
     autodeployBranches?: string[]; // Branches to auto-deploy
     branchEnvironments?: {
