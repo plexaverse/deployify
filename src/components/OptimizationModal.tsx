@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import type { StorageConfig, WorkloadShift } from '@/types';
-import type { ScalingRecommendation, QueryImpactMetric } from '@/lib/gcp/monitoring';
+import type { ScalingRecommendation, QueryImpactMetric, CachingRecommendation } from '@/lib/gcp/monitoring';
 import type { SecurityPosture } from '@/lib/gcp/security-auditor';
 
 interface OptimizationModalProps {
@@ -36,6 +36,7 @@ interface OptimizationModalProps {
 
 export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply }: OptimizationModalProps) {
     const [schemaOptimizations, setSchemaOptimizations] = useState<QueryImpactMetric[]>([]);
+    const [cachingRecommendations, setCachingRecommendations] = useState<CachingRecommendation[]>([]);
     const [applyingId, setApplyingId] = useState<string | null>(null);
 
     const fetchSchemaOptimizations = useCallback(async () => {
@@ -51,22 +52,36 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     }, [storage, projectId]);
 
+    const fetchCachingRecommendations = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            const res = await fetch(`/api/projects/${projectId}/storage/${storage.id}/optimization/caching`);
+            const data = await res.json();
+            if (data.success) {
+                setCachingRecommendations(data.recommendations || []);
+            }
+        } catch (e) {
+            console.error('Failed to fetch caching recommendations:', e);
+        }
+    }, [storage, projectId]);
+
     useEffect(() => {
         if (isOpen && storage) {
             fetchSchemaOptimizations();
+            fetchCachingRecommendations();
         }
-    }, [isOpen, storage, fetchSchemaOptimizations]);
+    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations]);
 
-    const applyOptimization = async (opt: QueryImpactMetric) => {
+    const applyOptimization = async (recommendation: string, queryHash: string) => {
         if (!projectId || !storage) return;
-        setApplyingId(opt.queryHash);
+        setApplyingId(queryHash);
         try {
             const res = await fetch(`/api/projects/${projectId}/storage/${storage.id}/optimization/apply`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    recommendation: opt.recommendation,
-                    queryHash: opt.queryHash
+                    recommendation,
+                    queryHash
                 })
             });
             const data = await res.json();
@@ -86,7 +101,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     };
 
-    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length)) return null;
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length)) return null;
 
     const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
@@ -267,6 +282,104 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                         </div>
                     )}
 
+                    {cachingRecommendations.length > 0 && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Cache Advisor (Phase 145)</Label>
+                            <div className="space-y-3">
+                                {cachingRecommendations.map((cache, i) => (
+                                    <div key={i} className="p-4 border border-[var(--info)]/20 rounded-xl bg-[var(--info)]/5 space-y-3 group hover:border-[var(--info)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--info)]/10 flex items-center justify-center shrink-0">
+                                                    <Zap className="w-4 h-4 text-[var(--info)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]">Caching Opportunity</span>
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--success)]/10 text-[var(--success)] uppercase">
+                                                            {cache.projectedLatencyReductionMs}ms Saved
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)] line-clamp-1 group-hover:line-clamp-none transition-all">{cache.queryHash}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Suggested TTL</span>
+                                                <span className="text-[10px] font-mono font-bold text-[var(--info)]">{cache.suggestedTtlSeconds}s</span>
+                                            </div>
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Frequency</span>
+                                                <span className="text-[10px] font-mono font-bold">{cache.frequencyPerMinute} req/min</span>
+                                            </div>
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Impact</span>
+                                                <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{Math.round(cache.impactScore / 1000)}k</span>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-[10px] font-bold text-[var(--muted-foreground)] px-1">{cache.reason}</p>
+
+                                        {cache.implementationSnippet && (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Implementation Snippet</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-5 w-5 text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(cache.implementationSnippet!);
+                                                                toast.success('Snippet copied to clipboard');
+                                                            }}
+                                                        >
+                                                            <Copy className="w-3 h-3" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            disabled={applyingId === cache.queryHash}
+                                                            className="h-5 w-5 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                                            onClick={() => applyOptimization(cache.implementationSnippet!, cache.queryHash)}
+                                                        >
+                                                            <GitPullRequest className={cn("w-3 h-3", applyingId === cache.queryHash && "animate-pulse")} />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
+                                                    {cache.implementationSnippet}
+                                                </div>
+                                                <Button
+                                                    onClick={() => applyOptimization(cache.implementationSnippet!, cache.queryHash)}
+                                                    disabled={applyingId === cache.queryHash}
+                                                    className="w-full h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--info)]/10 text-[var(--info)] hover:bg-[var(--info)]/20 border border-[var(--info)]/20"
+                                                >
+                                                    {applyingId === cache.queryHash ? 'Creating PR...' : 'Create Caching PR'}
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Redis Provisioning Suggestion */}
+                            {!storage.metadata?.hasRedisConnector && (
+                                <div className="p-4 border border-[var(--warning)]/30 rounded-xl bg-[var(--warning)]/5 flex items-start gap-3 mt-4">
+                                    <AlertCircle className="w-5 h-5 text-[var(--warning)] shrink-0 mt-0.5" />
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-[var(--warning)] uppercase">Redis Missing</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                            TO IMPLEMENT THIS CACHING STRATEGY, WE RECOMMEND PROVISIONING A GCP MEMORYSTORE (REDIS) CONNECTOR.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {schemaOptimizations.length > 0 && (
                         <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Index Advisor (Telemetry-Driven)</Label>
@@ -326,7 +439,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             size="icon"
                                                             disabled={applyingId === opt.queryHash}
                                                             className="h-5 w-5 text-[var(--primary)] hover:bg-[var(--primary)]/10"
-                                                            onClick={() => applyOptimization(opt)}
+                                                            onClick={() => applyOptimization(opt.recommendation!, opt.queryHash)}
                                                         >
                                                             <GitPullRequest className={cn("w-3 h-3", applyingId === opt.queryHash && "animate-pulse")} />
                                                         </Button>
@@ -336,7 +449,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                     {opt.recommendation}
                                                 </div>
                                                 <Button
-                                                    onClick={() => applyOptimization(opt)}
+                                                    onClick={() => applyOptimization(opt.recommendation!, opt.queryHash)}
                                                     disabled={applyingId === opt.queryHash}
                                                     className="w-full h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 border border-[var(--primary)]/20"
                                                 >
