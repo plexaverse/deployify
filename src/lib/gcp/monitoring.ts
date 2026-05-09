@@ -46,6 +46,16 @@ export interface AlertResult {
     metrics: ResourceMetrics;
 }
 
+export interface CachingRecommendation {
+    queryHash: string;
+    suggestedTtlSeconds: number;
+    projectedLatencyReductionMs: number;
+    frequencyPerMinute: number;
+    impactScore: number;
+    reason: string;
+    implementationSnippet?: string;
+}
+
 export interface QueryImpactMetric {
     queryHash: string;
     avgLatency: number;
@@ -1750,6 +1760,60 @@ export function analyzePlanForIndexes(
     }
 
     return { hasSeqScan, recommendation, impact, isComposite, isDuplicate };
+}
+
+/**
+ * Detect high-impact read queries that are suitable for caching (Phase 145)
+ */
+export async function detectCachingOpportunities(
+    projectId: string,
+    storageId: string,
+    options: {
+        lookbackHours?: number;
+    } = {}
+): Promise<CachingRecommendation[]> {
+    const impactMetrics = await getQueryImpactMetrics(projectId, storageId, options);
+
+    // Candidates are SELECT queries (simplified via hash or fingerprint check)
+    // with high frequency and latency > 100ms
+    const candidates = impactMetrics.filter(m =>
+        m.avgLatency > 100 &&
+        m.requestCount > 10 &&
+        // In a real scenario, we'd check if it's a SELECT query from the fingerprint
+        !m.queryHash.toLowerCase().startsWith('insert') &&
+        !m.queryHash.toLowerCase().startsWith('update') &&
+        !m.queryHash.toLowerCase().startsWith('delete')
+    );
+
+    return candidates.map(c => {
+        // Frequency per minute (lookbackHours defaults to 24)
+        const reqPerMin = c.requestCount / (options.lookbackHours || 24) / 60;
+
+        // Dynamic TTL estimation:
+        // Higher frequency queries get shorter TTLs to maintain freshness,
+        // but high latency queries benefit more from longer caching.
+        let ttl = 60; // Default 1 min
+        if (reqPerMin > 10) ttl = 30; // Very hot: 30s
+        else if (reqPerMin < 1) ttl = 300; // Low freq: 5 mins
+
+        const projectedReduction = Math.round(c.avgLatency * 0.9); // Assume 90% reduction from cache
+
+        return {
+            queryHash: c.queryHash,
+            suggestedTtlSeconds: ttl,
+            projectedLatencyReductionMs: projectedReduction,
+            frequencyPerMinute: parseFloat(reqPerMin.toFixed(2)),
+            impactScore: c.impactScore,
+            reason: `High latency read query (${c.avgLatency}ms) detected with significant frequency. Caching could reduce overall primary DB load.`,
+            implementationSnippet: `// Node.js Redis Cache Pattern
+const cacheKey = \`query:${c.queryHash.substring(0, 8)}\`;
+let data = await redis.get(cacheKey);
+if (!data) {
+  data = await db.query("${c.queryHash}");
+  await redis.set(cacheKey, JSON.stringify(data), 'EX', ${ttl});
+}`
+        };
+    }).sort((a, b) => b.impactScore - a.impactScore);
 }
 
 /**
