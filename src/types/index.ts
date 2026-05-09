@@ -161,6 +161,9 @@ export interface Project {
         block: string[];
     };
     latestDeployment?: Deployment;
+    globalIpAddress?: string | null;
+    cloudArmorMode?: 'detection' | 'prevention' | 'off';
+    metadata?: Record<string, unknown>;
     createdAt: Date;
     updatedAt: Date;
 }
