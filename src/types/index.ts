@@ -135,6 +135,7 @@ export interface Project {
     webhookUrl?: string | null; // Webhook URL for build notifications
     emailNotifications?: boolean; // Send email notifications on deployment
     cloudArmorEnabled?: boolean; // Enable Cloud Armor WAF
+    cloudArmorPolicy?: string; // Cloud Armor policy name
     autoDeployPrs?: boolean; // Whether to automatically deploy Pull Requests
     autodeployBranches?: string[]; // Branches to auto-deploy
     branchEnvironments?: {
@@ -594,6 +595,23 @@ export interface ReliabilityMetrics {
     p99Latency: number;
     sloViolations: number;
     lastAnalyzedAt: string;
+}
+
+export interface SecurityThreat {
+    id: string;
+    type: 'SQL_INJECTION' | 'BRUTE_FORCE' | 'UNAUTHORIZED_ACCESS' | 'SUSPICIOUS_IP';
+    severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+    sourceIp: string;
+    targetDatabase: string;
+    evidence: string;
+    detectedAt: string;
+    status: 'ACTIVE' | 'BLOCKED' | 'DISMISSED';
+}
+
+export interface SecurityReport {
+    riskScore: number;
+    activeThreats: SecurityThreat[];
+    lastScannedAt: string;
 }
 
 export interface SaturationRisk {

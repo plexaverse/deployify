@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -258,6 +258,34 @@ export async function GET(
                         }
                     } catch (complianceErr) {
                         console.error(`[ComplianceSync] PII discovery failed for ${storageId}:`, complianceErr);
+                    }
+                }
+
+                // 0h. Phase 146: Autonomous Security Threat Detection
+                if (storage.status === 'active' && storage.type.includes('cloud-sql')) {
+                    try {
+                        const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                        const logs = await getDatabaseLogs(instanceName, { pageSize: 100, projectId: storage.providerProjectId as string });
+                        const securityReport = await detectSecurityThreats(storage, logs);
+
+                        // Merge with existing active threats if any
+                        const existingReport = storage.metadata?.securityReport as import('@/types').SecurityReport | undefined;
+                        if (existingReport && securityReport.activeThreats.length > 0) {
+                            const mergedThreats = [...securityReport.activeThreats];
+                            existingReport.activeThreats.forEach(et => {
+                                if (et.status !== 'ACTIVE' && !mergedThreats.find(mt => mt.id === et.id)) {
+                                    mergedThreats.push(et);
+                                }
+                            });
+                            securityReport.activeThreats = mergedThreats;
+                        }
+
+                        storage.metadata = {
+                            ...storage.metadata,
+                            securityReport
+                        };
+                    } catch (securityErr) {
+                        console.error(`[SecurityThreatSync] Detection failed for ${storageId}:`, securityErr);
                     }
                 }
 
