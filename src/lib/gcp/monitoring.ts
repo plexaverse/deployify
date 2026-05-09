@@ -1888,6 +1888,85 @@ export async function getSchemaOptimizations(
     return impactMetrics;
 }
 
+/**
+ * Detect security threats from database logs (Phase 146)
+ */
+export async function detectSecurityThreats(
+    storage: import('@/types').StorageConfig,
+    logs: LogEntry[]
+): Promise<import('@/types').SecurityReport> {
+    const threats: import('@/types').SecurityThreat[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasThreat = Math.random() > 0.8;
+        return {
+            riskScore: hasThreat ? 45 : 100,
+            activeThreats: hasThreat ? [
+                {
+                    id: `threat-${Date.now()}`,
+                    type: 'SQL_INJECTION',
+                    severity: 'CRITICAL',
+                    sourceIp: '192.168.1.100',
+                    targetDatabase: storage.name,
+                    evidence: 'SELECT * FROM users WHERE id = 1 OR 1=1',
+                    detectedAt: now,
+                    status: 'ACTIVE'
+                }
+            ] : [],
+            lastScannedAt: now
+        };
+    }
+
+    // Pattern-based threat detection from logs
+    for (const log of logs) {
+        const text = log.textPayload;
+
+        // 1. SQL Injection Patterns
+        if (text.match(/UNION SELECT/i) || text.match(/OR 1=1/i) || text.match(/--/) || text.match(/SLEEP\(/i)) {
+            threats.push({
+                id: `sqli-${log.insertId}`,
+                type: 'SQL_INJECTION',
+                severity: 'CRITICAL',
+                sourceIp: extractIp(text) || 'UNKNOWN',
+                targetDatabase: storage.name,
+                evidence: text.substring(0, 200),
+                detectedAt: log.timestamp,
+                status: 'ACTIVE'
+            });
+        }
+
+        // 2. Brute Force Patterns (Postgres/MySQL failed logins)
+        if (text.includes('password authentication failed') || text.includes('Access denied for user')) {
+            threats.push({
+                id: `brute-${log.insertId}`,
+                type: 'BRUTE_FORCE',
+                severity: 'HIGH',
+                sourceIp: extractIp(text) || 'UNKNOWN',
+                targetDatabase: storage.name,
+                evidence: 'Multiple failed login attempts detected',
+                detectedAt: log.timestamp,
+                status: 'ACTIVE'
+            });
+        }
+    }
+
+    // Deduplicate and aggregate
+    const uniqueThreats = threats.filter((v, i, a) => a.findIndex(t => t.type === v.type && t.sourceIp === v.sourceIp) === i);
+    const riskScore = Math.max(0, 100 - (uniqueThreats.length * 15));
+
+    return {
+        riskScore,
+        activeThreats: uniqueThreats,
+        lastScannedAt: now
+    };
+}
+
+function extractIp(text: string): string | null {
+    const match = text.match(/(\d{1,3}\.){3}\d{1,3}/);
+    return match ? match[0] : null;
+}
+
 export async function getDatabaseLogs(
     instanceId: string,
     options: {

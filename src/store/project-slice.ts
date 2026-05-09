@@ -107,6 +107,7 @@ export interface ProjectSlice {
     startMigrationPolling: (projectId: string, storageId: string, operationName: string) => void;
     clearMigrationStatus: (storageId: string) => void;
     healConnectionPool: (projectId: string, storageId: string, clientAddress?: string) => Promise<boolean>;
+    remediateSecurityThreat: (projectId: string, storageId: string, threatId: string, action: 'BLOCK_IP' | 'DISMISS') => Promise<boolean>;
 }
 
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
@@ -358,6 +359,32 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         } catch (error) {
             console.error('Failed to delete project:', error);
             toast.error('Failed to delete project', { id: toastId });
+            return false;
+        }
+    },
+
+    remediateSecurityThreat: async (projectId, storageId, threatId, action) => {
+        const toastId = toast.loading(`${action === 'BLOCK_IP' ? 'Blocking IP...' : 'Dismissing threat...'}`);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/security/remediate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ threatId, action }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to remediate threat');
+            }
+
+            // Trigger sync to refresh the security report
+            await get().syncStorageStatus(projectId, storageId);
+
+            toast.success(data.message || 'Threat remediated successfully', { id: toastId });
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Remediation failed', { id: toastId });
             return false;
         }
     },

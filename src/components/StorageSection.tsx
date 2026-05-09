@@ -50,6 +50,7 @@ import { DataPortabilityModal } from '@/components/DataPortabilityModal';
 import { IaCExportModal } from '@/components/IaCExportModal';
 import { OptimizationModal } from '@/components/OptimizationModal';
 import { ComplianceModal } from '@/components/ComplianceModal';
+import { SecurityModal } from '@/components/SecurityModal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -101,6 +102,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         runProjectRollback,
         clearMigrationStatus,
         healConnectionPool,
+        remediateSecurityThreat,
         updateStorageAlerts,
         remediateStorageRisk,
         addReadReplica,
@@ -183,6 +185,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [logSearch, setLogSearch] = useState('');
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isManagingCompliance, setIsManagingCompliance] = useState<StorageConfig | null>(null);
+    const [isManagingSecurity, setIsManagingSecurity] = useState<StorageConfig | null>(null);
     const [isManagingIaC, setIsManagingIaC] = useState<StorageConfig | null>(null);
     const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
     const [isManagingFailover, setIsManagingFailover] = useState<StorageConfig | null>(null);
@@ -2107,6 +2110,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 >
                                                     <ShieldAlert className="w-2.5 h-2.5" />
                                                     COMPLIANCE RISK
+                                                </button>
+                                            )}
+                                            {!!config.metadata?.securityReport && (config.metadata.securityReport as import('@/types').SecurityReport).activeThreats.some(t => t.status === 'ACTIVE') && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingSecurity(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/30 flex items-center gap-1 animate-pulse"
+                                                    title="Security Threats detected in database logs"
+                                                >
+                                                    <ShieldAlert className="w-2.5 h-2.5" />
+                                                    SECURITY RISK
                                                 </button>
                                             )}
                                             {storageHealth[config.id] && storageHealth[config.id].length > 0 && (
@@ -4199,6 +4215,13 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 isOpen={!!isManagingCompliance}
                 onClose={() => setIsManagingCompliance(null)}
                 storage={isManagingCompliance}
+                projectId={projectId}
+            />
+
+            <SecurityModal
+                isOpen={!!isManagingSecurity}
+                onClose={() => setIsManagingSecurity(null)}
+                storage={isManagingSecurity}
                 projectId={projectId}
             />
 

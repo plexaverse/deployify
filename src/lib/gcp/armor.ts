@@ -99,3 +99,40 @@ export async function getSecurityMetrics() {
         status: 'active'
     };
 }
+
+/**
+ * Block an IP address in a security policy
+ */
+export async function blockIp(
+    policyName: string,
+    ip: string
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') {
+        console.log(`[Shield] MOCK: Blocked IP ${ip} in policy ${policyName}`);
+        return;
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    console.log(`[Shield] Blocking IP ${ip} in policy ${policyName}`);
+
+    const url = `https://compute.googleapis.com/compute/v1/projects/${gcpProjectId}/global/securityPolicies/${policyName}/addRule`;
+
+    // Find a free priority or use a deterministic one for IPs
+    const priority = 2000 + Math.floor(Math.random() * 1000);
+
+    await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            priority,
+            match: { config: { srcIpRanges: [ip] } },
+            action: 'deny(403)',
+            description: `Blocked by Autonomous Threat Detection: ${ip}`
+        })
+    });
+}
