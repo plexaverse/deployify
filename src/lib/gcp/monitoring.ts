@@ -1983,9 +1983,9 @@ export async function discoverArchivalCandidates(
                     `;
                     const res = await client.query(query);
 
-                    for (const row of res.rows) {
-                        const sizeGb = parseFloat((row.total_size_bytes / (1024 * 1024 * 1024)).toFixed(2));
-                        const tableName = row.table_name;
+                    for (const row of res.rows as Record<string, unknown>[]) {
+                        const sizeGb = parseFloat((Number(row.total_size_bytes) / (1024 * 1024 * 1024)).toFixed(2));
+                        const tableName = row.table_name as string;
 
                         // Heuristic: tables ending in year/month or having 'log', 'history', 'temp' in name are candidates
                         const isLikelyCold = tableName.match(/\d{4}/) ||
@@ -1997,7 +1997,7 @@ export async function discoverArchivalCandidates(
                             candidates.push({
                                 entity: tableName,
                                 sizeGb,
-                                rowCount: Math.round(row.row_count),
+                                rowCount: Math.round(row.row_count as number),
                                 potentialSavingsMonthly: calculateArchivalSavings(sizeGb),
                                 reason: isLikelyCold ?
                                     `Identified as historical or temporary data based on naming pattern.` :
@@ -2026,7 +2026,7 @@ export async function discoverArchivalCandidates(
 
                     for (const row of rows as Record<string, unknown>[]) {
                         const sizeGb = parseFloat((Number(row.total_size_bytes) / (1024 * 1024 * 1024)).toFixed(2));
-                        const tableName = row.table_name;
+                        const tableName = row.table_name as string;
 
                         const isLikelyCold = tableName.match(/\d{4}/) ||
                                            tableName.toLowerCase().includes('log') ||
@@ -2037,7 +2037,7 @@ export async function discoverArchivalCandidates(
                             candidates.push({
                                 entity: tableName,
                                 sizeGb,
-                                rowCount: row.row_count,
+                                rowCount: row.row_count as number,
                                 potentialSavingsMonthly: calculateArchivalSavings(sizeGb),
                                 reason: isLikelyCold ?
                                     `Identified as historical or temporary data based on naming pattern.` :
