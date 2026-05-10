@@ -42,6 +42,11 @@ export interface DiagnosticResult {
         aligned: boolean;
         perimeter?: string;
     };
+    firewallVerified?: {
+        reachable: boolean;
+        latency: number;
+        error?: string;
+    };
     driftDetected?: {
         metadataValue?: string;
         secretValue?: string;
@@ -64,6 +69,37 @@ export interface HealthResult {
  * Performs a lightweight health heartbeat check on a storage connector.
  * Designed for background monitoring with minimal overhead.
  */
+/**
+ * Verifies that the current execution environment (representing Deployify's regional egress)
+ * can reach the target host and port. This provides definitive proof of firewall allowlisting.
+ */
+export async function verifyFirewallReachability(
+    host: string,
+    port: number,
+    timeout = 5000
+): Promise<{ reachable: boolean; latency: number; error?: string }> {
+    const startTime = Date.now();
+    try {
+        if (process.env.MOCK_DB === 'true') {
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return { reachable: true, latency: Date.now() - startTime };
+        }
+
+        const reachable = await checkTcpReachability(host, port, timeout);
+        return {
+            reachable,
+            latency: Date.now() - startTime,
+            error: reachable ? undefined : `TCP connection to ${host}:${port} timed out. This usually indicates that Deployify's regional egress IPs are not allowlisted in your firewall.`
+        };
+    } catch (e) {
+        return {
+            reachable: false,
+            latency: Date.now() - startTime,
+            error: e instanceof Error ? e.message : 'Unknown reachability error'
+        };
+    }
+}
+
 export async function checkConnectivityHealth(
     type: StorageType,
     connectionStringSecretId?: string,
@@ -325,6 +361,13 @@ export async function diagnoseConnection(
                         recommendation: `Automated firewall synchronization is not active. Ensure these regional egress IPs for ${regionalIps.region} are allowlisted: ${regionalIps.ips.join(', ')}`
                     });
                 }
+
+                mockSteps.push({
+                    name: 'Autonomous Firewall Verification',
+                    status: 'success',
+                    latency: 300,
+                    recommendation: 'Reachability confirmed. Deployify regional egress IPs are successfully penetrating the provider firewall.'
+                });
             }
 
             // Regional Alignment Check for Mocks
@@ -574,6 +617,8 @@ export async function diagnoseConnection(
 
         // Step 6: Firewall Policy Validation (External Connectors)
         const isExternal = ['supabase', 'mongodb-atlas', 'planetscale', 'neon'].includes(type);
+        let firewallVerified: DiagnosticResult['firewallVerified'];
+
         if (isExternal) {
             const fwStep = addStep('Firewall Policy Validation');
             fwStep.status = 'running';
@@ -587,6 +632,28 @@ export async function diagnoseConnection(
                 fwStep.error = 'Unmanaged firewall policy detected';
                 fwStep.recommendation = `Automated firewall synchronization is not active. Ensure these regional egress IPs for ${regionalIps.region} are allowlisted in your provider dashboard: ${regionalIps.ips.join(', ')}. Alternatively, trigger a "Sync Status" operation to automate this.`;
                 fwStep.latency = 0;
+            }
+
+            // Phase 147: Autonomous Firewall Verification
+            const verifyStep = addStep('Autonomous Firewall Verification');
+            verifyStep.status = 'running';
+
+            if (host && port) {
+                const reachability = await verifyFirewallReachability(host, port);
+                firewallVerified = reachability;
+                verifyStep.status = reachability.reachable ? 'success' : 'failure';
+                verifyStep.latency = reachability.latency;
+                verifyStep.error = reachability.error;
+
+                if (reachability.reachable) {
+                    verifyStep.recommendation = 'Reachability confirmed. Deployify regional egress IPs are successfully penetrating the provider firewall.';
+                } else {
+                    const regionalIps = getRegionalEgressIps(projectContext?.region);
+                    verifyStep.recommendation = `Definitive reachability failure. Ensure these regional egress IPs for ${regionalIps.region} are allowlisted in your provider dashboard: ${regionalIps.ips.join(', ')}`;
+                }
+            } else {
+                verifyStep.status = 'failure';
+                verifyStep.error = 'Could not determine host or port for verification';
             }
         }
 
@@ -712,6 +779,7 @@ export async function diagnoseConnection(
             steps,
             overallLatency: Date.now() - startTime,
             regionMismatch,
+            firewallVerified,
             driftDetected
         };
     } catch (error) {

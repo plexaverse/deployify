@@ -40,6 +40,19 @@ export async function POST(
             { region: project.region }
         );
 
+        // Phase 147: Persist firewall verification result if successful
+        if (result.success && result.firewallVerified?.reachable) {
+            storage.metadata = {
+                ...storage.metadata,
+                security: {
+                    ...(storage.metadata?.security as Record<string, unknown> || {}),
+                    firewallVerified: result.firewallVerified
+                }
+            };
+            storageConfigs[index] = storage;
+            await updateProject(id, { storageConfigs });
+        }
+
         return NextResponse.json({
             success: true,
             diagnostic: result
