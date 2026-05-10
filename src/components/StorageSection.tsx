@@ -2093,6 +2093,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     RELIABILITY: {config.reliability.score}
                                                 </span>
                                             )}
+                                            {!!(config.metadata?.security as { firewallVerified?: { reachable: boolean, latency: number } })?.firewallVerified?.reachable && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1 animate-pulse" title={`Firewall Reachability Verified. Latency: ${(config.metadata?.security as { firewallVerified: { latency: number } }).firewallVerified.latency}ms`}>
+                                                    <ShieldCheck className="w-2.5 h-2.5" />
+                                                    FIREWALL VERIFIED
+                                                </span>
+                                            )}
                                             {config.saturationRisk?.hasRisk && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/30 flex items-center gap-1 animate-pulse" title={config.saturationRisk.recommendation}>
                                                     <TrendingUp className="w-2.5 h-2.5" />
