@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -307,6 +307,27 @@ export async function GET(
                         }
                     } catch (archivalErr) {
                         console.error(`[ArchivalSync] Discovery failed for ${storageId}:`, archivalErr);
+                    }
+                }
+
+                // 0j. Phase 149: Autonomous Index Bloat Discovery & Governance
+                const bloatReport = storage.metadata?.bloatReport as import('@/lib/gcp/monitoring').BloatReport | undefined;
+                const lastBloatScan = bloatReport?.lastScannedAt ? new Date(bloatReport.lastScannedAt) : new Date(0);
+                const hoursSinceBloatScan = (now.getTime() - lastBloatScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && hoursSinceBloatScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
+                        if (connStr) {
+                            const report = await discoverIndexBloat(storage, connStr);
+                            storage.metadata = {
+                                ...storage.metadata,
+                                bloatReport: report
+                            };
+                        }
+                    } catch (bloatErr) {
+                        console.error(`[BloatSync] Discovery failed for ${storageId}:`, bloatErr);
                     }
                 }
 

@@ -16,7 +16,8 @@ import {
     Lock,
     Search,
     Copy,
-    GitPullRequest
+    GitPullRequest,
+    Wrench
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -39,7 +40,9 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
     const [schemaOptimizations, setSchemaOptimizations] = useState<QueryImpactMetric[]>([]);
     const [cachingRecommendations, setCachingRecommendations] = useState<CachingRecommendation[]>([]);
     const [archivalReport, setArchivalReport] = useState<import('@/lib/gcp/monitoring').ArchivalReport | null>(null);
+    const [bloatReport, setBloatReport] = useState<import('@/lib/gcp/monitoring').BloatReport | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
+    const [isRunningMaintenance, setIsRunningMaintenance] = useState<string | null>(null);
 
     const fetchSchemaOptimizations = useCallback(async () => {
         if (!storage || !projectId) return;
@@ -80,13 +83,27 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     }, [storage, projectId]);
 
+    const fetchBloatReport = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            const res = await fetch(`/api/projects/${projectId}/storage/${storage.id}/optimization/bloat`);
+            const data = await res.json();
+            if (data.success) {
+                setBloatReport(data.report);
+            }
+        } catch (e) {
+            console.error('Failed to fetch bloat report:', e);
+        }
+    }, [storage, projectId]);
+
     useEffect(() => {
         if (isOpen && storage) {
             fetchSchemaOptimizations();
             fetchCachingRecommendations();
             fetchArchivalReport();
+            fetchBloatReport();
         }
-    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport]);
+    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport]);
 
     const applyOptimization = async (recommendation: string, queryHash: string) => {
         if (!projectId || !storage) return;
@@ -117,7 +134,35 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     };
 
-    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length)) return null;
+    const runMaintenance = async (entity: string, indexName: string, command: string) => {
+        if (!projectId || !storage) return;
+        setIsRunningMaintenance(`${entity}-${indexName}`);
+        try {
+            const res = await fetch(`/api/projects/${projectId}/storage/${storage.id}/maintenance/run`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    entity,
+                    indexName,
+                    command
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success('Maintenance operation triggered successfully');
+                fetchBloatReport(); // Refresh report
+            } else {
+                toast.error(data.error || 'Failed to trigger maintenance');
+            }
+        } catch (e) {
+            toast.error('An unexpected error occurred');
+            console.error(e);
+        } finally {
+            setIsRunningMaintenance(null);
+        }
+    };
+
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat)) return null;
 
     const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
@@ -393,6 +438,64 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {bloatReport?.hasBloat && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Maintenance Advisor (Phase 149)</Label>
+                            <div className="space-y-3">
+                                {bloatReport.candidates.map((candidate, i) => (
+                                    <div key={i} className="p-4 border border-[var(--primary)]/20 rounded-xl bg-[var(--primary)]/5 space-y-3 group hover:border-[var(--primary)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                                    <Wrench className="w-4 h-4 text-[var(--primary)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Index Bloat Detected</span>
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--error)]/10 text-[var(--error)] uppercase">
+                                                            {candidate.bloatPercentage}% Bloat
+                                                        </span>
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase",
+                                                            candidate.impactScore > 70 ? "bg-[var(--error)] text-[var(--primary-foreground)] animate-pulse" : "bg-[var(--warning)]/20 text-[var(--warning)]"
+                                                        )}>
+                                                            Impact: {candidate.impactScore}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)]">{candidate.indexName}</p>
+                                                    <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Total Size</span>
+                                                <span className="text-[10px] font-mono font-bold">{candidate.totalSizeMb} MB</span>
+                                            </div>
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Wasted Space</span>
+                                                <span className="text-[10px] font-mono font-bold text-[var(--error)]">{candidate.bloatSizeMb} MB</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto">
+                                            {candidate.recommendation}
+                                        </div>
+
+                                        <Button
+                                            onClick={() => runMaintenance(candidate.entity, candidate.indexName, candidate.recommendation)}
+                                            disabled={isRunningMaintenance === `${candidate.entity}-${candidate.indexName}`}
+                                            className="w-full h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 border border-[var(--primary)]/20"
+                                        >
+                                            {isRunningMaintenance === `${candidate.entity}-${candidate.indexName}` ? 'Optimizing...' : 'Run Defragmentation'}
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 

@@ -109,6 +109,23 @@ export interface ArchivalReport {
     lastScannedAt: string;
 }
 
+export interface BloatCandidate {
+    entity: string;
+    indexName: string;
+    totalSizeMb: number;
+    bloatSizeMb: number;
+    bloatPercentage: number;
+    impactScore: number;
+    recommendation: string;
+}
+
+export interface BloatReport {
+    hasBloat: boolean;
+    candidates: BloatCandidate[];
+    totalWastedMb: number;
+    lastScannedAt: string;
+}
+
 /**
  * Autonomously discover sensitive data (PII) by sampling database records (Phase 143)
  */
@@ -1905,6 +1922,17 @@ export async function getSchemaOptimizations(
 }
 
 /**
+ * Calculate the operational impact score of index bloat (Phase 149)
+ * Returns a score from 0-100 where > 70 requires immediate attention.
+ */
+export function calculateBloatImpact(wastedMb: number, percentage: number): number {
+    // Impact is weighted by both absolute wasted space and relative percentage
+    const absoluteWeight = Math.min(50, wastedMb / 10); // Max 50 points for 500MB+ wasted
+    const relativeWeight = Math.min(50, percentage / 2); // Max 50 points for 100% bloat
+    return Math.round(absoluteWeight + relativeWeight);
+}
+
+/**
  * Calculate estimated monthly savings from archiving data to GCS Coldline (Phase 148)
  * Assumes Cloud SQL storage cost of $0.17/GB and GCS Coldline cost of $0.004/GB
  */
@@ -2139,6 +2167,172 @@ export async function detectSecurityThreats(
 function extractIp(text: string): string | null {
     const match = text.match(/(\d{1,3}\.){3}\d{1,3}/);
     return match ? match[0] : null;
+}
+
+/**
+ * Autonomously discover index bloat by analyzing system catalogs (Phase 149)
+ */
+export async function discoverIndexBloat(
+    storage: import('@/types').StorageConfig,
+    connectionString: string
+): Promise<BloatReport> {
+    const candidates: BloatCandidate[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasBloat = Math.random() > 0.3;
+        const mockCandidates = [
+            {
+                entity: 'orders',
+                indexName: 'idx_orders_customer_id',
+                totalSizeMb: 850.5,
+                bloatSizeMb: 320.2,
+                bloatPercentage: 37.6,
+                recommendation: 'REINDEX INDEX idx_orders_customer_id;'
+            },
+            {
+                entity: 'audit_logs',
+                indexName: 'idx_audit_logs_timestamp',
+                totalSizeMb: 1200.0,
+                bloatSizeMb: 450.0,
+                bloatPercentage: 37.5,
+                recommendation: 'REINDEX INDEX idx_audit_logs_timestamp;'
+            }
+        ];
+
+        return {
+            hasBloat,
+            candidates: hasBloat ? mockCandidates.map(c => ({ ...c, impactScore: calculateBloatImpact(c.bloatSizeMb, c.bloatPercentage) })) : [],
+            totalWastedMb: hasBloat ? parseFloat(mockCandidates.reduce((sum, c) => sum + c.bloatSizeMb, 0).toFixed(2)) : 0,
+            lastScannedAt: now
+        };
+    }
+
+    try {
+        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+
+            if (isPostgres) {
+                const { Client } = await import('pg');
+                const client = new Client({
+                    connectionString,
+                    ssl: storage.ssl ? { rejectUnauthorized: false } : false,
+                    connectionTimeoutMillis: 5000
+                });
+                await client.connect();
+
+                try {
+                    // Postgres Bloat Estimation Heuristic
+                    const query = `
+                        SELECT
+                            schemaname, tablename, indexname,
+                            bs * relpages AS total_size,
+                            bs * (relpages - est_pages) AS wasted_size,
+                            100 * (relpages - est_pages)::float / GREATEST(relpages, 1) AS wasted_percentage
+                        FROM (
+                            SELECT
+                                nspname AS schemaname,
+                                relname AS tablename,
+                                i.relname AS indexname,
+                                bs,
+                                relpages,
+                                CEIL(reltuples * (avgwidth + 12) / (bs - 20)) AS est_pages
+                            FROM (
+                                SELECT
+                                    current_setting('block_size')::int AS bs,
+                                    id.indexrelid,
+                                    id.indrelid
+                                FROM pg_index id
+                            ) AS sub
+                            JOIN pg_class i ON i.oid = sub.indexrelid
+                            JOIN pg_class t ON t.oid = sub.indrelid
+                            JOIN pg_namespace n ON n.oid = t.relnamespace
+                            LEFT JOIN (
+                                SELECT
+                                    st.relid,
+                                    SUM(st.avg_width) AS avgwidth
+                                FROM pg_stats st
+                                GROUP BY 1
+                            ) AS s ON s.relid = sub.indrelid
+                            WHERE nspname = 'public'
+                              AND relpages > 10
+                        ) AS bloat
+                        WHERE relpages - est_pages > 10
+                        ORDER BY wasted_size DESC
+                        LIMIT 10
+                    `;
+                    const res = await client.query(query);
+
+                    for (const row of res.rows as Record<string, unknown>[]) {
+                        const totalMb = parseFloat((Number(row.total_size) / (1024 * 1024)).toFixed(2));
+                        const wastedMb = parseFloat((Number(row.wasted_size) / (1024 * 1024)).toFixed(2));
+                        const percentage = parseFloat(Number(row.wasted_percentage).toFixed(1));
+
+                        if (percentage > 20 && wastedMb > 5) {
+                            candidates.push({
+                                entity: row.tablename as string,
+                                indexName: row.indexname as string,
+                                totalSizeMb: totalMb,
+                                bloatSizeMb: wastedMb,
+                                bloatPercentage: percentage,
+                                impactScore: calculateBloatImpact(wastedMb, percentage),
+                                recommendation: `REINDEX INDEX "${row.indexname}";`
+                            });
+                        }
+                    }
+                } finally {
+                    await client.end().catch(() => {});
+                }
+            } else {
+                const mysql = await import('mysql2/promise');
+                const connection = await mysql.createConnection(connectionString);
+                try {
+                    // MySQL Index/Table Fragmentation (DATA_FREE)
+                    const [rows] = await connection.execute(`
+                        SELECT
+                            TABLE_NAME as tablename,
+                            DATA_LENGTH / 1024 / 1024 as data_mb,
+                            INDEX_LENGTH / 1024 / 1024 as index_mb,
+                            DATA_FREE / 1024 / 1024 as free_mb
+                        FROM information_schema.TABLES
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND DATA_FREE > 0
+                        ORDER BY DATA_FREE DESC
+                        LIMIT 10
+                    `);
+
+                    for (const row of rows as Record<string, unknown>[]) {
+                        const totalMb = parseFloat((Number(row.data_mb) + Number(row.index_mb)).toFixed(2));
+                        const freeMb = parseFloat(Number(row.free_mb).toFixed(2));
+                        const percentage = parseFloat(((freeMb / totalMb) * 100).toFixed(1));
+
+                        if (percentage > 15 && freeMb > 10) {
+                            candidates.push({
+                                entity: row.tablename as string,
+                                indexName: 'All Indexes (Table Fragmented)',
+                                totalSizeMb: totalMb,
+                                bloatSizeMb: freeMb,
+                                bloatPercentage: percentage,
+                                impactScore: calculateBloatImpact(freeMb, percentage),
+                                recommendation: `OPTIMIZE TABLE \`${row.tablename}\`;`
+                            });
+                        }
+                    }
+                } finally {
+                    await connection.end().catch(() => {});
+                }
+            }
+        }
+    } catch (e) {
+        console.error(`[BloatDiscovery] Failed for ${storage.id}:`, e);
+    }
+
+    return {
+        hasBloat: candidates.length > 0,
+        candidates,
+        totalWastedMb: parseFloat(candidates.reduce((sum, c) => sum + c.bloatSizeMb, 0).toFixed(2)),
+        lastScannedAt: now
+    };
 }
 
 export async function getDatabaseLogs(
