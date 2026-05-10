@@ -2105,6 +2105,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     SATURATION RISK: {config.saturationRisk.resource.toUpperCase()}
                                                 </span>
                                             )}
+                                            {!!(config.metadata?.archivalReport as import('@/lib/gcp/monitoring').ArchivalReport)?.hasCandidates && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingOptimization(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/20 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/30 flex items-center gap-1 animate-pulse"
+                                                    title={`Archival opportunities detected: $${(config.metadata?.archivalReport as import('@/lib/gcp/monitoring').ArchivalReport).totalPotentialSavingsMonthly}/mo potential savings.`}
+                                                >
+                                                    <HardDrive className="w-2.5 h-2.5" />
+                                                    CAPACITY RISK
+                                                </button>
+                                            )}
                                             {!!config.metadata?.complianceReport && (config.metadata.complianceReport as import('@/types').ComplianceReport).hasRisk && (
                                                 <button
                                                     onClick={(e) => {

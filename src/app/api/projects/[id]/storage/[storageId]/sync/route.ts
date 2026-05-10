@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -286,6 +286,27 @@ export async function GET(
                         };
                     } catch (securityErr) {
                         console.error(`[SecurityThreatSync] Detection failed for ${storageId}:`, securityErr);
+                    }
+                }
+
+                // 0i. Phase 148: Autonomous Storage Capacity Planning & Archival Intelligence
+                const archivalReport = storage.metadata?.archivalReport as import('@/lib/gcp/monitoring').ArchivalReport | undefined;
+                const lastArchivalScan = archivalReport?.lastScannedAt ? new Date(archivalReport.lastScannedAt) : new Date(0);
+                const hoursSinceArchivalScan = (now.getTime() - lastArchivalScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && hoursSinceArchivalScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
+                        if (connStr) {
+                            const report = await discoverArchivalCandidates(storage, connStr);
+                            storage.metadata = {
+                                ...storage.metadata,
+                                archivalReport: report
+                            };
+                        }
+                    } catch (archivalErr) {
+                        console.error(`[ArchivalSync] Discovery failed for ${storageId}:`, archivalErr);
                     }
                 }
 

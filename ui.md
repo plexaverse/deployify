@@ -2070,3 +2070,15 @@ Enhanced the Storage dashboard with autonomous PII discovery and data governance
     - Created high-density `ComplianceModal` visualizing risk inventory (type, table, field, sample value).
     - Enforced the Session 203 typography standard: `text-[10px]` for body text/headers and `text-[8px] font-bold uppercase tracking-wider` for metadata tags.
     - Integrated theme-compliant color variables (`var(--error)`, `var(--warning)`, `var(--success)`) for risk severity levels.
+
+## Session 249: Autonomous Storage Capacity Planning & Archival UI
+
+Enhanced the Storage dashboard with intelligent archival discovery and capacity risk reporting.
+
+### Archival Intelligence UI
+- **Files Updated**: `src/components/OptimizationModal.tsx`, `src/components/StorageSection.tsx`
+- **Standardization**:
+    - Implemented pulsating "CAPACITY RISK" badges for connectors with identified archival candidates.
+    - Added high-density "Archival Advisor" section to the Optimization Modal visualizing table sizes, row counts, and estimated monthly savings.
+    - Enforced technical metadata standards: `text-[8px] font-bold uppercase tracking-wider` for "Archival Candidate" and savings tags.
+    - Standardized action buttons with `text-[10px] font-bold uppercase tracking-wider` for "View Archival Guide".

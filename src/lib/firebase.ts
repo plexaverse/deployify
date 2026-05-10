@@ -141,6 +141,20 @@ function createMockFirestore(): Firestore {
                                     }
                                 ],
                                 lastAuditedAt: new Date().toISOString()
+                            },
+                            archivalReport: {
+                                hasCandidates: true,
+                                candidates: [
+                                    {
+                                        entity: 'audit_logs_2023',
+                                        sizeGb: 145.5,
+                                        rowCount: 12500000,
+                                        potentialSavingsMonthly: 24.15,
+                                        reason: 'Large table with no activity in the last 180 days.'
+                                    }
+                                ],
+                                totalPotentialSavingsMonthly: 24.15,
+                                lastScannedAt: new Date().toISOString()
                             }
                         }
                     },
