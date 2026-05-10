@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
+import { updateProject } from '@/lib/db';
 import { diagnoseConnection } from '@/lib/gcp/storage-validator';
 import type { StorageConfig } from '@/types';
 
@@ -26,11 +27,13 @@ export async function POST(
 
         const { project } = access;
         const storageConfigs = project.storageConfigs || [];
-        const storage = storageConfigs.find((s: StorageConfig) => s.id === storageId);
+        const index = storageConfigs.findIndex((s: StorageConfig) => s.id === storageId);
 
-        if (!storage) {
+        if (index === -1) {
             return NextResponse.json({ error: 'Storage configuration not found' }, { status: 404 });
         }
+
+        const storage = storageConfigs[index];
 
         // Perform deep diagnostic
         const result = await diagnoseConnection(
