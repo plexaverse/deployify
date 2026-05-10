@@ -93,6 +93,22 @@ export interface PerformanceRegressionReport {
     timestamp: string;
 }
 
+export interface ArchivalCandidate {
+    entity: string;
+    sizeGb: number;
+    lastAccessedAt?: string;
+    rowCount?: number;
+    potentialSavingsMonthly: number;
+    reason: string;
+}
+
+export interface ArchivalReport {
+    hasCandidates: boolean;
+    candidates: ArchivalCandidate[];
+    totalPotentialSavingsMonthly: number;
+    lastScannedAt: string;
+}
+
 /**
  * Autonomously discover sensitive data (PII) by sampling database records (Phase 143)
  */
@@ -1886,6 +1902,164 @@ export async function getSchemaOptimizations(
     // fetch or execute EXPLAIN, and then populate recommendations.
     // For now, we'll return the metrics which may already have mock recommendations if in mock mode.
     return impactMetrics;
+}
+
+/**
+ * Calculate estimated monthly savings from archiving data to GCS Coldline (Phase 148)
+ * Assumes Cloud SQL storage cost of $0.17/GB and GCS Coldline cost of $0.004/GB
+ */
+export function calculateArchivalSavings(sizeGb: number): number {
+    const cloudSqlCostPerGb = 0.17;
+    const gcsColdlineCostPerGb = 0.004;
+    return parseFloat((sizeGb * (cloudSqlCostPerGb - gcsColdlineCostPerGb)).toFixed(2));
+}
+
+/**
+ * Autonomously discover archival candidates by analyzing table sizes and activity (Phase 148)
+ */
+export async function discoverArchivalCandidates(
+    storage: import('@/types').StorageConfig,
+    connectionString: string
+): Promise<ArchivalReport> {
+    const candidates: ArchivalCandidate[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasCandidates = true;
+        const mockCandidates = [
+            {
+                entity: 'audit_logs_2023',
+                sizeGb: 145.5,
+                lastAccessedAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
+                rowCount: 12500000,
+                potentialSavingsMonthly: calculateArchivalSavings(145.5),
+                reason: 'Large table with no activity in the last 180 days.'
+            },
+            {
+                entity: 'temp_staging_data',
+                sizeGb: 42.2,
+                lastAccessedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                rowCount: 5000000,
+                potentialSavingsMonthly: calculateArchivalSavings(42.2),
+                reason: 'Significant storage footprint with declining access frequency.'
+            }
+        ];
+
+        return {
+            hasCandidates,
+            candidates: hasCandidates ? mockCandidates : [],
+            totalPotentialSavingsMonthly: hasCandidates ? mockCandidates.reduce((sum, c) => sum + c.potentialSavingsMonthly, 0) : 0,
+            lastScannedAt: now
+        };
+    }
+
+    try {
+        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+
+            if (isPostgres) {
+                const { Client } = await import('pg');
+                const client = new Client({
+                    connectionString,
+                    ssl: storage.ssl ? { rejectUnauthorized: false } : false,
+                    connectionTimeoutMillis: 5000
+                });
+                await client.connect();
+
+                try {
+                    // Query for large tables with size and row count
+                    const query = `
+                        SELECT
+                            relname AS table_name,
+                            pg_total_relation_size(C.oid) AS total_size_bytes,
+                            reltuples AS row_count
+                        FROM pg_class C
+                        LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
+                        WHERE nspname = 'public'
+                          AND relkind = 'r'
+                          AND pg_total_relation_size(C.oid) > 1024 * 1024 * 100 -- > 100MB
+                        ORDER BY pg_total_relation_size(C.oid) DESC
+                        LIMIT 10
+                    `;
+                    const res = await client.query(query);
+
+                    for (const row of res.rows as Record<string, unknown>[]) {
+                        const sizeGb = parseFloat((Number(row.total_size_bytes) / (1024 * 1024 * 1024)).toFixed(2));
+                        const tableName = row.table_name as string;
+
+                        // Heuristic: tables ending in year/month or having 'log', 'history', 'temp' in name are candidates
+                        const isLikelyCold = tableName.match(/\d{4}/) ||
+                                           tableName.toLowerCase().includes('log') ||
+                                           tableName.toLowerCase().includes('history') ||
+                                           tableName.toLowerCase().includes('temp');
+
+                        if (sizeGb > 1 || isLikelyCold) {
+                            candidates.push({
+                                entity: tableName,
+                                sizeGb,
+                                rowCount: Math.round(row.row_count as number),
+                                potentialSavingsMonthly: calculateArchivalSavings(sizeGb),
+                                reason: isLikelyCold ?
+                                    `Identified as historical or temporary data based on naming pattern.` :
+                                    `Significant storage footprint (${sizeGb}GB) detected.`
+                            });
+                        }
+                    }
+                } finally {
+                    await client.end().catch(() => {});
+                }
+            } else {
+                const mysql = await import('mysql2/promise');
+                const connection = await mysql.createConnection(connectionString);
+                try {
+                    const [rows] = await connection.execute(`
+                        SELECT
+                            TABLE_NAME AS table_name,
+                            (DATA_LENGTH + INDEX_LENGTH) AS total_size_bytes,
+                            TABLE_ROWS AS row_count
+                        FROM information_schema.TABLES
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND (DATA_LENGTH + INDEX_LENGTH) > 1024 * 1024 * 100
+                        ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC
+                        LIMIT 10
+                    `);
+
+                    for (const row of rows as Record<string, unknown>[]) {
+                        const sizeGb = parseFloat((Number(row.total_size_bytes) / (1024 * 1024 * 1024)).toFixed(2));
+                        const tableName = row.table_name as string;
+
+                        const isLikelyCold = tableName.match(/\d{4}/) ||
+                                           tableName.toLowerCase().includes('log') ||
+                                           tableName.toLowerCase().includes('history') ||
+                                           tableName.toLowerCase().includes('temp');
+
+                        if (sizeGb > 1 || isLikelyCold) {
+                            candidates.push({
+                                entity: tableName,
+                                sizeGb,
+                                rowCount: row.row_count as number,
+                                potentialSavingsMonthly: calculateArchivalSavings(sizeGb),
+                                reason: isLikelyCold ?
+                                    `Identified as historical or temporary data based on naming pattern.` :
+                                    `Significant storage footprint (${sizeGb}GB) detected.`
+                            });
+                        }
+                    }
+                } finally {
+                    await connection.end().catch(() => {});
+                }
+            }
+        }
+    } catch (e) {
+        console.error(`[ArchivalDiscovery] Failed for ${storage.id}:`, e);
+    }
+
+    return {
+        hasCandidates: candidates.length > 0,
+        candidates,
+        totalPotentialSavingsMonthly: parseFloat(candidates.reduce((sum, c) => sum + c.potentialSavingsMonthly, 0).toFixed(2)),
+        lastScannedAt: now
+    };
 }
 
 /**

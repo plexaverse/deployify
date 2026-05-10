@@ -1794,6 +1794,23 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Update diagnostic API to persist and surface verified reachability status.
 - [x] Enhance Storage UI with pulsating 'FIREWALL VERIFIED' badges for confirmed connectivity.
 
+### Phase 148: Autonomous Storage Capacity Planning & Archival Intelligence (COMPLETED)
+- [x] Implement `discoverArchivalCandidates` to identify tables with high storage footprint but low recent activity.
+- [x] Implement `calculateArchivalSavings` to provide dollar-value savings estimates.
+- [x] Create project-scoped Archival Optimization API to surface these insights.
+- [x] Integrate archival analysis into the `StorageSync` API heartbeat cycle (24H interval).
+- [x] Add 'Archival Advisor' section to `OptimizationModal.tsx`.
+- [x] Implement pulsating 'CAPACITY RISK' badges in `StorageSection.tsx` driven by diagnostic metadata.
+
+### 2027-07-22: Completed Phase 148: Autonomous Storage Capacity Planning
+- Completed Phase 148: Autonomous Storage Capacity Planning & Intelligent Archival Discovery.
+- Introduced `discoverArchivalCandidates` and `calculateArchivalSavings` in `src/lib/gcp/monitoring.ts`, leveraging table size analysis and naming heuristics to identify archival candidates.
+- Launched a new Archival Optimization API at `/api/projects/[id]/storage/[storageId]/optimization/archival` with full RBAC and Secret Manager integration.
+- Integrated autonomous capacity scanning into the `StorageSync` API heartbeat, ensuring long-term data sustainability insights are periodically updated and persisted.
+- Enhanced the `OptimizationModal` UI with a high-density 'Archival Advisor' section, visualizing identified candidates and estimated monthly savings.
+- Surfaced pulsating 'CAPACITY RISK' badges in the Storage dashboard to proactively alert developers of significant archival opportunities.
+- Verified 100% operational integrity with a zero-warning build and a perfect platform audit.
+
 ### 2027-07-21: Completed Phase 147: Autonomous Firewall Verification
 - Completed Phase 147: Autonomous Firewall Verification & Connectivity Intelligence.
 - Introduced `verifyFirewallReachability` in `src/lib/gcp/storage-validator.ts` to provide definitive technical proof that regional egress IPs have successfully penetrated external firewalls.

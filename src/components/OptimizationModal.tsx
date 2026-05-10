@@ -7,6 +7,7 @@ import {
     TrendingUp,
     TrendingDown,
     Zap,
+    HardDrive,
     AlertCircle,
     Moon,
     Clock,
@@ -37,6 +38,7 @@ interface OptimizationModalProps {
 export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply }: OptimizationModalProps) {
     const [schemaOptimizations, setSchemaOptimizations] = useState<QueryImpactMetric[]>([]);
     const [cachingRecommendations, setCachingRecommendations] = useState<CachingRecommendation[]>([]);
+    const [archivalReport, setArchivalReport] = useState<import('@/lib/gcp/monitoring').ArchivalReport | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
 
     const fetchSchemaOptimizations = useCallback(async () => {
@@ -65,12 +67,26 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     }, [storage, projectId]);
 
+    const fetchArchivalReport = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            const res = await fetch(`/api/projects/${projectId}/storage/${storage.id}/optimization/archival`);
+            const data = await res.json();
+            if (data.success) {
+                setArchivalReport(data.report);
+            }
+        } catch (e) {
+            console.error('Failed to fetch archival report:', e);
+        }
+    }, [storage, projectId]);
+
     useEffect(() => {
         if (isOpen && storage) {
             fetchSchemaOptimizations();
             fetchCachingRecommendations();
+            fetchArchivalReport();
         }
-    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations]);
+    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport]);
 
     const applyOptimization = async (recommendation: string, queryHash: string) => {
         if (!projectId || !storage) return;
@@ -377,6 +393,58 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {archivalReport?.hasCandidates && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Archival Advisor (Phase 148)</Label>
+                            <div className="space-y-3">
+                                {archivalReport.candidates.map((candidate, i) => (
+                                    <div key={i} className="p-4 border border-[var(--warning)]/20 rounded-xl bg-[var(--warning)]/5 space-y-3 group hover:border-[var(--warning)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--warning)]/10 flex items-center justify-center shrink-0">
+                                                    <HardDrive className="w-4 h-4 text-[var(--warning)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)]">Archival Candidate</span>
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--success)]/10 text-[var(--success)] uppercase">
+                                                            ${candidate.potentialSavingsMonthly}/mo savings
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)]">{candidate.entity}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Table Size</span>
+                                                <span className="text-[10px] font-mono font-bold text-[var(--error)]">{candidate.sizeGb} GB</span>
+                                            </div>
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Row Count</span>
+                                                <span className="text-[10px] font-mono font-bold">{candidate.rowCount?.toLocaleString()} rows</span>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-[10px] font-bold text-[var(--muted-foreground)] px-1">{candidate.reason}</p>
+
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-7 text-[10px] font-bold uppercase tracking-wider border-[var(--warning)]/20 text-[var(--warning)] hover:bg-[var(--warning)]/10"
+                                            onClick={() => {
+                                                window.open('https://cloud.google.com/sql/docs/postgres/import-export/export-data', '_blank');
+                                                toast.info('Opening GCP documentation for SQL to GCS export');
+                                            }}
+                                        >
+                                            View Archival Guide
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
