@@ -102,7 +102,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         runProjectRollback,
         clearMigrationStatus,
         healConnectionPool,
-        remediateSecurityThreat,
+
         updateStorageAlerts,
         remediateStorageRisk,
         addReadReplica,
