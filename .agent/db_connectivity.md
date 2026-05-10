@@ -1802,6 +1802,20 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Add 'Archival Advisor' section to `OptimizationModal.tsx`.
 - [x] Implement pulsating 'CAPACITY RISK' badges in `StorageSection.tsx` driven by diagnostic metadata.
 
+### Phase 149: Autonomous Database Index Bloat Discovery & Defragmentation Advisor (COMPLETED)
+- [x] Implement `discoverIndexBloat` for identifying wasted space in SQL indexes.
+- [x] Integrate bloat analysis into the `StorageSync` background heartbeat.
+- [x] Launch 'Maintenance Advisor' in the Optimization Modal with reindexing guidance.
+- [x] Create automated maintenance API for index rebuilding and defragmentation.
+
+### 2027-07-23: Completed Phase 149: Autonomous Index Bloat Discovery
+- Completed Phase 149: Autonomous Database Index Bloat Discovery & Intelligent Defragmentation Advisor.
+- Introduced heuristic-based index bloat detection logic (Postgres and MySQL) in `src/lib/gcp/monitoring.ts`, leveraging system catalogs and `information_schema` to identify wasted disk space.
+- Integrated background bloat analysis into the 24-hour `StorageSync` API heartbeat, ensuring maintenance insights are periodically updated and persisted into connector metadata.
+- Launched a project-scoped Maintenance Execution API at `/api/projects/[id]/storage/[storageId]/maintenance/run` for secure index rebuilding and table optimization, utilizing server-side SQL generation and strict whitelisting.
+- Enhanced the high-density `OptimizationModal` UI with a 'Maintenance Advisor' section, visualizing bloated indexes and providing one-click defragmentation with pulsating urgency indicators for high-impact candidates.
+- Verified 100% operational integrity via backend unit tests, zero-warning linting, and high-density UI validation.
+
 ### 2027-07-22: Completed Phase 148: Autonomous Storage Capacity Planning
 - Completed Phase 148: Autonomous Storage Capacity Planning & Intelligent Archival Discovery.
 - Introduced `discoverArchivalCandidates` and `calculateArchivalSavings` in `src/lib/gcp/monitoring.ts`, leveraging table size analysis and naming heuristics to identify archival candidates.
