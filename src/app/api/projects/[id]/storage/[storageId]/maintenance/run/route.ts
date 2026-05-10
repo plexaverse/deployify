@@ -21,11 +21,15 @@ export async function POST(
         const { id, storageId } = await params;
         const access = await checkProjectAccess(session.user.id, id);
 
-        if (!access.allowed || access.role === 'viewer') {
+        if (!access.allowed) {
+            return NextResponse.json({ success: false, error: access.error }, { status: access.status });
+        }
+
+        if (access.role === 'viewer') {
             return NextResponse.json({
                 success: false,
-                error: access.error || 'Insufficient permissions to run maintenance'
-            }, { status: access.status || 403 });
+                error: 'Insufficient permissions to run maintenance'
+            }, { status: 403 });
         }
 
         const { project } = access;
