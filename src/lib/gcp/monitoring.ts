@@ -126,6 +126,21 @@ export interface BloatReport {
     lastScannedAt: string;
 }
 
+export interface PoolingRecommendation {
+    currentMin: number;
+    currentMax: number;
+    recommendedMin: number;
+    recommendedMax: number;
+    reason: string;
+    implementationSnippets: {
+        prisma?: string;
+        drizzle?: string;
+        nodePg?: string;
+        nodeMysql2?: string;
+    };
+    impact: 'high' | 'medium' | 'low';
+}
+
 /**
  * Autonomously discover sensitive data (PII) by sampling database records (Phase 143)
  */
@@ -2332,6 +2347,98 @@ export async function discoverIndexBloat(
         candidates,
         totalWastedMb: parseFloat(candidates.reduce((sum, c) => sum + c.bloatSizeMb, 0).toFixed(2)),
         lastScannedAt: now
+    };
+}
+
+/**
+ * Autonomously optimize database connection pools based on workload and saturation (Phase 150)
+ */
+export function optimizeConnectionPools(
+    storage: import('@/types').StorageConfig,
+    metrics: ResourceMetrics,
+    sessions: import('./cloudsql').DatabaseSession[]
+): PoolingRecommendation | undefined {
+    if (!storage.type.includes('cloud-sql') && storage.type !== 'supabase' && storage.type !== 'neon') return undefined;
+
+    const totalSessions = sessions.length;
+    const idleSessions = sessions.filter(s => s.state === 'idle' || s.state === 'Sleep').length;
+    const activeSessions = totalSessions - idleSessions;
+    const saturation = metrics.connectionSaturation || 0;
+    const workload = storage.workloadProfile?.type || 'BALANCED';
+
+    // Heuristics for pool sizing
+    // min: Should cover the typical active session count with some buffer
+    // max: Should be enough for peaks but constrained by tier limits
+    const tier = (storage.metadata?.tier as string) || 'db-f1-micro';
+    const tierLimit = getEstimatedMaxConnections(tier);
+
+    let recommendedMin = Math.max(2, Math.ceil(activeSessions * 1.5));
+    let recommendedMax = Math.max(10, Math.ceil(activeSessions * 3));
+
+    // Workload adjustments
+    if (workload === 'READ_HEAVY') {
+        recommendedMin = Math.max(recommendedMin, 5);
+        recommendedMax = Math.min(tierLimit, Math.max(recommendedMax, 20));
+    } else if (workload === 'WRITE_HEAVY') {
+        recommendedMin = Math.max(recommendedMin, 10);
+        recommendedMax = Math.min(tierLimit, Math.max(recommendedMax, 50));
+    }
+
+    // Cap max by tier limit (leaving room for other clients)
+    recommendedMax = Math.min(recommendedMax, Math.floor(tierLimit * 0.8));
+    recommendedMin = Math.min(recommendedMin, recommendedMax);
+
+    // Only recommend if there's a significant difference from common defaults (usually min 0-1, max 10-20)
+    const currentMin = 1; // Assumption for default if not known
+    const currentMax = 10; // Assumption for default if not known
+
+    if (recommendedMax <= currentMax && saturation < 50) return undefined;
+
+    const dbType = (storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
+
+    const snippets: PoolingRecommendation['implementationSnippets'] = {};
+
+    if (dbType === 'postgres') {
+        snippets.prisma = `// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Add ?connection_limit=${recommendedMax}
+}`;
+        snippets.drizzle = `// Drizzle with pg
+const client = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  min: ${recommendedMin},
+  max: ${recommendedMax},
+});`;
+        snippets.nodePg = `// pg driver
+const pool = new Pool({
+  host: '...',
+  max: ${recommendedMax},
+  min: ${recommendedMin},
+  idleTimeoutMillis: 30000,
+});`;
+    } else {
+        snippets.prisma = `// prisma/schema.prisma
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL") // Add ?connection_limit=${recommendedMax}
+}`;
+        snippets.nodeMysql2 = `// mysql2 driver
+const pool = mysql.createPool({
+  host: '...',
+  connectionLimit: ${recommendedMax},
+  queueLimit: 0
+});`;
+    }
+
+    return {
+        currentMin,
+        currentMax,
+        recommendedMin,
+        recommendedMax,
+        reason: `Detected ${activeSessions} active sessions with ${saturation.toFixed(1)}% saturation under a ${workload} workload. Adjusting pool size will improve throughput and prevent connection queuing.`,
+        implementationSnippets: snippets,
+        impact: saturation > 80 ? 'high' : (saturation > 50 ? 'medium' : 'low')
     };
 }
 

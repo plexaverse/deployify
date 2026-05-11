@@ -155,6 +155,19 @@ function createMockFirestore(): Firestore {
                                 ],
                                 totalPotentialSavingsMonthly: 24.15,
                                 lastScannedAt: new Date().toISOString()
+                            },
+                            poolingRecommendation: {
+                                currentMin: 1,
+                                currentMax: 10,
+                                recommendedMin: 5,
+                                recommendedMax: 30,
+                                reason: 'Detected 12 active sessions with 85.0% saturation under a BALANCED workload. Adjusting pool size will improve throughput and prevent connection queuing.',
+                                implementationSnippets: {
+                                    prisma: '// prisma/schema.prisma\ndatasource db {\n  provider = "postgresql"\n  url      = env("DATABASE_URL") // Add ?connection_limit=30\n}',
+                                    drizzle: '// Drizzle with pg\nconst client = new pg.Pool({\n  connectionString: process.env.DATABASE_URL,\n  min: 5,\n  max: 30,\n});',
+                                    nodePg: '// pg driver\nconst pool = new Pool({\n  host: "...",\n  max: 30,\n  min: 5,\n  idleTimeoutMillis: 30000,\n});'
+                                },
+                                impact: 'high'
                             }
                         }
                     },
