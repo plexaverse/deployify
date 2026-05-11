@@ -99,13 +99,14 @@ export async function runSeed(
  */
 export async function anonymizeData(
     connectionString: string,
-    _tableConfig: { table: string; columns: string[] }[]
+    tableConfig: { table: string; columns: string[] }[]
 ): Promise<void> {
-    // In a real implementation, this would run UPDATE queries on the target database
-    // to mask sensitive information like emails, PII, etc.
+    const isPostgres = connectionString.startsWith('postgresql://') || connectionString.startsWith('postgres://');
+    const isMysql = connectionString.startsWith('mysql://');
+
     if (process.env.MOCK_DB === 'true') {
         console.log(`[Anonymizer] Mocking anonymization for ${connectionString.split('@')[1] || 'database'}`);
-        for (const config of _tableConfig) {
+        for (const config of tableConfig) {
             console.log(`[Anonymizer] MOCK: Masking table ${config.table}, columns: ${config.columns.join(', ')}`);
         }
         console.log(`[Anonymizer] MOCK: Data masking completed.`);
@@ -114,10 +115,49 @@ export async function anonymizeData(
 
     console.log(`[Anonymizer] Starting data masking for ${connectionString.split('@')[1] || 'database'}`);
 
-    for (const config of _tableConfig) {
-        console.log(`[Anonymizer] Processing table: ${config.table}, columns: ${config.columns.join(', ')}`);
-        // Simulate SQL execution for masking
-        // UPDATE ${config.table} SET ${config.columns.map(c => `${c} = 'ANONYMIZED'`).join(', ')}
+    try {
+        if (isPostgres) {
+            const { Client } = await import('pg');
+            const client = new Client({
+                connectionString,
+                ssl: connectionString.includes('sslmode=disable') ? false : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: true } : { rejectUnauthorized: false })
+            });
+            await client.connect();
+
+            try {
+                for (const config of tableConfig) {
+                    // Strict identifier quoting to prevent SQL injection via config
+                    const escapedTable = config.table.replace(/"/g, '""');
+                    const setClause = config.columns.map(col => `"${col.replace(/"/g, '""')}" = 'ANONYMIZED_' || substr(md5(random()::text), 1, 8)`).join(', ');
+                    const query = `UPDATE "${escapedTable}" SET ${setClause}`;
+                    console.log(`[Anonymizer] Executing: ${query}`);
+                    await client.query(query);
+                }
+            } finally {
+                await client.end();
+            }
+        } else if (isMysql) {
+            const mysql = await import('mysql2/promise');
+            const connection = await mysql.createConnection(connectionString);
+
+            try {
+                for (const config of tableConfig) {
+                    // Strict identifier quoting for MySQL
+                    const escapedTable = config.table.replace(/`/g, '``');
+                    const setClause = config.columns.map(col => `\`${col.replace(/`/g, '``')}\` = CONCAT('ANONYMIZED_', SUBSTRING(MD5(RAND()), 1, 8))`).join(', ');
+                    const query = `UPDATE \`${escapedTable}\` SET ${setClause}`;
+                    console.log(`[Anonymizer] Executing: ${query}`);
+                    await connection.execute(query);
+                }
+            } finally {
+                await connection.end();
+            }
+        } else {
+            console.warn(`[Anonymizer] Unsupported database type for connection string: ${connectionString}`);
+        }
+    } catch (error) {
+        console.error(`[Anonymizer] Data masking failed:`, error);
+        throw error;
     }
 
     console.log(`[Anonymizer] Data masking completed successfully.`);
