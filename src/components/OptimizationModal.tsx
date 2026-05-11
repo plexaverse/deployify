@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
-import type { StorageConfig, WorkloadShift } from '@/types';
+import type { StorageConfig, WorkloadShift, DeadlockReport } from '@/types';
 import type { ScalingRecommendation, QueryImpactMetric, CachingRecommendation, PoolingRecommendation } from '@/lib/gcp/monitoring';
 import type { SecurityPosture } from '@/lib/gcp/security-auditor';
 
@@ -41,6 +41,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
     const [schemaOptimizations, setSchemaOptimizations] = useState<QueryImpactMetric[]>([]);
     const [cachingRecommendations, setCachingRecommendations] = useState<CachingRecommendation[]>([]);
     const [archivalReport, setArchivalReport] = useState<import('@/lib/gcp/monitoring').ArchivalReport | null>(null);
+    const [deadlockReport, setDeadlockReport] = useState<DeadlockReport | null>(null);
     const [bloatReport, setBloatReport] = useState<import('@/lib/gcp/monitoring').BloatReport | null>(null);
     const [driftReport, setDriftReport] = useState<import('@/lib/gcp/monitoring').StatisticsDriftReport | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
@@ -113,6 +114,19 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     }, [storage, projectId]);
 
+    const fetchDeadlockReport = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            if (storage.deadlockReport) {
+                setDeadlockReport(storage.deadlockReport);
+            } else if (storage.metadata?.deadlockReport) {
+                setDeadlockReport(storage.metadata.deadlockReport as DeadlockReport);
+            }
+        } catch (e) {
+            console.error('Failed to fetch deadlock report:', e);
+        }
+    }, [storage, projectId]);
+
     useEffect(() => {
         if (isOpen && storage) {
             fetchSchemaOptimizations();
@@ -120,8 +134,9 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
             fetchArchivalReport();
             fetchBloatReport();
             fetchDriftReport();
+            fetchDeadlockReport();
         }
-    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport]);
+    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport, fetchDeadlockReport]);
 
     const applyOptimization = async (recommendation: string, queryHash: string) => {
         if (!projectId || !storage) return;
@@ -181,7 +196,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     };
 
-    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation)) return null;
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation && !deadlockReport?.hasDeadlocks)) return null;
 
     const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
@@ -569,6 +584,53 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         >
                                             {isRunningMaintenance === `${candidate.entity}-stats` ? 'Optimizing...' : 'Run Statistics Optimization'}
                                         </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {deadlockReport?.hasDeadlocks && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Deadlock Advisor (Phase 152)</Label>
+                            <div className="space-y-3">
+                                {deadlockReport.incidents.map((incident, i) => (
+                                    <div key={i} className="p-4 border border-[var(--error)]/20 rounded-xl bg-[var(--error)]/5 space-y-3 group hover:border-[var(--error)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--error)]/10 flex items-center justify-center shrink-0">
+                                                    <Lock className="w-4 h-4 text-[var(--error)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Transaction Deadlock</span>
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase",
+                                                            incident.impactScore > 70 ? "bg-[var(--error)] text-[var(--primary-foreground)] animate-pulse" : "bg-[var(--warning)]/20 text-[var(--warning)]"
+                                                        )}>
+                                                            Impact: {incident.impactScore}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-[var(--muted-foreground)]">Detected At: {new Date(incident.detectedAt).toLocaleString()}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Affected Queries</span>
+                                            {incident.queries.map((q, qi) => (
+                                                <div key={qi} className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
+                                                    {q}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="p-3 bg-[var(--warning)]/10 border border-[var(--warning)]/20 rounded-lg flex items-start gap-2">
+                                            <ShieldAlert className="w-3.5 h-3.5 text-[var(--warning)] shrink-0 mt-0.5" />
+                                            <p className="text-[10px] font-bold uppercase text-[var(--foreground)] leading-relaxed">
+                                                REMEDIATION: {incident.remediation}
+                                            </p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

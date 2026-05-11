@@ -28,6 +28,7 @@ import {
     Upload,
     CopyPlus,
     Eye,
+    Lock,
     ShieldCheck,
     Shield,
     Copy,
@@ -2116,6 +2117,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 >
                                                     <HardDrive className="w-2.5 h-2.5" />
                                                     CAPACITY RISK
+                                                </button>
+                                            )}
+                                            {!!(config.metadata?.deadlockReport as import('@/types').DeadlockReport)?.hasDeadlocks && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingOptimization(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/30 flex items-center gap-1 animate-pulse"
+                                                    title={`Deadlock occurrences detected: ${(config.metadata?.deadlockReport as import('@/types').DeadlockReport).totalDeadlocksLast24H} incidents in last 24H.`}
+                                                >
+                                                    <Lock className="w-2.5 h-2.5" />
+                                                    DEADLOCK RISK
                                                 </button>
                                             )}
                                             {!!(config.metadata?.statisticsDrift as import('@/lib/gcp/monitoring').StatisticsDriftReport)?.hasDrift && (

@@ -168,6 +168,23 @@ function createMockFirestore(): Firestore {
                                     nodePg: '// pg driver\nconst pool = new Pool({\n  host: "...",\n  max: 30,\n  min: 5,\n  idleTimeoutMillis: 30000,\n});'
                                 },
                                 impact: 'high'
+                            },
+                            deadlockReport: {
+                                hasDeadlocks: true,
+                                incidents: [
+                                    {
+                                        id: 'deadlock_mock_1',
+                                        queries: [
+                                            'UPDATE orders SET status = "processing" WHERE id = 101',
+                                            'UPDATE inventory SET stock = stock - 1 WHERE id = 502'
+                                        ],
+                                        detectedAt: new Date().toISOString(),
+                                        impactScore: 45,
+                                        remediation: 'Deadlock detected between order processing and inventory updates. Ensure consistent lock acquisition order across services.'
+                                    }
+                                ],
+                                totalDeadlocksLast24H: 1,
+                                lastScannedAt: new Date().toISOString()
                             }
                         }
                     },
