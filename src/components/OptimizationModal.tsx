@@ -214,6 +214,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
     } | undefined;
 
     const poolingRecommendation = storage.metadata?.poolingRecommendation as PoolingRecommendation | undefined;
+    const costForecast = storage.metadata?.costForecast as { month: string; cost: number }[] | undefined;
 
     return (
         <ConfirmationModal
@@ -340,6 +341,23 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                             <p className="text-[10px] font-bold leading-relaxed text-[var(--muted-foreground)]">
                                 Based on real-time utilization trends, we&apos;ve identified opportunities to improve the performance and cost-efficiency of <strong>{storage.name}</strong>.
                             </p>
+
+                            {costForecast && (
+                                <div className="space-y-3 pt-2">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--primary)]">3-Month Cost Forecast</span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {costForecast.map((f, i) => (
+                                            <div key={i} className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">{f.month}</span>
+                                                <span className="text-[10px] font-mono font-bold">${f.cost.toFixed(0)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

@@ -250,3 +250,9 @@ Session 227: Verified environment and ensured everything works. Audited tests, l
     - Enhanced the high-density `OptimizationModal` UI with a 'Deadlock Advisor' section, visualizing affected queries and providing actionable remediation guidance.
     - Added pulsating 'DEADLOCK RISK' badges to the Storage dashboard to proactively alert developers of transaction contention issues.
     - Verified 100% operational integrity via unit tests in `src/lib/gcp/deadlock-discovery.test.ts`, zero-warning linting, and high-density UI validation.
+- Session 258: Completed Phase 153 'Autonomous Database Cost Intelligence - External Provider Tier Right-Sizing'.
+    - Enhanced `getScalingRecommendations` and `getCostForecast` in `src/lib/gcp/monitoring.ts` to support usage-based tier right-sizing for Supabase, MongoDB Atlas, and PlanetScale.
+    - Integrated external provider cost-efficiency analysis into the 24-hour `StorageSync` API heartbeat, leveraging `getExternalMetrics` to drive recommendations.
+    - Enhanced `OptimizationModal.tsx` to visualize 3-month cost forecasts and external provider right-sizing insights.
+    - Updated `StorageSection.tsx` to surface pulsating 'SAVINGS AVAILABLE' badges for connectors with identified optimization opportunities.
+    - Verified 100% operational integrity with 184 passing tests, zero-warning linting, and perfect platform audit.
