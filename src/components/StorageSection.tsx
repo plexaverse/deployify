@@ -20,6 +20,7 @@ import {
     Network,
     RefreshCw,
     TrendingUp,
+    TrendingDown,
     Cpu,
     HardDrive,
     Zap,
@@ -2105,6 +2106,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     <TrendingUp className="w-2.5 h-2.5" />
                                                     SATURATION RISK: {config.saturationRisk.resource.toUpperCase()}
                                                 </span>
+                                            )}
+                                            {!!((config.metadata?.optimization as { recommendations: import('@/lib/gcp/monitoring').ScalingRecommendation[] })?.recommendations?.some(r => r.type === 'downgrade')) && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingOptimization(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--success)]/10 text-[var(--success)] font-bold uppercase tracking-wider border border-[var(--success)]/20 flex items-center gap-1 animate-pulse"
+                                                    title={`Potential monthly savings: ${(config.metadata?.optimization as { recommendations: import('@/lib/gcp/monitoring').ScalingRecommendation[] }).recommendations.find(r => r.type === 'downgrade')?.estimatedSavings}`}
+                                                >
+                                                    <TrendingDown className="w-2.5 h-2.5" />
+                                                    SAVINGS AVAILABLE
+                                                </button>
                                             )}
                                             {!!(config.metadata?.archivalReport as import('@/lib/gcp/monitoring').ArchivalReport)?.hasCandidates && (
                                                 <button
