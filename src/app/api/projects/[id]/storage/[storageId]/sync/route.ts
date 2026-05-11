@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, optimizeConnectionPools } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -328,6 +328,38 @@ export async function GET(
                         }
                     } catch (bloatErr) {
                         console.error(`[BloatSync] Discovery failed for ${storageId}:`, bloatErr);
+                    }
+                }
+
+                // 0k. Phase 150: Autonomous Connection Pool Optimization
+                const lastPoolScan = storage.metadata?.lastPoolScanAt ? new Date(storage.metadata.lastPoolScanAt as string) : new Date(0);
+                const hoursSincePoolScan = (now.getTime() - lastPoolScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && hoursSincePoolScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const { getActiveSessions } = await import('@/lib/gcp/cloudsql');
+
+                        const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
+                        if (connStr) {
+                            const dbType = (storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
+                            const sessions = await getActiveSessions(connStr, dbType as 'postgres' | 'mysql', { ssl: !!storage.ssl });
+
+                            // Fetch latest metrics for saturation (already computed in step 1 below, but we need it here for the 24h scan)
+                            const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                            const dbTypeMetric = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
+                            const tier = (storage.metadata?.tier as string) || 'db-f1-micro';
+                            const metrics = await getCloudSqlMetrics(resourceName, dbTypeMetric, tier);
+
+                            const recommendation = optimizeConnectionPools(storage, metrics, sessions);
+                            storage.metadata = {
+                                ...storage.metadata,
+                                poolingRecommendation: recommendation,
+                                lastPoolScanAt: now.toISOString()
+                            };
+                        }
+                    } catch (poolErr) {
+                        console.error(`[PoolingSync] Optimization failed for ${storageId}:`, poolErr);
                     }
                 }
 

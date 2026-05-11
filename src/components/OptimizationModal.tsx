@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import type { StorageConfig, WorkloadShift } from '@/types';
-import type { ScalingRecommendation, QueryImpactMetric, CachingRecommendation } from '@/lib/gcp/monitoring';
+import type { ScalingRecommendation, QueryImpactMetric, CachingRecommendation, PoolingRecommendation } from '@/lib/gcp/monitoring';
 import type { SecurityPosture } from '@/lib/gcp/security-auditor';
 
 interface OptimizationModalProps {
@@ -43,6 +43,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
     const [bloatReport, setBloatReport] = useState<import('@/lib/gcp/monitoring').BloatReport | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [isRunningMaintenance, setIsRunningMaintenance] = useState<string | null>(null);
+    const [activePoolingSnippet, setActivePoolingSnippet] = useState<string>('prisma');
 
     const fetchSchemaOptimizations = useCallback(async () => {
         if (!storage || !projectId) return;
@@ -162,7 +163,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     };
 
-    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat)) return null;
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !storage.metadata?.poolingRecommendation)) return null;
 
     const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
@@ -178,6 +179,8 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         isPredictiveDegraded?: boolean,
         jitterScore?: number
     } | undefined;
+
+    const poolingRecommendation = storage.metadata?.poolingRecommendation as PoolingRecommendation | undefined;
 
     return (
         <ConfirmationModal
@@ -495,6 +498,88 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         </Button>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {poolingRecommendation && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Pooling Advisor (Phase 150)</Label>
+                            <div className="p-4 border border-[var(--primary)]/20 rounded-xl bg-[var(--primary)]/5 space-y-4 group hover:border-[var(--primary)]/40 transition-all">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                            <Zap className="w-4 h-4 text-[var(--primary)]" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Connection Pool Opportunity</span>
+                                                <span className={cn(
+                                                    "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase",
+                                                    poolingRecommendation.impact === 'high' ? "bg-[var(--error)]/20 text-[var(--error)] animate-pulse" : "bg-[var(--success)]/10 text-[var(--success)]"
+                                                )}>
+                                                    {poolingRecommendation.impact} Impact
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] font-bold text-[var(--foreground)]">{poolingRecommendation.reason}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-2.5 rounded-lg bg-[var(--card)] border border-[var(--border)] space-y-1">
+                                        <span className="block text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Current Default</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">MIN: {poolingRecommendation.currentMin}</span>
+                                            <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">MAX: {poolingRecommendation.currentMax}</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-2.5 rounded-lg bg-[var(--primary)]/5 border border-[var(--primary)]/20 space-y-1">
+                                        <span className="block text-[8px] font-bold uppercase text-[var(--primary)]">Recommended</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-mono font-bold text-[var(--primary)]">MIN: {poolingRecommendation.recommendedMin}</span>
+                                            <span className="text-[10px] font-mono font-bold text-[var(--primary)]">MAX: {poolingRecommendation.recommendedMax}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex gap-1">
+                                            {Object.keys(poolingRecommendation.implementationSnippets).map((key) => (
+                                                <button
+                                                    key={key}
+                                                    onClick={() => setActivePoolingSnippet(key)}
+                                                    className={cn(
+                                                        "px-2 py-0.5 rounded text-[8px] font-bold uppercase border transition-all",
+                                                        activePoolingSnippet === key
+                                                            ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]"
+                                                            : "bg-[var(--background)] text-[var(--muted-foreground)] border-[var(--border)] hover:border-[var(--primary)]/50"
+                                                    )}
+                                                >
+                                                    {key}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-5 w-5 text-[var(--muted-foreground)] hover:text-[var(--primary)]"
+                                            onClick={() => {
+                                                const snippet = (poolingRecommendation.implementationSnippets as Record<string, string>)[activePoolingSnippet];
+                                                if (snippet) {
+                                                    navigator.clipboard.writeText(snippet);
+                                                    toast.success('Snippet copied to clipboard');
+                                                }
+                                            }}
+                                        >
+                                            <Copy className="w-3 h-3" />
+                                        </Button>
+                                    </div>
+                                    <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
+                                        {(poolingRecommendation.implementationSnippets as Record<string, string>)[activePoolingSnippet] || '// No snippet available'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
