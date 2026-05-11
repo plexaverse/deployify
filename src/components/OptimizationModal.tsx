@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
-import type { StorageConfig, WorkloadShift } from '@/types';
+import type { StorageConfig, WorkloadShift, DeadlockReport } from '@/types';
 import type { ScalingRecommendation, QueryImpactMetric, CachingRecommendation, PoolingRecommendation } from '@/lib/gcp/monitoring';
 import type { SecurityPosture } from '@/lib/gcp/security-auditor';
 
