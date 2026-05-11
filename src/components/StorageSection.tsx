@@ -1481,7 +1481,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             Stored securely in Google Cloud Secret Manager.
                                         </p>
                                     </div>
-                                    {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'neon') && (
+                                    {(type === 'supabase' || type === 'mongodb-atlas' || type === 'planetscale' || type === 'neon') && !secretOnly && (
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
                                                 <div className="space-y-0.5">
@@ -1648,7 +1648,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         </div>
                                     )}
 
-                                    {(type === 'neon' || type === 'supabase') && (
+                                    {(type === 'neon' || type === 'supabase') && !secretOnly && (
                                         <div className="space-y-4 pt-2">
                                             <div className="p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg space-y-4">
                                                 <div className="space-y-2">
