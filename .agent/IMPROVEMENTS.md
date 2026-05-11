@@ -228,3 +228,8 @@ Session 227: Verified environment and ensured everything works. Audited tests, l
     - Launched a project-scoped Maintenance Execution API at `/api/projects/[id]/storage/[storageId]/maintenance/run` with strict server-side SQL generation and whitelisting.
     - Enhanced the high-density Optimization Modal with a 'Maintenance Advisor' section, visualizing bloated indexes and providing one-click defragmentation.
     - Verified 100% operational integrity via new unit tests, zero-warning linting, and high-density UI validation.
+- Session 254: UI/UX Bug Fix & Platform Hardening.
+    - Fixed a layout bug in `src/components/StorageSection.tsx` where the "SSL Required", "API Auto-Sync", and "Provider API Key" inputs for external connectors (Supabase, Neon, etc.) remained visible when "Secret Only Mode" was checked.
+    - Added a `!secretOnly` conditional wrapper to ensure these settings are properly hidden, as automated API credential synchronization and enforced SSL cannot be orchestrated when the platform merely stores a string without runtime injection.
+    - Verified functionality using automated Playwright UI checks (`verify_ssl_secret_only.py`).
+    - Verified 100% operational integrity with a zero-warning lint pass, 184 passing tests, and a perfect system audit.
