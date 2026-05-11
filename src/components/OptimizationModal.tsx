@@ -17,7 +17,8 @@ import {
     Search,
     Copy,
     GitPullRequest,
-    Wrench
+    Wrench,
+    Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
     const [cachingRecommendations, setCachingRecommendations] = useState<CachingRecommendation[]>([]);
     const [archivalReport, setArchivalReport] = useState<import('@/lib/gcp/monitoring').ArchivalReport | null>(null);
     const [bloatReport, setBloatReport] = useState<import('@/lib/gcp/monitoring').BloatReport | null>(null);
+    const [driftReport, setDriftReport] = useState<import('@/lib/gcp/monitoring').StatisticsDriftReport | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [isRunningMaintenance, setIsRunningMaintenance] = useState<string | null>(null);
     const [activePoolingSnippet, setActivePoolingSnippet] = useState<string>('prisma');
@@ -97,14 +99,29 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     }, [storage, projectId]);
 
+    const fetchDriftReport = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            // We'll reuse the bloat API pattern for drift or assume it's in metadata if needed,
+            // but for consistency with other advisors, we fetch it.
+            // Note: Since we don't have a dedicated API route yet, we'll check if metadata has it.
+            if (storage.metadata?.statisticsDrift) {
+                setDriftReport(storage.metadata.statisticsDrift as import('@/lib/gcp/monitoring').StatisticsDriftReport);
+            }
+        } catch (e) {
+            console.error('Failed to fetch drift report:', e);
+        }
+    }, [storage, projectId]);
+
     useEffect(() => {
         if (isOpen && storage) {
             fetchSchemaOptimizations();
             fetchCachingRecommendations();
             fetchArchivalReport();
             fetchBloatReport();
+            fetchDriftReport();
         }
-    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport]);
+    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport]);
 
     const applyOptimization = async (recommendation: string, queryHash: string) => {
         if (!projectId || !storage) return;
@@ -152,6 +169,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
             if (data.success) {
                 toast.success('Maintenance operation triggered successfully');
                 fetchBloatReport(); // Refresh report
+                fetchDriftReport();
             } else {
                 toast.error(data.error || 'Failed to trigger maintenance');
             }
@@ -163,7 +181,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     };
 
-    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !storage.metadata?.poolingRecommendation)) return null;
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation)) return null;
 
     const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
@@ -444,12 +462,12 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                         </div>
                     )}
 
-                    {bloatReport?.hasBloat && (
+                    {(bloatReport?.hasBloat || driftReport?.hasDrift) && (
                         <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Maintenance Advisor (Phase 149)</Label>
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Maintenance Advisor (Phase 149/151)</Label>
                             <div className="space-y-3">
-                                {bloatReport.candidates.map((candidate, i) => (
-                                    <div key={i} className="p-4 border border-[var(--primary)]/20 rounded-xl bg-[var(--primary)]/5 space-y-3 group hover:border-[var(--primary)]/40 transition-all">
+                                {bloatReport?.candidates.map((candidate, i) => (
+                                    <div key={`bloat-${i}`} className="p-4 border border-[var(--primary)]/20 rounded-xl bg-[var(--primary)]/5 space-y-3 group hover:border-[var(--primary)]/40 transition-all">
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
@@ -495,6 +513,61 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                             className="w-full h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 border border-[var(--primary)]/20"
                                         >
                                             {isRunningMaintenance === `${candidate.entity}-${candidate.indexName}` ? 'Optimizing...' : 'Run Defragmentation'}
+                                        </Button>
+                                    </div>
+                                ))}
+
+                                {driftReport?.candidates.map((candidate, i) => (
+                                    <div key={`drift-${i}`} className="p-4 border border-[var(--error)]/20 rounded-xl bg-[var(--error)]/5 space-y-3 group hover:border-[var(--error)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--error)]/10 flex items-center justify-center shrink-0">
+                                                    <Activity className="w-4 h-4 text-[var(--error)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Statistics Drift Detected</span>
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--error)]/10 text-[var(--error)] uppercase">
+                                                            {candidate.driftPercentage}% Drift
+                                                        </span>
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase",
+                                                            candidate.impactScore > 70 ? "bg-[var(--error)] text-[var(--primary-foreground)] animate-pulse" : "bg-[var(--warning)]/20 text-[var(--warning)]"
+                                                        )}>
+                                                            Impact: {candidate.impactScore}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)]">{candidate.entity}</p>
+                                                    <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Metadata</span>
+                                                <span className="text-[10px] font-mono font-bold">
+                                                    {candidate.deadTuples !== undefined ? `${candidate.deadTuples} Dead Tuples` : `${candidate.modificationCount} Mod Count`}
+                                                </span>
+                                            </div>
+                                            <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
+                                                <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Urgency</span>
+                                                <span className={cn("text-[10px] font-mono font-bold", candidate.impactScore > 50 ? "text-[var(--error)]" : "text-[var(--warning)]")}>
+                                                    {candidate.impactScore > 70 ? 'CRITICAL' : (candidate.impactScore > 30 ? 'HIGH' : 'MEDIUM')}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto">
+                                            {candidate.recommendation}
+                                        </div>
+
+                                        <Button
+                                            onClick={() => runMaintenance(candidate.entity, 'stats', candidate.recommendation)}
+                                            disabled={isRunningMaintenance === `${candidate.entity}-stats`}
+                                            className="w-full h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--error)]/10 text-[var(--error)] hover:bg-[var(--error)]/20 border border-[var(--error)]/20"
+                                        >
+                                            {isRunningMaintenance === `${candidate.entity}-stats` ? 'Optimizing...' : 'Run Statistics Optimization'}
                                         </Button>
                                     </div>
                                 ))}

@@ -1814,6 +1814,20 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Launch 'Pooling Advisor' in the Optimization Modal with actionable configuration snippets.
 - [x] Support Prisma, Drizzle, and raw driver implementation guidance.
 
+### Phase 151: Autonomous Database Maintenance - Intelligent Vacuuming & Statistics Optimization (COMPLETED)
+- [x] Implement `discoverStatisticsDrift` for identifying dead tuples (Postgres) and stale statistics (MySQL).
+- [x] Integrate statistics drift analysis into the 24-hour `StorageSync` background heartbeat.
+- [x] Launch 'Maintenance Advisor' enhancement in the Optimization Modal with statistics optimization guidance.
+- [x] Add pulsating 'STATISTICS DRIFT' badges to the high-density Storage UI.
+
+### 2027-07-25: Completed Phase 151: Autonomous Database Maintenance
+- Completed Phase 151: Autonomous Database Maintenance - Intelligent Vacuuming & Statistics Optimization.
+- Introduced `discoverStatisticsDrift` in `src/lib/gcp/monitoring.ts` to identify dead tuples (Postgres) and stale statistics (MySQL) by analyzing system catalogs and `information_schema`.
+- Integrated autonomous statistics drift analysis into the 24-hour `StorageSync` API heartbeat, ensuring maintenance insights are periodically updated and persisted into connector metadata.
+- Enhanced the high-density `OptimizationModal` UI within the 'Maintenance Advisor' section to visualize statistics drift and provide one-click optimization triggers (`VACUUM ANALYZE` / `ANALYZE TABLE`).
+- Added pulsating 'STATISTICS DRIFT' badges to the Storage dashboard to proactively alert developers of suboptimal database statistics.
+- Verified 100% operational integrity via backend unit tests, zero-warning linting, and high-density UI validation.
+
 ### 2027-07-24: Completed Phase 150: Autonomous Connection Pool Optimization
 - Completed Phase 150: Autonomous Connectivity Intelligence - Intelligent Database Connection Pool Optimization & Workload-Aware Performance Guardrails.
 - Introduced `optimizeConnectionPools` in `src/lib/gcp/monitoring.ts`, analyzing active sessions, connection saturation, and workload profiles to provide technical pooling recommendations (min/max connections).

@@ -126,6 +126,21 @@ export interface BloatReport {
     lastScannedAt: string;
 }
 
+export interface StatisticsDriftCandidate {
+    entity: string;
+    deadTuples?: number;
+    modificationCount?: number;
+    driftPercentage: number;
+    impactScore: number;
+    recommendation: string;
+}
+
+export interface StatisticsDriftReport {
+    hasDrift: boolean;
+    candidates: StatisticsDriftCandidate[];
+    lastScannedAt: string;
+}
+
 export interface PoolingRecommendation {
     currentMin: number;
     currentMax: number;
@@ -1948,6 +1963,14 @@ export function calculateBloatImpact(wastedMb: number, percentage: number): numb
 }
 
 /**
+ * Calculate the operational impact score of statistics drift (Phase 151)
+ */
+export function calculateDriftImpact(driftPercentage: number): number {
+    // Linear scale for drift impact
+    return Math.min(100, Math.round(driftPercentage * 2));
+}
+
+/**
  * Calculate estimated monthly savings from archiving data to GCS Coldline (Phase 148)
  * Assumes Cloud SQL storage cost of $0.17/GB and GCS Coldline cost of $0.004/GB
  */
@@ -2101,6 +2124,130 @@ export async function discoverArchivalCandidates(
         hasCandidates: candidates.length > 0,
         candidates,
         totalPotentialSavingsMonthly: parseFloat(candidates.reduce((sum, c) => sum + c.potentialSavingsMonthly, 0).toFixed(2)),
+        lastScannedAt: now
+    };
+}
+
+/**
+ * Autonomously discover statistics drift by analyzing dead tuples and stale stats (Phase 151)
+ */
+export async function discoverStatisticsDrift(
+    storage: import('@/types').StorageConfig,
+    connectionString: string
+): Promise<StatisticsDriftReport> {
+    const candidates: StatisticsDriftCandidate[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasDrift = Math.random() > 0.4;
+        const mockCandidates = [
+            {
+                entity: 'users',
+                deadTuples: 1250,
+                driftPercentage: 35.5,
+                recommendation: 'VACUUM ANALYZE "users";'
+            },
+            {
+                entity: 'sessions',
+                modificationCount: 5400,
+                driftPercentage: 42.1,
+                recommendation: 'ANALYZE TABLE `sessions`;'
+            }
+        ];
+
+        return {
+            hasDrift,
+            candidates: hasDrift ? mockCandidates.map(c => ({ ...c, impactScore: calculateDriftImpact(c.driftPercentage) })) : [],
+            lastScannedAt: now
+        };
+    }
+
+    try {
+        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+
+            if (isPostgres) {
+                const { Client } = await import('pg');
+                const client = new Client({
+                    connectionString,
+                    ssl: storage.ssl ? { rejectUnauthorized: false } : false,
+                    connectionTimeoutMillis: 5000
+                });
+                await client.connect();
+
+                try {
+                    // Postgres Dead Tuples and Stale Stats
+                    const query = `
+                        SELECT
+                            relname AS table_name,
+                            n_live_tup AS live_tuples,
+                            n_dead_tup AS dead_tuples,
+                            CASE WHEN n_live_tup > 0 THEN (n_dead_tup::float / n_live_tup::float) * 100 ELSE 0 END AS drift_percentage
+                        FROM pg_stat_user_tables
+                        WHERE (n_live_tup + n_dead_tup) > 1000
+                          AND n_dead_tup > 100
+                        ORDER BY n_dead_tup DESC
+                        LIMIT 10
+                    `;
+                    const res = await client.query(query);
+
+                    for (const row of res.rows as Record<string, unknown>[]) {
+                        const drift = parseFloat(Number(row.drift_percentage).toFixed(1));
+                        if (drift > 20) {
+                            candidates.push({
+                                entity: row.table_name as string,
+                                deadTuples: Number(row.dead_tuples),
+                                driftPercentage: drift,
+                                impactScore: calculateDriftImpact(drift),
+                                recommendation: `VACUUM ANALYZE "${row.table_name}";`
+                            });
+                        }
+                    }
+                } finally {
+                    await client.end().catch(() => {});
+                }
+            } else {
+                const mysql = await import('mysql2/promise');
+                const connection = await mysql.createConnection(connectionString);
+                try {
+                    // MySQL stale statistics estimation via information_schema
+                    const [rows] = await connection.execute(`
+                        SELECT
+                            TABLE_NAME as table_name,
+                            TABLE_ROWS as live_tuples,
+                            DATA_FREE / 1024 / 1024 as free_mb,
+                            (DATA_FREE / (DATA_LENGTH + INDEX_LENGTH + 1)) * 100 as drift_percentage
+                        FROM information_schema.TABLES
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_ROWS > 1000
+                        ORDER BY DATA_FREE DESC
+                        LIMIT 10
+                    `);
+
+                    for (const row of rows as Record<string, unknown>[]) {
+                        const drift = parseFloat(Number(row.drift_percentage).toFixed(1));
+                        if (drift > 15) {
+                            candidates.push({
+                                entity: row.table_name as string,
+                                modificationCount: Math.round(Number(row.free_mb) * 100), // Heuristic
+                                driftPercentage: drift,
+                                impactScore: calculateDriftImpact(drift),
+                                recommendation: `ANALYZE TABLE \`${row.table_name}\`;`
+                            });
+                        }
+                    }
+                } finally {
+                    await connection.end().catch(() => {});
+                }
+            }
+        }
+    } catch (e) {
+        console.error(`[DriftDiscovery] Failed for ${storage.id}:`, e);
+    }
+
+    return {
+        hasDrift: candidates.length > 0,
+        candidates,
         lastScannedAt: now
     };
 }
