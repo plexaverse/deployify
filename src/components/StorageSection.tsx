@@ -2118,6 +2118,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     CAPACITY RISK
                                                 </button>
                                             )}
+                                            {!!(config.metadata?.statisticsDrift as import('@/lib/gcp/monitoring').StatisticsDriftReport)?.hasDrift && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingOptimization(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--error)]/20 text-[var(--error)] font-bold uppercase tracking-wider border border-[var(--error)]/30 flex items-center gap-1 animate-pulse"
+                                                    title="Statistics drift detected"
+                                                >
+                                                    <Activity className="w-2.5 h-2.5" />
+                                                    STATISTICS DRIFT
+                                                </button>
+                                            )}
                                             {!!config.metadata?.complianceReport && (config.metadata.complianceReport as import('@/types').ComplianceReport).hasRisk && (
                                                 <button
                                                     onClick={(e) => {
