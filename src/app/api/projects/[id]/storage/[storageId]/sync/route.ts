@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -349,6 +349,29 @@ export async function GET(
                         }
                     } catch (driftErr) {
                         console.error(`[DriftSync] Discovery failed for ${storageId}:`, driftErr);
+                    }
+                }
+
+                // 0m. Phase 152: Autonomous Deadlock Discovery & Governance
+                const deadlockReport = storage.deadlockReport || (storage.metadata?.deadlockReport as import('@/types').DeadlockReport | undefined);
+                const lastDeadlockScan = deadlockReport?.lastScannedAt ? new Date(deadlockReport.lastScannedAt) : new Date(0);
+                const hoursSinceDeadlockScan = (now.getTime() - lastDeadlockScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && hoursSinceDeadlockScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
+                        const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                        const logs = await getDatabaseLogs(instanceName, { pageSize: 100, projectId: storage.providerProjectId as string });
+
+                        const report = await discoverDeadlocks(storage, logs, connStr);
+                        storage.deadlockReport = report;
+                        storage.metadata = {
+                            ...storage.metadata,
+                            deadlockReport: report
+                        };
+                    } catch (deadlockErr) {
+                        console.error(`[DeadlockSync] Discovery failed for ${storageId}:`, deadlockErr);
                     }
                 }
 

@@ -521,6 +521,7 @@ export interface StorageConfig {
     sharedWithProjects?: string[]; // IDs of projects this connector is shared with
     reliability?: ReliabilityMetrics;
     saturationRisk?: SaturationRisk;
+    deadlockReport?: DeadlockReport;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
@@ -573,6 +574,21 @@ export interface ConnectionLeakReport {
     }>;
     recommendation?: string;
     timestamp: string;
+}
+
+export interface DeadlockIncident {
+    id: string;
+    queries: string[];
+    detectedAt: string;
+    impactScore: number;
+    remediation: string;
+}
+
+export interface DeadlockReport {
+    hasDeadlocks: boolean;
+    incidents: DeadlockIncident[];
+    totalDeadlocksLast24H: number;
+    lastScannedAt: string;
 }
 
 export interface ComplianceRisk {

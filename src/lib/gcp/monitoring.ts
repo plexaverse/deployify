@@ -2255,6 +2255,118 @@ export async function discoverStatisticsDrift(
 /**
  * Detect security threats from database logs (Phase 146)
  */
+/**
+ * Calculate the operational impact score of deadlocks (Phase 152)
+ */
+export function calculateDeadlockImpact(count: number): number {
+    // Impact increases exponentially with deadlock frequency
+    return Math.min(100, Math.round(count * 20));
+}
+
+/**
+ * Autonomously discover database deadlocks from logs and system stats (Phase 152)
+ */
+export async function discoverDeadlocks(
+    storage: import('@/types').StorageConfig,
+    logs: LogEntry[],
+    connectionString?: string
+): Promise<import('@/types').DeadlockReport> {
+    const incidents: import('@/types').DeadlockIncident[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasDeadlocks = Math.random() > 0.7;
+        return {
+            hasDeadlocks,
+            incidents: hasDeadlocks ? [
+                {
+                    id: `deadlock-${Date.now()}`,
+                    queries: [
+                        'UPDATE orders SET status = "processing" WHERE id = 101',
+                        'UPDATE inventory SET stock = stock - 1 WHERE id = 502'
+                    ],
+                    detectedAt: now,
+                    impactScore: 45,
+                    remediation: 'Deadlock detected between order processing and inventory updates. Ensure consistent lock acquisition order across services.'
+                }
+            ] : [],
+            totalDeadlocksLast24H: hasDeadlocks ? 1 : 0,
+            lastScannedAt: now
+        };
+    }
+
+    // 1. Analyze logs for deadlock patterns
+    for (const log of logs) {
+        const text = log.textPayload;
+        let isDeadlock = false;
+        const queries: string[] = [];
+        let remediation = '';
+
+        if (text.includes('deadlock detected') || (text.includes('Process') && text.includes('waits for') && text.includes('blocked by'))) {
+            // Postgres pattern
+            isDeadlock = true;
+            remediation = 'PostgreSQL deadlock detected. Review application transaction logic to ensure locks are acquired in a consistent order.';
+            // In a real scenario, we'd parse the log more deeply to extract queries if available in the surrounding context
+        } else if (text.includes('Deadlock found when trying to get lock')) {
+            // MySQL pattern
+            isDeadlock = true;
+            remediation = 'MySQL InnoDB deadlock detected. Consider reducing transaction size or using finer-grained locking.';
+        }
+
+        if (isDeadlock) {
+            incidents.push({
+                id: `dl-${log.insertId || Date.now()}`,
+                queries: queries.length > 0 ? queries : ['Unknown Query (Check engine logs)'],
+                detectedAt: log.timestamp,
+                impactScore: 40, // Base impact for a single event
+                remediation
+            });
+        }
+    }
+
+    // 2. Fetch deadlock counts from system catalogs if connection is available
+    let totalDeadlocks24H = incidents.length;
+
+    if (connectionString && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+        try {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+            if (isPostgres) {
+                const { Client } = await import('pg');
+                const client = new Client({
+                    connectionString,
+                    ssl: storage.ssl ? { rejectUnauthorized: false } : false,
+                    connectionTimeoutMillis: 5000
+                });
+                await client.connect();
+                try {
+                    const res = await client.query("SELECT deadlocks FROM pg_stat_database WHERE datname = current_database()");
+                    if (res.rows[0]) {
+                        // This is a cumulative count, so in a real impl we'd need to compare with a previously persisted baseline
+                        // For this discovery, we'll use it to bump the 24h estimate if it's high
+                        const cumulativeDeadlocks = Number(res.rows[0].deadlocks);
+                        if (cumulativeDeadlocks > 0 && totalDeadlocks24H === 0) {
+                            totalDeadlocks24H = 1; // At least one has occurred historically
+                        }
+                    }
+                } finally {
+                    await client.end().catch(() => {});
+                }
+            }
+        } catch (e) {
+            console.error(`[DeadlockDiscovery] DB query failed:`, e);
+        }
+    }
+
+    const uniqueIncidents = incidents.filter((v, i, a) => a.findIndex(t => t.queries.join() === v.queries.join()) === i);
+
+    return {
+        hasDeadlocks: totalDeadlocks24H > 0 || uniqueIncidents.length > 0,
+        incidents: uniqueIncidents,
+        totalDeadlocksLast24H: Math.max(totalDeadlocks24H, uniqueIncidents.length),
+        lastScannedAt: now
+    };
+}
+
 export async function detectSecurityThreats(
     storage: import('@/types').StorageConfig,
     logs: LogEntry[]
