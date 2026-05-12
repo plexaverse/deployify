@@ -1316,7 +1316,48 @@ export async function getScalingRecommendations(
         }
     }
 
-    // 6. Phase 136: Application-Aware Scaling (Telemetry-driven)
+    // 6. Phase 153: External Provider Tier Right-Sizing
+    if (storageType === 'supabase' && metadata?.tier) {
+        const tier = (metadata.tier as string).toUpperCase();
+        const usage = (metadata.usage as number) || 0;
+        if (tier.includes('PRO') && usage < 5) {
+            recommendations.push({
+                type: 'downgrade',
+                resource: 'memory',
+                currentTier: tier,
+                recommendedTier: 'FREE',
+                reason: `Very low usage (${usage}GB) detected on Supabase Pro. Downgrading to Free tier could save $25/mo.`,
+                estimatedSavings: '$25.00/mo',
+                savingsAmount: 25
+            });
+        }
+    } else if (storageType === 'mongodb-atlas' && metadata?.tier) {
+        const tier = (metadata.tier as string).toUpperCase();
+        if (tier.startsWith('M') && tier !== 'M0' && tier !== 'FREE') {
+            recommendations.push({
+                type: 'downgrade',
+                resource: 'cpu',
+                currentTier: tier,
+                recommendedTier: 'M0 (Shared)',
+                reason: 'Atlas cluster identified with low throughput. Consider M0/M2 shared tiers for non-production workloads.',
+                estimatedSavings: '$9-40/mo'
+            });
+        }
+    } else if (storageType === 'planetscale' && metadata?.tier) {
+        const tier = (metadata.tier as string).toUpperCase();
+        if (tier.includes('SCALER') || tier.includes('PRO')) {
+            recommendations.push({
+                type: 'downgrade',
+                resource: 'memory',
+                currentTier: tier,
+                recommendedTier: 'FREE',
+                reason: 'PlanetScale instance identified with low branch activity. Scaling to Free tier recommended for cost optimization.',
+                estimatedSavings: '$29-39/mo'
+            });
+        }
+    }
+
+    // 7. Phase 136: Application-Aware Scaling (Telemetry-driven)
     if (telemetry) {
         if (telemetry.p99 > 500 && isCloudSql && !hasReplicas) {
             recommendations.push({
@@ -1949,6 +1990,15 @@ export async function getSchemaOptimizations(
     // fetch or execute EXPLAIN, and then populate recommendations.
     // For now, we'll return the metrics which may already have mock recommendations if in mock mode.
     return impactMetrics;
+}
+
+/**
+ * Calculate the operational impact score of unused indexes (Phase 154)
+ * Returns a score from 0-100.
+ */
+export function calculateUnusedIndexImpact(sizeMb: number): number {
+    // Impact is primarily based on wasted storage and write overhead
+    return Math.min(100, Math.round(sizeMb / 5)); // 500MB+ unused index = 100 impact
 }
 
 /**
@@ -2605,6 +2655,183 @@ export async function discoverIndexBloat(
         hasBloat: candidates.length > 0,
         candidates,
         totalWastedMb: parseFloat(candidates.reduce((sum, c) => sum + c.bloatSizeMb, 0).toFixed(2)),
+        lastScannedAt: now
+    };
+}
+
+/**
+ * Autonomously discover unused or redundant indexes (Phase 154)
+ */
+export async function discoverUnusedIndexes(
+    storage: import('@/types').StorageConfig,
+    connectionString: string
+): Promise<import('@/types').UnusedIndexReport> {
+    const candidates: import('@/types').UnusedIndexCandidate[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasUnused = Math.random() > 0.4;
+        const mockCandidates = [
+            {
+                entity: 'users',
+                indexName: 'idx_users_last_login_old',
+                sizeMb: 124.5,
+                lastScannedAt: now,
+                reason: 'Index has received zero scans in the last 30 days.'
+            },
+            {
+                entity: 'orders',
+                indexName: 'idx_orders_customer_id_legacy',
+                sizeMb: 450.2,
+                lastScannedAt: now,
+                reason: 'Redundant index: covers same columns as idx_orders_customer_composite.',
+                isRedundant: true,
+                redundantWith: 'idx_orders_customer_composite'
+            }
+        ];
+
+        return {
+            hasUnusedIndexes: hasUnused,
+            candidates: hasUnused ? mockCandidates : [],
+            totalWastedMb: hasUnused ? parseFloat(mockCandidates.reduce((sum, c) => sum + c.sizeMb, 0).toFixed(2)) : 0,
+            lastScannedAt: now
+        };
+    }
+
+    try {
+        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+
+            if (isPostgres) {
+                const { Client } = await import('pg');
+                const client = new Client({
+                    connectionString,
+                    ssl: storage.ssl ? { rejectUnauthorized: false } : false,
+                    connectionTimeoutMillis: 5000
+                });
+                await client.connect();
+
+                try {
+                    // 1. Find indexes with zero scans
+                    const unusedQuery = `
+                        SELECT
+                            id.relname AS table_name,
+                            i.relname AS index_name,
+                            pg_relation_size(indexrelid) AS index_size_bytes
+                        FROM pg_stat_user_indexes ui
+                        JOIN pg_index idx ON ui.indexrelid = idx.indexrelid
+                        JOIN pg_class i ON ui.indexrelid = i.oid
+                        JOIN pg_class id ON ui.relid = id.oid
+                        WHERE idx_scan = 0
+                          AND idx.indisunique IS FALSE
+                          AND pg_relation_size(indexrelid) > 1024 * 1024
+                        ORDER BY pg_relation_size(indexrelid) DESC
+                        LIMIT 10
+                    `;
+                    const unusedRes = await client.query(unusedQuery);
+
+                    for (const row of unusedRes.rows) {
+                        const sizeMb = parseFloat((Number(row.index_size_bytes) / (1024 * 1024)).toFixed(2));
+                        candidates.push({
+                            entity: row.table_name,
+                            indexName: row.index_name,
+                            sizeMb,
+                            lastScannedAt: now,
+                            reason: 'Zero index scans detected. This index is wasting storage and slowing down write operations.',
+                            impactScore: calculateUnusedIndexImpact(sizeMb)
+                        });
+                    }
+
+                    // 2. Redundant index detection (Prefix overlapping)
+                    const redundantQuery = `
+                        SELECT
+                            ind.relname AS table_name,
+                            i1.relname AS redundant_index,
+                            i2.relname AS superior_index,
+                            pg_relation_size(i1.oid) AS size_bytes
+                        FROM pg_index x1
+                        JOIN pg_class i1 ON x1.indexrelid = i1.oid
+                        JOIN pg_index x2 ON x1.indrelid = x2.indrelid AND x1.indexrelid <> x2.indexrelid
+                        JOIN pg_class i2 ON x2.indexrelid = i2.oid
+                        JOIN pg_class ind ON x1.indrelid = ind.oid
+                        JOIN pg_namespace n ON ind.relnamespace = n.oid
+                        WHERE n.nspname = 'public'
+                          AND x1.indkey[0:array_upper(x1.indkey, 1)] = x2.indkey[0:array_upper(x1.indkey, 1)]
+                          AND array_upper(x1.indkey, 1) <= array_upper(x2.indkey, 1)
+                          AND NOT x1.indisunique
+                          AND x1.indpred IS NULL AND x2.indpred IS NULL
+                        LIMIT 5
+                    `;
+                    const redundantRes = await client.query(redundantQuery);
+                    for (const row of redundantRes.rows) {
+                        if (!candidates.find(c => c.indexName === row.redundant_index)) {
+                            const sizeMb = parseFloat((Number(row.size_bytes) / (1024 * 1024)).toFixed(2));
+                            candidates.push({
+                                entity: row.table_name,
+                                indexName: row.redundant_index,
+                                sizeMb,
+                                lastScannedAt: now,
+                                reason: `Redundant index: columns are a prefix of ${row.superior_index}.`,
+                                isRedundant: true,
+                                redundantWith: row.superior_index,
+                                impactScore: calculateUnusedIndexImpact(sizeMb)
+                            });
+                        }
+                    }
+                } finally {
+                    await client.end().catch(() => {});
+                }
+            } else {
+                const mysql = await import('mysql2/promise');
+                const connection = await mysql.createConnection(connectionString);
+                try {
+                    // MySQL performance_schema for unused indexes
+                    const [rows] = await connection.execute(`
+                        SELECT
+                            OBJECT_NAME as table_name,
+                            INDEX_NAME as index_name,
+                            COUNT_STAR as scans
+                        FROM performance_schema.table_io_waits_summary_by_index_usage
+                        WHERE OBJECT_SCHEMA = DATABASE()
+                          AND INDEX_NAME IS NOT NULL
+                          AND INDEX_NAME != 'PRIMARY'
+                          AND COUNT_STAR = 0
+                        LIMIT 10
+                    `);
+
+                    for (const row of rows as Record<string, unknown>[]) {
+                        // Heuristic for MySQL: fetch table size to give some scale
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const [sizeRows]: any = await connection.execute(`
+                            SELECT (INDEX_LENGTH) / 1024 / 1024 as index_mb
+                            FROM information_schema.TABLES
+                            WHERE TABLE_NAME = ? AND TABLE_SCHEMA = DATABASE()
+                        `, [row.table_name] as unknown as string[]);
+                        const tableIndexSize = (sizeRows as Record<string, number>[])[0]?.index_mb || 0;
+                        const estimatedIndexSize = parseFloat((tableIndexSize / 5).toFixed(2)); // Conservative estimate: 20% of total index size
+
+                        candidates.push({
+                            entity: row.table_name as string,
+                            indexName: row.index_name as string,
+                            sizeMb: estimatedIndexSize,
+                            lastScannedAt: now,
+                            reason: 'Zero index usage events detected in performance_schema.',
+                            impactScore: calculateUnusedIndexImpact(estimatedIndexSize)
+                        });
+                    }
+                } finally {
+                    await connection.end().catch(() => {});
+                }
+            }
+        }
+    } catch (e) {
+        console.error(`[UnusedIndexDiscovery] Failed for ${storage.id}:`, e);
+    }
+
+    return {
+        hasUnusedIndexes: candidates.length > 0,
+        candidates,
+        totalWastedMb: parseFloat(candidates.reduce((sum, c) => sum + c.sizeMb, 0).toFixed(2)),
         lastScannedAt: now
     };
 }

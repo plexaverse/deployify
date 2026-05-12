@@ -185,6 +185,20 @@ function createMockFirestore(): Firestore {
                                 ],
                                 totalDeadlocksLast24H: 1,
                                 lastScannedAt: new Date().toISOString()
+                            },
+                            unusedIndexReport: {
+                                hasUnusedIndexes: true,
+                                candidates: [
+                                    {
+                                        entity: 'users',
+                                        indexName: 'idx_users_last_login_old',
+                                        sizeMb: 124.5,
+                                        lastScannedAt: new Date().toISOString(),
+                                        reason: 'Index has received zero scans in the last 30 days.'
+                                    }
+                                ],
+                                totalWastedMb: 124.5,
+                                lastScannedAt: new Date().toISOString()
                             }
                         }
                     },
