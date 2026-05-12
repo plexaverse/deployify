@@ -44,6 +44,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
     const [deadlockReport, setDeadlockReport] = useState<DeadlockReport | null>(null);
     const [bloatReport, setBloatReport] = useState<import('@/lib/gcp/monitoring').BloatReport | null>(null);
     const [driftReport, setDriftReport] = useState<import('@/lib/gcp/monitoring').StatisticsDriftReport | null>(null);
+    const [unusedIndexReport, setUnusedIndexReport] = useState<import('@/types').UnusedIndexReport | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [isRunningMaintenance, setIsRunningMaintenance] = useState<string | null>(null);
     const [activePoolingSnippet, setActivePoolingSnippet] = useState<string>('prisma');
@@ -114,6 +115,19 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     }, [storage, projectId]);
 
+    const fetchUnusedIndexReport = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            if (storage.unusedIndexReport) {
+                setUnusedIndexReport(storage.unusedIndexReport);
+            } else if (storage.metadata?.unusedIndexReport) {
+                setUnusedIndexReport(storage.metadata.unusedIndexReport as import('@/types').UnusedIndexReport);
+            }
+        } catch (e) {
+            console.error('Failed to fetch unused index report:', e);
+        }
+    }, [storage, projectId]);
+
     const fetchDeadlockReport = useCallback(async () => {
         if (!storage || !projectId) return;
         try {
@@ -135,8 +149,9 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
             fetchBloatReport();
             fetchDriftReport();
             fetchDeadlockReport();
+            fetchUnusedIndexReport();
         }
-    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport, fetchDeadlockReport]);
+    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport, fetchDeadlockReport, fetchUnusedIndexReport]);
 
     const applyOptimization = async (recommendation: string, queryHash: string) => {
         if (!projectId || !storage) return;
@@ -196,7 +211,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     };
 
-    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation && !deadlockReport?.hasDeadlocks)) return null;
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation && !deadlockReport?.hasDeadlocks && !unusedIndexReport?.hasUnusedIndexes)) return null;
 
     const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
@@ -602,6 +617,69 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         >
                                             {isRunningMaintenance === `${candidate.entity}-stats` ? 'Optimizing...' : 'Run Statistics Optimization'}
                                         </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {unusedIndexReport?.hasUnusedIndexes && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Unused Index Advisor (Phase 154)</Label>
+                            <div className="space-y-3">
+                                {unusedIndexReport.candidates.map((candidate, i) => (
+                                    <div key={i} className="p-4 border border-[var(--warning)]/20 rounded-xl bg-[var(--warning)]/5 space-y-3 group hover:border-[var(--warning)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--warning)]/10 flex items-center justify-center shrink-0">
+                                                    <Search className="w-4 h-4 text-[var(--warning)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)]">
+                                                            {candidate.isRedundant ? 'Redundant Index' : 'Unused Index'}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--error)]/10 text-[var(--error)] uppercase">
+                                                            {candidate.sizeMb > 0 ? `${candidate.sizeMb} MB Wasted` : 'Zero Traffic'}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)]">{candidate.indexName}</p>
+                                                    <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-[10px] font-bold text-[var(--muted-foreground)] px-1">{candidate.reason}</p>
+
+                                        {candidate.isRedundant && candidate.redundantWith && (
+                                            <div className="p-2.5 bg-[var(--warning)]/10 border border-[var(--warning)]/20 rounded-lg flex items-center gap-2">
+                                                <AlertCircle className="w-3.5 h-3.5 text-[var(--warning)] shrink-0" />
+                                                <p className="text-[10px] font-bold uppercase text-[var(--foreground)]">Redundant with: <span className="font-mono text-[var(--primary)]">{candidate.redundantWith}</span></p>
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1 h-7 text-[10px] font-bold uppercase tracking-wider border-[var(--warning)]/20 text-[var(--warning)] hover:bg-[var(--warning)]/10"
+                                                onClick={() => {
+                                                    const sql = `DROP INDEX "${candidate.indexName}";`;
+                                                    navigator.clipboard.writeText(sql);
+                                                    toast.success('DROP INDEX SQL copied to clipboard');
+                                                }}
+                                            >
+                                                Copy Drop SQL
+                                            </Button>
+                                            <Button
+                                                className="flex-1 h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 border border-[var(--primary)]/20"
+                                                onClick={() => {
+                                                    const sql = `DROP INDEX "${candidate.indexName}";`;
+                                                    applyOptimization(sql, `drop-index-${candidate.indexName}`);
+                                                }}
+                                            >
+                                                Create Drop PR
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

@@ -10,7 +10,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks, discoverUnusedIndexes } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -349,6 +349,28 @@ export async function GET(
                         }
                     } catch (driftErr) {
                         console.error(`[DriftSync] Discovery failed for ${storageId}:`, driftErr);
+                    }
+                }
+
+                // 0n. Phase 154: Autonomous Unused Index Discovery & Governance
+                const unusedIndexReport = storage.unusedIndexReport || (storage.metadata?.unusedIndexReport as import('@/types').UnusedIndexReport | undefined);
+                const lastUnusedScan = unusedIndexReport?.lastScannedAt ? new Date(unusedIndexReport.lastScannedAt) : new Date(0);
+                const hoursSinceUnusedScan = (now.getTime() - lastUnusedScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && hoursSinceUnusedScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
+                        if (connStr) {
+                            const report = await discoverUnusedIndexes(storage, connStr);
+                            storage.unusedIndexReport = report;
+                            storage.metadata = {
+                                ...storage.metadata,
+                                unusedIndexReport: report
+                            };
+                        }
+                    } catch (unusedErr) {
+                        console.error(`[UnusedIndexSync] Discovery failed for ${storageId}:`, unusedErr);
                     }
                 }
 

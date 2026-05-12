@@ -2146,6 +2146,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     DEADLOCK RISK
                                                 </button>
                                             )}
+                                            {!!(config.unusedIndexReport || config.metadata?.unusedIndexReport as import('@/types').UnusedIndexReport)?.hasUnusedIndexes && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingOptimization(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1 animate-pulse"
+                                                    title={`Unused or redundant indexes detected: $${(config.unusedIndexReport || config.metadata?.unusedIndexReport as import('@/types').UnusedIndexReport).totalWastedMb} MB wasted.`}
+                                                >
+                                                    <Search className="w-2.5 h-2.5" />
+                                                    UNUSED INDEX
+                                                </button>
+                                            )}
                                             {!!(config.metadata?.statisticsDrift as import('@/lib/gcp/monitoring').StatisticsDriftReport)?.hasDrift && (
                                                 <button
                                                     onClick={(e) => {

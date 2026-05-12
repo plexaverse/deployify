@@ -1820,6 +1820,36 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Launch 'Maintenance Advisor' enhancement in the Optimization Modal with statistics optimization guidance.
 - [x] Add pulsating 'STATISTICS DRIFT' badges to the high-density Storage UI.
 
+### Phase 152: Autonomous Deadlock Discovery & Reliability Intelligence (COMPLETED)
+- [x] Implement `discoverDeadlocks` in `src/lib/gcp/monitoring.ts` (Postgres/MySQL log patterns).
+- [x] Integrate deadlock discovery into the 24-hour `StorageSync` API heartbeat.
+- [x] Launch 'Deadlock Advisor' in the Optimization Modal with remediation guidance.
+- [x] Add pulsating 'DEADLOCK RISK' badges to the high-density Storage UI.
+
+### Phase 153: Autonomous Database Cost Intelligence - External Provider Tier Right-Sizing (COMPLETED)
+- [x] Implement tier-aware cost discovery for Supabase, MongoDB Atlas, and PlanetScale.
+- [x] Integrate cost intelligence into workspace-wide financial observability.
+- [x] Add 'SAVINGS AVAILABLE' badges to the Storage dashboard for external provider optimizations.
+
+### Phase 154: Autonomous Database Intelligence - Unused & Redundant Index Discovery (COMPLETED)
+- [x] Implement `discoverUnusedIndexes` for identifying zero-traffic and prefix-redundant indexes (Postgres/MySQL).
+- [x] Integrate unused index discovery into the 24-hour `StorageSync` API heartbeat.
+- [x] Launch 'Unused Index Advisor' in the Optimization Modal with autonomous PR creation.
+- [x] Add pulsating 'UNUSED INDEX' badges to the high-density Storage UI.
+
+### 2027-07-28: Completed Phase 154: Autonomous Unused Index Discovery
+- Completed Phase 154: Autonomous Database Intelligence - Unused & Redundant Index Discovery.
+- Introduced `discoverUnusedIndexes` in `src/lib/gcp/monitoring.ts`, leveraging `pg_stat_user_indexes` (Postgres) and `performance_schema` (MySQL) to identify indexes with zero usage or prefix redundancy.
+- Integrated autonomous index discovery into the 24-hour `StorageSync` API heartbeat, ensuring operational insights are periodically updated and persisted into connector metadata.
+- Enhanced the high-density `OptimizationModal` UI with an 'Unused Index Advisor' section, visualizing wasted storage (MB) and providing "One-Click" SQL copying or autonomous GitHub PR creation.
+- Added pulsating 'UNUSED INDEX' badges to the Storage dashboard to proactively alert developers of database bloat.
+- Verified 100% operational integrity via backend unit tests, zero-warning linting, and visual Playwright verification.
+
+### 2027-07-27: Completed Phase 153: Autonomous Database Cost Intelligence
+- Completed Phase 153: Autonomous Database Cost Intelligence - External Provider Tier Right-Sizing.
+- Implemented tier-aware cost discovery for external providers including Supabase, MongoDB Atlas, and PlanetScale.
+- Integrated external cost intelligence into the platform's financial observability layer, surfacing 'SAVINGS AVAILABLE' badges in the UI.
+
 ### 2027-07-26: Completed Phase 152: Autonomous Deadlock Discovery
 - Completed Phase 152: Autonomous Database Reliability - Intelligent Deadlock Discovery & Active Lock Analysis.
 - Introduced `discoverDeadlocks` in `src/lib/gcp/monitoring.ts`, implementing heuristic log pattern recognition for PostgreSQL and MySQL deadlock events.

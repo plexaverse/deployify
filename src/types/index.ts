@@ -522,6 +522,7 @@ export interface StorageConfig {
     reliability?: ReliabilityMetrics;
     saturationRisk?: SaturationRisk;
     deadlockReport?: DeadlockReport;
+    unusedIndexReport?: UnusedIndexReport;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
@@ -588,6 +589,24 @@ export interface DeadlockReport {
     hasDeadlocks: boolean;
     incidents: DeadlockIncident[];
     totalDeadlocksLast24H: number;
+    lastScannedAt: string;
+}
+
+export interface UnusedIndexCandidate {
+    entity: string;
+    indexName: string;
+    sizeMb: number;
+    lastScannedAt: string;
+    reason: string;
+    impactScore?: number;
+    isRedundant?: boolean;
+    redundantWith?: string;
+}
+
+export interface UnusedIndexReport {
+    hasUnusedIndexes: boolean;
+    candidates: UnusedIndexCandidate[];
+    totalWastedMb: number;
     lastScannedAt: string;
 }
 
