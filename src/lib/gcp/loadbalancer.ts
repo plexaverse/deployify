@@ -62,11 +62,23 @@ export async function createGlobalLoadBalancer(
             })
         });
 
-        // 4. Create Target HTTPS Proxy
-        const proxyName = `${prefix}-proxy`;
-        // (Simplified: In real world, we need an SSL certificate resource here too)
+        // 4. Create Managed SSL Certificate
+        const sslCertName = `${prefix}-cert`;
+        await createManagedSslCertificate(sslCertName, [`${serviceName}.deployify.app`]);
 
-        // 5. Create Forwarding Rule (Global IP)
+        // 5. Create Target HTTPS Proxy
+        const proxyName = `${prefix}-proxy`;
+        await fetch(`${projectUrl}/global/targetHttpsProxies`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: proxyName,
+                urlMap: `${projectUrl}/global/urlMaps/${urlMapName}`,
+                sslCertificates: [`${projectUrl}/global/sslCertificates/${sslCertName}`]
+            })
+        });
+
+        // 6. Create Forwarding Rule (Global IP)
         const forwardingRuleName = `${prefix}-fw`;
         await fetch(`${projectUrl}/global/forwardingRules`, {
             method: 'POST',
@@ -123,5 +135,41 @@ export async function enableCloudCdn(backendServiceName: string): Promise<void> 
 
     if (!response.ok) {
         throw new Error(`Failed to enable Cloud CDN: ${await response.text()}`);
+    }
+}
+
+/**
+ * Create a Google-managed SSL certificate
+ */
+export async function createManagedSslCertificate(
+    certificateName: string,
+    domains: string[]
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    console.log(`[Deployify Edge] Creating Managed SSL Certificate for domains: ${domains.join(', ')}`);
+
+    const url = `${COMPUTE_API}/projects/${gcpProjectId}/global/sslCertificates`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: certificateName,
+            type: 'MANAGED',
+            managed: {
+                domains
+            }
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to create Managed SSL Certificate: ${await response.text()}`);
     }
 }
