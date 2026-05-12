@@ -26,8 +26,8 @@ describe('Connection Pool Optimization Logic', () => {
     };
 
     const mockSessions: DatabaseSession[] = [
-        { id: '1', state: 'active', clientAddress: '1.2.3.4', startTime: new Date().toISOString(), query: 'SELECT 1' },
-        { id: '2', state: 'idle', clientAddress: '1.2.3.4', startTime: new Date().toISOString(), query: '' },
+        { id: '1', state: 'active', clientAddress: '1.2.3.4', startTime: new Date().toISOString(), query: 'SELECT 1', user: 'user1', database: 'db1', durationMs: 100 },
+        { id: '2', state: 'idle', clientAddress: '1.2.3.4', startTime: new Date().toISOString(), query: '', user: 'user1', database: 'db1', durationMs: 0 },
     ];
 
     it('should suggest optimization when saturation is high', () => {
@@ -37,7 +37,10 @@ describe('Connection Pool Optimization Logic', () => {
             state: 'active',
             clientAddress: '1.2.3.4',
             startTime: new Date().toISOString(),
-            query: 'SELECT 1'
+            query: 'SELECT 1',
+            user: 'user1',
+            database: 'db1',
+            durationMs: 100
         }));
 
         const result = optimizeConnectionPools(mockStorage, highSaturationMetrics, manyActiveSessions);

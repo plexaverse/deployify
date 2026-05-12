@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { discoverDeadlocks, calculateDeadlockImpact } from './monitoring';
-import type { StorageConfig, LogEntry } from '@/types';
+import { discoverDeadlocks, calculateDeadlockImpact, type LogEntry } from './monitoring';
+import type { StorageConfig } from '@/types';
 
 test('calculateDeadlockImpact', () => {
     assert.strictEqual(calculateDeadlockImpact(1), 20);
