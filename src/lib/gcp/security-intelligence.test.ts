@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { detectSecurityThreats } from './monitoring';
+import { detectSecurityThreats, type LogEntry } from './monitoring';
 
 test('detectSecurityThreats Logic', async (t) => {
     const mockStorage = {
@@ -17,7 +17,7 @@ test('detectSecurityThreats Logic', async (t) => {
                 textPayload: 'SELECT * FROM users WHERE id = 1 OR 1=1',
                 insertId: '1'
             }
-        ] as import('@/types').LogEntry[];
+        ] as LogEntry[];
 
         const report = await detectSecurityThreats(mockStorage, logs);
         assert.strictEqual(report.activeThreats.length, 1);
@@ -34,7 +34,7 @@ test('detectSecurityThreats Logic', async (t) => {
                 textPayload: 'password authentication failed for user "admin"',
                 insertId: '2'
             }
-        ] as import('@/types').LogEntry[];
+        ] as LogEntry[];
 
         const report = await detectSecurityThreats(mockStorage, logs);
         assert.strictEqual(report.activeThreats.length, 1);
@@ -50,7 +50,7 @@ test('detectSecurityThreats Logic', async (t) => {
                 textPayload: 'Failed login from 1.2.3.4',
                 insertId: '3'
             }
-        ] as import('@/types').LogEntry[];
+        ] as LogEntry[];
 
         // This requires 'password authentication failed' or similar to trigger brute force detection in current impl
         logs[0].textPayload = 'password authentication failed for user "postgres" from 1.2.3.4';
@@ -67,7 +67,7 @@ test('detectSecurityThreats Logic', async (t) => {
                 textPayload: 'Database connection established',
                 insertId: '4'
             }
-        ] as import('@/types').LogEntry[];
+        ] as LogEntry[];
 
         const report = await detectSecurityThreats(mockStorage, logs);
         assert.strictEqual(report.activeThreats.length, 0);
