@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
 import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getCloudSqlInstance, createUser as createCloudSqlUser } from '@/lib/gcp/cloudsql';
+import { getOperationStatus as getAlloyDbOperationStatus, createInstance as createAlloyDbInstance, getInstance as getAlloyDbInstance } from '@/lib/gcp/alloydb';
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import { getGcpProjectNumber } from '@/lib/gcp/auth';
@@ -781,7 +782,19 @@ export async function GET(
             console.warn(`[StorageSync] Operation timeout detected for ${storageId} (${minsInProvisioning.toFixed(1)} mins). Attempting recovery...`);
 
             // Direct resource state check for GCP types
-            if (storage.type.includes('cloud-sql')) {
+            if (storage.type === 'alloydb') {
+                try {
+                    const clusterId = storage.metadata?.resourceName as string;
+                    const instance = await getAlloyDbInstance(clusterId, `${clusterId}-primary`, (storage.metadata?.region as string) || project.region || 'us-central1');
+                    if (instance && instance.state === 'READY') {
+                        storage.status = 'active';
+                        storage.updatedAt = now;
+                        storageConfigs[index] = storage;
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'active', message: 'AlloyDB recovered from timeout' });
+                    }
+                } catch (e) { console.warn(`[StorageSync] AlloyDB recovery check failed:`, e); }
+            } else if (storage.type.includes('cloud-sql')) {
                 try {
                     const { getInstance } = await import('@/lib/gcp/cloudsql');
                     const instance = await getInstance(storage.metadata?.resourceName as string);
@@ -877,7 +890,9 @@ export async function GET(
         // Poll GCP for status
         let statusResult;
         try {
-            if (storage.type.startsWith('cloud-sql')) {
+            if (storage.type === 'alloydb') {
+                statusResult = await getAlloyDbOperationStatus(operationName);
+            } else if (storage.type.startsWith('cloud-sql')) {
                 statusResult = await getCloudSqlOperationStatus(operationName);
             } else if (storage.type === 'memorystore-redis') {
                 statusResult = await getMemorystoreOperationStatus(operationName);
@@ -1214,8 +1229,42 @@ export async function GET(
 
             // Check if we need follow-up operations (e.g. create DB/User for Cloud SQL)
             const isCloudSql = storage.type.startsWith('cloud-sql');
+            const isAlloyDb = storage.type === 'alloydb';
 
-            if (isCloudSql) {
+            if (isAlloyDb) {
+                const clusterId = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const region = (storage.metadata?.region as string) || project.region || 'us-central1';
+                const hasCreatedInstance = storage.metadata?.instanceCreated;
+                const instanceOperationName = storage.metadata?.instanceOperationName as string;
+
+                try {
+                    // Step 2: Create Primary Instance if cluster is ready but instance not started
+                    if (!hasCreatedInstance && !instanceOperationName) {
+                        const opResult = await createAlloyDbInstance(clusterId, `${clusterId}-primary`, region, (storage.metadata?.tier as string));
+                        storage.metadata = { ...storage.metadata, instanceOperationName: opResult.operationName };
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Cluster ready, now creating primary instance...' });
+                    }
+
+                    // Step 3: Poll Instance creation
+                    if (instanceOperationName && !hasCreatedInstance) {
+                        const instStatus = await getAlloyDbOperationStatus(instanceOperationName);
+                        if (instStatus.status === 'DONE') {
+                            if (instStatus.error) throw new Error(`Instance creation failed: ${instStatus.error}`);
+                            storage.metadata = { ...storage.metadata, instanceCreated: true };
+                            storage.status = 'active';
+                            storage.lastSyncedAt = now;
+                            await updateProject(id, { storageConfigs });
+                            return NextResponse.json({ success: true, status: 'active', message: 'AlloyDB Cluster and Instance provisioned successfully' });
+                        }
+                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Primary instance creation in progress...' });
+                    }
+                } catch (e) {
+                    console.error('Failed AlloyDB follow-up provisioning:', e);
+                    storage.status = 'error';
+                    storage.lastError = `Cluster ready, but instance creation failed: ${e instanceof Error ? e.message : 'Unknown'}`;
+                }
+            } else if (isCloudSql) {
                 const hasCreatedDb = storage.metadata?.dbCreated;
                 const dbOperationName = storage.metadata?.dbOperationName as string;
                 const userOperationName = storage.metadata?.userOperationName as string;

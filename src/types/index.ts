@@ -416,6 +416,7 @@ export interface CronJobConfig {
 export type StorageType =
     | 'cloud-sql-postgres'
     | 'cloud-sql-mysql'
+    | 'alloydb'
     | 'firestore'
     | 'memorystore-redis'
     | 'supabase'
