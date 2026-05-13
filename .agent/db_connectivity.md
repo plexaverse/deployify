@@ -1837,6 +1837,20 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Launch 'Unused Index Advisor' in the Optimization Modal with autonomous PR creation.
 - [x] Add pulsating 'UNUSED INDEX' badges to the high-density Storage UI.
 
+### Phase 155: Autonomous AlloyDB Integration & Connectivity Intelligence (IN-PROGRESS)
+- [x] Define AlloyDB types and update `StorageType` in `src/types/index.ts`.
+- [x] Implement AlloyDB management library in `src/lib/gcp/alloydb.ts`.
+- [x] Integrate AlloyDB into the Storage API and Orchestration.
+- [x] Update the Frontend UI in `src/components/StorageSection.tsx`.
+- [ ] Implement AlloyDB metrics support in monitoring engine.
+
+### 2027-07-29: Initiated Phase 155: Autonomous AlloyDB Integration
+- Started Phase 155: Autonomous AlloyDB Integration & Connectivity Intelligence.
+- Defined AlloyDB types and updated the primary `StorageConfig` schema to support the new GCP-native tier.
+- Developed `src/lib/gcp/alloydb.ts` to interface with the AlloyDB Admin API, supporting one-click cluster and instance creation.
+- Integrated AlloyDB into the automated provisioning pipeline, enabling IAM-based passwordless connectivity by default.
+- Enhanced the Storage UI with AlloyDB selection and high-performance technical guidance.
+
 ### 2027-07-28: Completed Phase 154: Autonomous Unused Index Discovery
 - Completed Phase 154: Autonomous Database Intelligence - Unused & Redundant Index Discovery.
 - Introduced `discoverUnusedIndexes` in `src/lib/gcp/monitoring.ts`, leveraging `pg_stat_user_indexes` (Postgres) and `performance_schema` (MySQL) to identify indexes with zero usage or prefix redundancy.

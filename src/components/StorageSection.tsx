@@ -77,6 +77,7 @@ interface StorageSectionProps {
 const STORAGE_TYPES = [
     { value: 'cloud-sql-postgres', label: 'CLOUD SQL (POSTGRES)', category: 'GCP NATIVE' },
     { value: 'cloud-sql-mysql', label: 'CLOUD SQL (MYSQL)', category: 'GCP NATIVE' },
+    { value: 'alloydb', label: 'ALLOYDB (POSTGRES)', category: 'GCP NATIVE' },
     { value: 'firestore', label: 'FIRESTORE', category: 'GCP NATIVE' },
     { value: 'memorystore-redis', label: 'MEMORYSTORE (REDIS)', category: 'GCP NATIVE' },
     { value: 'supabase', label: 'SUPABASE', category: 'EXTERNAL' },
@@ -3216,6 +3217,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                 </code>
                             </div>
                         </div>
+
+                                {isShowingGuide?.type === 'alloydb' && (
+                                    <div className="p-4 bg-[var(--info)]/5 border border-[var(--info)]/20 rounded-xl space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Zap className="w-4 h-4 text-[var(--info)]" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]">AlloyDB Performance</span>
+                                        </div>
+                                        <p className="text-[10px] font-bold">
+                                            AlloyDB provides 4x faster performance than standard PostgreSQL. Use the IAM-based connection string for secure, high-throughput access.
+                                        </p>
+                                    </div>
+                                )}
 
                         <div className="space-y-3">
                             <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Kubernetes (IaC)</Label>

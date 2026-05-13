@@ -359,9 +359,9 @@ export async function getEnvVarsForDeployment(
             let envKey = storage.envKey;
 
             if (!envKey) {
-                envKey = 'DATABASE_URL';
                 if (storage.type === 'memorystore-redis') envKey = 'REDIS_URL';
-                if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
+                else if (storage.type === 'mongodb-atlas') envKey = 'MONGODB_URI';
+                else envKey = 'DATABASE_URL';
             }
 
             // Handle Read Replicas (Intelligent Traffic Steering)
@@ -436,7 +436,7 @@ export async function getEnvVarsForDeployment(
                         }
 
                         // Enforce SSL if configured
-                        if (storage.ssl && (storage.type.includes('sql') || storage.type === 'supabase' || storage.type === 'planetscale' || storage.type === 'mongodb-atlas' || storage.type === 'memorystore-redis')) {
+                        if (storage.ssl && (storage.type.includes('sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'planetscale' || storage.type === 'mongodb-atlas' || storage.type === 'memorystore-redis')) {
                             try {
                                 if (storage.type === 'memorystore-redis') {
                                     // Switch to rediss:// protocol

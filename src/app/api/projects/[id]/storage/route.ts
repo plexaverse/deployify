@@ -5,9 +5,11 @@ import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { upsertSecret, deleteSecret } from '@/lib/gcp/secrets';
 import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloudSqlInstance, updateInstanceSettings as updateCloudSqlSettings } from '@/lib/gcp/cloudsql';
+import { createCluster as createAlloyDbCluster, deleteInstance as deleteAlloyDbInstance, deleteCluster as deleteAlloyDbCluster } from '@/lib/gcp/alloydb';
 import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance, updateInstanceSize as updateMemorystoreSize } from '@/lib/gcp/memorystore';
 import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { deriveTopology } from '@/lib/gcp/topology';
+import { config } from '@/lib/config';
 import type { StorageConfig } from '@/types';
 
 // Generate unique ID for storage configs
@@ -136,6 +138,17 @@ export async function POST(
                 } else if (type === 'firestore' && resourceName) {
                     provisionResult = await createFirestoreDatabase(resourceName, targetRegion);
                     finalConnectionString = provisionResult.connectionString;
+                } else if (type === 'alloydb' && resourceName) {
+                    const vpcNetwork = project.vpcNetwork || 'default';
+                    // Step 1: Create Cluster
+                    const clusterResult = await createAlloyDbCluster(resourceName, targetRegion, vpcNetwork);
+                    operationName = clusterResult.operationName;
+
+                    // Deriving initial connection string for AlloyDB (IAM Based)
+                    const gcpProjId = config.gcp.projectId || process.env.GCP_PROJECT_ID || '';
+                    finalConnectionString = `postgresql://deployify-sa@/${project.slug}?host=/cloudsql/${gcpProjId}:${targetRegion}:${resourceName}-primary&enable_iam_auth=true`;
+
+                    provisionResult = { operationName, connectionString: finalConnectionString };
                 } else if (type === 'neon' || type === 'supabase') {
                     const { provisionExternalConnector } = await import('@/lib/gcp/external-sync');
                     provisionResult = await provisionExternalConnector(id, name, type, targetRegion, { ...metadata, providerApiKey, dbPassword });
@@ -299,6 +312,9 @@ export async function DELETE(
 
                 if (storageConfig.type.includes('cloud-sql')) {
                     await deleteCloudSqlInstance(resourceName);
+                } else if (storageConfig.type === 'alloydb') {
+                    await deleteAlloyDbInstance(resourceName, `${resourceName}-primary`, region);
+                    await deleteAlloyDbCluster(resourceName, region);
                 } else if (storageConfig.type === 'memorystore-redis') {
                     await deleteMemorystoreInstance(resourceName, region);
                 } else if (storageConfig.type === 'firestore') {
