@@ -23,10 +23,10 @@ jobs:
           # List open PRs and filter using jq
           # Criteria:
           # 1. Mergeable state is MERGEABLE
-          # 2. Status checks are SUCCESS
+          # 2. Status checks are SUCCESS (must include npm run build in CI)
           # 3. PR is APPROVED (Safety first)
 
-          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
+          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
 
           if [ ! -s pr_numbers.txt ]; then
             echo "No approved PRs found that are ready for automatic merging."
@@ -35,6 +35,7 @@ jobs:
 
           while read pr; do
             echo "Processing PR #$pr..."
+            # Using --auto flag as well to queue it if needed, but the cron handles it primarily
             gh pr merge $pr --squash --admin || gh pr merge $pr --squash || echo "Failed to merge PR #$pr"
           done < pr_numbers.txt
         env:

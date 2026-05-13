@@ -295,3 +295,58 @@ export function getPreviewServiceName(projectSlug: string, prNumber: number): st
 export function getProductionServiceName(projectSlug: string): string {
     return generateServiceName(projectSlug);
 }
+
+/**
+ * Update service settings (e.g., concurrency limits)
+ */
+export async function updateServiceSettings(
+    serviceName: string,
+    accessToken: string,
+    settings: {
+        concurrency?: number;
+        cpu?: string;
+        memory?: string;
+    },
+    projectRegion?: string | null
+): Promise<void> {
+    const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const fullName = `projects/${gcpProjectId}/locations/${region}/services/${serviceName}`;
+
+    console.log(`[Cloud Run] Updating settings for ${serviceName}:`, settings);
+
+    const patchBody: any = {
+        template: {
+            containers: [
+                {
+                    resources: {}
+                }
+            ]
+        }
+    };
+
+    if (settings.concurrency !== undefined) {
+        patchBody.template.maxInstanceRequestConcurrency = settings.concurrency;
+    }
+
+    if (settings.cpu || settings.memory) {
+        if (settings.cpu) patchBody.template.containers[0].resources.cpu = settings.cpu;
+        if (settings.memory) patchBody.template.containers[0].resources.limits = { ...patchBody.template.containers[0].resources.limits, memory: settings.memory };
+    }
+
+    const response = await fetch(
+        `${CLOUD_RUN_API}/${fullName}`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(patchBody),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`Failed to update Cloud Run service settings: ${await response.text()}`);
+    }
+}

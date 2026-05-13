@@ -153,6 +153,12 @@ export interface Project {
         minInstances?: number;
         maxInstances?: number;
     };
+    autoScaling?: {
+        enabled: boolean;
+        maxConcurrency?: number;
+        minInstances?: number;
+        maxInstances?: number;
+    };
     crons?: CronJobConfig[];
     envVariables?: EnvVariable[];
     domains?: Domain[];

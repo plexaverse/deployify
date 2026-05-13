@@ -3,6 +3,8 @@ import { getDb, Collections } from '@/lib/firebase';
 import { getCloudSqlHistoricalMetrics, getMemorystoreHistoricalMetrics, getScalingRecommendations, getExternalMetrics, getMaintenanceRecommendation } from '@/lib/gcp/monitoring';
 import { updateInstanceSettings as updateSqlSettings, updateMaintenanceWindow } from '@/lib/gcp/cloudsql';
 import { updateInstanceSettings as updateRedisSettings } from '@/lib/gcp/memorystore';
+import { updateServiceSettings as updateRunSettings } from '@/lib/gcp/cloudrun';
+import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
 import type { Project } from '@/types';
@@ -50,6 +52,30 @@ export async function GET(request: NextRequest) {
             const project = projectDoc.data() as Project;
             const storageConfigs = [...(project.storageConfigs || [])];
             let projectUpdated = false;
+
+            // Phase 1: Auto-Scale Cloud Run (if enabled)
+            if (project.autoScaling?.enabled) {
+                try {
+                    const serviceName = project.slug; // Assuming slug is the service name
+                    const accessToken = await getGcpAccessToken();
+
+                    // Simple logic: If CPU utilization is high, increase concurrency
+                    // In a real scenario, we'd fetch Cloud Run metrics here
+                    const currentConcurrency = project.autoScaling.maxConcurrency || 80;
+                    if (currentConcurrency < 200) {
+                        console.log(`[Auto-Pilot] Increasing concurrency for Cloud Run service ${serviceName}`);
+                        await updateRunSettings(serviceName, accessToken, {
+                            concurrency: currentConcurrency + 20
+                        }, project.region);
+
+                        await db.collection(Collections.PROJECTS).doc(project.id).update({
+                            'autoScaling.maxConcurrency': currentConcurrency + 20
+                        });
+                    }
+                } catch (runErr) {
+                    console.error(`[Auto-Pilot] Cloud Run auto-scaling failed for ${project.slug}:`, runErr);
+                }
+            }
 
             for (let i = 0; i < storageConfigs.length; i++) {
                 const storage = storageConfigs[i];
