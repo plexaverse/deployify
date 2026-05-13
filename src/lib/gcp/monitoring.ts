@@ -181,8 +181,8 @@ export async function discoverSensitiveData(
     try {
         const { PII_PATTERNS } = await import('@/lib/utils/masking');
 
-        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
-            const dbType = (storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
+        if (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') {
+            const dbType = (storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
 
             if (dbType === 'postgres') {
                 const { Client } = await import('pg');
@@ -494,6 +494,96 @@ export async function getCloudSqlMetrics(
 /**
  * Fetch resource metrics for a Memorystore (Redis) instance
  */
+/**
+ * Fetch resource metrics for an AlloyDB instance (Phase 155)
+ */
+export async function getAlloyDbMetrics(
+    clusterId: string,
+    instanceId: string,
+    region: string
+): Promise<ResourceMetrics> {
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            cpuUtilization: Math.floor(Math.random() * 25) + 5,
+            memoryUtilization: Math.floor(Math.random() * 30) + 10,
+            connectionSaturation: Math.floor(Math.random() * 40) + 5,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    // AlloyDB uses specific metric types
+    const cpuFilter = `metric.type="alloydb.googleapis.com/instance/cpu/average_utilization" AND resource.labels.instance_id="${instanceId}" AND resource.labels.cluster_id="${clusterId}" AND resource.labels.location="${region}"`;
+    const memoryFilter = `metric.type="alloydb.googleapis.com/instance/memory/min_available_memory" AND resource.labels.instance_id="${instanceId}" AND resource.labels.cluster_id="${clusterId}" AND resource.labels.location="${region}"`;
+    const connFilter = `metric.type="alloydb.googleapis.com/instance/postgresql/active_connections" AND resource.labels.instance_id="${instanceId}" AND resource.labels.cluster_id="${clusterId}" AND resource.labels.location="${region}"`;
+
+    const [cpu, memory, connections] = await Promise.all([
+        fetchLatestMetricValue(gcpProjectId!, accessToken, cpuFilter),
+        fetchLatestMetricValue(gcpProjectId!, accessToken, memoryFilter),
+        fetchLatestMetricValue(gcpProjectId!, accessToken, connFilter)
+    ]);
+
+    // Memory is available memory in bytes, so we'd need to normalize it if we want percentage.
+    // For now we'll return raw normalized estimates if possible or just the value.
+    // Assuming 16GB default for AlloyDB smallest instances if not known.
+    const memoryUtil = Math.max(0, 100 - (memory / (16 * 1024 * 1024 * 1024)) * 100);
+
+    return {
+        cpuUtilization: parseFloat(cpu.toFixed(2)),
+        memoryUtilization: parseFloat(memoryUtil.toFixed(2)),
+        connectionSaturation: parseFloat(Math.min(100, (connections / 1000) * 100).toFixed(2)), // AlloyDB supports high connections
+        timestamp: new Date().toISOString()
+    };
+}
+
+/**
+ * Fetch historical resource metrics for an AlloyDB instance (Phase 155)
+ */
+export async function getAlloyDbHistoricalMetrics(
+    clusterId: string,
+    instanceId: string,
+    region: string,
+    days: number = 7
+): Promise<ResourceMetrics[]> {
+    if (process.env.MOCK_DB === 'true') {
+        const points = [];
+        const now = Date.now();
+        for (let i = 0; i < days * 24; i++) {
+            points.push({
+                cpuUtilization: Math.floor(Math.random() * 20) + 5,
+                memoryUtilization: Math.floor(Math.random() * 30) + 10,
+                connectionSaturation: Math.floor(Math.random() * 40) + 5,
+                timestamp: new Date(now - i * 3600000).toISOString()
+            });
+        }
+        return points.reverse();
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const cpuFilter = `metric.type="alloydb.googleapis.com/instance/cpu/average_utilization" AND resource.labels.instance_id="${instanceId}" AND resource.labels.cluster_id="${clusterId}" AND resource.labels.location="${region}"`;
+    const memoryFilter = `metric.type="alloydb.googleapis.com/instance/memory/min_available_memory" AND resource.labels.instance_id="${instanceId}" AND resource.labels.cluster_id="${clusterId}" AND resource.labels.location="${region}"`;
+
+    const [cpuData, memData] = await Promise.all([
+        fetchTimeSeriesData(gcpProjectId!, accessToken, cpuFilter, days),
+        fetchTimeSeriesData(gcpProjectId!, accessToken, memoryFilter, days)
+    ]);
+
+    return cpuData.map((point, index) => {
+        const memBytes = memData[index]?.value || (16 * 1024 * 1024 * 1024);
+        const memoryUtil = Math.max(0, 100 - (memBytes / (16 * 1024 * 1024 * 1024)) * 100);
+
+        return {
+            cpuUtilization: point.value,
+            memoryUtilization: memoryUtil,
+            timestamp: point.timestamp
+        };
+    });
+}
+
 export async function getMemorystoreMetrics(instanceId: string, region: string): Promise<ResourceMetrics> {
     if (process.env.MOCK_DB === 'true') {
         return {
@@ -558,6 +648,10 @@ export async function getResourceDormancy(
             cpuFilter = `metric.type="cloudsql.googleapis.com/database/cpu/utilization" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
             memoryFilter = `metric.type="cloudsql.googleapis.com/database/memory/utilization" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
             diskFilter = `metric.type="cloudsql.googleapis.com/database/disk/utilization" AND resource.labels.database_id="${gcpProjectId}:${instanceId}"`;
+        } else if (storageType === 'alloydb') {
+            // Using cluster-level or instance-level filters if possible
+            cpuFilter = `metric.type="alloydb.googleapis.com/instance/cpu/average_utilization" AND resource.labels.instance_id="${instanceId}"`;
+            memoryFilter = `metric.type="alloydb.googleapis.com/instance/memory/min_available_memory" AND resource.labels.instance_id="${instanceId}"`;
         } else if (storageType === 'memorystore-redis' && region) {
             cpuFilter = `metric.type="redis.googleapis.com/stats/cpu/usage_time" AND resource.labels.instance_id="projects/${gcpProjectId}/locations/${region}/instances/${instanceId}"`;
             memoryFilter = `metric.type="redis.googleapis.com/stats/memory/usage_ratio" AND resource.labels.instance_id="projects/${gcpProjectId}/locations/${region}/instances/${instanceId}"`;
@@ -630,6 +724,17 @@ export function getEstimatedMonthlyCost(
         // HA Multiplier (Double the cost for Regional HA)
         if (isHA) {
             cost *= 2;
+        }
+    } else if (storageType === 'alloydb') {
+        // AlloyDB Pricing: $0.06 per vCPU hour (~$43/mo for 1 vCPU) + $0.30 per GB storage
+        const cpuMatch = tier.match(/(\d+)/);
+        const cpuCount = cpuMatch ? parseInt(cpuMatch[1]) : 2;
+        cost = (cpuCount * 0.06 * 24 * 30.5); // Approx monthly compute cost
+        if (diskSizeGb) {
+            cost += diskSizeGb * 0.30;
+        }
+        if (isHA) {
+            cost *= 2; // AlloyDB High Availability doubles the instance count
         }
     } else if (storageType === 'memorystore-redis') {
         // Redis Cost (~$35 per GB for Basic, ~$70 for Standard/HA)
@@ -1188,10 +1293,11 @@ export async function getScalingRecommendations(
 ): Promise<ScalingRecommendation[]> {
     const recommendations: ScalingRecommendation[] = [];
     const isCloudSql = storageType.includes('cloud-sql');
+    const isAlloyDb = storageType === 'alloydb';
     const isRedis = storageType === 'memorystore-redis';
     const isNeon = storageType === 'neon';
 
-    const currentTier = (metadata?.tier as string) || (isCloudSql ? 'db-f1-micro' : isRedis ? '1GB' : isNeon ? 'FREE' : 'unknown');
+    const currentTier = (metadata?.tier as string) || (isCloudSql ? 'db-f1-micro' : isAlloyDb ? '2vCPU' : isRedis ? '1GB' : isNeon ? 'FREE' : 'unknown');
     const diskSizeGb = (metadata?.diskSizeGb as number) || (metadata?.memorySizeGb as number) || 10;
     const isHA = !!metadata?.highAvailability;
 
@@ -1209,6 +1315,9 @@ export async function getScalingRecommendations(
             if (currentTier === 'db-g1-small') recommendedTier = 'db-custom-1-3840';
             else if (currentTier.includes('custom-1')) recommendedTier = 'db-custom-2-7680';
             else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-4-15360';
+        } else if (isAlloyDb) {
+            const cpuCount = parseInt(currentTier) || 2;
+            recommendedTier = `${cpuCount * 2}vCPU`;
         } else if (isRedis) {
             const currentSize = parseInt(currentTier) || 1;
             recommendedTier = `${currentSize + 1}GB`;
@@ -1237,6 +1346,9 @@ export async function getScalingRecommendations(
             if (currentTier.includes('custom-4')) recommendedTier = 'db-custom-2-7680';
             else if (currentTier.includes('custom-2')) recommendedTier = 'db-custom-1-3840';
             else if (currentTier.includes('custom-1')) recommendedTier = 'db-g1-small';
+        } else if (isAlloyDb) {
+            const cpuCount = parseInt(currentTier) || 4;
+            recommendedTier = `${Math.max(2, Math.floor(cpuCount / 2))}vCPU`;
         } else if (isRedis) {
             const currentSize = parseInt(currentTier) || 1;
             recommendedTier = `${Math.max(1, currentSize - 1)}GB`;
@@ -2070,8 +2182,8 @@ export async function discoverArchivalCandidates(
     }
 
     try {
-        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
-            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+        if (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon';
 
             if (isPostgres) {
                 const { Client } = await import('pg');
@@ -2213,8 +2325,8 @@ export async function discoverStatisticsDrift(
     }
 
     try {
-        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
-            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+        if (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon';
 
             if (isPostgres) {
                 const { Client } = await import('pg');
@@ -2377,9 +2489,9 @@ export async function discoverDeadlocks(
     // 2. Fetch deadlock counts from system catalogs if connection is available
     let totalDeadlocks24H = incidents.length;
 
-    if (connectionString && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+    if (connectionString && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
         try {
-            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon';
             if (isPostgres) {
                 const { Client } = await import('pg');
                 const client = new Client({
@@ -2533,8 +2645,8 @@ export async function discoverIndexBloat(
     }
 
     try {
-        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
-            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+        if (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon';
 
             if (isPostgres) {
                 const { Client } = await import('pg');
@@ -2699,8 +2811,8 @@ export async function discoverUnusedIndexes(
     }
 
     try {
-        if (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon') {
-            const isPostgres = storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon';
+        if (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon';
 
             if (isPostgres) {
                 const { Client } = await import('pg');
@@ -2844,7 +2956,7 @@ export function optimizeConnectionPools(
     metrics: ResourceMetrics,
     sessions: import('./cloudsql').DatabaseSession[]
 ): PoolingRecommendation | undefined {
-    if (!storage.type.includes('cloud-sql') && storage.type !== 'supabase' && storage.type !== 'neon') return undefined;
+    if (!storage.type.includes('cloud-sql') && storage.type !== 'alloydb' && storage.type !== 'supabase' && storage.type !== 'neon') return undefined;
 
     const totalSessions = sessions.length;
     const idleSessions = sessions.filter(s => s.state === 'idle' || s.state === 'Sleep').length;
@@ -2880,7 +2992,7 @@ export function optimizeConnectionPools(
 
     if (recommendedMax <= currentMax && saturation < 50) return undefined;
 
-    const dbType = (storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
+    const dbType = (storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
 
     const snippets: PoolingRecommendation['implementationSnippets'] = {};
 
