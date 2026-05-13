@@ -11,7 +11,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks, discoverUnusedIndexes } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks, discoverUnusedIndexes, discoverQueryAntiPatterns } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -372,6 +372,24 @@ export async function GET(
                         }
                     } catch (unusedErr) {
                         console.error(`[UnusedIndexSync] Discovery failed for ${storageId}:`, unusedErr);
+                    }
+                }
+
+                // 0o. Phase 156: Autonomous SQL Anti-Pattern Discovery & Governance
+                const antiPatternReport = storage.antiPatternReport || (storage.metadata?.antiPatternReport as import('@/types').AntiPatternReport | undefined);
+                const lastAntiPatternScan = antiPatternReport?.lastScannedAt ? new Date(antiPatternReport.lastScannedAt) : new Date(0);
+                const hoursSinceAntiPatternScan = (now.getTime() - lastAntiPatternScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && hoursSinceAntiPatternScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
+                    try {
+                        const report = await discoverQueryAntiPatterns(id, storageId);
+                        storage.antiPatternReport = report;
+                        storage.metadata = {
+                            ...storage.metadata,
+                            antiPatternReport: report
+                        };
+                    } catch (apErr) {
+                        console.error(`[AntiPatternSync] Discovery failed for ${storageId}:`, apErr);
                     }
                 }
 

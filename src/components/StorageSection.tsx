@@ -2108,6 +2108,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     SATURATION RISK: {config.saturationRisk.resource.toUpperCase()}
                                                 </span>
                                             )}
+                                            {config.antiPatternReport?.hasAntiPatterns && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingOptimization(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/20 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/30 flex items-center gap-1 animate-pulse" title={`${config.antiPatternReport.patterns.length} SQL Anti-Patterns detected.`}
+                                                >
+                                                    <FileCode className="w-2.5 h-2.5" />
+                                                    ANTI-PATTERN
+                                                </button>
+                                            )}
                                             {!!((config.metadata?.optimization as { recommendations: import('@/lib/gcp/monitoring').ScalingRecommendation[] })?.recommendations?.some(r => r.type === 'downgrade')) && (
                                                 <button
                                                     onClick={(e) => {

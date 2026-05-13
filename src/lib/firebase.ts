@@ -124,6 +124,54 @@ function createMockFirestore(): Firestore {
                             lastActiveAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
                             analysisPeriodDays: 7
                         },
+                        unusedIndexReport: {
+                            hasUnusedIndexes: true,
+                            candidates: [
+                                {
+                                    entity: 'users',
+                                    indexName: 'idx_users_last_login_old',
+                                    sizeMb: 124.5,
+                                    lastScannedAt: new Date().toISOString(),
+                                    reason: 'Index has received zero scans in the last 30 days.'
+                                }
+                            ],
+                            totalWastedMb: 124.5,
+                            lastScannedAt: new Date().toISOString()
+                        },
+                        antiPatternReport: {
+                            hasAntiPatterns: true,
+                            patterns: [
+                                {
+                                    id: 'ap_mock_1',
+                                    type: 'SELECT_STAR',
+                                    queryHash: 'SELECT * FROM users WHERE active = true',
+                                    evidence: 'Use of "SELECT *" detected.',
+                                    recommendation: 'Explicitly define required columns to reduce I/O and network overhead.',
+                                    optimizedRewrite: 'SELECT id, email, name FROM users WHERE active = true',
+                                    impactScore: 40,
+                                    detectedAt: new Date().toISOString()
+                                }
+                            ],
+                            totalImpactScore: 40,
+                            lastScannedAt: new Date().toISOString()
+                        },
+                        deadlockReport: {
+                            hasDeadlocks: true,
+                            incidents: [
+                                {
+                                    id: 'deadlock_mock_1',
+                                    queries: [
+                                        'UPDATE orders SET status = "processing" WHERE id = 101',
+                                        'UPDATE inventory SET stock = stock - 1 WHERE id = 502'
+                                    ],
+                                    detectedAt: new Date().toISOString(),
+                                    impactScore: 45,
+                                    remediation: 'Deadlock detected between order processing and inventory updates. Ensure consistent lock acquisition order across services.'
+                                }
+                            ],
+                            totalDeadlocksLast24H: 1,
+                            lastScannedAt: new Date().toISOString()
+                        },
                         metadata: {
                             provisioned: true,
                             region: 'us-central1',
@@ -168,37 +216,6 @@ function createMockFirestore(): Firestore {
                                     nodePg: '// pg driver\nconst pool = new Pool({\n  host: "...",\n  max: 30,\n  min: 5,\n  idleTimeoutMillis: 30000,\n});'
                                 },
                                 impact: 'high'
-                            },
-                            deadlockReport: {
-                                hasDeadlocks: true,
-                                incidents: [
-                                    {
-                                        id: 'deadlock_mock_1',
-                                        queries: [
-                                            'UPDATE orders SET status = "processing" WHERE id = 101',
-                                            'UPDATE inventory SET stock = stock - 1 WHERE id = 502'
-                                        ],
-                                        detectedAt: new Date().toISOString(),
-                                        impactScore: 45,
-                                        remediation: 'Deadlock detected between order processing and inventory updates. Ensure consistent lock acquisition order across services.'
-                                    }
-                                ],
-                                totalDeadlocksLast24H: 1,
-                                lastScannedAt: new Date().toISOString()
-                            },
-                            unusedIndexReport: {
-                                hasUnusedIndexes: true,
-                                candidates: [
-                                    {
-                                        entity: 'users',
-                                        indexName: 'idx_users_last_login_old',
-                                        sizeMb: 124.5,
-                                        lastScannedAt: new Date().toISOString(),
-                                        reason: 'Index has received zero scans in the last 30 days.'
-                                    }
-                                ],
-                                totalWastedMb: 124.5,
-                                lastScannedAt: new Date().toISOString()
                             }
                         }
                     },
