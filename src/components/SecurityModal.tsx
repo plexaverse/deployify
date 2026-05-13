@@ -65,7 +65,7 @@ export function SecurityModal({ isOpen, onClose, storage, projectId }: SecurityM
                                                 <div className="flex items-center gap-2">
                                                     <span className={cn(
                                                         "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
-                                                        t.severity === 'CRITICAL' ? "bg-[var(--error)] text-white" :
+                                                        t.severity === 'CRITICAL' ? "bg-[var(--error)] text-[var(--error-foreground)]" :
                                                         t.severity === 'HIGH' ? "bg-[var(--error)]/10 text-[var(--error)]" :
                                                         "bg-[var(--warning)]/10 text-[var(--warning)]"
                                                     )}>
