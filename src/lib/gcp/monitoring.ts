@@ -2,7 +2,7 @@ import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
 import { getSecretValue } from './secrets';
 import { calculateEWMA, isDegraded } from './health-utils';
-import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile, ConnectionLeakReport, ReliabilityMetrics, SaturationRisk } from '@/types';
+import type { StorageAlertSettings, ResourceDormancy, WorkloadProfile, ConnectionLeakReport, ReliabilityMetrics, SaturationRisk, AntiPatternReport, QueryAntiPattern } from '@/types';
 
 const MONITORING_API = 'https://monitoring.googleapis.com/v3';
 
@@ -264,6 +264,113 @@ export async function discoverSensitiveData(
     return {
         hasRisk: uniqueRisks.length > 0,
         risks: uniqueRisks,
+        lastScannedAt: now
+    };
+}
+
+/**
+ * Autonomously discover SQL query anti-patterns from telemetry fingerprints (Phase 156)
+ */
+export async function discoverQueryAntiPatterns(
+    projectId: string,
+    storageId: string
+): Promise<AntiPatternReport> {
+    const patterns: QueryAntiPattern[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasPatterns = Math.random() > 0.5;
+        return {
+            hasAntiPatterns: hasPatterns,
+            patterns: hasPatterns ? [
+                {
+                    id: `ap-1-${Date.now()}`,
+                    type: 'SELECT_STAR',
+                    queryHash: 'SELECT * FROM users WHERE active = true',
+                    evidence: 'Use of "SELECT *" detected.',
+                    recommendation: 'Explicitly define required columns to reduce I/O and network overhead.',
+                    optimizedRewrite: 'SELECT id, email, name FROM users WHERE active = true',
+                    impactScore: 40,
+                    detectedAt: now
+                },
+                {
+                    id: `ap-2-${Date.now()}`,
+                    type: 'NON_SARGABLE_PREDICATE',
+                    queryHash: 'SELECT count(*) FROM orders WHERE YEAR(created_at) = 2024',
+                    evidence: 'Function call "YEAR()" on indexed column "created_at" prevents index usage.',
+                    recommendation: 'Use a range-based predicate to allow the database to utilize indexes.',
+                    optimizedRewrite: "SELECT count(*) FROM orders WHERE created_at >= '2024-01-01' AND created_at < '2025-01-01'",
+                    impactScore: 75,
+                    detectedAt: now
+                }
+            ] : [],
+            totalImpactScore: hasPatterns ? 115 : 0,
+            lastScannedAt: now
+        };
+    }
+
+    try {
+        const impactMetrics = await getQueryImpactMetrics(projectId, storageId);
+
+        for (const metric of impactMetrics) {
+            const sql = metric.queryHash;
+            const normalizedSql = sql.toUpperCase();
+
+            // 1. SELECT * Detection
+            if (normalizedSql.includes('SELECT *')) {
+                patterns.push({
+                    id: `ap-star-${metric.queryHash.substring(0, 8)}`,
+                    type: 'SELECT_STAR',
+                    queryHash: sql,
+                    evidence: 'Detected "SELECT *" in query.',
+                    recommendation: 'Explicitly define required columns (e.g., SELECT id, name) to reduce I/O and network overhead.',
+                    optimizedRewrite: sql.replace(/SELECT\s+\*/i, 'SELECT id, created_at /* TODO: Add other required columns */'),
+                    impactScore: 30,
+                    detectedAt: now
+                });
+            }
+
+            // 2. Non-SARGable Predicates (Functions on columns)
+            if (normalizedSql.includes('YEAR(') || normalizedSql.includes('DATE(')) {
+                const yearMatch = sql.match(/YEAR\(([a-zA-Z0-9_]+)\)\s*=\s*(\d{4})/i);
+                if (yearMatch) {
+                    const col = yearMatch[1];
+                    const val = yearMatch[2];
+                    patterns.push({
+                        id: `ap-sarg-year-${metric.queryHash.substring(0, 8)}`,
+                        type: 'NON_SARGABLE_PREDICATE',
+                        queryHash: sql,
+                        evidence: `Function YEAR() on column "${col}" prevents index usage.`,
+                        recommendation: `Use a range comparison: ${col} >= '${val}-01-01' AND ${col} < '${Number(val) + 1}-01-01'.`,
+                        optimizedRewrite: sql.replace(/YEAR\(([a-zA-Z0-9_]+)\)\s*=\s*(\d{4})/i, `$1 >= '$2-01-01' AND $1 < '${Number(val) + 1}-01-01'`),
+                        impactScore: 70,
+                        detectedAt: now
+                    });
+                }
+            }
+
+            // 3. Leading Wildcards
+            if (normalizedSql.match(/LIKE\s+['"]%[a-zA-Z0-9_]+/i)) {
+                patterns.push({
+                    id: `ap-like-${metric.queryHash.substring(0, 8)}`,
+                    type: 'LEADING_WILDCARD',
+                    queryHash: sql,
+                    evidence: 'Leading wildcard in LIKE clause forces a full table scan.',
+                    recommendation: 'If possible, avoid leading wildcards. For large datasets, use Full-Text Search indexes (GIN/GiST in Postgres, FULLTEXT in MySQL).',
+                    optimizedRewrite: sql + ' -- TODO: Use Full-Text Search index or avoid leading %',
+                    impactScore: 80,
+                    detectedAt: now
+                });
+            }
+        }
+    } catch (e) {
+        console.error(`[AntiPatternDiscovery] Failed for ${storageId}:`, e);
+    }
+
+    return {
+        hasAntiPatterns: patterns.length > 0,
+        patterns,
+        totalImpactScore: patterns.reduce((sum, p) => sum + p.impactScore, 0),
         lastScannedAt: now
     };
 }

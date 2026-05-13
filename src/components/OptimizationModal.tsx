@@ -18,7 +18,8 @@ import {
     Copy,
     GitPullRequest,
     Wrench,
-    Activity
+    Activity,
+    FileCode
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -45,6 +46,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
     const [bloatReport, setBloatReport] = useState<import('@/lib/gcp/monitoring').BloatReport | null>(null);
     const [driftReport, setDriftReport] = useState<import('@/lib/gcp/monitoring').StatisticsDriftReport | null>(null);
     const [unusedIndexReport, setUnusedIndexReport] = useState<import('@/types').UnusedIndexReport | null>(null);
+    const [antiPatternReport, setAntiPatternReport] = useState<import('@/types').AntiPatternReport | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [isRunningMaintenance, setIsRunningMaintenance] = useState<string | null>(null);
     const [activePoolingSnippet, setActivePoolingSnippet] = useState<string>('prisma');
@@ -141,6 +143,19 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     }, [storage, projectId]);
 
+    const fetchAntiPatternReport = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            if (storage.antiPatternReport) {
+                setAntiPatternReport(storage.antiPatternReport);
+            } else if (storage.metadata?.antiPatternReport) {
+                setAntiPatternReport(storage.metadata.antiPatternReport as import('@/types').AntiPatternReport);
+            }
+        } catch (e) {
+            console.error('Failed to fetch anti-pattern report:', e);
+        }
+    }, [storage, projectId]);
+
     useEffect(() => {
         if (isOpen && storage) {
             fetchSchemaOptimizations();
@@ -150,8 +165,9 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
             fetchDriftReport();
             fetchDeadlockReport();
             fetchUnusedIndexReport();
+            fetchAntiPatternReport();
         }
-    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport, fetchDeadlockReport, fetchUnusedIndexReport]);
+    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport, fetchDeadlockReport, fetchUnusedIndexReport, fetchAntiPatternReport]);
 
     const applyOptimization = async (recommendation: string, queryHash: string) => {
         if (!projectId || !storage) return;
@@ -211,7 +227,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     };
 
-    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation && !deadlockReport?.hasDeadlocks && !unusedIndexReport?.hasUnusedIndexes)) return null;
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation && !deadlockReport?.hasDeadlocks && !unusedIndexReport?.hasUnusedIndexes && !antiPatternReport?.hasAntiPatterns)) return null;
 
     const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
@@ -678,6 +694,82 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                 }}
                                             >
                                                 Create Drop PR
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {antiPatternReport?.hasAntiPatterns && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">SQL Rewrite Advisor (Phase 156)</Label>
+                            <div className="space-y-3">
+                                {antiPatternReport.patterns.map((pattern, i) => (
+                                    <div key={i} className="p-4 border border-[var(--primary)]/20 rounded-xl bg-[var(--primary)]/5 space-y-3 group hover:border-[var(--primary)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
+                                                    <FileCode className="w-4 h-4 text-[var(--primary)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{pattern.type.replace(/_/g, ' ')}</span>
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase",
+                                                            pattern.impactScore > 70 ? "bg-[var(--error)] text-[var(--primary-foreground)] animate-pulse" : "bg-[var(--warning)]/20 text-[var(--warning)]"
+                                                        )}>
+                                                            Impact: {pattern.impactScore}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-[var(--foreground)]">{pattern.evidence}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div className="space-y-1.5">
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] ml-1">Original Query</span>
+                                                    <div className="p-2.5 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-lg font-mono text-[10px] font-bold text-[var(--error)]/80 overflow-x-auto whitespace-pre">
+                                                        {pattern.queryHash}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <span className="text-[8px] font-bold uppercase text-[var(--success)] ml-1">Optimized Rewrite</span>
+                                                    <div className="p-2.5 bg-[var(--success)]/5 border border-[var(--success)]/20 rounded-lg font-mono text-[10px] font-bold text-[var(--success)]/80 overflow-x-auto whitespace-pre">
+                                                        {pattern.optimizedRewrite}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-lg flex items-start gap-2">
+                                            <Sparkles className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                                            <p className="text-[10px] font-bold uppercase text-[var(--foreground)] leading-relaxed">
+                                                <span className="opacity-60">Recommendation:</span> {pattern.recommendation}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1 h-7 text-[10px] font-bold uppercase tracking-wider border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(pattern.optimizedRewrite);
+                                                    toast.success('Optimized SQL copied to clipboard');
+                                                }}
+                                            >
+                                                <Copy className="w-3 h-3 mr-1.5" />
+                                                Copy Rewrite
+                                            </Button>
+                                            <Button
+                                                className="flex-1 h-7 text-[10px] font-bold uppercase tracking-wider bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 border border-[var(--primary)]/20"
+                                                onClick={() => applyOptimization(pattern.optimizedRewrite, `rewrite-${pattern.id}`)}
+                                            >
+                                                <GitPullRequest className="w-3 h-3 mr-1.5" />
+                                                Create Rewrite PR
                                             </Button>
                                         </div>
                                     </div>

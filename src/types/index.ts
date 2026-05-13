@@ -524,6 +524,7 @@ export interface StorageConfig {
     saturationRisk?: SaturationRisk;
     deadlockReport?: DeadlockReport;
     unusedIndexReport?: UnusedIndexReport;
+    antiPatternReport?: AntiPatternReport;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
@@ -576,6 +577,24 @@ export interface ConnectionLeakReport {
     }>;
     recommendation?: string;
     timestamp: string;
+}
+
+export interface QueryAntiPattern {
+    id: string;
+    type: 'SELECT_STAR' | 'NON_SARGABLE_PREDICATE' | 'LEADING_WILDCARD' | 'OR_PREDICATE' | 'IMPLICIT_CONVERSION';
+    queryHash: string;
+    evidence: string;
+    recommendation: string;
+    optimizedRewrite: string;
+    impactScore: number; // 0-100
+    detectedAt: string;
+}
+
+export interface AntiPatternReport {
+    hasAntiPatterns: boolean;
+    patterns: QueryAntiPattern[];
+    totalImpactScore: number;
+    lastScannedAt: string;
 }
 
 export interface DeadlockIncident {
