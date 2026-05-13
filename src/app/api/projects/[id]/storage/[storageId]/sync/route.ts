@@ -220,14 +220,14 @@ export async function GET(
                 }
 
                 // 0e. Phase 141: Intelligent Connection Leak Detection
-                if (storage.status === 'active' && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                if (storage.status === 'active' && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const { getActiveSessions } = await import('@/lib/gcp/cloudsql');
 
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
                         if (connStr) {
-                            const dbType = (storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
+                            const dbType = (storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
                             const sessions = await getActiveSessions(connStr, dbType as 'postgres' | 'mysql', { ssl: !!storage.ssl });
                             const leakReport = detectConnectionLeaks(sessions);
 
@@ -263,7 +263,7 @@ export async function GET(
                 }
 
                 // 0h. Phase 146: Autonomous Security Threat Detection
-                if (storage.status === 'active' && storage.type.includes('cloud-sql')) {
+                if (storage.status === 'active' && (storage.type.includes('cloud-sql') || storage.type === 'alloydb')) {
                     try {
                         const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                         const logs = await getDatabaseLogs(instanceName, { pageSize: 100, projectId: storage.providerProjectId as string });
@@ -295,7 +295,7 @@ export async function GET(
                 const lastArchivalScan = archivalReport?.lastScannedAt ? new Date(archivalReport.lastScannedAt) : new Date(0);
                 const hoursSinceArchivalScan = (now.getTime() - lastArchivalScan.getTime()) / (1000 * 60 * 60);
 
-                if (storage.status === 'active' && hoursSinceArchivalScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                if (storage.status === 'active' && hoursSinceArchivalScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
@@ -316,7 +316,7 @@ export async function GET(
                 const lastBloatScan = bloatReport?.lastScannedAt ? new Date(bloatReport.lastScannedAt) : new Date(0);
                 const hoursSinceBloatScan = (now.getTime() - lastBloatScan.getTime()) / (1000 * 60 * 60);
 
-                if (storage.status === 'active' && hoursSinceBloatScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                if (storage.status === 'active' && hoursSinceBloatScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
@@ -337,7 +337,7 @@ export async function GET(
                 const lastDriftScan = statisticsDrift?.lastScannedAt ? new Date(statisticsDrift.lastScannedAt) : new Date(0);
                 const hoursSinceDriftScan = (now.getTime() - lastDriftScan.getTime()) / (1000 * 60 * 60);
 
-                if (storage.status === 'active' && hoursSinceDriftScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                if (storage.status === 'active' && hoursSinceDriftScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
@@ -358,7 +358,7 @@ export async function GET(
                 const lastUnusedScan = unusedIndexReport?.lastScannedAt ? new Date(unusedIndexReport.lastScannedAt) : new Date(0);
                 const hoursSinceUnusedScan = (now.getTime() - lastUnusedScan.getTime()) / (1000 * 60 * 60);
 
-                if (storage.status === 'active' && hoursSinceUnusedScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                if (storage.status === 'active' && hoursSinceUnusedScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
@@ -380,7 +380,7 @@ export async function GET(
                 const lastDeadlockScan = deadlockReport?.lastScannedAt ? new Date(deadlockReport.lastScannedAt) : new Date(0);
                 const hoursSinceDeadlockScan = (now.getTime() - lastDeadlockScan.getTime()) / (1000 * 60 * 60);
 
-                if (storage.status === 'active' && hoursSinceDeadlockScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                if (storage.status === 'active' && hoursSinceDeadlockScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
@@ -402,21 +402,29 @@ export async function GET(
                 const lastPoolScan = storage.metadata?.lastPoolScanAt ? new Date(storage.metadata.lastPoolScanAt as string) : new Date(0);
                 const hoursSincePoolScan = (now.getTime() - lastPoolScan.getTime()) / (1000 * 60 * 60);
 
-                if (storage.status === 'active' && hoursSincePoolScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'supabase' || storage.type === 'neon')) {
+                if (storage.status === 'active' && hoursSincePoolScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const { getActiveSessions } = await import('@/lib/gcp/cloudsql');
 
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
                         if (connStr) {
-                            const dbType = (storage.type.includes('postgres') || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
+                            const dbType = (storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') ? 'postgres' : 'mysql';
                             const sessions = await getActiveSessions(connStr, dbType as 'postgres' | 'mysql', { ssl: !!storage.ssl });
 
                             // Fetch latest metrics for saturation (already computed in step 1 below, but we need it here for the 24h scan)
                             const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
-                            const dbTypeMetric = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
-                            const tier = (storage.metadata?.tier as string) || 'db-f1-micro';
-                            const metrics = await getCloudSqlMetrics(resourceName, dbTypeMetric, tier);
+                            const dbTypeMetric = (storage.type.includes('postgres') || storage.type === 'alloydb') ? 'postgresql' : 'mysql';
+                            const tier = (storage.metadata?.tier as string) || (storage.type === 'alloydb' ? '2vCPU' : 'db-f1-micro');
+
+                            let metrics;
+                            if (storage.type === 'alloydb') {
+                                const { getAlloyDbMetrics } = await import('@/lib/gcp/monitoring');
+                                const clusterId = resourceName; // For AlloyDB, resourceName is clusterId
+                                metrics = await getAlloyDbMetrics(clusterId, `${clusterId}-primary`, (storage.metadata?.region as string) || project.region || 'us-central1');
+                            } else {
+                                metrics = await getCloudSqlMetrics(resourceName, dbTypeMetric, tier);
+                            }
 
                             const recommendation = optimizeConnectionPools(storage, metrics, sessions);
                             storage.metadata = {
@@ -513,6 +521,9 @@ export async function GET(
                     const dbType = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
                     const tier = (storage.metadata?.tier as string) || 'db-f1-micro';
                     metrics = await getCloudSqlMetrics(resourceName, dbType, tier);
+                } else if (storage.type === 'alloydb') {
+                    const { getAlloyDbMetrics } = await import('@/lib/gcp/monitoring');
+                    metrics = await getAlloyDbMetrics(resourceName, `${resourceName}-primary`, region);
                 } else if (storage.type === 'memorystore-redis') {
                     metrics = await getMemorystoreMetrics(resourceName, region);
                 }
@@ -548,7 +559,7 @@ export async function GET(
                         const recommendations = await getScalingRecommendations(storage.type, metrics, storage.metadata, telemetry);
 
                         // Calculate Efficiency Score
-                        const tier = (storage.metadata?.tier as string) || (storage.type.includes('cloud-sql') ? 'db-f1-micro' : (storage.type === 'memorystore-redis' ? '1GB' : ''));
+                        const tier = (storage.metadata?.tier as string) || (storage.type.includes('cloud-sql') ? 'db-f1-micro' : (storage.type === 'alloydb' ? '2vCPU' : (storage.type === 'memorystore-redis' ? '1GB' : '')));
                         const diskSizeGb = (storage.metadata?.diskSizeGb as number) || (storage.metadata?.memorySizeGb as number);
                         const isHA = !!storage.metadata?.highAvailability;
                         const { getEstimatedMonthlyCost } = await import('@/lib/gcp/monitoring');
@@ -578,9 +589,15 @@ export async function GET(
                         storage.connectionSaturation = metrics.connectionSaturation;
 
                         // Phase 118: Maintenance Window Governance
-                        if (storage.type.includes('cloud-sql')) {
+                        if (storage.type.includes('cloud-sql') || storage.type === 'alloydb') {
                             try {
-                                const historical = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                                let historical;
+                                if (storage.type === 'alloydb') {
+                                    const { getAlloyDbHistoricalMetrics } = await import('@/lib/gcp/monitoring');
+                                    historical = await getAlloyDbHistoricalMetrics(resourceName, `${resourceName}-primary`, region, 7);
+                                } else {
+                                    historical = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                                }
                                 const maintenanceRec = getMaintenanceRecommendation(historical, dormancy);
                                 if (maintenanceRec) {
                                     storage.metadata = {
@@ -599,7 +616,13 @@ export async function GET(
                             const healthHistory = await getHealthHistory(storageId, 7);
                             storage.reliability = calculateReliabilityScore(healthHistory);
 
-                            const historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                            let historicalMetrics;
+                            if (storage.type === 'alloydb') {
+                                const { getAlloyDbHistoricalMetrics } = await import('@/lib/gcp/monitoring');
+                                historicalMetrics = await getAlloyDbHistoricalMetrics(resourceName, `${resourceName}-primary`, region, 7);
+                            } else {
+                                historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);
+                            }
                             const saturationRisk = checkSLOViolations(storage, metrics, historicalMetrics);
                             storage.saturationRisk = saturationRisk;
                         } catch (relErr) {

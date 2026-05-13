@@ -162,8 +162,9 @@ export async function getInstance(
     region: string
 ): Promise<AlloyDbInstance> {
     if (process.env.MOCK_DB === 'true') {
+        const gcpProjectId = config.gcp.projectId || 'mock-project';
         return {
-            name: instanceId,
+            name: `projects/${gcpProjectId}/locations/${region}/clusters/${clusterId}/instances/${instanceId}`,
             displayName: instanceId,
             uid: 'mock-uid',
             createTime: new Date().toISOString(),
