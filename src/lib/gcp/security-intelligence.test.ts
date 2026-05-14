@@ -1,6 +1,22 @@
-import { test } from 'node:test';
+import { test, before, after } from 'node:test';
 import assert from 'node:assert';
 import { detectSecurityThreats, type LogEntry } from './monitoring';
+
+
+let originalMockDb: string | undefined;
+
+before(() => {
+    originalMockDb = process.env.MOCK_DB;
+    delete process.env.MOCK_DB;
+});
+
+after(() => {
+    if (originalMockDb !== undefined) {
+        process.env.MOCK_DB = originalMockDb;
+    } else {
+        delete process.env.MOCK_DB;
+    }
+});
 
 test('detectSecurityThreats Logic', async (t) => {
     const mockStorage = {
