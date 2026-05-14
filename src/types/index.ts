@@ -525,6 +525,7 @@ export interface StorageConfig {
     deadlockReport?: DeadlockReport;
     unusedIndexReport?: UnusedIndexReport;
     antiPatternReport?: AntiPatternReport;
+    dataAnomalyReport?: DataAnomalyReport;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
@@ -594,6 +595,23 @@ export interface AntiPatternReport {
     hasAntiPatterns: boolean;
     patterns: QueryAntiPattern[];
     totalImpactScore: number;
+    lastScannedAt: string;
+}
+
+export interface DataAnomaly {
+    id: string;
+    type: 'NULL_CONCENTRATION' | 'ORPHANED_FOREIGN_KEY' | 'STALE_DATA' | 'OUTLIER_VALUES';
+    tableName: string;
+    columnName: string;
+    description: string;
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    remediation: string;
+    detectedAt: string;
+}
+
+export interface DataAnomalyReport {
+    hasAnomalies: boolean;
+    anomalies: DataAnomaly[];
     lastScannedAt: string;
 }
 

@@ -19,7 +19,8 @@ import {
     GitPullRequest,
     Wrench,
     Activity,
-    FileCode
+    FileCode,
+    AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
     const [driftReport, setDriftReport] = useState<import('@/lib/gcp/monitoring').StatisticsDriftReport | null>(null);
     const [unusedIndexReport, setUnusedIndexReport] = useState<import('@/types').UnusedIndexReport | null>(null);
     const [antiPatternReport, setAntiPatternReport] = useState<import('@/types').AntiPatternReport | null>(null);
+    const [dataAnomalyReport, setDataAnomalyReport] = useState<import('@/types').DataAnomalyReport | null>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [isRunningMaintenance, setIsRunningMaintenance] = useState<string | null>(null);
     const [activePoolingSnippet, setActivePoolingSnippet] = useState<string>('prisma');
@@ -156,6 +158,19 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     }, [storage, projectId]);
 
+    const fetchDataAnomalyReport = useCallback(async () => {
+        if (!storage || !projectId) return;
+        try {
+            if (storage.dataAnomalyReport) {
+                setDataAnomalyReport(storage.dataAnomalyReport);
+            } else if (storage.metadata?.dataAnomalyReport) {
+                setDataAnomalyReport(storage.metadata.dataAnomalyReport as import('@/types').DataAnomalyReport);
+            }
+        } catch (e) {
+            console.error('Failed to fetch data anomaly report:', e);
+        }
+    }, [storage, projectId]);
+
     useEffect(() => {
         if (isOpen && storage) {
             fetchSchemaOptimizations();
@@ -166,8 +181,9 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
             fetchDeadlockReport();
             fetchUnusedIndexReport();
             fetchAntiPatternReport();
+            fetchDataAnomalyReport();
         }
-    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport, fetchDeadlockReport, fetchUnusedIndexReport, fetchAntiPatternReport]);
+    }, [isOpen, storage, fetchSchemaOptimizations, fetchCachingRecommendations, fetchArchivalReport, fetchBloatReport, fetchDriftReport, fetchDeadlockReport, fetchUnusedIndexReport, fetchAntiPatternReport, fetchDataAnomalyReport]);
 
     const applyOptimization = async (recommendation: string, queryHash: string) => {
         if (!projectId || !storage) return;
@@ -227,7 +243,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
         }
     };
 
-    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation && !deadlockReport?.hasDeadlocks && !unusedIndexReport?.hasUnusedIndexes && !antiPatternReport?.hasAntiPatterns)) return null;
+    if (!storage || (!storage.metadata?.optimization && !schemaOptimizations.length && !cachingRecommendations.length && !bloatReport?.hasBloat && !driftReport?.hasDrift && !storage.metadata?.poolingRecommendation && !deadlockReport?.hasDeadlocks && !unusedIndexReport?.hasUnusedIndexes && !antiPatternReport?.hasAntiPatterns && !dataAnomalyReport?.hasAnomalies)) return null;
 
     const optimization = storage.metadata?.optimization as {
         recommendations: ScalingRecommendation[],
@@ -278,6 +294,43 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                 <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
                                     RECOMMENDATION: Consider a regional migration to a lower-jitter GCP region to stabilize connection performance.
                                 </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {dataAnomalyReport?.hasAnomalies && (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] ml-1">Data Integrity Advisor (Phase 157)</Label>
+                            <div className="space-y-3">
+                                {dataAnomalyReport.anomalies.map((anomaly, i) => (
+                                    <div key={i} className="p-4 border border-[var(--warning)]/20 rounded-xl bg-[var(--warning)]/5 space-y-3 group hover:border-[var(--warning)]/40 transition-all">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-[var(--warning)]/10 flex items-center justify-center shrink-0">
+                                                    <AlertTriangle className="w-4 h-4 text-[var(--warning)]" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)]">{anomaly.type.replace(/_/g, ' ')}</span>
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase",
+                                                            anomaly.severity === 'CRITICAL' ? "bg-[var(--error)] text-[var(--primary-foreground)] animate-pulse" : anomaly.severity === 'HIGH' ? "bg-[var(--error)]/20 text-[var(--error)]" : "bg-[var(--warning)]/20 text-[var(--warning)]"
+                                                        )}>
+                                                            {anomaly.severity}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-[var(--foreground)]">{anomaly.description}</p>
+                                                    <p className="text-[10px] font-bold text-[var(--muted-foreground)] pt-1">Location: {anomaly.tableName}.{anomaly.columnName}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-lg flex items-start gap-2">
+                                            <Sparkles className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
+                                            <p className="text-[10px] font-bold text-[var(--foreground)]">{anomaly.remediation}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     )}
