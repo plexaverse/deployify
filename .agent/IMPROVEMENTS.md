@@ -263,3 +263,9 @@ Session 227: Verified environment and ensured everything works. Audited tests, l
     - Enhanced the high-density `OptimizationModal` UI with a 'SQL Rewrite Advisor' section, providing side-by-side SQL diffs and one-click GitHub PR creation for optimized queries.
     - Added pulsating 'ANTI-PATTERN' badges to the Storage dashboard for proactive technical debt management.
     - Verified 100% operational integrity with 196 passing tests, zero-warning linting, and high-density UI validation via Playwright.
+
+### 2027-08-02: Fix Flaky Tests with MOCK_DB Interference
+- Addressed an issue where `discoverDeadlocks` and `detectSecurityThreats` tests were intermittently failing due to `MOCK_DB=true` bypassing core logic and returning random test mock data instead.
+- Implemented teardown and setup hooks in `src/lib/gcp/deadlock-discovery.test.ts` and `src/lib/gcp/security-intelligence.test.ts` to explicitly clear `process.env.MOCK_DB` prior to executing assertions, preventing logic interference.
+- Restored `process.env.MOCK_DB` to its original value after testing.
+- Verified 100% operational integrity by confirming all test suites pass reliably under `MOCK_DB=true` conditions.
