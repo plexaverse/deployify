@@ -78,6 +78,7 @@ const STORAGE_TYPES = [
     { value: 'cloud-sql-postgres', label: 'CLOUD SQL (POSTGRES)', category: 'GCP NATIVE' },
     { value: 'cloud-sql-mysql', label: 'CLOUD SQL (MYSQL)', category: 'GCP NATIVE' },
     { value: 'alloydb', label: 'ALLOYDB (POSTGRES)', category: 'GCP NATIVE' },
+    { value: 'cloud-spanner', label: 'CLOUD SPANNER', category: 'GCP NATIVE' },
     { value: 'firestore', label: 'FIRESTORE', category: 'GCP NATIVE' },
     { value: 'memorystore-redis', label: 'MEMORYSTORE (REDIS)', category: 'GCP NATIVE' },
     { value: 'supabase', label: 'SUPABASE', category: 'EXTERNAL' },
@@ -204,6 +205,9 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
     const [egressIps, setEgressIps] = useState<{ region: string; ips: string[]; isFallback?: boolean } | null>(null);
     const [highAvailability, setHighAvailability] = useState(false);
+    const [spannerNodes, setSpannerNodes] = useState(1);
+    const [spannerUnits, setSpannerUnits] = useState(100);
+    const [useProcessingUnits, setUseProcessingUnits] = useState(true);
     const [pitrEnabled, setPitrEnabled] = useState(false);
     const [deletionProtection, setDeletionProtection] = useState(false);
     const [sslRequired, setSslRequired] = useState(false);
@@ -355,6 +359,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 metadata: {
                     ...metadata,
                     secretOnly,
+                    nodes: type === 'cloud-spanner' && !useProcessingUnits ? spannerNodes : undefined,
+                    processingUnits: type === 'cloud-spanner' && useProcessingUnits ? spannerUnits : undefined,
                     highAvailability: type.includes('cloud-sql') ? highAvailability : undefined,
                     pitrEnabled: type.includes('cloud-sql') ? pitrEnabled : undefined,
                     deletionProtection: type.includes('cloud-sql') ? deletionProtection : undefined,
@@ -1610,6 +1616,61 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         </div>
                                     </div>
 
+                                    {type === 'cloud-spanner' && (
+                                        <div className="space-y-4 p-4 border border-[var(--primary)]/20 bg-[var(--primary)]/5 rounded-lg">
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-[10px] font-bold uppercase tracking-wider">Compute Capacity</Label>
+                                                <SegmentedControl
+                                                    options={[
+                                                        { value: 'units', label: 'PROCESSING UNITS' },
+                                                        { value: 'nodes', label: 'NODES' }
+                                                    ]}
+                                                    value={useProcessingUnits ? 'units' : 'nodes'}
+                                                    onChange={(v) => setUseProcessingUnits(v === 'units')}
+                                                    className="h-6"
+                                                />
+                                            </div>
+
+                                            {useProcessingUnits ? (
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[10px] font-bold text-[var(--muted-foreground)]">UNITS (100-1000)</span>
+                                                        <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{spannerUnits} PU</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min="100"
+                                                        max="1000"
+                                                        step="100"
+                                                        value={spannerUnits}
+                                                        onChange={(e) => setSpannerUnits(parseInt(e.target.value))}
+                                                        className="w-full accent-[var(--primary)] h-1"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[10px] font-bold text-[var(--muted-foreground)]">NODES (1-10)</span>
+                                                        <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{spannerNodes} NODE(S)</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min="1"
+                                                        max="10"
+                                                        step="1"
+                                                        value={spannerNodes}
+                                                        onChange={(e) => setSpannerNodes(parseInt(e.target.value))}
+                                                        className="w-full accent-[var(--primary)] h-1"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-60 leading-tight">
+                                                1 NODE IS EQUIVALENT TO 1000 PROCESSING UNITS. PROCESSING UNITS PROVIDE MORE GRANULAR SCALING FOR SMALLER WORKLOADS.
+                                            </p>
+                                        </div>
+                                    )}
+
                                     {type.includes('cloud-sql') && (
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--muted)]/5">
@@ -1905,7 +1966,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     {config.metadata.firewallStatus === 'DRIFT' ? 'FIREWALL DRIFT' : 'FIREWALL SYNCED'}
                                                 </span>
                                             )}
-                                            {config.type.includes('cloud-sql') && (
+                                            {(config.type.includes('cloud-sql') || config.type === 'cloud-spanner') && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1">
                                                     <Zap className="w-2.5 h-2.5" />
                                                     IAM AUTH
