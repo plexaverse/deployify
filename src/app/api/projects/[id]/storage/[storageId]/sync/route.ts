@@ -6,6 +6,7 @@ import { getOperationStatus as getCloudSqlOperationStatus, getInstance as getClo
 import { getOperationStatus as getAlloyDbOperationStatus, createInstance as createAlloyDbInstance, getInstance as getAlloyDbInstance } from '@/lib/gcp/alloydb';
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
+import { getOperationStatus as getSpannerOperationStatus, createSpannerDatabase } from '@/lib/gcp/spanner';
 import { getGcpProjectNumber } from '@/lib/gcp/auth';
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
@@ -939,6 +940,8 @@ export async function GET(
                 statusResult = await getMemorystoreOperationStatus(operationName);
             } else if (storage.type === 'firestore') {
                 statusResult = await getFirestoreOperationStatus(operationName);
+            } else if (storage.type === 'cloud-spanner') {
+                statusResult = await getSpannerOperationStatus(operationName);
             } else if (storage.type === 'neon' || storage.type === 'supabase') {
                 const { getExternalOperationStatus } = await import('@/lib/gcp/external-sync');
                 statusResult = await getExternalOperationStatus(operationName, storage.metadata || {}, storage.providerApiKeySecretId);
@@ -1438,6 +1441,39 @@ export async function GET(
                     console.error('Failed follow-up Cloud SQL provisioning:', e);
                     storage.status = 'error';
                     storage.lastError = `Instance ready, but DB/User creation failed: ${e instanceof Error ? e.message : 'Unknown'}`;
+                }
+            } else if (storage.type === 'cloud-spanner') {
+                const instanceId = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const hasCreatedDb = storage.metadata?.dbCreated;
+                const dbOperationName = storage.metadata?.dbOperationName as string;
+
+                try {
+                    // Step 2: Create Database if not started
+                    if (!hasCreatedDb && !dbOperationName) {
+                        const dbId = 'default';
+                        const opName = await createSpannerDatabase(instanceId, dbId);
+                        storage.metadata = { ...storage.metadata, dbOperationName: opName, spannerDbId: dbId };
+                        await updateProject(id, { storageConfigs });
+                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Instance ready, now creating database...' });
+                    }
+
+                    // Step 3: Poll Database creation
+                    if (dbOperationName && !hasCreatedDb) {
+                        const dbStatus = await getSpannerOperationStatus(dbOperationName);
+                        if (dbStatus.status === 'DONE') {
+                            if (dbStatus.error) throw new Error(`Spanner DB creation failed: ${dbStatus.error}`);
+                            storage.metadata = { ...storage.metadata, dbCreated: true };
+                            storage.status = 'active';
+                            storage.lastSyncedAt = now;
+                            await updateProject(id, { storageConfigs });
+                            return NextResponse.json({ success: true, status: 'active', message: 'Spanner Instance and Database provisioned successfully' });
+                        }
+                        return NextResponse.json({ success: true, status: 'provisioning', message: 'Spanner database creation in progress...' });
+                    }
+                } catch (e) {
+                    console.error('Failed Spanner follow-up provisioning:', e);
+                    storage.status = 'error';
+                    storage.lastError = `Instance ready, but database creation failed: ${e instanceof Error ? e.message : 'Unknown'}`;
                 }
             } else if (storage.type === 'memorystore-redis') {
                 try {

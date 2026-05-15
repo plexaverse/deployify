@@ -423,6 +423,7 @@ export type StorageType =
     | 'mongodb-atlas'
     | 'planetscale'
     | 'neon'
+    | 'cloud-spanner'
     | 'generic';
 
 export type StorageStatus = 'provisioning' | 'active' | 'error' | 'disconnected';

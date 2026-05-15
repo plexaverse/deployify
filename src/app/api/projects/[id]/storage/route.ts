@@ -8,6 +8,7 @@ import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloud
 import { createCluster as createAlloyDbCluster, deleteInstance as deleteAlloyDbInstance, deleteCluster as deleteAlloyDbCluster } from '@/lib/gcp/alloydb';
 import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance, updateInstanceSize as updateMemorystoreSize } from '@/lib/gcp/memorystore';
 import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
+import { createSpannerInstance, deleteInstance as deleteSpannerInstance } from '@/lib/gcp/spanner';
 import { deriveTopology } from '@/lib/gcp/topology';
 import { config } from '@/lib/config';
 import type { StorageConfig } from '@/types';
@@ -137,6 +138,12 @@ export async function POST(
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'firestore' && resourceName) {
                     provisionResult = await createFirestoreDatabase(resourceName, targetRegion);
+                    finalConnectionString = provisionResult.connectionString;
+                } else if (type === 'cloud-spanner' && resourceName) {
+                    provisionResult = await createSpannerInstance(resourceName, targetRegion, {
+                        nodes: metadata?.nodes,
+                        processingUnits: metadata?.processingUnits
+                    });
                     finalConnectionString = provisionResult.connectionString;
                 } else if (type === 'alloydb' && resourceName) {
                     const vpcNetwork = project.vpcNetwork || 'default';
@@ -319,6 +326,8 @@ export async function DELETE(
                     await deleteMemorystoreInstance(resourceName, region);
                 } else if (storageConfig.type === 'firestore') {
                     await deleteFirestoreDatabase(resourceName);
+                } else if (storageConfig.type === 'cloud-spanner') {
+                    await deleteSpannerInstance(resourceName);
                 }
             } catch (error) {
                 console.error('Failed to delete GCP resource:', error);
