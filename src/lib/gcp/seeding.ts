@@ -99,25 +99,38 @@ export async function runSeed(
  */
 export async function anonymizeData(
     connectionString: string,
-    _tableConfig: { table: string; columns: string[] }[]
+    tableConfig: { table: string; columns: string[] }[]
 ): Promise<void> {
-    // In a real implementation, this would run UPDATE queries on the target database
-    // to mask sensitive information like emails, PII, etc.
     if (process.env.MOCK_DB === 'true') {
         console.log(`[Anonymizer] Mocking anonymization for ${connectionString.split('@')[1] || 'database'}`);
-        for (const config of _tableConfig) {
-            console.log(`[Anonymizer] MOCK: Masking table ${config.table}, columns: ${config.columns.join(', ')}`);
-        }
-        console.log(`[Anonymizer] MOCK: Data masking completed.`);
         return;
     }
 
-    console.log(`[Anonymizer] Starting data masking for ${connectionString.split('@')[1] || 'database'}`);
+    const isPostgres = connectionString.startsWith('postgresql');
 
-    for (const config of _tableConfig) {
-        console.log(`[Anonymizer] Processing table: ${config.table}, columns: ${config.columns.join(', ')}`);
-        // Simulate SQL execution for masking
-        // UPDATE ${config.table} SET ${config.columns.map(c => `${c} = 'ANONYMIZED'`).join(', ')}
+    if (isPostgres) {
+        const { Client } = await import('pg');
+        const client = new Client({ connectionString, ssl: { rejectUnauthorized: true } });
+        await client.connect();
+        try {
+            for (const config of tableConfig) {
+                const setClause = config.columns.map(c => `"${c}" = md5("${c}")`).join(', ');
+                await client.query(`UPDATE "${config.table}" SET ${setClause}`);
+            }
+        } finally {
+            await client.end();
+        }
+    } else {
+        const mysql = await import('mysql2/promise');
+        const connection = await mysql.createConnection(connectionString);
+        try {
+            for (const config of tableConfig) {
+                const setClause = config.columns.map(c => `\`${c}\` = MD5(\`${c}\`)`).join(', ');
+                await connection.execute(`UPDATE \`${config.table}\` SET ${setClause}`);
+            }
+        } finally {
+            await connection.end();
+        }
     }
 
     console.log(`[Anonymizer] Data masking completed successfully.`);
