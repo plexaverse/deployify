@@ -21,7 +21,7 @@ function initializeFirebase(): App {
     }
 
     // Use service account credentials if available
-    if (config.firebase.clientEmail && config.firebase.privateKey && config.firebase.privateKey.includes('BEGIN PRIVATE KEY')) {
+    if (process.env.MOCK_DB !== 'true' && config.firebase.clientEmail && config.firebase.privateKey && config.firebase.privateKey.includes('BEGIN PRIVATE KEY')) {
         let privateKey = config.firebase.privateKey;
         // The config.ts already replaces \\n with \n, but let's be double sure for direct env var access
         if (privateKey.includes('\\n')) {
