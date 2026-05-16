@@ -53,6 +53,7 @@ import { IaCExportModal } from '@/components/IaCExportModal';
 import { OptimizationModal } from '@/components/OptimizationModal';
 import { ComplianceModal } from '@/components/ComplianceModal';
 import { SecurityModal } from '@/components/SecurityModal';
+import { RbacModal } from '@/components/RbacModal';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -192,6 +193,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [isManagingPortability, setIsManagingPortability] = useState<StorageConfig | null>(null);
     const [isManagingCompliance, setIsManagingCompliance] = useState<StorageConfig | null>(null);
     const [isManagingSecurity, setIsManagingSecurity] = useState<StorageConfig | null>(null);
+    const [isManagingRbac, setIsManagingRbac] = useState<StorageConfig | null>(null);
     const [isManagingIaC, setIsManagingIaC] = useState<StorageConfig | null>(null);
     const [isManagingReplicas, setIsManagingReplicas] = useState<StorageConfig | null>(null);
     const [isManagingFailover, setIsManagingFailover] = useState<StorageConfig | null>(null);
@@ -2069,6 +2071,18 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     SHARED: {config.sharedWithProjects.length}
                                                 </span>
                                             )}
+                                            {config.rbacSettings?.enabled && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingRbac(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1 animate-pulse"
+                                                >
+                                                    <Lock className="w-2.5 h-2.5" />
+                                                    RBAC ACTIVE
+                                                </button>
+                                            )}
                                             {!!config.metadata?.sharedFromProject && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1">
                                                     <RefreshCw className="w-2.5 h-2.5" />
@@ -2890,6 +2904,24 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             <ArrowRight className="w-4 h-4" />
                                         </Button>
                                     )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setIsManagingSecurity(config)}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error)]/10"
+                                        title="Security Intelligence"
+                                    >
+                                        <ShieldAlert className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setIsManagingRbac(config)}
+                                        className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                        title="RBAC Policies"
+                                    >
+                                        <Lock className="w-4 h-4" />
+                                    </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -4435,6 +4467,13 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                 isOpen={!!isManagingSecurity}
                 onClose={() => setIsManagingSecurity(null)}
                 storage={isManagingSecurity}
+                projectId={projectId}
+            />
+
+            <RbacModal
+                isOpen={!!isManagingRbac}
+                onClose={() => setIsManagingRbac(null)}
+                storage={isManagingRbac}
                 projectId={projectId}
             />
 

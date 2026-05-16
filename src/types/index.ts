@@ -528,6 +528,7 @@ export interface StorageConfig {
     antiPatternReport?: AntiPatternReport;
     noSqlSchemaReport?: NoSqlSchemaReport;
     benchmarkReport?: BenchmarkReport;
+    rbacSettings?: StorageRbacSettings;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
@@ -580,6 +581,23 @@ export interface ConnectionLeakReport {
     }>;
     recommendation?: string;
     timestamp: string;
+}
+
+export interface StorageRbacRule {
+    id: string;
+    type: 'COLUMN_MASK' | 'ROW_FILTER';
+    entity: string; // Table name or Collection name
+    field?: string;  // Column name for masking
+    filterCondition?: string; // e.g. "userId = :currentUserId" or JSON for NoSQL
+    maskingType?: 'FULL' | 'PARTIAL' | 'HASH';
+    roles: TeamRole[]; // Roles this rule applies to
+    enabled: boolean;
+}
+
+export interface StorageRbacSettings {
+    enabled: boolean;
+    rules: StorageRbacRule[];
+    lastUpdated: string;
 }
 
 export interface NoSqlField {

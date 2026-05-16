@@ -952,9 +952,54 @@ export async function POST(
             const responseClone = response.clone();
             const responseDataRaw = await responseClone.json();
 
-            // Only mask if the user is not an owner or if explicitly required for compliance
-            const shouldMask = widgetId || access?.role === 'viewer';
-            const responseData = shouldMask ? maskData(responseDataRaw) : responseDataRaw;
+            // Apply RBAC Policies (Phase 160)
+            let responseData = responseDataRaw;
+            const userRole = access?.role || 'viewer';
+
+            if (storageConfig.rbacSettings?.enabled && storageConfig.rbacSettings.rules.length > 0) {
+                const rules = storageConfig.rbacSettings.rules.filter(r => r.enabled && r.roles.includes(userRole));
+
+                if (rules.length > 0 && responseData.results && Array.isArray(responseData.results)) {
+                    responseData.results = responseData.results.map((row: Record<string, unknown>) => {
+                        const maskedRow = { ...row };
+
+                        // Apply ROW_FILTER (Client-side for proxy stability)
+                        const rowFilters = rules.filter(r => r.type === 'ROW_FILTER');
+                        for (const filter of rowFilters) {
+                            // Simple equality filter for now: "field = value"
+                            if (filter.filterCondition?.includes('=')) {
+                                const [f, v] = filter.filterCondition.split('=').map(s => s.trim());
+                                const value = v.startsWith("'") ? v.slice(1, -1) : v;
+                                if (String(row[f]) !== value) return null;
+                            }
+                        }
+
+                        // Apply COLUMN_MASK
+                        const columnMasks = rules.filter(r => r.type === 'COLUMN_MASK');
+                        for (const mask of columnMasks) {
+                            if (mask.field && maskedRow[mask.field] !== undefined) {
+                                if (mask.maskingType === 'FULL') {
+                                    maskedRow[mask.field] = '********';
+                                } else if (mask.maskingType === 'HASH') {
+                                    maskedRow[mask.field] = Buffer.from(String(maskedRow[mask.field])).toString('base64').substring(0, 12) + '...';
+                                } else {
+                                    maskedRow[mask.field] = maskData(maskedRow[mask.field]);
+                                }
+                            }
+                        }
+
+                        return maskedRow;
+                    }).filter(Boolean);
+
+                    responseData.rowCount = responseData.results.length;
+                }
+            }
+
+            // Only mask if the user is not an owner or if explicitly required for compliance (Default Fallback)
+            const shouldMaskDefault = widgetId || access?.role === 'viewer';
+            if (shouldMaskDefault && !storageConfig.rbacSettings?.enabled) {
+                responseData = maskData(responseData);
+            }
 
             // Record execution metrics
             await db.collection(Collections.STORAGE_METRICS).add({
