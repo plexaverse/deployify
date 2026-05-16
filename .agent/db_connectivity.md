@@ -1979,10 +1979,19 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Create Benchmarking API at `/api/projects/[id]/storage/[storageId]/benchmark`.
 - [x] Launch high-density Benchmark Report modal in the Storage dashboard.
 
-### Phase 160: Universal Database RBAC (PLANNED)
-- [ ] Implement proxy-level RBAC for Data Lab queries.
-- [ ] Support granular row-level and column-level masking policies.
-- [ ] Integrate with Team-based permissions defined in Deployify core.
+### Phase 160: Universal Database RBAC (COMPLETED)
+- [x] Implement proxy-level RBAC for Data Lab queries.
+- [x] Support granular row-level and column-level masking policies.
+- [x] Integrate with Team-based permissions defined in Deployify core.
+
+### 2027-08-06: Completed Phase 160: Universal Database RBAC
+- Completed Phase 160: Universal Database RBAC.
+- Introduced `rbacSettings` in `StorageConfig` to support per-connector access control policies.
+- Implemented proxy-level enforcement in `src/app/api/projects/[id]/storage/[storageId]/query/route.ts`, supporting server-side `COLUMN_MASK` (Full, Partial, Hash) and `ROW_FILTER` (Equality) rules.
+- Developed a new RBAC Management API at `/api/projects/[id]/storage/[storageId]/rbac` with Owner/Admin RBAC enforcement.
+- Launched the high-density `RbacModal.tsx` UI, allowing developers to define granular rules for specific roles (Owner, Admin, Member, Viewer).
+- Enhanced the Storage UI with pulsating 'RBAC ACTIVE' badges for connectors with enabled policies.
+- Verified 100% operational integrity with a zero-warning build and automated frontend verification.
 
 ### 2027-08-04: Completed Phase 158: Unified NoSQL Schema Governance
 - Completed Phase 158: Unified NoSQL Schema Governance.
