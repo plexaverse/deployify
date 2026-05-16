@@ -7,6 +7,7 @@ import { getOperationStatus as getAlloyDbOperationStatus, createInstance as crea
 import { getOperationStatus as getMemorystoreOperationStatus, getInstance as getMemorystoreInstance } from '@/lib/gcp/memorystore';
 import { getOperationStatus as getFirestoreOperationStatus } from '@/lib/gcp/firestore-admin';
 import { getOperationStatus as getSpannerOperationStatus, createSpannerDatabase } from '@/lib/gcp/spanner';
+import { getDatasetMetadata } from '@/lib/gcp/bigquery-admin';
 import { getGcpProjectNumber } from '@/lib/gcp/auth';
 import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
@@ -394,6 +395,27 @@ export async function GET(
                     }
                 }
 
+                // 0q. Phase 161: Autonomous BigQuery Integration & Governance
+                const bqMetadata = storage.bigqueryMetadata || (storage.metadata?.bigqueryMetadata as import('@/types').BigQueryMetadata | undefined);
+                const lastBqScan = bqMetadata?.lastSyncedAt ? new Date(bqMetadata.lastSyncedAt) : new Date(0);
+                const hoursSinceBqScan = (now.getTime() - lastBqScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && storage.type === 'bigquery' && hoursSinceBqScan >= 24) {
+                    try {
+                        const datasetId = (storage.metadata?.resourceName as string) || storage.name;
+                        const report = await getDatasetMetadata(datasetId);
+                        if (report) {
+                            storage.bigqueryMetadata = report;
+                            storage.metadata = {
+                                ...storage.metadata,
+                                bigqueryMetadata: report
+                            };
+                        }
+                    } catch (bqErr) {
+                        console.error(`[BigQuerySync] Discovery failed for ${storageId}:`, bqErr);
+                    }
+                }
+
                 // 0p. Phase 158: Autonomous NoSQL Schema Discovery & Governance
                 const noSqlSchemaReport = storage.noSqlSchemaReport || (storage.metadata?.noSqlSchemaReport as import('@/types').NoSqlSchemaReport | undefined);
                 const lastNoSqlScan = noSqlSchemaReport?.lastScannedAt ? new Date(noSqlSchemaReport.lastScannedAt) : new Date(0);
@@ -557,7 +579,10 @@ export async function GET(
                 const region = (storage.metadata?.region as string) || access.project?.region || 'us-central1';
 
                 let metrics;
-                if (storage.type.includes('cloud-sql')) {
+                if (storage.type === 'bigquery') {
+                    const { getBigQueryMetrics } = await import('@/lib/gcp/monitoring');
+                    metrics = await getBigQueryMetrics(resourceName);
+                } else if (storage.type.includes('cloud-sql')) {
                     const dbType = storage.type.includes('postgres') ? 'postgresql' : 'mysql';
                     const tier = (storage.metadata?.tier as string) || 'db-f1-micro';
                     metrics = await getCloudSqlMetrics(resourceName, dbType, tier);
