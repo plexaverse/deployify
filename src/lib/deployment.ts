@@ -130,6 +130,36 @@ export async function syncDeploymentStatus(
                 ).catch(console.error);
             }
 
+            // Phase 112: Global Edge Acceleration (Deployify Edge)
+            // Provision GLB, CDN, and Armor if ipAddress is not yet assigned
+            const project = await getProjectById(projectId);
+            if (project && !project.globalIpAddress && deployment.type === 'production') {
+                try {
+                    const { createGlobalLoadBalancer, enableCloudCdn } = await import('@/lib/gcp/loadbalancer');
+                    const { enableCloudArmor } = await import('@/lib/gcp/armor');
+
+                    console.log(`[Deployify Edge] Provisioning global infrastructure for ${projectSlug}`);
+                    const glb = await createGlobalLoadBalancer(serviceName, region);
+                    await enableCloudCdn(glb.backendServiceName);
+
+                    if (project.cloudArmorEnabled) {
+                        await enableCloudArmor(serviceName);
+                    }
+
+                    await updateProject(projectId, {
+                        globalIpAddress: glb.ipAddress,
+                        metadata: {
+                            ...project.metadata,
+                            backendServiceName: glb.backendServiceName,
+                            urlMapName: glb.urlMapName,
+                            edgeProvisionedAt: new Date().toISOString()
+                        }
+                    });
+                } catch (e) {
+                    console.error('[Deployify Edge] Failed to provision global infra:', e);
+                }
+            }
+
             // Track deployment usage
             await trackDeployment(projectId, buildDurationMs);
 

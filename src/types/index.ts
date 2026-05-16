@@ -136,6 +136,8 @@ export interface Project {
     emailNotifications?: boolean; // Send email notifications on deployment
     cloudArmorEnabled?: boolean; // Enable Cloud Armor WAF
     cloudArmorPolicy?: string; // Cloud Armor policy name
+    globalIpAddress?: string | null; // Global Load Balancer IP
+    metadata?: Record<string, any>; // Project metadata for extension
     autoDeployPrs?: boolean; // Whether to automatically deploy Pull Requests
     autodeployBranches?: string[]; // Branches to auto-deploy
     branchEnvironments?: {
