@@ -1665,7 +1665,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 </div>
                                             )}
 
-                                            <p className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] opacity-60 leading-tight">
+                                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60 leading-tight">
                                                 1 NODE IS EQUIVALENT TO 1000 PROCESSING UNITS. PROCESSING UNITS PROVIDE MORE GRANULAR SCALING FOR SMALLER WORKLOADS.
                                             </p>
                                         </div>
