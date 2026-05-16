@@ -332,6 +332,19 @@ export async function POST(
                 }
 
                 // Real Connectivity Logic (Production Proxy)
+                if (query === 'DISCOVER_SCHEMA' && (storageConfig.type === 'firestore' || storageConfig.type === 'mongodb-atlas')) {
+                    const { discoverNoSqlSchema } = await import('@/lib/gcp/monitoring');
+                    const report = await discoverNoSqlSchema(storageConfig, connectionString);
+                    return NextResponse.json({
+                        success: true,
+                        schema: {
+                            collections: report.entities.map(e => e.entity),
+                            noSqlEntities: report.entities
+                        },
+                        executionTimeMs: Date.now() - startTime
+                    });
+                }
+
                 if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
                     const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
                     const isIamAuth = connectionString.includes('enable_iam_auth=true');

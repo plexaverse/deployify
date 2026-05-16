@@ -175,6 +175,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [sessions, setSessions] = useState<import('@/lib/gcp/cloudsql').DatabaseSession[]>([]);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
     const [isManagingLogs, setIsManagingLogs] = useState<StorageConfig | null>(null);
+    const [isManagingBenchmark, setIsManagingBenchmark] = useState<StorageConfig | null>(null);
+    const [benchmarkingId, setBenchmarkingId] = useState<string | null>(null);
     const [isManagingRegression, setIsManagingRegression] = useState<StorageConfig | null>(null);
     const [regressionReport, setRegressionReport] = useState<import('@/lib/gcp/monitoring').PerformanceRegressionReport | null>(null);
     const [isLoadingRegression, setIsLoadingRegression] = useState(false);
@@ -686,6 +688,29 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
             await syncStorageStatus(projectId, storageId);
         } finally {
             setSyncingId(null);
+        }
+    };
+
+    const handleBenchmark = async (storageId: string) => {
+        setBenchmarkingId(storageId);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${storageId}/benchmark`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (data.success) {
+                toast.success('Performance benchmark completed');
+                if (onUpdate) onUpdate();
+                await fetchProjectStorage(projectId);
+                const updated = storageConfigs.find(c => c.id === storageId);
+                if (updated) setIsManagingBenchmark(updated);
+            } else {
+                toast.error(data.error || 'Benchmark failed');
+            }
+        } catch {
+            toast.error('Failed to execute benchmark');
+        } finally {
+            setBenchmarkingId(null);
         }
     };
 
@@ -2032,6 +2057,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     READY FOR CUTOVER
                                                 </span>
                                             )}
+                                            {config.noSqlSchemaReport?.hasDrift && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--warning)]/10 text-[var(--warning)] font-bold uppercase tracking-wider border border-[var(--warning)]/20 flex items-center gap-1 animate-pulse">
+                                                    <AlertTriangle className="w-2.5 h-2.5" />
+                                                    SCHEMA DRIFT
+                                                </span>
+                                            )}
                                             {config.sharedWithProjects && config.sharedWithProjects.length > 0 && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1" title={`Shared with ${config.sharedWithProjects.length} other projects`}>
                                                     <RefreshCw className="w-2.5 h-2.5" />
@@ -2043,6 +2074,19 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     <RefreshCw className="w-2.5 h-2.5" />
                                                     SHARED FROM UPSTREAM
                                                 </span>
+                                            )}
+                                            {config.benchmarkReport && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsManagingBenchmark(config);
+                                                    }}
+                                                    className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1"
+                                                    title={`Last Benchmark: ${new Date(config.benchmarkReport.lastScannedAt).toLocaleString()}`}
+                                                >
+                                                    <Zap className="w-2.5 h-2.5" />
+                                                    SCORE: {config.benchmarkReport.score}
+                                                </button>
                                             )}
                                             {config.topology && (
                                                 <button
@@ -2628,6 +2672,16 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                         </Button>
                                     ) : (
                                         <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleBenchmark(config.id)}
+                                                disabled={benchmarkingId === config.id}
+                                                className="h-8 w-8 text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                                title="Run Performance Benchmark"
+                                            >
+                                                {benchmarkingId === config.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                                            </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -5100,6 +5154,93 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                             <AlertTriangle className="w-3.5 h-3.5 text-[var(--warning)] shrink-0 mt-0.5" />
                             <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
                                 CRITICAL: Connection leaks can saturate the database, leading to application downtime. The &quot;Heal Pool&quot; action terminates idle sessions to reclaim connection slots immediately.
+                            </p>
+                        </div>
+                    </div>
+                }
+                showConfirm={false}
+                showCancel={false}
+            />
+
+            <ConfirmationModal
+                isOpen={!!isManagingBenchmark}
+                onClose={() => setIsManagingBenchmark(null)}
+                title="Performance Benchmark Report"
+                headerLabel="Connectivity Intelligence"
+                icon={<Zap className="w-5 h-5 text-[var(--primary)]" />}
+                description={
+                    <div className="space-y-6">
+                        {isManagingBenchmark?.benchmarkReport && (
+                            <>
+                                <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-center justify-between">
+                                    <div>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Score</span>
+                                        <div className="text-2xl font-bold text-[var(--primary)]">{isManagingBenchmark.benchmarkReport.score}/100</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Last Ran</span>
+                                        <div className="text-[10px] font-bold">{new Date(isManagingBenchmark.benchmarkReport.lastScannedAt).toLocaleString()}</div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 border border-[var(--border)] rounded-xl space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <ArrowRight className="w-4 h-4 text-[var(--success)]" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Read Operations</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between">
+                                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Latency</span>
+                                                <span className="text-[10px] font-mono font-bold">{isManagingBenchmark.benchmarkReport.read.latencyMs}ms</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">IOPS</span>
+                                                <span className="text-[10px] font-mono font-bold">{isManagingBenchmark.benchmarkReport.read.iops}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Throughput</span>
+                                                <span className="text-[10px] font-mono font-bold">{isManagingBenchmark.benchmarkReport.read.throughputMbps} Mbps</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 border border-[var(--border)] rounded-xl space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <ArrowRight className="w-4 h-4 text-[var(--primary)] rotate-180" />
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Write Operations</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between">
+                                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Latency</span>
+                                                <span className="text-[10px] font-mono font-bold">{isManagingBenchmark.benchmarkReport.write.latencyMs}ms</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">IOPS</span>
+                                                <span className="text-[10px] font-mono font-bold">{isManagingBenchmark.benchmarkReport.write.iops}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">Throughput</span>
+                                                <span className="text-[10px] font-mono font-bold">{isManagingBenchmark.benchmarkReport.write.throughputMbps} Mbps</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-3 bg-[var(--muted)]/5 border border-[var(--border)] rounded-xl flex items-center justify-between">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Benchmark Duration</span>
+                                    <span className="text-[10px] font-mono font-bold">{isManagingBenchmark.benchmarkReport.totalDurationMs}ms</span>
+                                </div>
+                            </>
+                        )}
+
+                        <div className="p-4 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl space-y-2">
+                            <div className="flex items-center gap-2">
+                                <Activity className="w-4 h-4 text-[var(--primary)]" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider">Benchmark Methodology</span>
+                            </div>
+                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                Standard benchmark executes a cycle of small-payload read and write operations within a temporary schema. This measures baseline connectivity and engine responsiveness.
                             </p>
                         </div>
                     </div>

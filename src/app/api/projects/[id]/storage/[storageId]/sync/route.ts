@@ -12,7 +12,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks, discoverUnusedIndexes, discoverQueryAntiPatterns } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks, discoverUnusedIndexes, discoverQueryAntiPatterns, discoverNoSqlSchema } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -391,6 +391,27 @@ export async function GET(
                         };
                     } catch (apErr) {
                         console.error(`[AntiPatternSync] Discovery failed for ${storageId}:`, apErr);
+                    }
+                }
+
+                // 0p. Phase 158: Autonomous NoSQL Schema Discovery & Governance
+                const noSqlSchemaReport = storage.noSqlSchemaReport || (storage.metadata?.noSqlSchemaReport as import('@/types').NoSqlSchemaReport | undefined);
+                const lastNoSqlScan = noSqlSchemaReport?.lastScannedAt ? new Date(noSqlSchemaReport.lastScannedAt) : new Date(0);
+                const hoursSinceNoSqlScan = (now.getTime() - lastNoSqlScan.getTime()) / (1000 * 60 * 60);
+
+                if (storage.status === 'active' && hoursSinceNoSqlScan >= 24 && (storage.type === 'firestore' || storage.type === 'mongodb-atlas')) {
+                    try {
+                        const { getSecretValue } = await import('@/lib/gcp/secrets');
+                        const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : undefined;
+
+                        const report = await discoverNoSqlSchema(storage, connStr);
+                        storage.noSqlSchemaReport = report;
+                        storage.metadata = {
+                            ...storage.metadata,
+                            noSqlSchemaReport: report
+                        };
+                    } catch (nosqlErr) {
+                        console.error(`[NoSqlSchemaSync] Discovery failed for ${storageId}:`, nosqlErr);
                     }
                 }
 

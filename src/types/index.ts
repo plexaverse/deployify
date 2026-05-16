@@ -526,6 +526,8 @@ export interface StorageConfig {
     deadlockReport?: DeadlockReport;
     unusedIndexReport?: UnusedIndexReport;
     antiPatternReport?: AntiPatternReport;
+    noSqlSchemaReport?: NoSqlSchemaReport;
+    benchmarkReport?: BenchmarkReport;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
     providerApiKeySecretId?: string; // GCP Secret Manager ID for external provider API keys
@@ -578,6 +580,26 @@ export interface ConnectionLeakReport {
     }>;
     recommendation?: string;
     timestamp: string;
+}
+
+export interface NoSqlField {
+    name: string;
+    type: 'STRING' | 'NUMBER' | 'BOOLEAN' | 'MAP' | 'ARRAY' | 'TIMESTAMP' | 'GEOPOINT' | 'REFERENCE' | 'NULL' | 'UNKNOWN';
+    frequency: number; // 0-1 percentage of sampled documents containing this field
+}
+
+export interface NoSqlEntitySchema {
+    entity: string; // Collection name or MongoDB collection
+    fields: NoSqlField[];
+    totalSampled: number;
+    lastScannedAt: string;
+}
+
+export interface NoSqlSchemaReport {
+    hasSchema: boolean;
+    entities: NoSqlEntitySchema[];
+    lastScannedAt: string;
+    hasDrift?: boolean;
 }
 
 export interface QueryAntiPattern {
@@ -642,6 +664,20 @@ export interface ComplianceReport {
     hasRisk: boolean;
     risks: ComplianceRisk[];
     lastScannedAt: string;
+}
+
+export interface BenchmarkMetric {
+    latencyMs: number;
+    iops: number;
+    throughputMbps: number;
+}
+
+export interface BenchmarkReport {
+    read: BenchmarkMetric;
+    write: BenchmarkMetric;
+    totalDurationMs: number;
+    lastScannedAt: string;
+    score: number; // 0-100 performance score
 }
 
 export interface ReliabilityMetrics {

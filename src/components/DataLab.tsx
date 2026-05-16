@@ -63,6 +63,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         tables?: string[],
         collections?: string[],
         tableStats?: Record<string, { estimatedRows: number }>,
+        noSqlEntities?: import('@/types').NoSqlEntitySchema[],
         columns?: Record<string, {
             name: string,
             type: string,
@@ -2166,6 +2167,17 @@ runQuery();`;
                                     </Button>
                                 </>
                             )}
+                            {schema.noSqlEntities && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={exportTypeScript}
+                                    className="h-6 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                >
+                                    <FileCode className="w-3 h-3 mr-1.5" />
+                                    Interfaces (TS)
+                                </Button>
+                            )}
                         </div>
 
                         {schemaView === 'graph' && schema.tables && schema.columns ? (
@@ -2262,11 +2274,36 @@ runQuery();`;
                                 </div>
                             </div>
 
-                            {schema.columns && Object.keys(schema.columns).length > 0 && (
+                            {(schema.columns || schema.noSqlEntities) && (
                                 <div className="space-y-3 border-l border-[var(--border)] pl-4">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Structure Preview</span>
                                     <div className="max-h-40 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                                        {Object.entries(schema.columns).map(([table, cols]) => (
+                                        {schema.noSqlEntities?.map((entity) => (
+                                            <div key={entity.entity} className="space-y-1.5 p-2 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5 group/table-item">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Database className="w-3 h-3 text-[var(--success)]" />
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider">{entity.entity}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1.5 pl-5">
+                                                    {entity.fields.map(field => (
+                                                        <div key={field.name} className="flex flex-col gap-1 p-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] group/col-item relative">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-mono font-bold">{field.name}</span>
+                                                                <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60 px-1 rounded bg-[var(--background)]">{field.type}</span>
+                                                                {field.frequency < 1 && (
+                                                                    <span className="text-[10px] font-bold text-[var(--warning)] opacity-80" title="Optional field">
+                                                                        {Math.round(field.frequency * 100)}%
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {schema.columns && Object.entries(schema.columns).map(([table, cols]) => (
                                             <div key={table} className="space-y-1.5 p-2 rounded-xl border border-[var(--border)] bg-[var(--muted)]/5 group/table-item">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
