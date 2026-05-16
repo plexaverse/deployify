@@ -2091,3 +2091,17 @@ Conducted a final check for any lingering hardcoded colors that violate the dyna
 - **Files Updated**: `src/components/SecurityModal.tsx`
 - **Standardization**:
     - Replaced the single remaining instance of `text-white` with the dynamic CSS variable `text-[var(--error-foreground)]` within the critical severity threat badge. This ensures total compliance with the application's dark/light theming system.
+
+## Session 261: Final Typography Size Standardization Verification
+
+Completed a global sweep to upsize all remaining `text-[8px]` elements to the standard `text-[10px]` per the progressive UI update requirements, maintaining legibility across the high-density interface while adhering strictly to the size rules.
+
+### Typography Standardization
+- **Files Updated**:
+  - `src/components/StorageSection.tsx`
+  - `src/components/OptimizationModal.tsx`
+- **Standardization**:
+    - Converted all instances of `text-[8px]` inside `StorageSection.tsx` (e.g., node limits tip) to `text-[10px]`.
+    - Converted all instances of `text-[8px]` inside `OptimizationModal.tsx` (e.g., cost forecast, original/optimized query labels, entity names, snippet tabs) to `text-[10px]`.
+    - Verified strict adherence to maintaining `font-bold` and uppercase weights where applicable to preserve high-density visual hierarchy.
+    - Verified that no `text-[8px]` instances remain globally across the components.
