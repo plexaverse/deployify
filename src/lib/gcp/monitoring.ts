@@ -997,6 +997,39 @@ export async function getExternalMetrics(
     return { status: 'UNKNOWN' };
 }
 
+/**
+ * Fetch resource metrics for a BigQuery dataset (Phase 161)
+ */
+export async function getBigQueryMetrics(
+    datasetId: string
+): Promise<ResourceMetrics> {
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            cpuUtilization: Math.floor(Math.random() * 15) + 2, // Map slot usage to "CPU"
+            memoryUtilization: Math.floor(Math.random() * 10) + 5,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    // BigQuery metrics from Cloud Monitoring
+    const scannedFilter = `metric.type="bigquery.googleapis.com/query/scanned_bytes" AND resource.labels.dataset_id="${datasetId}"`;
+    const slotFilter = `metric.type="bigquery.googleapis.com/slots/allocated_for_project"`;
+
+    const [scanned, slots] = await Promise.all([
+        fetchLatestMetricValue(gcpProjectId!, accessToken, scannedFilter),
+        fetchLatestMetricValue(gcpProjectId!, accessToken, slotFilter)
+    ]);
+
+    return {
+        cpuUtilization: parseFloat(Math.min(100, (slots / 100) * 100).toFixed(2)), // Normalized slots
+        memoryUtilization: parseFloat(Math.min(100, (scanned / (1024 * 1024 * 1024 * 10)) * 100).toFixed(2)), // Scanned relative to 10GB
+        timestamp: new Date().toISOString()
+    };
+}
+
 export async function getQueryInsights(
     instanceId: string,
     dbType: 'postgresql' | 'mysql' = 'postgresql',

@@ -9,6 +9,7 @@ import { createCluster as createAlloyDbCluster, deleteInstance as deleteAlloyDbI
 import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance, updateInstanceSize as updateMemorystoreSize } from '@/lib/gcp/memorystore';
 import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { createSpannerInstance, deleteInstance as deleteSpannerInstance } from '@/lib/gcp/spanner';
+import { createDataset as createBigQueryDataset, deleteDataset as deleteBigQueryDataset } from '@/lib/gcp/bigquery-admin';
 import { deriveTopology } from '@/lib/gcp/topology';
 import { config } from '@/lib/config';
 import type { StorageConfig } from '@/types';
@@ -156,6 +157,10 @@ export async function POST(
                     finalConnectionString = `postgresql://deployify-sa@/${project.slug}?host=/cloudsql/${gcpProjId}:${targetRegion}:${resourceName}-primary&enable_iam_auth=true`;
 
                     provisionResult = { operationName, connectionString: finalConnectionString };
+                } else if (type === 'bigquery' && resourceName) {
+                    const bqResult = await createBigQueryDataset(resourceName, targetRegion);
+                    finalConnectionString = bqResult.connectionString;
+                    provisionResult = { connectionString: finalConnectionString, operationName: undefined };
                 } else if (type === 'neon' || type === 'supabase') {
                     const { provisionExternalConnector } = await import('@/lib/gcp/external-sync');
                     provisionResult = await provisionExternalConnector(id, name, type, targetRegion, { ...metadata, providerApiKey, dbPassword });
@@ -328,6 +333,8 @@ export async function DELETE(
                     await deleteFirestoreDatabase(resourceName);
                 } else if (storageConfig.type === 'cloud-spanner') {
                     await deleteSpannerInstance(resourceName);
+                } else if (storageConfig.type === 'bigquery') {
+                    await deleteBigQueryDataset(resourceName);
                 }
             } catch (error) {
                 console.error('Failed to delete GCP resource:', error);

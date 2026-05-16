@@ -424,6 +424,7 @@ export type StorageType =
     | 'planetscale'
     | 'neon'
     | 'cloud-spanner'
+    | 'bigquery'
     | 'generic';
 
 export type StorageStatus = 'provisioning' | 'active' | 'error' | 'disconnected';
@@ -528,6 +529,7 @@ export interface StorageConfig {
     antiPatternReport?: AntiPatternReport;
     noSqlSchemaReport?: NoSqlSchemaReport;
     benchmarkReport?: BenchmarkReport;
+    bigqueryMetadata?: BigQueryMetadata;
     rbacSettings?: StorageRbacSettings;
     region?: string; // GCP region for provisioned resources (e.g., 'us-central1')
     providerProjectId?: string; // Project ID for cross-project connectors
@@ -581,6 +583,16 @@ export interface ConnectionLeakReport {
     }>;
     recommendation?: string;
     timestamp: string;
+}
+
+export interface BigQueryMetadata {
+    datasetId: string;
+    location: string;
+    totalBytesProcessedLast24H?: number;
+    activeSlots?: number;
+    tableCount?: number;
+    storageUsageGb?: number;
+    lastSyncedAt?: string;
 }
 
 export interface StorageRbacRule {

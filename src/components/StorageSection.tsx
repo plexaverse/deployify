@@ -86,6 +86,7 @@ const STORAGE_TYPES = [
     { value: 'mongodb-atlas', label: 'MONGODB ATLAS', category: 'EXTERNAL' },
     { value: 'planetscale', label: 'PLANETSCALE', category: 'EXTERNAL' },
     { value: 'neon', label: 'NEON (POSTGRES)', category: 'EXTERNAL' },
+    { value: 'bigquery', label: 'BIGQUERY', category: 'GCP NATIVE' },
     { value: 'generic', label: 'GENERIC DATABASE', category: 'OTHER' },
 ] as const;
 
@@ -1993,7 +1994,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     {config.metadata.firewallStatus === 'DRIFT' ? 'FIREWALL DRIFT' : 'FIREWALL SYNCED'}
                                                 </span>
                                             )}
-                                            {(config.type.includes('cloud-sql') || config.type === 'cloud-spanner') && (
+                                            {(config.type.includes('cloud-sql') || config.type === 'cloud-spanner' || config.type === 'bigquery') && (
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1">
                                                     <Zap className="w-2.5 h-2.5" />
                                                     IAM AUTH
@@ -2136,6 +2137,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                             {config.status === 'provisioning' && !!config.metadata?.ingestionStage && (
                                                 <span className="text-[10px] font-bold text-[var(--primary)] uppercase animate-pulse">
                                                     — {String(config.metadata?.ingestionStage || '').replace(/_/g, ' ')}
+                                                </span>
+                                            )}
+                                            {config.type === 'bigquery' && config.bigqueryMetadata && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-wider border border-[var(--primary)]/20 flex items-center gap-1">
+                                                    <FileCode className="w-2.5 h-2.5" />
+                                                    {config.bigqueryMetadata.datasetId} ({config.bigqueryMetadata.location})
                                                 </span>
                                             )}
                                             {(config.metadata?.security as { risks: Array<{ id: string, level: string, title: string }> })?.risks?.filter(risk =>
