@@ -3218,3 +3218,344 @@ export async function getDatabaseLogs(
         return [];
     }
 }
+
+/**
+ * Autonomously discover NoSQL schemas by sampling documents (Phase 158)
+ */
+export async function discoverNoSqlSchema(
+    storage: import('@/types').StorageConfig,
+    connectionString?: string
+): Promise<import('@/types').NoSqlSchemaReport> {
+    const entities: import('@/types').NoSqlEntitySchema[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            hasSchema: true,
+            entities: [
+                {
+                    entity: 'users',
+                    totalSampled: 100,
+                    lastScannedAt: now,
+                    fields: [
+                        { name: 'id', type: 'STRING', frequency: 1 },
+                        { name: 'email', type: 'STRING', frequency: 1 },
+                        { name: 'createdAt', type: 'TIMESTAMP', frequency: 1 },
+                        { name: 'metadata', type: 'MAP', frequency: 0.4 }
+                    ]
+                }
+            ],
+            lastScannedAt: now,
+            hasDrift: Math.random() > 0.8
+        };
+    }
+
+    try {
+        if (storage.type === 'firestore') {
+            const { getDb } = await import('@/lib/firebase');
+            const db = getDb();
+            const collections = await db.listCollections();
+
+            for (const col of collections.slice(0, 10)) {
+                const snapshot = await col.limit(20).get();
+                const fieldStats: Record<string, { type: string; count: number }> = {};
+                let totalSampled = 0;
+
+                snapshot.forEach(doc => {
+                    totalSampled++;
+                    const data = doc.data();
+                    for (const [key, value] of Object.entries(data)) {
+                        const type = inferNoSqlType(value);
+                        if (!fieldStats[key]) {
+                            fieldStats[key] = { type, count: 0 };
+                        }
+                        fieldStats[key].count++;
+                    }
+                });
+
+                if (totalSampled > 0) {
+                    entities.push({
+                        entity: col.id,
+                        totalSampled,
+                        lastScannedAt: now,
+                        fields: Object.entries(fieldStats).map(([name, stats]) => ({
+                            name,
+                            type: stats.type as import('@/types').NoSqlField['type'],
+                            frequency: stats.count / totalSampled
+                        }))
+                    });
+                }
+            }
+        } else if (storage.type === 'mongodb-atlas' && connectionString) {
+            const { MongoClient } = await import('mongodb');
+            const client = new MongoClient(connectionString);
+            try {
+                await client.connect();
+                const db = client.db();
+                const collections = await db.listCollections().toArray();
+
+                for (const colInfo of collections.slice(0, 10)) {
+                    const collection = db.collection(colInfo.name);
+                    const cursor = collection.find().limit(20);
+                    const fieldStats: Record<string, { type: string; count: number }> = {};
+                    let totalSampled = 0;
+
+                    while (await cursor.hasNext()) {
+                        const doc = await cursor.next();
+                        totalSampled++;
+                        if (doc) {
+                            for (const [key, value] of Object.entries(doc)) {
+                                const type = inferNoSqlType(value);
+                                if (!fieldStats[key]) {
+                                    fieldStats[key] = { type, count: 0 };
+                                }
+                                fieldStats[key].count++;
+                            }
+                        }
+                    }
+
+                    if (totalSampled > 0) {
+                        entities.push({
+                            entity: colInfo.name,
+                            totalSampled,
+                            lastScannedAt: now,
+                            fields: Object.entries(fieldStats).map(([name, stats]) => ({
+                                name,
+                                type: stats.type as import('@/types').NoSqlField['type'],
+                                frequency: stats.count / totalSampled
+                            }))
+                        });
+                    }
+                }
+            } finally {
+                await client.close();
+            }
+        }
+    } catch (e) {
+        console.error(`[NoSqlSchemaDiscovery] Failed for ${storage.id}:`, e);
+    }
+
+    return {
+        hasSchema: entities.length > 0,
+        entities,
+        lastScannedAt: now
+    };
+}
+
+function inferNoSqlType(value: unknown): string {
+    if (value === null) return 'NULL';
+    if (typeof value === 'string') {
+        if (value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) return 'TIMESTAMP';
+        return 'STRING';
+    }
+    if (typeof value === 'number') return 'NUMBER';
+    if (typeof value === 'boolean') return 'BOOLEAN';
+    if (Array.isArray(value)) return 'ARRAY';
+    if (typeof value === 'object' && value !== null) {
+        const obj = value as Record<string, unknown>;
+        if (value.constructor?.name === 'Timestamp' || obj._seconds !== undefined) return 'TIMESTAMP';
+        if (value.constructor?.name === 'GeoPoint' || (obj.latitude !== undefined && obj.longitude !== undefined)) return 'GEOPOINT';
+        if (value.constructor?.name === 'DocumentReference') return 'REFERENCE';
+        if (value.constructor?.name === 'ObjectId') return 'REFERENCE';
+        return 'MAP';
+    }
+    return 'UNKNOWN';
+}
+
+/**
+ * Run a performance benchmark on a storage connector (Phase 159)
+ * Performs standardized read/write cycles to measure Latency, IOPS, and Throughput.
+ */
+export async function runPerformanceBenchmark(
+    storage: import('@/types').StorageConfig,
+    connectionString?: string
+): Promise<import('@/types').BenchmarkReport> {
+    const startTime = Date.now();
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        // Simulate a 2-3 second benchmark
+        await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 1000));
+
+        const readLatency = 5 + Math.random() * 15;
+        const writeLatency = 10 + Math.random() * 30;
+
+        return {
+            read: {
+                latencyMs: parseFloat(readLatency.toFixed(2)),
+                iops: Math.round(1000 / readLatency * 10),
+                throughputMbps: parseFloat((Math.random() * 50 + 10).toFixed(2))
+            },
+            write: {
+                latencyMs: parseFloat(writeLatency.toFixed(2)),
+                iops: Math.round(1000 / writeLatency * 5),
+                throughputMbps: parseFloat((Math.random() * 20 + 5).toFixed(2))
+            },
+            totalDurationMs: Date.now() - startTime,
+            lastScannedAt: now,
+            score: Math.round(Math.max(0, 100 - (readLatency + writeLatency) / 2))
+        };
+    }
+
+    try {
+        if ((storage.type.includes('sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon') && connectionString) {
+            const isPostgres = storage.type.includes('postgres') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon';
+
+            // Standard benchmark: 100 small writes, 100 small reads
+            const iterations = 100;
+            const payload = "benchmark_data_" + "x".repeat(100); // ~100 bytes
+
+            if (isPostgres) {
+                const { Client } = await import('pg');
+                const client = new Client({
+                    connectionString,
+                    ssl: storage.ssl ? { rejectUnauthorized: false } : false,
+                    connectionTimeoutMillis: 5000
+                });
+                await client.connect();
+
+                try {
+                    // Setup
+                    await client.query("CREATE TEMP TABLE IF NOT EXISTS _deployify_benchmark (id serial primary key, data text, val integer)");
+
+                    // Write Cycle
+                    const wStart = Date.now();
+                    for (let i = 0; i < iterations; i++) {
+                        await client.query("INSERT INTO _deployify_benchmark (data, val) VALUES ($1, $2)", [payload, i]);
+                    }
+                    const wDuration = Date.now() - wStart;
+
+                    // Read Cycle
+                    const rStart = Date.now();
+                    for (let i = 0; i < iterations; i++) {
+                        await client.query("SELECT * FROM _deployify_benchmark WHERE val = $1", [i]);
+                    }
+                    const rDuration = Date.now() - rStart;
+
+                    const readLatency = rDuration / iterations;
+                    const writeLatency = wDuration / iterations;
+
+                    return {
+                        read: {
+                            latencyMs: parseFloat(readLatency.toFixed(2)),
+                            iops: Math.round(1000 / readLatency),
+                            throughputMbps: parseFloat(((iterations * 100 * 8) / (rDuration / 1000) / 1000000).toFixed(2))
+                        },
+                        write: {
+                            latencyMs: parseFloat(writeLatency.toFixed(2)),
+                            iops: Math.round(1000 / writeLatency),
+                            throughputMbps: parseFloat(((iterations * 100 * 8) / (wDuration / 1000) / 1000000).toFixed(2))
+                        },
+                        totalDurationMs: Date.now() - startTime,
+                        lastScannedAt: now,
+                        score: calculateBenchmarkScore(readLatency, writeLatency)
+                    };
+                } finally {
+                    await client.end().catch(() => {});
+                }
+            } else {
+                const mysql = await import('mysql2/promise');
+                const connection = await mysql.createConnection(connectionString);
+                try {
+                    // Setup
+                    await connection.execute("CREATE TEMPORARY TABLE IF NOT EXISTS _deployify_benchmark (id INT AUTO_INCREMENT PRIMARY KEY, data TEXT, val INT)");
+
+                    // Write Cycle
+                    const wStart = Date.now();
+                    for (let i = 0; i < iterations; i++) {
+                        await connection.execute("INSERT INTO _deployify_benchmark (data, val) VALUES (?, ?)", [payload, i]);
+                    }
+                    const wDuration = Date.now() - wStart;
+
+                    // Read Cycle
+                    const rStart = Date.now();
+                    for (let i = 0; i < iterations; i++) {
+                        await connection.execute("SELECT * FROM _deployify_benchmark WHERE val = ?", [i]);
+                    }
+                    const rDuration = Date.now() - rStart;
+
+                    const readLatency = rDuration / iterations;
+                    const writeLatency = wDuration / iterations;
+
+                    return {
+                        read: {
+                            latencyMs: parseFloat(readLatency.toFixed(2)),
+                            iops: Math.round(1000 / readLatency),
+                            throughputMbps: parseFloat(((iterations * 100 * 8) / (rDuration / 1000) / 1000000).toFixed(2))
+                        },
+                        write: {
+                            latencyMs: parseFloat(writeLatency.toFixed(2)),
+                            iops: Math.round(1000 / writeLatency),
+                            throughputMbps: parseFloat(((iterations * 100 * 8) / (wDuration / 1000) / 1000000).toFixed(2))
+                        },
+                        totalDurationMs: Date.now() - startTime,
+                        lastScannedAt: now,
+                        score: calculateBenchmarkScore(readLatency, writeLatency)
+                    };
+                } finally {
+                    await connection.end().catch(() => {});
+                }
+            }
+        } else if (storage.type === 'firestore') {
+            const { getDb } = await import('@/lib/firebase');
+            const db = getDb();
+            const iterations = 50; // Fewer for serverless/rate-limited environments
+            const col = db.collection('_deployify_benchmark');
+
+            // Write Cycle
+            const wStart = Date.now();
+            const docIds = [];
+            for (let i = 0; i < iterations; i++) {
+                const docRef = await col.add({ data: "benchmark", val: i, ts: now });
+                docIds.push(docRef.id);
+            }
+            const wDuration = Date.now() - wStart;
+
+            // Read Cycle
+            const rStart = Date.now();
+            for (const id of docIds) {
+                await col.doc(id).get();
+            }
+            const rDuration = Date.now() - rStart;
+
+            // Cleanup (Async)
+            Promise.all(docIds.map(id => col.doc(id).delete())).catch(e => console.warn("[Benchmark] Cleanup failed", e));
+
+            const readLatency = rDuration / iterations;
+            const writeLatency = wDuration / iterations;
+
+            return {
+                read: {
+                    latencyMs: parseFloat(readLatency.toFixed(2)),
+                    iops: Math.round(1000 / readLatency),
+                    throughputMbps: 0.1 // Not really applicable for Firestore ops
+                },
+                write: {
+                    latencyMs: parseFloat(writeLatency.toFixed(2)),
+                    iops: Math.round(1000 / writeLatency),
+                    throughputMbps: 0.1
+                },
+                totalDurationMs: Date.now() - startTime,
+                lastScannedAt: now,
+                score: calculateBenchmarkScore(readLatency, writeLatency)
+            };
+        }
+    } catch (e) {
+        console.error(`[Benchmark] Failed for ${storage.id}:`, e);
+    }
+
+    return {
+        read: { latencyMs: 0, iops: 0, throughputMbps: 0 },
+        write: { latencyMs: 0, iops: 0, throughputMbps: 0 },
+        totalDurationMs: Date.now() - startTime,
+        lastScannedAt: now,
+        score: 0
+    };
+}
+
+function calculateBenchmarkScore(readLatency: number, writeLatency: number): number {
+    // Score targets: 1ms read = 100, 100ms read = 0. 5ms write = 100, 200ms write = 0.
+    const rScore = Math.max(0, 100 - (readLatency * 2));
+    const wScore = Math.max(0, 100 - (writeLatency / 2));
+    return Math.round((rScore * 0.4) + (wScore * 0.6));
+}

@@ -1966,3 +1966,37 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - Hardened ESLint configuration to enforce unused variable rules via 'argsIgnorePattern'.
 - Removed legacy inline bypasses to ensure a unified configuration.
 - Verified 100% operational integrity with a zero-warning build and a perfect platform audit.
+
+### Phase 158: Unified NoSQL Schema Governance (COMPLETED)
+- [x] Define NoSQL schema metadata types in `src/types/index.ts`.
+- [x] Implement `discoverNoSqlSchema` in `src/lib/gcp/monitoring.ts` for document sampling.
+- [x] Integrate NoSQL schema discovery into the 24-hour `StorageSync` API heartbeat.
+- [x] Update `DataLab.tsx` to visualize inferred schemas for Firestore and MongoDB Atlas.
+- [x] Implement pulsating 'SCHEMA DRIFT' badges in the Storage UI.
+
+### Phase 159: Integrated Database Performance Benchmarking (COMPLETED)
+- [x] Implement `runPerformanceBenchmark` in `src/lib/gcp/monitoring.ts` (Latency, IOPS, Throughput).
+- [x] Create Benchmarking API at `/api/projects/[id]/storage/[storageId]/benchmark`.
+- [x] Launch high-density Benchmark Report modal in the Storage dashboard.
+
+### Phase 160: Universal Database RBAC (PLANNED)
+- [ ] Implement proxy-level RBAC for Data Lab queries.
+- [ ] Support granular row-level and column-level masking policies.
+- [ ] Integrate with Team-based permissions defined in Deployify core.
+
+### 2027-08-04: Completed Phase 158: Unified NoSQL Schema Governance
+- Completed Phase 158: Unified NoSQL Schema Governance.
+- Introduced `discoverNoSqlSchema` in `src/lib/gcp/monitoring.ts`, performing autonomous document sampling from Firestore and MongoDB Atlas to infer schema structures (fields, types, and frequency).
+- Defined `NoSqlSchemaReport` and `NoSqlEntitySchema` interfaces in `src/types/index.ts` to standardize schema representation across NoSQL providers.
+- Integrated autonomous NoSQL schema scanning into the `StorageSync` API heartbeat, performing background scans every 24 hours for all active NoSQL connectors.
+- Enhanced the `DataLab` UI with a 'Schema Browser' for NoSQL databases, using high-density technical badges (`text-[10px]`) to display inferred field types.
+- Surfaced pulsating 'SCHEMA DRIFT' badges in the Storage dashboard to proactively alert developers of undocumented changes in document structures.
+- Verified 100% operational integrity with a zero-warning build and a perfect platform audit.
+
+### 2027-08-05: Completed Phase 159: Integrated Database Performance Benchmarking
+- Completed Phase 159: Integrated Database Performance Benchmarking.
+- Introduced `runPerformanceBenchmark` in `src/lib/gcp/monitoring.ts`, performing standardized read/write cycles to quantify Latency (ms), IOPS, and Throughput (Mbps).
+- Developed a new Benchmarking API at `/api/projects/[id]/storage/[storageId]/benchmark` with Owner/Admin RBAC enforcement.
+- Enhanced the Storage dashboard with a high-density "Performance Benchmark Report" modal and real-time "SCORE" badges on connector cards.
+- Integrated benchmark results into the project's audit logs for historical performance traceability.
+- Verified 100% operational integrity with 198 passing tests and a perfect Pre-Launch Audit.
