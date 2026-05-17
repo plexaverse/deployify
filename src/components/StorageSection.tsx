@@ -852,7 +852,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
 
     useEffect(() => {
         const activeConfigs = storageConfigs.filter(c => c.status === 'active' || c.status === 'error');
-        const provisionedConfigs = activeConfigs.filter(c => c.metadata?.provisioned);
+        const provisionedConfigs = activeConfigs.filter(c => !!c.metadata?.provisioned || c.type === 'bigquery' || c.type === 'cloud-spanner');
 
         // Initial fetch for new connectors
         provisionedConfigs.forEach(c => {
@@ -874,7 +874,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     useEffect(() => {
         const interval = setInterval(() => {
             const activeConfigs = storageConfigs.filter(c => c.status === 'active' || c.status === 'error');
-            const provisionedConfigs = activeConfigs.filter(c => c.metadata?.provisioned);
+            const provisionedConfigs = activeConfigs.filter(c => !!c.metadata?.provisioned || c.type === 'bigquery' || c.type === 'cloud-spanner');
 
             provisionedConfigs.forEach(c => fetchMetrics(c.id));
             activeConfigs.forEach(c => fetchStorageHealthHistory(projectId, c.id));
@@ -2478,7 +2478,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 </Button>
                                             </div>
                                         )}
-                                        {!!config.metadata?.provisioned && config.status === 'active' && (
+                                        {(!!config.metadata?.provisioned || config.type === 'bigquery' || config.type === 'cloud-spanner') && config.status === 'active' && (
                                             <div className="space-y-3">
                                                 <div className={cn(
                                                     "mt-3 grid gap-4 animate-fade-in",

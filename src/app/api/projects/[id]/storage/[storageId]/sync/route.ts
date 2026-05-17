@@ -252,7 +252,7 @@ export async function GET(
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
-                        if (connStr || storage.type === 'firestore') {
+                        if (connStr || storage.type === 'firestore' || storage.type === 'bigquery' || storage.type === 'cloud-spanner') {
                             const report = await discoverSensitiveData(storage, connStr);
                             storage.metadata = {
                                 ...storage.metadata,
@@ -382,9 +382,16 @@ export async function GET(
                 const lastAntiPatternScan = antiPatternReport?.lastScannedAt ? new Date(antiPatternReport.lastScannedAt) : new Date(0);
                 const hoursSinceAntiPatternScan = (now.getTime() - lastAntiPatternScan.getTime()) / (1000 * 60 * 60);
 
-                if (storage.status === 'active' && hoursSinceAntiPatternScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon')) {
+                if (storage.status === 'active' && hoursSinceAntiPatternScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon' || storage.type === 'cloud-spanner')) {
                     try {
-                        const report = await discoverQueryAntiPatterns(id, storageId);
+                        let report;
+                        if (storage.type === 'cloud-spanner') {
+                            const { discoverSpannerOptimizations } = await import('@/lib/gcp/monitoring');
+                            report = await discoverSpannerOptimizations(id, storageId);
+                        } else {
+                            report = await discoverQueryAntiPatterns(id, storageId);
+                        }
+
                         storage.antiPatternReport = report;
                         storage.metadata = {
                             ...storage.metadata,
@@ -589,6 +596,9 @@ export async function GET(
                 } else if (storage.type === 'alloydb') {
                     const { getAlloyDbMetrics } = await import('@/lib/gcp/monitoring');
                     metrics = await getAlloyDbMetrics(resourceName, `${resourceName}-primary`, region);
+                } else if (storage.type === 'cloud-spanner') {
+                    const { getSpannerMetrics } = await import('@/lib/gcp/monitoring');
+                    metrics = await getSpannerMetrics(resourceName);
                 } else if (storage.type === 'memorystore-redis') {
                     metrics = await getMemorystoreMetrics(resourceName, region);
                 }
@@ -628,7 +638,7 @@ export async function GET(
                         const diskSizeGb = (storage.metadata?.diskSizeGb as number) || (storage.metadata?.memorySizeGb as number);
                         const isHA = !!storage.metadata?.highAvailability;
                         const { getEstimatedMonthlyCost } = await import('@/lib/gcp/monitoring');
-                        const monthlyCost = getEstimatedMonthlyCost(storage.type, tier, diskSizeGb, isHA);
+                        const monthlyCost = getEstimatedMonthlyCost(storage.type, tier, diskSizeGb, isHA, storage.metadata);
                         const efficiencyScore = calculateEfficiencyScore(metrics, monthlyCost);
 
                         storage.metadata = {
@@ -654,12 +664,18 @@ export async function GET(
                         storage.connectionSaturation = metrics.connectionSaturation;
 
                         // Phase 118: Maintenance Window Governance
-                        if (storage.type.includes('cloud-sql') || storage.type === 'alloydb') {
+                        if (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'cloud-spanner' || storage.type === 'bigquery') {
                             try {
                                 let historical;
                                 if (storage.type === 'alloydb') {
                                     const { getAlloyDbHistoricalMetrics } = await import('@/lib/gcp/monitoring');
                                     historical = await getAlloyDbHistoricalMetrics(resourceName, `${resourceName}-primary`, region, 7);
+                                } else if (storage.type === 'cloud-spanner') {
+                                    const { getSpannerHistoricalMetrics } = await import('@/lib/gcp/monitoring');
+                                    historical = await getSpannerHistoricalMetrics(resourceName, 7);
+                                } else if (storage.type === 'bigquery') {
+                                    const { getBigQueryHistoricalMetrics } = await import('@/lib/gcp/monitoring');
+                                    historical = await getBigQueryHistoricalMetrics(resourceName, 7);
                                 } else {
                                     historical = await getCloudSqlHistoricalMetrics(resourceName, 7);
                                 }
@@ -685,6 +701,12 @@ export async function GET(
                             if (storage.type === 'alloydb') {
                                 const { getAlloyDbHistoricalMetrics } = await import('@/lib/gcp/monitoring');
                                 historicalMetrics = await getAlloyDbHistoricalMetrics(resourceName, `${resourceName}-primary`, region, 7);
+                            } else if (storage.type === 'cloud-spanner') {
+                                const { getSpannerHistoricalMetrics } = await import('@/lib/gcp/monitoring');
+                                historicalMetrics = await getSpannerHistoricalMetrics(resourceName, 7);
+                            } else if (storage.type === 'bigquery') {
+                                const { getBigQueryHistoricalMetrics } = await import('@/lib/gcp/monitoring');
+                                historicalMetrics = await getBigQueryHistoricalMetrics(resourceName, 7);
                             } else {
                                 historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);
                             }

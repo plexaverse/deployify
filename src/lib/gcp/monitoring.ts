@@ -157,6 +157,84 @@ export interface PoolingRecommendation {
 }
 
 /**
+ * Autonomously discover Spanner optimizations from telemetry fingerprints (Phase 162)
+ */
+export async function discoverSpannerOptimizations(
+    projectId: string,
+    storageId: string
+): Promise<AntiPatternReport> {
+    const patterns: QueryAntiPattern[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        const hasPatterns = Math.random() > 0.5;
+        return {
+            hasAntiPatterns: hasPatterns,
+            patterns: hasPatterns ? [
+                {
+                    id: `ap-sp-1-${Date.now()}`,
+                    type: 'SELECT_STAR',
+                    queryHash: 'SELECT * FROM orders',
+                    evidence: 'Detected "SELECT *" on large table without index.',
+                    recommendation: 'Use specific columns and ensure secondary indexes are used for filtering.',
+                    optimizedRewrite: 'SELECT orderId, status FROM orders WHERE userId = ?',
+                    impactScore: 50,
+                    detectedAt: now
+                }
+            ] : [],
+            totalImpactScore: hasPatterns ? 50 : 0,
+            lastScannedAt: now
+        };
+    }
+
+    try {
+        const impactMetrics = await getQueryImpactMetrics(projectId, storageId);
+
+        for (const metric of impactMetrics) {
+            const sql = metric.queryHash;
+            const normalizedSql = sql.toUpperCase();
+
+            // 1. SELECT * Detection
+            if (normalizedSql.includes('SELECT *')) {
+                patterns.push({
+                    id: `ap-sp-star-${metric.queryHash.substring(0, 8)}`,
+                    type: 'SELECT_STAR',
+                    queryHash: sql,
+                    evidence: 'Spanner: SELECT * detected. This can lead to excessive slot usage and latency.',
+                    recommendation: 'Explicitly project required columns.',
+                    optimizedRewrite: sql.replace(/SELECT\s+\*/i, 'SELECT id, created_at /* TODO: Add other required columns */'),
+                    impactScore: 40,
+                    detectedAt: now
+                });
+            }
+
+            // 2. Full Table Scan Suspect (No WHERE clause in large query)
+            if (!normalizedSql.includes('WHERE') && metric.avgLatency > 500) {
+                patterns.push({
+                    id: `ap-sp-scan-${metric.queryHash.substring(0, 8)}`,
+                    type: 'NON_SARGABLE_PREDICATE', // Closest match
+                    queryHash: sql,
+                    evidence: 'Spanner: High-latency query without WHERE clause suggests a full table scan.',
+                    recommendation: 'Apply filters using indexed columns to leverage Spanner partitions.',
+                    optimizedRewrite: sql + ' WHERE <indexed_column> = ?',
+                    impactScore: 85,
+                    detectedAt: now
+                });
+            }
+        }
+    } catch (e) {
+        console.error(`[SpannerOptimization] Failed for ${storageId}:`, e);
+    }
+
+    return {
+        hasAntiPatterns: patterns.length > 0,
+        patterns,
+        totalImpactScore: patterns.reduce((sum, p) => sum + p.impactScore, 0),
+        lastScannedAt: now
+    };
+}
+
+/**
  * Autonomously discover sensitive data (PII) by sampling database records (Phase 143)
  */
 export async function discoverSensitiveData(
@@ -235,6 +313,89 @@ export async function discoverSensitiveData(
                     }
                 } finally {
                     await connection.end().catch(() => {});
+                }
+            }
+        } else if (storage.type === 'bigquery') {
+            const { BigQuery } = await import('@google-cloud/bigquery');
+            const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+            const bq = new BigQuery({
+                projectId: gcpProjectId,
+                credentials: {
+                    client_email: config.firebase.clientEmail,
+                    private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
+                },
+            });
+            const datasetId = (storage.metadata?.resourceName as string) || storage.name;
+            const [tables] = await bq.dataset(datasetId).getTables();
+
+            for (const table of tables.slice(0, 5)) {
+                const [rows] = await table.getRows({ maxResults: 5 });
+                for (const sample of rows) {
+                    for (const [field, value] of Object.entries(sample)) {
+                        if (typeof value === 'string') {
+                            if (value.match(PII_PATTERNS.email)) risks.push({ type: 'EMAIL', entity: table.id || 'table', field, sampleValue: value.substring(0, 3) + '...' });
+                            else if (value.match(PII_PATTERNS.phone)) risks.push({ type: 'PHONE', entity: table.id || 'table', field, sampleValue: '***-***-' + value.slice(-4) });
+                            else if (value.match(PII_PATTERNS.ssn)) risks.push({ type: 'SSN', entity: table.id || 'table', field, sampleValue: '***-**-****' });
+                            else if (value.match(PII_PATTERNS.creditCard)) risks.push({ type: 'CREDIT_CARD', entity: table.id || 'table', field, sampleValue: '****-****-****-' + value.slice(-4) });
+                        }
+                    }
+                }
+            }
+        } else if (storage.type === 'cloud-spanner') {
+            const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+            const accessToken = await getGcpAccessToken();
+            const instanceId = (storage.metadata?.resourceName as string) || storage.name;
+            const databaseId = (storage.metadata?.spannerDbId as string) || 'default';
+
+            // Create a session
+            const sessionRes = await fetch(`https://spanner.googleapis.com/v1/projects/${gcpProjectId}/instances/${instanceId}/databases/${databaseId}/sessions`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const sessionData = await sessionRes.json();
+            const sessionId = sessionData.name;
+
+            if (sessionId) {
+                try {
+                    // List tables
+                    const tablesRes = await fetch(`${sessionId}:executeSql`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sql: "SELECT table_name FROM information_schema.tables WHERE table_schema = ''" })
+                    });
+                    const tablesData = await tablesRes.json();
+
+                    if (tablesData.rows) {
+                        for (const tableRow of tablesData.rows.slice(0, 5)) {
+                            const tableName = tableRow[0];
+                            const sampleRes = await fetch(`${sessionId}:executeSql`, {
+                                method: 'POST',
+                                headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ sql: `SELECT * FROM \`${tableName}\` LIMIT 5` })
+                            });
+                            const sampleData = await sampleRes.json();
+
+                            if (sampleData.rows && sampleData.metadata?.rowType?.fields) {
+                                const fields = sampleData.metadata.rowType.fields;
+                                for (const row of sampleData.rows) {
+                                    row.forEach((value: unknown, idx: number) => {
+                                        if (typeof value === 'string') {
+                                            const field = fields[idx].name;
+                                            if (value.match(PII_PATTERNS.email)) risks.push({ type: 'EMAIL', entity: tableName, field, sampleValue: value.substring(0, 3) + '...' });
+                                            else if (value.match(PII_PATTERNS.phone)) risks.push({ type: 'PHONE', entity: tableName, field, sampleValue: '***-***-' + value.slice(-4) });
+                                            else if (value.match(PII_PATTERNS.ssn)) risks.push({ type: 'SSN', entity: tableName, field, sampleValue: '***-**-****' });
+                                            else if (value.match(PII_PATTERNS.creditCard)) risks.push({ type: 'CREDIT_CARD', entity: tableName, field, sampleValue: '****-****-****-' + value.slice(-4) });
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    await fetch(sessionId, {
+                        method: 'DELETE',
+                        headers: { Authorization: `Bearer ${accessToken}` }
+                    }).catch(() => {});
                 }
             }
         } else if (storage.type === 'firestore') {
@@ -800,12 +961,24 @@ export function getEstimatedMonthlyCost(
     storageType: string,
     tier: string,
     diskSizeGb?: number,
-    isHA?: boolean
+    isHA?: boolean,
+    metadata?: Record<string, unknown>
 ): number {
     let cost = 0;
     const normalizedTier = tier.toUpperCase();
 
-    if (storageType.includes('cloud-sql')) {
+    if (storageType === 'cloud-spanner') {
+        // Spanner Pricing: ~$0.90 per node per hour, or $0.90 per 1000 PU
+        const nodes = (metadata?.nodes as number) || 0;
+        const units = (metadata?.processingUnits as number) || 0;
+        const computeCapacity = nodes > 0 ? nodes : units / 1000;
+        const hourlyRate = 0.90;
+        cost = computeCapacity * hourlyRate * 24 * 30.5;
+
+        if (diskSizeGb) {
+            cost += diskSizeGb * 0.30; // ~$0.30 per GB for Spanner storage
+        }
+    } else if (storageType.includes('cloud-sql')) {
         // Compute Cost (Approximate Monthly)
         const computeCosts: Record<string, number> = {
             'db-f1-micro': 9.50,
@@ -1000,6 +1173,47 @@ export async function getExternalMetrics(
 /**
  * Fetch resource metrics for a BigQuery dataset (Phase 161)
  */
+/**
+ * Fetch historical resource metrics for a BigQuery dataset (Phase 162)
+ */
+export async function getBigQueryHistoricalMetrics(
+    datasetId: string,
+    days: number = 7
+): Promise<ResourceMetrics[]> {
+    if (process.env.MOCK_DB === 'true') {
+        const points = [];
+        const now = Date.now();
+        for (let i = 0; i < days * 24; i++) {
+            points.push({
+                cpuUtilization: Math.floor(Math.random() * 15) + 2,
+                memoryUtilization: Math.floor(Math.random() * 10) + 5,
+                timestamp: new Date(now - i * 3600000).toISOString()
+            });
+        }
+        return points.reverse();
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const scannedFilter = `metric.type="bigquery.googleapis.com/query/scanned_bytes" AND resource.labels.dataset_id="${datasetId}"`;
+    const slotFilter = `metric.type="bigquery.googleapis.com/slots/allocated_for_project"`;
+
+    const [scannedData, slotData] = await Promise.all([
+        fetchTimeSeriesData(gcpProjectId!, accessToken, scannedFilter, days),
+        fetchTimeSeriesData(gcpProjectId!, accessToken, slotFilter, days)
+    ]);
+
+    return slotData.map((point, index) => {
+        const scanned = scannedData[index]?.value || 0;
+        return {
+            cpuUtilization: parseFloat(Math.min(100, (point.value / 100) * 100).toFixed(2)),
+            memoryUtilization: parseFloat(Math.min(100, (scanned / (1024 * 1024 * 1024 * 10)) * 100).toFixed(2)),
+            timestamp: point.timestamp
+        };
+    });
+}
+
 export async function getBigQueryMetrics(
     datasetId: string
 ): Promise<ResourceMetrics> {
@@ -1028,6 +1242,76 @@ export async function getBigQueryMetrics(
         memoryUtilization: parseFloat(Math.min(100, (scanned / (1024 * 1024 * 1024 * 10)) * 100).toFixed(2)), // Scanned relative to 10GB
         timestamp: new Date().toISOString()
     };
+}
+
+/**
+ * Fetch resource metrics for a Spanner instance (Phase 162)
+ */
+export async function getSpannerMetrics(
+    instanceId: string
+): Promise<ResourceMetrics> {
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            cpuUtilization: Math.floor(Math.random() * 20) + 5,
+            memoryUtilization: Math.floor(Math.random() * 15) + 10,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const cpuFilter = `metric.type="spanner.googleapis.com/instance/cpu/utilization" AND resource.labels.instance_id="${instanceId}"`;
+    const storageFilter = `metric.type="spanner.googleapis.com/instance/storage/utilization" AND resource.labels.instance_id="${instanceId}"`;
+
+    const [cpu, storage] = await Promise.all([
+        fetchLatestMetricValue(gcpProjectId!, accessToken, cpuFilter),
+        fetchLatestMetricValue(gcpProjectId!, accessToken, storageFilter)
+    ]);
+
+    return {
+        cpuUtilization: parseFloat((cpu * 100).toFixed(2)),
+        memoryUtilization: parseFloat((storage * 100).toFixed(2)), // Map storage util to "memory" for visual parity
+        timestamp: new Date().toISOString()
+    };
+}
+
+/**
+ * Fetch historical resource metrics for a Spanner instance (Phase 162)
+ */
+export async function getSpannerHistoricalMetrics(
+    instanceId: string,
+    days: number = 7
+): Promise<ResourceMetrics[]> {
+    if (process.env.MOCK_DB === 'true') {
+        const points = [];
+        const now = Date.now();
+        for (let i = 0; i < days * 24; i++) {
+            points.push({
+                cpuUtilization: Math.floor(Math.random() * 15) + 5,
+                memoryUtilization: Math.floor(Math.random() * 10) + 10,
+                timestamp: new Date(now - i * 3600000).toISOString()
+            });
+        }
+        return points.reverse();
+    }
+
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    const cpuFilter = `metric.type="spanner.googleapis.com/instance/cpu/utilization" AND resource.labels.instance_id="${instanceId}"`;
+    const storageFilter = `metric.type="spanner.googleapis.com/instance/storage/utilization" AND resource.labels.instance_id="${instanceId}"`;
+
+    const [cpuData, storageData] = await Promise.all([
+        fetchTimeSeriesData(gcpProjectId!, accessToken, cpuFilter, days),
+        fetchTimeSeriesData(gcpProjectId!, accessToken, storageFilter, days)
+    ]);
+
+    return cpuData.map((point, index) => ({
+        cpuUtilization: point.value * 100,
+        memoryUtilization: (storageData[index]?.value || 0) * 100,
+        timestamp: point.timestamp
+    }));
 }
 
 export async function getQueryInsights(
@@ -1441,7 +1725,7 @@ export async function getScalingRecommendations(
     const diskSizeGb = (metadata?.diskSizeGb as number) || (metadata?.memorySizeGb as number) || 10;
     const isHA = !!metadata?.highAvailability;
 
-    const currentCost = getEstimatedMonthlyCost(storageType, currentTier, diskSizeGb, isHA);
+    const currentCost = getEstimatedMonthlyCost(storageType, currentTier, diskSizeGb, isHA, metadata);
 
     // 1. CPU Analysis
     const cpuAnomaly = detectPerformanceAnomaly(
@@ -1499,7 +1783,7 @@ export async function getScalingRecommendations(
             else recommendedTier = 'FREE';
         }
 
-        const recommendedCost = getEstimatedMonthlyCost(storageType, recommendedTier, diskSizeGb, isHA);
+        const recommendedCost = getEstimatedMonthlyCost(storageType, recommendedTier, diskSizeGb, isHA, metadata);
         const savings = currentCost - recommendedCost;
 
         recommendations.push({
@@ -1749,7 +2033,8 @@ export function getCostForecast(
     tier: string,
     diskSizeGb: number = 10,
     isHA: boolean = false,
-    historicalMetrics: ResourceMetrics[] = []
+    historicalMetrics: ResourceMetrics[] = [],
+    metadata?: Record<string, unknown>
 ): { month: string; cost: number }[] {
     const forecast = [];
     const now = new Date();
@@ -1769,7 +2054,7 @@ export function getCostForecast(
     for (let i = 1; i <= 3; i++) {
         // Simple linear projection for storage growth
         const projectedDisk = diskSizeGb * Math.pow(1 + growthRate, i);
-        const cost = getEstimatedMonthlyCost(storageType, tier, projectedDisk, isHA);
+        const cost = getEstimatedMonthlyCost(storageType, tier, projectedDisk, isHA, metadata);
         const forecastDate = new Date(now.getFullYear(), now.getMonth() + i, 1);
 
         forecast.push({
