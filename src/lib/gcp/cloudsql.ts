@@ -1,5 +1,6 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
+import { deleteFile } from './gcs';
 import type { Backup } from '@/types';
 import { Client as PgClient } from 'pg';
 import mysql from 'mysql2/promise';
@@ -716,11 +717,38 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the target database
+    console.log(`[Branching] Creating ephemeral database ${databaseName} on ${instanceName}`);
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, seed it using export/import
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        console.log(`[Branching] Seeding data from ${sourceDatabase} to ${databaseName}`);
+
+        const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
+        const storageUri = `gs://${bucket}/seeding/${instanceName}-${sourceDatabase}-${Date.now()}.sql`;
+
+        try {
+            // Export source database
+            const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+            await waitForOperation(exportOp);
+
+            // Import into target database
+            const importOp = await importInstance(instanceName, storageUri, databaseName);
+            await waitForOperation(importOp);
+
+            console.log(`[Branching] Successfully seeded ${databaseName} from ${sourceDatabase}.`);
+
+            // Cleanup: Delete temporary export file from GCS
+            await deleteFile(storageUri).catch(err =>
+                console.warn(`[Branching] Cleanup failed for ${storageUri}:`, err)
+            );
+        } catch (e) {
+            console.error(`[Branching] Seeding failed for ${databaseName}:`, e);
+            // We still have the database created, but seeding failed.
+            throw e;
+        }
     }
 }
 
@@ -832,6 +860,29 @@ export async function getOperationStatus(
         status: data.status as 'PENDING' | 'RUNNING' | 'DONE',
         error: data.error ? `Cloud SQL Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
+}
+
+/**
+ * Poll a long-running operation until it completes
+ */
+export async function waitForOperation(
+    operationName: string,
+    intervalMs: number = 5000,
+    maxAttempts: number = 60
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+        attempts++;
+    }
+    throw new Error(`Operation ${operationName} timed out after ${maxAttempts} attempts.`);
 }
 
 /**
