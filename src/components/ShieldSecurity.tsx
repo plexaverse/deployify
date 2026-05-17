@@ -54,18 +54,18 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
     };
 
     return (
-        <Card className="overflow-hidden border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5">
+        <Card className="overflow-hidden border-[var(--primary)]/10 bg-gradient-to-br from-[var(--card)] to-[var(--muted)]/5 rounded-3xl backdrop-blur-xl">
             <div className="p-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
                         <Shield className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployify Edge</span>
-                        <h3 className="text-[10px] font-bold">Shield Security</h3>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Deployify Edge</span>
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">Shield Security</h3>
                     </div>
                 </div>
-                <Badge variant={wafEnabled ? "success" : "outline"} className="text-[10px] font-bold uppercase tracking-wider">
+                <Badge variant={wafEnabled ? "success" : "outline"} className="text-[10px] font-bold uppercase tracking-[0.2em]">
                     {wafEnabled ? 'Protected' : 'Off'}
                 </Badge>
             </div>

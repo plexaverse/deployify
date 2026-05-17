@@ -283,6 +283,19 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             if (dbName) {
                                 console.log(`[Cleanup] Deleting ephemeral database ${dbName} from ${instanceName}`);
                                 await deleteSqlDatabase(instanceName, dbName);
+
+                                await logAuditEvent(
+                                    project.teamId || null,
+                                    project.userId,
+                                    'storage.branch_deleted',
+                                    {
+                                        projectId: project.id,
+                                        storageId: storage.id,
+                                        dbName,
+                                        type: storage.type
+                                    }
+                                );
+
                                 console.log(`[Cleanup] Successfully deleted SQL database ${dbName}.`);
                             }
                         } catch (e) {
@@ -309,6 +322,19 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
                             if (databaseId && databaseId !== '(default)') {
                                 console.log(`[Cleanup] Deleting ephemeral Firestore database ${databaseId}`);
                                 await deleteFirestoreDatabase(databaseId);
+
+                                await logAuditEvent(
+                                    project.teamId || null,
+                                    project.userId,
+                                    'storage.branch_deleted',
+                                    {
+                                        projectId: project.id,
+                                        storageId: storage.id,
+                                        databaseId,
+                                        type: storage.type
+                                    }
+                                );
+
                                 console.log(`[Cleanup] Successfully deleted Firestore database ${databaseId}.`);
                             }
                         } catch (e) {
