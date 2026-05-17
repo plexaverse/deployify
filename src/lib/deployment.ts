@@ -137,6 +137,26 @@ export async function syncDeploymentStatus(
                 productionUrl: effectiveUrl,
             });
 
+            // Phase 102: Deployify Edge - Provision Global Load Balancer & WAF for production services
+            // Triggered only for production deployments without a custom domain
+            if (deployment.type === 'production') {
+                const project = await getProjectById(projectId);
+                if (project && !project.customDomain) {
+                    const { createGlobalLoadBalancer, enableCloudCdn } = await import('./gcp/loadbalancer');
+                    const { enableCloudArmor } = await import('./gcp/armor');
+
+                    console.log(`[Deployify Edge] Initializing edge acceleration for ${projectSlug}`);
+                    try {
+                        const glb = await createGlobalLoadBalancer(serviceName, region);
+                        await enableCloudCdn(glb.backendServiceName);
+                        await enableCloudArmor(serviceName);
+                        console.log(`[Deployify Edge] Edge services provisioned: ${glb.ipAddress}`);
+                    } catch (edgeError) {
+                        console.error('[Deployify Edge] Failed to provision edge services:', edgeError);
+                    }
+                }
+            }
+
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
                 console.error(`[ArtifactRegistry] Image pruning failed for ${serviceName}:`, err)
@@ -165,30 +185,6 @@ export async function syncDeploymentStatus(
                         <p>Duration: ${Math.round(buildDurationMs / 1000)}s</p>
                     `,
                 });
-            }
-
-            // Handle Database Branching/Cloning for Preview Environments
-            if (deployment.type === 'preview' && pullRequestNumber) {
-                await updateProject(projectId, {}); // Just to get latest project state
-                const project = await getProjectById(projectId);
-                const storageConfigs = project?.storageConfigs || [];
-
-                for (const storage of storageConfigs) {
-                    if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
-                        const instanceName = storage.metadata?.resourceName as string;
-                        if (instanceName) {
-                            try {
-                                console.log(`[Branching] Ensuring ephemeral database for PR #${pullRequestNumber} on ${instanceName}`);
-                                // For preview, we often want to clone the production database name with a PR suffix
-                                const dbName = `pr_${pullRequestNumber}`;
-                                await ensureEphemeralDatabase(instanceName, dbName);
-                                console.log(`[Branching] Ephemeral database ${dbName} ready.`);
-                            } catch (e) {
-                                console.error(`[Branching] Failed to setup ephemeral database:`, e);
-                            }
-                        }
-                    }
-                }
             }
 
             // Send PR Comment if applicable
