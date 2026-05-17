@@ -9,6 +9,7 @@ import { validateRepository } from '@/lib/github/validator';
 import { parseRepoFullName, getProjectSlugForDeployment } from '@/lib/utils';
 import { isRunningOnGCP } from '@/lib/gcp/auth';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
+import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
@@ -146,6 +147,25 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Check if running on GCP - use real Cloud Build
         if (isRunningOnGCP()) {
             try {
+                // Handle Database Branching before build for non-production branches
+                if (!isDefaultBranch && project.storageConfigs && project.storageConfigs.length > 0) {
+                    for (const storage of project.storageConfigs) {
+                        if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                            const instanceName = storage.metadata?.resourceName as string;
+                            if (instanceName) {
+                                try {
+                                    // Use project slug for isolation in shared Cloud SQL instances
+                                    const dbName = `dfy_${project.slug}_${branch}`.substring(0, 63).replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+                                    const sourceDb = storage.metadata?.database as string;
+                                    await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                                } catch (e) {
+                                    console.error(`[Branching] Pre-deployment seeding failed:`, e);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Determine env target based on branch
                 let envTarget: 'production' | 'preview' = isDefaultBranch ? 'production' : 'preview';
                 if (project.branchEnvironments) {
