@@ -29,7 +29,7 @@ jobs:
           gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
 
           if [ ! -s pr_numbers.txt ]; then
-            echo "No approved PRs found that are ready for automatic merging."
+            echo "No approved PRs found that are ready for automatic merging (Criteria: MERGEABLE, SUCCESS checks, APPROVED)."
             exit 0
           fi
 
