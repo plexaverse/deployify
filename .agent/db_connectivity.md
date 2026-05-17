@@ -2025,6 +2025,12 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Integrate new Spanner/BigQuery tasks into the 24-hour `StorageSync` API heartbeat.
 - [x] Update Storage UI to surface metrics and reliability indicators for Spanner and BigQuery.
 
+### Phase 163: Autonomous Data Lab Expansion & Unified Analytics Connectivity (COMPLETED)
+- [x] Install `@google-cloud/spanner` for robust query execution in Data Lab.
+- [x] Expand Data Lab Proxy API to support AlloyDB, Spanner, BigQuery, and Neon.
+- [x] Implement hierarchical schema discovery for BigQuery and Spanner.
+- [x] Update Data Lab UI with analytics templates and copy-as-code snippets.
+
 ### 2027-08-07: Completed Phase 161: Autonomous BigQuery Integration
 - Completed Phase 161: Autonomous BigQuery Integration & Data Warehouse Governance.
 - Introduced BigQuery as a first-class Storage Connector, enabling dataset management and monitoring.

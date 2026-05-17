@@ -4,6 +4,7 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDb, Collections } from '@/lib/firebase';
+import { config } from '@/lib/config';
 import { selectReplica, type ReplicaMetadata } from '@/lib/db';
 import type { StorageConfig } from '@/types';
 import { Client as PgClient } from 'pg';
@@ -83,8 +84,9 @@ export async function POST(
             return NextResponse.json({ success: false, error: 'Query is required' }, { status: 400 });
         }
 
-        const isSqlLike = storageConfig.type.includes('sql') || storageConfig.type === 'planetscale';
-        const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
+        const isSqlLike = storageConfig.type.includes('sql') ||
+                          ['planetscale', 'alloydb', 'neon', 'cloud-spanner', 'bigquery'].includes(storageConfig.type);
+        const isPostgres = ['cloud-sql-postgres', 'supabase', 'alloydb', 'neon'].includes(storageConfig.type);
         let sqlParams: unknown[] = [];
 
         // Apply variable substitution
@@ -133,7 +135,7 @@ export async function POST(
         }
 
         // Strict Read-Only Enforcement for SQL
-        if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
+        if (isSqlLike) {
             // Remove comments and whitespace to get the true command
             const cleanQuery = query.replace(/\/\*[\s\S]*?\*\/|--.*$/gm, '').replace(/#.*$/gm, '').trim();
 
@@ -180,7 +182,7 @@ export async function POST(
 
         if (selectedReplica && isReadOnlyQuery && storageConfig.type.includes('cloud-sql')) {
             const { getReplicaConnectionString } = await import('@/lib/gcp/cloudsql');
-            const dbType = storageConfig.type.includes('postgres') ? 'postgres' : 'mysql';
+            const dbType = isPostgres ? 'postgres' : 'mysql';
             // Intelligent Traffic Steering: Distribute query load across all healthy replicas picking the best one
             connectionString = getReplicaConnectionString(selectedReplica.name, selectedReplica.region, dbType);
         } else if (storageConfig.connectionStringSecretId) {
@@ -253,7 +255,6 @@ export async function POST(
 
                     // Handle EXPLAIN mock results
                     if (isSqlLike && query.toUpperCase().startsWith('EXPLAIN')) {
-                        const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
                         const mockExplainResults = isPostgres
                             ? [
                                 { 'QUERY PLAN': 'Limit  (cost=0.00..0.01 rows=3 width=112)' },
@@ -345,8 +346,106 @@ export async function POST(
                     });
                 }
 
-                if (storageConfig.type.includes('sql') || storageConfig.type === 'planetscale') {
-                    const isPostgres = storageConfig.type === 'cloud-sql-postgres' || storageConfig.type === 'supabase';
+                if (storageConfig.type === 'bigquery') {
+                    const { BigQuery } = await import('@google-cloud/bigquery');
+                    const bq = new BigQuery({
+                        projectId: config.gcp.projectId || process.env.GCP_PROJECT_ID,
+                        credentials: {
+                            client_email: config.firebase.clientEmail,
+                            private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
+                        },
+                    });
+                    const datasetId = (storageConfig.metadata?.resourceName as string) || storageConfig.name;
+
+                    if (query === 'DISCOVER_SCHEMA') {
+                        const [tables] = await bq.dataset(datasetId).getTables();
+                        const tableNames = tables.map(t => t.id || '');
+                        const columns: Record<string, { name: string, type: string }[]> = {};
+                        const tableStats: Record<string, { estimatedRows: number }> = {};
+
+                        for (const table of tables.slice(0, 10)) {
+                            const [metadata] = await table.getMetadata();
+                            tableStats[table.id || ''] = { estimatedRows: parseInt(metadata.numRows || '0') };
+                            columns[table.id || ''] = (metadata.schema?.fields || []).map((f: { name: string, type: string }) => ({
+                                name: f.name,
+                                type: f.type
+                            }));
+                        }
+
+                        return NextResponse.json({
+                            success: true,
+                            schema: { tables: tableNames, columns, tableStats },
+                            executionTimeMs: Date.now() - startTime
+                        });
+                    }
+
+                    const [job] = await bq.createQueryJob({ query, location: (storageConfig.metadata?.location as string) || 'US' });
+                    const [rows] = await job.getQueryResults();
+
+                    return NextResponse.json({
+                        success: true,
+                        results: rows.slice(0, MAX_ROWS),
+                        rowCount: rows.length,
+                        executionTimeMs: Date.now() - startTime
+                    });
+                }
+
+                if (storageConfig.type === 'cloud-spanner') {
+                    const { Spanner } = await import('@google-cloud/spanner');
+                    const spanner = new Spanner({
+                        projectId: config.gcp.projectId || process.env.GCP_PROJECT_ID,
+                        credentials: {
+                            client_email: config.firebase.clientEmail,
+                            private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
+                        },
+                    });
+                    const instanceId = (storageConfig.metadata?.resourceName as string) || storageConfig.name;
+                    const databaseId = (storageConfig.metadata?.spannerDbId as string) || 'default';
+                    const instance = spanner.instance(instanceId);
+                    const database = instance.database(databaseId);
+
+                    if (query === 'DISCOVER_SCHEMA') {
+                        const [tables] = await database.run({
+                            sql: "SELECT table_name FROM information_schema.tables WHERE table_schema = ''"
+                        });
+                        const tableNames = tables.map(t => t.toJSON().table_name);
+                        const columns: Record<string, { name: string, type: string, isPrimary?: boolean }[]> = {};
+
+                        for (const tableName of tableNames) {
+                            const [cols] = await database.run({
+                                sql: `SELECT column_name, spanner_type, is_nullable
+                                      FROM information_schema.columns
+                                      WHERE table_name = @table AND table_schema = ''`,
+                                params: { table: tableName }
+                            });
+                            columns[tableName] = cols.map(c => {
+                                const row = c.toJSON();
+                                return {
+                                    name: row.column_name,
+                                    type: row.spanner_type
+                                };
+                            });
+                        }
+
+                        return NextResponse.json({
+                            success: true,
+                            schema: { tables: tableNames, columns },
+                            executionTimeMs: Date.now() - startTime
+                        });
+                    }
+
+                    const [rows] = await database.run(query);
+                    const results = rows.map(r => r.toJSON());
+
+                    return NextResponse.json({
+                        success: true,
+                        results: results.slice(0, MAX_ROWS),
+                        rowCount: results.length,
+                        executionTimeMs: Date.now() - startTime
+                    });
+                }
+
+                if (isSqlLike) {
                     const isIamAuth = connectionString.includes('enable_iam_auth=true');
 
                     // Determine SQL connection configuration (Handle IAM Auth)
