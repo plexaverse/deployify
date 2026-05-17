@@ -240,7 +240,7 @@ export function RbacModal({ isOpen, onClose, storage, projectId }: RbacModalProp
                                                             key={role}
                                                             onClick={() => toggleRole(rule.id, role)}
                                                             className={cn(
-                                                                "px-2 py-0.5 rounded text-[9px] font-bold uppercase border transition-all",
+                                                                "px-2 py-0.5 rounded text-[10px] font-bold uppercase border transition-all",
                                                                 rule.roles.includes(role)
                                                                     ? "bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/30"
                                                                     : "bg-[var(--muted)]/5 text-[var(--muted-foreground)] border-[var(--border)]"
