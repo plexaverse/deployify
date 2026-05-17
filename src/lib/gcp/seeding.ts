@@ -99,25 +99,59 @@ export async function runSeed(
  */
 export async function anonymizeData(
     connectionString: string,
-    _tableConfig: { table: string; columns: string[] }[]
+    tableConfig: { table: string; columns: string[] }[]
 ): Promise<void> {
-    // In a real implementation, this would run UPDATE queries on the target database
-    // to mask sensitive information like emails, PII, etc.
     if (process.env.MOCK_DB === 'true') {
         console.log(`[Anonymizer] Mocking anonymization for ${connectionString.split('@')[1] || 'database'}`);
-        for (const config of _tableConfig) {
+        for (const config of tableConfig) {
             console.log(`[Anonymizer] MOCK: Masking table ${config.table}, columns: ${config.columns.join(', ')}`);
         }
-        console.log(`[Anonymizer] MOCK: Data masking completed.`);
         return;
     }
 
     console.log(`[Anonymizer] Starting data masking for ${connectionString.split('@')[1] || 'database'}`);
 
-    for (const config of _tableConfig) {
-        console.log(`[Anonymizer] Processing table: ${config.table}, columns: ${config.columns.join(', ')}`);
-        // Simulate SQL execution for masking
-        // UPDATE ${config.table} SET ${config.columns.map(c => `${c} = 'ANONYMIZED'`).join(', ')}
+    const isPostgres = connectionString.startsWith('postgresql') || connectionString.startsWith('postgres');
+    const isMysql = connectionString.startsWith('mysql');
+
+    try {
+        if (isPostgres) {
+            const { Client } = await import('pg');
+            const client = new Client({ connectionString });
+            await client.connect();
+
+            for (const config of tableConfig) {
+                const setClause = config.columns.map(col => {
+                    if (col.toLowerCase().includes('email')) {
+                        return `${col} = encode(sha256(random()::text::bytea), 'hex') || '@example.com'`;
+                    }
+                    return `${col} = 'MASKED_' || substring(encode(sha256(random()::text::bytea), 'hex'), 1, 8)`;
+                }).join(', ');
+
+                const query = `UPDATE ${config.table} SET ${setClause}`;
+                await client.query(query);
+            }
+            await client.end();
+        } else if (isMysql) {
+            const mysql = await import('mysql2/promise');
+            const connection = await mysql.createConnection(connectionString);
+
+            for (const config of tableConfig) {
+                const setClause = config.columns.map(col => {
+                    if (col.toLowerCase().includes('email')) {
+                        return `${col} = CONCAT(LEFT(SHA2(RAND(), 256), 12), '@example.com')`;
+                    }
+                    return `${col} = CONCAT('MASKED_', LEFT(SHA2(RAND(), 256), 8))`;
+                }).join(', ');
+
+                const query = `UPDATE ${config.table} SET ${setClause}`;
+                await connection.execute(query);
+            }
+            await connection.end();
+        }
+    } catch (error) {
+        console.error(`[Anonymizer] Failed to anonymize data:`, error);
+        throw error;
     }
 
     console.log(`[Anonymizer] Data masking completed successfully.`);
