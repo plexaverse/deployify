@@ -35,7 +35,9 @@ jobs:
 
           while read pr; do
             echo "Processing PR #$pr..."
-            gh pr merge $pr --squash --admin || gh pr merge $pr --squash || echo "Failed to merge PR #$pr"
+            # Using --auto to enable auto-merge if it's not immediately mergeable,
+            # and --squash for clean history. --admin allows bypassing branch protection if needed.
+            gh pr merge $pr --squash --admin --auto || gh pr merge $pr --squash --auto || echo "Failed to merge PR #$pr"
           done < pr_numbers.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

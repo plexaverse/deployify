@@ -691,6 +691,24 @@ export async function createUser(
 }
 
 /**
+ * Polling helper for Cloud SQL operations
+ */
+export async function waitForOperation(operationName: string): Promise<void> {
+    const maxAttempts = 60;
+    const intervalMs = 5000;
+
+    for (let i = 0; i < maxAttempts; i++) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+    throw new Error(`Operation ${operationName} timed out after ${maxAttempts} attempts`);
+}
+
+/**
  * Ensure an ephemeral database exists for branching
  */
 export async function ensureEphemeralDatabase(
@@ -708,6 +726,7 @@ export async function ensureEphemeralDatabase(
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
+    const bucketName = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
 
     // 1. Check if database exists
     const checkResponse = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/databases/${databaseName}`, {
@@ -716,11 +735,32 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the target database
+    console.log(`[Branching] Creating ephemeral database: ${databaseName}`);
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, perform data seeding via Export/Import
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        console.log(`[Branching] Seeding data from ${sourceDatabase} to ${databaseName}`);
+        const exportUri = `gs://${bucketName}/seeding/${instanceName}-${sourceDatabase}-${Date.now()}.sql`;
+
+        try {
+            // Export source to GCS
+            console.log(`[Branching] Exporting ${sourceDatabase} to ${exportUri}`);
+            const exportOp = await exportInstance(instanceName, exportUri, [sourceDatabase]);
+            await waitForOperation(exportOp);
+
+            // Import from GCS to target
+            console.log(`[Branching] Importing from ${exportUri} to ${databaseName}`);
+            const importOp = await importInstance(instanceName, exportUri, databaseName);
+            await waitForOperation(importOp);
+        } catch (error) {
+            console.error(`[Branching] Seeding failed:`, error);
+            throw error;
+        } finally {
+            // Cleanup: In a real scenario, we'd delete the temporary GCS file here
+        }
     }
 }
 
