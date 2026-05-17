@@ -16,7 +16,7 @@ import {
 } from '@/lib/db';
 import { generateCloudRunDeployConfig, submitCloudBuild } from '@/lib/gcp/cloudbuild';
 import { getPreviewServiceName, deleteService } from '@/lib/gcp/cloudrun';
-import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
+import { deleteDatabase as deleteSqlDatabase, ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
@@ -150,6 +150,24 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
     );
 
     try {
+        // Phase 112: Orchestrate Ephemeral Database Branching before build
+        if (!isDefaultBranch && project.storageConfigs) {
+            for (const storage of project.storageConfigs) {
+                if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                    const instanceName = storage.metadata?.resourceName as string;
+                    if (instanceName) {
+                        try {
+                            const dbName = `pr_branch_${branch.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                            const sourceDb = storage.metadata?.database as string || 'postgres';
+                            await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                        } catch (e) {
+                            console.error(`[Branching] Pre-build seeding failed for ${branch}:`, e);
+                        }
+                    }
+                }
+            }
+        }
+
         // Get environment variables directly from project and split by target
         const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
             branch

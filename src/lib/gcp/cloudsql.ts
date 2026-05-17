@@ -716,11 +716,31 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the target database
+    console.log(`[Branching] Creating ephemeral database ${databaseName} on ${instanceName}`);
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, seed it using Export/Import
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        console.log(`[Branching] Seeding data from ${sourceDatabase} to ${databaseName}`);
+        const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
+        const storageUri = `gs://${bucket}/branch-seed-${instanceName}-${Date.now()}.sql`;
+
+        try {
+            // Export from source
+            const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+            await waitForOperation(exportOp);
+
+            // Import into target
+            const importOp = await importInstance(instanceName, storageUri, databaseName);
+            await waitForOperation(importOp);
+
+            console.log(`[Branching] Successfully seeded ${databaseName} from ${sourceDatabase}`);
+        } catch (error) {
+            console.error(`[Branching] Seeding failed for ${databaseName}:`, error);
+            throw error;
+        }
     }
 }
 
@@ -832,6 +852,28 @@ export async function getOperationStatus(
         status: data.status as 'PENDING' | 'RUNNING' | 'DONE',
         error: data.error ? `Cloud SQL Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
+}
+
+/**
+ * Poll for the completion of a long-running operation
+ */
+export async function waitForOperation(
+    operationName: string,
+    maxAttempts = 60,
+    intervalMs = 5000
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    for (let i = 0; i < maxAttempts; i++) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+
+    throw new Error(`Operation ${operationName} timed out after ${maxAttempts} attempts.`);
 }
 
 /**
