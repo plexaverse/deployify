@@ -162,6 +162,15 @@ export interface Project {
         block: string[];
     };
     latestDeployment?: Deployment;
+    globalIpAddress?: string | null;
+    cloudArmorMode?: 'off' | 'detection' | 'prevention';
+    autoScaling?: {
+        enabled: boolean;
+        maxConcurrency: number;
+        minInstances: number;
+        maxInstances: number;
+    };
+    metadata?: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
 }

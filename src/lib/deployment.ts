@@ -3,6 +3,8 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -133,8 +135,28 @@ export async function syncDeploymentStatus(
             // Track deployment usage
             await trackDeployment(projectId, buildDurationMs);
 
+            // Fetch latest project state to check for GLB
+            const currentProject = await getProjectById(projectId);
+            let globalIp = currentProject?.globalIpAddress;
+
+            if (deployment.type === 'production' && !globalIp && currentProject) {
+                try {
+                    console.log(`[Deployify Edge] Orchestrating Global Infrastructure for ${projectSlug}`);
+                    const { ipAddress } = await createGlobalLoadBalancer(serviceName, region || config.gcp.region);
+                    globalIp = ipAddress;
+
+                    await enableCloudCdn(`${serviceName}-backend`);
+                    await enableCloudArmor(serviceName, currentProject.cloudArmorPolicy || 'default-waf-policy');
+
+                    console.log(`[Deployify Edge] Global IP allocated: ${globalIp}`);
+                } catch (edgeErr) {
+                    console.error('[Deployify Edge] Failed to provision edge infrastructure:', edgeErr);
+                }
+            }
+
             await updateProject(projectId, {
-                productionUrl: effectiveUrl,
+                productionUrl: globalIp ? `https://${globalIp}` : effectiveUrl,
+                globalIpAddress: globalIp || null,
             });
 
             // Prune old images (keep 10)
@@ -169,19 +191,18 @@ export async function syncDeploymentStatus(
 
             // Handle Database Branching/Cloning for Preview Environments
             if (deployment.type === 'preview' && pullRequestNumber) {
-                await updateProject(projectId, {}); // Just to get latest project state
                 const project = await getProjectById(projectId);
                 const storageConfigs = project?.storageConfigs || [];
 
                 for (const storage of storageConfigs) {
                     if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
                         const instanceName = storage.metadata?.resourceName as string;
+                        const sourceDb = storage.metadata?.databaseName as string;
                         if (instanceName) {
                             try {
                                 console.log(`[Branching] Ensuring ephemeral database for PR #${pullRequestNumber} on ${instanceName}`);
-                                // For preview, we often want to clone the production database name with a PR suffix
                                 const dbName = `pr_${pullRequestNumber}`;
-                                await ensureEphemeralDatabase(instanceName, dbName);
+                                await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
                                 console.log(`[Branching] Ephemeral database ${dbName} ready.`);
                             } catch (e) {
                                 console.error(`[Branching] Failed to setup ephemeral database:`, e);
