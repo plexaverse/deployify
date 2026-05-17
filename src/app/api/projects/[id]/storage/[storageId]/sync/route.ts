@@ -13,7 +13,7 @@ import { checkConnectivityHealth } from '@/lib/gcp/storage-validator';
 import { calculateEWMA, isDegraded as detectDegradation, forecastLatency } from '@/lib/gcp/health-utils';
 import type { StorageConfig } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
-import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks, discoverUnusedIndexes, discoverQueryAntiPatterns, discoverNoSqlSchema } from '@/lib/gcp/monitoring';
+import { getCloudSqlMetrics, getMemorystoreMetrics, checkAlertThresholds, getScalingRecommendations, getResourceDormancy, detectWorkloadProfile, detectColdStart, detectWorkloadShift, getCloudSqlHistoricalMetrics, getMaintenanceRecommendation, detectConnectionLeaks, calculateReliabilityScore, checkSLOViolations, discoverSensitiveData, detectSecurityThreats, getDatabaseLogs, discoverArchivalCandidates, discoverIndexBloat, discoverStatisticsDrift, optimizeConnectionPools, discoverDeadlocks, discoverUnusedIndexes, discoverQueryAntiPatterns, discoverNoSqlSchema, discoverBigQueryOptimizations } from '@/lib/gcp/monitoring';
 import { syncResourceLabels } from '@/lib/gcp/labeling';
 import { sendEmail } from '@/lib/email/client';
 import { storageAlertEmail } from '@/lib/email/templates';
@@ -382,12 +382,14 @@ export async function GET(
                 const lastAntiPatternScan = antiPatternReport?.lastScannedAt ? new Date(antiPatternReport.lastScannedAt) : new Date(0);
                 const hoursSinceAntiPatternScan = (now.getTime() - lastAntiPatternScan.getTime()) / (1000 * 60 * 60);
 
-                if (storage.status === 'active' && hoursSinceAntiPatternScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon' || storage.type === 'cloud-spanner')) {
+                if (storage.status === 'active' && hoursSinceAntiPatternScan >= 24 && (storage.type.includes('cloud-sql') || storage.type === 'alloydb' || storage.type === 'supabase' || storage.type === 'neon' || storage.type === 'cloud-spanner' || storage.type === 'bigquery')) {
                     try {
                         let report;
                         if (storage.type === 'cloud-spanner') {
                             const { discoverSpannerOptimizations } = await import('@/lib/gcp/monitoring');
                             report = await discoverSpannerOptimizations(id, storageId);
+                        } else if (storage.type === 'bigquery') {
+                            report = await discoverBigQueryOptimizations(id, storageId);
                         } else {
                             report = await discoverQueryAntiPatterns(id, storageId);
                         }

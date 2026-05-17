@@ -26,7 +26,7 @@ export async function POST(
         const { id, storageId } = await params;
         const body = await request.json();
         let { query } = body;
-        const { variables = {}, widgetId } = body;
+        const { variables = {}, widgetId, dryRun } = body;
 
         let session = null;
         let storageConfig: StorageConfig | undefined;
@@ -356,6 +356,16 @@ export async function POST(
                         },
                     });
                     const datasetId = (storageConfig.metadata?.resourceName as string) || storageConfig.name;
+
+                    if (dryRun) {
+                        const { estimateBigQueryCost } = await import('@/lib/gcp/monitoring');
+                        const estimate = await estimateBigQueryCost(query, (storageConfig.metadata?.location as string) || 'US');
+                        return NextResponse.json({
+                            success: true,
+                            estimate,
+                            executionTimeMs: Date.now() - startTime
+                        });
+                    }
 
                     if (query === 'DISCOVER_SCHEMA') {
                         const [tables] = await bq.dataset(datasetId).getTables();

@@ -157,6 +157,129 @@ export interface PoolingRecommendation {
 }
 
 /**
+ * Estimate BigQuery query cost using dry-run (Phase 164)
+ */
+export async function estimateBigQueryCost(
+    query: string,
+    location: string = 'US'
+): Promise<{ bytesScanned: number, estimatedCost: number }> {
+    if (process.env.MOCK_DB === 'true') {
+        const bytes = Math.floor(Math.random() * 1024 * 1024 * 1024 * 50); // 50GB
+        return {
+            bytesScanned: bytes,
+            estimatedCost: parseFloat(((bytes / (1024 * 1024 * 1024 * 1024)) * 6.25).toFixed(4))
+        };
+    }
+
+    try {
+        const { BigQuery } = await import('@google-cloud/bigquery');
+        const bq = new BigQuery({
+            projectId: config.gcp.projectId || process.env.GCP_PROJECT_ID,
+            credentials: {
+                client_email: config.firebase.clientEmail,
+                private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
+            },
+        });
+
+        const [job] = await bq.createQueryJob({
+            query,
+            location,
+            dryRun: true
+        });
+
+        const bytesScanned = parseInt(job.metadata.statistics.totalBytesProcessed);
+        // BigQuery pricing is $6.25 per TB (on-demand)
+        const estimatedCost = (bytesScanned / (1024 * 1024 * 1024 * 1024)) * 6.25;
+
+        return {
+            bytesScanned,
+            estimatedCost: parseFloat(estimatedCost.toFixed(4))
+        };
+    } catch (e) {
+        console.error('[BigQueryCostEstimation] Failed:', e);
+        return { bytesScanned: 0, estimatedCost: 0 };
+    }
+}
+
+/**
+ * Autonomously discover BigQuery optimizations from telemetry fingerprints (Phase 164)
+ */
+export async function discoverBigQueryOptimizations(
+    projectId: string,
+    storageId: string
+): Promise<AntiPatternReport> {
+    const patterns: QueryAntiPattern[] = [];
+    const now = new Date().toISOString();
+
+    if (process.env.MOCK_DB === 'true') {
+        return {
+            hasAntiPatterns: true,
+            patterns: [
+                {
+                    id: `ap-bq-1-${Date.now()}`,
+                    type: 'SELECT_STAR',
+                    queryHash: 'SELECT * FROM `my_project.my_dataset.large_table`',
+                    evidence: 'BigQuery: SELECT * detected on high-volume dataset.',
+                    recommendation: 'Project only required columns to reduce scanned bytes and cost.',
+                    optimizedRewrite: 'SELECT id, event_time, user_id FROM `my_project.my_dataset.large_table`',
+                    impactScore: 60,
+                    detectedAt: now
+                }
+            ],
+            totalImpactScore: 60,
+            lastScannedAt: now
+        };
+    }
+
+    try {
+        const impactMetrics = await getQueryImpactMetrics(projectId, storageId);
+
+        for (const metric of impactMetrics) {
+            const sql = metric.queryHash;
+            const normalizedSql = sql.toUpperCase();
+
+            // 1. SELECT * Detection (Critical for BigQuery cost)
+            if (normalizedSql.includes('SELECT *')) {
+                patterns.push({
+                    id: `ap-bq-star-${metric.queryHash.substring(0, 8)}`,
+                    type: 'SELECT_STAR',
+                    queryHash: sql,
+                    evidence: 'BigQuery: SELECT * detected. BigQuery is a columnar store; selecting all columns increases scanned bytes and costs significantly.',
+                    recommendation: 'Explicitly list only the columns required for your analysis.',
+                    optimizedRewrite: sql.replace(/SELECT\s+\*/i, 'SELECT column1, column2 /* TODO: Replace with specific columns */'),
+                    impactScore: 70,
+                    detectedAt: now
+                });
+            }
+
+            // 2. Missing Partition Filter Suspect
+            // If the query is high latency (> 2s) and doesn't seem to have a WHERE clause with common partitioning columns (date, timestamp, etc.)
+            if (metric.avgLatency > 2000 && !normalizedSql.includes('WHERE')) {
+                patterns.push({
+                    id: `ap-bq-partition-${metric.queryHash.substring(0, 8)}`,
+                    type: 'NON_SARGABLE_PREDICATE', // Using this as a general "suboptimal filtering" type
+                    queryHash: sql,
+                    evidence: 'BigQuery: High-latency query without filters detected. This may scan entire tables.',
+                    recommendation: 'Ensure you are filtering on partitioned or clustered columns (e.g., _PARTITIONTIME or date columns) to limit scanned data.',
+                    optimizedRewrite: sql + ' WHERE <partition_column> >= "2024-01-01"',
+                    impactScore: 90,
+                    detectedAt: now
+                });
+            }
+        }
+    } catch (e) {
+        console.error(`[BigQueryOptimization] Failed for ${storageId}:`, e);
+    }
+
+    return {
+        hasAntiPatterns: patterns.length > 0,
+        patterns,
+        totalImpactScore: patterns.reduce((sum, p) => sum + p.impactScore, 0),
+        lastScannedAt: now
+    };
+}
+
+/**
  * Autonomously discover Spanner optimizations from telemetry fingerprints (Phase 162)
  */
 export async function discoverSpannerOptimizations(
