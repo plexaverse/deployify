@@ -4,6 +4,7 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDb, Collections } from '@/lib/firebase';
+import { config } from '@/lib/config';
 import { selectReplica, type ReplicaMetadata } from '@/lib/db';
 import type { StorageConfig } from '@/types';
 import { Client as PgClient } from 'pg';
@@ -365,8 +366,7 @@ export async function POST(
                         for (const table of tables.slice(0, 10)) {
                             const [metadata] = await table.getMetadata();
                             tableStats[table.id || ''] = { estimatedRows: parseInt(metadata.numRows || '0') };
-                            // @ts-expect-error - BigQuery metadata schema is complex
-                            columns[table.id || ''] = metadata.schema.fields.map((f: { name: string, type: string }) => ({
+                            columns[table.id || ''] = (metadata.schema?.fields || []).map((f: { name: string, type: string }) => ({
                                 name: f.name,
                                 type: f.type
                             }));
