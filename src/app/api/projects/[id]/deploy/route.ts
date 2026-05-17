@@ -9,6 +9,7 @@ import { validateRepository } from '@/lib/github/validator';
 import { parseRepoFullName, getProjectSlugForDeployment } from '@/lib/utils';
 import { isRunningOnGCP } from '@/lib/gcp/auth';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
+import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
@@ -146,6 +147,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Check if running on GCP - use real Cloud Build
         if (isRunningOnGCP()) {
             try {
+                // Handle Database Branching BEFORE build submission
+                if (project.storageConfigs && project.storageConfigs.length > 0) {
+                    for (const storage of project.storageConfigs) {
+                        if (storage.branchingSettings?.enabled && storage.type.includes('cloud-sql')) {
+                            const instanceName = storage.metadata?.resourceName as string;
+                            const sourceDb = storage.metadata?.databaseName as string;
+                            if (instanceName) {
+                                try {
+                                    // Manual triggers might not have a PR number, but we can use branch name as identifier
+                                    const identifier = branch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                                    const dbName = `br_${identifier}`;
+                                    await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                                } catch (e) {
+                                    console.error(`[Branching] Prefetch branching failed:`, e);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Determine env target based on branch
                 let envTarget: 'production' | 'preview' = isDefaultBranch ? 'production' : 'preview';
                 if (project.branchEnvironments) {

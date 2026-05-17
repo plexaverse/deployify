@@ -716,11 +716,31 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the target ephemeral database
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, seed the ephemeral database via export/import
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        console.log(`[Branching] Seeding data from ${sourceDatabase} to ${databaseName} on ${instanceName}`);
+
+        const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
+        const storageUri = `gs://${bucket}/seeding/${instanceName}-${sourceDatabase}-${Date.now()}.sql`;
+
+        try {
+            // Export source database
+            const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+            await waitForOperation(exportOp);
+
+            // Import into target database
+            const importOp = await importInstance(instanceName, storageUri, databaseName);
+            await waitForOperation(importOp);
+
+            console.log(`[Branching] Successfully seeded ${databaseName} from ${sourceDatabase}`);
+        } catch (error) {
+            console.error(`[Branching] Seeding failed:`, error);
+            // We still proceed even if seeding fails, as the empty DB is better than nothing for some tests
+        }
     }
 }
 
@@ -832,6 +852,27 @@ export async function getOperationStatus(
         status: data.status as 'PENDING' | 'RUNNING' | 'DONE',
         error: data.error ? `Cloud SQL Provisioning Error: ${data.error.message || 'Unknown error'}` : undefined,
     };
+}
+
+/**
+ * Wait for a long-running operation to complete
+ */
+export async function waitForOperation(
+    operationName: string,
+    intervalMs: number = 5000,
+    maxAttempts: number = 60
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    for (let i = 0; i < maxAttempts; i++) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+    throw new Error(`Operation ${operationName} timed out after ${maxAttempts} attempts.`);
 }
 
 /**

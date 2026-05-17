@@ -62,11 +62,35 @@ export async function createGlobalLoadBalancer(
             })
         });
 
-        // 4. Create Target HTTPS Proxy
-        const proxyName = `${prefix}-proxy`;
-        // (Simplified: In real world, we need an SSL certificate resource here too)
+        // 4. Create Managed SSL Certificate
+        const sslCertName = `${prefix}-cert`;
+        if (process.env.MOCK_DB !== 'true') {
+            await fetch(`${projectUrl}/global/sslCertificates`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: sslCertName,
+                    type: 'MANAGED',
+                    managed: { domains: [`${serviceName}.deployify.io`] } // Placeholder domain
+                })
+            });
+        }
 
-        // 5. Create Forwarding Rule (Global IP)
+        // 5. Create Target HTTPS Proxy
+        const proxyName = `${prefix}-proxy`;
+        if (process.env.MOCK_DB !== 'true') {
+            await fetch(`${projectUrl}/global/targetHttpsProxies`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: proxyName,
+                    urlMap: `${projectUrl}/global/urlMaps/${urlMapName}`,
+                    sslCertificates: [`${projectUrl}/global/sslCertificates/${sslCertName}`]
+                })
+            });
+        }
+
+        // 6. Create Forwarding Rule (Global IP)
         const forwardingRuleName = `${prefix}-fw`;
         await fetch(`${projectUrl}/global/forwardingRules`, {
             method: 'POST',
