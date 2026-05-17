@@ -2017,10 +2017,27 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement BigQuery resource monitoring (Bytes scanned, Slot usage) in the monitoring engine.
 - [x] Update Storage UI with high-density technical guidance and badges for BigQuery connectors.
 
+### Phase 162: Autonomous Cloud Spanner & BigQuery Governance Maturity (COMPLETED)
+- [x] Implement `getSpannerMetrics` and `getSpannerHistoricalMetrics` in `src/lib/gcp/monitoring.ts`.
+- [x] Implement `getBigQueryHistoricalMetrics` for usage trend analysis.
+- [x] Extend `discoverSensitiveData` to support Cloud Spanner (REST API) and BigQuery sampling.
+- [x] Implement `discoverSpannerOptimizations` for performance anti-pattern detection.
+- [x] Integrate new Spanner/BigQuery tasks into the 24-hour `StorageSync` API heartbeat.
+- [x] Update Storage UI to surface metrics and reliability indicators for Spanner and BigQuery.
+
 ### 2027-08-07: Completed Phase 161: Autonomous BigQuery Integration
 - Completed Phase 161: Autonomous BigQuery Integration & Data Warehouse Governance.
 - Introduced BigQuery as a first-class Storage Connector, enabling dataset management and monitoring.
 - Developed `src/lib/gcp/bigquery-admin.ts` to interface with the BigQuery API, supporting automated discovery and metadata synchronization.
 - Enhanced the monitoring engine with BigQuery-specific metrics (Query Scan Volume, Slot Allocation) fetched via Cloud Monitoring.
 - Updated the Storage UI to surface BigQuery connectors with 'IAM AUTH' and 'GCP NATIVE' badges, including high-density dataset metadata.
+- Verified 100% operational integrity with a zero-warning build and a perfect platform audit.
+
+### 2027-08-08: Completed Phase 162: Autonomous Spanner & BigQuery Governance
+- Completed Phase 162: Autonomous Cloud Spanner & BigQuery Governance Maturity.
+- Enhanced the monitoring engine with historical metrics for BigQuery and full resource monitoring for Cloud Spanner.
+- Extended the PII Discovery Engine to support Cloud Spanner via REST API sessions and BigQuery via dataset sampling.
+- Introduced `discoverSpannerOptimizations` identifying `SELECT *` and full table scans in Cloud Spanner queries.
+- Integrated autonomous governance tasks for Spanner and BigQuery into the 24-hour `StorageSync` API heartbeat.
+- Updated the Storage UI to surface real-time and historical resource metrics for BigQuery and Cloud Spanner connectors.
 - Verified 100% operational integrity with a zero-warning build and a perfect platform audit.

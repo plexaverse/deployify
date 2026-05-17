@@ -136,13 +136,13 @@ export async function GET(request: NextRequest) {
                 const diskSizeGb = (result.metadata?.diskSizeGb as number) || (result.metadata?.memorySizeGb as number);
                 const isHA = !!result.metadata?.highAvailability;
 
-                const estimatedCost = getEstimatedMonthlyCost(result.type, tier, diskSizeGb, isHA);
+                const estimatedCost = getEstimatedMonthlyCost(result.type, tier, diskSizeGb, isHA, result.metadata as Record<string, unknown>);
                 totalEstimatedMonthlyCost += estimatedCost;
                 projectCost += estimatedCost;
                 costBreakdown[result.type] = (costBreakdown[result.type] || 0) + estimatedCost;
 
                 // Aggregate Cost Forecast
-                const forecast = getCostForecast(result.type, tier, diskSizeGb, isHA);
+                const forecast = getCostForecast(result.type, tier, diskSizeGb, isHA, [], result.metadata as Record<string, unknown>);
                 forecast.forEach(f => {
                     monthlyForecast[f.month] = (monthlyForecast[f.month] || 0) + f.cost;
                     totalForecastedCost3m += f.cost;
