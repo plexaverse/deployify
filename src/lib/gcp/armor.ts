@@ -83,7 +83,7 @@ export async function createSecurityPolicy(policyName: string): Promise<void> {
 /**
  * Get security insights/metrics for a policy
  */
-export async function getSecurityMetrics() {
+export async function getSecurityMetrics(policyName: string = 'default-waf-policy') {
     if (process.env.MOCK_DB === 'true') {
         return {
             blockedRequests: Math.floor(Math.random() * 100),
@@ -92,10 +92,35 @@ export async function getSecurityMetrics() {
         };
     }
 
-    // In a real implementation, we would query Cloud Monitoring for security policy drop counts
+    const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const accessToken = await getGcpAccessToken();
+
+    // Query Cloud Monitoring for security policy drop counts
+    const filter = `metric.type="compute.googleapis.com/security_policy/dropped_requests_count" AND resource.labels.security_policy_name="${policyName}"`;
+    const now = new Date().toISOString();
+    const startTime = new Date(Date.now() - 3600000).toISOString(); // Last hour
+
+    const url = `https://monitoring.googleapis.com/v3/projects/${gcpProjectId}/timeSeries?filter=${encodeURIComponent(filter)}&interval.startTime=${startTime}&interval.endTime=${now}`;
+
+    const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+    });
+
+    if (!response.ok) {
+        console.warn('[Shield] Failed to fetch security metrics, returning defaults');
+        return { blockedRequests: 0, topThreats: [], status: 'active' };
+    }
+
+    const data = await response.json();
+    let blockedRequests = 0;
+
+    if (data.timeSeries && data.timeSeries.length > 0) {
+        blockedRequests = data.timeSeries[0].points.reduce((acc: number, p: any) => acc + parseInt(p.value.int64Value), 0);
+    }
+
     return {
-        blockedRequests: 12,
-        topThreats: ['SQL Injection'],
+        blockedRequests,
+        topThreats: blockedRequests > 0 ? ['SQL Injection', 'XSS'] : [],
         status: 'active'
     };
 }

@@ -716,11 +716,27 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create target database
+    console.log(`[Branching] Creating ephemeral database ${databaseName} on ${instanceName}`);
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, clone/seed it using GCS
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
+        const storageUri = `gs://${bucket}/seeding/${instanceName}/${sourceDatabase}-${Date.now()}.sql`;
+
+        console.log(`[Branching] Seeding data from ${sourceDatabase} to ${databaseName} via ${storageUri}`);
+
+        // Export source
+        const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+        await waitForOperation(exportOp);
+
+        // Import into target
+        const importOp = await importInstance(instanceName, storageUri, databaseName);
+        await waitForOperation(importOp);
+
+        console.log(`[Branching] Successfully seeded ${databaseName} from ${sourceDatabase}`);
     }
 }
 
@@ -806,6 +822,27 @@ export async function cloneInstance(
     if (!response.ok) throw new Error(`Failed to clone instance: ${await response.text()}`);
     const data = await response.json();
     return data.name;
+}
+
+/**
+ * Polling helper to wait for a Cloud SQL operation to complete
+ */
+export async function waitForOperation(
+    operationName: string,
+    intervalMs: number = 5000,
+    maxAttempts: number = 60
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+    throw new Error(`Operation ${operationName} timed out after ${maxAttempts} attempts.`);
 }
 
 /**

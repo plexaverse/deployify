@@ -179,10 +179,11 @@ export async function syncDeploymentStatus(
                         if (instanceName) {
                             try {
                                 console.log(`[Branching] Ensuring ephemeral database for PR #${pullRequestNumber} on ${instanceName}`);
-                                // For preview, we often want to clone the production database name with a PR suffix
+                                // For preview, we clone the production database name with a PR suffix
                                 const dbName = `pr_${pullRequestNumber}`;
-                                await ensureEphemeralDatabase(instanceName, dbName);
-                                console.log(`[Branching] Ephemeral database ${dbName} ready.`);
+                                const sourceDb = storage.metadata?.databaseName as string || 'postgres';
+                                await ensureEphemeralDatabase(instanceName, dbName, sourceDb);
+                                console.log(`[Branching] Ephemeral database ${dbName} ready and seeded from ${sourceDb}.`);
                             } catch (e) {
                                 console.error(`[Branching] Failed to setup ephemeral database:`, e);
                             }
