@@ -549,7 +549,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
         let code = '';
         const type = selectedConnector.type;
 
-        if (type === 'cloud-sql-postgres' || type === 'supabase') {
+        if (['cloud-sql-postgres', 'supabase', 'alloydb', 'neon'].includes(type)) {
             code = `import { Client } from 'pg';
 
 const client = new Client({
@@ -600,6 +600,38 @@ async function runQuery() {
     const result = await redis.call('get', 'key'); // Example for basic GET
     console.log(result);
     redis.disconnect();
+}
+
+runQuery();`;
+        } else if (type === 'bigquery') {
+            code = `import { BigQuery } from '@google-cloud/bigquery';
+
+const bigquery = new BigQuery();
+
+async function runQuery() {
+    const query = \`${query.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+    const options = {
+        query: query,
+        location: 'US',
+    };
+
+    const [job] = await bigquery.createQueryJob(options);
+    const [rows] = await job.getQueryResults();
+    console.log(rows);
+}
+
+runQuery();`;
+        } else if (type === 'cloud-spanner') {
+            code = `import { Spanner } from '@google-cloud/spanner';
+
+const spanner = new Spanner();
+const instance = spanner.instance(process.env.SPANNER_INSTANCE);
+const database = instance.database(process.env.SPANNER_DATABASE);
+
+async function runQuery() {
+    const query = \`${query.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+    const [rows] = await database.run(query);
+    console.log(rows.map(r => r.toJSON()));
 }
 
 runQuery();`;
@@ -999,7 +1031,7 @@ runQuery();`;
 
     const templates = useMemo(() => {
         const type = selectedConnector?.type || 'generic';
-        if (type.includes('sql') || type === 'planetscale') {
+        if (type.includes('sql') || ['planetscale', 'alloydb', 'neon', 'cloud-spanner', 'bigquery'].includes(type)) {
             return [
                 { name: 'SELECT ALL', query: 'SELECT * FROM table_name LIMIT 10' },
                 { name: 'WHERE FILTER', query: 'SELECT * FROM table_name WHERE column = :value' },
@@ -1584,7 +1616,7 @@ runQuery();`;
                                         onChange={setQuery}
                                         suggestions={editorSuggestions}
                                         placeholder={
-                                            selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale'
+                                            selectedConnector?.type.includes('sql') || ['planetscale', 'alloydb', 'neon', 'cloud-spanner', 'bigquery'].includes(selectedConnector?.type || '')
                                                 ? "SELECT * FROM users WHERE id = :id"
                                                 : selectedConnector?.type === 'memorystore-redis'
                                                     ? "GET :key  OR  { \"command\": \"hgetall\", \"args\": [\":key\"] }"
@@ -1664,7 +1696,7 @@ runQuery();`;
                                     <Save className="w-4 h-4 mr-2" />
                                     Save
                                 </Button>
-                                {(selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') && (
+                                {(selectedConnector?.type.includes('sql') || ['planetscale', 'alloydb', 'neon', 'cloud-spanner', 'bigquery'].includes(selectedConnector?.type || '')) && (
                                     <Button
                                         variant="ghost"
                                         size="sm"
@@ -1750,7 +1782,7 @@ runQuery();`;
                                             >
                                                 <MessageSquare className="w-3.5 h-3.5" />
                                             </Button>
-                                            {(!q.isPublic || q.userId === currentUserId) && (
+                                                {(!q.isPublic || q.userId === currentUserId || userRole === 'owner' || userRole === 'admin') && (
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
@@ -2577,7 +2609,7 @@ runQuery();`;
                                     <PieChartIcon className="w-3.5 h-3.5 mr-1.5" />
                                     Chart
                                 </Button>
-                                {(selectedConnector?.type.includes('sql') || selectedConnector?.type === 'planetscale') && (
+                                {(selectedConnector?.type.includes('sql') || ['planetscale', 'alloydb', 'neon', 'cloud-spanner', 'bigquery'].includes(selectedConnector?.type || '')) && (
                                     <Button
                                         variant="ghost"
                                         size="sm"

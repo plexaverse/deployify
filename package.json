@@ -19,6 +19,7 @@
   "dependencies": {
     "@google-analytics/data": "^5.2.1",
     "@google-cloud/bigquery": "^8.1.1",
+    "@google-cloud/spanner": "^8.7.1",
     "@octokit/rest": "^22.0.1",
     "@octokit/webhooks": "^14.2.0",
     "axios": "^1.14.0",
