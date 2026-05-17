@@ -275,6 +275,26 @@ function createMockFirestore(): Firestore {
                                 lastAuditedAt: new Date().toISOString()
                             }
                         }
+                    },
+                    {
+                        id: 'storage_bigquery',
+                        type: 'bigquery',
+                        name: 'Analytics Warehouse',
+                        status: 'active',
+                        environment: 'both',
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                        metadata: {
+                            provisioned: true,
+                            region: 'us-central1',
+                            bigqueryDatasetId: 'analytics_prod',
+                            security: {
+                                score: 100,
+                                grade: 'A',
+                                risks: [],
+                                lastAuditedAt: new Date().toISOString()
+                            }
+                        }
                     }
                 ],
                 joinedAt: { toDate: () => new Date() },

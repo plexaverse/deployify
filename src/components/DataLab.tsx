@@ -115,6 +115,8 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     const [isSavingDoc, setIsSavingDoc] = useState<string | null>(null);
     const [viewingAuditQuery, setViewingAuditQuery] = useState<string | null>(null);
     const [isApplyingIndex, setIsApplyingIndex] = useState<string | null>(null);
+    const [bqEstimate, setBqEstimate] = useState<{ bytesScanned: number, estimatedCost: number } | null>(null);
+    const [isEstimating, setIsEstimating] = useState(false);
 
     useEffect(() => {
         // Detect :variable patterns
@@ -225,6 +227,7 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
     }, [projectId, selectedId, selectedConnector]);
 
     useEffect(() => {
+        setBqEstimate(null);
         fetchMetrics();
         fetchQueryInsights();
         fetchHistory();
@@ -325,6 +328,26 @@ export function DataLab({ projectId, connectors }: DataLabProps) {
             toast.error('Network error while applying index');
         } finally {
             setIsApplyingIndex(null);
+        }
+    };
+
+    const getBigQueryEstimate = async (q: string) => {
+        if (!selectedId || !q.trim() || selectedConnector?.type !== 'bigquery') return;
+        setIsEstimating(true);
+        try {
+            const response = await fetch(`/api/projects/${projectId}/storage/${selectedId}/query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: q, dryRun: true }),
+            });
+            const data = await response.json();
+            if (data.success && data.estimate) {
+                setBqEstimate(data.estimate);
+            }
+        } catch (e) {
+            console.error('Failed to get BQ estimate:', e);
+        } finally {
+            setIsEstimating(false);
         }
     };
 
@@ -1617,13 +1640,38 @@ runQuery();`;
                                         suggestions={editorSuggestions}
                                         placeholder={
                                             selectedConnector?.type.includes('sql') || ['planetscale', 'alloydb', 'neon', 'cloud-spanner', 'bigquery'].includes(selectedConnector?.type || '')
-                                                ? "SELECT * FROM users WHERE id = :id"
+                                                ? "SELECT * FROM `project.dataset.table` WHERE id = :id"
                                                 : selectedConnector?.type === 'memorystore-redis'
                                                     ? "GET :key  OR  { \"command\": \"hgetall\", \"args\": [\":key\"] }"
                                                     : "{ \"collection\": \"users\", \"filter\": { \"id\": \":id\" } }"
                                         }
                                     />
                                     <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                                    {selectedConnector?.type === 'bigquery' && (
+                                        <div className="flex items-center gap-2 mr-2">
+                                            {bqEstimate ? (
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-wider">
+                                                        {(bqEstimate.bytesScanned / (1024 * 1024 * 1024)).toFixed(2)} GB SCANNED
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">
+                                                        EST. COST: ${bqEstimate.estimatedCost}
+                                                    </span>
+                                                </div>
+                                            ) : isEstimating && (
+                                                <Loader2 className="w-4 h-4 animate-spin text-[var(--primary)]" />
+                                            )}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => getBigQueryEstimate(query)}
+                                                disabled={isEstimating || !query.trim()}
+                                                className="h-8 px-2 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                                            >
+                                                Estimate Cost
+                                            </Button>
+                                        </div>
+                                    )}
                                 <div className="relative">
                                     <Button
                                         variant="ghost"

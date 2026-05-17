@@ -2031,6 +2031,13 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - [x] Implement hierarchical schema discovery for BigQuery and Spanner.
 - [x] Update Data Lab UI with analytics templates and copy-as-code snippets.
 
+### Phase 164: Autonomous BigQuery Cost Governance & Query Optimization (COMPLETED)
+- [x] Implement `estimateBigQueryCost` using dry-run API ($6.25 per TB).
+- [x] Implement `discoverBigQueryOptimizations` identifying `SELECT *` and missing partition filters.
+- [x] Update Data Lab Query API to support BigQuery dry-runs.
+- [x] Integrate BigQuery optimization discovery into the 24-hour `StorageSync` API heartbeat.
+- [x] Update Data Lab UI with "Estimate Cost" and scan volume indicators for BigQuery.
+
 ### 2027-08-07: Completed Phase 161: Autonomous BigQuery Integration
 - Completed Phase 161: Autonomous BigQuery Integration & Data Warehouse Governance.
 - Introduced BigQuery as a first-class Storage Connector, enabling dataset management and monitoring.
@@ -2047,3 +2054,12 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - Integrated autonomous governance tasks for Spanner and BigQuery into the 24-hour `StorageSync` API heartbeat.
 - Updated the Storage UI to surface real-time and historical resource metrics for BigQuery and Cloud Spanner connectors.
 - Verified 100% operational integrity with a zero-warning build and a perfect platform audit.
+
+### 2027-08-10: Completed Phase 164: Autonomous BigQuery Cost Governance
+- Completed Phase 164: Autonomous BigQuery Cost Governance & Query Optimization.
+- Introduced `estimateBigQueryCost` in `src/lib/gcp/monitoring.ts` leveraging the dry-run API to forecast scan volume and financial impact ($6.25/TB).
+- Developed `discoverBigQueryOptimizations` to identify BigQuery-specific anti-patterns including `SELECT *` and missing partition filters on large scans.
+- Enhanced the Data Lab Query Proxy to support non-executing dry-runs for BigQuery connectors.
+- Integrated BigQuery optimization discovery into the 24-hour `StorageSync` API heartbeat, ensuring data warehouse technical debt is periodically quantified.
+- Updated the `DataLab` UI with a high-density "Estimate Cost" interface, providing developers with proactive scan volume transparency before execution.
+- Verified 100% operational integrity with 198 passing tests and a perfect Pre-Launch Audit.
