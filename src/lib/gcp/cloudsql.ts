@@ -691,6 +691,27 @@ export async function createUser(
 }
 
 /**
+ * Helper to wait for a long-running operation to complete
+ */
+export async function waitForOperation(operationName: string): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    let attempts = 0;
+    const maxAttempts = 60; // 5 minutes with 5s interval
+
+    while (attempts < maxAttempts) {
+        const status = await getOperationStatus(operationName);
+        if (status.status === 'DONE') {
+            if (status.error) throw new Error(status.error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        attempts++;
+    }
+    throw new Error(`Operation ${operationName} timed out.`);
+}
+
+/**
  * Ensure an ephemeral database exists for branching
  */
 export async function ensureEphemeralDatabase(
@@ -708,6 +729,7 @@ export async function ensureEphemeralDatabase(
 
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
+    const bucketName = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
 
     // 1. Check if database exists
     const checkResponse = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/databases/${databaseName}`, {
@@ -716,11 +738,29 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the target database first
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, seed it using Export/Import
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        console.log(`[Branching] Seeding ${databaseName} from ${sourceDatabase} via GCS...`);
+        const storageUri = `gs://${bucketName}/branch-seed-${instanceName}-${Date.now()}.sql`;
+
+        try {
+            // Export source to GCS
+            const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+            await waitForOperation(exportOp);
+
+            // Import GCS to target
+            const importOp = await importInstance(instanceName, storageUri, databaseName);
+            await waitForOperation(importOp);
+
+            console.log(`[Branching] Successfully seeded ${databaseName}.`);
+        } catch (err) {
+            console.error(`[Branching] Failed to seed database:`, err);
+            // We don't throw here to allow deployment to proceed with an empty DB if seeding fails
+        }
     }
 }
 
