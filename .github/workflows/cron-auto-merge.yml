@@ -16,17 +16,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Auto-merge PRs
+      - name: Auto-approve and Merge PRs
         run: |
-          echo "Fetching open mergeable PRs with passing status checks..."
+          echo "Processing open PRs for auto-approval and merging..."
 
-          # List open PRs and filter using jq
-          # Criteria:
-          # 1. Mergeable state is MERGEABLE
-          # 2. Status checks are SUCCESS
-          # 3. PR is APPROVED (Safety first)
+          # 1. Auto-approve PRs from trusted authors if they have SUCCESS status checks
+          # Trusted authors: jules-google[bot], jules[bot], asangzz
+          gh pr list --json number,author,statusCheckRollup,reviewDecision -q '.[] | select((.author.login == "jules-google[bot]" or .author.login == "jules[bot]" or .author.login == "asangzz") and .statusCheckRollup.state == "SUCCESS" and .reviewDecision != "APPROVED") | .number' > to_approve.txt
 
-          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
+          if [ -s to_approve.txt ]; then
+            while read pr; do
+              echo "Auto-approving PR #$pr from trusted author..."
+              gh pr review $pr --approve || echo "Failed to approve PR #$pr"
+            done < to_approve.txt
+          else
+            echo "No PRs requiring auto-approval found."
+          fi
+
+          # 2. Fetch open mergeable PRs with passing status checks AND approval
+          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision \
+            -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
 
           if [ ! -s pr_numbers.txt ]; then
             echo "No approved PRs found that are ready for automatic merging."
@@ -34,7 +43,7 @@ jobs:
           fi
 
           while read pr; do
-            echo "Processing PR #$pr..."
+            echo "Merging PR #$pr..."
             gh pr merge $pr --squash --admin || gh pr merge $pr --squash || echo "Failed to merge PR #$pr"
           done < pr_numbers.txt
         env:
