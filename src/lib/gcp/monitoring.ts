@@ -1848,7 +1848,13 @@ export async function getScalingRecommendations(
     const diskSizeGb = (metadata?.diskSizeGb as number) || (metadata?.memorySizeGb as number) || 10;
     const isHA = !!metadata?.highAvailability;
 
-    const currentCost = getEstimatedMonthlyCost(storageType, currentTier, diskSizeGb, isHA, metadata);
+    let currentCost = getEstimatedMonthlyCost(storageType, currentTier, diskSizeGb, isHA, metadata);
+
+    // Attempt real billing data for Cloud SQL
+    if (isCloudSql && process.env.MOCK_DB !== 'true') {
+        const realPrice = await fetchSqlTierPricing(currentTier);
+        if (realPrice) currentCost = realPrice + (diskSizeGb * 0.17);
+    }
 
     // 1. CPU Analysis
     const cpuAnomaly = detectPerformanceAnomaly(
@@ -1906,7 +1912,13 @@ export async function getScalingRecommendations(
             else recommendedTier = 'FREE';
         }
 
-        const recommendedCost = getEstimatedMonthlyCost(storageType, recommendedTier, diskSizeGb, isHA, metadata);
+        let recommendedCost = getEstimatedMonthlyCost(storageType, recommendedTier, diskSizeGb, isHA, metadata);
+
+        if (isCloudSql && process.env.MOCK_DB !== 'true') {
+            const realPrice = await fetchSqlTierPricing(recommendedTier);
+            if (realPrice) recommendedCost = realPrice + (diskSizeGb * 0.17);
+        }
+
         const savings = currentCost - recommendedCost;
 
         recommendations.push({
@@ -3999,4 +4011,33 @@ function calculateBenchmarkScore(readLatency: number, writeLatency: number): num
     const rScore = Math.max(0, 100 - (readLatency * 2));
     const wScore = Math.max(0, 100 - (writeLatency / 2));
     return Math.round((rScore * 0.4) + (wScore * 0.6));
+}
+
+/**
+ * Fetch real-time pricing for a Cloud SQL tier using the Cloud Billing Catalog API
+ */
+export async function fetchSqlTierPricing(tier: string): Promise<number | null> {
+    if (process.env.MOCK_DB === 'true') return null;
+
+    try {
+        const accessToken = await getGcpAccessToken();
+        const url = 'https://cloudbilling.googleapis.com/v1/services/9503-122B-774D/skus'; // Cloud SQL service ID
+        const response = await fetch(`${url}?key=${config.gcp.apiKey || ''}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+
+        if (!response.ok) return null;
+        const data = await response.json();
+
+        // Find SKU matching the tier (Simplified logic for demonstration)
+        const sku = data.skus?.find((s: any) => s.description.includes(tier) && s.description.includes('Instance'));
+        if (sku?.pricingInfo?.[0]?.pricingExpression?.tieredRates?.[0]?.unitPrice) {
+            const units = parseInt(sku.pricingInfo[0].pricingExpression.tieredRates[0].unitPrice.units || '0');
+            const nanos = sku.pricingInfo[0].pricingExpression.tieredRates[0].unitPrice.nanos || 0;
+            return (units + nanos / 1000000000) * 24 * 30.5; // Monthly estimate
+        }
+    } catch (e) {
+        console.error('[Billing] Failed to fetch real-time pricing:', e);
+    }
+    return null;
 }

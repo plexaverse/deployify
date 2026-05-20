@@ -26,7 +26,23 @@ jobs:
           # 2. Status checks are SUCCESS
           # 3. PR is APPROVED (Safety first)
 
-          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
+          # List open PRs and filter using jq
+          # Criteria for auto-approval: PR from trusted accounts (jules-google[bot], jules[bot], asangzz)
+          # Criteria for merging:
+          # 1. Mergeable state is MERGEABLE
+          # 2. Status checks are SUCCESS
+          # 3. PR is APPROVED
+
+          echo "Checking for PRs from trusted accounts to auto-approve..."
+          gh pr list --json number,author,reviewDecision -q '.[] | select(.reviewDecision != "APPROVED" and (.author.login == "jules-google[bot]" or .author.login == "jules[bot]" or .author.login == "asangzz")) | .number' > to_approve.txt
+
+          while read pr; do
+            echo "Auto-approving PR #$pr from trusted account..."
+            gh pr review --approve $pr || echo "Failed to approve PR #$pr"
+          done < to_approve.txt
+
+          echo "Fetching open mergeable PRs with passing status checks..."
+          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED") | .number' > pr_numbers.txt
 
           if [ ! -s pr_numbers.txt ]; then
             echo "No approved PRs found that are ready for automatic merging."

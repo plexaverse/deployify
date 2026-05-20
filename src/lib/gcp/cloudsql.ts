@@ -716,11 +716,26 @@ export async function ensureEphemeralDatabase(
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
+    // 2. Create the target database first
+    const createOp = await createDatabase(instanceName, databaseName);
+    await waitForOperation(createOp);
+
+    // 3. If source database is provided, seed it via export/import
     if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+        console.log(`[Branching] Seeding data from ${sourceDatabase} to ${databaseName}`);
+        const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
+        const storageUri = `gs://${bucket}/seeding/${instanceName}-${sourceDatabase}-${Date.now()}.sql`;
+
+        try {
+            const exportOp = await exportInstance(instanceName, storageUri, [sourceDatabase]);
+            await waitForOperation(exportOp);
+
+            const importOp = await importInstance(instanceName, storageUri, databaseName);
+            await waitForOperation(importOp);
+        } catch (e) {
+            console.error(`[Branching] Seeding failed for ${databaseName}:`, e);
+            throw e;
+        }
     }
 }
 
@@ -1117,4 +1132,23 @@ export async function deleteInstance(instanceName: string, projectId?: string): 
 
     const data = await response.json();
     return data.name;
+}
+
+/**
+ * Wait for a Cloud SQL operation to complete
+ */
+export async function waitForOperation(operationName: string): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    let attempts = 0;
+    while (attempts < 60) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        attempts++;
+    }
+    throw new Error(`Operation ${operationName} timed out`);
 }

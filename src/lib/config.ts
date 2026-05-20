@@ -32,6 +32,7 @@ export const config = {
         region: process.env.GCP_REGION || 'asia-south1',
         artifactRegistry: process.env.GCP_ARTIFACT_REGISTRY || 'deployify-images',
         storageBucket: process.env.GCP_STORAGE_BUCKET,
+        apiKey: process.env.GCP_API_KEY,
     },
 
     // Firebase/Firestore
