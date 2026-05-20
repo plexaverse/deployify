@@ -47,7 +47,14 @@ export async function createGlobalLoadBalancer(
                 name: backendServiceName,
                 backends: [{ group: `${projectUrl}/regions/${region}/networkEndpointGroups/${negName}` }],
                 loadBalancingScheme: 'EXTERNAL_MANAGED',
-                protocol: 'HTTPS'
+                protocol: 'HTTPS',
+                enableCDN: true,
+                cdnPolicy: {
+                    cacheMode: 'CACHE_ALL_STATIC',
+                    defaultTtl: 3600,
+                    clientTtl: 3600,
+                    maxTtl: 86400
+                }
             })
         });
 
