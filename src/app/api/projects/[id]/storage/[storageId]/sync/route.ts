@@ -640,7 +640,7 @@ export async function GET(
                         const diskSizeGb = (storage.metadata?.diskSizeGb as number) || (storage.metadata?.memorySizeGb as number);
                         const isHA = !!storage.metadata?.highAvailability;
                         const { getEstimatedMonthlyCost } = await import('@/lib/gcp/monitoring');
-                        const monthlyCost = getEstimatedMonthlyCost(storage.type, tier, diskSizeGb, isHA, storage.metadata);
+                        const monthlyCost = await getEstimatedMonthlyCost(storage.type, tier, diskSizeGb, isHA, storage.metadata);
                         const efficiencyScore = calculateEfficiencyScore(metrics, monthlyCost);
 
                         storage.metadata = {

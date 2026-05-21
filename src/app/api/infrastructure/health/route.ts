@@ -80,13 +80,23 @@ export async function GET(request: NextRequest) {
                     }
                 }
 
+                // Aggregate Cost Intelligence (Phase 117 integration)
+                const tier = (storage.metadata?.tier as string) || (storage.type.includes('cloud-sql') ? 'db-f1-micro' : (storage.type === 'memorystore-redis' ? '1GB' : ''));
+                const diskSizeGb = (storage.metadata?.diskSizeGb as number) || (storage.metadata?.memorySizeGb as number);
+                const isHA = !!storage.metadata?.highAvailability;
+
+                const estimatedCost = await getEstimatedMonthlyCost(storage.type, tier, diskSizeGb, isHA, storage.metadata as Record<string, unknown>);
+                const forecast = await getCostForecast(storage.type, tier, diskSizeGb, isHA, [], storage.metadata as Record<string, unknown>);
+
                 // Temporary object to hold metrics for this storage
                 return {
                     status,
                     type: storage.type,
                     metadata: storage.metadata,
                     id: storage.id,
-                    provisioned: storage.status === 'provisioning'
+                    provisioned: storage.status === 'provisioning',
+                    estimatedCost,
+                    forecast
                 };
             }));
 
@@ -136,14 +146,13 @@ export async function GET(request: NextRequest) {
                 const diskSizeGb = (result.metadata?.diskSizeGb as number) || (result.metadata?.memorySizeGb as number);
                 const isHA = !!result.metadata?.highAvailability;
 
-                const estimatedCost = getEstimatedMonthlyCost(result.type, tier, diskSizeGb, isHA, result.metadata as Record<string, unknown>);
-                totalEstimatedMonthlyCost += estimatedCost;
-                projectCost += estimatedCost;
-                costBreakdown[result.type] = (costBreakdown[result.type] || 0) + estimatedCost;
+                // Aggregate Cost Intelligence
+                totalEstimatedMonthlyCost += result.estimatedCost;
+                projectCost += result.estimatedCost;
+                costBreakdown[result.type] = (costBreakdown[result.type] || 0) + result.estimatedCost;
 
                 // Aggregate Cost Forecast
-                const forecast = getCostForecast(result.type, tier, diskSizeGb, isHA, [], result.metadata as Record<string, unknown>);
-                forecast.forEach(f => {
+                result.forecast.forEach(f => {
                     monthlyForecast[f.month] = (monthlyForecast[f.month] || 0) + f.cost;
                     totalForecastedCost3m += f.cost;
                 });
