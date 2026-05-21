@@ -691,7 +691,7 @@ export async function createUser(
 }
 
 /**
- * Ensure an ephemeral database exists for branching
+ * Ensure an ephemeral database exists for branching (Phase 120 - Export/Import Seeding)
  */
 export async function ensureEphemeralDatabase(
     instanceName: string,
@@ -709,19 +709,65 @@ export async function ensureEphemeralDatabase(
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
     const accessToken = await getGcpAccessToken();
 
-    // 1. Check if database exists
+    // 1. Check if target database exists
     const checkResponse = await fetch(`${CLOUD_SQL_API}/projects/${gcpProjectId}/instances/${instanceName}/databases/${databaseName}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
     });
 
     if (checkResponse.ok) return; // Already exists
 
-    // 2. If source database is provided, we should ideally clone it.
-    if (sourceDatabase) {
-        await createDatabase(instanceName, databaseName);
-    } else {
-        await createDatabase(instanceName, databaseName);
+    // 2. If no source, just create empty
+    if (!sourceDatabase) {
+        const opName = await createDatabase(instanceName, databaseName);
+        await waitForOperation(opName);
+        return;
     }
+
+    // 3. Seeding logic: Export source -> GCS -> Import target
+    console.log(`[Branching] Seeding ${databaseName} from ${sourceDatabase} on ${instanceName}`);
+
+    const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
+    const stagingPath = `gs://${bucket}/seeding/${instanceName}-${sourceDatabase}-${Date.now()}.sql`;
+
+    try {
+        // Export source
+        const exportOp = await exportInstance(instanceName, stagingPath, [sourceDatabase]);
+        await waitForOperation(exportOp);
+
+        // Create target
+        const createOp = await createDatabase(instanceName, databaseName);
+        await waitForOperation(createOp);
+
+        // Import target
+        const importOp = await importInstance(instanceName, stagingPath, databaseName);
+        await waitForOperation(importOp);
+
+        console.log(`[Branching] Seeding completed for ${databaseName}`);
+    } catch (error) {
+        console.error(`[Branching] Seeding failed for ${databaseName}:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Poll for Cloud SQL operation completion (Phase 120)
+ */
+export async function waitForOperation(
+    operationName: string,
+    intervalMs: number = 5000,
+    maxAttempts: number = 60
+): Promise<void> {
+    if (process.env.MOCK_DB === 'true') return;
+
+    for (let i = 0; i < maxAttempts; i++) {
+        const { status, error } = await getOperationStatus(operationName);
+        if (status === 'DONE') {
+            if (error) throw new Error(error);
+            return;
+        }
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+    }
+    throw new Error(`Operation ${operationName} timed out after ${maxAttempts} attempts`);
 }
 
 /**
