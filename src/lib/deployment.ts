@@ -2,6 +2,8 @@ import { config } from '@/lib/config';
 import { updateDeployment, updateProject, getDeploymentById, getProjectById } from '@/lib/db';
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
@@ -136,6 +138,26 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Orchestrate Deployify Edge (GLB + CDN + WAF) for production
+            if (deployment.type === 'production') {
+                const project = await getProjectById(projectId);
+                if (project && !project.globalIpAddress && !project.customDomain) {
+                    try {
+                        const glb = await createGlobalLoadBalancer(serviceName, region || 'us-central1');
+                        await enableCloudCdn(glb.backendServiceName);
+                        await enableCloudArmor(serviceName);
+
+                        await updateProject(projectId, {
+                            globalIpAddress: glb.ipAddress,
+                            cloudArmorEnabled: true
+                        });
+                        console.log(`[Deployify Edge] Orchestrated GLB for ${serviceName}: ${glb.ipAddress}`);
+                    } catch (e) {
+                        console.error('[Deployify Edge] Orchestration failed:', e);
+                    }
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
