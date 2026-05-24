@@ -1181,12 +1181,14 @@ export async function getEstimatedMonthlyCost(
         // Firestore is usage-based, but we'll show a minimum platform overhead/estimated starting cost
         cost = 0; // Truly serverless/pay-as-you-go
     } else if (storageType === 'supabase') {
+        // Supabase Tiers (Monthly): Free ($0), Pro ($25), Team ($599), Enterprise ($2000+)
         if (normalizedTier.includes('FREE')) cost = 0;
         else if (normalizedTier.includes('PRO')) cost = 25;
         else if (normalizedTier.includes('TEAM')) cost = 599;
         else if (normalizedTier.includes('ENTERPRISE')) cost = 2000;
         else cost = 0;
     } else if (storageType === 'mongodb-atlas') {
+        // MongoDB Atlas Shared/Dedicated Tiers
         if (normalizedTier === 'M0' || normalizedTier === 'FREE') cost = 0;
         else if (normalizedTier === 'M2') cost = 9;
         else if (normalizedTier === 'M5') cost = 25;
@@ -1197,12 +1199,14 @@ export async function getEstimatedMonthlyCost(
             else cost = 40;
         } else cost = 0;
     } else if (storageType === 'planetscale') {
+        // PlanetScale Pricing: Free/Hobby ($0), Scaler ($29), Pro ($39), Team ($599)
         if (normalizedTier.includes('FREE') || normalizedTier.includes('HOBBY')) cost = 0;
         else if (normalizedTier.includes('SCALER')) cost = 29;
         else if (normalizedTier.includes('PRO')) cost = 39;
         else if (normalizedTier.includes('TEAM')) cost = 599;
         else cost = 0;
     } else if (storageType === 'neon') {
+        // Neon Serverless Postgres Tiers (Monthly): Free ($0), Launch ($19), Pro ($49), Scale ($69)
         if (normalizedTier.includes('FREE')) cost = 0;
         else if (normalizedTier.includes('LAUNCH')) cost = 19;
         else if (normalizedTier.includes('SCALE')) cost = 69;
