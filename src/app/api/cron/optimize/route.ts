@@ -257,6 +257,17 @@ export async function GET(request: NextRequest) {
                             });
                         } catch (err) {
                             console.error(`[Auto-Pilot] Failed to scale ${resourceName}:`, err);
+                            await logAuditEvent(
+                                project.teamId || null,
+                                project.userId,
+                                'storage.autoscale_failed',
+                                {
+                                    projectId: project.id,
+                                    storageId: storage.id,
+                                    resourceName,
+                                    error: err instanceof Error ? err.message : 'Unknown error'
+                                }
+                            );
                         }
                     }
                 }
