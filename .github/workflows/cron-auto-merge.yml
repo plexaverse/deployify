@@ -25,8 +25,8 @@ jobs:
           # 1. Mergeable state is MERGEABLE
           # 2. Status checks are SUCCESS
           # 3. PR is APPROVED (Safety first)
+          # 4. Author is a trusted account (Security hardened)
 
-          # Select PRs based on security-hardened criteria (Exact author match)
           gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED" and (.author.login == "asangzz" or .author.login == "jules-google[bot]" or .author.login == "jules[bot]")) | .number' > pr_numbers.txt
 
           if [ ! -s pr_numbers.txt ]; then
@@ -36,6 +36,7 @@ jobs:
 
           while read pr; do
             echo "Processing PR #$pr..."
+            # Attempt to merge using the gh CLI with squash strategy
             gh pr merge $pr --squash --admin || gh pr merge $pr --squash || echo "Failed to merge PR #$pr"
           done < pr_numbers.txt
         env:
