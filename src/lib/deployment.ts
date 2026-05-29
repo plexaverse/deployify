@@ -3,6 +3,8 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -136,6 +138,31 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Phase 135: Orchestrate Edge Infrastructure (GLB, CDN, WAF) for Production
+            if (deployment.type === 'production') {
+                const project = await getProjectById(projectId);
+                if (project && !project.globalIpAddress) {
+                    try {
+                        console.log(`[Edge] Orchestrating edge infrastructure for ${project.name}`);
+                        const glb = await createGlobalLoadBalancer(serviceName, region || 'asia-south1');
+
+                        await enableCloudCdn(glb.backendServiceName);
+
+                        if (project.cloudArmorEnabled) {
+                            await enableCloudArmor(serviceName, project.cloudArmorPolicy || 'default-waf-policy');
+                        }
+
+                        await updateProject(projectId, {
+                            globalIpAddress: glb.ipAddress,
+                            productionUrl: `https://${serviceName}.deployify.app` // Use edge URL
+                        });
+                        console.log(`[Edge] Global Load Balancer ready at ${glb.ipAddress}`);
+                    } catch (edgeErr) {
+                        console.error(`[Edge] Orchestration failed for ${project.name}:`, edgeErr);
+                    }
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>

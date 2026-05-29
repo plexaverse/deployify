@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { updateProject, getProjectById } from '@/lib/db';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { enableCloudArmor, getSecurityMetrics } from '@/lib/gcp/armor';
+import { Project } from '@/types';
 import { securityHeaders } from '@/lib/security';
 
 interface RouteParams {
@@ -68,21 +69,42 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         const { project } = access;
         const body = await request.json();
+        const updates: Partial<Project> = {};
 
-        if (typeof body.enabled !== 'boolean') {
-             return NextResponse.json(
-                { error: 'Invalid enabled value' },
+        if (body.enabled !== undefined) {
+            if (typeof body.enabled !== 'boolean') {
+                return NextResponse.json(
+                    { error: 'Invalid enabled value' },
+                    { status: 400, headers: securityHeaders }
+                );
+            }
+            updates.cloudArmorEnabled = body.enabled;
+            updates.cloudArmorMode = body.enabled ? (project.cloudArmorMode || 'prevention') : 'off';
+        }
+
+        if (body.mode !== undefined) {
+            if (!['off', 'detection', 'prevention'].includes(body.mode)) {
+                return NextResponse.json(
+                    { error: 'Invalid mode value' },
+                    { status: 400, headers: securityHeaders }
+                );
+            }
+            updates.cloudArmorMode = body.mode;
+            updates.cloudArmorEnabled = body.mode !== 'off';
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return NextResponse.json(
+                { error: 'No valid updates provided' },
                 { status: 400, headers: securityHeaders }
             );
         }
 
         // Update database
-        await updateProject(id, {
-            cloudArmorEnabled: body.enabled
-        });
+        await updateProject(id, updates);
 
-        // Trigger GCP action if enabling
-        if (body.enabled && project.cloudRunServiceId) {
+        // Trigger GCP action if enabling or changing mode
+        if (updates.cloudArmorEnabled && project.cloudRunServiceId) {
             try {
                 await enableCloudArmor(project.cloudRunServiceId);
             } catch (error) {
