@@ -162,6 +162,7 @@ export interface Project {
         block: string[];
     };
     latestDeployment?: Deployment;
+    metadata?: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
 }
