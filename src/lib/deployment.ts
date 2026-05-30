@@ -3,6 +3,8 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -136,6 +138,37 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Phase 135: Global Edge Acceleration & Advanced Security (Deployify Edge)
+            // Triggered for successful production deployments that don't yet have an edge IP
+            const project = await getProjectById(projectId);
+            if (deployment.type === 'production' && project && !project.metadata?.globalIpAddress) {
+                console.log(`[Deployify Edge] Provisioning edge infrastructure for ${project.slug}`);
+                try {
+                    const lbResult = await createGlobalLoadBalancer(serviceName, region);
+
+                    // Enable CDN by default for production services
+                    await enableCloudCdn(lbResult.backendServiceName);
+
+                    // Enable Cloud Armor if configured for the project
+                    if (project.cloudArmorEnabled) {
+                        await enableCloudArmor(serviceName, project.cloudArmorPolicy);
+                    }
+
+                    // Store edge metadata in project
+                    await updateProject(projectId, {
+                        metadata: {
+                            ...project.metadata,
+                            globalIpAddress: lbResult.ipAddress,
+                            backendServiceName: lbResult.backendServiceName,
+                            urlMapName: lbResult.urlMapName,
+                            edgeProvisionedAt: new Date().toISOString()
+                        }
+                    });
+                } catch (edgeError) {
+                    console.error(`[Deployify Edge] Failed to provision edge infrastructure:`, edgeError);
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
