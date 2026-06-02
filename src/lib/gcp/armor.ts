@@ -107,6 +107,13 @@ export async function blockIp(
     policyName: string,
     ip: string
 ): Promise<void> {
+    // Phase 122 Hardening: Validate IP address format before blocking
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    if (!ipRegex.test(ip)) {
+        console.warn(`[Shield] Invalid IP address format: ${ip}`);
+        return;
+    }
+
     if (process.env.MOCK_DB === 'true') {
         console.log(`[Shield] MOCK: Blocked IP ${ip} in policy ${policyName}`);
         return;
