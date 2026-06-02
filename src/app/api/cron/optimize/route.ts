@@ -233,19 +233,22 @@ export async function GET(request: NextRequest) {
                             };
                             projectUpdated = true;
 
-                            // Log the action
+                            // Log the action with detailed metadata for traceability
                             await logAuditEvent(
                                 project.teamId || null,
                                 project.userId,
                                 'storage.autoscaled',
                                 {
                                     projectId: project.id,
+                                    projectName: project.name,
                                     storageId: storage.id,
+                                    storageName: storage.name,
                                     resourceName,
                                     action: autoScalingRec.type,
                                     oldTier: autoScalingRec.currentTier,
                                     newTier: autoScalingRec.recommendedTier,
-                                    reason: autoScalingRec.reason
+                                    reason: autoScalingRec.reason,
+                                    triggeredBy: 'Auto-Pilot Mode'
                                 }
                             );
 
@@ -253,7 +256,8 @@ export async function GET(request: NextRequest) {
                                 project: project.name,
                                 storage: storage.name,
                                 action: autoScalingRec.type,
-                                tier: autoScalingRec.recommendedTier
+                                tier: autoScalingRec.recommendedTier,
+                                reason: autoScalingRec.reason
                             });
                         } catch (err) {
                             console.error(`[Auto-Pilot] Failed to scale ${resourceName}:`, err);

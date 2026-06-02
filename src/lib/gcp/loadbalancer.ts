@@ -26,78 +26,71 @@ export async function createGlobalLoadBalancer(
     console.log(`[Deployify Edge] Orchestrating Global Load Balancer for ${serviceName} in ${region}`);
 
     try {
+        // Idempotent resource creation helper
+        const ensureResource = async (url: string, body: any) => {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const errorData = await res.json();
+                if (errorData.error?.code === 409) {
+                    console.log(`[Deployify Edge] Resource already exists at ${url}`);
+                    return;
+                }
+                throw new Error(`Failed to create resource at ${url}: ${JSON.stringify(errorData)}`);
+            }
+        };
+
         // 1. Create Serverless NEG
         const negName = `${prefix}-neg`;
-        await fetch(`${projectUrl}/regions/${region}/networkEndpointGroups`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: negName,
-                networkEndpointType: 'SERVERLESS',
-                cloudRun: { service: serviceName }
-            })
+        await ensureResource(`${projectUrl}/regions/${region}/networkEndpointGroups`, {
+            name: negName,
+            networkEndpointType: 'SERVERLESS',
+            cloudRun: { service: serviceName }
         });
 
         // 2. Create Backend Service
         const backendServiceName = `${prefix}-backend`;
-        await fetch(`${projectUrl}/global/backendServices`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: backendServiceName,
-                backends: [{ group: `${projectUrl}/regions/${region}/networkEndpointGroups/${negName}` }],
-                loadBalancingScheme: 'EXTERNAL_MANAGED',
-                protocol: 'HTTPS'
-            })
+        await ensureResource(`${projectUrl}/global/backendServices`, {
+            name: backendServiceName,
+            backends: [{ group: `${projectUrl}/regions/${region}/networkEndpointGroups/${negName}` }],
+            loadBalancingScheme: 'EXTERNAL_MANAGED',
+            protocol: 'HTTPS'
         });
 
         // 3. Create URL Map
         const urlMapName = `${prefix}-url-map`;
-        await fetch(`${projectUrl}/global/urlMaps`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: urlMapName,
-                defaultService: `${projectUrl}/global/backendServices/${backendServiceName}`
-            })
+        await ensureResource(`${projectUrl}/global/urlMaps`, {
+            name: urlMapName,
+            defaultService: `${projectUrl}/global/backendServices/${backendServiceName}`
         });
 
         // 4. Create Managed SSL Certificate (Phase 135)
         const certName = `${prefix}-cert`;
-        await fetch(`${projectUrl}/global/sslCertificates`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: certName,
-                type: 'MANAGED',
-                managed: { domains: [`${serviceName}.deployify.app`] }
-            })
+        await ensureResource(`${projectUrl}/global/sslCertificates`, {
+            name: certName,
+            type: 'MANAGED',
+            managed: { domains: [`${serviceName}.deployify.app`] }
         });
 
         // 5. Create Target HTTPS Proxy
         const proxyName = `${prefix}-proxy`;
-        await fetch(`${projectUrl}/global/targetHttpsProxies`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: proxyName,
-                urlMap: `${projectUrl}/global/urlMaps/${urlMapName}`,
-                sslCertificates: [`${projectUrl}/global/sslCertificates/${certName}`]
-            })
+        await ensureResource(`${projectUrl}/global/targetHttpsProxies`, {
+            name: proxyName,
+            urlMap: `${projectUrl}/global/urlMaps/${urlMapName}`,
+            sslCertificates: [`${projectUrl}/global/sslCertificates/${certName}`]
         });
 
         // 6. Create Forwarding Rule (Global IP)
         const forwardingRuleName = `${prefix}-fw`;
-        await fetch(`${projectUrl}/global/forwardingRules`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: forwardingRuleName,
-                loadBalancingScheme: 'EXTERNAL_MANAGED',
-                portRange: '443',
-                target: `${projectUrl}/global/targetHttpsProxies/${proxyName}`,
-                IPAddress: '0.0.0.0' // GCP will allocate a global IP
-            })
+        await ensureResource(`${projectUrl}/global/forwardingRules`, {
+            name: forwardingRuleName,
+            loadBalancingScheme: 'EXTERNAL_MANAGED',
+            portRange: '443',
+            target: `${projectUrl}/global/targetHttpsProxies/${proxyName}`,
+            IPAddress: '0.0.0.0' // GCP will allocate a global IP
         });
 
         return {
