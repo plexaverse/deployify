@@ -21,6 +21,7 @@ While Deployify currently fetches basic metrics, users lack actionable insights 
 3. ✅ Created `/api/projects/[id]/recommendations` endpoint.
 4. ✅ Added `ResourceAdvisor` component using scripe.io-inspired BentoGrid.
 5. ✅ **[NEW]** Implemented **Auto-Pilot Mode** via a cron worker at `src/app/api/cron/optimize/route.ts` which automatically applies scaling recommendations for enabled projects.
+6. ✅ **[FIX]** Fixed `getEstimatedMonthlyCost` test suite in `src/lib/gcp/tier-intelligence.test.ts` to correctly handle asynchronous Promise resolutions.
 
 ---
 
@@ -40,6 +41,7 @@ Currently, Deployify supports preview deployments for frontend code. This recomm
 2. ✅ **[VERIFIED]** Integrated `waitForOperation` to handle asynchronous GCP provisioning.
 3. ✅ Updated deployment pipeline in `src/lib/deployment.ts` to check for `isPreview` flags and trigger database branching.
 4. ✅ **[VERIFIED]** Enhanced `anonymizeData` utility in `src/lib/gcp/seeding.ts` with MD5-based SQL data masking for PostgreSQL and MySQL.
+5. ✅ **[VERIFIED]** Implemented full lifecycle cleanup in `src/app/api/webhooks/github/route.ts` for Cloud SQL, Firestore, Redis, and MongoDB ephemeral resources.
 
 ---
 
