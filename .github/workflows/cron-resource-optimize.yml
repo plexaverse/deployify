@@ -1,0 +1,17 @@
+name: Cron Resource Optimization
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour
+  workflow_dispatch:
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Auto-Pilot Optimization
+        run: |
+          # The deployment URL is retrieved from the project configuration or passed as a secret
+          # For this implementation, we use the internal API route
+          curl -X GET "${{ secrets.DEPLOYIFY_URL }}/api/cron/optimize" \
+               -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
