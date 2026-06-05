@@ -131,6 +131,9 @@ export interface Project {
     productionUrl: string | null;
     region: string | null; // GCP region for Cloud Run deployment (e.g., 'us-central1', 'asia-south1')
     customDomain: string | null;
+    globalIpAddress?: string; // Global IP for Edge Load Balancer
+    cloudArmorMode?: 'off' | 'detection' | 'prevention';
+    metadata?: Record<string, any>; // Project metadata for edge/resource tracking
     buildTimeout?: number; // Custom build timeout in seconds
     webhookUrl?: string | null; // Webhook URL for build notifications
     emailNotifications?: boolean; // Send email notifications on deployment

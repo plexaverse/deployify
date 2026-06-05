@@ -11,6 +11,8 @@ import { sendEmail } from '@/lib/email/client';
 import { runLighthouseAudit } from '@/lib/performance/lighthouse';
 import { createPRComment, createDeploymentStatus } from '@/lib/github';
 import { parseRepoFullName, formatDuration, generateServiceName } from '@/lib/utils';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import type { Deployment } from '@/types';
 
 /**
@@ -136,6 +138,29 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Phase 125: Global Edge Infrastructure Orchestration
+            const project = await getProjectById(projectId);
+            if (project && !project.globalIpAddress && deployment.type === 'production') {
+                try {
+                    console.log(`[Deployify Edge] Provisioning global infrastructure for ${project.name}`);
+                    const { ipAddress } = await createGlobalLoadBalancer(serviceName, region || config.gcp.region);
+                    await enableCloudCdn(`${serviceName}-backend`);
+                    if (project.cloudArmorEnabled) {
+                        await enableCloudArmor(serviceName, project.cloudArmorPolicy);
+                    }
+                    await updateProject(projectId, {
+                        globalIpAddress: ipAddress,
+                        metadata: {
+                            ...project.metadata,
+                            edge_provisioned_at: new Date().toISOString()
+                        }
+                    });
+                    console.log(`[Deployify Edge] Global infrastructure provisioned at ${ipAddress}`);
+                } catch (edgeError) {
+                    console.error('[Deployify Edge] Infrastructure orchestration failed:', edgeError);
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
