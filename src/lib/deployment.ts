@@ -3,6 +3,8 @@ import { updateDeployment, updateProject, getDeploymentById, getProjectById } fr
 import { getBuildStatus, mapBuildStatusToDeploymentStatus, getCloudRunServiceUrl } from '@/lib/gcp/cloudbuild';
 import { getService } from '@/lib/gcp/cloudrun';
 import { ensureEphemeralDatabase } from '@/lib/gcp/cloudsql';
+import { createGlobalLoadBalancer, enableCloudCdn } from '@/lib/gcp/loadbalancer';
+import { enableCloudArmor } from '@/lib/gcp/armor';
 import { getGcpAccessToken, getGcpProjectNumber } from '@/lib/gcp/auth';
 import { pruneProjectImages } from '@/lib/gcp/artifacts';
 import { sendWebhookNotification } from '@/lib/webhooks';
@@ -136,6 +138,31 @@ export async function syncDeploymentStatus(
             await updateProject(projectId, {
                 productionUrl: effectiveUrl,
             });
+
+            // Phase 135: Global Edge Acceleration & Security Orchestration
+            if (deployment.type === 'production') {
+                const project = await getProjectById(projectId);
+                if (project && !project.globalIpAddress) {
+                    console.log(`[Deployify Edge] Provisioning Global Infrastructure for ${projectSlug}`);
+                    try {
+                        const glb = await createGlobalLoadBalancer(serviceName, region || config.gcp.region);
+                        await enableCloudCdn(glb.backendServiceName);
+                        await enableCloudArmor(serviceName);
+
+                        await updateProject(projectId, {
+                            globalIpAddress: glb.ipAddress,
+                            metadata: {
+                                ...project.metadata,
+                                edgeEnabled: true,
+                                edgeProvisionedAt: new Date().toISOString()
+                            }
+                        });
+                        console.log(`[Deployify Edge] Global Infrastructure provisioned: ${glb.ipAddress}`);
+                    } catch (edgeErr) {
+                        console.error('[Deployify Edge] Orchestration failed:', edgeErr);
+                    }
+                }
+            }
 
             // Prune old images (keep 10)
             pruneProjectImages(serviceName, 10, projectRegion).catch(err =>
