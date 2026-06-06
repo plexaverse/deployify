@@ -27,6 +27,11 @@ jobs:
           # 3. PR is APPROVED (Safety first)
 
           # Select PRs based on security-hardened criteria (Exact author match)
+          # Criteria:
+          # 1. Mergeable state is MERGEABLE
+          # 2. Status checks are SUCCESS (Build and tests passed)
+          # 3. PR is APPROVED
+          # 4. Author is a trusted developer or bot
           gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED" and (.author.login == "asangzz" or .author.login == "jules-google[bot]" or .author.login == "jules[bot]")) | .number' > pr_numbers.txt
 
           if [ ! -s pr_numbers.txt ]; then

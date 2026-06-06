@@ -162,6 +162,8 @@ export interface Project {
         block: string[];
     };
     latestDeployment?: Deployment;
+    globalIpAddress?: string; // Global IP allocated by Edge Load Balancer
+    metadata?: Record<string, any>; // Technical metadata for orchestration and edge tracking
     createdAt: Date;
     updatedAt: Date;
 }
