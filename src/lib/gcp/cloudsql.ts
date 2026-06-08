@@ -727,24 +727,34 @@ export async function ensureEphemeralDatabase(
     console.log(`[Branching] Seeding ${databaseName} from ${sourceDatabase} on ${instanceName}`);
 
     const bucket = config.gcp.storageBucket || `${gcpProjectId}-deployify-temp`;
-    const stagingPath = `gs://${bucket}/seeding/${instanceName}-${sourceDatabase}-${Date.now()}.sql`;
+    const timestamp = Date.now();
+    const stagingPath = `gs://${bucket}/seeding/${instanceName}/${sourceDatabase}/${timestamp}.sql`;
 
     try {
         // Export source
+        console.log(`[Branching] Exporting ${sourceDatabase} to ${stagingPath}...`);
         const exportOp = await exportInstance(instanceName, stagingPath, [sourceDatabase]);
         await waitForOperation(exportOp);
 
         // Create target
+        console.log(`[Branching] Creating ephemeral database ${databaseName}...`);
         const createOp = await createDatabase(instanceName, databaseName);
         await waitForOperation(createOp);
 
         // Import target
+        console.log(`[Branching] Importing seed data into ${databaseName}...`);
         const importOp = await importInstance(instanceName, stagingPath, databaseName);
         await waitForOperation(importOp);
 
-        console.log(`[Branching] Seeding completed for ${databaseName}`);
-    } catch (error) {
-        console.error(`[Branching] Seeding failed for ${databaseName}:`, error);
+        console.log(`[Branching] Seeding completed successfully for ${databaseName}`);
+    } catch (error: any) {
+        console.error(`[Branching] Seeding failed for ${databaseName}:`, error.message || error);
+        // Attempt cleanup of the newly created database if it failed during import
+        try {
+            await deleteDatabase(instanceName, databaseName);
+        } catch (cleanupErr) {
+            console.warn(`[Branching] Cleanup of failed database ${databaseName} failed:`, cleanupErr);
+        }
         throw error;
     }
 }

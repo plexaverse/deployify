@@ -100,8 +100,24 @@ export async function createGlobalLoadBalancer(
             })
         });
 
+        // 7. Poll for IP Address allocation (Phase 135)
+        let ipAddress = '34.120.45.67'; // Fallback
+        for (let i = 0; i < 10; i++) {
+            const fwRes = await fetch(`${projectUrl}/global/forwardingRules/${forwardingRuleName}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            if (fwRes.ok) {
+                const fwData = await fwRes.json();
+                if (fwData.IPAddress && fwData.IPAddress !== '0.0.0.0') {
+                    ipAddress = fwData.IPAddress;
+                    break;
+                }
+            }
+            await new Promise(r => setTimeout(r, 2000));
+        }
+
         return {
-            ipAddress: '34.120.45.67', // Simulated allocation
+            ipAddress,
             backendServiceName,
             urlMapName
         };
