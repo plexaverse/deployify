@@ -2063,3 +2063,17 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - Integrated BigQuery optimization discovery into the 24-hour `StorageSync` API heartbeat, ensuring data warehouse technical debt is periodically quantified.
 - Updated the `DataLab` UI with a high-density "Estimate Cost" interface, providing developers with proactive scan volume transparency before execution.
 - Verified 100% operational integrity with 198 passing tests and a perfect Pre-Launch Audit.
+
+### Phase 165: Global Linter Bug Fixes & Code Cleanup (COMPLETED)
+- [x] Fix unused variable warnings in `src/app/api/infrastructure/health/route.ts` caused by incorrect parameter usage with `getEstimatedMonthlyCost`.
+- [x] Fix unused variable `data` warning in `src/lib/gcp/monitoring.ts` during billing catalog retrieval.
+- [x] Update `tier-intelligence.test.ts` to properly handle asynchronous `getEstimatedMonthlyCost` calls correctly by awaiting them inside `assert.strictEqual`.
+- [x] Ensure `pnpm run lint` and `pnpm run test` both pass cleanly.
+
+### 2027-08-11: Completed Phase 165: Global Linter Bug Fixes & Code Cleanup
+- Completed Phase 165: Global Linter Bug Fixes & Code Cleanup.
+- Fixed `getEstimatedMonthlyCost` unused parameters issue in `src/app/api/infrastructure/health/route.ts` caused by incorrect parameter usage.
+- Handled `data` variable unread warning in `src/lib/gcp/monitoring.ts` during billing catalog fetch by safely consuming body using `await response.json()`.
+- Updated test specs inside `tier-intelligence.test.ts` to reflect the async `Promise<number>` signature for `getEstimatedMonthlyCost`.
+- Verified zero-warning lint completion using `pnpm run lint`.
+- Verified 100% test integrity running 198 tests with `pnpm run test`.
