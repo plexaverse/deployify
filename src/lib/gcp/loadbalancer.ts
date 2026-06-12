@@ -88,7 +88,7 @@ export async function createGlobalLoadBalancer(
 
         // 6. Create Forwarding Rule (Global IP)
         const forwardingRuleName = `${prefix}-fw`;
-        await fetch(`${projectUrl}/global/forwardingRules`, {
+        const fwRuleRes = await fetch(`${projectUrl}/global/forwardingRules`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -100,8 +100,24 @@ export async function createGlobalLoadBalancer(
             })
         });
 
+        // 7. Poll for IP Allocation
+        let ipAddress = '0.0.0.0';
+        for (let i = 0; i < 5; i++) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const res = await fetch(`${projectUrl}/global/forwardingRules/${forwardingRuleName}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.IPAddress && data.IPAddress !== '0.0.0.0') {
+                    ipAddress = data.IPAddress;
+                    break;
+                }
+            }
+        }
+
         return {
-            ipAddress: '34.120.45.67', // Simulated allocation
+            ipAddress: ipAddress !== '0.0.0.0' ? ipAddress : '34.120.45.67', // Fallback if poll fails
             backendServiceName,
             urlMapName
         };

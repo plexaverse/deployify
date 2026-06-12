@@ -195,8 +195,27 @@ export async function fetchSqlTierPricing(tier: string): Promise<number> {
         if (!response.ok) throw new Error('Failed to fetch billing catalog');
 
         const data = await response.json();
-        // In a real scenario, we would parse the SKUs to find the exact match for the tier.
-        // For this implementation, we return the fallback if the API call succeeds but parsing is complex.
+
+        // Phase 117: Advanced SKU parsing for precise pricing
+        if (data.skus && Array.isArray(data.skus)) {
+            const normalizedTier = tier.toLowerCase();
+            // Look for SKUs matching the tier (e.g., "DB-F1-MICRO", "DB-CUSTOM-1-3840")
+            const matchedSku = data.skus.find((sku: any) => {
+                const description = sku.description.toLowerCase();
+                return description.includes(normalizedTier) || description.includes(tier.toUpperCase());
+            });
+
+            if (matchedSku && matchedSku.pricingInfo?.[0]?.pricingExpression?.tieredRates?.[0]?.unitPrice) {
+                const rate = matchedSku.pricingInfo[0].pricingExpression.tieredRates[0].unitPrice;
+                const nanos = rate.nanos || 0;
+                const units = parseInt(rate.units || '0');
+                const hourlyRate = units + (nanos / 1000000000);
+
+                // Estimate monthly (730 hours)
+                return parseFloat((hourlyRate * 730).toFixed(2));
+            }
+        }
+
         return FALLBACK_COST_MAP[tier] || 10.00;
     } catch (e) {
         console.warn(`[Monitoring] Billing API failed, using fallback for ${tier}:`, e);
