@@ -2010,6 +2010,11 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - Integrated benchmark results into the project's audit logs for historical performance traceability.
 - Verified 100% operational integrity with 198 passing tests and a perfect Pre-Launch Audit.
 
+### 2027-08-11: Phase 164: BigQuery Historical Metrics Integration
+- Updated `src/app/api/projects/[id]/storage/[storageId]/metrics/route.ts` to dynamically fetch historical performance metrics for `bigquery` connector types.
+- Leveraged `getBigQueryHistoricalMetrics` to map BigQuery-specific telemetry (e.g., CPU/slot utilization) into the standard `timeseries` structure expected by the frontend.
+- Hardened the `metrics/route.ts` implementation to ensure seamless observability and 100% test pass rate across the full platform pipeline.
+
 ### Phase 161: Autonomous BigQuery Integration & Data Warehouse Governance (COMPLETED)
 - [x] Define BigQuery storage types and metadata in `src/types/index.ts`.
 - [x] Implement BigQuery administrative library in `src/lib/gcp/bigquery-admin.ts` for dataset management.

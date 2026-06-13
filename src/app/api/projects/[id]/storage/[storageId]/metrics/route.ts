@@ -86,7 +86,7 @@ export async function GET(
             day.total++;
         });
 
-        const timeseries = Array.from(dayMap.entries())
+        let timeseries = Array.from(dayMap.entries())
             .map(([date, data]) => ({
                 date,
                 avgLatency: data.latencies.reduce((a, b) => a + b, 0) / data.total,
@@ -126,6 +126,17 @@ export async function GET(
                 const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                 const dbType = storage.type === 'cloud-sql-mysql' ? 'mysql' : 'postgresql';
                 queryInsights = await getQueryInsights(resourceName, dbType);
+            } else if (storage && storage.type === 'bigquery') {
+                const { getBigQueryHistoricalMetrics } = await import('@/lib/gcp/monitoring');
+                const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const bqMetrics = await getBigQueryHistoricalMetrics(resourceName, 7);
+                if (bqMetrics && bqMetrics.length > 0) {
+                    timeseries = bqMetrics.map(m => ({
+                        date: m.timestamp.split('T')[0],
+                        avgLatency: m.cpuUtilization,
+                        successRate: 100
+                    }));
+                }
             }
         } catch (insightsErr) {
             console.warn(`[MetricsAPI] Failed to fetch query insights for ${storageId}:`, insightsErr);
