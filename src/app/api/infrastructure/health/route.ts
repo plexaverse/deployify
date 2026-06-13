@@ -81,12 +81,12 @@ export async function GET(request: NextRequest) {
                 }
 
                 // Aggregate Cost Intelligence (Phase 117 integration)
-                const tier = (storage.metadata?.tier as string) || (storage.type.includes('cloud-sql') ? 'db-f1-micro' : (storage.type === 'memorystore-redis' ? '1GB' : ''));
-                const diskSizeGb = (storage.metadata?.diskSizeGb as number) || (storage.metadata?.memorySizeGb as number);
-                const isHA = !!storage.metadata?.highAvailability;
+                const _tier = (storage.metadata?.tier as string) || (storage.type.includes('cloud-sql') ? 'db-f1-micro' : (storage.type === 'memorystore-redis' ? '1GB' : ''));
+                const _diskSizeGb = (storage.metadata?.diskSizeGb as number) || (storage.metadata?.memorySizeGb as number);
+                const _isHA = !!storage.metadata?.highAvailability;
 
-                const estimatedCost = await getEstimatedMonthlyCost(storage.type, tier, diskSizeGb, isHA, storage.metadata as Record<string, unknown>);
-                const forecast = await getCostForecast(storage.type, tier, diskSizeGb, isHA, [], storage.metadata as Record<string, unknown>);
+                const estimatedCost = await getEstimatedMonthlyCost(storage.type, _tier, _diskSizeGb, _isHA, storage.metadata as Record<string, unknown>);
+                const forecast = await getCostForecast(storage.type, _tier, _diskSizeGb, _isHA, [], storage.metadata as Record<string, unknown>);
 
                 // Temporary object to hold metrics for this storage
                 return {
@@ -140,11 +140,6 @@ export async function GET(request: NextRequest) {
                     totalEfficiencyScore += result.metadata.efficiencyScore as number;
                     connectorsWithEfficiency++;
                 }
-
-                // Aggregate Cost Intelligence
-                const tier = (result.metadata?.tier as string) || (result.type.includes('cloud-sql') ? 'db-f1-micro' : (result.type === 'memorystore-redis' ? '1GB' : ''));
-                const diskSizeGb = (result.metadata?.diskSizeGb as number) || (result.metadata?.memorySizeGb as number);
-                const isHA = !!result.metadata?.highAvailability;
 
                 // Aggregate Cost Intelligence
                 totalEstimatedMonthlyCost += result.estimatedCost;
