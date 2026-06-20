@@ -11,13 +11,28 @@ import type { Project } from '@/types';
  * Helper to get numeric order of tiers for comparison
  */
 function getTierOrder(tier: string, type: string): number {
+    const normalizedTier = tier.toUpperCase();
     if (type.includes('cloud-sql')) {
         const order = ['db-f1-micro', 'db-g1-small', 'db-custom-1-3840', 'db-custom-2-7680', 'db-custom-4-15360', 'db-custom-8-30720'];
-        return order.indexOf(tier);
+        return order.indexOf(tier.toLowerCase());
     }
     if (type === 'neon') {
         const order = ['FREE', 'LAUNCH', 'PRO', 'SCALE'];
-        return order.indexOf(tier.toUpperCase());
+        return order.indexOf(normalizedTier);
+    }
+    if (type === 'supabase') {
+        const order = ['FREE', 'PRO', 'TEAM', 'ENTERPRISE'];
+        return order.indexOf(normalizedTier);
+    }
+    if (type === 'mongodb-atlas') {
+        if (normalizedTier.startsWith('M')) {
+            return parseInt(normalizedTier.substring(1)) || 0;
+        }
+        return normalizedTier === 'FREE' ? 0 : -1;
+    }
+    if (type === 'planetscale') {
+        const order = ['FREE', 'HOBBY', 'SCALER', 'PRO', 'TEAM'];
+        return order.indexOf(normalizedTier);
     }
     if (type === 'memorystore-redis') {
         return parseInt(tier) || 0;
@@ -53,12 +68,15 @@ export async function GET(request: NextRequest) {
 
             for (let i = 0; i < storageConfigs.length; i++) {
                 const storage = storageConfigs[i];
-                // Process Cloud SQL, Memorystore and Neon with auto-scaling enabled
+                // Process Cloud SQL, Memorystore and external providers with auto-scaling enabled
                 const isSql = storage.type.includes('cloud-sql');
                 const isRedis = storage.type === 'memorystore-redis';
                 const isNeon = storage.type === 'neon';
+                const isSupabase = storage.type === 'supabase';
+                const isMongo = storage.type === 'mongodb-atlas';
+                const isPlanetScale = storage.type === 'planetscale';
 
-                if ((isSql || isRedis || isNeon) && storage.autoScalingSettings?.enabled) {
+                if ((isSql || isRedis || isNeon || isSupabase || isMongo || isPlanetScale) && storage.autoScalingSettings?.enabled) {
                     const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
                     const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
@@ -88,8 +106,8 @@ export async function GET(request: NextRequest) {
                             diskUtilization: (avgMetrics.diskUtilization || 0) / count,
                             timestamp: new Date().toISOString()
                         };
-                    } else if (isNeon) {
-                        // Fetch current usage for Neon (Management API)
+                    } else if (isNeon || isSupabase || isMongo || isPlanetScale) {
+                        // Fetch current usage for external providers (Management APIs)
                         const ext = await getExternalMetrics(storage.type, storage.metadata || {}, storage.providerApiKeySecretId);
                         metrics = {
                             cpuUtilization: ext.usage || 0,
@@ -194,30 +212,50 @@ export async function GET(request: NextRequest) {
                                 await updateRedisSettings(resourceName, region, {
                                     memorySizeGb: parseInt(autoScalingRec.recommendedTier)
                                 });
-                            } else if (isNeon) {
+                            } else if (isNeon || isSupabase || isMongo || isPlanetScale) {
                                 let providerApiKey = storage.metadata?.providerApiKey as string;
                                 if (!providerApiKey && storage.providerApiKeySecretId) {
                                     const { getSecretValue } = await import('@/lib/gcp/secrets');
                                     providerApiKey = await getSecretValue(storage.providerApiKeySecretId);
                                 }
-                                const neonProjectId = storage.metadata?.neonProjectId as string;
 
-                                if (providerApiKey && neonProjectId && process.env.MOCK_DB !== 'true') {
-                                    const neonRes = await fetch(`https://console.neon.tech/api/v2/projects/${neonProjectId}`, {
-                                        method: 'PATCH',
-                                        headers: {
-                                            'Authorization': `Bearer ${providerApiKey}`,
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({
-                                            project: {
-                                                plan_id: autoScalingRec.recommendedTier.toLowerCase()
-                                            }
-                                        })
-                                    });
-                                    if (!neonRes.ok) {
-                                        console.error(`[Auto-Pilot] Neon API scaling failed for ${resourceName}: ${await neonRes.text()}`);
-                                        continue;
+                                if (providerApiKey && process.env.MOCK_DB !== 'true') {
+                                    let url = '';
+                                    let body = {};
+
+                                    if (isNeon) {
+                                        const neonProjectId = storage.metadata?.neonProjectId as string;
+                                        url = `https://console.neon.tech/api/v2/projects/${neonProjectId}`;
+                                        body = { project: { plan_id: autoScalingRec.recommendedTier.toLowerCase() } };
+                                    } else if (isSupabase) {
+                                        const supabaseId = storage.metadata?.supabaseId as string;
+                                        url = `https://api.supabase.com/v1/projects/${supabaseId}/plan`;
+                                        body = { plan: autoScalingRec.recommendedTier.toUpperCase() };
+                                    } else if (isMongo) {
+                                        const groupId = storage.metadata?.groupId as string;
+                                        const clusterName = storage.metadata?.clusterName as string;
+                                        url = `https://cloud.mongodb.com/api/atlas/v1.0/groups/${groupId}/clusters/${clusterName}`;
+                                        body = { providerSettings: { instanceSizeName: autoScalingRec.recommendedTier.toUpperCase() } };
+                                    } else if (isPlanetScale) {
+                                        const org = storage.metadata?.organization as string;
+                                        const db = storage.metadata?.database as string;
+                                        url = `https://api.planetscale.com/v1/organizations/${org}/databases/${db}/upgrade`;
+                                        body = { plan: autoScalingRec.recommendedTier.toLowerCase() };
+                                    }
+
+                                    if (url) {
+                                        const res = await fetch(url, {
+                                            method: 'PATCH',
+                                            headers: {
+                                                'Authorization': `Bearer ${providerApiKey}`,
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify(body)
+                                        });
+                                        if (!res.ok) {
+                                            console.error(`[Auto-Pilot] ${storage.type} API scaling failed for ${resourceName}: ${await res.text()}`);
+                                            continue;
+                                        }
                                     }
                                 }
                             }
