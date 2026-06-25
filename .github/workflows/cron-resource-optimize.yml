@@ -1,0 +1,19 @@
+name: Cron Resource Optimization
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs every hour
+  workflow_dispatch:
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Resource Optimization
+        run: |
+          curl -X POST "${DEPLOYIFY_APP_URL}/api/cron/optimize" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json"
+        env:
+          DEPLOYIFY_APP_URL: ${{ secrets.DEPLOYIFY_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
