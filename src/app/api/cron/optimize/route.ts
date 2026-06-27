@@ -12,7 +12,19 @@ import type { Project } from '@/types';
  */
 function getTierOrder(tier: string, type: string): number {
     if (type.includes('cloud-sql')) {
-        const order = ['db-f1-micro', 'db-g1-small', 'db-custom-1-3840', 'db-custom-2-7680', 'db-custom-4-15360', 'db-custom-8-30720'];
+        const order = [
+            'db-f1-micro',
+            'db-g1-small',
+            'db-custom-1-3840',
+            'db-custom-2-7680',
+            'db-n1-standard-1',
+            'db-custom-4-15360',
+            'db-n1-standard-2',
+            'db-n1-highmem-2',
+            'db-custom-8-30720',
+            'db-n1-standard-4',
+            'db-n1-highmem-4'
+        ];
         return order.indexOf(tier);
     }
     if (type === 'neon') {
