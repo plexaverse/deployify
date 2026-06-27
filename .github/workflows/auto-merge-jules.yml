@@ -1,5 +1,5 @@
 # Auto-merge PRs created by Jules (Google's AI coding agent)
-# Jules creates PRs every ~30 mins with code improvements
+# Jules creates PRs with code improvements - this action ensures high-quality contributions are merged immediately.
 
 name: Auto-merge Jules PRs
 
@@ -11,8 +11,8 @@ jobs:
   auto-merge-jules:
     runs-on: ubuntu-latest
     
-    # Only run for Jules PRs
-    if: github.event.pull_request.user.login == 'jules-google[bot]' || github.event.pull_request.user.login == 'jules[bot]' || contains(github.event.pull_request.user.login, 'jules') || github.event.pull_request.user.login == 'asangzz'
+    # Only run for trusted authors
+    if: github.event.pull_request.user.login == 'jules-google[bot]' || github.event.pull_request.user.login == 'jules[bot]' || github.event.pull_request.user.login == 'jules' || github.event.pull_request.user.login == 'asangzz'
     
     permissions:
       contents: write
@@ -28,20 +28,20 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Run build check
         run: npm run build
         continue-on-error: false
 
       - name: Approve PR
-        run: gh pr review --approve "$PR_URL" || echo "PR could not be approved via Actions. Please ensure 'Allow GitHub Actions to create and approve pull requests' is enabled in repository settings."
+        run: gh pr review "$PR_URL" --approve || echo "PR could not be approved via Actions. Please ensure 'Allow GitHub Actions to create and approve pull requests' is enabled in repository settings."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge
-        run: gh pr merge --auto --squash "$PR_URL" || echo "Auto-merge could not be enabled. Please ensure 'Allow auto-merge' is enabled in repository settings."
+        run: gh pr merge "$PR_URL" --auto --squash || echo "Auto-merge could not be enabled. Please ensure 'Allow auto-merge' is enabled in repository settings."
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
