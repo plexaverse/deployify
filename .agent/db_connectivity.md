@@ -2063,3 +2063,12 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - Integrated BigQuery optimization discovery into the 24-hour `StorageSync` API heartbeat, ensuring data warehouse technical debt is periodically quantified.
 - Updated the `DataLab` UI with a high-density "Estimate Cost" interface, providing developers with proactive scan volume transparency before execution.
 - Verified 100% operational integrity with 198 passing tests and a perfect Pre-Launch Audit.
+
+### Phase 165: Infrastructure Optimization Metric & Health Route Cleanup (COMPLETED)
+- [x] Fixed Unused Variables linting issues in `src/app/api/infrastructure/health/route.ts` related to `tier`, `diskSizeGb` and `isHA` inside the metrics iteration loop.
+- [x] Fixed Unused Variables linting issue in `src/lib/gcp/monitoring.ts` regarding `data` variable when fetching the billing catalog.
+### 2027-08-11: Completed Phase 165: Infrastructure Optimization Metric & Health Route Cleanup
+- Completed Phase 165: Infrastructure Optimization Metric & Health Route Cleanup.
+- Fixes applied to pass `pnpm run test` and `pnpm run lint` on the project.
+- Fixed `getEstimatedMonthlyCost` for the `tier-intelligence.test.ts` to actually resolve the Promise returned by the now async function `getEstimatedMonthlyCost`.
+- Validated all tests and linting.
