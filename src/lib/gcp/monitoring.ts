@@ -195,8 +195,28 @@ export async function fetchSqlTierPricing(tier: string): Promise<number> {
         if (!response.ok) throw new Error('Failed to fetch billing catalog');
 
         const data = await response.json();
-        // In a real scenario, we would parse the SKUs to find the exact match for the tier.
-        // For this implementation, we return the fallback if the API call succeeds but parsing is complex.
+
+        // Phase 117 Hardening: Attempt to find exact SKU match for the tier
+        // Standard Cloud SQL SKU description format usually includes the tier name
+        if (data.skus && Array.isArray(data.skus)) {
+            const matchedSku = data.skus.find((sku: any) =>
+                sku.description.toLowerCase().includes(tier.toLowerCase()) &&
+                sku.category.resourceFamily === 'Compute'
+            );
+
+            if (matchedSku && matchedSku.pricingInfo?.[0]?.pricingExpression?.tieredRates?.[0]?.unitPrice) {
+                const rate = matchedSku.pricingInfo[0].pricingExpression.tieredRates[0].unitPrice;
+                const nanos = rate.nanos || 0;
+                const units = parseInt(rate.units) || 0;
+                const hourlyRate = units + (nanos / 1000000000);
+
+                // Convert hourly rate to approximate monthly (730 hours)
+                const monthlyCost = hourlyRate * 730;
+                console.log(`[Monitoring] Found real-time price for ${tier}: $${monthlyCost.toFixed(2)}/mo`);
+                return monthlyCost;
+            }
+        }
+
         return FALLBACK_COST_MAP[tier] || 10.00;
     } catch (e) {
         console.warn(`[Monitoring] Billing API failed, using fallback for ${tier}:`, e);
