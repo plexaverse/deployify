@@ -2063,3 +2063,7 @@ Following the Managed "Connector" model, Deployify will evolve its storage layer
 - Integrated BigQuery optimization discovery into the 24-hour `StorageSync` API heartbeat, ensuring data warehouse technical debt is periodically quantified.
 - Updated the `DataLab` UI with a high-density "Estimate Cost" interface, providing developers with proactive scan volume transparency before execution.
 - Verified 100% operational integrity with 198 passing tests and a perfect Pre-Launch Audit.
+
+### Phase 165: Global Linter Consolidation & Pre-Commit Hardening
+- [x] Fix unused variables caused by Phase 164.
+- [x] Consolidate tests.
