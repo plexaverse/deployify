@@ -101,6 +101,7 @@ export default function ProjectAnalyticsPage() {
                     <SegmentedControl
                         value={period}
                         onChange={handlePeriodChange}
+                        ariaLabel="Select time period"
                         options={[
                             { value: '1h', label: '1H' },
                             { value: '24h', label: '24H' },
