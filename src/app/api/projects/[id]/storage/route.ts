@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
@@ -361,7 +362,12 @@ export async function DELETE(
         // 1. Delete actual GCP Resource if requested and provisioned
         if (deleteResource && storageConfig.metadata?.provisioned) {
             try {
-                const resourceName = (storageConfig.metadata?.resourceName as string) || storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+                // SECURITY: display-name fallback removed - a PATCH could otherwise point this
+                // delete at another tenant's instance.
+                const resourceName = resolveManagedResourceName(storageConfig);
+                if (!resourceName) {
+                    throw new Error(UNBOUND_RESOURCE_ERROR);
+                }
                 const region = (storageConfig.metadata?.region as string) || project.region || 'us-central1';
 
                 if (storageConfig.type.includes('cloud-sql')) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
@@ -54,7 +55,12 @@ export async function POST(
         };
 
         if (storage.type.includes('cloud-sql')) {
-            const masterInstanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+            // SECURITY: never derive a real instance name from the free-text display name -
+            // that let a tenant get a live read replica of another tenant's database.
+            const masterInstanceName = resolveManagedResourceName(storage);
+            if (!masterInstanceName) {
+                return NextResponse.json({ success: false, error: UNBOUND_RESOURCE_ERROR }, { status: 400 });
+            }
             const region = body.region || (storage.metadata?.region as string) || project.region || 'us-central1';
             const tier = body.tier || (storage.metadata?.tier as string) || 'db-f1-micro';
             const replicaInstanceName = `${masterInstanceName}-replica-${replicaSuffix}`;

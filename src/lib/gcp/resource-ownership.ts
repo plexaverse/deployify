@@ -29,10 +29,42 @@ export function sanitizeLabel(val: string): string {
     return val.toLowerCase().replace(/[^a-z0-9_-]/g, '-').substring(0, 63);
 }
 
-/** Same derivation every storage route uses: metadata.resourceName ?? slugified name. */
+/**
+ * The GCP resource this connector actually owns.
+ *
+ * SECURITY: this deliberately does NOT fall back to `storage.name`. That field is
+ * free text from the request body with no uniqueness or namespacing, so falling back
+ * to it let a tenant self-grant ownership of any resource by naming a connector after
+ * it ("Victim Prod DB" -> victim-prod-db) and then reclaiming it. `metadata.resourceName`
+ * is a SERVER_OWNED_METADATA_KEY written by provisioning, and is stripped from request
+ * bodies by sanitizeClientMetadata.
+ *
+ * A connector with no server-written resourceName contributes nothing to the owned set;
+ * ownership then has to come from the live deployify-project-id label, which is the
+ * fail-safe direction.
+ */
 function baseResourceName(storage: StorageConfig): string {
-    return (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+    const recorded = storage.metadata?.resourceName;
+    return typeof recorded === 'string' ? recorded.trim() : '';
 }
+
+/**
+ * Resolve the GCP resource a connector may act on, for code paths that MUTATE or DELETE
+ * real infrastructure (replica creation, regional migration, resource deletion).
+ *
+ * Returns null when the connector carries no server-written resourceName. Callers must
+ * refuse rather than fall back to `storage.name`: that fallback is what let a tenant point
+ * these operations at another tenant's instance by naming a connector after it.
+ */
+export function resolveManagedResourceName(storage: StorageConfig): string | null {
+    const recorded = storage.metadata?.resourceName;
+    const name = typeof recorded === 'string' ? recorded.trim() : '';
+    return name || null;
+}
+
+/** Standard refusal for the callers above. */
+export const UNBOUND_RESOURCE_ERROR =
+    'This connector is not bound to a Deployify-provisioned resource. Re-provision it before running infrastructure operations.';
 
 /**
  * Every GCP resource name this Deployify project is allowed to touch, derived
@@ -157,13 +189,20 @@ export async function checkResourceOwnership(
     // Bring-your-own GCP project: the tenant owns the whole project, but only
     // if THIS Deployify project actually registered it on a connector.
     if (targetGcpProjectId && targetGcpProjectId !== platformProjectId) {
-        if (resolveRegisteredProviderProjects(project).has(targetGcpProjectId)) {
+        if (!resolveRegisteredProviderProjects(project).has(targetGcpProjectId)) {
+            return {
+                owned: false,
+                reason: `GCP project ${targetGcpProjectId} is not registered on this Deployify project`,
+            };
+        }
+        // SECURITY: registering a providerProjectId is an unvalidated request-body field -
+        // it proves nothing about who controls that GCP project. It is therefore a
+        // precondition, not a grant: the individual resource must still be one this
+        // project provisioned. Set GCP_BYO_PROJECT_BLANKET_OWNERSHIP=true to restore the
+        // previous whole-project grant.
+        if (process.env.GCP_BYO_PROJECT_BLANKET_OWNERSHIP === 'true') {
             return { owned: true, via: 'registered-provider-project' };
         }
-        return {
-            owned: false,
-            reason: `GCP project ${targetGcpProjectId} is not registered on this Deployify project`,
-        };
     }
 
     // Shared platform project: the resource must be claimed by this project.

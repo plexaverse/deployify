@@ -30,20 +30,31 @@ function makeProject(partial: Partial<Project>): Project {
 }
 
 describe('resolveOwnedResourceNames', () => {
-    it('claims metadata.resourceName, the slugified fallback, and derived names', () => {
+    it('claims server-written metadata.resourceName and its derived names', () => {
         const project = makeProject({
             storageConfigs: [
-                makeStorage({ name: 'Prod DB', metadata: { resourceName: 'prod-db', region: 'us-central1' } }),
-                makeStorage({ id: 'st_2', name: 'Main Postgres' })
+                makeStorage({ name: 'Prod DB', metadata: { resourceName: 'prod-db', region: 'us-central1' } })
             ]
         });
 
         const owned = resolveOwnedResourceNames(project);
         assert.ok(owned.has('prod-db'));
-        assert.ok(owned.has('main-postgres'));       // slugified fallback
         assert.ok(owned.has('prod-db-us-central1')); // migrateInstanceToRegion target
         assert.ok(owned.has('prod-db-migrated'));
         assert.ok(!owned.has('victim-db'));
+    });
+
+    // Regression: the display name is free text from the request body. Deriving ownership
+    // from it let a tenant claim any resource by naming a connector after it, then reclaim
+    // (delete) it. Ownership must come from server-written metadata or the GCP label only.
+    it('does NOT claim a resource just because a connector is named after it', () => {
+        const project = makeProject({
+            storageConfigs: [makeStorage({ id: 'st_2', name: 'Victim Prod DB' })]
+        });
+
+        const owned = resolveOwnedResourceNames(project);
+        assert.ok(!owned.has('victim-prod-db'), 'display name must never grant ownership');
+        assert.strictEqual(owned.size, 0);
     });
 
     it('claims recorded read replicas', () => {
@@ -95,11 +106,32 @@ describe('checkResourceOwnership', () => {
         assert.strictEqual(result.owned, false);
     });
 
-    it('allows a registered bring-your-own GCP project', async () => {
+    it('allows a resource this project provisioned in a registered bring-your-own project', async () => {
+        const project = makeProject({
+            storageConfigs: [makeStorage({ providerProjectId: 'tenant-own-gcp', metadata: { resourceName: 'prod-db' } })]
+        });
+        const result = await checkResourceOwnership(project, 'cloud-sql', 'prod-db', 'us-central1', 'tenant-own-gcp');
+        assert.strictEqual(result.owned, true);
+    });
+
+    // Regression: providerProjectId is an unvalidated request-body field. Treating it as a
+    // blanket grant let a tenant PATCH someone else's GCP project id onto their own connector
+    // and then delete any resource the platform service account could reach there.
+    it('does NOT grant every resource in a registered bring-your-own project', async () => {
+        const project = makeProject({
+            storageConfigs: [makeStorage({ providerProjectId: 'tenant-own-gcp', metadata: { resourceName: 'prod-db' } })]
+        });
+        const result = await checkResourceOwnership(project, 'cloud-sql', 'someone-elses-db', 'us-central1', 'tenant-own-gcp');
+        assert.strictEqual(result.owned, false);
+    });
+
+    it('restores the blanket grant behind GCP_BYO_PROJECT_BLANKET_OWNERSHIP', async () => {
+        process.env.GCP_BYO_PROJECT_BLANKET_OWNERSHIP = 'true';
         const project = makeProject({
             storageConfigs: [makeStorage({ providerProjectId: 'tenant-own-gcp', metadata: { resourceName: 'prod-db' } })]
         });
         const result = await checkResourceOwnership(project, 'cloud-sql', 'anything', 'us-central1', 'tenant-own-gcp');
+        delete process.env.GCP_BYO_PROJECT_BLANKET_OWNERSHIP;
         assert.strictEqual(result.owned, true);
     });
 
