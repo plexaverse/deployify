@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR } from '@/lib/gcp/resource-ownership';
+import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR, requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
@@ -177,7 +177,13 @@ export async function POST(
             }
 
             status = 'provisioning';
-            resourceName = name.toLowerCase().replace(/\s+/g, '-');
+            // Candidate name for the GCP create call. It is NOT ownership: it is derived from
+            // the free-text display name, so it is only promoted to metadata.resourceName below
+            // once a resource was actually provisioned. Persisting it unconditionally let a
+            // tenant launder a victim's instance name through the server into a key that
+            // resolveOwnedResourceNames() trusts.
+            const candidateResourceName = name.toLowerCase().replace(/\s+/g, '-');
+            resourceName = candidateResourceName;
 
             try {
                 let provisionResult;
@@ -215,6 +221,14 @@ export async function POST(
                     }
                 }
                 operationName = provisionResult?.operationName;
+
+                // Only a real provision earns a server-owned resourceName. Types that fall
+                // through the dispatch above (mongodb-atlas, planetscale, generic, ...) make no
+                // GCP call, so they must not claim a GCP resource name.
+                if (!provisionResult) {
+                    console.warn(`[Storage] No provisioner for type "${type}"; not recording a GCP resourceName for connector "${name}".`);
+                    resourceName = undefined;
+                }
             } catch (error) {
                 console.error('Provisioning failed:', error);
                 return NextResponse.json({ error: `Provisioning failed: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
@@ -477,7 +491,7 @@ export async function PATCH(
 
         // Handle Scaling (GCP Resource Update)
         if (storage.metadata?.provisioned && metadata) {
-            const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+            const resourceName = requireManagedResourceName(storage);
             const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
             // Same gate as POST, minus the quota: scaling never adds an instance. Resubmitting

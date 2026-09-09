@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { listBackups, createBackup, updateBackupPolicy } from '@/lib/gcp/cloudsql';
@@ -44,7 +45,7 @@ export async function GET(
             return NextResponse.json({ success: false, error: 'Backups are only supported for Cloud SQL instances' }, { status: 400 });
         }
 
-        const instanceName = (storageConfig.metadata?.resourceName as string) || (storageConfig.metadata?.instanceName as string) || storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+        const instanceName = ((storageConfig.metadata?.instanceName as string) || requireManagedResourceName(storageConfig));
         const backups = await listBackups(instanceName);
 
         return NextResponse.json({ success: true, backups });
@@ -93,7 +94,7 @@ export async function POST(
             return NextResponse.json({ success: false, error: 'Backups are only supported for Cloud SQL instances' }, { status: 400 });
         }
 
-        const instanceName = (storageConfig.metadata?.resourceName as string) || storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+        const instanceName = requireManagedResourceName(storageConfig);
         const operationName = await createBackup(instanceName, description);
 
         return NextResponse.json({ success: true, operationName });
@@ -130,7 +131,7 @@ export async function PATCH(
             return NextResponse.json({ success: false, error: 'Backup policies are only supported for Cloud SQL' }, { status: 400 });
         }
 
-        const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+        const instanceName = requireManagedResourceName(storage);
         const operationName = await updateBackupPolicy(instanceName, retentionDays, transactionLogRetentionDays);
 
         // Update metadata

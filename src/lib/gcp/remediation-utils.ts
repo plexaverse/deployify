@@ -1,4 +1,5 @@
 import { updateProject } from '@/lib/db';
+import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR } from '@/lib/gcp/resource-ownership';
 import { updateInstanceSettings, updateConnectionPooler } from '@/lib/gcp/cloudsql';
 import { syncExternalFirewall } from '@/lib/gcp/external-sync';
 import { grantCloudSqlInstanceUserRole, revokeProjectRole, grantProjectRole, resolveRevocableRoles } from '@/lib/gcp/iam';
@@ -64,6 +65,13 @@ export async function remediateRisk(
             return { success: false, message: 'Storage connector not found', error: 'Storage connector not found' };
         }
 
+        // SECURITY: every GCP-mutating branch below resolves its target instance from the
+        // connector. That must come from server-written metadata, never from the free-text
+        // display name - otherwise a tenant names a connector after a victim's instance and
+        // drives updateInstanceSettings (enable HA, flip deletion protection, restart the
+        // pooler) against it in the shared platform project.
+        const managedResourceName = resolveManagedResourceName(storageConfigs[index]);
+
         const storage = { ...storageConfigs[index] };
         let message = 'Remediation started';
         let operationName: string | undefined;
@@ -78,7 +86,10 @@ export async function remediateRisk(
 
             case 'deletion_protection_disabled':
                 if (storage.type.includes('cloud-sql')) {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    if (!managedResourceName) {
+                        return { success: false, message: UNBOUND_RESOURCE_ERROR, error: UNBOUND_RESOURCE_ERROR };
+                    }
+                    const instanceName = managedResourceName;
                     operationName = await updateInstanceSettings(instanceName, {
                         deletionProtectionEnabled: true
                     });
@@ -107,7 +118,10 @@ export async function remediateRisk(
 
             case 'no_ha_in_production':
                 if (storage.type.includes('cloud-sql')) {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    if (!managedResourceName) {
+                        return { success: false, message: UNBOUND_RESOURCE_ERROR, error: UNBOUND_RESOURCE_ERROR };
+                    }
+                    const instanceName = managedResourceName;
                     operationName = await updateInstanceSettings(instanceName, {
                         highAvailability: true
                     });
@@ -123,7 +137,10 @@ export async function remediateRisk(
 
             case 'no_pitr_in_production':
                 if (storage.type.includes('cloud-sql')) {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    if (!managedResourceName) {
+                        return { success: false, message: UNBOUND_RESOURCE_ERROR, error: UNBOUND_RESOURCE_ERROR };
+                    }
+                    const instanceName = managedResourceName;
                     operationName = await updateInstanceSettings(instanceName, {
                         pitrEnabled: true
                     });
@@ -170,7 +187,10 @@ export async function remediateRisk(
 
             case 'connection_saturation_risk':
                 if (storage.type === 'cloud-sql-postgres') {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    if (!managedResourceName) {
+                        return { success: false, message: UNBOUND_RESOURCE_ERROR, error: UNBOUND_RESOURCE_ERROR };
+                    }
+                    const instanceName = managedResourceName;
                     operationName = await updateConnectionPooler(instanceName, true);
                     storage.status = 'provisioning';
                     storage.connectionPoolerEnabled = true;
@@ -186,7 +206,10 @@ export async function remediateRisk(
 
             case 'maintenance_window_misalignment':
                 if (storage.type.includes('cloud-sql')) {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    if (!managedResourceName) {
+                        return { success: false, message: UNBOUND_RESOURCE_ERROR, error: UNBOUND_RESOURCE_ERROR };
+                    }
+                    const instanceName = managedResourceName;
                     const rec = storage.metadata?.maintenanceRecommendation as { day: number; hour: number };
 
                     if (!rec) {

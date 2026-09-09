@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getLongRunningQueries } from '@/lib/gcp/monitoring';
@@ -34,7 +35,7 @@ export async function GET(
             });
         }
 
-        const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+        const resourceName = requireManagedResourceName(storage);
 
 
         const queries = await getLongRunningQueries(resourceName);

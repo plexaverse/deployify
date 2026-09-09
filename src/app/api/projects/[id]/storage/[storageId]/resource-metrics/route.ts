@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getCloudSqlMetrics, getMemorystoreMetrics, getExternalMetrics } from '@/lib/gcp/monitoring';
@@ -38,7 +39,7 @@ export async function GET(
             }, { status: 400 });
         }
 
-        const resourceName = storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+        const resourceName = requireManagedResourceName(storageConfig);
         const region = (storageConfig.metadata?.region as string) || access.project?.region || 'us-central1';
 
         let metrics;

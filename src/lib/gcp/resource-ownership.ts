@@ -62,6 +62,21 @@ export function resolveManagedResourceName(storage: StorageConfig): string | nul
     return name || null;
 }
 
+/**
+ * Like resolveManagedResourceName but throws instead of returning null.
+ *
+ * For the many handlers that interpolate the result straight into a GCP API call. Every one
+ * of them already sits inside a try/catch that returns an error response, so throwing turns
+ * "act on whatever instance this display name happens to match" into a clean failure.
+ */
+export function requireManagedResourceName(storage: StorageConfig): string {
+    const name = resolveManagedResourceName(storage);
+    if (!name) {
+        throw new Error(UNBOUND_RESOURCE_ERROR);
+    }
+    return name;
+}
+
 /** Standard refusal for the callers above. */
 export const UNBOUND_RESOURCE_ERROR =
     'This connector is not bound to a Deployify-provisioned resource. Re-provision it before running infrastructure operations.';
