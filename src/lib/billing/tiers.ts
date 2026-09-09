@@ -1,4 +1,5 @@
 import { getUserById } from '@/lib/db';
+import { resolveEffectiveTierId, toDateOrNull } from './entitlement';
 import type { User } from '@/types';
 
 export type TierType = 'free' | 'pro' | 'team' | 'enterprise';
@@ -108,15 +109,21 @@ export function checkUsageLimits(
 }
 
 export function calculateTierLimits(user: User | null): TierLimits {
-    const tierId = (user as User & { subscription?: { tier?: TierType; expiresAt?: Date } })?.subscription?.tier || 'free';
+    const subscription = user?.subscription;
 
-    // Check if subscription is expired
-    const subscription = (user as User & { subscription?: { tier?: TierType; expiresAt?: Date } })?.subscription;
-    if (subscription?.expiresAt && subscription.expiresAt < new Date()) {
+    // Legacy guard, kept verbatim in behaviour: `expiresAt` in the past means free.
+    // No writer has ever set this field on a real subscription (both producers write
+    // `currentPeriodEnd`), so it is dead for production data - but it is live for the
+    // dev MOCK_USER shape, and dropping it silently would be a behaviour change.
+    const legacyExpiresAt = toDateOrNull(subscription?.expiresAt);
+    if (legacyExpiresAt && legacyExpiresAt < new Date()) {
         return TIER_LIMITS['free'];
     }
 
-    return TIER_LIMITS[tierId];
+    // The real check: reads `currentPeriodEnd` too. Inert unless
+    // BILLING_ENTITLEMENT_MODE=enforce. getTier() also gives us the free fallback for
+    // a corrupt tier string, where TIER_LIMITS[tierId] used to return undefined.
+    return getTier(resolveEffectiveTierId(subscription, user?.id || 'unknown')).limits;
 }
 
 export async function getUserTierLimits(userId: string): Promise<TierLimits> {

@@ -4,6 +4,71 @@ import { getGcpAccessToken } from './auth';
 const CRM_API = 'https://cloudresourcemanager.googleapis.com/v1';
 
 /**
+ * Canonical set of project-level roles Deployify treats as "excessive" on the shared
+ * platform service account. This is the ONLY set automated remediation may ever revoke.
+ * `checkLeastPrivilege()` -- the sole legitimate producer of
+ * `storage.metadata.excessiveRoles` -- can only ever emit a subset of this list, so
+ * filtering against it is a no-op for every honestly-written Firestore document.
+ */
+export const EXCESSIVE_PROJECT_ROLES: readonly string[] = [
+    'roles/owner',
+    'roles/editor',
+    'roles/resourcemanager.projectIamAdmin',
+    'roles/secretmanager.secretAccessor',
+    'roles/secretmanager.admin'
+];
+
+/** Pre-existing fallback when a connector has no recorded excessiveRoles. Unchanged. */
+const DEFAULT_REVOCABLE_ROLES: readonly string[] = ['roles/owner', 'roles/editor'];
+
+/**
+ * Roles that must never be revoked automatically: stripping them from the shared platform
+ * service account destroys Deployify's own ability to write IAM and cannot be repaired from
+ * inside the product. Set IAM_ALLOW_SELF_LOCKOUT_REVOKE=true to restore the old behaviour.
+ */
+const SELF_LOCKOUT_ROLES: readonly string[] = ['roles/resourcemanager.projectIamAdmin'];
+
+/**
+ * Narrows a (tenant-writable) list of roles down to the ones automated remediation is
+ * permitted to revoke from the shared platform service account.
+ *
+ * Semantics deliberately mirror the previous `(metadata?.excessiveRoles as string[]) || [...]`
+ * expression: only a *falsy* value falls back to the owner/editor default, so an explicit
+ * empty array still means "revoke nothing".
+ */
+export function resolveRevocableRoles(requested: unknown): { roles: string[]; rejected: string[] } {
+    const raw: unknown = requested ? requested : DEFAULT_REVOCABLE_ROLES;
+    const candidates: unknown[] = Array.isArray(raw) ? raw : [];
+
+    const extra = (process.env.IAM_REMEDIATION_EXTRA_REVOCABLE_ROLES || '')
+        .split(',')
+        .map((r) => r.trim())
+        .filter(Boolean);
+    const allowlist = new Set<string>([...EXCESSIVE_PROJECT_ROLES, ...extra]);
+    const allowSelfLockout = process.env.IAM_ALLOW_SELF_LOCKOUT_REVOKE === 'true';
+
+    const roles: string[] = [];
+    const rejected: string[] = [];
+
+    for (const candidate of candidates) {
+        if (typeof candidate !== 'string') {
+            rejected.push(String(candidate));
+            continue;
+        }
+        const role = candidate.trim();
+        if (!allowlist.has(role) || (!allowSelfLockout && SELF_LOCKOUT_ROLES.includes(role))) {
+            rejected.push(role);
+            continue;
+        }
+        if (!roles.includes(role)) {
+            roles.push(role);
+        }
+    }
+
+    return { roles, rejected };
+}
+
+/**
  * Fetches the current IAM policy for a project
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -168,17 +233,10 @@ export async function checkLeastPrivilege(
         const policy = await getProjectIamPolicy(projectId);
         const memberName = member.startsWith('serviceAccount:') ? member : `serviceAccount:${member}`;
 
-        const excessiveRoles = [
-            'roles/owner',
-            'roles/editor',
-            'roles/resourcemanager.projectIamAdmin',
-            'roles/secretmanager.secretAccessor',
-            'roles/secretmanager.admin'
-        ];
         const foundExcessive: string[] = [];
 
         for (const binding of (policy.bindings || [])) {
-            if (excessiveRoles.includes(binding.role) && binding.members.includes(memberName)) {
+            if (EXCESSIVE_PROJECT_ROLES.includes(binding.role) && binding.members.includes(memberName)) {
                 foundExcessive.push(binding.role);
             }
         }

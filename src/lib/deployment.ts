@@ -11,6 +11,7 @@ import { sendEmail } from '@/lib/email/client';
 import { runLighthouseAudit } from '@/lib/performance/lighthouse';
 import { createPRComment, createDeploymentStatus } from '@/lib/github';
 import { parseRepoFullName, formatDuration, generateServiceName } from '@/lib/utils';
+import { finalizeDeploymentOnce } from '@/lib/deployment-finalize';
 import type { Deployment } from '@/types';
 
 /**
@@ -45,10 +46,17 @@ export async function syncDeploymentStatus(
     const timeoutMs = 30 * 60 * 1000;
     if (Date.now() - new Date(deployment.createdAt).getTime() > timeoutMs) {
         const errorMessage = 'Build timed out';
-        await updateDeployment(deploymentId, {
+        const claim = await finalizeDeploymentOnce(deploymentId, {
             status: 'error',
             errorMessage: errorMessage,
         });
+
+        if (!claim.won) {
+            // Another poller already finalized this row. Hand back what it wrote - one extra
+            // read, only on an actual race - so the API response stays exactly as complete as
+            // it is today, and send no second webhook or email.
+            return (await getDeploymentById(deploymentId)) || deployment;
+        }
 
         if (webhookUrl) {
             const name = projectName || projectSlug;
@@ -108,13 +116,21 @@ export async function syncDeploymentStatus(
             const effectiveUrl = serviceUrl || `https://${serviceName}-${projectNumber}.${region || config.gcp.region}.run.app`;
             const now = new Date();
 
-            await updateDeployment(deploymentId, {
+            // Exactly-once barrier. Every side effect below - GitHub status, the
+            // trackDeployment() usage increment, productionUrl, image pruning, Lighthouse,
+            // the success email, ephemeral preview databases and the PR comment - runs only
+            // for the poller that actually flipped this row to `ready`.
+            const claim = await finalizeDeploymentOnce(deploymentId, {
                 status: 'ready',
                 url: effectiveUrl,
                 readyAt: now,
                 cloudRunRevision: latestRevision,
                 buildDurationMs,
             });
+
+            if (!claim.won) {
+                return (await getDeploymentById(deploymentId)) || deployment;
+            }
 
             // Update GitHub deployment status
             if (accessToken && repoFullName && commitSha) {
@@ -220,10 +236,14 @@ export async function syncDeploymentStatus(
 
         } else if (status === 'FAILURE' || status === 'TIMEOUT' || status === 'CANCELLED') {
             const errorMessage = `Build ${status.toLowerCase()}`;
-            await updateDeployment(deploymentId, {
+            const claim = await finalizeDeploymentOnce(deploymentId, {
                 status: deploymentStatus,
                 errorMessage: errorMessage,
             });
+
+            if (!claim.won) {
+                return (await getDeploymentById(deploymentId)) || deployment;
+            }
 
             // Update GitHub deployment status
             if (accessToken && repoFullName && commitSha) {

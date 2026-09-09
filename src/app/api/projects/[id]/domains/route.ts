@@ -5,6 +5,7 @@ import { checkProjectAccess } from '@/middleware/rbac';
 import { createDomainMapping, deleteDomainMapping, getDomainMappingStatus, getDnsRecords } from '@/lib/gcp/domains';
 import type { Domain, DomainStatus } from '@/types';
 import { logAuditEvent } from '@/lib/audit';
+import { canManageDomains, getDomainDeleteRoleMode } from '@/lib/domain-rbac';
 
 // Generate unique ID for domains
 function generateDomainId(): string {
@@ -97,7 +98,7 @@ export async function POST(
             );
         }
 
-        if (access.role !== 'owner' && access.role !== 'admin') {
+        if (!canManageDomains(access.role)) {
             return NextResponse.json(
                 { error: 'Forbidden: Only owners and admins can manage domains' },
                 { status: 403 }
@@ -201,6 +202,24 @@ export async function DELETE(
             return NextResponse.json(
                 { error: access.error },
                 { status: access.status }
+            );
+        }
+
+        // Same owner|admin gate POST has always applied (above). Missing here until
+        // ssrf-proxy-8: `access.allowed` is a membership check, not an authorization one,
+        // so every 'member' and 'viewer' on the team could delete a live domain mapping.
+        if (!canManageDomains(access.role)) {
+            if (getDomainDeleteRoleMode() === 'enforce') {
+                console.warn(
+                    `[domain-rbac] denied DELETE /api/projects/${id}/domains user=${session.user.id} role=${access.role}`
+                );
+                return NextResponse.json(
+                    { error: 'Forbidden: Only owners and admins can manage domains' },
+                    { status: 403 }
+                );
+            }
+            console.warn(
+                `[domain-rbac] would-deny DELETE /api/projects/${id}/domains user=${session.user.id} role=${access.role} (DOMAIN_DELETE_ROLE_ENFORCEMENT=report)`
             );
         }
 

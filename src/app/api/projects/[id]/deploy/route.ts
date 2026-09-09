@@ -13,6 +13,8 @@ import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus, simulateDeployment } from '@/lib/deployment';
 import { sendWebhookNotification } from '@/lib/webhooks';
+import { findSlugSquatConflict } from '@/lib/slug-registry';
+import { abortIfSuperseded, supersedeActiveDeployments, SUPERSEDED_MESSAGE } from '@/lib/deploy-concurrency';
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -49,6 +51,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }
 
         const { project } = access;
+
+        // Slugs written before global uniqueness was enforced can still collide, and the
+        // Cloud Run service name dfy-<slug> is shared. Refuse to let a newer project
+        // deploy over the service the older project owns. Inert unless
+        // PROJECT_SLUG_RESOLUTION_MODE=oldest-wins.
+        const squat = await findSlugSquatConflict(project.id, project.slug);
+        if (squat) {
+            return NextResponse.json(
+                { error: `Forbidden: the name "${project.slug}" is already in use by another project. Please rename this project before deploying.` },
+                { status: 403, headers: securityHeaders }
+            );
+        }
 
         // Check usage limits
         const { withinLimits, limitType } = await checkUsageLimits(session.user.id);
@@ -143,6 +157,27 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             }
         );
 
+        // Every production build of this project deploys to the same Cloud Run service and
+        // ends with `update-traffic --to-latest`, so two builds in flight are a traffic race
+        // the older commit can win. Cancel the ones this deployment supersedes.
+        // Inert unless DEPLOY_CONCURRENCY_MODE=supersede.
+        const concurrency = await supersedeActiveDeployments(project, deployment);
+        if (concurrency.blocked) {
+            await updateDeployment(deployment.id, {
+                status: 'cancelled',
+                errorMessage: SUPERSEDED_MESSAGE,
+            });
+            // Same 201 + { deployment, message } shape the callers already parse
+            // (src/app/new/page.tsx reads data.deployment; the store only checks response.ok).
+            return NextResponse.json(
+                {
+                    deployment: { ...deployment, status: 'cancelled' as const, errorMessage: SUPERSEDED_MESSAGE },
+                    message: 'A newer deployment for this project is already in progress.',
+                },
+                { status: 201, headers: securityHeaders }
+            );
+        }
+
         // Check if running on GCP - use real Cloud Build
         if (isRunningOnGCP()) {
             try {
@@ -174,6 +209,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 // Generate Cloud Build config
                 const buildConfig = generateCloudRunDeployConfig({
                     projectSlug: projectSlug,
+                    deployifyProjectId: project.id,
                     repoFullName: project.repoFullName,
                     branch: branch,
                     commitSha: commitSha,
@@ -200,6 +236,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
                 // Submit to Cloud Build with project region
                 const { buildId, logUrl } = await submitCloudBuild(buildConfig, project.region);
+
+                // A rival deployment can have superseded this row while we were reading
+                // secrets and submitting. Do not resurrect it by writing 'building' over
+                // its 'cancelled'. Inert unless DEPLOY_CONCURRENCY_MODE=supersede.
+                if (await abortIfSuperseded(deployment.id, buildId, project.region)) {
+                    return NextResponse.json(
+                        {
+                            deployment: { ...deployment, status: 'cancelled' as const, errorMessage: SUPERSEDED_MESSAGE, cloudBuildId: buildId },
+                            message: 'A newer deployment for this project superseded this build.',
+                        },
+                        { status: 201, headers: securityHeaders }
+                    );
+                }
 
                 // Update deployment with build info
                 await updateDeployment(deployment.id, {

@@ -102,6 +102,8 @@ export async function getRepo(
             language: 'TypeScript',
             updated_at: new Date().toISOString(),
             pushed_at: new Date().toISOString(),
+            // Local dev owns everything it can see, so bindings stay admin-verified.
+            permissions: { admin: true, push: true, pull: true },
         };
     }
     const octokit = createGitHubClient(accessToken);
@@ -122,6 +124,9 @@ export async function getRepo(
         language: data.language,
         updated_at: data.updated_at || '',
         pushed_at: data.pushed_at || '',
+        // repos.get succeeds for any repo the token can merely READ, so callers that
+        // need entitlement (not just visibility) must look at this.
+        permissions: data.permissions,
     };
 }
 

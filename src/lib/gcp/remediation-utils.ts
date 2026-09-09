@@ -1,7 +1,7 @@
 import { updateProject } from '@/lib/db';
 import { updateInstanceSettings, updateConnectionPooler } from '@/lib/gcp/cloudsql';
 import { syncExternalFirewall } from '@/lib/gcp/external-sync';
-import { grantCloudSqlInstanceUserRole, revokeProjectRole, grantProjectRole } from '@/lib/gcp/iam';
+import { grantCloudSqlInstanceUserRole, revokeProjectRole, grantProjectRole, resolveRevocableRoles } from '@/lib/gcp/iam';
 import { grantSecretAccess } from '@/lib/gcp/secrets';
 import { config } from '@/lib/config';
 import type { StorageConfig, Project } from '@/types';
@@ -11,6 +11,40 @@ export interface RemediationResult {
     message: string;
     error?: string;
     storageConfig?: StorageConfig;
+}
+
+/**
+ * Every IAM grant/revoke below targets the SHARED platform service account in Deployify's
+ * OWN GCP project, so the target must never be derived from tenant-writable connector
+ * metadata (`storage.metadata.projectId` is merged straight out of the PATCH body).
+ * Nothing in the product writes `metadata.projectId` for a storage connector, so pinning
+ * it to the platform project is a no-op for real data.
+ */
+function resolvePlatformIamTarget(storage: StorageConfig): { gcpProjectId: string; saEmail: string } {
+    const platformProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+    const requested = storage.metadata?.projectId;
+
+    if (typeof requested === 'string' && requested && requested !== platformProjectId) {
+        console.warn(`[IAMRemediation] Ignoring connector metadata.projectId="${requested}"; IAM mutations are pinned to the platform project.`);
+    }
+
+    const gcpProjectId = platformProjectId || (process.env.MOCK_DB === 'true' ? 'mock-project' : undefined);
+    if (!gcpProjectId) {
+        throw new Error('Platform GCP project is not configured; IAM remediation is unavailable.');
+    }
+
+    const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
+    return { gcpProjectId, saEmail: `${saName}@${gcpProjectId}.iam.gserviceaccount.com` };
+}
+
+/**
+ * Project-level IAM *revocation* on the shared platform service account is a
+ * platform-operator action, not a tenant action: a single revoke degrades every tenant.
+ * Off by default; operators opt in with IAM_SELF_REMEDIATION_ENABLED=true once they have
+ * confirmed the role allowlist matches their platform SA's real bindings.
+ */
+function isSelfRemediationEnabled(): boolean {
+    return process.env.IAM_SELF_REMEDIATION_ENABLED === 'true';
 }
 
 /**
@@ -105,11 +139,9 @@ export async function remediateRisk(
 
             case 'iam_role_not_verified':
                 if (storage.type.includes('cloud-sql')) {
-                    const gcpProjectId = (storage.metadata?.projectId as string) || config.gcp.projectId || process.env.GCP_PROJECT_ID;
-                    const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
-                    const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
+                    const { gcpProjectId, saEmail } = resolvePlatformIamTarget(storage);
 
-                    const granted = await grantCloudSqlInstanceUserRole(gcpProjectId!, saEmail);
+                    const granted = await grantCloudSqlInstanceUserRole(gcpProjectId, saEmail);
                     if (!granted) {
                         throw new Error('Failed to grant IAM role. Ensure the Deployify service account has Project IAM Admin permissions.');
                     }
@@ -178,65 +210,96 @@ export async function remediateRisk(
 
             case 'overprivileged_service_account':
                 if (storage.metadata?.provisioned) {
-                    const gcpProjectId = (storage.metadata?.projectId as string) || config.gcp.projectId || process.env.GCP_PROJECT_ID;
-                    const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
-                    const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
+                    const { gcpProjectId, saEmail } = resolvePlatformIamTarget(storage);
 
-                    const excessiveRoles = (storage.metadata?.excessiveRoles as string[]) || ['roles/owner', 'roles/editor'];
-
-                    // 1. Revoke excessive roles
-                    for (const role of excessiveRoles) {
-                        await revokeProjectRole(gcpProjectId!, saEmail, role);
+                    // Tenant-writable metadata may only *narrow* an operator-defined allowlist.
+                    const { roles: revocableRoles, rejected } = resolveRevocableRoles(storage.metadata?.excessiveRoles);
+                    if (rejected.length > 0) {
+                        console.warn(`[IAMRemediation] Refusing to revoke non-allowlisted role(s) requested via connector metadata (project ${projectId}, connector ${storageId}): ${rejected.join(', ')}`);
                     }
 
-                    // 2. Ensure minimal required roles are present
+                    const revokeEnabled = isSelfRemediationEnabled();
+
+                    // 1. Revoke excessive roles (operator-gated: mutates the SHARED platform SA)
+                    if (revokeEnabled) {
+                        for (const role of revocableRoles) {
+                            console.warn(`[IAMRemediation] Revoking ${role} from ${saEmail} in ${gcpProjectId} (project ${projectId}, connector ${storageId})`);
+                            await revokeProjectRole(gcpProjectId, saEmail, role);
+                        }
+                    } else if (revocableRoles.length > 0) {
+                        console.warn(`[IAMRemediation] IAM_SELF_REMEDIATION_ENABLED is not set; deferring revocation of ${revocableRoles.join(', ')} from ${saEmail} (project ${projectId}, connector ${storageId}).`);
+                    }
+
+                    // 2. Ensure minimal required roles are present (additive; cannot cause a DoS)
                     if (storage.type.includes('cloud-sql')) {
-                        await grantProjectRole(gcpProjectId!, saEmail, 'roles/cloudsql.client');
+                        await grantProjectRole(gcpProjectId, saEmail, 'roles/cloudsql.client');
                     }
 
                     // 3. Phase 124: Use granular secret access instead of broad roles if possible
+                    //    (resource-scoped to this connector's own secrets; always safe to run)
                     if (storage.connectionStringSecretId) {
-                        await grantSecretAccess(storage.connectionStringSecretId, saEmail, gcpProjectId!);
+                        await grantSecretAccess(storage.connectionStringSecretId, saEmail, gcpProjectId);
                     }
                     if (storage.providerApiKeySecretId) {
-                        await grantSecretAccess(storage.providerApiKeySecretId, saEmail, gcpProjectId!);
+                        await grantSecretAccess(storage.providerApiKeySecretId, saEmail, gcpProjectId);
                     }
 
-                    storage.metadata = {
-                        ...storage.metadata,
-                        iamOverprivileged: false,
-                        excessiveRoles: [],
-                        iamRoleVerified: true,
-                        broadSecretAccess: false,
-                        lastIamHardeningAt: new Date().toISOString()
-                    };
-                    message = 'IAM Hardening complete: Revoked excessive roles and enforced least-privilege with granular secret scoping.';
+                    if (revokeEnabled) {
+                        storage.metadata = {
+                            ...storage.metadata,
+                            iamOverprivileged: false,
+                            excessiveRoles: [],
+                            iamRoleVerified: true,
+                            broadSecretAccess: false,
+                            lastIamHardeningAt: new Date().toISOString()
+                        };
+                        message = 'IAM Hardening complete: Revoked excessive roles and enforced least-privilege with granular secret scoping.';
+                    } else {
+                        // Same response shape and status code; the next sync re-derives
+                        // posture from live IAM, so nothing is silently marked "clean".
+                        storage.metadata = {
+                            ...storage.metadata,
+                            iamRoleVerified: true,
+                            iamHardeningDeferred: true,
+                            lastIamHardeningAt: new Date().toISOString()
+                        };
+                        message = 'Granular secret scoping applied. Project-level role revocation on the shared platform service account is queued for operator review.';
+                    }
                 }
                 break;
 
             case 'broad_secret_access':
                 if (storage.metadata?.provisioned) {
-                    const gcpProjectId = (storage.metadata?.projectId as string) || config.gcp.projectId || process.env.GCP_PROJECT_ID;
-                    const saName = process.env.GCP_SERVICE_ACCOUNT_NAME || 'deployify-sa';
-                    const saEmail = `${saName}@${gcpProjectId}.iam.gserviceaccount.com`;
+                    const { gcpProjectId, saEmail } = resolvePlatformIamTarget(storage);
 
                     // 1. Grant granular access to this specific secret(s)
                     if (storage.connectionStringSecretId) {
-                        await grantSecretAccess(storage.connectionStringSecretId, saEmail, gcpProjectId!);
+                        await grantSecretAccess(storage.connectionStringSecretId, saEmail, gcpProjectId);
                     }
                     if (storage.providerApiKeySecretId) {
-                        await grantSecretAccess(storage.providerApiKeySecretId, saEmail, gcpProjectId!);
+                        await grantSecretAccess(storage.providerApiKeySecretId, saEmail, gcpProjectId);
                     }
 
-                    // 2. Revoke broad roles
-                    await revokeProjectRole(gcpProjectId!, saEmail, 'roles/secretmanager.secretAccessor');
-                    await revokeProjectRole(gcpProjectId!, saEmail, 'roles/secretmanager.admin');
+                    // 2. Revoke broad roles (operator-gated: mutates the SHARED platform SA;
+                    //    dropping secretAccessor breaks secret reads for every tenant at once)
+                    if (isSelfRemediationEnabled()) {
+                        console.warn(`[IAMRemediation] Revoking broad Secret Manager roles from ${saEmail} in ${gcpProjectId} (project ${projectId}, connector ${storageId})`);
+                        await revokeProjectRole(gcpProjectId, saEmail, 'roles/secretmanager.secretAccessor');
+                        await revokeProjectRole(gcpProjectId, saEmail, 'roles/secretmanager.admin');
 
-                    storage.metadata = {
-                        ...storage.metadata,
-                        broadSecretAccess: false,
-                        lastIamHardeningAt: new Date().toISOString()
-                    };
+                        storage.metadata = {
+                            ...storage.metadata,
+                            broadSecretAccess: false,
+                            lastIamHardeningAt: new Date().toISOString()
+                        };
+                    } else {
+                        console.warn(`[IAMRemediation] IAM_SELF_REMEDIATION_ENABLED is not set; deferring broad Secret Manager role revocation for ${saEmail} (project ${projectId}, connector ${storageId}).`);
+                        storage.metadata = {
+                            ...storage.metadata,
+                            iamHardeningDeferred: true,
+                            lastIamHardeningAt: new Date().toISOString()
+                        };
+                    }
                     message = 'Secret access restricted to granular scope (resource-level).';
                 }
                 break;

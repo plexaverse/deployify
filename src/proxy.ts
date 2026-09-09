@@ -7,6 +7,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { config as appConfig } from '@/lib/config';
 import { trackError } from '@/lib/logging/tracker';
+import { checkRequestProvenance, getCsrfMode } from '@/lib/security/csrf';
+import { evaluateApiRateLimit } from '@/lib/security/rate-limit';
 
 // Security headers to apply
 const securityHeaders = {
@@ -17,36 +19,10 @@ const securityHeaders = {
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
 };
 
-// In-memory rate limit store (Edge-compatible)
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(
-    identifier: string,
-    limit: number = 100,
-    windowMs: number = 60000
-): { allowed: boolean; remaining: number; resetAt: number } {
-    const now = Date.now();
-    const record = rateLimitStore.get(identifier);
-
-    if (!record || now > record.resetAt) {
-        const resetAt = now + windowMs;
-        rateLimitStore.set(identifier, { count: 1, resetAt });
-        return { allowed: true, remaining: limit - 1, resetAt };
-    }
-
-    if (record.count >= limit) {
-        return { allowed: false, remaining: 0, resetAt: record.resetAt };
-    }
-
-    record.count++;
-    return { allowed: true, remaining: limit - record.count, resetAt: record.resetAt };
-}
-
-// Routes that should be rate limited more strictly
-const strictRateLimitRoutes = [
-    '/api/auth/',
-    '/api/webhooks/',
-];
+// Rate limiting lives in `@/lib/security/rate-limit` (edge-safe, no node
+// builtins) so that the copy which actually runs here and the copy exported
+// from `@/lib/security` cannot diverge again. Default mode is `legacy`:
+// identical request outcomes to before, with the store now bounded.
 
 export async function proxy(request: NextRequest) {
     try {
@@ -113,15 +89,16 @@ export async function proxy(request: NextRequest) {
 
         // Rate limiting for API routes
         if (pathname.startsWith('/api/')) {
-            const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
-                request.headers.get('x-real-ip') ||
-                'unknown';
+            const rateLimitResult = evaluateApiRateLimit({
+                pathname,
+                xForwardedFor: request.headers.get('x-forwarded-for'),
+                xRealIp: request.headers.get('x-real-ip'),
+            });
+            const limit = rateLimitResult.limit;
 
-            // Determine rate limit based on route
-            const isStrictRoute = strictRateLimitRoutes.some(route => pathname.startsWith(route));
-            const limit = isStrictRoute ? 30 : 100;
-
-            const rateLimitResult = checkRateLimit(`${ip}:${pathname}`, limit);
+            if (rateLimitResult.warning) {
+                console.warn(`[RateLimit] ${rateLimitResult.warning}`);
+            }
 
             if (!rateLimitResult.allowed) {
                 return NextResponse.json(
@@ -137,6 +114,38 @@ export async function proxy(request: NextRequest) {
                         }
                     }
                 );
+            }
+
+            // Request-provenance (CSRF) guard.
+            //
+            // Every API handler authenticates purely on the ambient
+            // `deployify_session` cookie. SameSite=Lax does not help us because
+            // tenant apps are served from `<slug>.<app-domain>`, which is
+            // same-site with the dashboard. Reject requests the browser itself
+            // reports as coming from another origin.
+            const csrfMode = getCsrfMode();
+            if (csrfMode !== 'off') {
+                const verdict = checkRequestProvenance({
+                    method: request.method,
+                    pathname,
+                    origin: request.headers.get('origin'),
+                    secFetchSite: request.headers.get('sec-fetch-site'),
+                    secFetchMode: request.headers.get('sec-fetch-mode'),
+                });
+
+                if (!verdict.allowed) {
+                    console.warn(
+                        `[CSRF] ${csrfMode === 'enforce' ? 'blocked' : 'would block'} ` +
+                        `${request.method} ${pathname} (${verdict.reason})`
+                    );
+
+                    if (csrfMode === 'enforce') {
+                        return NextResponse.json(
+                            { error: 'Forbidden' },
+                            { status: 403, headers: securityHeaders }
+                        );
+                    }
+                }
             }
         }
 

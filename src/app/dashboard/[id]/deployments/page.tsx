@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
 import { RollbackModal } from '@/components/RollbackModal';
 import { useStore } from '@/store';
+import { toastActionResult } from '@/lib/action-toast';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
@@ -108,8 +109,11 @@ export default function DeploymentsPage() {
     const handleCancel = async (deploymentId: string) => {
         if (!project) return;
         const toastId = toast.loading('Cancelling deployment...');
-        await cancelDeployment(project.id, deploymentId);
-        toast.success('Deployment cancelled', { id: toastId });
+        const result = await cancelDeployment(project.id, deploymentId);
+        toastActionResult(toastId, result, {
+            success: 'Deployment cancelled',
+            failure: 'Failed to cancel deployment',
+        });
     };
 
     if (loading && !project) {

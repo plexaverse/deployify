@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { getUserById } from '@/lib/db';
 import { TIERS, TierType } from '@/lib/billing/tiers';
 import { createOrder } from '@/lib/billing/payments';
+import { recordBillingOrder } from '@/lib/billing/order-registry';
 import { securityHeaders } from '@/lib/security';
 
 export async function POST(req: Request) {
@@ -80,6 +81,16 @@ export async function POST(req: Request) {
             `receipt_${user.id}_${Date.now()}`,
             { userId: user.id, tierId: tier.id }
         );
+
+        // Record what this order is actually for, so /api/billing/verify never has to
+        // trust the tierId the browser posts back. Best effort: never fails checkout.
+        await recordBillingOrder({
+            orderId: order.id,
+            userId: user.id,
+            tierId: tier.id,
+            amount: Number(order.amount) || amount,
+            currency: typeof order.currency === 'string' ? order.currency : 'INR',
+        });
 
         return NextResponse.json(
             {

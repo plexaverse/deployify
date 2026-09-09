@@ -1,6 +1,7 @@
 import { StateCreator } from 'zustand';
 import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats, CronJobConfig, StorageConfig, DataLabAuditLog, TeamRole } from '@/types';
 import { toast } from 'sonner';
+import { readJsonBody, toActionResult, type ActionResult } from '@/lib/action-feedback';
 
 export interface ProjectSlice {
     activeProjectId: string | null;
@@ -55,8 +56,8 @@ export interface ProjectSlice {
 
     fetchProjectDetails: (projectId: string) => Promise<void>;
     fetchDeployments: (projectId: string) => Promise<void>;
-    redeployProject: (projectId: string, force?: boolean) => Promise<void>;
-    cancelDeployment: (projectId: string, deploymentId: string) => Promise<void>;
+    redeployProject: (projectId: string, force?: boolean) => Promise<ActionResult>;
+    cancelDeployment: (projectId: string, deploymentId: string) => Promise<ActionResult>;
 
     // Settings Actions
     saveProjectSettings: (projectId: string) => Promise<void>;
@@ -226,12 +227,24 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 body: JSON.stringify({ force }),
             });
 
-            if (response.ok) {
+            const result = toActionResult(
+                response.status,
+                response.ok,
+                await readJsonBody(response),
+                'Failed to trigger deployment'
+            );
+
+            if (result.ok) {
                 // Re-fetch using the new action
                 await get().fetchDeployments(projectId);
+            } else {
+                console.error('Failed to trigger deployment:', result.status, result.error);
             }
+
+            return result;
         } catch (error) {
             console.error('Failed to trigger deployment:', error);
+            return { ok: false, status: 0, error: 'Network error. Please check your connection and try again.' };
         } finally {
             set({ isRedeploying: false });
         }
@@ -243,11 +256,23 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 method: 'DELETE',
             });
 
-            if (response.ok) {
+            const result = toActionResult(
+                response.status,
+                response.ok,
+                await readJsonBody(response),
+                'Failed to cancel deployment'
+            );
+
+            if (result.ok) {
                 await get().fetchDeployments(projectId);
+            } else {
+                console.error('Failed to cancel deployment:', result.status, result.error);
             }
+
+            return result;
         } catch (error) {
             console.error('Failed to cancel deployment:', error);
+            return { ok: false, status: 0, error: 'Network error. Please check your connection and try again.' };
         }
     },
 

@@ -25,6 +25,8 @@ import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus } from '@/lib/deployment';
 import { logAuditEvent } from '@/lib/audit';
+import { checkGitDeployCap } from '@/lib/billing/deploy-gate';
+import { abortIfSuperseded, supersedeActiveDeployments, SUPERSEDED_MESSAGE } from '@/lib/deploy-concurrency';
 
 export async function POST(request: NextRequest) {
     try {
@@ -125,6 +127,32 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         return;
     }
 
+    // Usage cap. A git push is the primary way deployments are triggered here, so
+    // without this the cap enforced by /api/projects/[id]/deploy was bypassed by
+    // almost every real deployment. Inert unless WEBHOOK_USAGE_CAP_MODE=enforce.
+    const cap = await checkGitDeployCap(project, user, {
+        trigger: 'push',
+        branch,
+        commitSha: head_commit.id,
+    });
+
+    if (cap.blocked) {
+        // Record the refusal so the tenant can see why the push did not deploy.
+        // usageBlocked keeps it out of the very cap that rejected it.
+        await createDeployment({
+            projectId: project.id,
+            type: deploymentType,
+            status: 'error',
+            gitBranch: branch,
+            gitCommitSha: head_commit.id,
+            gitCommitMessage: head_commit.message,
+            gitCommitAuthor: head_commit.author.username || head_commit.author.name,
+            errorMessage: cap.message,
+            usageBlocked: true,
+        });
+        return;
+    }
+
     // Create deployment record
     const deployment = await createDeployment({
         projectId: project.id,
@@ -149,6 +177,18 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         }
     );
 
+    // Two pushes in quick succession run two Cloud Builds against the SAME Cloud Run
+    // service, and the slower (older) commit can win `update-traffic --to-latest`.
+    // Inert unless DEPLOY_CONCURRENCY_MODE=supersede.
+    const concurrency = await supersedeActiveDeployments(project, deployment);
+    if (concurrency.blocked) {
+        await updateDeployment(deployment.id, {
+            status: 'cancelled',
+            errorMessage: SUPERSEDED_MESSAGE,
+        });
+        return;
+    }
+
     try {
         // Get environment variables directly from project and split by target
         const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
@@ -166,6 +206,7 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         // Generate build config with project's selected region
         const buildConfig = generateCloudRunDeployConfig({
             projectSlug: projectSlug,
+            deployifyProjectId: project.id,
             repoFullName: project.repoFullName,
             branch,
             commitSha: head_commit.id,
@@ -192,6 +233,12 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
 
         // Submit build
         const { buildId, logUrl } = await submitCloudBuild(buildConfig, project.region);
+
+        // A newer push can have superseded this row while we were reading secrets and
+        // submitting; do not write 'building' back over its 'cancelled'.
+        if (await abortIfSuperseded(deployment.id, buildId, project.region)) {
+            return;
+        }
 
         // Update deployment with build info
         await updateDeployment(deployment.id, {
@@ -516,6 +563,31 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             return;
         }
 
+        // Usage cap (same gate as the push path). Deliberately NOT applied to the
+        // `closed` branch above: teardown of preview resources must always run.
+        const cap = await checkGitDeployCap(project, user, {
+            trigger: 'pull_request',
+            branch: pull_request.head.ref,
+            commitSha: pull_request.head.sha,
+            pullRequestNumber: pull_request.number,
+        });
+
+        if (cap.blocked) {
+            await createDeployment({
+                projectId: project.id,
+                type: 'preview',
+                status: 'error',
+                gitBranch: pull_request.head.ref,
+                gitCommitSha: pull_request.head.sha,
+                gitCommitMessage: pull_request.title,
+                gitCommitAuthor: pull_request.user.login,
+                pullRequestNumber: pull_request.number,
+                errorMessage: cap.message,
+                usageBlocked: true,
+            });
+            return;
+        }
+
         // Create deployment record
         const deployment = await createDeployment({
             projectId: project.id,
@@ -541,6 +613,18 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             }
         );
 
+        // `synchronize` fires on every push to the PR branch and every preview build of one
+        // PR targets the same dfy-<slug>-pr-<n> service. Same race as the push path.
+        // Inert unless DEPLOY_CONCURRENCY_MODE=supersede.
+        const concurrency = await supersedeActiveDeployments(project, deployment);
+        if (concurrency.blocked) {
+            await updateDeployment(deployment.id, {
+                status: 'cancelled',
+                errorMessage: SUPERSEDED_MESSAGE,
+            });
+            return;
+        }
+
         try {
             // Get environment variables directly from project and split by target
             const envTarget = 'preview';
@@ -562,6 +646,7 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             const projectSlug = getProjectSlugForDeployment(project, deployment);
             const buildConfig = generateCloudRunDeployConfig({
                 projectSlug: projectSlug,
+                deployifyProjectId: project.id,
                 repoFullName: project.repoFullName,
                 branch: pull_request.head.ref,
                 commitSha: pull_request.head.sha,
@@ -588,6 +673,10 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
             // Submit build
             const { buildId, logUrl } = await submitCloudBuild(buildConfig, project.region);
+
+            if (await abortIfSuperseded(deployment.id, buildId, project.region)) {
+                return;
+            }
 
             // Update deployment with build info
             await updateDeployment(deployment.id, {

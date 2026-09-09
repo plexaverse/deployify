@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { config, validateConfig } from "@/lib/config";
+import { uiLegibilityAttrs } from "@/lib/ui-legibility";
 import Script from 'next/script';
 import "./globals.css";
 
@@ -31,8 +32,19 @@ export default function RootLayout({
     console.error('[Layout] Failed to parse APP_URL:', config.appUrl, e);
   }
 
+  // product-ux-7. In the default 'off' mode this object is empty, every
+  // attribute below renders as undefined, and React omits it — so the markup
+  // is identical to today's until an operator sets UI_LEGIBILITY_MODE.
+  const ui = uiLegibilityAttrs();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-ui-contrast={ui.contrast}
+      data-ui-scale={ui.scale}
+      style={ui.style}
+    >
       <body className={`${geist.variable} antialiased`}>
         <ThemeProvider
           attribute="class"

@@ -256,10 +256,12 @@ function createMockFirestore(): Firestore {
 export const Collections = {
     USERS: 'users',
     PROJECTS: 'projects',
+    PROJECT_SLUGS: 'projectSlugs',
     DEPLOYMENTS: 'deployments',
     ENV_VARS: 'envVars',
     USAGE: 'usage',
     INVOICES: 'invoices',
+    BILLING_ORDERS: 'billingOrders',
     TEAMS: 'teams',
     TEAM_MEMBERSHIPS: 'teamMemberships',
     AUDIT_LOGS: 'auditLogs',

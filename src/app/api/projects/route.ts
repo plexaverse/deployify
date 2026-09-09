@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser, getTeamMembership, updateProject } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
-import { slugify, parseRepoFullName, generateId, validateConnectionString } from '@/lib/utils';
+import { slugify, parseRepoFullName, generateId, validateConnectionString, validateRootDirectory } from '@/lib/utils';
 import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
 import { encrypt } from '@/lib/crypto';
 import { upsertSecret } from '@/lib/gcp/secrets';
+import { claimProjectSlug, releaseProjectSlug } from '@/lib/slug-registry';
+import {
+    assessRepoBinding,
+    buildRepoVerification,
+    isWebhookAlreadyExistsError,
+    repoOwnerKey,
+} from '@/lib/repo-binding';
 import type { EnvVariable, StorageConfig, StorageType } from '@/types';
 
 // GET /api/projects - List user's projects
@@ -90,6 +97,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const rootDirValidation = validateRootDirectory(rootDirectory);
+        if (!rootDirValidation.valid) {
+            return NextResponse.json(
+                { error: rootDirValidation.error },
+                { status: 400, headers: securityHeaders }
+            );
+        }
+
         // Verify team membership if creating project in a team
         if (teamId) {
             const membership = await getTeamMembership(teamId, session.user.id);
@@ -115,12 +130,45 @@ export async function POST(request: NextRequest) {
         // Get repo details from GitHub
         const repoData = await getRepo(session.accessToken, owner, repo);
 
+        // getRepo() is octokit repos.get, which succeeds for ANY repo the token can
+        // merely READ - it is a visibility check, not an ownership one. Admin rights are
+        // the only entitlement signal GitHub gives us, so decide the binding on that
+        // before we reserve any global resource (a 403 after claimProjectSlug would leak
+        // the reservation).
+        const isRepoAdmin = repoData.permissions?.admin === true;
+        const ownerKey = repoOwnerKey({ userId: session.user.id, teamId: teamId || null });
+        const binding = await assessRepoBinding(repoData.full_name, ownerKey, isRepoAdmin);
+
+        if (binding.conflict) {
+            console.error(
+                `[RepoBinding] ${binding.allowed ? 'Allowing' : 'Refusing'} unverified bind of ` +
+                `"${repoData.full_name}" by ${ownerKey}; already held by ${binding.conflict.ownerKey} ` +
+                `(project ${binding.conflict.projectId})`
+            );
+            await logAuditEvent(
+                teamId || null,
+                session.user.id,
+                binding.allowed ? 'project.repo_binding_unverified' : 'project.repo_binding_refused',
+                {
+                    repoFullName: repoData.full_name,
+                    conflictProjectId: binding.conflict.projectId,
+                }
+            );
+        }
+
+        if (!binding.allowed) {
+            return NextResponse.json(
+                { error: 'This repository is already connected by another account. Ask a repository admin to connect it.' },
+                { status: 403, headers: securityHeaders }
+            );
+        }
+
         // Generate slug
         const projectName = name || repoData.name;
-        const slug = slugify(projectName);
+        const desiredSlug = slugify(projectName);
 
         // Check if slug already exists for this user
-        const existingProject = await getProjectBySlug(session.user.id, slug);
+        const existingProject = await getProjectBySlug(session.user.id, desiredSlug);
         if (existingProject) {
             return NextResponse.json(
                 { error: 'A project with this name already exists' },
@@ -128,13 +176,36 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create webhook on the repository
+        // The slug also names a GLOBAL Cloud Run service and the public hostname
+        // <slug>.deployify.io, so it must be globally unique - not just unique per user.
+        const claim = await claimProjectSlug(desiredSlug, session.user.id);
+        if (!claim.ok) {
+            return NextResponse.json(
+                { error: 'A project with this name already exists' },
+                { status: 400, headers: securityHeaders }
+            );
+        }
+        const slug = claim.slug;
+
+        // Create webhook on the repository. Success (or a 422 "hook already exists")
+        // proves admin rights, which is the entitlement signal we persist alongside the
+        // binding - the failure is still swallowed, exactly as before.
+        let webhookId: number | null = null;
+        let webhookProvesAdmin = false;
         try {
-            await createRepoWebhook(session.accessToken, owner, repo);
+            webhookId = await createRepoWebhook(session.accessToken, owner, repo);
+            webhookProvesAdmin = true;
         } catch (error) {
             console.error('Failed to create webhook:', error);
+            // GitHub answers 404 to a non-admin, so 422 means the hook is already there.
+            webhookProvesAdmin = isWebhookAlreadyExistsError(error);
             // Continue without webhook - user may not have admin access
         }
+
+        const repoVerification = buildRepoVerification(
+            webhookId,
+            isRepoAdmin || webhookProvesAdmin
+        );
 
         // Detect framework if auto or not provided
         let selectedFramework = framework;
@@ -194,13 +265,15 @@ export async function POST(request: NextRequest) {
         });
 
         // Create the project
-        const project = await createProject({
+        const projectInput = {
             userId: session.user.id,
             teamId: teamId || undefined,
             name: projectName,
             slug,
             repoFullName: repoData.full_name,
             repoUrl: repoData.html_url,
+            repoId: repoData.id,
+            repoVerification,
             defaultBranch: repoData.default_branch,
             framework: selectedFramework,
             buildCommand: buildCommand || defaultBuildCommand,
@@ -212,7 +285,16 @@ export async function POST(request: NextRequest) {
             region: region || null,
             envVariables: processedEnvVars,
             autoDeployPrs: true,
-        });
+        };
+
+        let project;
+        try {
+            project = await createProject(projectInput);
+        } catch (createError) {
+            // Do not leak the reservation if the project row was never written.
+            await releaseProjectSlug(slug);
+            throw createError;
+        }
 
         // 3. Process storage configurations if provided
         if (inputStorageConfigs && Array.isArray(inputStorageConfigs) && inputStorageConfigs.length > 0) {

@@ -1,6 +1,8 @@
 import { getGcpAccessToken } from './auth';
 import { config } from '@/lib/config';
 import { getSecretValue } from './secrets';
+import { classifyOrphan, classifyOrphanLegacy, isLegacyOrphanDetection } from './orphan-detection';
+import type { OrphanCandidate, OrphanContext } from './orphan-detection';
 
 export interface DiscoveredResource {
     id: string;
@@ -9,6 +11,8 @@ export interface DiscoveredResource {
     region: string;
     status: string;
     isOrphaned?: boolean;
+    /** Why the resource was (or was not) flagged. Additive; safe to ignore. */
+    orphanReason?: string;
     metadata?: Record<string, string | number | boolean | undefined>;
 }
 
@@ -18,9 +22,18 @@ export interface DiscoveredResource {
 export async function discoverResources(
     projectId?: string, // GCP Project ID (Optional)
     activeBranchPatterns: string[] = [],
-    deployifyProjectId?: string // Deployify Project ID to fetch external API keys
+    deployifyProjectId?: string, // Deployify Project ID to fetch external API keys
+    orphanContext?: OrphanContext // Provenance for orphan classification (see orphan-detection.ts)
 ): Promise<DiscoveredResource[]> {
     const targetProjectId = projectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
+
+    // Orphan classification. Without a context we cannot prove anything, so strict mode
+    // flags nothing; legacy mode keeps the old substring heuristic verbatim.
+    const classify = (candidate: OrphanCandidate) => {
+        if (orphanContext) return classifyOrphan(candidate, orphanContext);
+        if (isLegacyOrphanDetection()) return classifyOrphanLegacy(candidate.name, activeBranchPatterns);
+        return { orphaned: false, reason: 'Provenance unavailable' };
+    };
 
     if (process.env.MOCK_DB === 'true') {
         return [
@@ -88,9 +101,14 @@ export async function discoverResources(
         if (sqlRes.ok) {
             const data = await sqlRes.json();
             if (data.items) {
-                data.items.forEach((item: { name: string; region: string; state: string; databaseVersion: string; connectionName: string }) => {
-                    const isEphemeral = item.name.includes('-pr-') || item.name.includes('-branch-');
-                    const isOrphaned = isEphemeral && activeBranchPatterns.length > 0 && !activeBranchPatterns.some(p => item.name.includes(p));
+                data.items.forEach((item: { name: string; region: string; state: string; databaseVersion: string; connectionName: string; settings?: { userLabels?: Record<string, string> } }) => {
+                    const metadata = {
+                        databaseVersion: item.databaseVersion,
+                        connectionName: item.connectionName,
+                        deployifyProjectId: item.settings?.userLabels?.['deployify-project-id'],
+                        managedBy: item.settings?.userLabels?.['managed-by']
+                    };
+                    const verdict = classify({ id: item.name, name: item.name, type: 'cloud-sql', metadata });
 
                     resources.push({
                         id: item.name,
@@ -98,11 +116,9 @@ export async function discoverResources(
                         type: 'cloud-sql',
                         region: item.region,
                         status: item.state,
-                        isOrphaned,
-                        metadata: {
-                            databaseVersion: item.databaseVersion,
-                            connectionName: item.connectionName
-                        }
+                        isOrphaned: verdict.orphaned,
+                        orphanReason: verdict.reason,
+                        metadata
                     });
                 });
             }
@@ -119,12 +135,17 @@ export async function discoverResources(
         if (redisRes.ok) {
             const data = await redisRes.json();
             if (data.instances) {
-                data.instances.forEach((item: { name: string; state: string; memorySizeGb: number; redisVersion: string }) => {
+                data.instances.forEach((item: { name: string; state: string; memorySizeGb: number; redisVersion: string; labels?: Record<string, string> }) => {
                     const parts = item.name.split('/');
                     const id = parts[parts.length - 1];
                     const region = parts[parts.length - 3];
-                    const isEphemeral = id.includes('-pr-') || id.includes('-branch-');
-                    const isOrphaned = isEphemeral && activeBranchPatterns.length > 0 && !activeBranchPatterns.some(p => id.includes(p));
+                    const metadata = {
+                        memorySizeGb: item.memorySizeGb,
+                        redisVersion: item.redisVersion,
+                        deployifyProjectId: item.labels?.['deployify-project-id'],
+                        managedBy: item.labels?.['managed-by']
+                    };
+                    const verdict = classify({ id, name: id, type: 'memorystore-redis', metadata });
 
                     resources.push({
                         id,
@@ -132,11 +153,9 @@ export async function discoverResources(
                         type: 'memorystore-redis',
                         region,
                         status: item.state,
-                        isOrphaned,
-                        metadata: {
-                            memorySizeGb: item.memorySizeGb,
-                            redisVersion: item.redisVersion
-                        }
+                        isOrphaned: verdict.orphaned,
+                        orphanReason: verdict.reason,
+                        metadata
                     });
                 });
             }
@@ -156,8 +175,10 @@ export async function discoverResources(
                 data.databases.forEach((item: { name: string; locationId: string; type: string }) => {
                     const parts = item.name.split('/');
                     const id = parts[parts.length - 1];
-                    const isEphemeral = id.includes('-pr-') || id.includes('-branch-');
-                    const isOrphaned = isEphemeral && activeBranchPatterns.length > 0 && !activeBranchPatterns.some(p => id.includes(p));
+                    // The Firestore v1 databases API exposes no labels, so provenance can
+                    // never be proven -> classifyOrphan() always answers false in strict mode.
+                    const metadata = { type: item.type };
+                    const verdict = classify({ id, name: id, type: 'firestore', metadata });
 
                     resources.push({
                         id,
@@ -165,10 +186,9 @@ export async function discoverResources(
                         type: 'firestore',
                         region: item.locationId,
                         status: 'READY', // Firestore doesn't provide a simple 'state' in this list
-                        isOrphaned,
-                        metadata: {
-                            type: item.type
-                        }
+                        isOrphaned: verdict.orphaned,
+                        orphanReason: verdict.reason,
+                        metadata
                     });
                 });
             }

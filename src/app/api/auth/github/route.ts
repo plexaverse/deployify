@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createGitHubOAuthUrl, generateOAuthState } from '@/lib/auth';
 import { config } from '@/lib/config';
+import { normalizeCliCallbackPort } from '@/lib/security/cli-callback';
 
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const cli = searchParams.get('cli') === 'true';
-        const port = searchParams.get('port');
+        // Only ever persist a validated TCP port. Anything else (e.g.
+        // `1@evil.com`) is dropped here so it can never reach the callback's
+        // loopback redirect.
+        const port = normalizeCliCallbackPort(searchParams.get('port'));
 
         // Generate CSRF state token
         const state = generateOAuthState();

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { listProjectsByUser, listProjectsByTeam } from '@/lib/db';
+import { resolveWorkspaceProjects } from '@/lib/infrastructure-scope';
 import { checkSecurityPosture } from '@/lib/gcp/security-auditor';
-import type { Project } from '@/types';
 
 /**
  * GET - Detailed workspace-wide compliance report for all projects and databases
@@ -17,13 +16,12 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const teamId = searchParams.get('teamId');
 
-        // 1. Fetch projects
-        let projects: Project[] = [];
-        if (teamId) {
-            projects = await listProjectsByTeam(teamId);
-        } else {
-            projects = await listProjectsByUser(session.user.id);
+        // 1. Fetch projects (team membership verified before any team read)
+        const scope = await resolveWorkspaceProjects(session.user.id, teamId, 'infrastructure/compliance-report');
+        if (!scope.allowed) {
+            return NextResponse.json({ success: false, error: scope.error }, { status: scope.status });
         }
+        const projects = scope.projects;
 
         // 2. Generate detailed compliance data
         const report = projects.map(project => {

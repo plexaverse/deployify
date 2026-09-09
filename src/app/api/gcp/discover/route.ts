@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { discoverResources } from '@/lib/gcp/discovery';
+import { checkResourceOwnership, isDiscoveryVisible } from '@/lib/gcp/resource-ownership';
 
 /**
  * GET - Discover database resources in a GCP project
@@ -43,11 +44,23 @@ export async function GET(request: NextRequest) {
                 .map(d => d.pullRequestNumber ? `pr${d.pullRequestNumber}` : d.gitBranch.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase())
         ));
 
-        const resources = await discoverResources(targetGcpProjectId, activePatterns, projectId);
+        // Provenance for orphan classification. `activePatterns` above is the
+        // DATABASE-NAME vocabulary used by getBranchConnectionString(); it can never
+        // match a GCP INSTANCE name, which is why the pre-fix heuristic flagged live
+        // resources as orphaned. See src/lib/gcp/orphan-detection.ts.
+        const resources = await discoverResources(targetGcpProjectId, activePatterns, projectId, {
+            project: access.project,
+            deployments,
+            legacyActivePatterns: activePatterns
+        });
+
+        // Scope the listing to resources this project owns inside the shared
+        // platform GCP project. No-op unless GCP_DISCOVERY_SCOPE=owned.
+        const visible = resources.filter(r => isDiscoveryVisible(access.project, r, gcpProjectId));
 
         return NextResponse.json({
             success: true,
-            resources
+            resources: visible
         });
     } catch (error) {
         console.error('Failed to discover GCP resources:', error);
@@ -89,7 +102,34 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: 'Forbidden: Only owners and admins can reclaim resources' }, { status: 403 });
         }
 
-        // 2. Perform deletion based on type
+        // 2. Verify the TARGET RESOURCE belongs to that Deployify project.
+        // checkProjectAccess() above only proves the caller owns `projectId`; it says
+        // nothing about `resourceId`, which lives in the shared platform GCP project.
+        const ownership = await checkResourceOwnership(
+            access.project,
+            resourceType,
+            resourceId,
+            region,
+            gcpProjectId
+        );
+
+        if (!ownership.owned) {
+            const { logAuditEvent: logDenied } = await import('@/lib/audit');
+            await logDenied(
+                access.project.teamId || null,
+                session.user.id,
+                'storage.resource_reclaim_denied',
+                { projectId, resourceId, resourceType, gcpProjectId, reason: ownership.reason }
+            );
+
+            if (process.env.GCP_RECLAIM_OWNERSHIP_MODE !== 'audit') {
+                console.warn(`[ReclaimGuard] DENY user=${session.user.id} project=${projectId} resource=${resourceId}: ${ownership.reason}`);
+                return NextResponse.json({ error: `Forbidden: ${ownership.reason}` }, { status: 403 });
+            }
+            console.warn(`[ReclaimGuard] AUDIT-ONLY would-deny user=${session.user.id} project=${projectId} resource=${resourceId}: ${ownership.reason}`);
+        }
+
+        // 3. Perform deletion based on type
         // Note: In discovery, resourceType is 'cloud-sql', 'firestore', or 'memorystore-redis'
         // which matches the DiscoveredResource interface.
         try {
@@ -122,7 +162,8 @@ export async function DELETE(request: NextRequest) {
                 projectId,
                 resourceId,
                 resourceType,
-                gcpProjectId
+                gcpProjectId,
+                ownershipVia: ownership.owned ? ownership.via : 'audit-mode-override'
             }
         );
 

@@ -8,11 +8,56 @@ import { createInstance as createCloudSqlInstance, deleteInstance as deleteCloud
 import { createInstance as createMemorystoreInstance, deleteInstance as deleteMemorystoreInstance, updateInstanceSize as updateMemorystoreSize } from '@/lib/gcp/memorystore';
 import { createDatabase as createFirestoreDatabase, deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { deriveTopology } from '@/lib/gcp/topology';
+import { checkStorageProvisionGate } from '@/lib/billing/provision-gate';
 import type { StorageConfig } from '@/types';
 
 // Generate unique ID for storage configs
 function generateStorageId(): string {
     return `storage_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 8)}`;
+}
+
+/**
+ * Metadata keys that belong to Deployify's control plane: they are written by
+ * provisioning / sync / remediation and are READ by privileged code paths (IAM
+ * remediation, GCP resource deletion, compliance reporting). They must never be
+ * settable from a request body.
+ *
+ * Warn-only by default so real traffic can be observed first; set
+ * STORAGE_METADATA_STRICT=true to actually strip them. The dashboard never sends any
+ * of these (StorageSection.tsx handleUpdate/handleScale build metadata by hand), and
+ * stripping only falls back to the already-stored value, so it is a UI no-op.
+ */
+const SERVER_OWNED_METADATA_KEYS = [
+    'provisioned',
+    'projectId',
+    'resourceName',
+    'excessiveRoles',
+    'iamOverprivileged',
+    'iamRoleVerified',
+    'broadSecretAccess',
+    'security'
+] as const;
+
+// `body` is untyped JSON here, and callers below read `metadata.tier`, `metadata.highAvailability`
+// etc. Keep the loose shape so this helper is type-transparent and adds no tsc surface.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function sanitizeClientMetadata(metadata: any, context: string): any {
+    if (!metadata || typeof metadata !== 'object') return metadata;
+
+    const present = SERVER_OWNED_METADATA_KEYS.filter((k) => Object.prototype.hasOwnProperty.call(metadata, k));
+    if (present.length === 0) return metadata;
+
+    if (process.env.STORAGE_METADATA_STRICT !== 'true') {
+        console.warn(`[StorageMetadata] ${context}: request supplied server-owned metadata key(s) [${present.join(', ')}]; not stripped (STORAGE_METADATA_STRICT is off).`);
+        return metadata;
+    }
+
+    console.warn(`[StorageMetadata] ${context}: stripped server-owned metadata key(s) [${present.join(', ')}] from request body.`);
+    const sanitized = { ...metadata };
+    for (const key of present) {
+        delete sanitized[key];
+    }
+    return sanitized;
 }
 
 // GET - List all storage configurations for a project
@@ -79,7 +124,7 @@ export async function POST(
         const { project } = access;
         const body = await request.json();
         const { type, name, environment = 'both', connectionString, envKey, branchingSettings, autoMigration, migrationCommand, provision = false, region, providerApiKey, dbPassword, providerProjectId, autoMaintenanceWindow } = body;
-        let metadata = body.metadata;
+        let metadata = sanitizeClientMetadata(body.metadata, `POST project ${id}`);
 
         // autoSync and secretOnly can be passed at top level or inside metadata
         const autoSync = body.autoSync || metadata?.autoSync || false;
@@ -101,6 +146,19 @@ export async function POST(
          * Standard Provisioning Flow
          */
         if (provision) {
+            // Plan gate: machine tier allowlist + per-account instance quota. No-op unless
+            // STORAGE_PROVISION_GATE_MODE=enforce; see src/lib/billing/provision-gate.ts.
+            const gate = await checkStorageProvisionGate({
+                ownerUserId: project.userId,
+                storageType: type,
+                requestedTier: metadata?.tier,
+                requestedHighAvailability: metadata?.highAvailability,
+                createsNewInstance: true,
+            });
+            if (gate.blocked) {
+                return NextResponse.json({ error: gate.message }, { status: gate.status || 400 });
+            }
+
             const targetRegion = region || project.region || 'us-central1';
 
             // Backend Regional Alignment Enforcement
@@ -363,7 +421,8 @@ export async function PATCH(
 
         const { project } = access;
         const body = await request.json();
-        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled, providerProjectId, autoMaintenanceWindow } = body;
+        const { storageId, type, name, environment, connectionString, envKey, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled, providerProjectId, autoMaintenanceWindow } = body;
+        const metadata = sanitizeClientMetadata(body.metadata, `PATCH project ${id} storage ${body.storageId}`);
         const secretOnly = body.secretOnly !== undefined ? body.secretOnly : metadata?.secretOnly;
 
         if (!storageId) {
@@ -405,6 +464,21 @@ export async function PATCH(
         if (storage.metadata?.provisioned && metadata) {
             const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
             const region = (storage.metadata?.region as string) || project.region || 'us-central1';
+
+            // Same gate as POST, minus the quota: scaling never adds an instance. Resubmitting
+            // the tier already stored on this config is always allowed, so adopted instances
+            // whose real tier is off-allowlist keep working.
+            const gate = await checkStorageProvisionGate({
+                ownerUserId: project.userId,
+                storageType: storage.type,
+                requestedTier: metadata.tier,
+                currentTier: storage.metadata?.tier,
+                requestedHighAvailability: metadata.highAvailability,
+                createsNewInstance: false,
+            });
+            if (gate.blocked) {
+                return NextResponse.json({ error: gate.message }, { status: gate.status || 400 });
+            }
 
             try {
                 if (storage.type.includes('cloud-sql')) {

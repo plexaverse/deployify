@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyWebhookSignature } from '@/lib/billing/payments';
 import { config } from '@/lib/config';
+import type { TierType } from '@/lib/billing/tiers';
 
 export async function POST(req: Request) {
     try {
@@ -38,6 +39,26 @@ export async function POST(req: Request) {
 
                 if (userId && tierId) {
                     const { updateUser } = await import('@/lib/db');
+                    const {
+                        claimOrderPayment, getVerifyTierMode, isPaymentFulfilled, markOrderFulfilled
+                    } = await import('@/lib/billing/order-registry');
+
+                    // Razorpay redelivers payment.captured on retry. Without the shared
+                    // ledger every redelivery pushed currentPeriodEnd out another 30 days.
+                    // Ledger failures degrade to "grant anyway" - never to a non-200, which
+                    // Razorpay would just retry.
+                    const ledgerOn = getVerifyTierMode() !== 'off';
+
+                    if (ledgerOn) {
+                        const claim = await claimOrderPayment(orderId, payment.id, null);
+
+                        if (claim === 'replay' && await isPaymentFulfilled(orderId, payment.id)) {
+                            console.log('[Billing Webhook] payment.captured already applied; skipping', {
+                                orderId, paymentId: payment.id
+                            });
+                            break;
+                        }
+                    }
 
                     await updateUser(userId, {
                         subscription: {
@@ -48,6 +69,10 @@ export async function POST(req: Request) {
                             razorpaySubscriptionId: orderId,
                         }
                     });
+
+                    if (ledgerOn) {
+                        await markOrderFulfilled(orderId, payment.id, userId, tierId as TierType);
+                    }
 
                 } else {
                     console.error('Missing userId or tierId in payment notes', { orderId, notes });

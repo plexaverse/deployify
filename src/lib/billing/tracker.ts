@@ -92,9 +92,13 @@ export async function getMonthlyUsage(userId: string) {
     const snapshots = await Promise.all(deploymentPromises);
 
     snapshots.forEach(snap => {
-        totalDeployments += snap.size;
         snap.docs.forEach(doc => {
             const data = doc.data();
+            // Records created *because* a cap refused the deployment never ran a build,
+            // so they must not count against that cap. No pre-existing document carries
+            // this field, so historical numbers are unchanged.
+            if (data.usageBlocked === true) return;
+            totalDeployments += 1;
             if (data.buildDurationMs) {
                 totalBuildDurationMs += data.buildDurationMs;
             }

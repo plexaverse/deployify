@@ -3,6 +3,7 @@ import { getProjectBySlugGlobal } from '@/lib/db';
 import { getDb, Collections } from '@/lib/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { trackError } from '@/lib/logging/tracker';
+import { fetchWithSsrfGuard, getProxySsrfMode, ProxyTargetBlockedError } from '@/lib/security/ssrf';
 
 // Helper for bot detection
 const isBot = (ua: string) => {
@@ -116,6 +117,8 @@ async function handleProxyRequest(
         }, { status: 400 });
     }
 
+    const ssrfMode = getProxySsrfMode();
+
     try {
         const method = req.method;
         const headers = new Headers();
@@ -161,7 +164,7 @@ async function handleProxyRequest(
             });
         }
 
-        const targetResponse = await fetch(targetUrl, fetchOptions);
+        const targetResponse = await fetchWithSsrfGuard(targetUrl, fetchOptions, ssrfMode);
 
         const contentType = targetResponse.headers.get('content-type') || '';
         const responseHeaders = new Headers();
@@ -211,6 +214,18 @@ async function handleProxyRequest(
         });
 
     } catch (error: unknown) {
+        // SSRF guard rejections are an expected/attack condition, not an incident:
+        // reuse the existing 502 body shape but skip trackError so an attacker cannot
+        // drive unbounded Firestore writes through this un-rate-limited route.
+        if (error instanceof ProxyTargetBlockedError) {
+            console.error(`[Proxy Security] Blocked proxy target for ${slug}: ${error.message}`);
+            return NextResponse.json({
+                error: 'Internal Proxy Error',
+                message: 'Upstream redirected to a disallowed address.',
+                targetUrl
+            }, { status: 502 });
+        }
+
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred during proxying';
 
         // Log to central error tracker
