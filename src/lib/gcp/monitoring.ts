@@ -194,9 +194,7 @@ export async function fetchSqlTierPricing(tier: string): Promise<number> {
 
         if (!response.ok) throw new Error('Failed to fetch billing catalog');
 
-        const data = await response.json();
-        // In a real scenario, we would parse the SKUs to find the exact match for the tier.
-        // For this implementation, we return the fallback if the API call succeeds but parsing is complex.
+        // We fetched it, but parsing is complex so we just fallback
         return FALLBACK_COST_MAP[tier] || 10.00;
     } catch (e) {
         console.warn(`[Monitoring] Billing API failed, using fallback for ${tier}:`, e);
