@@ -1,18 +1,20 @@
 # Deployify — Product Quality & Security Audit
 
-> **⚠️ STATUS CHANGED 2026-09-09 — THE WORKING TREE HAS BEEN MODIFIED.**
-> Earlier revisions of this file said "nothing in the codebase has been modified." **That is no
-> longer true.** The session-3 remediation agents had write access and applied their fixes directly:
-> **48 files modified, 55 new files, +2456/−407 lines.** This was not intended — the prompt asked
-> them to *design* fixes, but did not forbid writing. Nothing is committed; everything is snapshotted
-> in `audit-state/applied-changes/`.
+> **State as of 2026-09-09 (session 3).** Work lives on branch **`audit/security-hardening`**;
+> **`main` is untouched at `ece2cf3`**. Nothing has been pushed or merged.
 >
-> Current tree state: **495 tests pass** (up from 159 — the agents added tests), **eslint clean**.
-> But the changes are **unreviewed**, only **41 of 75** fixes ran (the rest hit an account limit),
-> and at least one critical — **SEC-15** — was designed but **never actually applied**.
+> - **74 defects** verified adversarially (Parts 1, 2b, 5). 9 critical.
+> - **41 fixes were auto-applied** by the remediation agents — this was unintended, they had write
+>   tools. Committed to the branch as `522a06c` so they are reviewable, not loose in the tree.
+> - **The 9 critical fixes were then reviewed** (Part 7). **Only 2 of 9 fully closed their defect.**
+>   One had not been applied to the vulnerable code at all.
+> - **2 of those gaps are now fixed** (`1a91c6f`, `ec91050`); **5 critical fixes remain partial**.
+> - Tree health: **510/510 tests pass**, **eslint clean**, **`tsc --noEmit` clean on source**.
 >
-> **Read in this order:** Part 6 (state + shortlist) → Part 1 & 2b (hand-verified) →
-> Part 5 (agent findings, adversarially verified) → Parts 2/3 (quality; raw archive).
+> **Do not merge this branch yet.** Five criticals still have working bypasses — see Part 7.
+>
+> **Read in this order:** Part 7 (what is still broken) → Part 6 (state) → Parts 1 & 2b
+> (hand-verified findings) → Part 5 (agent findings, verified) → Parts 2/3 (quality; raw archive).
 
 - **Repo:** `/Users/asangborkar/Documents/Plexaverse/deployify`
 - **Branch / HEAD:** `main` @ `ece2cf3`
@@ -7917,3 +7919,79 @@ Constraint: **"kuch break na ho existing project ka."** Every fix must:
 ⚠️ **Known trap:** rotating `JWT_SECRET` today destroys every stored tenant secret, because
 `ENCRYPTION_KEY` silently falls back to it and the ciphertext carries no key version (SEC-9).
 Fix the key-versioning **before** any credential rotation.
+
+---
+
+# PART 7 — Critical-fix review (session 3)
+
+Every one of the 9 applied critical fixes was put in front of **two adversarial reviewers**:
+one re-derived the original exploit against the post-fix code, the other checked for breakage
+against the "nothing may break" constraint.
+
+**Headline: only 2 of 9 fully closed their defect.** The rest were partial, and one had not
+been applied to the vulnerable code at all. This is why the applied patches must not be trusted
+without review.
+
+| finding | closes? | breaks? | verdict | status now |
+|---|---|---|---|---|
+| `ai-cost-abuse-1` | partially/partially | yes | fix-first | **still open** |
+| `authn-session-1` | partially/partially | yes | fix-first | **still open** |
+| `authz-idor-2` | no/no | yes | fix-first | **FIXED** in ec91050 |
+| `injection-db-1` | fully/fully | yes | fix-first | **still open** |
+| `secrets-crypto-1` | partially/partially | no | fix-first | **FIXED** in ec91050 |
+| `tenancy-data-1` | partially/fully | yes | fix-first | **still open** |
+| `tenancy-data-2` | partially/partially | yes | fix-first | **still open** |
+| `authz-idor-1` | fully/fully | no | ship | **still open** |
+| `ops-config-supply-1` | fully/fully | no | ship | **still open** |
+
+## What was fixed after the review (commit `ec91050`)
+
+**SEC-4 / `authz-idor-2` — the proxy fix had never been applied.** The header-forwarding loop
+in the proxy route was byte-identical to pre-fix; the agent had edited other parts of the same
+file. `Cookie: deployify_session=<JWT>` was still going to tenant-controlled origins. Now fixed
+with `src/lib/security/proxy-headers.ts`, which strips only Deployify's own cookie names so
+tenant app cookies and `Authorization` keep working.
+
+**SEC-15 / `secrets-crypto-1` — my own first fix was incomplete.** It bound the Data Lab to *a*
+named Firestore database, but not to *this project's*. Because `POST /storage` accepts a raw
+`connectionString` with `provision:false`, a tenant could register
+`firestore://<victim-db-id>` and read another tenant's data. The databaseId now comes only from
+server-provisioned metadata, and the server-owned metadata keys are strict by default.
+
+**Build-breaking type errors.** The earlier fix pass left `npx tsc --noEmit` failing
+(`addReplicaToConfigs` TS2345, `ssrf.test.ts` TS2540), which would have failed `next build`.
+Both fixed. `tsc` is now clean on source.
+
+## Still open — read the reviewer detail before trusting any of these
+
+Five critical fixes remain **partial**. The full reviewer analysis (with working bypass PoCs) is
+in `wf_30f498fa-106/journal.jsonl`. Summary of the residual holes:
+
+### `ai-cost-abuse-1`
+Set IAM_SELF_REMEDIATION_ENABLED=true (the fix's own documented opt-in, env.example:94-99) and the defect is fully back through the branch the new allowlist never touches: POST /api/projects/{id}/storage/{storageId}/remediate with body {"riskId":"broad_secret_access"} on ANY connector whose metadata.provisioned is truthy hits src/lib/gcp/remediation-utils.ts:285-288, which calls revokeProjectRole(gcpProjectId, saEmail, 'roles/secretmanager.secretAccessor') and 'roles/secretmanager.admin' against the shared platform SA with hard-coded role names — resolveRevocableRoles is never consulted, no metadata is needed, and remediateRisk never verifies the risk actually exists (the only precondition is metadata.provisioned). Any non-viewer team member on any project with one provisioned connector drops secret reads for every tenant at once; /api/infrastructure/remediate (src/app/api/infrastructure
+
+### `authn-session-1`
+STILL EXPLOITABLE in 3 requests, no env vars involved.
+
+Step 1 — enumerate (unchanged). GET /api/gcp/discover?projectId=<attacker's own project> still returns EVERY tenant's instance in the shared platform GCP project. src/lib/gcp/resource-ownership.ts:206 `if (process.env.GCP_DISCOVERY_SCOPE !== 'owned') return true;` — unset, so isDiscoveryVisible() is a pure no-op. Attacker reads the victim's `prod-db`, its region, databaseVersion and connectionName.
+
+Step 2 — claim the name. POST /api/projects/<attacker's project>/storage with body {"type":"cloud-sql-postgres","name":"prod-db"}. `provision` defaults to false (src/app/api/projects/[id]/storage/route.ts:126), so the whole `if (provision)` block is skipped: no GCP call, no plan gate (checkStorageProvisionGate is inside that block), and NOTHING verifies the name refers to a resource the attacker owns. The config is persisted with metadat
+
+### `injection-db-1`
+No bypass at default configuration. Every bypass I found requires a non-default env var or a Razorpay account misconfiguration:
+
+(1) `BILLING_VERIFY_TIER_MODE=monitor` or `=off` (src/lib/billing/order-registry.ts:52-54) restores the vulnerable code verbatim — `grantedTier` stays the client's `tierId` (src/app/api/billing/verify/route.ts:51, written at :129). Documented as the rollback switch, but it is a one-env-var re-open of a critical.
+
+(2) `MOCK_DB=true` forces the mode to `off` (order-registry.ts:50) AND `getSession()` hands an *unauthenticated* caller a `MOCK_SESSION` whose tier is already `enterprise` (src/lib/auth.ts:70-98). In any deploy where MOCK_DB leaked in, the original exploit works exactly as written. Nothing in the repo sets MOCK_DB for prod, so this is config-dependent.
+
+(3) Amount half of the finding, still open at defaults: `getPaymentCorroborationMode()` defaults to
+
+### `tenancy-data-1`
+WORKING BYPASS (2 API calls, no deployment needed). The new guard asks "does another *project document* have slug == base?" (planServiceDeletion -> isContested -> listProjectIdsBySlug, src/lib/gcp/service-ownership.ts:120-127, src/lib/db.ts:1215-1223). But the Cloud Run namespace is strictly larger than the project-slug namespace: preview services are `dfy-<slug>-pr-<N>` (src/lib/gcp/cloudrun.ts:252-254) and branch services are `dfy-<slug>-<slugify(branch)>` (src/lib/utils.ts getProjectSlugForDeployment). Those names are NOT any project's slug, so `listProjectIdsBySlug` returns empty and they come back UNCONTESTED.
+
+Exploit: victim project slug "acme" has an open PR #7, so `dfy-acme-pr-7` is running.
+1. POST /api/projects {name: "acme pr 7", repoFullName: <any repo attacker can read/admin>, region: <victim's region>}. slugify("acme pr 7") == "acme-pr-7". claimProjectSlug (src/lib/slug-re
+
+### `tenancy-data-2`
+Derived resource names are not in the registry. `claimProjectSlug` (src/lib/slug-registry.ts:120-155) only reserves the bare production slug, but `getProjectSlugForDeployment` (src/lib/utils.ts:76-91) derives preview/branch resource slugs as `${project.slug}-pr-${n}` and `${project.slug}-${slugify(branch)}`, and `generateServiceName` (src/lib/utils.ts:53-57) turns those into `dfy-<derived>`. Concrete attack, live with the shipped defaults: victim tenant owns project slug `acme` and has a PR-7 preview running as Cloud Run service `dfy-acme-pr-7`. Attacker creates a project named "acme pr 7" -> `slugify` -> `acme-pr-7`. `slugUsedByAnyProject('acme-pr-7')` is false (no PROJECT row carries that slug -- only a derived service exists) and `projectSlugs/acme-pr-7` does not exist, so the claim succeeds and the project is created. Attacker then deploys production: `generateServiceName('acme-pr-7'
+
