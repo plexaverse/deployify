@@ -28,6 +28,16 @@ export async function POST(
             return NextResponse.json({ success: false, error: access.error }, { status: access.status });
         }
 
+        // Remediation mutates shared GCP infrastructure (IAM on the platform service account,
+        // Cloud SQL settings, connection poolers). checkProjectAccess returns allowed:true for
+        // ANY team membership, so gate on role the way the destructive storage routes do.
+        if (access.role !== 'owner' && access.role !== 'admin') {
+            return NextResponse.json(
+                { success: false, error: 'Forbidden: Only owners and admins can remediate infrastructure risks' },
+                { status: 403 }
+            );
+        }
+
         const result = await remediateRisk(id, storageId, riskId, access.project);
 
         if (!result.success) {

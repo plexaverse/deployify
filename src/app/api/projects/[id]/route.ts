@@ -4,13 +4,16 @@ import { updateProject, deleteProject, listDeploymentsByProject, getProjectById 
 import { checkProjectAccess } from '@/middleware/rbac';
 import { securityHeaders } from '@/lib/security';
 import { logAuditEvent } from '@/lib/audit';
-import { deleteService, listServices, getProductionServiceName } from '@/lib/gcp/cloudrun';
+import { deleteService, getProductionServiceName } from '@/lib/gcp/cloudrun';
+import { releaseProjectSlug } from '@/lib/slug-registry';
+import { planServiceDeletion, type SkippedService } from '@/lib/gcp/service-ownership';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { syncCronJobs } from '@/lib/gcp/scheduler';
 import { deleteProjectImages } from '@/lib/gcp/artifacts';
 import { deleteDomainMapping } from '@/lib/gcp/domains';
 import { syncDeploymentStatus } from '@/lib/deployment';
-import { getProjectSlugForDeployment } from '@/lib/utils';
+import { getProjectSlugForDeployment, validateRootDirectory, isValidGcpRegion } from '@/lib/utils';
+import { checkComputeResourceGate } from '@/lib/billing/compute-gate';
 import { CronJobConfig, Project } from '@/types';
 
 interface RouteParams {
@@ -150,6 +153,26 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
             }
         }
 
+        // Validate rootDirectory
+        if (updates.rootDirectory !== undefined) {
+            const rootDirValidation = validateRootDirectory(updates.rootDirectory);
+            if (!rootDirValidation.valid) {
+                return NextResponse.json(
+                    { error: rootDirValidation.error },
+                    { status: 400, headers: securityHeaders }
+                );
+            }
+        }
+
+        // Validate region. It is interpolated into GCP resource paths and run.app
+        // hostnames, so it must never be a free-form string.
+        if (updates.region !== undefined && !isValidGcpRegion(updates.region)) {
+            return NextResponse.json(
+                { error: 'Invalid region' },
+                { status: 400, headers: securityHeaders }
+            );
+        }
+
         // Validate buildTimeout
         if (updates.buildTimeout !== undefined) {
             const timeout = Number(updates.buildTimeout);
@@ -225,6 +248,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
                         { status: 400, headers: securityHeaders }
                     );
                 }
+            }
+
+            // cpu and memory are allowlisted above, but the instance counts had no upper
+            // bound at all, so any tenant could pin an arbitrary number of always-on
+            // instances in the ONE GCP project every tenant shares. Plan caps, off by
+            // default (COMPUTE_LIMIT_MODE=audit logs and allows). Never throws; a value
+            // at or below what is already stored is always allowed.
+            const gate = await checkComputeResourceGate({
+                ownerUserId: project.userId,
+                requested: resources,
+                current: project.resources,
+            });
+            if (gate.blocked) {
+                return NextResponse.json(
+                    { error: gate.message },
+                    { status: gate.status || 400, headers: securityHeaders }
+                );
             }
         }
 
@@ -315,26 +355,36 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         }
 
         // 1. Identify and delete Cloud Run services and Artifact Registry images
+        //
+        // All tenants share one GCP project and services are named `dfy-<slug>` with no
+        // tenant qualifier, while slug uniqueness is only enforced per-user. So we never
+        // list-by-prefix here: we delete the exact names THIS project's own deployment
+        // records prove it created, and only those a slug-contention check clears.
+        let skippedServices: SkippedService[] = [];
         try {
             const accessToken = await getGcpAccessToken();
-            const projectSlug = access.project.slug;
             const region = access.project.region;
 
-            // Delete Artifact Registry images (all versions)
-            const serviceName = getProductionServiceName(projectSlug);
-            await deleteProjectImages(serviceName, region);
+            const deployments = await listDeploymentsByProject(access.project.id, 1000);
+            const plan = await planServiceDeletion(access.project, deployments);
+            skippedServices = plan.skipped;
 
-            // Use a prefix that matches both production and preview services
-            const prefix = `dfy-${projectSlug.substring(0, 40)}`;
-            const services = await listServices(prefix, accessToken, region);
+            if (plan.skipped.length > 0) {
+                console.warn(
+                    `[ProjectDelete] Left ${plan.skipped.length} Cloud Run service(s) in place for project ${access.project.id} (ambiguous ownership):`,
+                    plan.skipped
+                );
+            }
 
-            for (const service of services) {
-                // Extract service name from full resource name
-                // Service name is projects/{project}/locations/{location}/services/{serviceName}
-                const serviceName = service.name.split('/').pop();
-                if (serviceName) {
-                    await deleteService(serviceName, accessToken, region);
-                }
+            // Delete Artifact Registry images (all versions) for the production package.
+            // Same shared-namespace hazard, so only when the production name cleared.
+            const productionServiceName = getProductionServiceName(access.project.slug);
+            if (plan.deletable.includes(productionServiceName)) {
+                await deleteProjectImages(productionServiceName, region);
+            }
+
+            for (const serviceName of plan.deletable) {
+                await deleteService(serviceName, accessToken, region);
             }
         } catch (cleanupError) {
             console.error('Failed to cleanup GCP resources:', cleanupError);
@@ -363,13 +413,17 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         // 4. Delete project and all associated data from DB
         await deleteProject(id);
 
+        // Free the global slug reservation so the name can be reused, as it can today.
+        await releaseProjectSlug(access.project.slug);
+
         await logAuditEvent(
             access.project.teamId || null,
             session.user.id,
             'project.deleted',
             {
                 projectId: id,
-                name: access.project.name
+                name: access.project.name,
+                ...(skippedServices.length > 0 ? { skippedServices } : {})
             }
         );
 

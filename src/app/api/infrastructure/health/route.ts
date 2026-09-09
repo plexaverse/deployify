@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { listProjectsByUser, listProjectsByTeam } from '@/lib/db';
+import { resolveWorkspaceProjects } from '@/lib/infrastructure-scope';
 import { getEstimatedMonthlyCost, getExternalMetrics, getCostForecast } from '@/lib/gcp/monitoring';
-import type { Project } from '@/types';
 
 /**
  * GET - Aggregate infrastructure health across all projects in the workspace
@@ -17,13 +16,12 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const teamId = searchParams.get('teamId');
 
-        // 1. Fetch projects for the context
-        let projects: Project[] = [];
-        if (teamId) {
-            projects = await listProjectsByTeam(teamId);
-        } else {
-            projects = await listProjectsByUser(session.user.id);
+        // 1. Fetch projects for the context (team membership verified before any team read)
+        const scope = await resolveWorkspaceProjects(session.user.id, teamId, 'infrastructure/health');
+        if (!scope.allowed) {
+            return NextResponse.json({ success: false, error: scope.error }, { status: scope.status });
         }
+        const projects = scope.projects;
 
         // 2. Aggregate health metrics
         let totalConnectors = 0;

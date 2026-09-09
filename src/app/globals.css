@@ -414,3 +414,76 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ============================================================================
+   UI legibility remap  (defect product-ux-7)
+   ----------------------------------------------------------------------------
+   The update_typography*.sh sed cascade at the repo root collapsed the entire
+   type scale into two arbitrary utilities: text-[8px] (1209 uses) and
+   text-[10px] (331 uses). There are ZERO named text-* utilities left in src/,
+   so the five selectors below are the product's complete typography surface.
+
+   Mechanism: Tailwind v4 emits its utilities inside `@layer utilities`. The
+   rules below are UNLAYERED, and unlayered CSS outranks every cascade layer
+   regardless of specificity — so they win without !important and without
+   touching a single one of the ~1540 call sites.
+
+   ORDERING IS LOAD-BEARING: because the unlayered base rule also outranks the
+   layered `md:text-[10px]`, the md step is re-declared here. It must stay
+   AFTER the base rule — equal specificity (0,2,0), so later source order wins.
+   Moving it above .text-\[8px\] silently flattens every <h1> back to one size.
+
+   Gated on <html data-ui-scale> / <html data-ui-contrast>, set by layout.tsx
+   from UI_LEGIBILITY_MODE. With no attribute present, nothing here applies and
+   rendering is identical to today.
+   ========================================================================== */
+
+:root {
+    /* Defaults; layout.tsx may override per-environment via UI_TYPE_SCALE_*. */
+    --ui-fs-1: 13px;
+    --ui-fs-2: 16px;
+
+    /* Light-theme status text. The shipped hues fail WCAG AA badly as TEXT:
+       success #22c55e 2.28:1, warning #eab308 1.92:1, error #ef4444 3.76:1,
+       info #3b82f6 3.68:1 on white (worse on the 10% tint the badges use).
+       These replacements clear 4.5:1 on both white and the tint. */
+    --success-text: #15803d; /* 5.02:1 on white, 4.60:1 on --success-bg */
+    --warning-text: #a16207; /* 4.92:1 on white, 4.60:1 on --warning-bg */
+    --error-text: #b91c1c;   /* 6.47:1 on white, 5.66:1 on --error-bg   */
+    --info-text: #1d4ed8;    /* 6.70:1 on white, 5.99:1 on --info-bg    */
+}
+
+/* Dark theme already passes (8.69 / 10.32 / 5.26 / 5.38:1), and it is the
+   product default. Point the text tokens back at the originals so enabling
+   the flag is a no-op for every dark-theme user. */
+.dark {
+    --success-text: var(--success);
+    --warning-text: var(--warning);
+    --error-text: var(--error);
+    --info-text: var(--info);
+}
+
+/* --- Stage 2: type scale. Changes box metrics, so it reflows. ------------- */
+[data-ui-scale="v2"] .text-\[8px\] { font-size: var(--ui-fs-1); }
+[data-ui-scale="v2"] .text-\[10px\] { font-size: var(--ui-fs-2); }
+[data-ui-scale="v2"] .placeholder\:text-\[8px\]::placeholder { font-size: var(--ui-fs-1); }
+[data-ui-scale="v2"] .file\:text-\[10px\]::file-selector-button { font-size: var(--ui-fs-2); }
+
+/* Keep the responsive step. MUST remain after the base rule (see note above). */
+@media (width >= 48rem) {
+    [data-ui-scale="v2"] .md\:text-\[10px\] { font-size: var(--ui-fs-2); }
+}
+
+/* --- Stage 1: contrast. Colour only; no geometry changes, so no reflow. ---
+   Deliberately scoped to the *text* utilities. bg-[var(--success)] (43 uses),
+   border-[var(--success)] (23) and .status-dot-* keep the original vivid hues,
+   so fills, dots and chart strokes are pixel-identical. */
+[data-ui-contrast="v2"] .text-\[var\(--success\)\] { color: var(--success-text); }
+[data-ui-contrast="v2"] .text-\[var\(--warning\)\] { color: var(--warning-text); }
+[data-ui-contrast="v2"] .text-\[var\(--error\)\] { color: var(--error-text); }
+[data-ui-contrast="v2"] .text-\[var\(--info\)\] { color: var(--info-text); }
+
+@media (hover: hover) {
+    [data-ui-contrast="v2"] .hover\:text-\[var\(--error\)\]:hover { color: var(--error-text); }
+    [data-ui-contrast="v2"] .hover\:text-\[var\(--warning\)\]:hover { color: var(--warning-text); }
+}

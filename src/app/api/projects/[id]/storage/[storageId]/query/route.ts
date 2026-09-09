@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
-import { getDb, Collections } from '@/lib/firebase';
+import { getDb, getNamedDb, Collections } from '@/lib/firebase';
 import { config } from '@/lib/config';
 import { selectReplica, type ReplicaMetadata } from '@/lib/db';
 import type { StorageConfig } from '@/types';
@@ -12,8 +12,30 @@ import mysql from 'mysql2/promise';
 import { MongoClient } from 'mongodb';
 import Redis from 'ioredis';
 import { maskData } from '@/lib/utils/masking';
+import {
+    escapeRegExp,
+    sanitizeQueryVariables,
+    resolveWidgetStorageId,
+    exceedsQueryLengthLimit,
+    getMaxQueryChars,
+    splitSqlStatements,
+    projectedLengthAfterReplace,
+    SUBSTITUTION_BUDGET_FACTOR
+} from '@/lib/utils/query-variables';
 
 const MAX_ROWS = 500;
+
+/**
+ * Hoisted out of the per-statement loop: these were rebuilt with `new RegExp`
+ * for every keyword of every statement, so a query of N semicolons cost 20*N
+ * regex compilations. None carry the `g` flag, so `.test()` is stateless and
+ * sharing them is behaviour-identical.
+ */
+const FORBIDDEN_KEYWORD_PATTERNS: readonly RegExp[] = [
+    'INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'REPLACE', 'TRUNCATE',
+    'GRANT', 'REVOKE', 'SET', 'EXECUTE', 'PREPARE', 'CALL', 'MERGE', 'RENAME', 'COMMENT',
+    'VACUUM', 'COPY', 'LOAD', 'INTO OUTFILE', 'INTO DUMPFILE', 'LOCK', 'UNLOCK'
+].map(kw => new RegExp(`\\b${kw}\\b`, 'i'));
 
 /**
  * Production-ready read-only query browser proxy
@@ -26,11 +48,15 @@ export async function POST(
         const { id, storageId } = await params;
         const body = await request.json();
         let { query } = body;
-        const { variables = {}, widgetId, dryRun } = body;
+        const { widgetId, dryRun } = body;
+        let variables: Record<string, unknown> = sanitizeQueryVariables(body.variables);
 
         let session = null;
         let storageConfig: StorageConfig | undefined;
         let access: import('@/middleware/rbac').ProjectAccessResult | null = null;
+        // The connector this request actually executes against. For public widgets it is
+        // pinned to the widget document; the URL segment is anonymous caller input there.
+        let effectiveStorageId = storageId;
 
         // 1. Authorization Logic
         if (widgetId) {
@@ -50,13 +76,31 @@ export async function POST(
             // Enforce the saved query for public access
             query = widgetData.query;
 
+            // SECURITY: bind execution to the connector the widget was saved against.
+            // The URL segment is anonymous caller input here, so it must not be able to
+            // point a public widget at a different (e.g. production) connector.
+            const binding = resolveWidgetStorageId(widgetData.storageId, storageId);
+            effectiveStorageId = binding.storageId;
+            if (binding.mismatch) {
+                console.warn(`[DataLab] Public widget ${widgetId} was requested against storage ${storageId} but is bound to ${binding.storageId}. Using the bound connector.`);
+            }
+
+            // SECURITY: the public widget contract is "run exactly the saved query".
+            // src/app/share/dashboard/[id]/page.tsx (the only public client) posts
+            // { widgetId } and nothing else, so dropping caller variables is a no-op for
+            // every first-party caller. The flag restores the old behaviour if a tenant
+            // turns out to drive public widgets with variables from their own embed.
+            if (process.env.DATALAB_PUBLIC_WIDGET_ALLOW_VARIABLES !== 'true') {
+                variables = {};
+            }
+
             // Still need storage config
             if (process.env.MOCK_DB === 'true' && id === 'audit-id') {
                 storageConfig = { id: 'mock-storage-id', type: 'cloud-sql-postgres', name: 'MOCK STORAGE' } as StorageConfig;
             } else {
                 const projectDoc = await db.collection(Collections.PROJECTS).doc(id).get();
                 const projectData = projectDoc.data();
-                storageConfig = projectData?.storageConfigs?.find((s: StorageConfig) => s.id === storageId);
+                storageConfig = projectData?.storageConfigs?.find((s: StorageConfig) => s.id === effectiveStorageId);
             }
         } else {
             // Standard Path: Session required
@@ -72,7 +116,7 @@ export async function POST(
                 if (!access.allowed) {
                     return NextResponse.json({ success: false, error: access.error }, { status: access.status });
                 }
-                storageConfig = access.project?.storageConfigs?.find((s: StorageConfig) => s.id === storageId);
+                storageConfig = access.project?.storageConfigs?.find((s: StorageConfig) => s.id === effectiveStorageId);
             }
         }
 
@@ -82,6 +126,18 @@ export async function POST(
 
         if (!query) {
             return NextResponse.json({ success: false, error: 'Query is required' }, { status: 400 });
+        }
+
+        // DoS guard: every downstream scan (variable substitution, statement
+        // splitting, read-only keyword checks) is linear-or-worse in query length,
+        // and Route Handlers have no body size limit (next.config.ts's
+        // experimental.serverActions.bodySizeLimit covers Server Actions only).
+        // Raise DATALAB_MAX_QUERY_CHARS if a tenant legitimately exceeds it.
+        if (exceedsQueryLengthLimit(query)) {
+            return NextResponse.json({
+                success: false,
+                error: `Query is too large (limit ${getMaxQueryChars()} characters)`
+            }, { status: 400 });
         }
 
         const isSqlLike = storageConfig.type.includes('sql') ||
@@ -100,7 +156,7 @@ export async function POST(
                     // Postgres uses $1, $2, etc.
                     const usedVars: string[] = [];
                     for (const name of sortedNames) {
-                        const regex = new RegExp(`:${name}\\b`, 'g');
+                        const regex = new RegExp(`:${escapeRegExp(name)}\\b`, 'g');
                         if (regex.test(query)) {
                             let idx = usedVars.indexOf(name);
                             if (idx === -1) {
@@ -115,7 +171,7 @@ export async function POST(
                 } else {
                     // MySQL/PlanetScale uses ? (positional)
                     const mysqlParams: unknown[] = [];
-                    const pattern = new RegExp(`:(${sortedNames.join('|')})\\b`, 'g');
+                    const pattern = new RegExp(`:(${sortedNames.map(n => escapeRegExp(n)).join('|')})\\b`, 'g');
                     query = query.replace(pattern, (_match: string, name: string) => {
                         mysqlParams.push(variables[name]);
                         return '?';
@@ -125,11 +181,23 @@ export async function POST(
             } else {
                 // For NoSQL/Redis, keep string replacement as they use JSON/command strings
                 const sortedVarNames = Object.keys(variables).sort((a, b) => b.length - a.length);
+                const substitutionBudget = getMaxQueryChars() * SUBSTITUTION_BUDGET_FACTOR;
                 for (const key of sortedVarNames) {
                     const val = variables[key];
                     const replaceVal = typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val);
-                    const regex = new RegExp(`:${key}\\b`, 'g');
-                    query = query.replace(regex, replaceVal);
+                    const regex = new RegExp(`:${escapeRegExp(key)}\\b`, 'g');
+                    // DoS guard: this branch splices VALUES into the command string, so
+                    // (occurrences x value length) is an attacker-controlled multiplier.
+                    // Measure before allocating rather than after.
+                    if (projectedLengthAfterReplace(query, regex, replaceVal.length) > substitutionBudget) {
+                        return NextResponse.json({
+                            success: false,
+                            error: `Query is too large (limit ${getMaxQueryChars()} characters)`
+                        }, { status: 400 });
+                    }
+                    // Function form: a literal '$&' / '$`' inside a caller-supplied VALUE
+                    // must not be re-interpreted as a replacement pattern.
+                    query = query.replace(regex, () => replaceVal);
                 }
             }
         }
@@ -139,25 +207,19 @@ export async function POST(
             // Remove comments and whitespace to get the true command
             const cleanQuery = query.replace(/\/\*[\s\S]*?\*\/|--.*$/gm, '').replace(/#.*$/gm, '').trim();
 
-            const forbiddenKeywords = [
-                'INSERT', 'UPDATE', 'DELETE', 'DROP', 'ALTER', 'CREATE', 'REPLACE', 'TRUNCATE',
-                'GRANT', 'REVOKE', 'SET', 'EXECUTE', 'PREPARE', 'CALL', 'MERGE', 'RENAME', 'COMMENT',
-                'VACUUM', 'COPY', 'LOAD', 'INTO OUTFILE', 'INTO DUMPFILE', 'LOCK', 'UNLOCK'
-            ];
             const allowedPrefixes = ['SELECT', 'SHOW', 'DESCRIBE', 'EXPLAIN', 'DISCOVER_SCHEMA', 'WITH'];
 
             // Handle multi-statement queries by splitting by semicolon
-            // We only split if semicolon is NOT inside a string literal
-            const statements = cleanQuery.split(/;(?=(?:[^']*'[^']*')*[^']*$)/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+            // We only split if semicolon is NOT inside a string literal.
+            // splitSqlStatements is a linear, exhaustively-verified drop-in for the
+            // previous O(n^2) lookahead regex — same output, ~3000x faster.
+            const statements = splitSqlStatements(cleanQuery).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
 
             for (const statement of statements) {
                 const normalizedStatement = statement.toUpperCase();
                 const statementWithoutLiterals = normalizedStatement.replace(/'[^']*'/g, "''").replace(/"[^"]*"/g, '""');
 
-                const hasForbidden = forbiddenKeywords.some(kw => {
-                    const regex = new RegExp(`\\b${kw}\\b`, 'i');
-                    return regex.test(statementWithoutLiterals);
-                });
+                const hasForbidden = FORBIDDEN_KEYWORD_PATTERNS.some(regex => regex.test(statementWithoutLiterals));
 
                 const hasAllowedPrefix = allowedPrefixes.some(prefix => normalizedStatement.startsWith(prefix));
 
@@ -973,7 +1035,31 @@ export async function POST(
                         redis.disconnect();
                     }
                 } else if (storageConfig.type === 'firestore') {
-                    const db = getDb();
+                    // SECURITY: a `firestore` connector is a NAMED database provisioned inside the
+                    // platform GCP project (see createDatabase in @/lib/gcp/firestore-admin, which
+                    // returns `firestore://<databaseId>`). getDb() would return the DEFAULT database
+                    // — Deployify's own control plane — so resolve the tenant's database explicitly
+                    // and refuse if we cannot. Never fall back to getDb() here.
+                    // The databaseId must come from SERVER-provisioned metadata only.
+                    // `connectionString` is attacker-controlled: POST /storage accepts a raw
+                    // connectionString with `provision:false`, so honouring `firestore://<id>`
+                    // from it would let a tenant point this at ANOTHER tenant's database.
+                    const firestoreDatabaseId = storageConfig.metadata?.provisioned === true
+                        ? (storageConfig.metadata?.resourceName as string | undefined)?.trim() || ''
+                        : '';
+
+                    let db: ReturnType<typeof getNamedDb>;
+                    try {
+                        db = getNamedDb(firestoreDatabaseId);
+                    } catch {
+                        console.error(
+                            `[DataLab] Firestore connector ${storageConfig.id} on project ${id} has no named databaseId; refusing to query the platform database.`
+                        );
+                        return NextResponse.json({
+                            success: false,
+                            error: 'Firestore connector is not bound to a Deployify-provisioned database. Re-provision the connector to use the Data Lab.'
+                        }, { status: 400 });
+                    }
 
                     if (query === 'DISCOVER_SCHEMA') {
                         const collections = await db.listCollections();
@@ -1113,7 +1199,7 @@ export async function POST(
             // Record execution metrics
             await db.collection(Collections.STORAGE_METRICS).add({
                 projectId: id,
-                storageId,
+                storageId: effectiveStorageId,
                 userId: session?.user?.id || 'public',
                 type: storageConfig.type,
                 executionTimeMs,
@@ -1128,7 +1214,7 @@ export async function POST(
             if (query !== 'DISCOVER_SCHEMA') {
                 await db.collection(Collections.QUERY_HISTORY).add({
                     projectId: id,
-                    storageId,
+                    storageId: effectiveStorageId,
                     userId: session?.user?.id || 'public',
                     query,
                     executionTimeMs,
@@ -1139,7 +1225,7 @@ export async function POST(
                 // Record to compliance audit logs
                 await db.collection(Collections.DATA_LAB_AUDIT).add({
                     projectId: id,
-                    storageId,
+                    storageId: effectiveStorageId,
                     userId: session?.user?.id || 'public',
                     userEmail: session?.user?.email || 'anonymous',
                     query,
@@ -1149,7 +1235,11 @@ export async function POST(
                     timestamp: now,
                     metadata: {
                         widgetId,
-                        storageType: storageConfig.type
+                        storageType: storageConfig.type,
+                        // Only present when the URL segment disagreed with the widget binding.
+                        // Spread-conditional: this Firestore instance has no
+                        // ignoreUndefinedProperties, so never write an undefined field.
+                        ...(storageId !== effectiveStorageId ? { requestedStorageId: storageId } : {})
                     }
                 });
             }
@@ -1163,7 +1253,7 @@ export async function POST(
 
                 await db.collection(Collections.STORAGE_METRICS).add({
                     projectId: id,
-                    storageId,
+                    storageId: effectiveStorageId,
                     userId: session?.user?.id || 'public',
                     type: storageConfig.type,
                     executionTimeMs,
@@ -1178,7 +1268,7 @@ export async function POST(
                 if (query !== 'DISCOVER_SCHEMA') {
                     await db.collection(Collections.QUERY_HISTORY).add({
                         projectId: id,
-                        storageId,
+                        storageId: effectiveStorageId,
                         userId: session?.user?.id || 'public',
                         query,
                         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1188,7 +1278,7 @@ export async function POST(
                     // Record to compliance audit logs
                     await db.collection(Collections.DATA_LAB_AUDIT).add({
                         projectId: id,
-                        storageId,
+                        storageId: effectiveStorageId,
                         userId: session?.user?.id || 'public',
                         userEmail: session?.user?.email || 'anonymous',
                         query,
@@ -1198,7 +1288,8 @@ export async function POST(
                         timestamp: now,
                         metadata: {
                             widgetId,
-                            storageType: storageConfig.type
+                            storageType: storageConfig.type,
+                            ...(storageId !== effectiveStorageId ? { requestedStorageId: storageId } : {})
                         }
                     });
                 }

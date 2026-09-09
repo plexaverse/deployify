@@ -8,6 +8,60 @@ interface BQRow {
     pageviews: number;
 }
 
+/**
+ * The analytics window is caller-controlled: `?period=` on
+ * GET /api/projects/[id]/analytics/stats is read straight off the query string
+ * and reaches three amplifying sinks - the BigQuery INTERVAL, the Firestore
+ * `timestamp >=` predicate, and `Array.from({ length: days })` in getMockData().
+ * Nothing bounded it, so `?period=999999999d` was a one-request OOM.
+ *
+ * Defaults are deliberately far above anything the dashboard can emit
+ * (SegmentedControl offers 1h / 24h / 7d / 30d) so no existing caller changes
+ * behaviour. See env.example for the escape hatches.
+ */
+export const DEFAULT_MAX_PERIOD_DAYS = 365;
+
+/**
+ * Doc count at which a stats read is worth shouting about. Used as the *warning*
+ * threshold while ANALYTICS_MAX_EVENT_SCAN is unset, and as the suggested value
+ * once ops decides to enforce a cap. Not a default cap - truncating a busy
+ * tenant's totals without measuring first would be a silent product change.
+ */
+export const EVENT_SCAN_WARN_THRESHOLD = 50_000;
+
+/** Matches the historical `parseInt(...) || 30` fallback. */
+const FALLBACK_PERIOD_DAYS = 30;
+
+/** Resolved at call time (not module load) so tests and Cloud Run env edits both take effect. */
+export function getMaxPeriodDays(): number {
+    const raw = Number(process.env.ANALYTICS_MAX_PERIOD_DAYS);
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_MAX_PERIOD_DAYS;
+}
+
+/**
+ * 0 (the default, and what unset / garbage resolves to) means "no .limit() on the
+ * query" - byte-for-byte today's Firestore read. A positive value enforces a cap.
+ * Stage 2 of this fix: measure with the warn log, then set the number.
+ */
+export function getMaxEventScan(): number {
+    const raw = Number(process.env.ANALYTICS_MAX_EVENT_SCAN);
+    return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0;
+}
+
+/**
+ * Historical semantics preserved exactly for every value the UI can produce:
+ *   '1h' -> 1, '24h' -> 24, '7d' -> 7, '30d' -> 30, garbage/absent -> 30.
+ * ('24h' has always meant 24 *days* here. That is pre-existing and intentionally
+ * left alone - correcting it would move numbers on a live dashboard.)
+ * Only unreachable-from-the-UI inputs change: above the ceiling now clamps, and
+ * <= 0 now takes the same 30-day default that '0d' already took.
+ */
+export function resolvePeriodDays(period: string | null | undefined): number {
+    const parsed = parseInt(String(period ?? '').replace('d', ''));
+    const days = Number.isFinite(parsed) && parsed > 0 ? parsed : FALLBACK_PERIOD_DAYS;
+    return Math.min(days, getMaxPeriodDays());
+}
+
 async function getStatsFromBigQuery(projectId: string, days: number): Promise<BQRow[]> {
     if (process.env.MOCK_DB === 'true') {
         return [];
@@ -55,9 +109,9 @@ export async function getAnalyticsStats(
     period: string = '30d'
 ): Promise<AnalyticsStats | null> {
     try {
-        const days = parseInt(period.replace('d', '')) || 30;
+        const days = resolvePeriodDays(period);
 
-        // Strategy: If period > 24h, we could use BigQuery. 
+        // Strategy: If period > 24h, we could use BigQuery.
         // For now, let's try to fetch BQ data and merge or use as primary for history.
         const bqRows = await getStatsFromBigQuery(projectId, days);
 
@@ -90,11 +144,23 @@ export async function getAnalyticsStats(
 
         // Query Firestore for events
         const db = getDb();
-        const snapshot = await db.collection(Collections.ANALYTICS_EVENTS)
+        const eventsQuery = db.collection(Collections.ANALYTICS_EVENTS)
             .where('projectId', '==', projectId)
             .where('timestamp', '>=', startDate)
-            .orderBy('timestamp', 'desc')
-            .get();
+            .orderBy('timestamp', 'desc');
+
+        // Second belt, off by default: even a legitimate 30d window is unbounded in
+        // document count on a busy project. Ordered desc, so a cap keeps the NEWEST
+        // events. Until ANALYTICS_MAX_EVENT_SCAN is set we only observe, so no
+        // tenant's totals move without someone deciding they should.
+        const scanCap = getMaxEventScan();
+        const snapshot = await (scanCap > 0 ? eventsQuery.limit(scanCap) : eventsQuery).get();
+
+        if (scanCap > 0 && snapshot.size >= scanCap) {
+            console.warn(`[Analytics] Event scan CAPPED at ${scanCap} docs for project ${projectId} (${days}d); totals are a recent-window subset.`);
+        } else if (scanCap === 0 && snapshot.size >= EVENT_SCAN_WARN_THRESHOLD) {
+            console.warn(`[Analytics] Uncapped event scan read ${snapshot.size} docs for project ${projectId} (${days}d); consider setting ANALYTICS_MAX_EVENT_SCAN.`);
+        }
 
         if (snapshot.empty) {
             return getMockData(period);
@@ -187,7 +253,10 @@ export async function getAnalyticsStats(
 }
 
 export function getMockData(period: string): AnalyticsStats {
-    const days = parseInt(period.replace('d', '')) || 30;
+    // Exported, and reached from BOTH the empty-result branch and the catch-all
+    // of getAnalyticsStats - so it bounds its own allocation rather than trusting
+    // the caller to have done it.
+    const days = resolvePeriodDays(period);
     const timeseries = Array.from({ length: days }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (days - 1 - i));

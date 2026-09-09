@@ -17,6 +17,8 @@ interface ConfirmationModalProps {
   loading?: boolean;
   showConfirm?: boolean;
   showCancel?: boolean;
+  /** Gate the confirm button (e.g. behind a typed confirmation). Default false. */
+  confirmDisabled?: boolean;
   icon?: React.ReactNode;
   headerLabel?: string;
 }
@@ -33,6 +35,7 @@ export function ConfirmationModal({
   loading = false,
   showConfirm = true,
   showCancel = true,
+  confirmDisabled = false,
   icon,
   headerLabel,
 }: ConfirmationModalProps) {
@@ -99,6 +102,7 @@ export function ConfirmationModal({
                   variant={variant === 'destructive' ? 'destructive' : 'primary'}
                   onClick={onConfirm}
                   loading={loading}
+                  disabled={confirmDisabled}
                   className="min-w-[100px]"
                 >
                   {confirmText}

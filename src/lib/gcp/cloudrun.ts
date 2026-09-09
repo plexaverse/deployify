@@ -15,6 +15,11 @@ interface CloudRunService {
     uri: string;
     latestRevision: string;
     traffic?: TrafficTarget[];
+    /**
+     * Resource labels, including `deployify-project-id`. checkServiceClaim() reads this to
+     * tell one tenant's service from another's; dropping it here made that guard inert.
+     */
+    labels?: Record<string, string>;
 }
 
 /**
@@ -53,6 +58,7 @@ export async function getService(
         uri: data.uri,
         latestRevision: data.latestReadyRevision,
         traffic: data.traffic,
+        labels: data.labels,
     };
 }
 

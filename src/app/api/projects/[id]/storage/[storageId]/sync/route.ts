@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
@@ -584,7 +585,7 @@ export async function GET(
         // 1. Check monitoring metrics, alerts & optimization for active provisioned connectors
         if (storage.status === 'active' && storage.metadata?.provisioned) {
             try {
-                const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const resourceName = requireManagedResourceName(storage);
                 const region = (storage.metadata?.region as string) || access.project?.region || 'us-central1';
 
                 let metrics;
@@ -1043,7 +1044,7 @@ export async function GET(
                 // Export for Sync finished, now trigger Import on this target instance
                 try {
                     const syncStorageUri = storage.metadata?.syncStorageUri as string;
-                    const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const resourceName = requireManagedResourceName(storage);
                     const targetDatabase = (storage.metadata?.syncTargetDatabase as string) || project.slug;
 
                     const { finalizeSync } = await import('@/lib/gcp/schema-sync');
@@ -1180,7 +1181,7 @@ export async function GET(
                     // Export finished, now trigger Import on the clone
                     try {
                         const portabilityUri = storage.metadata?.portabilityUri as string;
-                        const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                        const resourceName = requireManagedResourceName(storage);
 
                         let importOperation;
                         if (storage.type.includes('cloud-sql')) {
@@ -1385,7 +1386,7 @@ export async function GET(
 
                 try {
                     const { createDatabase, getOperationStatus } = await import('@/lib/gcp/cloudsql');
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const instanceName = requireManagedResourceName(storage);
                     const dbName = project.slug;
 
                     // Step 2: Create Database if not started
@@ -1547,7 +1548,7 @@ export async function GET(
                 }
             } else if (storage.type === 'memorystore-redis') {
                 try {
-                    const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const resourceName = requireManagedResourceName(storage);
                     const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
                     const instance = await getMemorystoreInstance(resourceName, region);
@@ -1577,7 +1578,7 @@ export async function GET(
             // Final Fetch for detailed metadata (HA/PITR)
             if (isCloudSql) {
                 try {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const instanceName = requireManagedResourceName(storage);
                     const instance = await getCloudSqlInstance(instanceName);
                     const instanceSettings = instance.settings as {
                         availabilityType?: string;

@@ -5,6 +5,7 @@ import { createSessionToken } from '@/lib/auth';
 import { upsertUser } from '@/lib/db';
 import { config } from '@/lib/config';
 import { logAuditEvent } from '@/lib/audit';
+import { buildCliCallbackUrl } from '@/lib/security/cli-callback';
 
 const COOKIE_NAME = 'deployify_session';
 
@@ -72,15 +73,27 @@ export async function GET(request: NextRequest) {
             try {
                 const context = JSON.parse(cliContextCookie.value);
                 if (context.cli && context.port) {
-                    // Redirect to CLI local server with token
-                    const redirectUrl = `http://localhost:${context.port}/callback?token=${sessionToken}`;
-                    const response = NextResponse.redirect(redirectUrl);
+                    // `context.port` is attacker-controllable (it comes from the
+                    // ?port= query string of /api/auth/github). Build the loopback
+                    // URL structurally and reject anything that is not a plain TCP
+                    // port, so userinfo (`1@evil.com`) cannot relocate the host and
+                    // exfiltrate the session token.
+                    const redirectUrl = buildCliCallbackUrl(context.port, sessionToken);
 
-                    // Clear CLI context and state cookies
-                    response.cookies.delete('deployify_cli_context');
-                    response.cookies.delete('oauth_state');
+                    if (redirectUrl) {
+                        const response = NextResponse.redirect(redirectUrl);
 
-                    return response;
+                        // Clear CLI context and state cookies
+                        response.cookies.delete('deployify_cli_context');
+                        response.cookies.delete('oauth_state');
+
+                        return response;
+                    }
+
+                    console.error(
+                        'Rejected CLI callback: invalid port in deployify_cli_context cookie'
+                    );
+                    // Fall through to the standard browser flow below.
                 }
             } catch (e) {
                 console.error('Failed to parse CLI context cookie:', e);
@@ -104,6 +117,12 @@ export async function GET(request: NextRequest) {
 
         // Delete the oauth_state cookie
         response.cookies.delete('oauth_state');
+
+        // Drop any CLI context that was not consumed above (unparseable JSON or
+        // a rejected port) so a stale/planted value cannot affect a later login.
+        if (cliContextCookie) {
+            response.cookies.delete('deployify_cli_context');
+        }
 
         return response;
     } catch (error) {

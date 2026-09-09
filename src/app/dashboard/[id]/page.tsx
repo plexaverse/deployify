@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { toastActionResult } from '@/lib/action-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/EmptyState';
 import { DeploymentLogsModal } from '@/components/DeploymentLogsModal';
@@ -86,15 +87,21 @@ export default function ProjectDetailPage() {
     const handleRedeploy = async (force = false) => {
         if (!project) return;
         const toastId = toast.loading(force ? 'Triggering force redeploy (ignoring cache)...' : 'Triggering deployment...');
-        await redeployProject(project.id, force);
-        toast.success('Deployment triggered', { id: toastId });
+        const result = await redeployProject(project.id, force);
+        toastActionResult(toastId, result, {
+            success: 'Deployment triggered',
+            failure: 'Failed to trigger deployment',
+        });
     };
 
     const handleCancel = async (deploymentId: string) => {
         if (!project) return;
         const toastId = toast.loading('Cancelling deployment...');
-        await cancelDeployment(project.id, deploymentId);
-        toast.success('Deployment cancelled', { id: toastId });
+        const result = await cancelDeployment(project.id, deploymentId);
+        toastActionResult(toastId, result, {
+            success: 'Deployment cancelled',
+            failure: 'Failed to cancel deployment',
+        });
     };
 
     const handleRollback = (deploymentId: string) => {

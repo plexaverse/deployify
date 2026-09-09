@@ -1,13 +1,39 @@
 import { config } from '@/lib/config';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDockerfile } from '@/lib/dockerfiles';
-import { generateServiceName } from '@/lib/utils';
+import { generateServiceName, sanitizeLabel } from '@/lib/utils';
 import { getProxyOrchestrationCommand } from '@/lib/gcp/cloudsql';
+import { clampInstanceBounds, getComputeLimitMode, getInstanceCeilings } from '@/lib/gcp/instance-limits';
 import type { Deployment } from '@/types';
 
 const CLOUD_BUILD_API = 'https://cloudbuild.googleapis.com/v1';
 const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 const CACHE_BUCKET = `${gcpProjectId}_deployify_cache`;
+
+// C0 controls + DEL. Never legitimately present in a path, a build command or an env var name.
+const CONTROL_CHARS = /[\u0000-\u001F\u007F]/;
+
+/**
+ * Pick a heredoc delimiter that provably does not occur as a standalone line inside `content`.
+ *
+ * A bash quoted heredoc (`<< 'X'`) ends at the first line equal to the delimiter, so any
+ * user-controlled string that reaches the body (rootDirectory, buildCommand, outputDirectory,
+ * build-time env var names/values) could otherwise close it and have the rest of its value
+ * executed as bash in the Cloud Build step.
+ *
+ * Returns the literal 'EOFMARKER' for every input that does not contain it, so the emitted
+ * build step is byte-for-byte identical to what we ship today for all real projects.
+ */
+export function pickHeredocMarker(content: string, base = 'EOFMARKER'): string {
+    const lines = new Set(content.split('\n').map(line => line.trim()));
+    let marker = base;
+    let suffix = 0;
+    while (lines.has(marker)) {
+        suffix += 1;
+        marker = `${base}_${suffix}`;
+    }
+    return marker;
+}
 
 interface BuildSubmissionConfig {
     projectSlug: string;
@@ -39,6 +65,7 @@ interface BuildSubmissionConfig {
         maxInstances?: number;
     };
     force?: boolean;
+    deployifyProjectId?: string; // Stamps the deployify-project-id ownership label on the service
 }
 
 /**
@@ -71,15 +98,46 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
         healthCheckPath,
         resources,
         force = false,
+        deployifyProjectId,
     } = buildConfig;
+
+    // Ownership label for the shared GCP project. --update-labels merges, so it never
+    // clobbers labels a tenant set by hand. ON by default: this label is what
+    // checkServiceClaim() and planServiceDeletion() use to tell one tenant's Cloud Run
+    // service from another's, so leaving it off leaves the namespace unowned.
+    // CLOUD_RUN_OWNERSHIP_LABELS=false restores the previous opt-in behaviour.
+    const ownershipLabelArgs = (
+        process.env.CLOUD_RUN_OWNERSHIP_LABELS !== 'false' && deployifyProjectId
+            ? ['--update-labels', `deployify-project-id=${sanitizeLabel(deployifyProjectId)}`]
+            : []
+    );
+
+    // Strip control characters / newlines before ANY use. A real directory name can never
+    // contain them, so this can only ever neutralise a payload - it cannot break a build that
+    // works today. This is what stops rootDirectory from reaching the Dockerfile heredoc body
+    // with an embedded newline.
+    const rawRootDirectory = typeof rootDirectory === 'string' && !CONTROL_CHARS.test(rootDirectory)
+        ? rootDirectory
+        : '';
+    if (rootDirectory && !rawRootDirectory) {
+        console.warn('Rejected rootDirectory containing control characters. Defaulting to root.');
+    }
 
     // Validate rootDirectory to prevent command injection
     let safeRootDirectory = '';
-    if (rootDirectory && /^[a-zA-Z0-9_\-./]+$/.test(rootDirectory) && !rootDirectory.includes('..')) {
-        safeRootDirectory = rootDirectory.replace(/^\/+|\/+$/g, ''); // Trim slashes
-    } else if (rootDirectory) {
-        console.warn(`Invalid rootDirectory provided: "${rootDirectory}". Defaulting to root.`);
+    if (rawRootDirectory && /^[a-zA-Z0-9_\-./]+$/.test(rawRootDirectory) && !rawRootDirectory.includes('..')) {
+        safeRootDirectory = rawRootDirectory.replace(/^\/+|\/+$/g, ''); // Trim slashes
+    } else if (rawRootDirectory) {
+        console.warn(`Invalid rootDirectory provided: "${rawRootDirectory}". Defaulting to root.`);
     }
+
+    // When STRICT_ROOT_DIRECTORY is enabled the Dockerfile uses the same sanitised value as
+    // workDir, so the two can never disagree. Default (unset) keeps today's behaviour: the
+    // Dockerfile keeps using the raw value, so projects whose rootDirectory falls outside the
+    // narrow charset above (e.g. an '@scope' path) keep building exactly as they do now.
+    const dockerfileRootDirectory = process.env.STRICT_ROOT_DIRECTORY === 'true'
+        ? safeRootDirectory
+        : rawRootDirectory;
 
     // Determine the working directory (defaults to /workspace)
     // Avoid path.join to reduce dependencies, simple slash check is enough
@@ -90,6 +148,20 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
 
     const serviceName = generateServiceName(projectSlug);
+
+    // Autoscaler bounds are the only tenant-settable Cloud Run knobs with no upper
+    // bound (cpu/memory are allowlisted by the PATCH route). Values already persisted
+    // before that gate existed still flow through here, so the ceiling is applied at
+    // the point of use rather than by migrating Firestore. Off by default: with
+    // COMPUTE_LIMIT_MODE unset this returns the inputs untouched and only logs.
+    const instanceBounds = clampInstanceBounds(
+        resources?.minInstances !== undefined ? resources.minInstances : config.cloudRun.minInstances,
+        resources?.maxInstances !== undefined ? resources.maxInstances : config.cloudRun.maxInstances,
+        getComputeLimitMode(),
+        getInstanceCeilings(),
+        `service=${serviceName}`
+    );
+
     const imageName = `${region}-docker.pkg.dev/${gcpProjectId}/${config.gcp.artifactRegistry}/${serviceName}:${commitSha.substring(0, 7)}`;
     const latestImageName = `${region}-docker.pkg.dev/${gcpProjectId}/${config.gcp.artifactRegistry}/${serviceName}:latest`;
 
@@ -189,9 +261,12 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
             buildCommand,
             installCommand,
             restoreCache: !force,
-            rootDirectory,
+            rootDirectory: dockerfileRootDirectory,
         });
     }
+
+    // Delimiter that cannot be closed by anything inside dockerfileContent.
+    const dockerfileHeredoc = pickHeredocMarker(dockerfileContent);
 
     // Extract secret names for IAM binding (format: projects/PROJECT_ID/secrets/SECRET_NAME)
     const secretResourceNames = Array.from(new Set(Object.values(runtimeSecrets).map(s => {
@@ -229,9 +304,9 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
                 '-c',
                 isDockerFramework
                     ? 'echo "Using existing Dockerfile..."'
-                    : `if [ ! -f ${workDir}/Dockerfile ]; then cat > ${workDir}/Dockerfile << 'EOFMARKER'
+                    : `if [ ! -f ${workDir}/Dockerfile ]; then cat > ${workDir}/Dockerfile << '${dockerfileHeredoc}'
 ${dockerfileContent}
-EOFMARKER
+${dockerfileHeredoc}
 fi`,
             ],
         },
@@ -377,10 +452,11 @@ node fix-next-config.js && rm fix-next-config.js`,
                 '--allow-unauthenticated',
                 '--memory', resources?.memory || config.cloudRun.memory,
                 '--cpu', (resources?.cpu || config.cloudRun.cpu).toString(),
-                '--min-instances', (resources?.minInstances !== undefined ? resources.minInstances : config.cloudRun.minInstances).toString(),
-                '--max-instances', (resources?.maxInstances !== undefined ? resources.maxInstances : config.cloudRun.maxInstances).toString(),
+                '--min-instances', instanceBounds.min.toString(),
+                '--max-instances', instanceBounds.max.toString(),
                 '--port', config.cloudRun.port.toString(),
                 '--timeout', `${config.cloudRun.timeout}s`,
+                ...ownershipLabelArgs,
                 ...(healthCheckPath ? ['--startup-probe-path', healthCheckPath, '--liveness-probe-path', healthCheckPath] : []),
                 ...(cloudSqlInstances.length > 0 ? ['--add-cloudsql-instances', Array.from(new Set(cloudSqlInstances)).join(',')] : []),
                 ...(needsVpc ? [`--network=${vpcNetwork}`, `--subnet=${vpcSubnet}`, '--vpc-egress=private-ranges-only'] : []),

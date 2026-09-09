@@ -90,6 +90,9 @@ const STORAGE_TYPES = [
     { value: 'generic', label: 'GENERIC DATABASE', category: 'OTHER' },
 ] as const;
 
+/** Typed-confirmation phrase for the irreversible bulk purge (defect product-ux-6). */
+const PURGE_CONFIRM_PHRASE = 'PURGE';
+
 export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSectionProps) {
     const {
         projectStorageConfigs: storageConfigs,
@@ -221,6 +224,8 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
     const [discoveredResources, setDiscoveredResources] = useState<import('@/lib/gcp/discovery').DiscoveredResource[]>([]);
     const [isDiscovering, setIsDiscovering] = useState(false);
     const [isReclaiming, setIsReclaiming] = useState<string | null>(null);
+    const [purgeCandidates, setPurgeCandidates] = useState<import('@/lib/gcp/discovery').DiscoveredResource[]>([]);
+    const [purgeConfirmText, setPurgeConfirmText] = useState('');
     const [alertCpu, setAlertCpu] = useState(80);
     const [alertMemory, setAlertMemory] = useState(80);
     const [alertDisk, setAlertDisk] = useState(80);
@@ -807,14 +812,24 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
         }
     };
 
-    const handlePurgeOrphans = async () => {
+    // Snapshot taken when the dialog opens, so the list the user reads is exactly the
+    // list that gets deleted even if a background refresh lands mid-confirmation.
+    const handlePurgeOrphans = () => {
         const orphans = discoveredResources.filter(r => r.isOrphaned);
         if (orphans.length === 0) return;
+        setPurgeConfirmText('');
+        setPurgeCandidates(orphans);
+    };
 
-        if (!confirm(`Are you sure you want to PURGE ALL ${orphans.length} orphaned resources? This action is irreversible.`)) return;
+    const confirmPurgeOrphans = async () => {
+        if (purgeConfirmText.trim().toUpperCase() !== PURGE_CONFIRM_PHRASE) return;
+
+        const orphans = purgeCandidates;
+        setPurgeCandidates([]);
+        setPurgeConfirmText('');
 
         let successCount = 0;
-        let failCount = 0;
+        const failures: string[] = [];
 
         for (const resource of orphans) {
             setIsReclaiming(resource.id);
@@ -823,15 +838,15 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     method: 'DELETE'
                 });
                 if (res.ok) successCount++;
-                else failCount++;
+                else failures.push(resource.name);
             } catch {
-                failCount++;
+                failures.push(resource.name);
             }
         }
 
         setIsReclaiming(null);
         if (successCount > 0) toast.success(`Successfully reclaimed ${successCount} resources`);
-        if (failCount > 0) toast.error(`Failed to reclaim ${failCount} resources`);
+        if (failures.length > 0) toast.error(`Failed to reclaim: ${failures.join(', ')}`);
         handleDiscover();
     };
 
@@ -1409,7 +1424,7 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                 <div className="flex items-center justify-between w-full gap-2">
                                                     <span className="text-[10px] font-bold uppercase truncate pr-6">{res.name}</span>
                                                     {res.isOrphaned && (
-                                                        <span className="text-[10px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
+                                                        <span title={res.orphanReason} className="text-[10px] px-1 rounded bg-[var(--error)]/10 text-[var(--error)] font-bold uppercase shrink-0">Orphaned</span>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-1">
@@ -3024,6 +3039,57 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                     </div>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={purgeCandidates.length > 0}
+                onClose={() => { setPurgeCandidates([]); setPurgeConfirmText(''); }}
+                onConfirm={confirmPurgeOrphans}
+                variant="destructive"
+                headerLabel="Irreversible Deletion"
+                title={`Delete ${purgeCandidates.length} GCP ${purgeCandidates.length === 1 ? 'resource' : 'resources'}`}
+                confirmText={`Delete ${purgeCandidates.length} ${purgeCandidates.length === 1 ? 'resource' : 'resources'}`}
+                confirmDisabled={purgeConfirmText.trim().toUpperCase() !== PURGE_CONFIRM_PHRASE}
+                description={
+                    <div className="space-y-4">
+                        <div className="p-3 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-xl flex items-start gap-2">
+                            <AlertCircle className="w-3.5 h-3.5 text-[var(--error)] shrink-0 mt-0.5" />
+                            <p className="text-[8px] font-bold uppercase text-[var(--error)] leading-relaxed">
+                                THESE GCP RESOURCES AND ALL DATA IN THEM WILL BE PERMANENTLY DESTROYED. THIS CANNOT BE UNDONE AND DEPLOYIFY CANNOT RESTORE THEM.
+                            </p>
+                        </div>
+
+                        <div className="space-y-1 max-h-56 overflow-y-auto border border-[var(--border)] rounded-xl p-2 bg-[var(--background)]">
+                            {purgeCandidates.map((res) => (
+                                <div key={`${res.type}:${res.id}`} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-md hover:bg-[var(--muted)]/10">
+                                    <div className="min-w-0">
+                                        <p className="text-[10px] font-mono font-bold truncate text-[var(--foreground)]">{res.name}</p>
+                                        {res.orphanReason && (
+                                            <p className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate">{res.orphanReason}</p>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)] px-1 bg-[var(--muted)]/20 rounded">{res.type.replace(/-/g, ' ')}</span>
+                                        <span className="text-[8px] font-bold uppercase text-[var(--muted-foreground)]">{res.region}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-[8px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                Type {PURGE_CONFIRM_PHRASE} to confirm
+                            </Label>
+                            <Input
+                                value={purgeConfirmText}
+                                onChange={(e) => setPurgeConfirmText(e.target.value)}
+                                placeholder={PURGE_CONFIRM_PHRASE}
+                                autoComplete="off"
+                                className="font-mono"
+                            />
+                        </div>
+                    </div>
+                }
+            />
 
             <ConfirmationModal
                 isOpen={!!isScaling}

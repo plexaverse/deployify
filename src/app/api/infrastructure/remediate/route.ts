@@ -29,6 +29,15 @@ export async function POST(request: NextRequest) {
             if (!membership) {
                 return NextResponse.json({ success: false, error: 'Team access denied' }, { status: 403 });
             }
+            // This handler calls the same remediateRisk() as the per-connector route, but in a
+            // loop over EVERY project in the team, so it needs at least the same role gate.
+            // Membership alone is satisfied by a 'viewer'.
+            if (membership.role !== 'owner' && membership.role !== 'admin') {
+                return NextResponse.json(
+                    { success: false, error: 'Forbidden: Only owners and admins can remediate infrastructure risks' },
+                    { status: 403 }
+                );
+            }
             projects = await listProjectsByTeam(teamId);
         } else {
             projects = await listProjectsByUser(session.user.id);

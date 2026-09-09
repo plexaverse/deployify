@@ -6,6 +6,7 @@ import { sendEmail } from '@/lib/email/client';
 import { teamInviteEmail } from '@/lib/email/templates';
 import { config } from '@/lib/config';
 import { securityHeaders } from '@/lib/security';
+import { canGrantRole, getInviteRoleGuardMode } from '@/lib/team-roles';
 import { TeamRole } from '@/types';
 
 interface RouteParams {
@@ -59,6 +60,32 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 { error: 'Invalid role' },
                 { status: 400, headers: securityHeaders }
             );
+        }
+
+        // Only an owner may hand out 'owner' - same rule the sibling PATCH endpoint
+        // already enforces (src/app/api/teams/[id]/members/[userId]/route.ts). Without it
+        // an admin can mint an owner-grade invite and redeem it (the token is in this
+        // response body), escalating themselves past the role that gated them here.
+        // No UI path can reach this branch: the invite SegmentedControl offers only
+        // admin | member | viewer.
+        if (!canGrantRole(membership.role, role as TeamRole)) {
+            const guardMode = getInviteRoleGuardMode();
+            console.error(
+                `[TeamInvite] owner-grade invite by non-owner team=${id} requester=${session.user.id} ` +
+                `requesterRole=${membership.role} invitedRole=${role} mode=${guardMode}`
+            );
+            if (guardMode === 'enforce') {
+                await logAuditEvent(id, session.user.id, 'Member Invite Denied', {
+                    email,
+                    role,
+                    reason: 'only-owners-can-invite-owners',
+                }).catch(err => console.error('[TeamInvite] audit write failed:', err));
+
+                return NextResponse.json(
+                    { error: 'Forbidden. Only owners can invite members as owner.' },
+                    { status: 403, headers: securityHeaders }
+                );
+            }
         }
 
         const token = crypto.randomUUID();
