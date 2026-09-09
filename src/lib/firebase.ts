@@ -63,6 +63,54 @@ export function getDb(): Firestore {
     return db;
 }
 
+// Cache of named (non-default) Firestore clients, keyed by databaseId.
+const namedDbs = new Map<string, Firestore>();
+
+/**
+ * The id of Firestore's default database — this is Deployify's own control plane
+ * (users, projects, teams, audit logs). Tenant data never lives here.
+ */
+export const DEFAULT_DATABASE_ID = '(default)';
+
+/**
+ * Get a Firestore client for a tenant-provisioned NAMED database.
+ *
+ * Tenant `firestore` storage connectors are provisioned by
+ * `createDatabase()` in @/lib/gcp/firestore-admin as a named database inside the
+ * platform GCP project. Reading them with `getDb()` would silently target the
+ * default database — i.e. Deployify's own control plane — so callers that serve
+ * tenant data MUST use this instead.
+ *
+ * Throws rather than falling back, so a missing/blank id can never degrade into
+ * a control-plane read.
+ */
+export function getNamedDb(databaseId: string): Firestore {
+    const id = (databaseId || '').trim();
+
+    if (!id || id === DEFAULT_DATABASE_ID) {
+        throw new Error(
+            'Refusing to open the default Firestore database for tenant data: no named databaseId was provided'
+        );
+    }
+
+    if (process.env.MOCK_DB === 'true') {
+        return createMockFirestore();
+    }
+
+    const cached = namedDbs.get(id);
+    if (cached) {
+        return cached;
+    }
+
+    if (!app) {
+        app = initializeFirebase();
+    }
+
+    const named = getFirestore(app, id);
+    namedDbs.set(id, named);
+    return named;
+}
+
 /**
  * Create a minimal mock Firestore for local development/audit
  */

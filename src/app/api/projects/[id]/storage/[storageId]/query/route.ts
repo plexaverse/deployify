@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
-import { getDb, Collections } from '@/lib/firebase';
+import { getDb, getNamedDb, Collections } from '@/lib/firebase';
 import { selectReplica, type ReplicaMetadata } from '@/lib/db';
 import type { StorageConfig } from '@/types';
 import { Client as PgClient } from 'pg';
@@ -913,7 +913,29 @@ export async function POST(
                         redis.disconnect();
                     }
                 } else if (storageConfig.type === 'firestore') {
-                    const db = getDb();
+                    // SECURITY: a `firestore` connector is a NAMED database provisioned inside the
+                    // platform GCP project (see createDatabase in @/lib/gcp/firestore-admin, which
+                    // returns `firestore://<databaseId>`). getDb() would return the DEFAULT database
+                    // — Deployify's own control plane — so resolve the tenant's database explicitly
+                    // and refuse if we cannot. Never fall back to getDb() here.
+                    const firestoreDatabaseId =
+                        (storageConfig.metadata?.resourceName as string | undefined)?.trim() ||
+                        (connectionString.startsWith('firestore://')
+                            ? connectionString.slice('firestore://'.length).split(/[/?#]/)[0].trim()
+                            : '');
+
+                    let db: ReturnType<typeof getNamedDb>;
+                    try {
+                        db = getNamedDb(firestoreDatabaseId);
+                    } catch {
+                        console.error(
+                            `[DataLab] Firestore connector ${storageConfig.id} on project ${id} has no named databaseId; refusing to query the platform database.`
+                        );
+                        return NextResponse.json({
+                            success: false,
+                            error: 'Firestore connector is not bound to a database. Re-provision the connector to use the Data Lab.'
+                        }, { status: 400 });
+                    }
 
                     if (query === 'DISCOVER_SCHEMA') {
                         const collections = await db.listCollections();
