@@ -7,6 +7,8 @@ import {
     getSlugResolutionMode,
     RESERVED_SLUGS,
 } from './slug-registry';
+import { generateServiceName } from './utils';
+import { getPreviewServiceName } from './gcp/cloudrun';
 
 type FakeDoc = { id: string; data: () => Record<string, unknown> };
 
@@ -116,4 +118,23 @@ test('reserved slugs match the proxy reserved subdomains', () => {
         assert.ok(RESERVED_SLUGS.has(name), `${name} should be reserved`);
     }
     assert.ok(!RESERVED_SLUGS.has('acme-store'));
+});
+
+// --- Why claimProjectSlug also reserves `svc:<generateServiceName(slug)>` ---
+// These pin the collision the reservation exists to prevent. claimProjectSlug itself needs
+// Firestore, so it is covered by integration testing, not here.
+test('derived service names: two registry-distinct slugs collapse at 59 chars', () => {
+    const a = 'a'.repeat(59);
+    const b = 'a'.repeat(59) + 'b';
+    assert.notStrictEqual(a, b, 'slugs must be distinct to the registry');
+    assert.strictEqual(
+        generateServiceName(a),
+        generateServiceName(b),
+        'truncation makes these one Cloud Run service - this is why the service name is reserved too'
+    );
+});
+
+test('derived service names: a slug can impersonate another project preview service', () => {
+    // victim project "acme" with PR 7 runs dfy-acme-pr-7
+    assert.strictEqual(generateServiceName('acme-pr-7'), getPreviewServiceName('acme', 7));
 });

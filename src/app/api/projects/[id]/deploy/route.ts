@@ -6,8 +6,9 @@ import { checkUsageLimits } from '@/lib/billing/caps';
 import { securityHeaders } from '@/lib/security';
 import { getBranchLatestCommit } from '@/lib/github';
 import { validateRepository } from '@/lib/github/validator';
-import { parseRepoFullName, getProjectSlugForDeployment } from '@/lib/utils';
-import { isRunningOnGCP } from '@/lib/gcp/auth';
+import { parseRepoFullName, getProjectSlugForDeployment, generateServiceName } from '@/lib/utils';
+import { isRunningOnGCP, getGcpAccessToken } from '@/lib/gcp/auth';
+import { checkServiceClaim, SERVICE_CLAIM_ERROR } from '@/lib/gcp/service-claim';
 import { generateCloudRunDeployConfig, submitCloudBuild, cancelBuild } from '@/lib/gcp/cloudbuild';
 import { logAuditEvent } from '@/lib/audit';
 import { decrypt } from '@/lib/crypto';
@@ -205,6 +206,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
                 // Determine project slug for deployment
                 const projectSlug = getProjectSlugForDeployment(project, deployment);
+
+                // SECURITY: `gcloud run deploy` is create-or-update, and the service name is a
+                // pure function of tenant-supplied text, so a colliding name silently overwrites
+                // another tenant's running service. Refuse if this name is already owned.
+                const serviceClaim = await checkServiceClaim(
+                    generateServiceName(projectSlug),
+                    project.id,
+                    await getGcpAccessToken(),
+                    project.region
+                );
+                if (!serviceClaim.allowed) {
+                    await updateDeployment(deployment.id, {
+                        status: 'error',
+                        errorMessage: SERVICE_CLAIM_ERROR,
+                    });
+                    return NextResponse.json(
+                        { error: SERVICE_CLAIM_ERROR },
+                        { status: 409, headers: securityHeaders }
+                    );
+                }
 
                 // Generate Cloud Build config
                 const buildConfig = generateCloudRunDeployConfig({

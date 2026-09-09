@@ -102,10 +102,12 @@ export function generateCloudRunDeployConfig(buildConfig: BuildSubmissionConfig)
     } = buildConfig;
 
     // Ownership label for the shared GCP project. --update-labels merges, so it never
-    // clobbers labels a tenant set by hand. OFF by default: this runs on every live
-    // tenant build, so it is opted into per-environment after a soak on one project.
+    // clobbers labels a tenant set by hand. ON by default: this label is what
+    // checkServiceClaim() and planServiceDeletion() use to tell one tenant's Cloud Run
+    // service from another's, so leaving it off leaves the namespace unowned.
+    // CLOUD_RUN_OWNERSHIP_LABELS=false restores the previous opt-in behaviour.
     const ownershipLabelArgs = (
-        process.env.CLOUD_RUN_OWNERSHIP_LABELS === 'true' && deployifyProjectId
+        process.env.CLOUD_RUN_OWNERSHIP_LABELS !== 'false' && deployifyProjectId
             ? ['--update-labels', `deployify-project-id=${sanitizeLabel(deployifyProjectId)}`]
             : []
     );

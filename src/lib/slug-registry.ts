@@ -16,6 +16,7 @@
 import { randomBytes } from 'crypto';
 import { getDb, Collections } from '@/lib/firebase';
 import type { DocumentData } from 'firebase-admin/firestore';
+import { generateServiceName } from '@/lib/utils';
 
 /**
  * How create-time collisions are handled.
@@ -143,11 +144,22 @@ export async function claimProjectSlug(desiredSlug: string, userId: string): Pro
         if (!candidate || RESERVED_SLUGS.has(candidate)) continue;
         if (await slugUsedByAnyProject(candidate)) continue;
 
+        // The slug registry alone is not enough: every GLOBAL resource keys on
+        // generateServiceName(slug), which truncates to 59 characters. Two registry-distinct
+        // slugs sharing the first 59 characters collapse onto ONE Cloud Run service, which
+        // `gcloud run deploy` would then overwrite. Reserve the derived service name in the
+        // same transaction so the truncated namespace is unique too.
+        const serviceName = generateServiceName(candidate);
+
         const claimed = await db.runTransaction(async (tx) => {
             const ref = db.collection(Collections.PROJECT_SLUGS).doc(candidate);
-            const snap = await tx.get(ref);
-            if (snap.exists) return false;
-            tx.set(ref, { slug: candidate, userId, createdAt: new Date() });
+            const serviceRef = db.collection(Collections.PROJECT_SLUGS).doc(`svc:${serviceName}`);
+
+            const [snap, serviceSnap] = await Promise.all([tx.get(ref), tx.get(serviceRef)]);
+            if (snap.exists || serviceSnap.exists) return false;
+
+            tx.set(ref, { slug: candidate, userId, serviceName, createdAt: new Date() });
+            tx.set(serviceRef, { serviceName, slug: candidate, userId, createdAt: new Date() });
             return true;
         });
 
@@ -161,7 +173,10 @@ export async function claimProjectSlug(desiredSlug: string, userId: string): Pro
 export async function releaseProjectSlug(slug: string): Promise<void> {
     if (!slug || getSlugUniquenessMode() === 'off') return;
     try {
-        await getDb().collection(Collections.PROJECT_SLUGS).doc(slug).delete();
+        const db = getDb();
+        await db.collection(Collections.PROJECT_SLUGS).doc(slug).delete();
+        // Release the derived service-name reservation claimed alongside it.
+        await db.collection(Collections.PROJECT_SLUGS).doc(`svc:${generateServiceName(slug)}`).delete();
     } catch (error) {
         console.error(`[SlugRegistry] Failed to release slug "${slug}":`, error);
     }

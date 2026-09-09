@@ -20,7 +20,8 @@ import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
 import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
-import { parseBranchFromRef, shouldAutoDeploy, getProjectSlugForDeployment } from '@/lib/utils';
+import { parseBranchFromRef, shouldAutoDeploy, getProjectSlugForDeployment, generateServiceName } from '@/lib/utils';
+import { checkServiceClaim, SERVICE_CLAIM_ERROR } from '@/lib/gcp/service-claim';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus } from '@/lib/deployment';
@@ -203,6 +204,20 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         // Decrypt GitHub token if present
         const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
 
+        // SECURITY: `gcloud run deploy` is create-or-update and the service name is derived
+        // from tenant-supplied text, so a colliding name overwrites another tenant's service.
+        const serviceClaim = await checkServiceClaim(
+            generateServiceName(projectSlug),
+            project.id,
+            await getGcpAccessToken(),
+            project.region
+        );
+        if (!serviceClaim.allowed) {
+            console.error(`[Webhook] Refusing push deploy for project ${project.id}: ${SERVICE_CLAIM_ERROR}`);
+            await updateDeployment(deployment.id, { status: 'error', errorMessage: SERVICE_CLAIM_ERROR });
+            return;
+        }
+
         // Generate build config with project's selected region
         const buildConfig = generateCloudRunDeployConfig({
             projectSlug: projectSlug,
@@ -297,8 +312,24 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         console.log(`[Cleanup] PR #${pull_request.number} closed for ${project.name}. Starting cleanup...`);
         try {
             const gcpAccessToken = await getGcpAccessToken();
-            await deleteService(previewServiceName, gcpAccessToken, project.region);
-            console.log(`[Cleanup] Cloud Run service ${previewServiceName} deleted.`);
+
+            // SECURITY: previewServiceName is derived from project.slug, and the Cloud Run
+            // namespace is larger than the project-slug namespace, so `dfy-<slug>-pr-<n>` can
+            // be another tenant's PRODUCTION service. This was the one deleteService call site
+            // with no ownership guard. Reuse the deploy-side claim check: only delete a service
+            // this project owns (or an unlabelled legacy one).
+            const cleanupClaim = await checkServiceClaim(
+                previewServiceName,
+                project.id,
+                gcpAccessToken,
+                project.region
+            );
+            if (!cleanupClaim.allowed) {
+                console.error(`[Cleanup] Refusing to delete ${previewServiceName}: owned by another Deployify project.`);
+            } else {
+                await deleteService(previewServiceName, gcpAccessToken, project.region);
+                console.log(`[Cleanup] Cloud Run service ${previewServiceName} deleted.`);
+            }
 
             // Cleanup ephemeral databases if branching is enabled
             if (project.storageConfigs && project.storageConfigs.length > 0) {
@@ -644,6 +675,19 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
             // Generate build config for preview with project's selected region
             const projectSlug = getProjectSlugForDeployment(project, deployment);
+            // SECURITY: same create-or-update collision risk on the preview service name.
+            const serviceClaim = await checkServiceClaim(
+                generateServiceName(projectSlug),
+                project.id,
+                await getGcpAccessToken(),
+                project.region
+            );
+            if (!serviceClaim.allowed) {
+                console.error(`[Webhook] Refusing preview deploy for project ${project.id}: ${SERVICE_CLAIM_ERROR}`);
+                await updateDeployment(deployment.id, { status: 'error', errorMessage: SERVICE_CLAIM_ERROR });
+                return;
+            }
+
             const buildConfig = generateCloudRunDeployConfig({
                 projectSlug: projectSlug,
                 deployifyProjectId: project.id,
