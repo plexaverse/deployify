@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitizeClientMetadata } from '@/lib/storage-metadata';
 import { getSession } from '@/lib/auth';
 import { createProject, getProjectBySlug, listProjectsByTeam, listPersonalProjects, listTeamsForUser, getTeamMembership, updateProject } from '@/lib/db';
 import { getRepo, createRepoWebhook, detectFramework } from '@/lib/github';
@@ -317,7 +318,10 @@ export async function POST(request: NextRequest) {
                     environment: config.environment || 'both',
                     envKey: config.envKey,
                     connectionStringSecretId,
-                    metadata: config.metadata || {},
+                    // Same server-owned-key stripping the storage routes apply. Without it,
+                    // project creation was a way to plant provisioned/resourceName/excessiveRoles
+                    // straight into a connector, which privileged code paths then trust.
+                    metadata: sanitizeClientMetadata(config.metadata || {}, 'POST /api/projects storageConfigs'),
                     createdAt: new Date(),
                     updatedAt: new Date(),
                 });
