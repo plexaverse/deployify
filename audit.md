@@ -1,20 +1,21 @@
 # Deployify — Product Quality & Security Audit
 
-> **State as of 2026-09-09 (session 3).** Work lives on branch **`audit/security-hardening`**;
-> **`main` is untouched at `ece2cf3`**. Nothing has been pushed or merged.
+> **State as of 2026-09-09.** Branch **`audit/security-hardening`** (8 commits);
+> **`main` untouched at `ece2cf3`**. Nothing pushed or merged.
 >
-> - **74 defects** verified adversarially (Parts 1, 2b, 5). 9 critical.
-> - **41 fixes were auto-applied** by the remediation agents — this was unintended, they had write
->   tools. Committed to the branch as `522a06c` so they are reviewable, not loose in the tree.
-> - **The 9 critical fixes were then reviewed** (Part 7). **Only 2 of 9 fully closed their defect.**
->   One had not been applied to the vulnerable code at all.
-> - **2 of those gaps are now fixed** (`1a91c6f`, `ec91050`); **5 critical fixes remain partial**.
-> - Tree health: **510/510 tests pass**, **eslint clean**, **`tsc --noEmit` clean on source**.
+> - **74 defects** adversarially verified. 9 critical.
+> - **41 fixes auto-applied** by agents (unintended — they had write tools), committed as
+>   `522a06c` so they are reviewable.
+> - **Criticals reviewed twice.** First pass: 2 of 9 closed. After remediation, a second
+>   recheck found only 1 of the remaining 5 closed — including one of my own fixes that was
+>   **dead code**. Both rounds are now fixed; see Part 8.
+> - Tree health: **524/524 tests pass**, **eslint clean**, **`tsc --noEmit` clean on source**.
 >
-> **Do not merge this branch yet.** Five criticals still have working bypasses — see Part 7.
+> **Do not merge yet.** Part 8 lists 4 open security items and 4 breakages these fixes
+> introduced. The 24 high-severity fixes have **never been reviewed at all**.
 >
-> **Read in this order:** Part 7 (what is still broken) → Part 6 (state) → Parts 1 & 2b
-> (hand-verified findings) → Part 5 (agent findings, verified) → Parts 2/3 (quality; raw archive).
+> **Read in this order:** Part 8 (what is still open) → Part 7 (first recheck) → Parts 1 & 2b
+> (hand-verified) → Part 5 (agent findings, verified) → Parts 2/3 (quality; raw archive).
 
 - **Repo:** `/Users/asangborkar/Documents/Plexaverse/deployify`
 - **Branch / HEAD:** `main` @ `ece2cf3`
@@ -7995,3 +7996,100 @@ Exploit: victim project slug "acme" has an open PR #7, so `dfy-acme-pr-7` is run
 ### `tenancy-data-2`
 Derived resource names are not in the registry. `claimProjectSlug` (src/lib/slug-registry.ts:120-155) only reserves the bare production slug, but `getProjectSlugForDeployment` (src/lib/utils.ts:76-91) derives preview/branch resource slugs as `${project.slug}-pr-${n}` and `${project.slug}-${slugify(branch)}`, and `generateServiceName` (src/lib/utils.ts:53-57) turns those into `dfy-<derived>`. Concrete attack, live with the shipped defaults: victim tenant owns project slug `acme` and has a PR-7 preview running as Cloud Run service `dfy-acme-pr-7`. Attacker creates a project named "acme pr 7" -> `slugify` -> `acme-pr-7`. `slugUsedByAnyProject('acme-pr-7')` is false (no PROJECT row carries that slug -- only a derived service exists) and `projectSlugs/acme-pr-7` does not exist, so the claim succeeds and the project is created. Attacker then deploys production: `generateServiceName('acme-pr-7'
 
+
+---
+
+# PART 8 — Second recheck, and what is still open
+
+After fixing the 5 partial criticals, I re-ran the adversarial review against them. It found
+that **only 1 of 5 was actually closed**, and — importantly — that one of my own fixes was
+**dead code**. Recording it here because the pattern matters more than any single defect.
+
+## Recheck verdict on the 5
+
+| finding | recheck verdict | why |
+|---|---|---|
+| `injection-db-1` billing tier | ✅ **closed** | no bypass found; both writers now derive the tier from `resolveOrderIntent` |
+| `authn-session-1` resource ownership | ⚠️ partial → **fixed since** | the reader was hardened but the **writer still laundered** the display name into `metadata.resourceName` |
+| `tenancy-data-1` service deletion | ❌ open → **fixed since** | `checkServiceClaim()` was **inert** |
+| `tenancy-data-2` service takeover | ⚠️ partial → **fixed since** | same inert guard |
+| `ai-cost-abuse-1` IAM remediation | ⚠️ partial → **fixed since** | role gate added to **one of two** routes |
+
+## The three findings worth internalising
+
+**1. A guard that reads a field nobody populates.** `checkServiceClaim()` read
+`service.labels`, but `getService()` in `cloudrun.ts` re-maps the Cloud Run response into an
+interface with **no `labels` field**. So the guard always saw `{}`, always concluded
+"unlabelled legacy", and **could never deny**. Every deploy-time and cleanup-time ownership
+check shipped in `e1283c8` was decorative. Tests passed, types passed, lint passed. Only an
+adversarial reader who traced the data end to end caught it.
+
+**2. Hardening the reader while the writer still launders.** `9be31c4` made ownership depend
+on `metadata.resourceName` on the grounds that it is server-written and stripped from request
+bodies. But `POST /storage` derived it from the free-text display name and persisted it
+whenever `provision=true` — including for types the dispatch never provisions
+(`mongodb-atlas`, `planetscale`, `generic`), which make no GCP call at all. So the tenant got
+the **server** to write `resourceName: 'victim-prod-db'` for them. The trust boundary moved;
+the hole didn't.
+
+**3. Fixing one of two call sites.** The role gate went on
+`/api/projects/[id]/storage/[storageId]/remediate` but not on
+`/api/infrastructure/remediate`, which calls the same `remediateRisk()` in a loop over every
+project in the team, is satisfied by a `viewer`, and is the CLI's documented command.
+
+## Fixed in this round (`9f17683`, `1d70ca9`)
+
+- `getService()` now returns `labels`, so the service-ownership guard actually functions.
+- `metadata.resourceName` is recorded **only when a resource was really provisioned**.
+- `/api/infrastructure/remediate` is owner/admin only.
+- **22 further call sites** derived a GCP resource name from the display name — remediation
+  helpers (5), sync (6), backups (3), clone (3), export, import, restore, metrics,
+  resource-metrics, guardrails, query-insights, recommendations, cron/optimize. All now go
+  through `requireManagedResourceName()`, which throws rather than guessing.
+- Two of those fell back to **`'(default)'` — the control-plane Firestore**. The clone path
+  exported it wholesale to a tenant-supplied GCS URI.
+- `POST /api/projects` now runs connector metadata through the same sanitizer.
+- `env.example` shipped `STORAGE_METADATA_STRICT=false`, the one value that disables the
+  stripper, contradicting the code's fail-safe default.
+
+## Still open — do not merge without addressing these
+
+**Security**
+
+1. **Label backfill window.** The service-ownership guard works now, but services created
+   before this branch carry no `deployify-project-id` label and are allowed through as
+   "unlabelled legacy". Until a one-time backfill stamps existing Cloud Run services, an
+   attacker who deploys onto a legacy name first still wins. `CLOUD_RUN_SERVICE_CLAIM_MODE`
+   controls the strictness.
+2. **`GCP_DISCOVERY_SCOPE` defaults to returning everything.** `GET /api/gcp/discover` still
+   enumerates every tenant's Cloud SQL / Redis / Firestore instance in the shared project.
+   That is the reconnaissance half of several findings and it is one env var away from closed.
+3. **`planServiceDeletion` contention compares exact slugs only**, so the derived-name
+   namespace is still not covered on the delete path — the label check now backs it up, but
+   only for labelled services (see 1).
+4. **`IAM_SELF_REMEDIATION_ENABLED=true` re-opens the IAM revoke**, and
+   `EXCESSIVE_PROJECT_ROLES` still permits `roles/owner` and `roles/editor` on the shared
+   platform service account. The feature's safety currently rests on it staying switched off.
+
+**Breakage introduced by these fixes — real, and not yet resolved**
+
+5. **Adopted connectors are refused.** A connector created by adopting an existing instance
+   never had a server-written `resourceName`, so replica, migrate-region, export, metrics and
+   friends now refuse it. Refusing is the safe direction, but the adopt flow needs a backfill:
+   derive `resourceName` from the live `deployify-project-id` label at adopt time.
+6. **`DELETE /storage?deleteResource=true` on such a connector returns 200 while orphaning a
+   billing GCP instance** — the throw is swallowed by the surrounding catch. It should surface
+   an error.
+7. **`member` — the default invite role — lost one-click remediation**, while
+   `StorageSection.tsx` still renders the FIX buttons to them. Either pass the role to the
+   component or relax the gate for the non-GCP risks (`unencrypted_connection` only writes a
+   Firestore field).
+8. **The IAM hardening badge can never clear** while `IAM_SELF_REMEDIATION_ENABLED` is off:
+   the deferred branch deliberately leaves `iamOverprivileged` set, so the risk re-appears on
+   every sync and the user sees a green toast with no change.
+
+## Honest status
+
+**24 high-severity fixes from the first automated pass have still never been reviewed.** The
+critical-fix review rate — 2 of 9 good on the first pass, 1 of 5 on the second — is the best
+available estimate for them, and it is not encouraging. Treat the highs as unverified.
