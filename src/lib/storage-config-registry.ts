@@ -112,7 +112,7 @@ export async function mutateStorageConfigs(
 export function addReplicaToConfigs(
     configs: StorageConfig[],
     storageId: string,
-    replica: { id: string }
+    replica: { id: string } & Record<string, unknown>
 ): StorageConfig[] | null {
     const index = configs.findIndex((s) => s.id === storageId);
     if (index === -1) return null;

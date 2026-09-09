@@ -47,8 +47,13 @@ function sanitizeClientMetadata(metadata: any, context: string): any {
     const present = SERVER_OWNED_METADATA_KEYS.filter((k) => Object.prototype.hasOwnProperty.call(metadata, k));
     if (present.length === 0) return metadata;
 
-    if (process.env.STORAGE_METADATA_STRICT !== 'true') {
-        console.warn(`[StorageMetadata] ${context}: request supplied server-owned metadata key(s) [${present.join(', ')}]; not stripped (STORAGE_METADATA_STRICT is off).`);
+    // Fail-safe by default: these keys gate GCP deletion, IAM remediation and Data Lab
+    // database binding, so a request body must never set them. The dashboard never sends
+    // them (StorageSection.tsx builds metadata by hand) and stripping falls back to the
+    // already-stored value, so this is a UI no-op. STORAGE_METADATA_STRICT=false restores
+    // the previous warn-only behaviour if an unexpected caller turns up.
+    if (process.env.STORAGE_METADATA_STRICT === 'false') {
+        console.warn(`[StorageMetadata] ${context}: request supplied server-owned metadata key(s) [${present.join(', ')}]; not stripped (STORAGE_METADATA_STRICT=false).`);
         return metadata;
     }
 

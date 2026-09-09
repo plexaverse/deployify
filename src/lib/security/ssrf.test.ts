@@ -10,6 +10,9 @@ import {
     resetProxyTargetCache,
 } from './ssrf';
 
+// process.env.NODE_ENV is typed read-only via next-env.d.ts; tests need to vary it.
+const mutableEnv = process.env as Record<string, string | undefined>;
+
 describe('SSRF guard - address classification', () => {
     test('blocks the GCP metadata address and RFC1918/loopback space', () => {
         for (const ip of ['169.254.169.254', '127.0.0.1', '0.0.0.0', '10.1.2.3', '172.16.0.1', '192.168.1.1', '100.64.0.1']) {
@@ -56,14 +59,14 @@ describe('SSRF guard - getProxySsrfMode', () => {
     afterEach(() => {
         if (originalMode === undefined) delete process.env.PROXY_SSRF_MODE;
         else process.env.PROXY_SSRF_MODE = originalMode;
-        process.env.NODE_ENV = originalEnv;
+        mutableEnv.NODE_ENV = originalEnv;
     });
 
     test('defaults to enforce in production and report elsewhere', () => {
         delete process.env.PROXY_SSRF_MODE;
-        process.env.NODE_ENV = 'production';
+        mutableEnv.NODE_ENV = 'production';
         assert.strictEqual(getProxySsrfMode(), 'enforce');
-        process.env.NODE_ENV = 'development';
+        mutableEnv.NODE_ENV = 'development';
         assert.strictEqual(getProxySsrfMode(), 'report');
     });
 

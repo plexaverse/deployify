@@ -918,11 +918,13 @@ export async function POST(
                     // returns `firestore://<databaseId>`). getDb() would return the DEFAULT database
                     // — Deployify's own control plane — so resolve the tenant's database explicitly
                     // and refuse if we cannot. Never fall back to getDb() here.
-                    const firestoreDatabaseId =
-                        (storageConfig.metadata?.resourceName as string | undefined)?.trim() ||
-                        (connectionString.startsWith('firestore://')
-                            ? connectionString.slice('firestore://'.length).split(/[/?#]/)[0].trim()
-                            : '');
+                    // The databaseId must come from SERVER-provisioned metadata only.
+                    // `connectionString` is attacker-controlled: POST /storage accepts a raw
+                    // connectionString with `provision:false`, so honouring `firestore://<id>`
+                    // from it would let a tenant point this at ANOTHER tenant's database.
+                    const firestoreDatabaseId = storageConfig.metadata?.provisioned === true
+                        ? (storageConfig.metadata?.resourceName as string | undefined)?.trim() || ''
+                        : '';
 
                     let db: ReturnType<typeof getNamedDb>;
                     try {
@@ -933,7 +935,7 @@ export async function POST(
                         );
                         return NextResponse.json({
                             success: false,
-                            error: 'Firestore connector is not bound to a database. Re-provision the connector to use the Data Lab.'
+                            error: 'Firestore connector is not bound to a Deployify-provisioned database. Re-provision the connector to use the Data Lab.'
                         }, { status: 400 });
                     }
 

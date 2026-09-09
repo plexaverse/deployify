@@ -3,6 +3,7 @@ import { getProjectBySlugGlobal } from '@/lib/db';
 import { getDb, Collections } from '@/lib/firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { trackError } from '@/lib/logging/tracker';
+import { buildProxyRequestHeaders } from '@/lib/security/proxy-headers';
 import { fetchWithSsrfGuard, getProxySsrfMode, ProxyTargetBlockedError } from '@/lib/security/ssrf';
 
 // Helper for bot detection
@@ -121,14 +122,12 @@ async function handleProxyRequest(
 
     try {
         const method = req.method;
-        const headers = new Headers();
-
-        // Forward relevant headers
-        req.headers.forEach((value, key) => {
-            if (!['host', 'connection'].includes(key.toLowerCase())) {
-                headers.set(key, value);
-            }
-        });
+        // SECURITY: this proxy serves tenant-controlled origins from Deployify's own
+        // domain, so the browser attaches Deployify's first-party cookies. Forwarding
+        // them would hand the tenant a live `deployify_session` JWT (which embeds the
+        // user's GitHub access token). buildProxyRequestHeaders drops hop-by-hop headers
+        // and strips Deployify's own cookies while leaving the tenant's cookies intact.
+        const headers = buildProxyRequestHeaders(req.headers);
 
         // Ensure proper forwarded headers
         headers.set('X-Forwarded-Host', req.headers.get('host') || '');
