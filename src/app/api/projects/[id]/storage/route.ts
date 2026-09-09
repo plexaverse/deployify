@@ -35,7 +35,11 @@ const SERVER_OWNED_METADATA_KEYS = [
     'iamOverprivileged',
     'iamRoleVerified',
     'broadSecretAccess',
-    'security'
+    'security',
+    // Drives updateMaintenanceWindow() on a Cloud SQL instance resolved from
+    // metadata.resourceName, so it must be server-written like the rest.
+    'maintenanceRecommendation',
+    'replicas'
 ] as const;
 
 // `body` is untyped JSON here, and callers below read `metadata.tier`, `metadata.highAvailability`

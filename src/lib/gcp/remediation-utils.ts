@@ -283,15 +283,31 @@ export async function remediateRisk(
                     // 2. Revoke broad roles (operator-gated: mutates the SHARED platform SA;
                     //    dropping secretAccessor breaks secret reads for every tenant at once)
                     if (isSelfRemediationEnabled()) {
-                        console.warn(`[IAMRemediation] Revoking broad Secret Manager roles from ${saEmail} in ${gcpProjectId} (project ${projectId}, connector ${storageId})`);
-                        await revokeProjectRole(gcpProjectId, saEmail, 'roles/secretmanager.secretAccessor');
-                        await revokeProjectRole(gcpProjectId, saEmail, 'roles/secretmanager.admin');
+                        // Route through the same allowlist the overprivileged path uses instead of
+                        // hardcoding role names, so NEVER_REVOKE_ROLES and operator overrides apply
+                        // here too. Previously these two revokes bypassed resolveRevocableRoles
+                        // entirely and could strip secret reads for every tenant at once.
+                        const { roles: secretRoles, rejected: rejectedSecretRoles } = resolveRevocableRoles([
+                            'roles/secretmanager.secretAccessor',
+                            'roles/secretmanager.admin'
+                        ]);
+                        if (rejectedSecretRoles.length > 0) {
+                            console.warn(`[IAMRemediation] Not revoking protected role(s) [${rejectedSecretRoles.join(', ')}] from ${saEmail}.`);
+                        }
+
+                        console.warn(`[IAMRemediation] Revoking broad Secret Manager roles [${secretRoles.join(', ') || 'none'}] from ${saEmail} in ${gcpProjectId} (project ${projectId}, connector ${storageId})`);
+                        for (const role of secretRoles) {
+                            await revokeProjectRole(gcpProjectId, saEmail, role);
+                        }
 
                         storage.metadata = {
                             ...storage.metadata,
-                            broadSecretAccess: false,
+                            broadSecretAccess: secretRoles.length === 0 ? storage.metadata?.broadSecretAccess : false,
                             lastIamHardeningAt: new Date().toISOString()
                         };
+                        message = secretRoles.length > 0
+                            ? 'Secret access restricted to granular scope (resource-level).'
+                            : 'Granular secret scoping applied. No project-level Secret Manager role was eligible for automatic revocation.';
                     } else {
                         console.warn(`[IAMRemediation] IAM_SELF_REMEDIATION_ENABLED is not set; deferring broad Secret Manager role revocation for ${saEmail} (project ${projectId}, connector ${storageId}).`);
                         storage.metadata = {
@@ -299,8 +315,8 @@ export async function remediateRisk(
                             iamHardeningDeferred: true,
                             lastIamHardeningAt: new Date().toISOString()
                         };
+                        message = 'Granular secret scoping applied. Project-level Secret Manager role revocation on the shared platform service account is queued for operator review.';
                     }
-                    message = 'Secret access restricted to granular scope (resource-level).';
                 }
                 break;
 
