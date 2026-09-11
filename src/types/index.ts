@@ -2,6 +2,13 @@
 
 // User type from GitHub OAuth
 export interface AnalyticsStats {
+    /**
+     * Present and true only when the figures are synthetic placeholders (no events yet, or
+     * the query failed). The UI must label these; they are not measurements.
+     */
+    isPlaceholder?: boolean;
+    /** Why the data is synthetic: 'no-data' or 'error'. */
+    placeholderReason?: 'no-data' | 'error';
     aggregate: {
         visitors: { value: number };
         pageviews: { value: number };

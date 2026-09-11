@@ -22,7 +22,7 @@ interface AnalyticsChartsProps {
 }
 
 export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
-    const { aggregate, timeseries, sources, locations, performance } = data;
+    const { aggregate, timeseries, sources, locations, performance, isPlaceholder, placeholderReason } = data;
 
     // Helper for Web Vitals status
     const getVitalStatus = (metric: string, value: number) => {
@@ -43,6 +43,25 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
 
     return (
         <div className="space-y-6">
+            {/* The API substitutes randomly generated figures when a project has no events
+                yet, or when the analytics query fails. Unlabelled, those are indistinguishable
+                from real measurements. */}
+            {isPlaceholder && (
+                <div
+                    role="status"
+                    className="flex items-start gap-2 rounded-lg border border-[var(--warning)]/30 bg-[var(--warning)]/10 px-3 py-2"
+                >
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)]">
+                        Sample data
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        {placeholderReason === 'error'
+                            ? 'Analytics could not be loaded, so the figures below are illustrative — not measurements.'
+                            : 'No traffic recorded yet. The figures below are illustrative — not measurements.'}
+                    </span>
+                </div>
+            )}
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <SummaryCard

@@ -163,7 +163,9 @@ export async function getAnalyticsStats(
         }
 
         if (snapshot.empty) {
-            return getMockData(period);
+            // No events recorded yet. Returning synthetic numbers unlabelled made an empty
+            // project look like a busy one; the flag lets the UI say "sample data".
+            return getMockData(period, 'no-data');
         }
 
         const events = snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as AnalyticsEvent) }));
@@ -248,11 +250,11 @@ export async function getAnalyticsStats(
         };
     } catch (error) {
         console.error('Error fetching internal analytics:', error);
-        return getMockData(period);
+        return getMockData(period, 'error');
     }
 }
 
-export function getMockData(period: string): AnalyticsStats {
+export function getMockData(period: string, reason: 'no-data' | 'error' = 'no-data'): AnalyticsStats {
     // Exported, and reached from BOTH the empty-result branch and the catch-all
     // of getAnalyticsStats - so it bounds its own allocation rather than trusting
     // the caller to have done it.
@@ -271,6 +273,8 @@ export function getMockData(period: string): AnalyticsStats {
     const totalPageviews = timeseries.reduce((acc, curr) => acc + curr.pageviews, 0);
 
     return {
+        isPlaceholder: true,
+        placeholderReason: reason,
         aggregate: {
             visitors: { value: totalVisitors },
             pageviews: { value: totalPageviews },

@@ -37,6 +37,10 @@ export async function GET(
         const db = getDb();
         const commentsSnapshot = await db
             .collection(Collections.QUERY_COMMENTS)
+            // SECURITY: queryId is a URL segment. checkProjectAccess() above authorizes the
+            // PROJECT, so the read must be filtered by it too - otherwise any authenticated
+            // user can read another tenant's query discussion by supplying their queryId.
+            .where('projectId', '==', id)
             .where('queryId', '==', queryId)
             .orderBy('createdAt', 'asc')
             .get();
