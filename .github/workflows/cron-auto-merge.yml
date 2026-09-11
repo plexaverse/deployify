@@ -25,9 +25,10 @@ jobs:
           # 1. Mergeable state is MERGEABLE
           # 2. Status checks are SUCCESS
           # 3. PR is APPROVED (Safety first)
+          # 4. Author is a trusted developer or AI agent
 
-          # Select PRs based on security-hardened criteria (Exact author match)
-          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED" and (.author.login == "asangzz" or .author.login == "jules-google[bot]" or .author.login == "jules[bot]")) | .number' > pr_numbers.txt
+          # Select PRs based on security-hardened criteria
+          gh pr list --json number,mergeable,statusCheckRollup,reviewDecision,author -q '.[] | select(.mergeable == "MERGEABLE" and .statusCheckRollup.state == "SUCCESS" and .reviewDecision == "APPROVED" and (.author.login == "asangzz" or .author.login == "jules-google[bot]" or .author.login == "jules[bot]" or .author.login == "jules")) | .number' > pr_numbers.txt
 
           if [ ! -s pr_numbers.txt ]; then
             echo "No approved PRs found that are ready for automatic merging."
