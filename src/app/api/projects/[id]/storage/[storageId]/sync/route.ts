@@ -1125,17 +1125,44 @@ export async function GET(
                 const targetInstanceName = storage.metadata?.targetInstanceName as string;
                 const targetRegion = storage.metadata?.targetRegion as string;
 
+                // migrateInstanceToRegion() is a CLONE: it creates a new instance and
+                // leaves the source RUNNABLE. Overwriting resourceName here used to drop the
+                // only reference to the source, which then billed forever with nothing in
+                // Firestore naming it — invisible to the orphan heuristic, and not removed
+                // even when the connector was deleted. Record it so it can be reclaimed.
+                const supersededInstance = storage.metadata?.resourceName as string | undefined;
+
                 storage.status = 'active';
                 storage.region = targetRegion;
                 storage.metadata = {
                     ...storage.metadata,
                     resourceName: targetInstanceName || storage.metadata?.resourceName,
                     region: targetRegion || storage.metadata?.region,
+                    // Kept so the source is reclaimable and visible in cost review.
+                    ...(supersededInstance && supersededInstance !== targetInstanceName
+                        ? {
+                            supersededResourceName: supersededInstance,
+                            supersededAt: new Date().toISOString(),
+                        }
+                        : {}),
                     lastOperation: undefined,
                     operationName: undefined,
                     targetInstanceName: undefined,
                     targetRegion: undefined
                 };
+
+                if (supersededInstance && supersededInstance !== targetInstanceName) {
+                    console.warn(
+                        `[Migration] ${supersededInstance} is superseded by ${targetInstanceName} and is STILL RUNNING. ` +
+                        `Reclaim it once the new instance is verified.`
+                    );
+                    await logAuditEvent(
+                        project.teamId || null,
+                        session.user.id,
+                        'storage.instance_superseded',
+                        { projectId: id, storageId, supersededResourceName: supersededInstance, replacedBy: targetInstanceName }
+                    );
+                }
 
                 // For Cloud SQL, we also need to update the connection string secret if it's a provisioning-native instance
                 if (storage.type.includes('cloud-sql') && storage.connectionStringSecretId) {

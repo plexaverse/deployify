@@ -183,6 +183,13 @@ export function resolveOwnedResourceNames(project: Project): Set<string> {
         // Region migration targets: migrateInstanceToRegion() names them
         // `${instanceName}-${targetRegion}` (or `${instanceName}-migrated` in MOCK_DB).
         owned.add(`${base}-migrated`);
+
+        // An instance superseded by a regional migration is still running and still ours -
+        // it must stay reclaimable, or it bills forever with nothing able to delete it.
+        const superseded = storage.metadata?.supersededResourceName;
+        if (typeof superseded === 'string' && superseded.trim()) {
+            owned.add(superseded.trim());
+        }
         const region = (storage.metadata?.region as string) || project.region;
         if (region) owned.add(`${base}-${region}`);
 

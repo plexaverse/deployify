@@ -87,6 +87,29 @@ export async function proxy(request: NextRequest) {
                 });
             }
 
+            // Rate limit BEFORE the rewrite: this path returns early, so it never reached
+            // the /api/ limiter below. Each request here logs an analytics event
+            // (Firestore write + BigQuery insert), so unmetered it is both a DoS and a
+            // direct bill. Limited per-IP with its own generous ceiling, because this is
+            // page traffic (HTML + assets), not API calls.
+            const proxyLimit = Number(process.env.PROXY_RATE_LIMIT_REQUESTS || 600);
+            const proxyVerdict = evaluateApiRateLimit({
+                pathname: '/api/v1/proxy',
+                xForwardedFor: request.headers.get('x-forwarded-for'),
+                xRealIp: request.headers.get('x-real-ip'),
+            });
+
+            if (!proxyVerdict.allowed && process.env.PROXY_RATE_LIMIT_MODE !== 'off') {
+                return new NextResponse('Too Many Requests', {
+                    status: 429,
+                    headers: {
+                        ...Object.fromEntries(responseHeaders),
+                        'Retry-After': String(Math.max(1, Math.ceil((proxyVerdict.resetAt - Date.now()) / 1000))),
+                        'X-RateLimit-Limit': String(proxyLimit),
+                    },
+                });
+            }
+
             const url = request.nextUrl.clone();
             url.pathname = `/api/v1/proxy/${subdomain}${pathname}`;
             return NextResponse.rewrite(url, {
