@@ -114,7 +114,7 @@ describe('syncCronJobs', () => {
         const projectId = 'proj-123';
         const crons = [{ path: '/api/cron1', schedule: '5 * * * *' }];
 
-        const { config } = await import('@/lib/config');
+        const { config } = await import('../config');
         const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID || 'test-gcp-project';
 
         const crypto = await import('crypto');
@@ -147,7 +147,7 @@ describe('syncCronJobs', () => {
         const projectId = 'proj-123';
         const crons: { path: string, schedule: string }[] = []; // No crons desired
 
-        const { config } = await import('@/lib/config');
+        const { config } = await import('../config');
         const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID || 'test-gcp-project';
 
         const existingJobName = `projects/${gcpProjectId}/locations/us-central1/jobs/dfy-my-project-cron-oldhash`;

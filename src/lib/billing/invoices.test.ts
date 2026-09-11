@@ -40,7 +40,7 @@ test('Billing Backend Verification', async (t) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (mock as any).module('@/lib/firebase', {
+    (mock as any).module('../firebase', {
         namedExports: {
             getDb: () => mockDb,
             Collections: { INVOICES: 'invoices' }
@@ -49,7 +49,7 @@ test('Billing Backend Verification', async (t) => {
 
     // Import the module under test
     // Note: We need to use dynamic import after mocking
-    const { listInvoicesForUser, getInvoiceById } = await import('@/lib/billing/invoices');
+    const { listInvoicesForUser, getInvoiceById } = await import('./invoices');
 
     await t.test('listInvoicesForUser returns invoices', async () => {
         const invoices = await listInvoicesForUser('user_1');

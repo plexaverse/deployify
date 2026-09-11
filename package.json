@@ -13,7 +13,7 @@
     "build": "next build",
     "start": "node .next/standalone/server.js",
     "lint": "eslint",
-    "test": "tsx --test --experimental-test-module-mocks $(find src -name '*.test.ts')",
+    "test": "node -e \"const v=process.versions.node.split('.').map(Number);if(v[0]<22||(v[0]===22&&v[1]<3)){console.error('\\n[test] Node >=22.3 is required to run the suite: several files use node:test module mocking (mock.module, behind --experimental-test-module-mocks), which does not exist earlier. You are on '+process.versions.node+'. The APP still builds and runs on Node 20 - this is a test-tooling requirement only.\\n');process.exit(1)}\" && tsx --test --experimental-test-module-mocks $(find src -name '*.test.ts')",
     "audit": "npx tsx scripts/audit.ts"
   },
   "dependencies": {

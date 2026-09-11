@@ -35,15 +35,15 @@ const mockDb = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(mock as any).module('@/lib/firebase', {
+(mock as any).module('./firebase', {
     namedExports: {
         getDb: () => mockDb,
         Collections: { PROJECTS: 'projects' },
     }
 });
 
-type Registry = typeof import('@/lib/storage-config-registry');
-const loadRegistry = (): Promise<Registry> => import('@/lib/storage-config-registry');
+type Registry = typeof import('./storage-config-registry');
+const loadRegistry = (): Promise<Registry> => import('./storage-config-registry');
 
 test('storageConfigs replica mutations (defect reliability-races-4)', async (t) => {
     const { addReplicaToConfigs, removeReplicaFromConfigs, getStorageConfigWriteMode } = await loadRegistry();

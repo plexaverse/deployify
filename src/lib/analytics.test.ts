@@ -49,7 +49,7 @@ const mockBigQueryInstance = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(mock as any).module('@/lib/firebase', {
+(mock as any).module('./firebase', {
     namedExports: {
         getDb: () => mockDb,
         Collections: { ANALYTICS_EVENTS: 'analytics_events' }

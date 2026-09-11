@@ -1,5 +1,5 @@
 # Quality gate. Before this existed the only check anywhere was `npm run build` inside the
-# auto-merge workflow, so the 580 unit tests and eslint never ran in CI at all.
+# auto-merge workflow, so the unit tests and eslint never ran in CI at all.
 name: CI
 
 on:
@@ -17,7 +17,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  # Lint, typecheck and test need Node 22: several suites use node:test module mocking
+  # (`mock.module`, behind --experimental-test-module-mocks), which does not exist before
+  # Node 22.3. On Node 20 those files throw at import time, so their tests never register
+  # and the run reports fewer tests plus 4 failures.
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -25,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       # `npm ci` also fails when package-lock.json drifts from package.json, which is
@@ -42,6 +46,23 @@ jobs:
 
       - name: Test
         run: npm test
+
+  # The build runs on the version production actually ships: Dockerfile is node:20-alpine.
+  # Keeping this separate means a Node 20 build regression is still caught, even though the
+  # test tooling needs a newer runtime.
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install
+        run: npm ci --ignore-scripts
 
       - name: Build
         run: npm run build

@@ -36,7 +36,7 @@ test('Billing Order Registry (payment tier authorization)', async (t) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (mock as any).module('@/lib/firebase', {
+    (mock as any).module('../firebase', {
         namedExports: {
             getDb: () => mockDb,
             Collections: { BILLING_ORDERS: 'billingOrders' },
@@ -52,7 +52,7 @@ test('Billing Order Registry (payment tier authorization)', async (t) => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (mock as any).module('@/lib/billing/payments', {
+    (mock as any).module('./payments', {
         namedExports: {
             getRazorpay: () => ({
                 orders: {
@@ -80,7 +80,7 @@ test('Billing Order Registry (payment tier authorization)', async (t) => {
     const {
         resolveOrderIntent, claimOrderPayment, getVerifyTierMode,
         isPaymentFulfilled, markOrderFulfilled, corroboratePayment, getPaymentCorroborationMode,
-    } = await import('@/lib/billing/order-registry');
+    } = await import('./order-registry');
 
     await t.test('resolves the paid tier from the registry, not the client', async () => {
         const intent = await resolveOrderIntent('order_pro_1');
