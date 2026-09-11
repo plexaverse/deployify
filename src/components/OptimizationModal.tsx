@@ -267,15 +267,15 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                     Risk Detected
                                 </span>
                             </div>
-                            <p className="text-[10px] font-bold text-[var(--foreground)]">
+                            <p className="text-[13px] font-bold text-[var(--foreground)]">
                                 Connectivity trend analysis predicts a significant latency increase ({health.predictedLatency}ms) within the next 24 hours.
                             </p>
                             <div className="p-2.5 rounded-lg bg-[var(--error)]/10 border border-[var(--error)]/20 space-y-2">
                                 <div className="flex items-center justify-between">
                                     <span className="text-[10px] font-bold uppercase text-[var(--error)]">Jitter Score</span>
-                                    <span className="text-[10px] font-mono font-bold text-[var(--error)]">{(health.jitterScore || 0).toFixed(3)}</span>
+                                    <span className="text-[12px] font-mono font-bold text-[var(--error)]">{(health.jitterScore || 0).toFixed(3)}</span>
                                 </div>
-                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                                     RECOMMENDATION: Consider a regional migration to a lower-jitter GCP region to stabilize connection performance.
                                 </p>
                             </div>
@@ -293,8 +293,8 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                     {new Date(workloadShift.detectedAt).toLocaleDateString()}
                                 </span>
                             </div>
-                            <p className="text-[10px] font-bold text-[var(--foreground)]">{workloadShift.reason}</p>
-                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                            <p className="text-[13px] font-bold text-[var(--foreground)]">{workloadShift.reason}</p>
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                                 RECOMMENDATION: {workloadShift.recommendation}
                             </p>
                         </div>
@@ -317,7 +317,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         security.score >= 90 ? "text-[var(--success)]" : "text-[var(--error)]"
                                     )}>Security Posture: Grade {security.grade}</span>
                                 </div>
-                                <span className="text-[10px] font-mono font-bold">{security.score}/100</span>
+                                <span className="text-[12px] font-mono font-bold">{security.score}/100</span>
                             </div>
 
                             {security.risks.length > 0 ? (
@@ -333,16 +333,16 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                     <span className="text-[10px] font-bold uppercase">{risk.title}</span>
                                                 </div>
                                             </div>
-                                            <p className="text-[10px] font-bold text-[var(--muted-foreground)] leading-relaxed">{risk.description}</p>
+                                            <p className="text-[13px] font-bold text-[var(--muted-foreground)] leading-relaxed">{risk.description}</p>
                                             <div className="flex items-start gap-2 pt-1 border-t border-[var(--border)] mt-1">
                                                 <Lock className="w-3 h-3 text-[var(--primary)] shrink-0 mt-0.5" />
-                                                <p className="text-[10px] font-bold text-[var(--foreground)] uppercase">Remediation: {risk.remediation}</p>
+                                                <p className="text-[13px] font-bold text-[var(--foreground)] uppercase">Remediation: {risk.remediation}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-[10px] font-bold uppercase text-[var(--success)]/70 flex items-center gap-2">
+                                <p className="text-[13px] font-bold uppercase text-[var(--success)]/70 flex items-center gap-2">
                                     <ShieldCheck className="w-3 h-3" />
                                     No immediate security risks detected for this connector.
                                 </p>
@@ -361,7 +361,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                     {storage.workloadProfile && (
                                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20">
                                             <span className="text-[10px] font-bold uppercase text-[var(--primary)]">{storage.workloadProfile.type}</span>
-                                            <span className="text-[10px] font-mono opacity-60 text-[var(--primary)]">{Math.round(storage.workloadProfile.confidence * 100)}% CONF</span>
+                                            <span className="text-[12px] font-mono opacity-60 text-[var(--primary)]">{Math.round(storage.workloadProfile.confidence * 100)}% CONF</span>
                                         </div>
                                     )}
                                     <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
@@ -369,7 +369,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                     </span>
                                 </div>
                             </div>
-                            <p className="text-[10px] font-bold leading-relaxed text-[var(--muted-foreground)]">
+                            <p className="text-[13px] font-bold leading-relaxed text-[var(--muted-foreground)]">
                                 Based on real-time utilization trends, we&apos;ve identified opportunities to improve the performance and cost-efficiency of <strong>{storage.name}</strong>.
                             </p>
 
@@ -383,7 +383,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         {costForecast.map((f, i) => (
                                             <div key={i} className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">{f.month}</span>
-                                                <span className="text-[10px] font-mono font-bold">${f.cost.toFixed(0)}</span>
+                                                <span className="text-[12px] font-mono font-bold">${f.cost.toFixed(0)}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -406,11 +406,11 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 <div className="space-y-1">
                                     <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Avg CPU</span>
-                                    <span className="text-[10px] font-mono font-bold">{dormancy.avgCpuUtilization}%</span>
+                                    <span className="text-[12px] font-mono font-bold">{dormancy.avgCpuUtilization}%</span>
                                 </div>
                                 <div className="space-y-1">
                                     <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Avg Memory</span>
-                                    <span className="text-[10px] font-mono font-bold">{dormancy.avgMemoryUtilization}%</span>
+                                    <span className="text-[12px] font-mono font-bold">{dormancy.avgMemoryUtilization}%</span>
                                 </div>
                                 {dormancy.lastActiveAt && (
                                     <div className="space-y-1 col-span-2 md:col-span-1">
@@ -418,11 +418,11 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                             <Clock className="w-3 h-3 text-[var(--muted-foreground)]" />
                                             <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Last Activity</span>
                                         </div>
-                                        <span className="text-[10px] font-mono font-bold uppercase">{new Date(dormancy.lastActiveAt).toLocaleDateString()}</span>
+                                        <span className="text-[12px] font-mono font-bold uppercase">{new Date(dormancy.lastActiveAt).toLocaleDateString()}</span>
                                     </div>
                                 )}
                             </div>
-                            <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/70 leading-relaxed italic">
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)]/70 leading-relaxed italic">
                                 This resource shows near-zero activity. Consider downgrading to the minimum tier or archiving data to reduce costs.
                             </p>
                         </div>
@@ -446,7 +446,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             {cache.projectedLatencyReductionMs}ms Saved
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)] line-clamp-1 group-hover:line-clamp-none transition-all">{cache.queryHash}</p>
+                                                    <p className="text-[13px] font-mono font-bold text-[var(--foreground)] line-clamp-1 group-hover:line-clamp-none transition-all">{cache.queryHash}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -454,19 +454,19 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         <div className="grid grid-cols-3 gap-3">
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Suggested TTL</span>
-                                                <span className="text-[10px] font-mono font-bold text-[var(--info)]">{cache.suggestedTtlSeconds}s</span>
+                                                <span className="text-[12px] font-mono font-bold text-[var(--info)]">{cache.suggestedTtlSeconds}s</span>
                                             </div>
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Frequency</span>
-                                                <span className="text-[10px] font-mono font-bold">{cache.frequencyPerMinute} req/min</span>
+                                                <span className="text-[12px] font-mono font-bold">{cache.frequencyPerMinute} req/min</span>
                                             </div>
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Impact</span>
-                                                <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{Math.round(cache.impactScore / 1000)}k</span>
+                                                <span className="text-[12px] font-mono font-bold text-[var(--primary)]">{Math.round(cache.impactScore / 1000)}k</span>
                                             </div>
                                         </div>
 
-                                        <p className="text-[10px] font-bold text-[var(--muted-foreground)] px-1">{cache.reason}</p>
+                                        <p className="text-[13px] font-bold text-[var(--muted-foreground)] px-1">{cache.reason}</p>
 
                                         {cache.implementationSnippet && (
                                             <div className="space-y-2">
@@ -495,7 +495,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                         </Button>
                                                     </div>
                                                 </div>
-                                                <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
+                                                <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[12px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
                                                     {cache.implementationSnippet}
                                                 </div>
                                                 <Button
@@ -516,8 +516,8 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                 <div className="p-4 border border-[var(--warning)]/30 rounded-xl bg-[var(--warning)]/5 flex items-start gap-3 mt-4">
                                     <AlertCircle className="w-5 h-5 text-[var(--warning)] shrink-0 mt-0.5" />
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-bold text-[var(--warning)] uppercase">Redis Missing</p>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                        <p className="text-[13px] font-bold text-[var(--warning)] uppercase">Redis Missing</p>
+                                        <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                                             TO IMPLEMENT THIS CACHING STRATEGY, WE RECOMMEND PROVISIONING A GCP MEMORYSTORE (REDIS) CONNECTOR.
                                         </p>
                                     </div>
@@ -550,8 +550,8 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             Impact: {candidate.impactScore}
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)]">{candidate.indexName}</p>
-                                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
+                                                    <p className="text-[13px] font-mono font-bold text-[var(--foreground)]">{candidate.indexName}</p>
+                                                    <p className="text-[13px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -559,15 +559,15 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Total Size</span>
-                                                <span className="text-[10px] font-mono font-bold">{candidate.totalSizeMb} MB</span>
+                                                <span className="text-[12px] font-mono font-bold">{candidate.totalSizeMb} MB</span>
                                             </div>
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Wasted Space</span>
-                                                <span className="text-[10px] font-mono font-bold text-[var(--error)]">{candidate.bloatSizeMb} MB</span>
+                                                <span className="text-[12px] font-mono font-bold text-[var(--error)]">{candidate.bloatSizeMb} MB</span>
                                             </div>
                                         </div>
 
-                                        <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto">
+                                        <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[12px] font-bold text-[var(--foreground)]/80 overflow-x-auto">
                                             {candidate.recommendation}
                                         </div>
 
@@ -601,8 +601,8 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             Impact: {candidate.impactScore}
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)]">{candidate.entity}</p>
-                                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
+                                                    <p className="text-[13px] font-mono font-bold text-[var(--foreground)]">{candidate.entity}</p>
+                                                    <p className="text-[13px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -610,19 +610,19 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Metadata</span>
-                                                <span className="text-[10px] font-mono font-bold">
+                                                <span className="text-[12px] font-mono font-bold">
                                                     {candidate.deadTuples !== undefined ? `${candidate.deadTuples} Dead Tuples` : `${candidate.modificationCount} Mod Count`}
                                                 </span>
                                             </div>
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Urgency</span>
-                                                <span className={cn("text-[10px] font-mono font-bold", candidate.impactScore > 50 ? "text-[var(--error)]" : "text-[var(--warning)]")}>
+                                                <span className={cn("text-[12px] font-mono font-bold", candidate.impactScore > 50 ? "text-[var(--error)]" : "text-[var(--warning)]")}>
                                                     {candidate.impactScore > 70 ? 'CRITICAL' : (candidate.impactScore > 30 ? 'HIGH' : 'MEDIUM')}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto">
+                                        <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[12px] font-bold text-[var(--foreground)]/80 overflow-x-auto">
                                             {candidate.recommendation}
                                         </div>
 
@@ -659,18 +659,18 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             {candidate.sizeMb > 0 ? `${candidate.sizeMb} MB Wasted` : 'Zero Traffic'}
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)]">{candidate.indexName}</p>
-                                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
+                                                    <p className="text-[13px] font-mono font-bold text-[var(--foreground)]">{candidate.indexName}</p>
+                                                    <p className="text-[13px] font-bold uppercase text-[var(--muted-foreground)]">Entity: {candidate.entity}</p>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <p className="text-[10px] font-bold text-[var(--muted-foreground)] px-1">{candidate.reason}</p>
+                                        <p className="text-[13px] font-bold text-[var(--muted-foreground)] px-1">{candidate.reason}</p>
 
                                         {candidate.isRedundant && candidate.redundantWith && (
                                             <div className="p-2.5 bg-[var(--warning)]/10 border border-[var(--warning)]/20 rounded-lg flex items-center gap-2">
                                                 <AlertCircle className="w-3.5 h-3.5 text-[var(--warning)] shrink-0" />
-                                                <p className="text-[10px] font-bold uppercase text-[var(--foreground)]">Redundant with: <span className="font-mono text-[var(--primary)]">{candidate.redundantWith}</span></p>
+                                                <p className="text-[13px] font-bold uppercase text-[var(--foreground)]">Redundant with: <span className="font-mono text-[var(--primary)]">{candidate.redundantWith}</span></p>
                                             </div>
                                         )}
 
@@ -723,7 +723,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             Impact: {pattern.impactScore}
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] font-bold text-[var(--foreground)]">{pattern.evidence}</p>
+                                                    <p className="text-[13px] font-bold text-[var(--foreground)]">{pattern.evidence}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -732,13 +732,13 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 <div className="space-y-1.5">
                                                     <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] ml-1">Original Query</span>
-                                                    <div className="p-2.5 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-lg font-mono text-[10px] font-bold text-[var(--error)]/80 overflow-x-auto whitespace-pre">
+                                                    <div className="p-2.5 bg-[var(--error)]/5 border border-[var(--error)]/20 rounded-lg font-mono text-[12px] font-bold text-[var(--error)]/80 overflow-x-auto whitespace-pre">
                                                         {pattern.queryHash}
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <span className="text-[10px] font-bold uppercase text-[var(--success)] ml-1">Optimized Rewrite</span>
-                                                    <div className="p-2.5 bg-[var(--success)]/5 border border-[var(--success)]/20 rounded-lg font-mono text-[10px] font-bold text-[var(--success)]/80 overflow-x-auto whitespace-pre">
+                                                    <div className="p-2.5 bg-[var(--success)]/5 border border-[var(--success)]/20 rounded-lg font-mono text-[12px] font-bold text-[var(--success)]/80 overflow-x-auto whitespace-pre">
                                                         {pattern.optimizedRewrite}
                                                     </div>
                                                 </div>
@@ -747,7 +747,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
 
                                         <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-lg flex items-start gap-2">
                                             <Sparkles className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                                            <p className="text-[10px] font-bold uppercase text-[var(--foreground)] leading-relaxed">
+                                            <p className="text-[13px] font-medium text-[var(--foreground)] leading-relaxed">
                                                 <span className="opacity-60">Recommendation:</span> {pattern.recommendation}
                                             </p>
                                         </div>
@@ -799,7 +799,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             Impact: {incident.impactScore}
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] font-bold text-[var(--muted-foreground)]">Detected At: {new Date(incident.detectedAt).toLocaleString()}</p>
+                                                    <p className="text-[13px] font-bold text-[var(--muted-foreground)]">Detected At: {new Date(incident.detectedAt).toLocaleString()}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -807,7 +807,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         <div className="space-y-2">
                                             <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Affected Queries</span>
                                             {incident.queries.map((q, qi) => (
-                                                <div key={qi} className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
+                                                <div key={qi} className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[12px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
                                                     {q}
                                                 </div>
                                             ))}
@@ -815,7 +815,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
 
                                         <div className="p-3 bg-[var(--warning)]/10 border border-[var(--warning)]/20 rounded-lg flex items-start gap-2">
                                             <ShieldAlert className="w-3.5 h-3.5 text-[var(--warning)] shrink-0 mt-0.5" />
-                                            <p className="text-[10px] font-bold uppercase text-[var(--foreground)] leading-relaxed">
+                                            <p className="text-[13px] font-medium text-[var(--foreground)] leading-relaxed">
                                                 REMEDIATION: {incident.remediation}
                                             </p>
                                         </div>
@@ -844,7 +844,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                     {poolingRecommendation.impact} Impact
                                                 </span>
                                             </div>
-                                            <p className="text-[10px] font-bold text-[var(--foreground)]">{poolingRecommendation.reason}</p>
+                                            <p className="text-[13px] font-bold text-[var(--foreground)]">{poolingRecommendation.reason}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -853,15 +853,15 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                     <div className="p-2.5 rounded-lg bg-[var(--card)] border border-[var(--border)] space-y-1">
                                         <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Current Default</span>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">MIN: {poolingRecommendation.currentMin}</span>
-                                            <span className="text-[10px] font-mono font-bold text-[var(--muted-foreground)]">MAX: {poolingRecommendation.currentMax}</span>
+                                            <span className="text-[12px] font-mono font-bold text-[var(--muted-foreground)]">MIN: {poolingRecommendation.currentMin}</span>
+                                            <span className="text-[12px] font-mono font-bold text-[var(--muted-foreground)]">MAX: {poolingRecommendation.currentMax}</span>
                                         </div>
                                     </div>
                                     <div className="p-2.5 rounded-lg bg-[var(--primary)]/5 border border-[var(--primary)]/20 space-y-1">
                                         <span className="block text-[10px] font-bold uppercase text-[var(--primary)]">Recommended</span>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-mono font-bold text-[var(--primary)]">MIN: {poolingRecommendation.recommendedMin}</span>
-                                            <span className="text-[10px] font-mono font-bold text-[var(--primary)]">MAX: {poolingRecommendation.recommendedMax}</span>
+                                            <span className="text-[12px] font-mono font-bold text-[var(--primary)]">MIN: {poolingRecommendation.recommendedMin}</span>
+                                            <span className="text-[12px] font-mono font-bold text-[var(--primary)]">MAX: {poolingRecommendation.recommendedMax}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -899,7 +899,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                             <Copy className="w-3 h-3" />
                                         </Button>
                                     </div>
-                                    <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
+                                    <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[12px] font-bold text-[var(--foreground)]/80 overflow-x-auto whitespace-pre">
                                         {(poolingRecommendation.implementationSnippets as Record<string, string>)[activePoolingSnippet] || '// No snippet available'}
                                     </div>
                                 </div>
@@ -925,7 +925,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             ${candidate.potentialSavingsMonthly}/mo savings
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)]">{candidate.entity}</p>
+                                                    <p className="text-[13px] font-mono font-bold text-[var(--foreground)]">{candidate.entity}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -933,15 +933,15 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         <div className="grid grid-cols-2 gap-3">
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Table Size</span>
-                                                <span className="text-[10px] font-mono font-bold text-[var(--error)]">{candidate.sizeGb} GB</span>
+                                                <span className="text-[12px] font-mono font-bold text-[var(--error)]">{candidate.sizeGb} GB</span>
                                             </div>
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Row Count</span>
-                                                <span className="text-[10px] font-mono font-bold">{candidate.rowCount?.toLocaleString()} rows</span>
+                                                <span className="text-[12px] font-mono font-bold">{candidate.rowCount?.toLocaleString()} rows</span>
                                             </div>
                                         </div>
 
-                                        <p className="text-[10px] font-bold text-[var(--muted-foreground)] px-1">{candidate.reason}</p>
+                                        <p className="text-[13px] font-bold text-[var(--muted-foreground)] px-1">{candidate.reason}</p>
 
                                         <Button
                                             variant="outline"
@@ -977,7 +977,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                             High Impact
                                                         </span>
                                                     </div>
-                                                    <p className="text-[10px] font-mono font-bold text-[var(--foreground)] line-clamp-1 group-hover:line-clamp-none transition-all">{opt.queryHash}</p>
+                                                    <p className="text-[13px] font-mono font-bold text-[var(--foreground)] line-clamp-1 group-hover:line-clamp-none transition-all">{opt.queryHash}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -985,15 +985,15 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                         <div className="grid grid-cols-3 gap-3">
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Avg Latency</span>
-                                                <span className="text-[10px] font-mono font-bold text-[var(--error)]">{opt.avgLatency}ms</span>
+                                                <span className="text-[12px] font-mono font-bold text-[var(--error)]">{opt.avgLatency}ms</span>
                                             </div>
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Frequency</span>
-                                                <span className="text-[10px] font-mono font-bold">{opt.requestCount} Reqs/24H</span>
+                                                <span className="text-[12px] font-mono font-bold">{opt.requestCount} Reqs/24H</span>
                                             </div>
                                             <div className="p-2 rounded bg-[var(--card)] border border-[var(--border)]">
                                                 <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)] mb-0.5">Impact Score</span>
-                                                <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{Math.round(opt.impactScore / 1000)}k</span>
+                                                <span className="text-[12px] font-mono font-bold text-[var(--primary)]">{Math.round(opt.impactScore / 1000)}k</span>
                                             </div>
                                         </div>
 
@@ -1024,7 +1024,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                         </Button>
                                                     </div>
                                                 </div>
-                                                <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[10px] font-bold text-[var(--primary)]">
+                                                <div className="p-2.5 bg-[var(--background)] border border-[var(--border)] rounded-lg font-mono text-[12px] font-bold text-[var(--primary)]">
                                                     {opt.recommendation}
                                                 </div>
                                                 <Button
@@ -1072,7 +1072,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[10px] font-bold text-[var(--foreground)] mt-1">{rec.reason}</p>
+                                                <p className="text-[13px] font-bold text-[var(--foreground)] mt-1">{rec.reason}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1080,12 +1080,12 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
                                     <div className="flex items-center justify-between gap-4 p-2.5 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)]">
                                         <div className="space-y-0.5">
                                             <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] block">Current Tier</span>
-                                            <span className="text-[10px] font-mono font-bold">{rec.currentTier}</span>
+                                            <span className="text-[12px] font-mono font-bold">{rec.currentTier}</span>
                                         </div>
                                         <ArrowRight className="w-4 h-4 text-[var(--muted-foreground)]/50" />
                                         <div className="text-right space-y-0.5">
                                             <span className="text-[10px] font-bold uppercase text-[var(--primary)] block">Recommended</span>
-                                            <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{rec.recommendedTier}</span>
+                                            <span className="text-[12px] font-mono font-bold text-[var(--primary)]">{rec.recommendedTier}</span>
                                         </div>
                                     </div>
 
@@ -1105,7 +1105,7 @@ export function OptimizationModal({ isOpen, onClose, storage, projectId, onApply
 
                     <div className="flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl">
                         <AlertCircle className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                             Applying these changes will trigger a GCP update operation. Your database may experience brief unavailability depending on the tier adjustment.
                         </p>
                     </div>

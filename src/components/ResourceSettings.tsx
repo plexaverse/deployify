@@ -79,7 +79,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                 </div>
                 <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
-                    <h3 className="text-[10px] font-bold">Compute Configuration</h3>
+                    <h3 className="text-[14px] font-bold">Compute Configuration</h3>
                 </div>
             </div>
 
@@ -94,7 +94,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                             value={String(cpu)}
                             onChange={(v) => setCpu(Number(v))}
                         />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Allocated CPU for each instance
                         </p>
                     </div>
@@ -105,7 +105,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                             value={memory}
                             onChange={setMemory}
                         />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             Allocated Memory for each instance
                         </p>
                     </div>
@@ -121,7 +121,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                             value={minInstances}
                             onChange={(e) => setMinInstances(parseInt(e.target.value) || 0)}
                         />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                             Minimum number of instances to keep running (0 = scales to zero)
                         </p>
                     </div>
@@ -134,7 +134,7 @@ export function ResourceSettings({ projectId, onUpdate }: ResourceSettingsProps)
                             value={maxInstances}
                             onChange={(e) => setMaxInstances(parseInt(e.target.value) || 1)}
                         />
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                             Maximum number of instances to scale up to
                         </p>
                     </div>

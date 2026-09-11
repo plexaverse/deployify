@@ -26,7 +26,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                         </div>
                         <div className="space-y-1 mb-4">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Invalid Invite</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Invite Error</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Invite Error</h1>
                         </div>
                         <p className="text-[var(--muted-foreground)]">No invite token provided. Please check your link.</p>
                     </div>
@@ -55,7 +55,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                         </div>
                         <div className="space-y-1 mb-4">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Invalid Invite</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Invite Error</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Invite Error</h1>
                         </div>
                         <p className="text-[var(--muted-foreground)]">The invite link is invalid or has expired.</p>
                     </div>
@@ -76,7 +76,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                         </div>
                         <div className="space-y-1 mb-4">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Invite Expired</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Invite Error</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Invite Error</h1>
                         </div>
                         <p className="text-[var(--muted-foreground)]">This invite link has expired. Please request a new one.</p>
                     </div>
@@ -99,7 +99,7 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
                         </div>
                         <div className="space-y-1 mb-4">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Team Not Found</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Invite Error</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Invite Error</h1>
                         </div>
                         <p className="text-[var(--muted-foreground)]">The team associated with this invite no longer exists.</p>
                     </div>
@@ -129,10 +129,10 @@ export default async function JoinPage({ searchParams }: JoinPageProps) {
 
                     <div className="space-y-1 mb-6">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Invitation</span>
-                        <h1 className="text-[10px] font-bold tracking-tight">Join {team.name}</h1>
+                        <h1 className="text-[22px] font-bold tracking-tight">Join {team.name}</h1>
                     </div>
 
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-8 leading-relaxed">
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)] mb-8 leading-relaxed">
                             You have been invited to collaborate with <strong className="text-[var(--foreground)] uppercase">{team.name}</strong> on Deployify. Accept the invitation to get started.
                     </p>
 

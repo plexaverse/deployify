@@ -77,7 +77,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 </div>
                 <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                    <h3 className="text-[10px] font-bold">Deployment Region</h3>
+                    <h3 className="text-[14px] font-bold">Deployment Region</h3>
                 </div>
             </div>
 
@@ -136,7 +136,7 @@ export function RegionSettings({ projectId, onUpdate }: RegionSettingsProps) {
                 <div className="flex items-start gap-3">
                     <RefreshCcw className="w-4 h-4 text-[var(--info)] mt-0.5" />
                     <div className="text-[10px] font-bold">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">Deployment Required</p>
+                        <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">Deployment Required</p>
                         <p className="text-[var(--muted-foreground)] leading-relaxed">
                             Changing the region will affect the next deployment.
                             To apply the change immediately, trigger a redeploy after saving.

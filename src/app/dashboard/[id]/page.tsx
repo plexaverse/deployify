@@ -184,7 +184,7 @@ export default function ProjectDetailPage() {
         // fix) sometimes the PREVIOUS project's data instead.
         return (
             <div className="max-w-2xl mx-auto px-6 py-20 text-center space-y-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">
+                <p className="text-[13px] font-medium text-[var(--error)]">
                     {projectLoadError || 'Project not found.'}
                 </p>
                 <div className="flex items-center justify-center gap-3">
@@ -229,7 +229,7 @@ export default function ProjectDetailPage() {
                                 </span>
                             </div>
                         </div>
-                        <h1 className="text-[10px] font-bold tracking-tight">{project.name}</h1>
+                        <h1 className="text-[22px] font-bold tracking-tight">{project.name}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -291,7 +291,7 @@ export default function ProjectDetailPage() {
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Environment</span>
                                     <div className="flex items-center gap-2">
-                                        <h2 className="text-[10px] font-bold">Production</h2>
+                                        <h2 className="text-[17px] font-bold">Production</h2>
                                         <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider py-0 px-1.5 bg-[var(--background)]">
                                             {project.framework?.toUpperCase() || 'WEB APP'}
                                         </Badge>
@@ -320,7 +320,7 @@ export default function ProjectDetailPage() {
                                     <div className="flex items-start justify-between">
                                         <div className="space-y-3">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-bold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
+                                                <p className="text-[13px] font-bold tracking-tight text-[var(--foreground)] truncate max-w-md group cursor-pointer hover:text-[var(--primary)] transition-colors" onClick={() => window.open(project.productionUrl!, '_blank')}>
                                                     {project.productionUrl.replace(/^https?:\/\//, '')}
                                                     <ExternalLink className="inline-block w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                                                 </p>
@@ -328,7 +328,7 @@ export default function ProjectDetailPage() {
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <GitBranch className="w-3 h-3" />
-                                                <span>Branch: <span className="text-[var(--foreground)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</span></span>
+                                                <span>Branch: <span className="text-[var(--foreground)] font-mono text-[12px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</span></span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--background)] px-3 py-1 rounded-full border border-[var(--border)] w-fit">
                                                     <Clock className="w-3 h-3" />
@@ -372,7 +372,7 @@ export default function ProjectDetailPage() {
                                 </div>
                             ) : (
                                 <div className="py-12 text-center space-y-3">
-                                    <p className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">
+                                    <p className="text-[var(--muted-foreground)] text-[13px] font-medium">
                                         No production deployment yet. Push to {project.defaultBranch} to deploy.
                                     </p>
                                 </div>
@@ -393,7 +393,7 @@ export default function ProjectDetailPage() {
                                     </div>
                                     <div>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                                        <h3 className="text-[10px] font-bold">Storage Health</h3>
+                                        <h3 className="text-[14px] font-bold">Storage Health</h3>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -439,7 +439,7 @@ export default function ProjectDetailPage() {
                                             <div className="flex items-center gap-2 shrink-0">
                                                 {(status === 'healthy' || status === 'degraded') && (
                                                     <span className={cn(
-                                                        "text-[10px] font-mono font-bold",
+                                                        "text-[12px] font-mono font-bold",
                                                         status === 'healthy' ? "text-[var(--success)]" : "text-[var(--warning)]"
                                                     )}>
                                                         {health?.latency}ms
@@ -483,7 +483,7 @@ export default function ProjectDetailPage() {
                                     </div>
                                     <div>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">24h Status</span>
-                                        <h3 className="text-[10px] font-bold">Vitals</h3>
+                                        <h3 className="text-[14px] font-bold">Vitals</h3>
                                     </div>
                                 </div>
                                 <AlertCircle className={cn(
@@ -513,7 +513,7 @@ export default function ProjectDetailPage() {
                         icon={GitBranch}
                         description={
                             <span>
-                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-[10px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</code> to trigger your first deployment.
+                                Push your code to <code className="px-1.5 py-0.5 rounded bg-[var(--muted)] border border-[var(--border)] font-mono text-[12px] font-bold uppercase tracking-wider">{project.defaultBranch.toUpperCase()}</code> to trigger your first deployment.
                                 We&apos;ll build and deploy your application automatically.
                             </span>
                         }
@@ -544,7 +544,7 @@ export default function ProjectDetailPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Activity</span>
-                                    <h2 className="text-[10px] font-bold">Deployment History</h2>
+                                    <h2 className="text-[17px] font-bold">Deployment History</h2>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">

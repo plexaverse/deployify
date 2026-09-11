@@ -62,7 +62,7 @@ export const ShieldSecurity = ({ projectId }: { projectId: string }) => {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployify Edge</span>
-                        <h3 className="text-[10px] font-bold">Shield Security</h3>
+                        <h3 className="text-[14px] font-bold">Shield Security</h3>
                     </div>
                 </div>
                 <Badge variant={wafEnabled ? "success" : "outline"} className="text-[10px] font-bold uppercase tracking-wider">

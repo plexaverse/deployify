@@ -82,7 +82,7 @@ export default function EdgeDebugPage() {
                 </div>
                 <div className="space-y-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Developer Tools</span>
-                    <h1 className="text-[10px] font-bold tracking-tight">Edge Function Simulator</h1>
+                    <h1 className="text-[22px] font-bold tracking-tight">Edge Function Simulator</h1>
                 </div>
             </div>
             <MovingBorderButton
@@ -105,7 +105,7 @@ export default function EdgeDebugPage() {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Code Editor</span>
-                        <h2 className="text-[10px] font-bold">Middleware Code</h2>
+                        <h2 className="text-[17px] font-bold">Middleware Code</h2>
                     </div>
                 </div>
                 <Separator className="bg-[var(--border)]" />
@@ -113,7 +113,7 @@ export default function EdgeDebugPage() {
                      <textarea
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
-                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-[10px] font-bold p-4 focus:outline-none resize-none"
+                        className="w-full h-full bg-transparent text-[var(--terminal-foreground)] font-mono text-[12px] font-bold p-4 focus:outline-none resize-none"
                         spellCheck={false}
                     />
                 </div>
@@ -130,7 +130,7 @@ export default function EdgeDebugPage() {
                         </div>
                         <div className="space-y-0.5">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                            <h2 className="text-[10px] font-bold text-[var(--foreground)]">Request Configuration</h2>
+                            <h2 className="text-[17px] font-bold text-[var(--foreground)]">Request Configuration</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -158,7 +158,7 @@ export default function EdgeDebugPage() {
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="HTTPS://EXAMPLE.COM/PATH"
-                            className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                            className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                         />
                     </div>
 
@@ -187,7 +187,7 @@ export default function EdgeDebugPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Execution Output</span>
-                                <h2 className="text-[10px] font-bold">Simulation Result</h2>
+                                <h2 className="text-[17px] font-bold">Simulation Result</h2>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -221,7 +221,7 @@ export default function EdgeDebugPage() {
                                     {result.logs.length > 0 && (
                                         <div className="space-y-2">
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Runtime Logs</span>
-                                            <div className="p-4 rounded-xl border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[150px]">
+                                            <div className="p-4 rounded-xl border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[12px] font-bold uppercase tracking-wider overflow-auto max-h-[150px]">
                                                 {result.logs.map((log: string, i: number) => (
                                                     <div key={i}>{log}</div>
                                                 ))}
@@ -233,7 +233,7 @@ export default function EdgeDebugPage() {
                                     {result.error && (
                                         <div className="space-y-2">
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Error Details</span>
-                                            <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] border border-[var(--error)]/20 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider">
+                                            <div className="p-4 text-[var(--error)] bg-[var(--error-bg)] border border-[var(--error)]/20 rounded-xl font-mono text-[12px] font-bold uppercase tracking-wider">
                                                 {result.error}
                                             </div>
                                         </div>
@@ -246,7 +246,7 @@ export default function EdgeDebugPage() {
                                             {Object.keys(result.headers).length > 0 && (
                                                 <div className="space-y-2">
                                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Headers</span>
-                                                    <div className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
+                                                    <div className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[12px] font-bold uppercase tracking-wider overflow-auto border border-[var(--border)]">
                                                         {Object.entries(result.headers).map(([k, v]) => (
                                                             <div key={k} className="flex gap-2">
                                                                 <span className="text-[var(--primary)]">{k.toUpperCase()}:</span>
@@ -260,7 +260,7 @@ export default function EdgeDebugPage() {
                                             {/* Body */}
                                             <div className="space-y-2">
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Response Body</span>
-                                                <pre className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
+                                                <pre className="bg-[var(--muted)]/5 p-4 rounded-xl font-mono text-[12px] font-bold uppercase tracking-wider overflow-auto max-h-[300px] whitespace-pre-wrap border border-[var(--border)] text-[var(--foreground)]">
                                                     {result.body || <span className="text-[var(--muted-foreground)] italic opacity-50">No content</span>}
                                                 </pre>
                                             </div>

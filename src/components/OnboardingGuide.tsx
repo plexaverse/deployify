@@ -53,10 +53,10 @@ export function OnboardingGuide() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Welcome</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Welcome to Deployify</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Welcome to Deployify</h1>
                         </div>
                     </div>
-                    <p className="text-[var(--muted-foreground)] text-[10px] font-bold max-w-lg mx-auto">
+                    <p className="text-[var(--muted-foreground)] text-[13px] font-bold max-w-lg mx-auto">
                         Deploy your Next.js applications in minutes. Just import your repository and we handle the rest.
                     </p>
                 </motion.div>
@@ -84,14 +84,14 @@ export function OnboardingGuide() {
 
                             <div className="space-y-1">
                                 <h3 className={cn(
-                                    "font-bold text-[10px] font-bold uppercase tracking-wider transition-colors",
+                                    "font-bold text-[14px] font-bold uppercase tracking-wider transition-colors",
                                     step.status === 'completed' ? "text-[var(--success)]" :
                                     step.status === 'active' ? "text-[var(--info)]" :
                                     "text-[var(--muted-foreground)]"
                                 )}>
                                     {step.title}
                                 </h3>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-[140px] mx-auto hidden md:block">
+                                <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-[140px] mx-auto hidden md:block">
                                     {step.description}
                                 </p>
                             </div>

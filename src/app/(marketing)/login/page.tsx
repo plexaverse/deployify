@@ -26,10 +26,10 @@ export default async function LoginPage() {
 
                         <div className="space-y-1 mb-8">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Authentication</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Welcome back</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Welcome back</h1>
                         </div>
 
-                        <p className="text-[var(--muted-foreground)] text-[10px] font-bold mb-10">Sign in to manage your deployments</p>
+                        <p className="text-[var(--muted-foreground)] text-[13px] font-bold mb-10">Sign in to manage your deployments</p>
 
                         <Link href="/api/auth/github" prefetch={false} className="w-full">
                             <MovingBorderButton
@@ -49,7 +49,7 @@ export default async function LoginPage() {
                             </div>
                         </div>
 
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                             By signing in, you agree to our{' '}
                             <Link href="/terms" className="text-[var(--primary)] hover:underline">Terms</Link> and{' '}
                             <Link href="/privacy" className="text-[var(--primary)] hover:underline">Privacy</Link>

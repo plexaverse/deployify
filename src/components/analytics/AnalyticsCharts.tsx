@@ -130,7 +130,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Traffic Trends</span>
-                            <h3 className="text-[10px] font-bold">Traffic Over Time</h3>
+                            <h3 className="text-[14px] font-bold">Traffic Over Time</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -203,7 +203,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Referral Traffic</span>
-                                <h3 className="text-[10px] font-bold">Top Sources</h3>
+                                <h3 className="text-[14px] font-bold">Top Sources</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -221,7 +221,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                     </div>
                                 ))}
                                 {sources.length === 0 && (
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
+                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
                                 )}
                             </div>
                         </div>
@@ -235,7 +235,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Geographic Reach</span>
-                                <h3 className="text-[10px] font-bold">Top Locations</h3>
+                                <h3 className="text-[14px] font-bold">Top Locations</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--border)]" />
@@ -253,7 +253,7 @@ export function AnalyticsCharts({ data }: AnalyticsChartsProps) {
                                     </div>
                                 ))}
                                 {locations.length === 0 && (
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
+                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No data available</p>
                                 )}
                             </div>
                         </div>
@@ -294,7 +294,7 @@ function WebVitalCard({ title, value, unit, status, description }: {
                         {status.replace('-', ' ')}
                     </Badge>
                 </div>
-                <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                <p className="mt-3 text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-snug line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity">
                     {description}
                 </p>
             </div>
@@ -307,7 +307,7 @@ function AnalyticsTooltip({ active, payload, label }: { active?: boolean; payloa
         return (
             <Card className="overflow-hidden p-0 shadow-2xl bg-[var(--card)] border-[var(--border)]">
                 <div className="p-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">
+                    <p className="text-[13px] font-medium text-[var(--muted-foreground)] mb-2">
                         {new Date(label).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}
                     </p>
                     <div className="space-y-1">
@@ -330,7 +330,7 @@ function SummaryCard({ title, value }: { title: string; value: string }) {
     return (
         <Card className="overflow-hidden p-0 hover:border-[var(--primary)] hover:shadow-md transition-all duration-300 group">
             <div className="p-6">
-                <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
+                <h3 className="text-[14px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] group-hover:text-[var(--primary)] transition-colors">
                     {title}
                 </h3>
                 <div className="mt-3 text-[10px] font-bold font-mono tracking-tighter text-[var(--foreground)]">

@@ -253,7 +253,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
                                 placeholder="FILTER LOGS..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-8 pl-8 pr-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="h-8 pl-8 pr-8 text-[10px] font-bold uppercase tracking-wider bg-[var(--muted)]/20 placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             {searchQuery && (
                                 <Button
@@ -338,7 +338,7 @@ export function LogViewer({ projectId, className, revision }: LogViewerProps) {
             <div
                 ref={containerRef}
                 onScroll={handleScroll}
-                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[10px] font-bold leading-relaxed relative"
+                className="flex-1 h-[400px] overflow-y-auto p-4 bg-[var(--terminal-bg)] text-[var(--terminal-foreground)] font-mono text-[12px] font-bold leading-relaxed relative"
             >
                 {logs.length === 0 && isLoading ? (
                     <div className="space-y-2 p-2">

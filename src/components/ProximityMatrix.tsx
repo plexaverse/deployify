@@ -30,7 +30,7 @@ export function ProximityMatrix({ mappings }: ProximityMatrixProps) {
                 </div>
                 <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Regional Alignment</span>
-                    <h3 className="text-[10px] font-bold">Connectivity Proximity Matrix</h3>
+                    <h3 className="text-[14px] font-bold">Connectivity Proximity Matrix</h3>
                 </div>
             </div>
 
@@ -62,7 +62,7 @@ export function ProximityMatrix({ mappings }: ProximityMatrixProps) {
                                             )}
                                         </div>
                                         <span className={cn(
-                                            "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded",
+                                            "text-[12px] font-mono font-bold px-1.5 py-0.5 rounded",
                                             m.aligned ? "bg-[var(--success)]/10 text-[var(--success)]" : "bg-[var(--error)]/10 text-[var(--error)]"
                                         )}>
                                             {m.latencyMs}ms
@@ -97,7 +97,7 @@ export function ProximityMatrix({ mappings }: ProximityMatrixProps) {
 
                                 <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between">
                                     <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">{m.storageName}</span>
-                                    <span className="text-[10px] font-mono text-[var(--muted-foreground)] opacity-50">{m.storageType.toUpperCase()}</span>
+                                    <span className="text-[12px] font-mono text-[var(--muted-foreground)] opacity-50">{m.storageType.toUpperCase()}</span>
                                 </div>
                             </div>
                         ))}
@@ -107,7 +107,7 @@ export function ProximityMatrix({ mappings }: ProximityMatrixProps) {
 
             <div className="mt-6 flex items-start gap-2 p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-xl">
                 <Network className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                     Regional alignment ensures minimum latency and eliminates cross-region egress costs. Values shown are estimated based on standard GCP intra-network benchmarks.
                 </p>
             </div>

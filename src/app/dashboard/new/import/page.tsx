@@ -195,7 +195,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Import</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Configure Project</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Configure Project</h1>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -216,7 +216,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                            <h2 className="text-[10px] font-bold">Project Settings</h2>
+                            <h2 className="text-[17px] font-bold">Project Settings</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -230,7 +230,7 @@ export default function ImportProjectPage() {
                                 value={projectName}
                                 onChange={(e) => setProjectName(e.target.value)}
                                 placeholder="MY-PROJECT"
-                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -260,7 +260,7 @@ export default function ImportProjectPage() {
                                     value={rootDirectory}
                                     onChange={(e) => setRootDirectory(e.target.value)}
                                     placeholder="./"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -288,7 +288,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Pipeline</span>
-                            <h2 className="text-[10px] font-bold">Build Settings</h2>
+                            <h2 className="text-[17px] font-bold">Build Settings</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -302,7 +302,7 @@ export default function ImportProjectPage() {
                                 value={buildCommand}
                                 onChange={(e) => setBuildCommand(e.target.value)}
                                 placeholder="NPM RUN BUILD"
-                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -312,7 +312,7 @@ export default function ImportProjectPage() {
                                 value={outputDirectory}
                                 onChange={(e) => setOutputDirectory(e.target.value)}
                                 placeholder=".NEXT"
-                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                     </div>
@@ -324,7 +324,7 @@ export default function ImportProjectPage() {
                                 value={installCommand}
                                 onChange={(e) => setInstallCommand(e.target.value)}
                                 placeholder="NPM INSTALL"
-                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                     </div>
@@ -338,7 +338,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure</span>
-                            <h2 className="text-[10px] font-bold">Database Connectors</h2>
+                            <h2 className="text-[17px] font-bold">Database Connectors</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -352,7 +352,7 @@ export default function ImportProjectPage() {
                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{config.name}</span>
                                             <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">{config.type.replace(/-/g, ' ')}</span>
                                         </div>
-                                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]">
+                                        <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-[var(--foreground)]">
                                             {config.envKey}
                                         </span>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
@@ -378,7 +378,7 @@ export default function ImportProjectPage() {
                                     <Input
                                         placeholder="PRIMARY DB"
                                         id="new-storage-name"
-                                        className="text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        className="text-[10px] font-bold uppercase tracking-wider placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -415,7 +415,7 @@ export default function ImportProjectPage() {
                                         type="password"
                                         placeholder="POSTGRESQL://USER:PASS@HOST:PORT/DB"
                                         id="new-storage-conn"
-                                        className="text-[10px] font-bold uppercase tracking-wider font-mono placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        className="text-[10px] font-bold uppercase tracking-wider font-mono placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -424,7 +424,7 @@ export default function ImportProjectPage() {
                                         placeholder="DATABASE_URL"
                                         id="new-storage-env-key"
                                         defaultValue="DATABASE_URL"
-                                        className="text-[10px] font-bold uppercase tracking-wider font-mono placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        className="text-[10px] font-bold uppercase tracking-wider font-mono placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                     />
                                 </div>
                             </div>
@@ -477,7 +477,7 @@ export default function ImportProjectPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                            <h2 className="text-[10px] font-bold">Environment Variables</h2>
+                            <h2 className="text-[17px] font-bold">Environment Variables</h2>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -488,10 +488,10 @@ export default function ImportProjectPage() {
                             <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
                                 <div className="flex-1 grid grid-cols-3 gap-4 items-center">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{env.key}</span>
+                                        <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-[var(--primary)]">{env.key}</span>
                                         {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
                                     </div>
-                                    <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] truncate">
+                                    <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-[var(--foreground)] truncate">
                                         {env.isSecret ? '••••••••' : env.value}
                                     </span>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
@@ -517,14 +517,14 @@ export default function ImportProjectPage() {
                                 value={newEnvKey}
                                 onChange={(e) => setNewEnvKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="KEY"
-                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[12px] font-bold uppercase tracking-wider placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <Input
                                 type={newEnvIsSecret ? 'password' : 'text'}
                                 value={newEnvValue}
                                 onChange={(e) => setNewEnvValue(e.target.value)}
                                 placeholder="VALUE"
-                                className="font-mono text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[12px] font-bold uppercase tracking-wider placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             <Button
                                 variant="ghost"

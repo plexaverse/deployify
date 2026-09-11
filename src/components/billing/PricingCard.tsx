@@ -47,8 +47,8 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-1 block group-hover:text-[var(--primary)] transition-colors">
                         Available Plan
                     </span>
-                    <h3 className="text-[10px] font-bold mb-3">{plan.name}</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] min-h-[40px] leading-relaxed">{plan.description}</p>
+                    <h3 className="text-[14px] font-bold mb-3">{plan.name}</h3>
+                    <p className="text-[13px] font-medium text-[var(--muted-foreground)] min-h-[40px] leading-relaxed">{plan.description}</p>
                 </div>
 
                 <div className="mb-10">
@@ -66,7 +66,7 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                     </span>
                     <ul className="space-y-4">
                         {plan.features.map((feature, i) => (
-                            <li key={i} className="flex items-start gap-3 text-[10px] font-bold">
+                            <li key={i} className="flex items-start gap-3 text-[13px] font-bold">
                                 <div className="mt-0.5 bg-[var(--primary)]/10 rounded-full p-1 shrink-0">
                                     <Check className="w-3 h-3 text-[var(--primary)]" strokeWidth={3} />
                                 </div>

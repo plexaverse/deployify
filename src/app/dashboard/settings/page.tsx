@@ -214,7 +214,7 @@ export default function TeamSettingsPage() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Personal Workspace</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Account Settings</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Account Settings</h1>
                         </div>
                     </div>
                 </div>
@@ -226,7 +226,7 @@ export default function TeamSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Profile</span>
-                            <h3 className="text-[10px] font-bold">Personal Profile</h3>
+                            <h3 className="text-[14px] font-bold">Personal Profile</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -239,10 +239,10 @@ export default function TeamSettingsPage() {
                             </AvatarFallback>
                         </Avatar>
                         <div className="space-y-1">
-                            <h3 className="text-[10px] font-bold text-[var(--foreground)]">
+                            <h3 className="text-[14px] font-bold text-[var(--foreground)]">
                                 {user?.name || user?.githubUsername || 'Personal Workspace'}
                             </h3>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                 {user?.email || 'You are using your individual workspace for hobby projects.'}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
@@ -265,15 +265,15 @@ export default function TeamSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                            <h3 className="text-[10px] font-bold text-[var(--error)]">Critical Actions</h3>
+                            <h3 className="text-[14px] font-bold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--error)]/20" />
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                             <div>
-                                <h3 className="text-[10px] font-bold text-[var(--error)]">Delete Account</h3>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <h3 className="text-[14px] font-bold text-[var(--error)]">Delete Account</h3>
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                     Permanently remove your account and all of your data. This action cannot be undone.
                                 </p>
                             </div>
@@ -310,7 +310,7 @@ export default function TeamSettingsPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team Management</span>
-                        <h1 className="text-[10px] font-bold tracking-tight">{activeTeam.name} Settings</h1>
+                        <h1 className="text-[22px] font-bold tracking-tight">{activeTeam.name} Settings</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -331,7 +331,7 @@ export default function TeamSettingsPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Collaboration</span>
-                                    <h3 className="text-[10px] font-bold">Invite New Member</h3>
+                                    <h3 className="text-[14px] font-bold">Invite New Member</h3>
                                 </div>
                             </div>
                             <Separator className="bg-[var(--border)]" />
@@ -342,7 +342,7 @@ export default function TeamSettingsPage() {
                                         id="email"
                                         type="email"
                                         placeholder="COLLEAGUE@EXAMPLE.COM"
-                                        className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                        className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                         value={inviteEmail}
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                         required
@@ -381,7 +381,7 @@ export default function TeamSettingsPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Team</span>
-                                    <h3 className="text-[10px] font-bold">Team Members</h3>
+                                    <h3 className="text-[14px] font-bold">Team Members</h3>
                                 </div>
                             </div>
                             <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] bg-[var(--muted)]/10 px-3 py-1 rounded-full border border-[var(--border)]">
@@ -423,7 +423,7 @@ export default function TeamSettingsPage() {
                                                         {member.user?.name || member.user?.githubUsername || 'Unknown User'}
                                                         {member.role === 'owner' && <Badge variant="warning" className="text-[10px] px-1.5 py-0.5 font-bold uppercase tracking-wider">Owner</Badge>}
                                                     </p>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                                         {member.user?.email}
                                                     </p>
                                                 </div>
@@ -472,7 +472,7 @@ export default function TeamSettingsPage() {
                                                         {invite.email}
                                                         <Badge variant="info" className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0">Invited</Badge>
                                                     </p>
-                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                                    <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                                         Sent {new Date(invite.createdAt).toLocaleDateString().toUpperCase()}
                                                     </p>
                                                 </div>
@@ -510,15 +510,15 @@ export default function TeamSettingsPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                                <h3 className="text-[10px] font-bold text-[var(--error)]">Critical Actions</h3>
+                                <h3 className="text-[14px] font-bold text-[var(--error)]">Critical Actions</h3>
                             </div>
                         </div>
                         <Separator className="bg-[var(--error)]/20" />
                         <div className="p-6 space-y-6">
                             <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                 <div>
-                                    <h3 className="text-[10px] font-bold">Leave Team</h3>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    <h3 className="text-[14px] font-bold">Leave Team</h3>
+                                    <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                         Revoke your access to this team. You will need to be re-invited to join again.
                                     </p>
                                 </div>
@@ -536,8 +536,8 @@ export default function TeamSettingsPage() {
                                     <Separator className="bg-[var(--error)]/20" />
                                     <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                                         <div>
-                                            <h3 className="text-[10px] font-bold text-[var(--error)]">Delete Team</h3>
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                            <h3 className="text-[14px] font-bold text-[var(--error)]">Delete Team</h3>
+                                            <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                                 Permanently remove this team and all of its data. This action cannot be undone.
                                             </p>
                                         </div>
@@ -564,7 +564,7 @@ export default function TeamSettingsPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Activity</span>
-                                <h3 className="text-[10px] font-bold">Audit Log</h3>
+                                <h3 className="text-[14px] font-bold">Audit Log</h3>
                             </div>
                         </div>
 

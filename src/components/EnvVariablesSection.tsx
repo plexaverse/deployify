@@ -217,7 +217,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configuration</span>
-                        <h3 className="text-[10px] font-bold">Environment Variables</h3>
+                        <h3 className="text-[14px] font-bold">Environment Variables</h3>
                     </div>
                 </div>
                 {!isAdding && (
@@ -243,7 +243,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             </div>
                             <div className="flex-1 space-y-1">
                                 <h4 className="text-[10px] font-bold text-[var(--foreground)]">Detected Database Connection String</h4>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                                     Deployify has a managed **Database Connector** model that provides secure credential storage via Secret Manager and automated health checks.
                                 </p>
                                 <div className="flex items-center gap-3 pt-3">
@@ -288,7 +288,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 value={newKey}
                                 onChange={(e) => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))}
                                 placeholder="API_KEY"
-                                className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2">
@@ -298,7 +298,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 value={newValue}
                                 onChange={(e) => setNewValue(e.target.value)}
                                 placeholder="SECRET-VALUE"
-                                className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                         </div>
                         <div className="space-y-2 md:col-span-2">
@@ -310,7 +310,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                     value={newGroup}
                                     onChange={(e) => setNewGroup(e.target.value)}
                                     placeholder="E.G. DATABASE, AUTH, GENERAL"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
                                 <datalist id="existing-groups">
                                     {uniqueGroups.map(group => (
@@ -414,11 +414,11 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="border-b border-[var(--border)] bg-[var(--muted)]/5">
-                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Key</th>
-                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Value</th>
-                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
-                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scope</th>
-                                            <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
+                                            <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Key</th>
+                                            <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[30%]">Value</th>
+                                            <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Type</th>
+                                            <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scope</th>
+                                            <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -434,7 +434,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="py-4 px-4 text-[10px] font-mono">
+                                                <td className="py-4 px-4 text-[13px] font-mono">
                                                     <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--border)] px-2.5 py-1.5 rounded-md w-fit max-w-full overflow-hidden shadow-sm">
                                                         {revealedIds.has(env.id) ? (
                                                             <span className="text-[var(--foreground)] truncate">

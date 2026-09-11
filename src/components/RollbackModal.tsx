@@ -29,7 +29,7 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
                             </div>
                             <div className="space-y-0.5">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Action</span>
-                                <h3 className="text-[10px] font-bold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
+                                <h3 className="text-[14px] font-bold tracking-tight text-[var(--foreground)]">Confirm Rollback</h3>
                             </div>
                         </div>
                         <Button
@@ -44,27 +44,27 @@ export function RollbackModal({ deployment, isOpen, onClose, onConfirm }: Rollba
 
                     {/* Content */}
                     <div className="p-6 overflow-y-auto">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-6 leading-relaxed">
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)] mb-6 leading-relaxed">
                             Are you sure you want to rollback to this version? This will immediately switch traffic to the selected revision.
                         </p>
 
                         <div className="bg-[var(--background)] rounded-xl p-6 border border-[var(--border)] space-y-4 shadow-sm">
                             <div className="space-y-1">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Commit</span>
-                                <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)] bg-[var(--muted)]/20 px-2 py-1 rounded w-fit">{deployment.gitCommitSha.substring(0, 7).toUpperCase()}</p>
+                                <p className="font-mono text-[13px] font-bold uppercase tracking-wider text-[var(--foreground)] bg-[var(--muted)]/20 px-2 py-1 rounded w-fit">{deployment.gitCommitSha.substring(0, 7).toUpperCase()}</p>
                             </div>
                             <div className="space-y-1">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Message</span>
-                                <p className="text-[10px] font-bold line-clamp-2 text-[var(--foreground)]">{deployment.gitCommitMessage}</p>
+                                <p className="text-[13px] font-bold line-clamp-2 text-[var(--foreground)]">{deployment.gitCommitMessage}</p>
                             </div>
                             <div className="flex justify-between gap-4 pt-2">
                                 <div className="space-y-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Author</span>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]">{deployment.gitCommitAuthor}</p>
+                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--foreground)]">{deployment.gitCommitAuthor}</p>
                                 </div>
                                 <div className="text-right space-y-1">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Deployed At</span>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]">
+                                    <p className="text-[13px] font-medium text-[var(--foreground)]">
                                         {new Date(deployment.createdAt).toLocaleDateString().toUpperCase()}
                                     </p>
                                 </div>

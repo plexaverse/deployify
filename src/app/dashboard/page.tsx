@@ -143,7 +143,7 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="space-y-0.5">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure Fleet</span>
-                                    <h3 className="text-[10px] font-bold">Global Connectivity Health</h3>
+                                    <h3 className="text-[14px] font-bold">Global Connectivity Health</h3>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
@@ -208,7 +208,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Overview</span>
-                        <h1 className="text-[10px] font-bold tracking-tight">
+                        <h1 className="text-[22px] font-bold tracking-tight">
                             {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
                         </h1>
                     </div>
@@ -282,7 +282,7 @@ export default function DashboardPage() {
             {/* Load failure - never show first-run onboarding to an existing customer */}
             {!loading && projectsError && (
                 <div className="max-w-2xl mx-auto text-center space-y-4 py-16">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">
+                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--error)]">
                         {projectsError}
                     </p>
                     <Button variant="outline" size="sm" onClick={() => window.location.reload()}>

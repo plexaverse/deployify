@@ -115,7 +115,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Scheduling</span>
-                        <h3 className="text-[10px] font-bold">Cron Jobs</h3>
+                        <h3 className="text-[14px] font-bold">Cron Jobs</h3>
                     </div>
                 </div>
                 {!isAdding && (
@@ -150,9 +150,9 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                 value={newPath}
                                 onChange={(e) => setNewPath(e.target.value)}
                                 placeholder="/API/CRON/DAILY-REPORT"
-                                className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                 Relative path to call (GET request).
                             </p>
                         </div>
@@ -173,9 +173,9 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                                     value={customSchedule}
                                     onChange={(e) => setCustomSchedule(e.target.value)}
                                     placeholder="0 0 * * *"
-                                    className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="font-mono text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                     Standard cron format: minute hour day(month) month day(week)
                                 </p>
                             </div>
@@ -215,18 +215,18 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/5">
-                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Path</th>
-                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Schedule</th>
-                                    <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
+                                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Path</th>
+                                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] w-[40%]">Schedule</th>
+                                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {crons.map((cron, index) => (
                                     <tr key={index} className="border-b border-[var(--border)] hover:bg-[var(--muted)]/10 transition-colors last:border-0">
-                                        <td className="py-3 px-4 text-[10px] font-mono">
+                                        <td className="py-3 px-4 text-[13px] font-mono">
                                             {cron.path}
                                         </td>
-                                        <td className="py-3 px-4 text-[10px] font-mono">
+                                        <td className="py-3 px-4 text-[13px] font-mono">
                                             {cron.schedule}
                                         </td>
                                         <td className="py-3 px-4 text-right">
@@ -250,7 +250,7 @@ export function CronsSection({ projectId, onUpdate }: CronsSectionProps) {
                 <div className="mt-6 flex items-start gap-3 p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-md">
                 <Info className="w-5 h-5 text-[var(--info)] flex-shrink-0 mt-0.5" />
                 <div className="text-[10px] font-bold">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">How it works</p>
+                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--info)] mb-1">How it works</p>
                     <p className="text-[var(--muted-foreground)] leading-relaxed">
                         Deployify uses Google Cloud Scheduler to trigger your application&apos;s endpoints via HTTP GET requests.
                         Ensure your application is deployed and the endpoints are accessible.

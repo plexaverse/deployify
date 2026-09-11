@@ -110,8 +110,8 @@ export default function ProjectSettingsPage() {
                         <Settings className="w-8 h-8 text-[var(--muted-foreground)]" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-[10px] font-bold">Project Not Found</h2>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                        <h2 className="text-[17px] font-bold">Project Not Found</h2>
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                             The project you are looking for does not exist or you don&apos;t have access.
                         </p>
                     </div>
@@ -144,7 +144,7 @@ export default function ProjectSettingsPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project Configuration</span>
-                        <h1 className="text-[10px] font-bold tracking-tight">Project Settings</h1>
+                        <h1 className="text-[22px] font-bold tracking-tight">Project Settings</h1>
                     </div>
                 </div>
             </div>
@@ -183,7 +183,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Build Settings</span>
-                            <h3 className="text-[10px] font-bold">Configuration</h3>
+                            <h3 className="text-[14px] font-bold">Configuration</h3>
                         </div>
                     </div>
 
@@ -207,7 +207,7 @@ export default function ProjectSettingsPage() {
                                     <option value="bun">BUN</option>
                                     <option value="docker">DOCKER</option>
                                 </NativeSelect>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                     The framework used for building. Use &quot;DOCKER&quot; to use your own Dockerfile.
                                 </p>
                             </div>
@@ -219,9 +219,9 @@ export default function ProjectSettingsPage() {
                                     value={rootDirectory}
                                     onChange={(e) => setProjectSettingsField('rootDirectory', e.target.value)}
                                     placeholder="./"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                     The directory within your project where code is located.
                                 </p>
                             </div>
@@ -236,9 +236,9 @@ export default function ProjectSettingsPage() {
                                     value={buildCommand}
                                     onChange={(e) => setProjectSettingsField('buildCommand', e.target.value)}
                                     placeholder="NPM RUN BUILD"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                     The command used to build your project.
                                 </p>
                             </div>
@@ -250,9 +250,9 @@ export default function ProjectSettingsPage() {
                                     value={outputDirectory}
                                     onChange={(e) => setProjectSettingsField('outputDirectory', e.target.value)}
                                     placeholder=".NEXT"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                     The directory where build artifacts are located.
                                 </p>
                             </div>
@@ -267,9 +267,9 @@ export default function ProjectSettingsPage() {
                                     value={installCommand}
                                     onChange={(e) => setProjectSettingsField('installCommand', e.target.value)}
                                     placeholder="NPM INSTALL"
-                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                    className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                     The command used to install dependencies.
                                 </p>
                             </div>
@@ -318,7 +318,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Notifications</span>
-                            <h3 className="text-[10px] font-bold">Alert Preferences</h3>
+                            <h3 className="text-[14px] font-bold">Alert Preferences</h3>
                         </div>
                     </div>
 
@@ -341,9 +341,9 @@ export default function ProjectSettingsPage() {
                                 value={webhookUrl}
                                 onChange={(e) => setProjectSettingsField('webhookUrl', e.target.value)}
                                 placeholder="HTTPS://DISCORD.COM/API/WEBHOOKS/..."
-                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                 Receive notifications when a build fails. Supports Discord, Slack, and other webhook-compatible services.
                             </p>
                         </div>
@@ -369,7 +369,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Security</span>
-                            <h3 className="text-[10px] font-bold">Safety & Protection</h3>
+                            <h3 className="text-[14px] font-bold">Safety & Protection</h3>
                         </div>
                     </div>
 
@@ -405,7 +405,7 @@ export default function ProjectSettingsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">Danger Zone</span>
-                            <h3 className="text-[10px] font-bold text-[var(--error)]">Critical Actions</h3>
+                            <h3 className="text-[14px] font-bold text-[var(--error)]">Critical Actions</h3>
                         </div>
                     </div>
 
@@ -414,8 +414,8 @@ export default function ProjectSettingsPage() {
                     <div className="p-6">
                         <div className="flex items-center justify-between p-4 border border-[var(--error)]/20 rounded-lg bg-[var(--background)]">
                         <div>
-                            <p className="text-[10px] font-bold text-[var(--error)]">Delete Project</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <p className="text-[13px] font-bold text-[var(--error)]">Delete Project</p>
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                 Permanently delete this project and all its deployments.
                             </p>
                         </div>

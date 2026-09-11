@@ -182,7 +182,7 @@ export default function InfrastructureFleetPage() {
                         </div>
                         <div className="space-y-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Global Fleet</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Infrastructure Intelligence</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Infrastructure Intelligence</h1>
                         </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
@@ -333,7 +333,7 @@ export default function InfrastructureFleetPage() {
                         >
                             <HistoryIcon className="w-3 h-3" />
                             <span className="text-[10px] font-bold uppercase tracking-wider">Show Maintenance Recommendations</span>
-                            <Badge variant="outline" className="h-4 px-1 text-[10px] font-mono">{connectors.filter(c => c.metadata?.maintenanceRecommendation).length}</Badge>
+                            <Badge variant="outline" className="h-4 px-1 text-[12px] font-mono">{connectors.filter(c => c.metadata?.maintenanceRecommendation).length}</Badge>
                         </div>
                     )}
                 </div>
@@ -391,7 +391,7 @@ export default function InfrastructureFleetPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Governance</span>
-                                    <h3 className="text-[10px] font-bold">Compliance Report</h3>
+                                    <h3 className="text-[14px] font-bold">Compliance Report</h3>
                                 </div>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => setShowComplianceReport(false)} className="h-8 w-8">
@@ -436,7 +436,7 @@ export default function InfrastructureFleetPage() {
                                                 {project.connectors.map((c: FleetConnector) => {
                                                     const security = (c.metadata?.security as { score: number, risks: unknown[] } | undefined) || { score: 100, risks: [] };
                                                     return (
-                                                        <div key={c.id} className="flex items-center justify-between p-2 rounded bg-[var(--muted)]/5 text-[10px] font-bold">
+                                                        <div key={`${project.id}:${c.id}`} className="flex items-center justify-between p-2 rounded bg-[var(--muted)]/5 text-[10px] font-bold">
                                                             <div className="flex items-center gap-3">
                                                                 <span className="font-bold">{c.name}</span>
                                                                 <span className="text-[var(--muted-foreground)] uppercase">{c.type}</span>
@@ -496,7 +496,7 @@ export default function InfrastructureFleetPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Financial Intelligence</span>
-                                <h3 className="text-[10px] font-bold">3-Month Cost Projection</h3>
+                                <h3 className="text-[14px] font-bold">3-Month Cost Projection</h3>
                             </div>
                         </div>
                         <div className="text-right">
@@ -514,7 +514,7 @@ export default function InfrastructureFleetPage() {
                                 <div className="w-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 rounded-t-xl transition-all group-hover:bg-[var(--primary)]/20 relative"
                                      style={{ height: `${(f.cost / (summary.totalForecastedCost3m || 1)) * 250}%` }}>
                                     <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                        <span className="text-[10px] font-mono font-bold bg-[var(--popover)] border border-[var(--border)] px-2 py-1 rounded shadow-xl">
+                                        <span className="text-[12px] font-mono font-bold bg-[var(--popover)] border border-[var(--border)] px-2 py-1 rounded shadow-xl">
                                             ${f.cost.toLocaleString()}
                                         </span>
                                     </div>
@@ -543,8 +543,8 @@ export default function InfrastructureFleetPage() {
                         <Database className="w-8 h-8 text-[var(--muted-foreground)]" />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-[10px] font-bold">No Connectors Found</h2>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
+                        <h2 className="text-[17px] font-bold">No Connectors Found</h2>
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)] max-w-xs mx-auto leading-relaxed">
                             {searchQuery ? `No managed connectors match "${searchQuery}"` : "You haven't connected any databases to your projects yet."}
                         </p>
                     </div>
@@ -558,7 +558,10 @@ export default function InfrastructureFleetPage() {
 
                         return (
                             <BentoGridItem
-                                key={connector.id}
+                                // Connector ids are only unique WITHIN a project. This list is
+                                // fleet-wide, so keying on id alone collides across projects and
+                                // React duplicates/omits cards.
+                                key={`${connector.projectId}:${connector.id}`}
                                 className="group relative border-[var(--primary)]/10"
                                 header={
                                     <div className="p-5 h-full flex flex-col justify-between space-y-4">
@@ -566,7 +569,7 @@ export default function InfrastructureFleetPage() {
                                             <div className="flex items-start justify-between">
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-2">
-                                                        <h3 className="text-[10px] font-bold tracking-tight truncate max-w-[140px]">{connector.name}</h3>
+                                                        <h3 className="text-[14px] font-bold tracking-tight truncate max-w-[140px]">{connector.name}</h3>
                                                         <Badge variant={
                                                             status === 'healthy' ? 'success' :
                                                             status === 'degraded' ? 'warning' :
@@ -603,7 +606,7 @@ export default function InfrastructureFleetPage() {
                                                     <div>
                                                         <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Resource Tier</span>
                                                         <div className="flex items-baseline gap-2">
-                                                            <span className="text-[10px] font-mono font-bold text-[var(--primary)]">
+                                                            <span className="text-[12px] font-mono font-bold text-[var(--primary)]">
                                                                 {(connector.metadata?.tier as string) || (connector.metadata?.memorySizeGb ? `${connector.metadata.memorySizeGb}GB` : 'UNMANAGED')}
                                                             </span>
                                                             {connector.metadata?.efficiencyScore !== undefined && (
@@ -625,7 +628,7 @@ export default function InfrastructureFleetPage() {
                                                         <span className="block text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Monthly Est.</span>
                                                         <div className="flex items-center gap-1">
                                                             <DollarSign className="w-2.5 h-2.5 text-[var(--success)]" />
-                                                            <span className="text-[10px] font-mono font-bold text-[var(--success)]">
+                                                            <span className="text-[12px] font-mono font-bold text-[var(--success)]">
                                                                 {(() => {
                                                                     // Define a simple version here for client-side to avoid require/import issues
                                                                     const type = connector.type;
@@ -657,11 +660,11 @@ export default function InfrastructureFleetPage() {
                                                 <div className="flex items-center gap-4 pt-1">
                                                     <div className="flex items-center gap-1.5">
                                                         <Cpu className="w-3 h-3 text-[var(--primary)]" />
-                                                        <span className="text-[10px] font-mono font-bold">ACTV</span>
+                                                        <span className="text-[12px] font-mono font-bold">ACTV</span>
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
                                                         <ShieldCheck className="w-3 h-3 text-[var(--success)]" />
-                                                        <span className="text-[10px] font-mono font-bold">SEC</span>
+                                                        <span className="text-[12px] font-mono font-bold">SEC</span>
                                                     </div>
                                                     {optimization && (
                                                         <div className="flex items-center gap-1.5 animate-pulse">
@@ -763,7 +766,7 @@ export default function InfrastructureFleetPage() {
                                                     <div className="flex flex-col">
                                                         <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Latency</span>
                                                         <span className={cn(
-                                                            "text-[10px] font-mono font-bold",
+                                                            "text-[12px] font-mono font-bold",
                                                             status === 'healthy' ? "text-[var(--success)]" : "text-[var(--warning)]"
                                                         )}>{health.latency}ms</span>
                                                     </div>
@@ -771,7 +774,7 @@ export default function InfrastructureFleetPage() {
                                                 {health?.baselineLatency && (
                                                     <div className="flex flex-col">
                                                         <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">Baseline</span>
-                                                        <span className="text-[10px] font-mono font-bold opacity-60">{health.baselineLatency}ms</span>
+                                                        <span className="text-[12px] font-mono font-bold opacity-60">{health.baselineLatency}ms</span>
                                                     </div>
                                                 )}
                                             </div>

@@ -1,4 +1,17 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+
+/*
+ * Tailwind v4 auto-detects sources across the whole project root. Restrict it to app code.
+ *
+ * Scanning everything also picked up class-shaped strings inside JSON and markdown - the
+ * audit reports under audit-state/ quote literal Tailwind classes from the codebase - and
+ * Tailwind generated rules from them. One of those quoted strings used an alternation
+ * inside a CSS variable name, which is not valid CSS. That failed the stylesheet parse and
+ * made `next dev` return HTTP 500 on every page.
+ *
+ * Keep this scoped, and do not paste class-shaped examples into comments in scanned files.
+ */
+@source "../../src";
 
 :root {
   /* Light theme colors (Default) */

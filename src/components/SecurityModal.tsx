@@ -41,7 +41,7 @@ export function SecurityModal({ isOpen, onClose, storage, projectId }: SecurityM
                                 <span className="text-[10px] font-bold uppercase text-[var(--error)]">Risk Score: {report?.riskScore || 100}</span>
                             </div>
                         </div>
-                        <p className="text-[10px] font-bold">
+                        <p className="text-[13px] font-bold">
                             Deployify autonomously scans database engine logs for patterns indicating SQL injection, brute-force attacks, or unauthorized access attempts.
                         </p>
                     </div>
@@ -52,7 +52,7 @@ export function SecurityModal({ isOpen, onClose, storage, projectId }: SecurityM
                             {!report?.activeThreats?.length ? (
                                 <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                     <ShieldCheck className="w-8 h-8 text-[var(--success)]/30 mx-auto mb-3" />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No threats detected in recent logs</p>
+                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No threats detected in recent logs</p>
                                 </div>
                             ) : (
                                 report.activeThreats.map((t) => (
@@ -78,7 +78,7 @@ export function SecurityModal({ isOpen, onClose, storage, projectId }: SecurityM
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]">
+                                                <p className="text-[13px] font-bold uppercase text-[var(--muted-foreground)]">
                                                     SOURCE IP: <span className="text-[var(--foreground)] font-mono">{t.sourceIp}</span>
                                                 </p>
                                             </div>
@@ -103,7 +103,7 @@ export function SecurityModal({ isOpen, onClose, storage, projectId }: SecurityM
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="p-2 bg-[var(--muted)]/20 rounded font-mono text-[10px] font-bold whitespace-pre-wrap break-all border border-[var(--border)]/50">
+                                        <div className="p-2 bg-[var(--muted)]/20 rounded font-mono text-[12px] font-bold whitespace-pre-wrap break-all border border-[var(--border)]/50">
                                             {t.evidence}
                                         </div>
                                         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
@@ -118,7 +118,7 @@ export function SecurityModal({ isOpen, onClose, storage, projectId }: SecurityM
 
                     <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-2">
                         <ShieldCheck className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                        <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                             Remediation: Blocking an IP will automatically update your project&apos;s Cloud Armor security policy to deny all traffic from that source at the edge.
                         </p>
                     </div>

@@ -154,7 +154,7 @@ export default function DeploymentsPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Project History</span>
-                        <h1 className="text-[10px] font-bold tracking-tight">Deployments</h1>
+                        <h1 className="text-[22px] font-bold tracking-tight">Deployments</h1>
                     </div>
                 </div>
                 {deployments.length >= 2 && (

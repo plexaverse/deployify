@@ -129,7 +129,7 @@ export function ConfirmationModal({
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                   {headerLabel || (variant === 'destructive' ? 'Critical Action' : 'Confirmation Required')}
                 </span>
-                <h3 id={titleId} className="text-[10px] font-bold tracking-tight text-[var(--foreground)]">
+                <h3 id={titleId} className="text-[14px] font-bold tracking-tight text-[var(--foreground)]">
                   {title}
                 </h3>
               </div>
