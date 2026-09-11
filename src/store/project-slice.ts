@@ -6,6 +6,8 @@ import { readJsonBody, toActionResult, type ActionResult } from '@/lib/action-fe
 export interface ProjectSlice {
     activeProjectId: string | null;
     currentProject: Project | null;
+    /** Set when fetchProjectDetails fails, so the page can show why instead of stale data. */
+    projectLoadError: string | null;
     currentDeployments: Deployment[];
     errorCount: number | null;
     isLoadingProject: boolean;
@@ -114,6 +116,7 @@ export interface ProjectSlice {
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     activeProjectId: null,
     currentProject: null,
+    projectLoadError: null,
     currentDeployments: [],
     errorCount: null,
     isLoadingProject: true,
@@ -168,6 +171,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         if (!currentProject || currentProject.id !== projectId) {
             set({ isLoadingProject: true });
         }
+        set({ projectLoadError: null });
         try {
             const [projectResponse, deploymentsResponse, statsResponse] = await Promise.all([
                 fetch(`/api/projects/${projectId}`),
@@ -203,9 +207,29 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                     const statsData = await statsResponse.json();
                     set({ errorCount: statsData.errorCount });
                 }
+            } else {
+                // The project could not be loaded (404, 403, 500). currentProject used to be
+                // left pointing at the PREVIOUS project, so the page rendered that project's
+                // settings under the new project's URL and wired Save/Delete to it - an edit
+                // or a delete aimed at the wrong project. Clear it and surface the failure.
+                console.error('Failed to load project:', projectId, projectResponse.status);
+                set({
+                    currentProject: null,
+                    currentDeployments: [],
+                    projectLoadError: projectResponse.status === 404
+                        ? 'Project not found.'
+                        : projectResponse.status === 403
+                            ? 'You do not have access to this project.'
+                            : 'Could not load this project. Please retry.',
+                });
             }
         } catch (error) {
             console.error('Failed to fetch project details:', error);
+            set({
+                currentProject: null,
+                currentDeployments: [],
+                projectLoadError: 'Could not load this project. Please check your connection and retry.',
+            });
         } finally {
             set({ isLoadingProject: false });
         }

@@ -599,9 +599,28 @@ export async function rotateProviderToken(
                 if (listRes.ok) {
                     const data = await listRes.json();
                     const passwords = Array.isArray(data) ? data : (data.data || []);
-                    const oldPasswords = passwords.filter((p: { name?: string; id?: string }) =>
-                        p.name?.startsWith('deployify-rotation-') && p.id !== newPwd.id
-                    );
+                    // Two rotations that overlap would otherwise destroy each other: this
+                    // cleanup deleted EVERY deployify-rotation-* password except the newest,
+                    // including one a concurrent rotation had just created and whose
+                    // connection string was still being written to Secret Manager. The name
+                    // carries the creation timestamp, so keep anything inside a grace window
+                    // and only reap credentials old enough that nothing can still be
+                    // mid-rotation with them.
+                    const graceMs = Number(process.env.ROTATION_CLEANUP_GRACE_MS || 10 * 60 * 1000);
+                    const cutoff = Date.now() - graceMs;
+
+                    const oldPasswords = passwords.filter((p: { name?: string; id?: string }) => {
+                        if (!p.name?.startsWith('deployify-rotation-') || p.id === newPwd.id) {
+                            return false;
+                        }
+                        const stamp = Number(p.name.slice('deployify-rotation-'.length));
+                        // Unparseable name: leave it alone rather than guess.
+                        if (!Number.isFinite(stamp) || stamp === 0) {
+                            console.warn(`[PlanetScaleRotation] Skipping ${p.name}: no parseable timestamp.`);
+                            return false;
+                        }
+                        return stamp < cutoff;
+                    });
 
                     for (const oldPwd of oldPasswords) {
                         await fetch(`https://api.planetscale.com/v1/organizations/${organization}/databases/${database}/passwords/${oldPwd.id}`, {

@@ -44,6 +44,7 @@ export default function ProjectDetailPage() {
         currentDeployments: deployments,
         errorCount,
         isLoadingProject: loading,
+        projectLoadError,
         isRedeploying: deploying,
         selectedLogsId,
         setSelectedLogsId,
@@ -179,7 +180,23 @@ export default function ProjectDetailPage() {
     }
 
     if (!project) {
-        return null;
+        // Previously `return null` — a blank page with no explanation, and (before the store
+        // fix) sometimes the PREVIOUS project's data instead.
+        return (
+            <div className="max-w-2xl mx-auto px-6 py-20 text-center space-y-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">
+                    {projectLoadError || 'Project not found.'}
+                </p>
+                <div className="flex items-center justify-center gap-3">
+                    <Button variant="outline" size="sm" onClick={() => fetchProjectDetails(params.id as string)}>
+                        Retry
+                    </Button>
+                    <Link href="/dashboard">
+                        <Button variant="ghost" size="sm">Back to projects</Button>
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     const selectedDeployment = deployments.find(d => d.id === selectedLogsId);

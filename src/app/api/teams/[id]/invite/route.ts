@@ -47,6 +47,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         const body = await request.json();
         const { email, role = 'member' } = body;
 
+        // SECURITY: this value is passed to Resend as `to`, which accepts an ARRAY of
+        // recipients. Without a type+shape check, {"email": ["a@x", "b@y", ...]} turns the
+        // invite endpoint into an open mailer that sends from the platform's domain.
+        if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || email.length > 254) {
+            return NextResponse.json(
+                { error: 'A single valid email address is required' },
+                { status: 400 }
+            );
+        }
+
         if (!email) {
             return NextResponse.json(
                 { error: 'Email is required' },

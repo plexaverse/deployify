@@ -22,6 +22,7 @@ interface PricingCardProps {
 export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular }: PricingCardProps) {
     const isCurrent = plan.id === currentPlanId;
     const isEnterprise = plan.id === 'enterprise';
+    const SALES_EMAIL = process.env.NEXT_PUBLIC_SALES_EMAIL || 'sales@deployify.io';
 
     return (
         <Card
@@ -76,13 +77,23 @@ export function PricingCard({ plan, currentPlanId, onUpgrade, loading, isPopular
                 </div>
 
                 <div className="mt-auto">
+                    {/* "Contact Sales" used to call onUpgrade('enterprise'), which opens a live
+                        Razorpay charge for the enterprise list price. A button labelled Contact
+                        Sales must not take money; it opens a mail draft instead. */}
                     <Button
-                        onClick={() => onUpgrade(plan.id)}
-                        disabled={isCurrent || (plan.id === 'free' && !isCurrent) || loading}
+                        onClick={() => {
+                            if (isEnterprise) {
+                                window.location.href =
+                                    `mailto:${SALES_EMAIL}?subject=${encodeURIComponent('Enterprise plan enquiry')}`;
+                                return;
+                            }
+                            onUpgrade(plan.id);
+                        }}
+                        disabled={isCurrent || (plan.id === 'free' && !isCurrent) || (loading && !isEnterprise)}
                         className="w-full h-12 font-bold uppercase tracking-wider text-[10px] font-bold"
                         variant={isCurrent ? 'outline' : isEnterprise ? 'secondary' : 'primary'}
                         size="lg"
-                        loading={loading}
+                        loading={loading && !isEnterprise}
                     >
                         {isCurrent
                             ? 'Current Plan'
