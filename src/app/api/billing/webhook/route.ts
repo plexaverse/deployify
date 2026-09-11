@@ -17,10 +17,18 @@ export async function POST(req: Request) {
         const isValid = verifyWebhookSignature(
             body,
             signature,
-            config.billing.razorpay.keySecret
+            config.billing.razorpay.webhookSecret
         );
 
         if (!isValid) {
+            // Loud on purpose. If RAZORPAY_WEBHOOK_SECRET is wrong, EVERY webhook is
+            // rejected and subscriptions silently never activate — previously that failure
+            // was indistinguishable from "no webhooks arrived".
+            console.error(
+                '[Billing Webhook] Signature verification FAILED. If this is every request, ' +
+                'RAZORPAY_WEBHOOK_SECRET does not match the secret configured in the Razorpay ' +
+                'dashboard — subscription activations are silently not happening.'
+            );
             return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
         }
 

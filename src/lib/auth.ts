@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { config } from '@/lib/config';
+import { isSessionRevoked } from '@/lib/session-revocation';
 import type { User, Session } from '@/types';
 
 const COOKIE_NAME = 'deployify_session';
@@ -55,6 +56,9 @@ export async function verifySessionToken(token: string): Promise<Session | null>
             user: payload.user as User,
             accessToken: payload.accessToken as string,
             expiresAt: payload.expiresAt as number,
+            // `iat` is set by setIssuedAt() in createSessionToken; revocation compares
+            // against it so tokens minted before a revocation are rejected.
+            issuedAt: payload.iat as number | undefined,
         };
     } catch {
         return null;
@@ -112,7 +116,17 @@ export async function getSession(): Promise<Session | null> {
         return null;
     }
 
-    return verifySessionToken(token);
+    const session = await verifySessionToken(token);
+    if (!session) return null;
+
+    // A stateless JWT cannot be withdrawn on its own, so check the per-user revocation
+    // marker. Cached in-process, so this is at most one Firestore read per user per minute.
+    // Fails open on a lookup error - a Firestore blip must not sign everyone out.
+    if (await isSessionRevoked(session.user?.id, session.issuedAt)) {
+        return null;
+    }
+
+    return session;
 }
 
 /**

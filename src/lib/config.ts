@@ -66,6 +66,10 @@ export const config = {
         razorpay: {
             keyId: process.env.RAZORPAY_KEY_ID,
             keySecret: process.env.RAZORPAY_KEY_SECRET,
+            // Razorpay signs webhooks with a SEPARATE secret set in the dashboard, not the
+            // API key secret. Falls back to keySecret so existing deployments that set them
+            // to the same value keep working; set RAZORPAY_WEBHOOK_SECRET to split them.
+            webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET,
         },
     },
 

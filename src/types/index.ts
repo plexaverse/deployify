@@ -397,6 +397,8 @@ export interface Session {
     user: User;
     accessToken: string;
     expiresAt: number;
+    /** JWT `iat`, in seconds. Compared against the user's sessionsRevokedAt marker. */
+    issuedAt?: number;
 }
 
 // Build configuration
