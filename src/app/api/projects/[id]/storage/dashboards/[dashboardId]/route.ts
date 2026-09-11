@@ -84,6 +84,11 @@ export async function PATCH(
             return NextResponse.json({ error: access.error }, { status: access.status });
         }
 
+        // Viewers have read-only access; this mutates live state.
+        if (access.role === 'viewer') {
+            return NextResponse.json({ error: 'Forbidden: Viewers cannot modify dashboards' }, { status: 403 });
+        }
+
         const body = await request.json();
         const { name, chartConfig, isPublic, refreshInterval } = body;
 
@@ -137,6 +142,11 @@ export async function DELETE(
 
         if (!access.allowed) {
             return NextResponse.json({ error: access.error }, { status: access.status });
+        }
+
+        // Viewers have read-only access; this mutates live state.
+        if (access.role === 'viewer') {
+            return NextResponse.json({ error: 'Forbidden: Viewers cannot modify dashboards' }, { status: 403 });
         }
 
         const db = getDb();

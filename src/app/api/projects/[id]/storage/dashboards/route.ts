@@ -23,6 +23,11 @@ export async function GET(
             return NextResponse.json({ error: access.error }, { status: access.status });
         }
 
+        // Viewers have read-only access; this mutates live state.
+        if (access.role === 'viewer') {
+            return NextResponse.json({ error: 'Forbidden: Viewers cannot modify dashboards' }, { status: 403 });
+        }
+
         const db = getDb();
         const widgets: Record<string, unknown>[] = [];
 

@@ -32,6 +32,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             );
         }
 
+        // Viewers have read-only access; this mutates live state.
+        if (access.role === 'viewer') {
+            return NextResponse.json({ error: 'Forbidden: Viewers cannot roll back deployments' }, { status: 403, headers: securityHeaders });
+        }
+
         const { project } = access;
         const body = await request.json();
         const { revisionName } = body;

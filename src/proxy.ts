@@ -5,6 +5,7 @@
  * In Next.js 16, `proxy.ts` replaces `middleware.ts`.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { cspHeader } from '@/lib/security/csp';
 import { config as appConfig } from '@/lib/config';
 import { trackError } from '@/lib/logging/tracker';
 import { checkRequestProvenance, getCsrfMode } from '@/lib/security/csrf';
@@ -33,6 +34,12 @@ export async function proxy(request: NextRequest) {
         const responseHeaders = new Headers();
         for (const [key, value] of Object.entries(securityHeaders)) {
             responseHeaders.set(key, value);
+        }
+        // CSP ships Report-Only by default: the app has never run one, so a wrong directive
+        // would blank panels with no actionable error. CSP_MODE=enforce to block.
+        const csp = cspHeader();
+        if (csp) {
+            responseHeaders.set(csp.name, csp.value);
         }
 
         // 1. Detect Subdomain (Project Routing)
