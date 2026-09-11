@@ -356,8 +356,62 @@ I'll finish it.
 
 ---
 
+# 10b · 🚨 PENDING MIGRATION — run this before or with the deploy
+
+I under-stated this in §2.7. There **is** a required migration, and skipping it degrades
+live connectors.
+
+### What
+`metadata.resourceName` has only ever been written when a connector was **provisioned**.
+Connectors created by adopting an existing instance, or with a bring-your-own connection
+string, have never had it. Ownership no longer falls back to the display name, so ~19 code
+paths now refuse without it: metrics, logs, guardrails, backups, export, import, clone,
+query-insights, recommendations, and the Data Lab BigQuery/Spanner paths all return
+409 `UNBOUND_RESOURCE`.
+
+The sync route adopts lazily, but it is **user-triggered** — without this script the estate
+only heals one connector at a time, as tenants happen to click Sync.
+
+### Run it
+```bash
+npx tsx scripts/backfill-resource-names.ts            # dry run, writes nothing
+npx tsx scripts/backfill-resource-names.ts --apply    # writes
+```
+
+**Read the dry run before applying.** Adoption is verified against the live GCP ownership
+label, never guessed:
+
+| Case | Action |
+|---|---|
+| label matches this project | adopt |
+| no label at all (pre-labelling resource) | adopt, reported separately |
+| label names a **different** project | **REFUSE** + report |
+| two connectors resolve to one resource | **REFUSE** + report |
+
+🚨 **A CONFLICT is a finding, not noise.** It means two connectors point at the same GCP
+instance — exactly the cross-tenant condition this audit was about. Resolve those by hand.
+
+### Not covered
+`neon`, `supabase`, `planetscale`, `mongodb-atlas` — external providers with no GCP label
+API. They are skipped and reported. Those types do not use the GCP paths above, so this is
+expected, but confirm none of your tenants are affected.
+
+### Other deploy-time items (not data migrations)
+- **Firestore index** — `firebase deploy --only firestore:indexes` (§2.6). Blocking.
+- **Cloud Run ownership labels** — existing services carry none. `checkServiceClaim` treats
+  unlabelled as allowed, so nothing breaks; the protection simply is not active for them
+  until their next deploy stamps a label. No action required, but the window is real.
+
+### Confirmed NOT needing migration
+`sessionsRevokedAt`, `supersededResourceName`, `isPlaceholder` — all optional; absent means
+"old behaviour". Verified by reading each read-site.
+
+---
+
 # 11 · What I'd check first
 
+0. **§10b the backfill migration** — required, and its dry run may surface cross-tenant
+   conflicts.
 1. **§6.6 Razorpay webhook secret** — if webhooks were silently failing, real customers may
    have paid and not been upgraded. This is the one with money attached.
 2. **§2.6 Firestore index** — deploy it with the code or comments break.
