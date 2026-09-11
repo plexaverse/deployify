@@ -131,7 +131,11 @@ export async function adoptResourceNameFromGcp(
         ? 'cloud-sql'
         : storage.type === 'memorystore-redis'
             ? 'memorystore-redis'
-            : null;
+            : storage.type === 'bigquery'
+                ? 'bigquery'
+                : storage.type === 'cloud-spanner'
+                    ? 'cloud-spanner'
+                    : null;
 
     // Only families whose labels we can actually read can be adopted safely.
     if (!family) return null;
@@ -236,6 +240,26 @@ export async function fetchDeployifyProjectLabel(
         if (!region) return null;
         const name = `projects/${gcpProjectId}/locations/${region}/instances/${encodeURIComponent(resourceId)}`;
         const res = await fetch(`https://redis.googleapis.com/v1/${name}`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return (data?.labels?.['deployify-project-id'] as string) || null;
+    }
+
+    if (resourceType === 'bigquery') {
+        const res = await fetch(
+            `https://bigquery.googleapis.com/bigquery/v2/projects/${gcpProjectId}/datasets/${encodeURIComponent(resourceId)}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        return (data?.labels?.['deployify-project-id'] as string) || null;
+    }
+
+    if (resourceType === 'cloud-spanner') {
+        const name = `projects/${gcpProjectId}/instances/${encodeURIComponent(resourceId)}`;
+        const res = await fetch(`https://spanner.googleapis.com/v1/${name}`, {
             headers: { Authorization: `Bearer ${accessToken}` },
         });
         if (!res.ok) return null;
