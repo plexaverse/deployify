@@ -95,9 +95,19 @@ export async function getSession(): Promise<Session | null> {
     }
 
     if (!token) {
-        // Fallback for local development if no session exists
-        if (process.env.NODE_ENV === 'development' || process.env.MOCK_DB === 'true') {
+        // Fallback for local development if no session exists.
+        //
+        // SECURITY: MOCK_SESSION is a fully-privileged enterprise admin. This used to be
+        // reachable on MOCK_DB=true alone, in ANY NODE_ENV — one stray env var on a
+        // production revision served an unauthenticated admin session to the internet.
+        // MOCK_DB is now only honoured OUTSIDE production, so the dev workflow is unchanged
+        // while production can never take this branch.
+        const isProduction = process.env.NODE_ENV === 'production';
+        if (!isProduction && (process.env.NODE_ENV === 'development' || process.env.MOCK_DB === 'true')) {
             return MOCK_SESSION;
+        }
+        if (isProduction && process.env.MOCK_DB === 'true') {
+            console.error('[Auth] MOCK_DB=true is set in production and is being IGNORED. Unset it.');
         }
         return null;
     }

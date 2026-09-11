@@ -44,3 +44,6 @@ next_output.log
 next-env.d.ts
 .deployify
 venv
+
+# Claude Code local state (worktrees, session settings)
+.claude/

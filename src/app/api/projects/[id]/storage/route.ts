@@ -394,10 +394,25 @@ export async function DELETE(
             }
         }
 
-        // 2. Delete from Secret Manager if applicable
+        // 2. Delete from Secret Manager if applicable.
+        // Both secrets, not just the connection string: the provider API key
+        // (`-apikey`, written at creation for neon/supabase/planetscale) was never cleaned
+        // up, leaving a live third-party credential in Secret Manager with no connector
+        // referencing it. Failures are logged, not fatal — the connector must still be
+        // removable if Secret Manager is unavailable.
         if (storageConfig.connectionStringSecretId) {
-            const secretId = `deployify-${id}-${storageId}-conn`;
-            await deleteSecret(secretId);
+            try {
+                await deleteSecret(`deployify-${id}-${storageId}-conn`);
+            } catch (e) {
+                console.error(`[Storage] Failed to delete connection secret for ${storageId}:`, e);
+            }
+        }
+        if (storageConfig.providerApiKeySecretId) {
+            try {
+                await deleteSecret(`deployify-${id}-${storageId}-apikey`);
+            } catch (e) {
+                console.error(`[Storage] Failed to delete provider API key secret for ${storageId}:`, e);
+            }
         }
 
         // 3. Remove from Project in Firestore

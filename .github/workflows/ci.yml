@@ -1,0 +1,49 @@
+# Quality gate. Before this existed the only check anywhere was `npm run build` inside the
+# auto-merge workflow, so the 580 unit tests and eslint never ran in CI at all.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Read-only: this workflow must never be able to write to the repo, and it runs on
+# pull_request, which includes forks.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      # `npm ci` also fails when package-lock.json drifts from package.json, which is
+      # exactly what broke the Cloud Build image. Catch it here instead of at deploy.
+      # --ignore-scripts: this runs on fork PRs, so never execute their lifecycle scripts.
+      - name: Install
+        run: npm ci --ignore-scripts
+
+      - name: Lint
+        run: npx eslint src
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'

@@ -177,8 +177,14 @@ export async function proxy(request: NextRequest) {
                 return NextResponse.redirect(new URL('/login', request.url));
             }
 
-            // Bypass for local development
-            if (process.env.NODE_ENV === 'development' || process.env.MOCK_DB === 'true') {
+            // Bypass for local development.
+            //
+            // SECURITY: this is the dashboard's edge auth gate. It used to open on
+            // MOCK_DB=true in ANY NODE_ENV, so a stray env var on a production revision
+            // disabled authentication for every dashboard route. MOCK_DB is now only
+            // honoured outside production.
+            if (process.env.NODE_ENV !== 'production' &&
+                (process.env.NODE_ENV === 'development' || process.env.MOCK_DB === 'true')) {
                 return response;
             }
 

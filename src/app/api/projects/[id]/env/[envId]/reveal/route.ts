@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logAuditEvent } from '@/lib/audit';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { decrypt } from '@/lib/crypto';
@@ -49,6 +50,16 @@ export async function GET(
                 return NextResponse.json({ error: 'Failed to decrypt secret' }, { status: 500, headers: securityHeaders });
             }
         }
+
+        // Every env-var MUTATION is audited; revealing the plaintext was not, even though
+        // it is the most audit-worthy action on this resource. The value is never logged -
+        // only who revealed which key, and when.
+        await logAuditEvent(
+            access.project.teamId || null,
+            session.user.id,
+            'env.secret_revealed',
+            { projectId: id, envId, key: envVar.key, role: access.role }
+        );
 
         return NextResponse.json({ value }, { headers: securityHeaders });
     } catch (error) {
