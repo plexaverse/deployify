@@ -1,4 +1,5 @@
 import { getGcpAccessToken } from './auth';
+import { resolveManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { config } from '@/lib/config';
 import type { StorageConfig, Project } from '@/types';
 
@@ -14,7 +15,17 @@ export async function syncResourceLabels(
     }
 
     const gcpProjectId = storage.providerProjectId || config.gcp.projectId || process.env.GCP_PROJECT_ID;
-    const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+
+    // SECURITY: this WRITES `deployify-project-id`, which every ownership check now treats as
+    // proof. Deriving the target from the free-text display name would let a tenant stamp
+    // their own label onto another tenant's instance and thereby grant themselves ownership
+    // of it. Only a server-written resourceName may be labelled.
+    const resourceName = resolveManagedResourceName(storage);
+    if (!resourceName) {
+        console.warn(`[Labeling] Connector ${storage.id} has no server-written resourceName; skipping label sync.`);
+        return { success: true };
+    }
+
     const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
     const sanitizeLabel = (val: string) => val.toLowerCase().replace(/[^a-z0-9_-]/g, '-').substring(0, 63);

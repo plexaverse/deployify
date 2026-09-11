@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { checkServiceClaim } from '@/lib/gcp/service-claim';
 import { generateServiceName, getProjectSlugForDeployment, sanitizeLabel } from '@/lib/utils';
 import { listProjectIdsBySlug } from '@/lib/db';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
@@ -131,8 +132,33 @@ export async function planServiceDeletion(
     // If another project owns our slug, every derived name is ambiguous.
     const ownSlugContested = await isContested(project.slug);
 
+    const region = project.region || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
+
     for (const name of candidates) {
         const base = name.slice('dfy-'.length);
+
+        // SECURITY: the slug-contention check below only compares PROJECT SLUGS, but the
+        // Cloud Run namespace is strictly larger - preview services are `dfy-<slug>-pr-<n>`
+        // and branch services `dfy-<slug>-<branch>`, and no project's slug equals those. A
+        // project slugged `acme-pr-7` therefore looked UNCONTESTED while its production
+        // service name collides with project `acme`'s PR-7 preview.
+        //
+        // So the ownership label is consulted for EVERY candidate, not just contested ones:
+        // a label naming a different project is proof the service is not ours, whatever the
+        // slug namespace says. Unlabelled services fall through to the contention logic,
+        // which is the pre-existing behaviour for legacy resources.
+        if (process.env.CLOUD_RUN_OWNERSHIP_LABEL_CHECK !== 'false') {
+            try {
+                const claim = await checkServiceClaim(name, project.id, await getGcpAccessToken(), region);
+                if (!claim.allowed) {
+                    skipped.push({ name, reason: 'owned-by-another-project' });
+                    continue;
+                }
+            } catch (e) {
+                console.warn(`[ServiceGuard] Ownership check failed for ${name}:`, e);
+            }
+        }
+
         const ambiguous = ownSlugContested || (base !== project.slug && (await isContested(base)));
 
         if (!ambiguous) {
@@ -143,7 +169,6 @@ export async function planServiceDeletion(
         // Contested. A matching GCP label is positive proof the service is ours.
         // Only reached on collision, so the happy path makes zero extra GCP calls.
         if (process.env.CLOUD_RUN_OWNERSHIP_LABEL_CHECK !== 'false') {
-            const region = project.region || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
             try {
                 const accessToken = await getGcpAccessToken();
                 const label = await fetchServiceLabel(name, region, accessToken);

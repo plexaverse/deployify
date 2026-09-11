@@ -1,5 +1,5 @@
 import { updateProject } from '@/lib/db';
-import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR } from '@/lib/gcp/resource-ownership';
+import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR, requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { updateInstanceSettings, updateConnectionPooler, migrateInstanceToRegion } from '@/lib/gcp/cloudsql';
 import { syncExternalFirewall } from '@/lib/gcp/external-sync';
 import { grantCloudSqlInstanceUserRole, revokeProjectRole, grantProjectRole, resolveRevocableRoles } from '@/lib/gcp/iam';
@@ -374,7 +374,7 @@ export async function remediateRisk(
 
             case 'public_ip_exposed':
                 if (storage.type.includes('cloud-sql')) {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const instanceName = requireManagedResourceName(storage);
                     operationName = await updateInstanceSettings(instanceName, {
                         publicIpEnabled: false
                     });
@@ -390,7 +390,7 @@ export async function remediateRisk(
 
             case 'password_auth_used':
                 if (storage.type.includes('cloud-sql')) {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const instanceName = requireManagedResourceName(storage);
                     const dbType = storage.type.includes('postgres') ? 'postgres' : 'mysql';
                     operationName = await updateInstanceSettings(instanceName, {
                         iamAuthEnabled: true,
@@ -408,7 +408,7 @@ export async function remediateRisk(
 
             case 'regional_mismatch':
                 if (storage.type.includes('cloud-sql')) {
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const instanceName = requireManagedResourceName(storage);
                     const projectRegion = project.region || config.gcp.region || 'asia-south1';
 
                     const result = await migrateInstanceToRegion(instanceName, projectRegion);

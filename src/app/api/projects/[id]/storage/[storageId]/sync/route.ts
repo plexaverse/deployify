@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { adoptResourceNameFromGcp, resolveManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
@@ -51,6 +52,35 @@ export async function GET(
 
         const storage = storageConfigs[index];
         const now = new Date();
+
+        // 0. VERIFIED ADOPTION (runs before anything that needs a resource name).
+        //
+        // Connectors created by adopting an existing instance, and any created before
+        // provisioning recorded the name, carry no server-written metadata.resourceName.
+        // Since ownership stopped being derived from the free-text display name, those
+        // connectors refuse every infrastructure operation (replica, migrate-region, export,
+        // metrics, delete). Sync is the natural reconcile point: resolve the candidate name
+        // and ask GCP who owns it. Adoption succeeds only if the live resource carries this
+        // project's deployify-project-id label, or no label at all. A label naming another
+        // project is refused. STORAGE_ADOPTION_ENABLED=false disables this.
+        if (!resolveManagedResourceName(storage)) {
+            try {
+                const adopted = await adoptResourceNameFromGcp(project, storage);
+                if (adopted) {
+                    storage.metadata = { ...storage.metadata, resourceName: adopted };
+                    storageConfigs[index] = storage;
+                    await updateProject(id, { storageConfigs });
+                    await logAuditEvent(
+                        project.teamId || null,
+                        session.user.id,
+                        'storage.resource_adopted',
+                        { projectId: id, storageId, resourceName: adopted }
+                    );
+                }
+            } catch (e) {
+                console.warn(`[Sync] Adoption attempt failed for ${storageId}:`, e);
+            }
+        }
 
         // 0. Perform automated health heartbeat for active connectors
         if (storage.status === 'active' || storage.status === 'error') {
@@ -268,7 +298,7 @@ export async function GET(
                 // 0h. Phase 146: Autonomous Security Threat Detection
                 if (storage.status === 'active' && (storage.type.includes('cloud-sql') || storage.type === 'alloydb')) {
                     try {
-                        const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                        const instanceName = requireManagedResourceName(storage);
                         const logs = await getDatabaseLogs(instanceName, { pageSize: 100, projectId: storage.providerProjectId as string });
                         const securityReport = await detectSecurityThreats(storage, logs);
 
@@ -412,7 +442,7 @@ export async function GET(
 
                 if (storage.status === 'active' && storage.type === 'bigquery' && hoursSinceBqScan >= 24) {
                     try {
-                        const datasetId = (storage.metadata?.resourceName as string) || storage.name;
+                        const datasetId = requireManagedResourceName(storage);
                         const report = await getDatasetMetadata(datasetId);
                         if (report) {
                             storage.bigqueryMetadata = report;
@@ -456,7 +486,7 @@ export async function GET(
                     try {
                         const { getSecretValue } = await import('@/lib/gcp/secrets');
                         const connStr = storage.connectionStringSecretId ? await getSecretValue(storage.connectionStringSecretId) : '';
-                        const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                        const instanceName = requireManagedResourceName(storage);
                         const logs = await getDatabaseLogs(instanceName, { pageSize: 100, projectId: storage.providerProjectId as string });
 
                         const report = await discoverDeadlocks(storage, logs, connStr);
@@ -485,7 +515,7 @@ export async function GET(
                             const sessions = await getActiveSessions(connStr, dbType as 'postgres' | 'mysql', { ssl: !!storage.ssl });
 
                             // Fetch latest metrics for saturation (already computed in step 1 below, but we need it here for the 24h scan)
-                            const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                            const resourceName = requireManagedResourceName(storage);
                             const dbTypeMetric = (storage.type.includes('postgres') || storage.type === 'alloydb') ? 'postgresql' : 'mysql';
                             const tier = (storage.metadata?.tier as string) || (storage.type === 'alloydb' ? '2vCPU' : 'db-f1-micro');
 
@@ -1220,7 +1250,7 @@ export async function GET(
                     const pendingImports = storage.metadata?.pendingImports as Array<{ database: string, uri: string }> | undefined;
                     const currentIndex = (storage.metadata?.currentImportIndex as number) ?? 0;
                     const currentImport = pendingImports?.[currentIndex];
-                    const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const instanceName = requireManagedResourceName(storage);
 
                     if (currentImport) {
                         try {
@@ -1255,7 +1285,7 @@ export async function GET(
                         // More imports pending - Trigger NEXT database creation
                         const nextIndex = currentIndex + 1;
                         const nextImport = pendingImports[nextIndex];
-                        const instanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                        const instanceName = requireManagedResourceName(storage);
 
                         try {
                             const { createDatabase } = await import('@/lib/gcp/cloudsql');
@@ -1347,7 +1377,7 @@ export async function GET(
             const isAlloyDb = storage.type === 'alloydb';
 
             if (isAlloyDb) {
-                const clusterId = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const clusterId = requireManagedResourceName(storage);
                 const region = (storage.metadata?.region as string) || project.region || 'us-central1';
                 const hasCreatedInstance = storage.metadata?.instanceCreated;
                 const instanceOperationName = storage.metadata?.instanceOperationName as string;
@@ -1514,7 +1544,7 @@ export async function GET(
                     storage.lastError = `Instance ready, but DB/User creation failed: ${e instanceof Error ? e.message : 'Unknown'}`;
                 }
             } else if (storage.type === 'cloud-spanner') {
-                const instanceId = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const instanceId = requireManagedResourceName(storage);
                 const hasCreatedDb = storage.metadata?.dbCreated;
                 const dbOperationName = storage.metadata?.dbOperationName as string;
 

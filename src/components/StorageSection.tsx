@@ -2160,7 +2160,12 @@ export function StorageSection({ projectId, projectRegion, onUpdate }: StorageSe
                                                     {config.bigqueryMetadata.datasetId} ({config.bigqueryMetadata.location})
                                                 </span>
                                             )}
-                                            {(config.metadata?.security as { risks: Array<{ id: string, level: string, title: string }> })?.risks?.filter(risk =>
+                                            {(config.metadata?.security as { risks: Array<{ id: string, level: string, title: string, actionable?: boolean }> })?.risks?.filter(risk =>
+                                                // `actionable === false` means the platform cannot fix it automatically and an
+                                                // operator must act (e.g. project-level roles on the SHARED service account).
+                                                // Rendering a FIX button there is a dead loop: click, success toast, badge
+                                                // unchanged on the next sync.
+                                                risk.actionable !== false &&
                                                 ['unencrypted_connection', 'deletion_protection_disabled', 'unmanaged_firewall', 'overprivileged_service_account', 'broad_secret_access'].includes(risk.id)
                                             ).map(risk => (
                                                 <button

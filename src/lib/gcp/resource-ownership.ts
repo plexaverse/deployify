@@ -63,6 +63,92 @@ export function resolveManagedResourceName(storage: StorageConfig): string | nul
 }
 
 /**
+ * VERIFIED ADOPTION for connectors that predate server-written resourceName.
+ *
+ * Two populations were left refusing every infrastructure operation once ownership stopped
+ * being derived from the display name: connectors created by adopting an existing instance,
+ * and connectors created before provisioning recorded the name. Both are legitimate.
+ *
+ * This resolves the candidate name the old code would have guessed, then ASKS GCP who owns
+ * it. Adoption succeeds only when the live resource carries this project's
+ * `deployify-project-id` label, or carries no label at all (a pre-labelling resource that no
+ * other project claims). A label naming a different project is a hard refusal.
+ *
+ * Returns the adopted name so the caller can persist it, or null to keep refusing.
+ */
+export async function tryAdoptResourceName(
+    project: Pick<Project, 'id'>,
+    storage: StorageConfig,
+    fetchLabel: (resourceName: string) => Promise<string | null>
+): Promise<string | null> {
+    if (resolveManagedResourceName(storage)) {
+        return null; // already bound; nothing to adopt
+    }
+    if (process.env.STORAGE_ADOPTION_ENABLED === 'false') {
+        return null;
+    }
+
+    // Trim BEFORE slugifying: '   ' would otherwise become '-', which is truthy and would
+    // send a garbage resource name to GCP. Require at least one alphanumeric character.
+    const candidate = (storage.name || '').trim().toLowerCase().replace(/\s+/g, '-');
+    if (!candidate || !/[a-z0-9]/.test(candidate)) {
+        return null;
+    }
+
+    let label: string | null;
+    try {
+        label = await fetchLabel(candidate);
+    } catch (e) {
+        console.warn(`[Adoption] Could not read ownership label for ${candidate}:`, e);
+        return null;
+    }
+
+    if (label && label !== sanitizeLabel(project.id)) {
+        console.error(
+            `[Adoption] Refusing to adopt ${candidate} for project ${project.id}: it is labelled for ${label}.`
+        );
+        return null;
+    }
+
+    console.warn(
+        `[Adoption] Adopting ${candidate} for project ${project.id} (label: ${label || 'none'}). ` +
+        `Recording it as metadata.resourceName.`
+    );
+    return candidate;
+}
+
+/**
+ * Convenience wrapper: adopt using the real GCP label lookup.
+ *
+ * `storageType` is the connector type; it is mapped to the resource family the label
+ * fetcher understands. Returns the adopted resource name, or null to keep refusing.
+ */
+export async function adoptResourceNameFromGcp(
+    project: Pick<Project, 'id' | 'region'>,
+    storage: StorageConfig
+): Promise<string | null> {
+    const family = storage.type.includes('cloud-sql')
+        ? 'cloud-sql'
+        : storage.type === 'memorystore-redis'
+            ? 'memorystore-redis'
+            : null;
+
+    // Only families whose labels we can actually read can be adopted safely.
+    if (!family) return null;
+
+    const gcpProjectId = storage.providerProjectId
+        || config.gcp.projectId
+        || process.env.GCP_PROJECT_ID;
+    if (!gcpProjectId) return null;
+
+    const region = (storage.metadata?.region as string) || project.region || null;
+
+    return tryAdoptResourceName(project, storage, (candidate) =>
+        fetchDeployifyProjectLabel(family, candidate, region, gcpProjectId)
+    );
+}
+
+/**
  * Like resolveManagedResourceName but throws instead of returning null.
  *
  * For the many handlers that interpolate the result straight into a GCP API call. Every one
@@ -121,7 +207,7 @@ export function resolveRegisteredProviderProjects(project: Project): Set<string>
 }
 
 /** Reads the live deployify-project-id label. Returns null when unknown/unreadable. */
-async function fetchDeployifyProjectLabel(
+export async function fetchDeployifyProjectLabel(
     resourceType: string,
     resourceId: string,
     region: string | null,
@@ -257,7 +343,8 @@ export function isDiscoveryVisible(
     targetGcpProjectId: string | null
 ): boolean {
     if (process.env.MOCK_DB === 'true') return true;
-    if (process.env.GCP_DISCOVERY_SCOPE !== 'owned') return true;
+    // GCP_DISCOVERY_SCOPE=all restores the previous unscoped listing.
+    if (process.env.GCP_DISCOVERY_SCOPE === 'all') return true;
 
     // Non-GCP connectors are already scoped by this project's own API keys.
     if (resource.type === 'supabase' || resource.type === 'neon' || resource.type === 'mongodb-atlas') {
@@ -268,5 +355,15 @@ export function isDiscoveryVisible(
     if (targetGcpProjectId && targetGcpProjectId !== platformProjectId) return true;
 
     if (resolveOwnedResourceNames(project).has(resource.id)) return true;
-    return resource.metadata?.deployifyProjectId === sanitizeLabel(project.id);
+
+    const owner = resource.metadata?.deployifyProjectId;
+    if (owner) {
+        // Provably someone else's - hide it.
+        return owner === sanitizeLabel(project.id);
+    }
+
+    // Unlabelled: either a legacy resource predating ownership labels, or a genuine orphan.
+    // Orphan purge is the reason this endpoint exists, so keep these visible. They are still
+    // protected from deletion by checkResourceOwnership().
+    return true;
 }

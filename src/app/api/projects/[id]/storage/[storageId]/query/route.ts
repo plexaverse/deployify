@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
@@ -417,7 +418,7 @@ export async function POST(
                             private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
                         },
                     });
-                    const datasetId = (storageConfig.metadata?.resourceName as string) || storageConfig.name;
+                    const datasetId = requireManagedResourceName(storageConfig);
 
                     if (dryRun) {
                         const { estimateBigQueryCost } = await import('@/lib/gcp/monitoring');
@@ -471,7 +472,7 @@ export async function POST(
                             private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
                         },
                     });
-                    const instanceId = (storageConfig.metadata?.resourceName as string) || storageConfig.name;
+                    const instanceId = requireManagedResourceName(storageConfig);
                     const databaseId = (storageConfig.metadata?.spannerDbId as string) || 'default';
                     const instance = spanner.instance(instanceId);
                     const database = instance.database(databaseId);

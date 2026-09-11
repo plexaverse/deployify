@@ -1,4 +1,5 @@
 import { getGcpAccessToken } from './auth';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { config } from '@/lib/config';
 import { getSecretValue } from './secrets';
 import { calculateEWMA, isDegraded } from './health-utils';
@@ -497,7 +498,7 @@ export async function discoverSensitiveData(
                     private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
                 },
             });
-            const datasetId = (storage.metadata?.resourceName as string) || storage.name;
+            const datasetId = requireManagedResourceName(storage);
             const [tables] = await bq.dataset(datasetId).getTables();
 
             for (const table of tables.slice(0, 5)) {
@@ -516,7 +517,7 @@ export async function discoverSensitiveData(
         } else if (storage.type === 'cloud-spanner') {
             const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
             const accessToken = await getGcpAccessToken();
-            const instanceId = (storage.metadata?.resourceName as string) || storage.name;
+            const instanceId = requireManagedResourceName(storage);
             const databaseId = (storage.metadata?.spannerDbId as string) || 'default';
 
             // Create a session
