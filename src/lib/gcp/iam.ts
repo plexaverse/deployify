@@ -26,7 +26,18 @@ const DEFAULT_REVOCABLE_ROLES: readonly string[] = ['roles/owner', 'roles/editor
  * service account destroys Deployify's own ability to write IAM and cannot be repaired from
  * inside the product. Set IAM_ALLOW_SELF_LOCKOUT_REVOKE=true to restore the old behaviour.
  */
-const SELF_LOCKOUT_ROLES: readonly string[] = ['roles/resourcemanager.projectIamAdmin'];
+const SELF_LOCKOUT_ROLES: readonly string[] = [
+    'roles/resourcemanager.projectIamAdmin',
+    // These four are shared-fate: the platform service account needs them to deploy, read
+    // secrets and manage Cloud SQL for EVERY tenant. Automated remediation stripping any of
+    // them takes the whole platform down, which is the DoS ai-cost-abuse-1 described. They
+    // stay in EXCESSIVE_PROJECT_ROLES so the auditor still REPORTS them as over-privileged;
+    // they are simply not auto-revocable. Removing them is an operator decision.
+    'roles/owner',
+    'roles/editor',
+    'roles/secretmanager.admin',
+    'roles/secretmanager.secretAccessor'
+];
 
 /**
  * Narrows a (tenant-writable) list of roles down to the ones automated remediation is

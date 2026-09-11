@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requiresPrivilegedRole } from '@/lib/gcp/remediation-utils';
 import { getSession } from '@/lib/auth';
 import { listProjectsByUser, listProjectsByTeam, getTeamMembership } from '@/lib/db';
 import { remediateRisk } from '@/lib/gcp/remediation-utils';
@@ -30,13 +31,23 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ success: false, error: 'Team access denied' }, { status: 403 });
             }
             // This handler calls the same remediateRisk() as the per-connector route, but in a
-            // loop over EVERY project in the team, so it needs at least the same role gate.
-            // Membership alone is satisfied by a 'viewer'.
-            if (membership.role !== 'owner' && membership.role !== 'admin') {
+            // loop over EVERY project in the team. Membership alone is satisfied by a 'viewer'.
+            if (membership.role === 'viewer') {
                 return NextResponse.json(
-                    { success: false, error: 'Forbidden: Only owners and admins can remediate infrastructure risks' },
+                    { success: false, error: 'Forbidden: Viewers cannot remediate infrastructure risks' },
                     { status: 403 }
                 );
+            }
+            // Risks that mutate shared cloud state need owner/admin. Checked up-front over the
+            // whole batch so the request either runs or is refused, never half-applies.
+            if (membership.role !== 'owner' && membership.role !== 'admin') {
+                const privileged = risks.filter((r: { riskId?: string }) => requiresPrivilegedRole(r?.riskId || ''));
+                if (privileged.length > 0) {
+                    return NextResponse.json({
+                        success: false,
+                        error: 'Forbidden: Only owners and admins can remediate infrastructure risks that change cloud resources'
+                    }, { status: 403 });
+                }
             }
             projects = await listProjectsByTeam(teamId);
         } else {

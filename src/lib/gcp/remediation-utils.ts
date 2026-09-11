@@ -51,6 +51,35 @@ function isSelfRemediationEnabled(): boolean {
 /**
  * Performs remediation for a specific risk on a storage connector
  */
+/**
+ * Risks whose remediation mutates SHARED cloud state — the platform service account's IAM,
+ * a Cloud SQL instance, firewall rules. These need owner/admin.
+ *
+ * Everything not listed here only writes a field on the connector's own Firestore document
+ * (e.g. `unencrypted_connection` just sets storage.ssl = true), so a `member` — the default
+ * role for every invited teammate — may still do it, matching every sibling storage route,
+ * which gates viewers only.
+ */
+export const PRIVILEGED_REMEDIATION_RISKS: readonly string[] = [
+    'deletion_protection_disabled',
+    'no_ha_in_production',
+    'no_pitr_in_production',
+    'iam_role_not_verified',
+    'connection_saturation_risk',
+    'maintenance_window_misalignment',
+    'overprivileged_service_account',
+    'broad_secret_access',
+    'public_ip_exposed',
+    'password_auth_used',
+    'regional_mismatch',
+    'vpc_sc_violation'
+];
+
+/** True when this risk needs owner/admin rather than plain membership. */
+export function requiresPrivilegedRole(riskId: string): boolean {
+    return PRIVILEGED_REMEDIATION_RISKS.includes(riskId);
+}
+
 export async function remediateRisk(
     projectId: string,
     storageId: string,

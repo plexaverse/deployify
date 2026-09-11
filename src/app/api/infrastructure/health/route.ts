@@ -139,12 +139,9 @@ export async function GET(request: NextRequest) {
                     connectorsWithEfficiency++;
                 }
 
-                // Aggregate Cost Intelligence
-                const tier = (result.metadata?.tier as string) || (result.type.includes('cloud-sql') ? 'db-f1-micro' : (result.type === 'memorystore-redis' ? '1GB' : ''));
-                const diskSizeGb = (result.metadata?.diskSizeGb as number) || (result.metadata?.memorySizeGb as number);
-                const isHA = !!result.metadata?.highAvailability;
-
-                // Aggregate Cost Intelligence
+                // Aggregate Cost Intelligence. The per-resource estimate is computed upstream
+                // and carried on `result.estimatedCost`; the tier/disk/HA locals that used to be
+                // derived here became dead when that moved.
                 totalEstimatedMonthlyCost += result.estimatedCost;
                 projectCost += result.estimatedCost;
                 costBreakdown[result.type] = (costBreakdown[result.type] || 0) + result.estimatedCost;

@@ -374,9 +374,23 @@ export async function DELETE(
                     await deleteBigQueryDataset(resourceName);
                 }
             } catch (error) {
+                const msg = error instanceof Error ? error.message : String(error);
+
+                // An UNBOUND connector means we do not know WHICH GCP resource this is.
+                // Proceeding would delete the Firestore doc, the secret and the UI row while
+                // leaving a live, still-billing instance with nothing left to manage it.
+                // Refuse instead, and tell the user how to proceed.
+                if (msg === UNBOUND_RESOURCE_ERROR) {
+                    console.error(`[Storage] Refusing to delete connector ${storageId}: not bound to a known GCP resource.`);
+                    return NextResponse.json({
+                        error: 'This connector is not bound to a Deployify-provisioned resource, so the cloud resource cannot be identified. Run Sync to adopt it, or delete the connector without "also destroy the resource" and remove the resource manually.',
+                        code: 'UNBOUND_RESOURCE'
+                    }, { status: 409 });
+                }
+
+                // A genuine GCP failure (already deleted, transient API error) still falls
+                // through to local cleanup, as before.
                 console.error('Failed to delete GCP resource:', error);
-                // We continue with local deletion even if resource deletion fails,
-                // but we could also return an error if strictness is required.
             }
         }
 
