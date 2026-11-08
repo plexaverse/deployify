@@ -1,0 +1,31 @@
+name: Cron Resource Optimization
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Runs hourly
+  workflow_dispatch:
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Resource Optimization
+        run: |
+          echo "Triggering Deployify Auto-Pilot Resource Optimization..."
+
+          APP_URL="https://deployify.run.app"
+          if [ -n "${{ secrets.DEPLOYIFY_APP_URL }}" ]; then
+            APP_URL="${{ secrets.DEPLOYIFY_APP_URL }}"
+          fi
+
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "$APP_URL/api/cron/optimize")
+
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "Optimization triggered successfully (HTTP 200)."
+          else
+            echo "Optimization trigger failed with HTTP $RESPONSE."
+            exit 1
+          fi
