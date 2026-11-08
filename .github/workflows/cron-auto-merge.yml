@@ -3,7 +3,7 @@ name: Cron Auto-merge PRs
 on:
   schedule:
     - cron: '*/15 * * * *' # Runs every 15 minutes
-  workflow_dispatch:
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   auto-merge:

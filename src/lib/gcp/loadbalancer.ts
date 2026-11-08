@@ -88,7 +88,7 @@ export async function createGlobalLoadBalancer(
 
         // 6. Create Forwarding Rule (Global IP)
         const forwardingRuleName = `${prefix}-fw`;
-        await fetch(`${projectUrl}/global/forwardingRules`, {
+        const fwResponse = await fetch(`${projectUrl}/global/forwardingRules`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -96,12 +96,31 @@ export async function createGlobalLoadBalancer(
                 loadBalancingScheme: 'EXTERNAL_MANAGED',
                 portRange: '443',
                 target: `${projectUrl}/global/targetHttpsProxies/${proxyName}`,
-                IPAddress: '0.0.0.0' // GCP will allocate a global IP
             })
         });
 
+        if (!fwResponse.ok) {
+            throw new Error(`Failed to create Forwarding Rule: ${await fwResponse.text()}`);
+        }
+
+        // 7. Retrieve the allocated IP Address
+        let ipAddress = '0.0.0.0';
+        for (let i = 0; i < 5; i++) {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for allocation
+            const getFw = await fetch(`${projectUrl}/global/forwardingRules/${forwardingRuleName}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            if (getFw.ok) {
+                const fwData = await getFw.json();
+                if (fwData.IPAddress) {
+                    ipAddress = fwData.IPAddress;
+                    break;
+                }
+            }
+        }
+
         return {
-            ipAddress: '34.120.45.67', // Simulated allocation
+            ipAddress,
             backendServiceName,
             urlMapName
         };
