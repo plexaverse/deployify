@@ -230,7 +230,7 @@ export default function LandingPage() {
               <div className="bg-[var(--muted)]/20 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider font-mono text-[var(--foreground)]">
                 $
               </div>
-              <code className="text-[10px] font-mono text-[var(--muted-foreground)] flex-1 text-left">
+              <code className="text-[12px] font-mono text-[var(--muted-foreground)] flex-1 text-left">
                 pnpm dlx deployify login
               </code>
               <motion.button
@@ -259,7 +259,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-32 text-center"
           >
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-16">
+            <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-16">
               Trusted by innovative teams
             </p>
             <div
@@ -290,7 +290,7 @@ export default function LandingPage() {
 
           {/* The Method Section */}
           <div className="mt-40">
-            <h2 className="text-[10px] font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-[17px] font-bold text-center mb-24 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               The Deployify Method
             </h2>
             <TracingBeam className="px-6">
@@ -346,7 +346,7 @@ export default function LandingPage() {
                        >
                          {step.icon}
                        </motion.div>
-                       <h3 className="text-[10px] font-bold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
+                       <h3 className="text-[14px] font-bold group-hover:text-[var(--primary)] transition-colors">{step.title}</h3>
                     </div>
                     <div className="text-[10px] font-bold text-[var(--muted-foreground)] leading-relaxed mb-6 pl-1">
                       {step.desc}
@@ -362,7 +362,7 @@ export default function LandingPage() {
 
           {/* Price Efficiency Section */}
           <div className="mt-40">
-            <h2 className="text-[10px] font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-[17px] font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Pay for what you use
             </h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
@@ -372,8 +372,8 @@ export default function LandingPage() {
               >
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-[10px] font-bold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
+                    <h3 className="text-[14px] font-bold mb-1 text-[var(--muted-foreground)]">Vercel / Netlify</h3>
+                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/70">Enterprise DX at a Premium</p>
                   </div>
                   <X className="w-5 h-5 text-[var(--error)]" />
                 </div>
@@ -400,8 +400,8 @@ export default function LandingPage() {
                 </div>
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <h3 className="text-[10px] font-bold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
+                    <h3 className="text-[14px] font-bold mb-1 text-[var(--foreground)]">Deployify + GCP</h3>
+                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Enterprise DX at Raw Cost</p>
                   </div>
                   <Check className="w-5 h-5 text-[var(--foreground)]" />
                 </div>
@@ -424,7 +424,7 @@ export default function LandingPage() {
 
           {/* Feature Bento Grid */}
           <div id="features" className="mt-40">
-            <h2 className="text-[10px] font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-[17px] font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Everything you need to scale
             </h2>
             <BentoGrid>
@@ -487,7 +487,7 @@ export default function LandingPage() {
             className="mt-40 max-w-2xl mx-auto"
           >
             <div className="p-8 rounded-3xl border border-[var(--border)] bg-[var(--card)] backdrop-blur-sm relative group" role="search">
-              <h3 className="text-[10px] font-bold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
+              <h3 className="text-[14px] font-bold mb-6 text-center text-[var(--foreground)]">Ready to deploy?</h3>
               <div className="relative">
                 <label htmlFor="repo-search" className="sr-only">Search your GitHub repositories</label>
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)] group-focus-within:text-[var(--foreground)] transition-colors z-10" />
@@ -551,10 +551,10 @@ export default function LandingPage() {
                           exit={{ opacity: 0, x: 5 }}
                           className="hidden sm:flex items-center gap-1 opacity-50 group-focus-within:opacity-100 transition-opacity"
                         >
-                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             {os === 'mac' ? '⌘' : 'Ctrl'}
                           </kbd>
-                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                          <kbd className="h-5 select-none items-center gap-1 rounded border border-[var(--border)] bg-[var(--muted)]/20 px-1.5 font-mono text-[12px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                             K
                           </kbd>
                         </motion.div>
@@ -590,7 +590,7 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="mt-40 text-center px-4"
           >
-            <h2 className="text-[10px] font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
+            <h2 className="text-[17px] font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-[var(--foreground)] to-[var(--muted-foreground)]">
               Global Edge Network
             </h2>
             <p className="text-[var(--muted-foreground)] max-w-2xl mx-auto mb-12">
@@ -623,7 +623,7 @@ export default function LandingPage() {
             <Rocket className="w-6 h-6 text-[var(--foreground)] group-hover:rotate-12 transition-transform" />
             <span className="text-[10px] font-bold">Deployify</span>
           </Link>
-          <p className="text-[var(--muted-foreground)] text-[10px] font-bold">
+          <p className="text-[var(--muted-foreground)] text-[13px] font-bold">
             © 2026 Deployify. Built for the modern developer.
           </p>
         </div>

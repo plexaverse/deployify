@@ -12,7 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     
     # Only run for Jules PRs
-    if: github.event.pull_request.user.login == 'jules-google[bot]' || github.event.pull_request.user.login == 'jules[bot]' || contains(github.event.pull_request.user.login, 'jules') || github.event.pull_request.user.login == 'asangzz'
+    # SECURITY: `contains(login, 'jules')` matched ANY account whose name contains "jules"
+    # — julesx, notjules, jules-attacker — and this job approves and auto-merges to main.
+    # Exact matches only. Also requires the PR to originate from this repo, never a fork.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.pull_request.user.login == 'jules-google[bot]' ||
+       github.event.pull_request.user.login == 'jules[bot]' ||
+       github.event.pull_request.user.login == 'asangzz')
     
     permissions:
       contents: write
@@ -28,7 +35,9 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        # --ignore-scripts: never execute lifecycle scripts from a PR's package.json.
+        # `ci` over `install` so the lockfile is respected and drift is caught.
+        run: npm ci --ignore-scripts
 
       - name: Run build check
         run: npm run build

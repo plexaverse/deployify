@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getDb, Collections } from '@/lib/firebase';
 import { getCloudSqlHistoricalMetrics, getMemorystoreHistoricalMetrics, getScalingRecommendations, getExternalMetrics, getMaintenanceRecommendation } from '@/lib/gcp/monitoring';
 import { updateInstanceSettings as updateSqlSettings, updateMaintenanceWindow } from '@/lib/gcp/cloudsql';
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
                 const isNeon = storage.type === 'neon';
 
                 if ((isSql || isRedis || isNeon) && storage.autoScalingSettings?.enabled) {
-                    const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                    const resourceName = requireManagedResourceName(storage);
                     const region = (storage.metadata?.region as string) || project.region || 'us-central1';
 
                     let metrics;

@@ -27,6 +27,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             return NextResponse.json({ error: access.error }, { status: access.status, headers: securityHeaders });
         }
 
+        // Viewers have read-only access; this mutates live state.
+        if (access.role === 'viewer') {
+            return NextResponse.json({ error: 'Forbidden: Viewers cannot change deployment aliases' }, { status: 403, headers: securityHeaders });
+        }
+
         const { project } = access;
 
         const deployment = await getDeploymentById(deployId);
@@ -98,6 +103,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         if (!access.allowed) {
             return NextResponse.json({ error: access.error }, { status: access.status, headers: securityHeaders });
+        }
+
+        // Viewers have read-only access; this mutates live state.
+        if (access.role === 'viewer') {
+            return NextResponse.json({ error: 'Forbidden: Viewers cannot change deployment aliases' }, { status: 403, headers: securityHeaders });
         }
 
         const { project } = access;

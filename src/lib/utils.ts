@@ -117,6 +117,80 @@ export function shouldAutoDeploy(project: Project, branch: string): boolean {
 }
 
 /**
+ * Validate a user-supplied project rootDirectory before it is persisted.
+ *
+ * Two tiers, deliberately:
+ *  - Always on: reject non-strings, control characters / newlines, and absurd lengths. No
+ *    directory that builds today can contain a control character, so this can only reject
+ *    values that are already broken or hostile.
+ *  - STRICT_ROOT_DIRECTORY=true: additionally require the same narrow charset that
+ *    generateCloudRunDeployConfig() uses for workDir, so the build path and the Dockerfile
+ *    path can never disagree. Off by default so existing tenants are unaffected.
+ */
+export function validateRootDirectory(value: unknown): { valid: boolean; error?: string } {
+    if (value === undefined || value === null || value === '') return { valid: true };
+
+    if (typeof value !== 'string') {
+        return { valid: false, error: 'Root directory must be a string' };
+    }
+
+    if (value.length > 255) {
+        return { valid: false, error: 'Root directory must be 255 characters or fewer' };
+    }
+
+    if (/[\u0000-\u001F\u007F]/.test(value)) {
+        return { valid: false, error: 'Root directory must not contain newlines or control characters' };
+    }
+
+    if (process.env.STRICT_ROOT_DIRECTORY === 'true') {
+        if (!/^[a-zA-Z0-9_\-./]+$/.test(value) || value.includes('..')) {
+            return { valid: false, error: 'Root directory may only contain letters, numbers, "_", "-", "." and "/" and must not contain ".."' };
+        }
+    }
+
+    return { valid: true };
+}
+
+/**
+ * Coerce a string into a legal GCP label value (lowercase alphanumerics, '-', '_', <=63).
+ * Shared so the deploy path that WRITES deployify-project-id and the ownership guard
+ * that READS it can never disagree on the value.
+ */
+export function sanitizeLabel(val: string): string {
+    return val.toLowerCase().replace(/[^a-z0-9_-]/g, '-').substring(0, 63);
+}
+
+/**
+ * GCP regions offered by the UI (src/components/RegionSettings.tsx is the superset).
+ */
+export const SUPPORTED_GCP_REGIONS = [
+    'us-central1', 'us-east1', 'us-east4', 'us-west1',
+    'europe-west1', 'europe-west2', 'europe-west4',
+    'asia-east1', 'asia-northeast1', 'asia-southeast1', 'asia-south1',
+    'australia-southeast1', 'southamerica-east1', 'me-west1', 'africa-south1',
+];
+
+/**
+ * Validate a user-supplied project region before it is persisted.
+ *
+ * `region` is interpolated straight into GCP resource paths
+ * (`projects/{p}/locations/${region}/services/...`) and into run.app hostnames, so an
+ * arbitrary string is a path-injection primitive as well as a cross-region reach.
+ *
+ * Deliberately permissive: null/'' (meaning "platform default") is valid, and any
+ * well-formed GCP region is accepted even if it is not in the UI list, so a tenant on a
+ * region we have not enumerated is never locked out of saving. It rejects only values
+ * that could not work against GCP anyway. Set VALIDATE_PROJECT_REGION=false to disable.
+ */
+export function isValidGcpRegion(value: unknown): boolean {
+    if (value === undefined || value === null || value === '') return true;
+    if (process.env.VALIDATE_PROJECT_REGION === 'false') return true;
+    if (typeof value !== 'string') return false;
+    if (SUPPORTED_GCP_REGIONS.includes(value)) return true;
+    return /^[a-z]{2,}-[a-z]+\d{1,2}$/.test(value);
+}
+
+/**
  * Validate connection strings for common databases
  */
 export function validateConnectionString(url: string): { valid: boolean; type?: string; error?: string } {

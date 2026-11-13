@@ -192,7 +192,7 @@ export default function BillingPage() {
     if (billingError || !usageData) {
         return (
             <div className="min-h-screen bg-[var(--background)] p-8 flex flex-col items-center justify-center text-center">
-                <h1 className="text-[10px] font-bold mb-4">Error</h1>
+                <h1 className="text-[22px] font-bold mb-4">Error</h1>
                 <p className="text-[var(--muted-foreground)] mb-6">{billingError || 'Something went wrong'}</p>
                 <Link
                     href="/dashboard"
@@ -235,7 +235,7 @@ export default function BillingPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Account Subscription</span>
-                        <h1 className="text-[10px] font-bold tracking-tight">Billing & Usage</h1>
+                        <h1 className="text-[22px] font-bold tracking-tight">Billing & Usage</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -263,7 +263,7 @@ export default function BillingPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Resource Monitoring</span>
-                            <h3 className="text-[10px] font-bold">Usage</h3>
+                            <h3 className="text-[14px] font-bold">Usage</h3>
                         </div>
                     </div>
 
@@ -302,8 +302,8 @@ export default function BillingPage() {
                             <CreditCard className="w-8 h-8 text-[var(--primary)]" />
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Pricing Plans</span>
-                        <h3 className="text-[10px] font-bold tracking-tight mb-4">Simple, transparent pricing</h3>
-                        <p className="text-[10px] font-bold text-[var(--muted-foreground)]">
+                        <h3 className="text-[14px] font-bold tracking-tight mb-4">Simple, transparent pricing</h3>
+                        <p className="text-[13px] font-bold text-[var(--muted-foreground)]">
                             Choose the plan that fits your needs. Upgrade or downgrade at any time.
                         </p>
                     </div>
@@ -329,7 +329,7 @@ export default function BillingPage() {
                             <Layers className="w-5 h-5 text-[var(--primary)]" />
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-2">Feature Comparison</span>
-                        <h3 className="text-[10px] font-bold">Compare features</h3>
+                        <h3 className="text-[14px] font-bold">Compare features</h3>
                     </div>
                     <ComparePlansTable plans={PLANS} currentPlanId={tier.id} />
                 </section>
@@ -343,7 +343,7 @@ export default function BillingPage() {
                             </div>
                             <div>
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Billing History</span>
-                                <h3 className="text-[10px] font-bold">Invoices</h3>
+                                <h3 className="text-[14px] font-bold">Invoices</h3>
                             </div>
                         </div>
 
@@ -352,11 +352,11 @@ export default function BillingPage() {
                             <table className="w-full text-left text-[10px] font-bold">
                                 <thead className="bg-[var(--muted)]/10 border-b border-[var(--border)]">
                                     <tr>
-                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Invoice #</th>
-                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Date</th>
-                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Amount</th>
-                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
-                                        <th className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Action</th>
+                                        <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Invoice #</th>
+                                        <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Date</th>
+                                        <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Amount</th>
+                                        <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
+                                        <th className="p-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[var(--border)]">

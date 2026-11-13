@@ -125,8 +125,8 @@ export default function SharedDashboardPage() {
                     <AlertCircle className="w-8 h-8 text-[var(--error)]" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-[10px] font-bold uppercase">Access Denied</h2>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] max-w-md mx-auto">
+                    <h2 className="text-[17px] font-bold uppercase">Access Denied</h2>
+                    <p className="text-[13px] font-medium text-[var(--muted-foreground)] max-w-md mx-auto">
                         {error}. This insight may be private, deleted, or you may have followed an invalid link.
                     </p>
                 </div>
@@ -150,7 +150,7 @@ export default function SharedDashboardPage() {
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--success)]">Public</span>
                                 </div>
                             </div>
-                            <h1 className="text-[10px] font-bold tracking-tight uppercase">{widget?.name}</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight uppercase">{widget?.name}</h1>
                         </div>
                     </div>
                     <div className="text-right">
@@ -216,7 +216,7 @@ export default function SharedDashboardPage() {
                 </Card>
 
                 <div className="text-center">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/40 max-w-xl mx-auto">
+                    <p className="text-[13px] font-medium text-[var(--muted-foreground)]/40 max-w-xl mx-auto">
                         This data insight is hosted on Deployify. Access to the underlying infrastructure is strictly proxied and read-only.
                     </p>
                 </div>
@@ -313,7 +313,7 @@ function SharedTable({ results }: { results: Record<string, unknown>[] }) {
                 <thead>
                     <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
                         {columns.map(col => (
-                            <th key={col} className="p-4 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <th key={col} className="p-4 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 {col}
                             </th>
                         ))}
@@ -323,7 +323,7 @@ function SharedTable({ results }: { results: Record<string, unknown>[] }) {
                     {results.map((row, i) => (
                         <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
                             {columns.map(col => (
-                                <td key={col} className="p-4 text-[10px] font-mono whitespace-nowrap max-w-[300px] truncate">
+                                <td key={col} className="p-4 text-[13px] font-mono whitespace-nowrap max-w-[300px] truncate">
                                     {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
                                 </td>
                             ))}

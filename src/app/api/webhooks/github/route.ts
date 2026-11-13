@@ -20,11 +20,14 @@ import { deleteDatabase as deleteSqlDatabase } from '@/lib/gcp/cloudsql';
 import { deleteDatabase as deleteFirestoreDatabase } from '@/lib/gcp/firestore-admin';
 import { getSecretValue } from '@/lib/gcp/secrets';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
-import { parseBranchFromRef, shouldAutoDeploy, getProjectSlugForDeployment } from '@/lib/utils';
+import { parseBranchFromRef, shouldAutoDeploy, getProjectSlugForDeployment, generateServiceName } from '@/lib/utils';
+import { checkServiceClaim, SERVICE_CLAIM_ERROR } from '@/lib/gcp/service-claim';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 import { decrypt } from '@/lib/crypto';
 import { pollBuildStatus } from '@/lib/deployment';
 import { logAuditEvent } from '@/lib/audit';
+import { checkGitDeployCap } from '@/lib/billing/deploy-gate';
+import { abortIfSuperseded, supersedeActiveDeployments, SUPERSEDED_MESSAGE } from '@/lib/deploy-concurrency';
 
 export async function POST(request: NextRequest) {
     try {
@@ -125,6 +128,32 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         return;
     }
 
+    // Usage cap. A git push is the primary way deployments are triggered here, so
+    // without this the cap enforced by /api/projects/[id]/deploy was bypassed by
+    // almost every real deployment. Inert unless WEBHOOK_USAGE_CAP_MODE=enforce.
+    const cap = await checkGitDeployCap(project, user, {
+        trigger: 'push',
+        branch,
+        commitSha: head_commit.id,
+    });
+
+    if (cap.blocked) {
+        // Record the refusal so the tenant can see why the push did not deploy.
+        // usageBlocked keeps it out of the very cap that rejected it.
+        await createDeployment({
+            projectId: project.id,
+            type: deploymentType,
+            status: 'error',
+            gitBranch: branch,
+            gitCommitSha: head_commit.id,
+            gitCommitMessage: head_commit.message,
+            gitCommitAuthor: head_commit.author.username || head_commit.author.name,
+            errorMessage: cap.message,
+            usageBlocked: true,
+        });
+        return;
+    }
+
     // Create deployment record
     const deployment = await createDeployment({
         projectId: project.id,
@@ -149,6 +178,18 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         }
     );
 
+    // Two pushes in quick succession run two Cloud Builds against the SAME Cloud Run
+    // service, and the slower (older) commit can win `update-traffic --to-latest`.
+    // Inert unless DEPLOY_CONCURRENCY_MODE=supersede.
+    const concurrency = await supersedeActiveDeployments(project, deployment);
+    if (concurrency.blocked) {
+        await updateDeployment(deployment.id, {
+            status: 'cancelled',
+            errorMessage: SUPERSEDED_MESSAGE,
+        });
+        return;
+    }
+
     try {
         // Get environment variables directly from project and split by target
         const { buildEnvVars, runtimeEnvVars, runtimeSecrets, cloudSqlInstances, needsVpc, vpcNetwork, vpcSubnet } = await getEnvVarsForDeployment(project, envTarget, {
@@ -163,9 +204,24 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
         // Decrypt GitHub token if present
         const gitToken = project.githubToken ? decrypt(project.githubToken) : undefined;
 
+        // SECURITY: `gcloud run deploy` is create-or-update and the service name is derived
+        // from tenant-supplied text, so a colliding name overwrites another tenant's service.
+        const serviceClaim = await checkServiceClaim(
+            generateServiceName(projectSlug),
+            project.id,
+            await getGcpAccessToken(),
+            project.region
+        );
+        if (!serviceClaim.allowed) {
+            console.error(`[Webhook] Refusing push deploy for project ${project.id}: ${SERVICE_CLAIM_ERROR}`);
+            await updateDeployment(deployment.id, { status: 'error', errorMessage: SERVICE_CLAIM_ERROR });
+            return;
+        }
+
         // Generate build config with project's selected region
         const buildConfig = generateCloudRunDeployConfig({
             projectSlug: projectSlug,
+            deployifyProjectId: project.id,
             repoFullName: project.repoFullName,
             branch,
             commitSha: head_commit.id,
@@ -192,6 +248,12 @@ async function handlePushEvent(payload: GitHubPushEvent): Promise<void> {
 
         // Submit build
         const { buildId, logUrl } = await submitCloudBuild(buildConfig, project.region);
+
+        // A newer push can have superseded this row while we were reading secrets and
+        // submitting; do not write 'building' back over its 'cancelled'.
+        if (await abortIfSuperseded(deployment.id, buildId, project.region)) {
+            return;
+        }
 
         // Update deployment with build info
         await updateDeployment(deployment.id, {
@@ -250,8 +312,24 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
         console.log(`[Cleanup] PR #${pull_request.number} closed for ${project.name}. Starting cleanup...`);
         try {
             const gcpAccessToken = await getGcpAccessToken();
-            await deleteService(previewServiceName, gcpAccessToken, project.region);
-            console.log(`[Cleanup] Cloud Run service ${previewServiceName} deleted.`);
+
+            // SECURITY: previewServiceName is derived from project.slug, and the Cloud Run
+            // namespace is larger than the project-slug namespace, so `dfy-<slug>-pr-<n>` can
+            // be another tenant's PRODUCTION service. This was the one deleteService call site
+            // with no ownership guard. Reuse the deploy-side claim check: only delete a service
+            // this project owns (or an unlabelled legacy one).
+            const cleanupClaim = await checkServiceClaim(
+                previewServiceName,
+                project.id,
+                gcpAccessToken,
+                project.region
+            );
+            if (!cleanupClaim.allowed) {
+                console.error(`[Cleanup] Refusing to delete ${previewServiceName}: owned by another Deployify project.`);
+            } else {
+                await deleteService(previewServiceName, gcpAccessToken, project.region);
+                console.log(`[Cleanup] Cloud Run service ${previewServiceName} deleted.`);
+            }
 
             // Cleanup ephemeral databases if branching is enabled
             if (project.storageConfigs && project.storageConfigs.length > 0) {
@@ -516,6 +594,31 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             return;
         }
 
+        // Usage cap (same gate as the push path). Deliberately NOT applied to the
+        // `closed` branch above: teardown of preview resources must always run.
+        const cap = await checkGitDeployCap(project, user, {
+            trigger: 'pull_request',
+            branch: pull_request.head.ref,
+            commitSha: pull_request.head.sha,
+            pullRequestNumber: pull_request.number,
+        });
+
+        if (cap.blocked) {
+            await createDeployment({
+                projectId: project.id,
+                type: 'preview',
+                status: 'error',
+                gitBranch: pull_request.head.ref,
+                gitCommitSha: pull_request.head.sha,
+                gitCommitMessage: pull_request.title,
+                gitCommitAuthor: pull_request.user.login,
+                pullRequestNumber: pull_request.number,
+                errorMessage: cap.message,
+                usageBlocked: true,
+            });
+            return;
+        }
+
         // Create deployment record
         const deployment = await createDeployment({
             projectId: project.id,
@@ -541,6 +644,18 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
             }
         );
 
+        // `synchronize` fires on every push to the PR branch and every preview build of one
+        // PR targets the same dfy-<slug>-pr-<n> service. Same race as the push path.
+        // Inert unless DEPLOY_CONCURRENCY_MODE=supersede.
+        const concurrency = await supersedeActiveDeployments(project, deployment);
+        if (concurrency.blocked) {
+            await updateDeployment(deployment.id, {
+                status: 'cancelled',
+                errorMessage: SUPERSEDED_MESSAGE,
+            });
+            return;
+        }
+
         try {
             // Get environment variables directly from project and split by target
             const envTarget = 'preview';
@@ -560,8 +675,22 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
             // Generate build config for preview with project's selected region
             const projectSlug = getProjectSlugForDeployment(project, deployment);
+            // SECURITY: same create-or-update collision risk on the preview service name.
+            const serviceClaim = await checkServiceClaim(
+                generateServiceName(projectSlug),
+                project.id,
+                await getGcpAccessToken(),
+                project.region
+            );
+            if (!serviceClaim.allowed) {
+                console.error(`[Webhook] Refusing preview deploy for project ${project.id}: ${SERVICE_CLAIM_ERROR}`);
+                await updateDeployment(deployment.id, { status: 'error', errorMessage: SERVICE_CLAIM_ERROR });
+                return;
+            }
+
             const buildConfig = generateCloudRunDeployConfig({
                 projectSlug: projectSlug,
+                deployifyProjectId: project.id,
                 repoFullName: project.repoFullName,
                 branch: pull_request.head.ref,
                 commitSha: pull_request.head.sha,
@@ -588,6 +717,10 @@ async function handlePullRequestEvent(payload: GitHubPullRequestEvent): Promise<
 
             // Submit build
             const { buildId, logUrl } = await submitCloudBuild(buildConfig, project.region);
+
+            if (await abortIfSuperseded(deployment.id, buildId, project.region)) {
+                return;
+            }
 
             // Update deployment with build info
             await updateDeployment(deployment.id, {

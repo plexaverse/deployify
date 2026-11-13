@@ -4,6 +4,15 @@ import { generateId, cleanFirestoreData } from '@/lib/utils';
 import { decrypt } from '@/lib/crypto';
 import { getSecretValue, upsertSecret } from '@/lib/gcp/secrets';
 import { deriveTopology } from '@/lib/gcp/topology';
+import { pickSlugOwner, SLUG_COLLISION_SCAN_LIMIT } from '@/lib/slug-registry';
+import {
+    getMembershipIntegrityMode,
+    membershipDocId,
+    pickEffectiveMembership,
+    TEAM_MEMBERSHIP_SCAN_LIMIT,
+    TEAM_MEMBERSHIP_SWEEP_ROUNDS,
+} from '@/lib/team-membership';
+import { pickRepoBindingOwner, REPO_COLLISION_SCAN_LIMIT } from '@/lib/repo-binding';
 import { config } from '@/lib/config';
 import type { QueryDocumentSnapshot, DocumentData, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 // ============= User Operations =============
@@ -755,17 +764,20 @@ export async function listInvitesForTeam(teamId: string): Promise<TeamInvite[]> 
 
 export async function getProjectBySlugGlobal(slug: string): Promise<Project | null> {
     const db = getDb();
+    // Scan a few matches instead of 1 so a slug collision can be detected and resolved
+    // deterministically. Uses the same single-field `slug` index as before - no new
+    // composite index, so this cannot fail with FAILED_PRECONDITION at deploy time.
     const snapshot = await db
         .collection(Collections.PROJECTS)
         .where('slug', '==', slug)
-        .limit(1)
+        .limit(SLUG_COLLISION_SCAN_LIMIT)
         .get();
 
     if (snapshot.empty) {
         return null;
     }
 
-    const doc = snapshot.docs[0];
+    const doc = pickSlugOwner(snapshot.docs, slug);
     const data = doc.data();
     return {
         ...data,
@@ -804,49 +816,103 @@ export async function acceptInvite(inviteId: string, userId: string): Promise<vo
     const db = getDb();
     const inviteRef = db.collection(Collections.INVITES).doc(inviteId);
 
-    // Get invite details for membership creation
-    const inviteDoc = await inviteRef.get();
-    if (!inviteDoc.exists) {
-        throw new Error('Invite not found');
+    if (getMembershipIntegrityMode() !== 'strict') {
+        // ---- Legacy path: byte-for-byte the pre-fix code. Kill switch / MOCK_DB. ----
+        // Get invite details for membership creation
+        const inviteDoc = await inviteRef.get();
+        if (!inviteDoc.exists) {
+            throw new Error('Invite not found');
+        }
+        const invite = inviteDoc.data() as TeamInvite;
+
+        const membershipId = generateId('tm');
+        const now = new Date();
+
+        const membership: TeamMembership = {
+            id: membershipId,
+            teamId: invite.teamId,
+            userId,
+            role: invite.role,
+            joinedAt: now,
+        };
+
+        const batch = db.batch();
+
+        // Create membership
+        batch.set(db.collection(Collections.TEAM_MEMBERSHIPS).doc(membershipId), membership);
+
+        // Delete invite
+        batch.delete(inviteRef);
+
+        await batch.commit();
+        return;
     }
-    const invite = inviteDoc.data() as TeamInvite;
 
-    const membershipId = generateId('tm');
-    const now = new Date();
+    // Redeeming an invite is idempotent per (teamId, userId): a member who redeems a
+    // second invite must NOT end up with a second membership document, because
+    // revocation only ever resolves one of them. Transactional so two invites redeemed
+    // concurrently cannot both pass the "no membership yet" check, and the new document
+    // uses a deterministic id so even a lost race writes the same path.
+    await db.runTransaction(async (tx) => {
+        // All reads first - Firestore forbids a read after a write in a transaction.
+        const inviteDoc = await tx.get(inviteRef);
+        if (!inviteDoc.exists) {
+            throw new Error('Invite not found');
+        }
+        const invite = inviteDoc.data() as TeamInvite;
 
-    const membership: TeamMembership = {
-        id: membershipId,
-        teamId: invite.teamId,
-        userId,
-        role: invite.role,
-        joinedAt: now,
-    };
+        const existing = await tx.get(
+            db.collection(Collections.TEAM_MEMBERSHIPS)
+                .where('teamId', '==', invite.teamId)
+                .where('userId', '==', userId)
+                .limit(TEAM_MEMBERSHIP_SCAN_LIMIT)
+        );
 
-    const batch = db.batch();
+        if (!existing.empty) {
+            // Already a member (dual-read: legacy random-id documents match too).
+            // Consume the invite, collapse any duplicates this account already carries,
+            // and leave the role alone - promotion goes through
+            // PATCH /api/teams/[id]/members/[userId], which enforces who may grant what.
+            const keep = pickEffectiveMembership(existing.docs, invite.teamId, userId);
+            for (const doc of existing.docs) {
+                if (doc.id !== keep.id) tx.delete(doc.ref);
+            }
+            tx.delete(inviteRef);
+            return;
+        }
 
-    // Create membership
-    batch.set(db.collection(Collections.TEAM_MEMBERSHIPS).doc(membershipId), membership);
+        const membershipId = membershipDocId(invite.teamId, userId);
+        const membership: TeamMembership = {
+            id: membershipId,
+            teamId: invite.teamId,
+            userId,
+            role: invite.role,
+            joinedAt: new Date(),
+        };
 
-    // Delete invite
-    batch.delete(inviteRef);
-
-    await batch.commit();
+        tx.set(db.collection(Collections.TEAM_MEMBERSHIPS).doc(membershipId), membership);
+        tx.delete(inviteRef);
+    });
 }
 
 export async function getTeamMembership(teamId: string, userId: string): Promise<TeamMembership | null> {
     const db = getDb();
+    // Scan a few matches instead of 1 so duplicate memberships resolve deterministically
+    // instead of by whatever Firestore returns first. Same equality-pair query and same
+    // automatic index as before - a clean member still costs exactly one document read.
+    const strict = getMembershipIntegrityMode() === 'strict';
     const snapshot = await db
         .collection(Collections.TEAM_MEMBERSHIPS)
         .where('teamId', '==', teamId)
         .where('userId', '==', userId)
-        .limit(1)
+        .limit(strict ? TEAM_MEMBERSHIP_SCAN_LIMIT : 1)
         .get();
 
     if (snapshot.empty) {
         return null;
     }
 
-    const doc = snapshot.docs[0];
+    const doc = pickEffectiveMembership(snapshot.docs, teamId, userId);
     const data = doc.data();
     return {
         ...data,
@@ -975,9 +1041,111 @@ export async function deleteTeamMembership(id: string): Promise<void> {
     await db.collection(Collections.TEAM_MEMBERSHIPS).doc(id).delete();
 }
 
+/**
+ * Revoke a member's access to a team: delete EVERY membership document for the pair, not
+ * just the one `getTeamMembership` happened to resolve. `knownMembershipId` is the id the
+ * caller already resolved; in legacy mode it is the only document touched, exactly as
+ * today. Returns how many documents were deleted.
+ */
+export async function deleteTeamMembershipsForUser(
+    teamId: string,
+    userId: string,
+    knownMembershipId: string
+): Promise<number> {
+    if (getMembershipIntegrityMode() !== 'strict') {
+        await deleteTeamMembership(knownMembershipId);
+        return 1;
+    }
+
+    const db = getDb();
+    const swept = new Set<string>();
+
+    for (let round = 0; round < TEAM_MEMBERSHIP_SWEEP_ROUNDS; round++) {
+        const snapshot = await db
+            .collection(Collections.TEAM_MEMBERSHIPS)
+            .where('teamId', '==', teamId)
+            .where('userId', '==', userId)
+            .limit(TEAM_MEMBERSHIP_SCAN_LIMIT)
+            .get();
+
+        if (snapshot.empty) break;
+
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+            swept.add(doc.id);
+        });
+        await batch.commit();
+
+        if (snapshot.docs.length < TEAM_MEMBERSHIP_SCAN_LIMIT) break;
+    }
+
+    // Parity with the pre-fix delete-by-id: a document whose stored `id` field disagrees
+    // with its document id, or which lacks teamId/userId, is not matched by the query
+    // above. Deleting a missing document is a no-op in Firestore.
+    if (knownMembershipId && !swept.has(knownMembershipId)) {
+        await deleteTeamMembership(knownMembershipId);
+        swept.add(knownMembershipId);
+    }
+
+    if (swept.size > 1) {
+        console.error(
+            `[TeamMembership] Revoked ${swept.size} membership documents for ` +
+            `team=${teamId} user=${userId}: ${[...swept].join(',')}`
+        );
+    }
+
+    return swept.size;
+}
+
 export async function updateTeamMembership(id: string, data: Partial<TeamMembership>): Promise<void> {
     const db = getDb();
     await db.collection(Collections.TEAM_MEMBERSHIPS).doc(id).update(cleanFirestoreData(data));
+}
+
+/**
+ * Apply a membership change (today: only `role`) to EVERY membership document for the
+ * pair, so a duplicate cannot retain the pre-demotion role. Legacy mode updates only
+ * `knownMembershipId`, exactly as today.
+ */
+export async function updateTeamMembershipsForUser(
+    teamId: string,
+    userId: string,
+    data: Partial<TeamMembership>,
+    knownMembershipId: string
+): Promise<number> {
+    if (getMembershipIntegrityMode() !== 'strict') {
+        await updateTeamMembership(knownMembershipId, data);
+        return 1;
+    }
+
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.TEAM_MEMBERSHIPS)
+        .where('teamId', '==', teamId)
+        .where('userId', '==', userId)
+        .limit(TEAM_MEMBERSHIP_SCAN_LIMIT)
+        .get();
+
+    if (snapshot.empty) {
+        // Same failure the pre-fix code produced when the document went away mid-request.
+        await updateTeamMembership(knownMembershipId, data);
+        return 1;
+    }
+
+    const payload = cleanFirestoreData(data);
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => batch.update(doc.ref, payload));
+    await batch.commit();
+
+    if (snapshot.docs.length > 1) {
+        console.error(
+            `[TeamMembership] Updated ${snapshot.docs.length} membership documents for ` +
+            `team=${teamId} user=${userId}`
+        );
+    }
+
+    return snapshot.docs.length;
 }
 
 export async function listTeamsForUser(userId: string): Promise<Team[]> {
@@ -1121,19 +1289,49 @@ export async function getProjectBySlug(userId: string, slug: string): Promise<Pr
     } as Project;
 }
 
+/**
+ * Every project id claiming this slug, across ALL users.
+ *
+ * getProjectBySlug() only enforces uniqueness within one userId, so `dfy-<slug>` in the
+ * shared GCP project can be claimed by more than one tenant. Callers that are about to
+ * destroy a GCP resource named after a slug use this to detect that contention.
+ * Ids only - no document bodies leave the tenant boundary.
+ */
+export async function listProjectIdsBySlug(slug: string): Promise<string[]> {
+    const db = getDb();
+    const snapshot = await db
+        .collection(Collections.PROJECTS)
+        .where('slug', '==', slug)
+        .get();
+
+    return snapshot.docs.map(doc => (doc.data()?.id as string) || doc.id);
+}
+
+/**
+ * Resolve an inbound GitHub webhook delivery to the project that owns the repo.
+ *
+ * `repoFullName` is NOT unique - nothing has ever enforced that - and the webhook HMAC
+ * secret is global, so a squatter project bound to someone else's repo used to be able
+ * to win the old `limit(1)`. We now scan a bounded window and let pickRepoBindingOwner()
+ * break the tie; with no collision, or no admin-verification evidence, it returns
+ * docs[0], which is exactly the document limit(1) returned before.
+ *
+ * Uses the same single-field `repoFullName` index as before - no composite index, so
+ * this cannot fail with FAILED_PRECONDITION at deploy time.
+ */
 export async function getProjectByRepoFullName(repoFullName: string): Promise<Project | null> {
     const db = getDb();
     const snapshot = await db
         .collection(Collections.PROJECTS)
         .where('repoFullName', '==', repoFullName)
-        .limit(1)
+        .limit(REPO_COLLISION_SCAN_LIMIT)
         .get();
 
     if (snapshot.empty) {
         return null;
     }
 
-    const doc = snapshot.docs[0];
+    const doc = pickRepoBindingOwner(snapshot.docs, repoFullName);
     const data = doc.data();
     return {
         ...data,

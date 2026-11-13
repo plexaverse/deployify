@@ -105,7 +105,7 @@ export function WebVitals({ metrics, isCompact }: WebVitalsProps) {
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance</span>
-                        <h3 className="text-[10px] font-bold">Core Web Vitals</h3>
+                        <h3 className="text-[14px] font-bold">Core Web Vitals</h3>
                     </div>
                 </div>
                 <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider px-2">

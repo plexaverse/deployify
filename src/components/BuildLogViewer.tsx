@@ -45,8 +45,8 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
                     <RefreshCw className="w-6 h-6 animate-spin" />
                 </div>
                 <div className="space-y-1 text-center">
-                   <p className="text-[10px] font-bold uppercase tracking-wider">Initialization</p>
-                   <p className="text-[10px] font-bold">Waiting for build logs...</p>
+                   <p className="text-[13px] font-bold uppercase tracking-wider">Initialization</p>
+                   <p className="text-[13px] font-bold">Waiting for build logs...</p>
                 </div>
             </div>
         );
@@ -55,7 +55,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
     return (
         <div
             ref={containerRef}
-            className={cn("h-full overflow-y-auto p-6 font-mono text-[10px] font-bold leading-relaxed bg-[var(--terminal-bg)] selection:bg-[var(--primary)]/30", className)}
+            className={cn("h-full overflow-y-auto p-6 font-mono text-[12px] font-bold leading-relaxed bg-[var(--terminal-bg)] selection:bg-[var(--primary)]/30", className)}
         >
             <div className="flex flex-col space-y-0.5 text-[var(--terminal-foreground)]/80">
                 {logs?.split('\n').map((line, i) => (
@@ -81,7 +81,7 @@ export function BuildLogViewer({ logs, loading, error, onRetry, className }: Bui
                         <AlertCircle className="w-5 h-5" />
                         <span className="text-[10px] font-bold uppercase tracking-wider">Deployment Pipeline Error</span>
                     </div>
-                    <p className="text-[10px] font-bold text-[var(--error)]/90 break-all whitespace-pre-wrap">{error}</p>
+                    <p className="text-[13px] font-bold text-[var(--error)]/90 break-all whitespace-pre-wrap">{error}</p>
                     {onRetry && (
                         <Button
                             onClick={onRetry}

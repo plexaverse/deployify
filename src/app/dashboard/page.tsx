@@ -42,6 +42,7 @@ export default function DashboardPage() {
         };
     } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [projectsError, setProjectsError] = useState<string | null>(null);
     const [loadingInfra, setLoadingInfra] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -77,10 +78,18 @@ export default function DashboardPage() {
                     url += `?teamId=${activeTeam.id}`;
                 }
                 const response = await fetch(url);
+                if (!response.ok) {
+                    // Without this, a 500/403 left projects as [] and the page rendered the
+                    // first-run "Welcome to Deployify" onboarding to an existing customer
+                    // whose projects had simply failed to load.
+                    throw new Error(`Failed to load projects (${response.status})`);
+                }
                 const data = await response.json();
                 setProjects(data.projects || []);
+                setProjectsError(null);
             } catch (error) {
                 console.error('Failed to fetch projects:', error);
+                setProjectsError('Could not load your projects. Please retry.');
             } finally {
                 setLoading(false);
             }
@@ -134,7 +143,7 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="space-y-0.5">
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Infrastructure Fleet</span>
-                                    <h3 className="text-[10px] font-bold">Global Connectivity Health</h3>
+                                    <h3 className="text-[14px] font-bold">Global Connectivity Health</h3>
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
@@ -199,7 +208,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Overview</span>
-                        <h1 className="text-[10px] font-bold tracking-tight">
+                        <h1 className="text-[22px] font-bold tracking-tight">
                             {activeTeam ? `${activeTeam.name} Projects` : 'Personal Projects'}
                         </h1>
                     </div>
@@ -270,8 +279,20 @@ export default function DashboardPage() {
                 </BentoGrid>
             )}
 
+            {/* Load failure - never show first-run onboarding to an existing customer */}
+            {!loading && projectsError && (
+                <div className="max-w-2xl mx-auto text-center space-y-4 py-16">
+                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--error)]">
+                        {projectsError}
+                    </p>
+                    <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                        Retry
+                    </Button>
+                </div>
+            )}
+
             {/* Empty state - No projects at all */}
-            {!loading && projects.length === 0 && (
+            {!loading && !projectsError && projects.length === 0 && (
                 <OnboardingGuide />
             )}
 

@@ -90,7 +90,7 @@ function TreeItem({ node, onKeyClick, level }: { node: TreeNode; onKeyClick: (ke
                     <Key className="w-3.5 h-3.5 text-[var(--success)]/60" />
                 )}
                 <span className={cn(
-                    "text-[10px] font-mono truncate",
+                    "text-[12px] font-mono truncate",
                     node.isKey ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)] font-bold uppercase tracking-wider"
                 )}>
                     {node.name}

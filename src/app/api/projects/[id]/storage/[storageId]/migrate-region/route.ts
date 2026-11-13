@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
@@ -39,7 +40,11 @@ export async function POST(
         }
 
         const targetRegion = project.region || 'us-central1';
-        const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+        // SECURITY: display-name fallback removed - it allowed migrating another tenant's instance.
+        const resourceName = resolveManagedResourceName(storage);
+        if (!resourceName) {
+            return NextResponse.json({ success: false, error: UNBOUND_RESOURCE_ERROR }, { status: 400 });
+        }
 
         const { operationName, targetInstanceName } = await migrateInstanceToRegion(resourceName, targetRegion);
 

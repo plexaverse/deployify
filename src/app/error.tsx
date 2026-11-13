@@ -28,9 +28,9 @@ export default function Error({
                 </div>
                 <div className="space-y-1 mb-6">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--error)]">System Error</span>
-                    <h1 className="text-[10px] font-bold tracking-tight">Something went wrong!</h1>
+                    <h1 className="text-[22px] font-bold tracking-tight">Something went wrong!</h1>
                 </div>
-                <p className="text-[var(--muted-foreground)] text-[10px] font-bold mb-8">
+                <p className="text-[var(--muted-foreground)] text-[13px] font-bold mb-8">
                     We encountered an unexpected error. Our team has been notified.
                 </p>
                 <div className="flex flex-col w-full gap-4">
@@ -44,7 +44,7 @@ export default function Error({
                         Try again
                     </Button>
                 </div>
-                <p className="mt-8 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] font-mono">
+                <p className="mt-8 text-[13px] font-medium text-[var(--muted-foreground)] font-mono">
                     Error Digest: {error.digest || 'Unknown'}
                 </p>
             </div>

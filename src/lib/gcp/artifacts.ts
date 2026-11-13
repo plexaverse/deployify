@@ -83,10 +83,17 @@ export async function pruneProjectImages(
 
 
         // 4. Delete each old version
+        // Artifact Registry refuses to delete a version that still carries tags unless
+        // force=true. Every image here is tagged (commit SHA, and the newest also :latest),
+        // so without it the call returns 400 FAILED_PRECONDITION for all of them. The
+        // response was also never inspected, which is why the no-op was invisible.
+        let deleted = 0;
+        const failures: string[] = [];
+
         for (const version of toDelete) {
             // version.name is already the full path: projects/*/locations/*/repositories/*/packages/*/versions/*
-            await fetch(
-                `${ARTIFACT_REGISTRY_API}/${version.name}`,
+            const res = await fetch(
+                `${ARTIFACT_REGISTRY_API}/${version.name}?force=true`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -94,6 +101,21 @@ export async function pruneProjectImages(
                     },
                 }
             );
+
+            if (res.ok) {
+                deleted++;
+            } else {
+                failures.push(`${version.name}: ${res.status} ${await res.text()}`);
+            }
+        }
+
+        if (failures.length > 0) {
+            console.error(
+                `[ArtifactRegistry] Pruned ${deleted}/${toDelete.length} versions for ${serviceName}; ` +
+                `${failures.length} failed. First: ${failures[0]}`
+            );
+        } else {
+            console.log(`[ArtifactRegistry] Pruned ${deleted} old version(s) for ${serviceName}.`);
         }
     } catch (error) {
         console.error(`[ArtifactRegistry] Pruning failed for ${serviceName}:`, error);

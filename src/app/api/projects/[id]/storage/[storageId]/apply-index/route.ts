@@ -6,6 +6,13 @@ import { getGcpAccessToken } from '@/lib/gcp/auth';
 import type { StorageConfig } from '@/types';
 import { Client as PgClient, ClientConfig as PgClientConfig } from 'pg';
 import mysql, { ConnectionOptions as MysqlConnectionOptions } from 'mysql2/promise';
+import {
+    quotePostgresIdentifier,
+    quoteMysqlIdentifier,
+    validateIndexDdl,
+    getCustomIndexSqlMode,
+    InvalidSqlIdentifierError
+} from '@/lib/utils/sql-identifiers';
 
 /**
  * POST - Apply an index to a table (One-Click SQL Optimization)
@@ -49,20 +56,57 @@ export async function POST(
         }
 
         // 2. Construct SQL
+        //
+        // SECURITY: this route reaches client.query(sql) / connection.query(sql),
+        // which use the simple-query protocol — a single string may carry several
+        // statements. Unlike the sibling Data Lab query route it applies no
+        // read-only allowlist, so nothing but the checks below stands between
+        // caller input and arbitrary DDL/DML on the tenant's database.
         let sql = '';
         if (customSql) {
-            sql = customSql;
+            // `customSql` has no first-party producer: src/components/DataLab.tsx
+            // (the only caller of this route) posts { table, column }. So the
+            // default 'off' mode breaks nothing. 'validated' narrows it to index
+            // maintenance; 'raw' restores the pre-fix verbatim execution as a
+            // break-glass rollback that needs an env edit rather than a deploy.
+            const mode = getCustomIndexSqlMode();
+            if (mode === 'off') {
+                return NextResponse.json({
+                    success: false,
+                    error: 'Custom SQL is not enabled for index application'
+                }, { status: 400 });
+            }
+            if (mode === 'validated') {
+                const checked = validateIndexDdl(customSql);
+                if (!checked.ok) {
+                    return NextResponse.json({ success: false, error: checked.error }, { status: 400 });
+                }
+                sql = checked.sql;
+            } else {
+                sql = customSql;
+            }
         } else {
             if (!table || !column) {
                 return NextResponse.json({ success: false, error: 'Table and column are required' }, { status: 400 });
             }
             const name = indexName || `idx_${table}_${column}_${Math.floor(Math.random() * 1000)}`;
-            if (isPostgres) {
-                // Postgres: Use CONCURRENTLY to avoid locking the table
-                sql = `CREATE INDEX CONCURRENTLY IF NOT EXISTS "${name}" ON "${table}" ("${column}")`;
-            } else {
-                // MySQL
-                sql = `CREATE INDEX \`${name}\` ON \`${table}\` (\`${column}\`)`;
+            try {
+                if (isPostgres) {
+                    // Postgres: Use CONCURRENTLY to avoid locking the table
+                    sql = `CREATE INDEX CONCURRENTLY IF NOT EXISTS ${quotePostgresIdentifier('indexName', name)}`
+                        + ` ON ${quotePostgresIdentifier('table', table)}`
+                        + ` (${quotePostgresIdentifier('column', column)})`;
+                } else {
+                    // MySQL
+                    sql = `CREATE INDEX ${quoteMysqlIdentifier('indexName', name)}`
+                        + ` ON ${quoteMysqlIdentifier('table', table)}`
+                        + ` (${quoteMysqlIdentifier('column', column)})`;
+                }
+            } catch (error) {
+                if (error instanceof InvalidSqlIdentifierError) {
+                    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+                }
+                throw error;
             }
         }
 

@@ -1,10 +1,13 @@
 import { StateCreator } from 'zustand';
 import type { Project, Deployment, EnvVariable, Domain, AnalyticsStats, CronJobConfig, StorageConfig, DataLabAuditLog, TeamRole } from '@/types';
 import { toast } from 'sonner';
+import { readJsonBody, toActionResult, type ActionResult } from '@/lib/action-feedback';
 
 export interface ProjectSlice {
     activeProjectId: string | null;
     currentProject: Project | null;
+    /** Set when fetchProjectDetails fails, so the page can show why instead of stale data. */
+    projectLoadError: string | null;
     currentDeployments: Deployment[];
     errorCount: number | null;
     isLoadingProject: boolean;
@@ -57,8 +60,8 @@ export interface ProjectSlice {
 
     fetchProjectDetails: (projectId: string) => Promise<void>;
     fetchDeployments: (projectId: string) => Promise<void>;
-    redeployProject: (projectId: string, force?: boolean) => Promise<void>;
-    cancelDeployment: (projectId: string, deploymentId: string) => Promise<void>;
+    redeployProject: (projectId: string, force?: boolean) => Promise<ActionResult>;
+    cancelDeployment: (projectId: string, deploymentId: string) => Promise<ActionResult>;
 
     // Settings Actions
     saveProjectSettings: (projectId: string) => Promise<void>;
@@ -114,6 +117,7 @@ export interface ProjectSlice {
 export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     activeProjectId: null,
     currentProject: null,
+    projectLoadError: null,
     currentDeployments: [],
     errorCount: null,
     isLoadingProject: true,
@@ -169,6 +173,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
         if (!currentProject || currentProject.id !== projectId) {
             set({ isLoadingProject: true });
         }
+        set({ projectLoadError: null });
         try {
             const [projectResponse, deploymentsResponse, statsResponse] = await Promise.all([
                 fetch(`/api/projects/${projectId}`),
@@ -205,9 +210,29 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                     const statsData = await statsResponse.json();
                     set({ errorCount: statsData.errorCount });
                 }
+            } else {
+                // The project could not be loaded (404, 403, 500). currentProject used to be
+                // left pointing at the PREVIOUS project, so the page rendered that project's
+                // settings under the new project's URL and wired Save/Delete to it - an edit
+                // or a delete aimed at the wrong project. Clear it and surface the failure.
+                console.error('Failed to load project:', projectId, projectResponse.status);
+                set({
+                    currentProject: null,
+                    currentDeployments: [],
+                    projectLoadError: projectResponse.status === 404
+                        ? 'Project not found.'
+                        : projectResponse.status === 403
+                            ? 'You do not have access to this project.'
+                            : 'Could not load this project. Please retry.',
+                });
             }
         } catch (error) {
             console.error('Failed to fetch project details:', error);
+            set({
+                currentProject: null,
+                currentDeployments: [],
+                projectLoadError: 'Could not load this project. Please check your connection and retry.',
+            });
         } finally {
             set({ isLoadingProject: false });
         }
@@ -234,12 +259,24 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 body: JSON.stringify({ force }),
             });
 
-            if (response.ok) {
+            const result = toActionResult(
+                response.status,
+                response.ok,
+                await readJsonBody(response),
+                'Failed to trigger deployment'
+            );
+
+            if (result.ok) {
                 // Re-fetch using the new action
                 await get().fetchDeployments(projectId);
+            } else {
+                console.error('Failed to trigger deployment:', result.status, result.error);
             }
+
+            return result;
         } catch (error) {
             console.error('Failed to trigger deployment:', error);
+            return { ok: false, status: 0, error: 'Network error. Please check your connection and try again.' };
         } finally {
             set({ isRedeploying: false });
         }
@@ -251,11 +288,23 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                 method: 'DELETE',
             });
 
-            if (response.ok) {
+            const result = toActionResult(
+                response.status,
+                response.ok,
+                await readJsonBody(response),
+                'Failed to cancel deployment'
+            );
+
+            if (result.ok) {
                 await get().fetchDeployments(projectId);
+            } else {
+                console.error('Failed to cancel deployment:', result.status, result.error);
             }
+
+            return result;
         } catch (error) {
             console.error('Failed to cancel deployment:', error);
+            return { ok: false, status: 0, error: 'Network error. Please check your connection and try again.' };
         }
     },
 

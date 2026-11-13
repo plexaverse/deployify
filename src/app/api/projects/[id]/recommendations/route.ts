@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getCloudSqlHistoricalMetrics, getScalingRecommendations } from '@/lib/gcp/monitoring';
@@ -28,7 +29,7 @@ export async function GET(
         const storageConfigs = project.storageConfigs || [];
         for (const storage of storageConfigs) {
             if (storage.metadata?.provisioned && storage.type.includes('cloud-sql')) {
-                const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const resourceName = requireManagedResourceName(storage);
 
                 // Fetch last 7 days of metrics
                 const historicalMetrics = await getCloudSqlHistoricalMetrics(resourceName, 7);

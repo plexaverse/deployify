@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { cloneStorageConfig } from '@/lib/db';
@@ -70,20 +71,22 @@ export async function POST(
                     if (sourceConfig.type.includes('cloud-sql')) {
                         const { exportInstance } = await import('@/lib/gcp/cloudsql');
                         operationName = await exportInstance(
-                            (sourceConfig.metadata?.resourceName as string) || sourceConfig.name.toLowerCase().replace(/\s+/g, '-'),
+                            requireManagedResourceName(sourceConfig),
                             gcsUri
                         );
                     } else if (sourceConfig.type === 'memorystore-redis') {
                         const { exportInstance } = await import('@/lib/gcp/memorystore');
                         operationName = await exportInstance(
-                            (sourceConfig.metadata?.resourceName as string) || sourceConfig.name.toLowerCase().replace(/\s+/g, '-'),
+                            requireManagedResourceName(sourceConfig),
                             (sourceConfig.metadata?.region as string) || project.region || 'us-central1',
                             gcsUri
                         );
                     } else if (sourceConfig.type === 'firestore') {
                         const { exportDocuments } = await import('@/lib/gcp/firestore-admin');
+                        // SECURITY: never fall back to '(default)' - that is Deployify's own
+                        // control-plane Firestore, and gcsUri is tenant-supplied.
                         operationName = await exportDocuments(
-                            (sourceConfig.metadata?.resourceName as string) || '(default)',
+                            requireManagedResourceName(sourceConfig),
                             gcsUri
                         );
                     }

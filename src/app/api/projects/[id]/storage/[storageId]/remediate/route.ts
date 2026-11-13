@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
-import { remediateRisk } from '@/lib/gcp/remediation-utils';
+import { remediateRisk, requiresPrivilegedRole } from '@/lib/gcp/remediation-utils';
 
 /**
  * POST - One-Click Remediation for identified security risks
@@ -26,6 +26,24 @@ export async function POST(
         const access = await checkProjectAccess(session.user.id, id);
         if (!access.allowed) {
             return NextResponse.json({ success: false, error: access.error }, { status: access.status });
+        }
+
+        // Viewers can never remediate, matching every sibling storage route.
+        if (access.role === 'viewer') {
+            return NextResponse.json(
+                { success: false, error: 'Forbidden: Viewers cannot remediate infrastructure risks' },
+                { status: 403 }
+            );
+        }
+
+        // Only risks that mutate SHARED cloud state (platform SA IAM, Cloud SQL, firewall)
+        // need owner/admin. Gating all of them locked out `member`, the default invite role,
+        // even for risks that just flip a Firestore field.
+        if (requiresPrivilegedRole(riskId) && access.role !== 'owner' && access.role !== 'admin') {
+            return NextResponse.json(
+                { success: false, error: 'Forbidden: Only owners and admins can remediate infrastructure risks' },
+                { status: 403 }
+            );
         }
 
         const result = await remediateRisk(id, storageId, riskId, access.project);

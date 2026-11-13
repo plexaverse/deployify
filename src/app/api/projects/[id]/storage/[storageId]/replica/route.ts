@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { updateProject } from '@/lib/db';
 import { createReadReplica, deleteInstance } from '@/lib/gcp/cloudsql';
+import { addReplicaToConfigs, mutateStorageConfigs, removeReplicaFromConfigs } from '@/lib/storage-config-registry';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
 import type { StorageConfig } from '@/types';
@@ -53,7 +55,12 @@ export async function POST(
         };
 
         if (storage.type.includes('cloud-sql')) {
-            const masterInstanceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+            // SECURITY: never derive a real instance name from the free-text display name -
+            // that let a tenant get a live read replica of another tenant's database.
+            const masterInstanceName = resolveManagedResourceName(storage);
+            if (!masterInstanceName) {
+                return NextResponse.json({ success: false, error: UNBOUND_RESOURCE_ERROR }, { status: 400 });
+            }
             const region = body.region || (storage.metadata?.region as string) || project.region || 'us-central1';
             const tier = body.tier || (storage.metadata?.tier as string) || 'db-f1-micro';
             const replicaInstanceName = `${masterInstanceName}-replica-${replicaSuffix}`;
@@ -99,14 +106,27 @@ export async function POST(
             };
         }
 
-        const replicas = (storage.metadata?.replicas as unknown[]) || [];
-        storage.metadata = {
-            ...storage.metadata,
-            replicas: [...replicas, replica]
-        };
+        // The replica now EXISTS and is billing. Record it against the array as it stands in
+        // Firestore right now, not against the copy read before createReadReplica() - a second
+        // admin creating a replica inside that window would otherwise have their row silently
+        // overwritten and be left with an untracked, undeletable paid instance.
+        const outcome = await mutateStorageConfigs(
+            id,
+            (configs) => addReplicaToConfigs(configs, storageId, replica),
+            'replica.create'
+        );
 
-        const updatedConfigs = storageConfigs.map(s => s.id === storageId ? storage : s);
-        await updateProject(id, { storageConfigs: updatedConfigs });
+        if (outcome === 'legacy') {
+            // Kill switch, MOCK_DB, or a transaction that could not commit: the pre-fix write.
+            const replicas = (storage.metadata?.replicas as unknown[]) || [];
+            storage.metadata = {
+                ...storage.metadata,
+                replicas: [...replicas, replica]
+            };
+
+            const updatedConfigs = storageConfigs.map(s => s.id === storageId ? storage : s);
+            await updateProject(id, { storageConfigs: updatedConfigs });
+        }
 
         await logAuditEvent(
             project.teamId,
@@ -177,15 +197,25 @@ export async function DELETE(
         // 1. Delete actual GCP resource
         await deleteInstance(replica.name, storage.providerProjectId);
 
-        // 2. Remove from metadata
-        const updatedReplicas = replicas.filter(r => r.id !== replicaId);
-        storage.metadata = {
-            ...storage.metadata,
-            replicas: updatedReplicas
-        };
+        // 2. Remove from metadata, against the array as it stands in Firestore right now, so a
+        // replica created concurrently by another admin is not resurrected by this write.
+        const outcome = await mutateStorageConfigs(
+            id,
+            (configs) => removeReplicaFromConfigs(configs, storageId, replicaId),
+            'replica.delete'
+        );
 
-        const updatedConfigs = storageConfigs.map(s => s.id === storageId ? storage : s);
-        await updateProject(id, { storageConfigs: updatedConfigs });
+        if (outcome === 'legacy') {
+            // Kill switch, MOCK_DB, or a transaction that could not commit: the pre-fix write.
+            const updatedReplicas = replicas.filter(r => r.id !== replicaId);
+            storage.metadata = {
+                ...storage.metadata,
+                replicas: updatedReplicas
+            };
+
+            const updatedConfigs = storageConfigs.map(s => s.id === storageId ? storage : s);
+            await updateProject(id, { storageConfigs: updatedConfigs });
+        }
 
         await logAuditEvent(
             project.teamId,

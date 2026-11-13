@@ -1,4 +1,5 @@
 import { getGcpAccessToken } from './auth';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { config } from '@/lib/config';
 import { getSecretValue } from './secrets';
 import { calculateEWMA, isDegraded } from './health-utils';
@@ -194,7 +195,8 @@ export async function fetchSqlTierPricing(tier: string): Promise<number> {
 
         if (!response.ok) throw new Error('Failed to fetch billing catalog');
 
-        const data = await response.json();
+        // Drain the body so the connection can be reused. The SKU list is not parsed yet.
+        await response.json();
         // In a real scenario, we would parse the SKUs to find the exact match for the tier.
         // For this implementation, we return the fallback if the API call succeeds but parsing is complex.
         return FALLBACK_COST_MAP[tier] || 10.00;
@@ -496,7 +498,7 @@ export async function discoverSensitiveData(
                     private_key: config.firebase.privateKey?.replace(/\\n/g, '\n'),
                 },
             });
-            const datasetId = (storage.metadata?.resourceName as string) || storage.name;
+            const datasetId = requireManagedResourceName(storage);
             const [tables] = await bq.dataset(datasetId).getTables();
 
             for (const table of tables.slice(0, 5)) {
@@ -515,7 +517,7 @@ export async function discoverSensitiveData(
         } else if (storage.type === 'cloud-spanner') {
             const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
             const accessToken = await getGcpAccessToken();
-            const instanceId = (storage.metadata?.resourceName as string) || storage.name;
+            const instanceId = requireManagedResourceName(storage);
             const databaseId = (storage.metadata?.spannerDbId as string) || 'default';
 
             // Create a session

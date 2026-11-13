@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getTeamMembership, deleteTeamMembership, listTeamMembers, updateTeamMembership } from '@/lib/db';
+import { getTeamMembership, deleteTeamMembershipsForUser, listTeamMembers, updateTeamMembershipsForUser } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { securityHeaders } from '@/lib/security';
+import { countRoleHolders } from '@/lib/team-membership';
 
 interface RouteParams {
     params: Promise<{ id: string; userId: string }>;
@@ -49,11 +50,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             );
         }
 
-        // If removing an owner, check if it's the last owner
+        // If removing an owner, check if it's the last owner. Counted by DISTINCT userId:
+        // duplicate membership documents for one owner used to read as several owners.
         if (targetMembership.role === 'owner') {
             const allMembers = await listTeamMembers(teamId);
-            const owners = allMembers.filter(m => m.role === 'owner');
-            if (owners.length <= 1) {
+            const owners = countRoleHolders(allMembers, 'owner');
+            if (owners <= 1) {
                  return NextResponse.json(
                     { error: 'Cannot remove the last owner. Promote another member to owner first.' },
                     { status: 400, headers: securityHeaders }
@@ -61,9 +63,14 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
             }
         }
 
-        await deleteTeamMembership(targetMembership.id);
+        // Deletes EVERY membership document for this member, not just the one resolved
+        // above - a duplicate left behind keeps checkProjectAccess() returning allowed.
+        const removedDocs = await deleteTeamMembershipsForUser(teamId, targetUserId, targetMembership.id);
 
-        await logAuditEvent(teamId, session.user.id, 'Member Removed', { removedUserId: targetUserId });
+        await logAuditEvent(teamId, session.user.id, 'Member Removed', {
+            removedUserId: targetUserId,
+            ...(removedDocs > 1 ? { duplicateMembershipsRemoved: removedDocs } : {}),
+        });
 
         return NextResponse.json(
             { success: true },
@@ -139,8 +146,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         // Prevent demoting last owner
         if (targetMembership.role === 'owner' && role !== 'owner') {
              const allMembers = await listTeamMembers(teamId);
-             const owners = allMembers.filter(m => m.role === 'owner');
-             if (owners.length <= 1) {
+             const owners = countRoleHolders(allMembers, 'owner');
+             if (owners <= 1) {
                   return NextResponse.json(
                      { error: 'Cannot demote the last owner.' },
                      { status: 400, headers: securityHeaders }
@@ -148,7 +155,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
              }
         }
 
-        await updateTeamMembership(targetMembership.id, { role });
+        // Applies to every membership document for this member, so a duplicate cannot
+        // keep serving the pre-demotion role.
+        await updateTeamMembershipsForUser(teamId, targetUserId, { role }, targetMembership.id);
 
         await logAuditEvent(teamId, session.user.id, 'Member Role Updated', { targetUserId, newRole: role });
 

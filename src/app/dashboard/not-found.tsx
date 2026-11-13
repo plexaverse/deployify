@@ -13,11 +13,11 @@ export default function DashboardNotFound() {
             </div>
             <div className="space-y-1 mb-6">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">404 Error</span>
-                <h1 className="text-[10px] font-bold tracking-tight">
+                <h1 className="text-[22px] font-bold tracking-tight">
                     Page Not Found
                 </h1>
             </div>
-            <p className="text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider mb-8 max-w-[280px]">
+            <p className="text-[var(--muted-foreground)] text-[13px] font-medium mb-8 max-w-[280px]">
                 The resource you are looking for within the dashboard could not be found.
             </p>
             <Link href="/dashboard" className="w-full">

@@ -36,7 +36,10 @@ jobs:
 
           while read pr; do
             echo "Processing PR #$pr..."
-            gh pr merge $pr --squash --admin || gh pr merge $pr --squash || echo "Failed to merge PR #$pr"
+            # SECURITY: `--admin` bypasses branch protection, which is the one control
+            # that would stop a bad merge reaching main unattended. Removed: if a PR is not
+            # mergeable under the configured rules, it should stay open for a human.
+            gh pr merge $pr --squash || echo "Failed to merge PR #$pr (branch protection not satisfied)"
           done < pr_numbers.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

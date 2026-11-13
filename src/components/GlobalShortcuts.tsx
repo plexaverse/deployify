@@ -82,7 +82,7 @@ export function GlobalShortcuts() {
                     <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--card)]">
                         <div className="flex items-center gap-2">
                              <Keyboard className="w-5 h-5 text-[var(--primary)]" />
-                            <h3 className="text-[10px] font-bold">Keyboard Shortcuts</h3>
+                            <h3 className="text-[14px] font-bold">Keyboard Shortcuts</h3>
                         </div>
                         <Button
                             variant="ghost"
@@ -127,7 +127,7 @@ export function GlobalShortcuts() {
                         </div>
                     </div>
                      <div className="p-4 bg-[var(--muted)]/5 border-t border-[var(--border)] text-[10px] text-[var(--muted-foreground)] text-center font-bold uppercase tracking-wider">
-                        Press <kbd className="px-1.5 py-0.5 border border-[var(--border)] rounded bg-[var(--background)] shadow-sm font-mono text-[10px] font-bold uppercase tracking-wider">Esc</kbd> to close
+                        Press <kbd className="px-1.5 py-0.5 border border-[var(--border)] rounded bg-[var(--background)] shadow-sm font-mono text-[12px] font-bold uppercase tracking-wider">Esc</kbd> to close
                     </div>
                 </Card>
             </div>

@@ -101,7 +101,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                         {features.map((section) => (
                             <React.Fragment key={section.category}>
                                 <tr className="bg-[var(--muted)]/20">
-                                    <td colSpan={plans.length + 1} className="p-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
+                                    <td colSpan={plans.length + 1} className="p-4 py-3 text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] border-y border-[var(--border)] sticky left-0 z-10">
                                         {section.category}
                                     </td>
                                 </tr>
@@ -123,7 +123,7 @@ export function ComparePlansTable({ plans, currentPlanId }: ComparePlansTablePro
                                         {plans.map((plan) => {
                                             const value = feature.values[plan.id];
                                             return (
-                                                <td key={`${plan.id}-${feature.name}`} className="p-4 border-b border-[var(--border)] text-center text-[10px] font-bold">
+                                                <td key={`${plan.id}-${feature.name}`} className="p-4 border-b border-[var(--border)] text-center text-[13px] font-bold">
                                                     {value === true ? (
                                                         <div className="flex justify-center">
                                                             <div className="bg-[var(--primary)]/10 rounded-full p-1">

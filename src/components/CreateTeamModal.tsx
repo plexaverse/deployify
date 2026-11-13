@@ -67,7 +67,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                             </div>
                             <div className="space-y-0.5">
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Workspace Management</span>
-                                <h3 className="text-[10px] font-bold tracking-tight text-[var(--foreground)]">Create New Team</h3>
+                                <h3 className="text-[14px] font-bold tracking-tight text-[var(--foreground)]">Create New Team</h3>
                             </div>
                         </div>
                         <Button
@@ -89,7 +89,7 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 value={name}
                                 onChange={handleNameChange}
                                 placeholder="ACME CORP"
-                                className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 required
                             />
                         </div>
@@ -100,12 +100,12 @@ export function CreateTeamModal({ isOpen, onClose }: CreateTeamModalProps) {
                                 value={slug}
                                 onChange={(e) => setSlug(e.target.value)}
                                 placeholder="ACME-CORP"
-                                className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="font-mono text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                 required
                                 pattern="^[a-z0-9-]+$"
                                 title="Only lowercase letters, numbers, and hyphens allowed"
                             />
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                 Used in URLs. Only lowercase letters, numbers, and hyphens.
                             </p>
                         </div>

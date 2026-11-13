@@ -1,51 +1,22 @@
 import * as crypto from 'crypto';
 import { config } from '@/lib/config';
+import { checkRateLimit as sharedCheckRateLimit } from '@/lib/security/rate-limit';
 import type { GitHubPushEvent, GitHubPullRequestEvent } from '@/types';
 
-// Rate limiter storage (in-memory for development, use Redis in production)
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
 /**
- * Rate limiter middleware
+ * Rate limiter middleware.
+ *
+ * Signature and return shape are unchanged; the body now delegates to the one
+ * shared implementation in `./rate-limit`, which is also what `src/proxy.ts`
+ * runs. Previously this file carried a second, never-imported copy that had
+ * eviction while the copy that actually ran had none.
  */
 export function checkRateLimit(
     identifier: string,
     limit: number = config.security.rateLimitRequests,
     windowMs: number = config.security.rateLimitWindowMs
 ): { allowed: boolean; remaining: number; resetAt: number } {
-    const now = Date.now();
-    const record = rateLimitStore.get(identifier);
-
-    // Clean up expired entries periodically
-    if (Math.random() < 0.01) {
-        cleanupExpiredEntries();
-    }
-
-    if (!record || now > record.resetAt) {
-        // New window
-        const resetAt = now + windowMs;
-        rateLimitStore.set(identifier, { count: 1, resetAt });
-        return { allowed: true, remaining: limit - 1, resetAt };
-    }
-
-    if (record.count >= limit) {
-        return { allowed: false, remaining: 0, resetAt: record.resetAt };
-    }
-
-    record.count++;
-    return { allowed: true, remaining: limit - record.count, resetAt: record.resetAt };
-}
-
-/**
- * Clean up expired rate limit entries
- */
-function cleanupExpiredEntries(): void {
-    const now = Date.now();
-    for (const [key, value] of rateLimitStore.entries()) {
-        if (now > value.resetAt) {
-            rateLimitStore.delete(key);
-        }
-    }
+    return sharedCheckRateLimit(identifier, limit, windowMs);
 }
 
 /**

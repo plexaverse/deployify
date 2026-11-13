@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getSecretValue } from '@/lib/gcp/secrets';
@@ -79,7 +80,9 @@ export async function POST(
             message = `Ephemeral database ${finalDbName} ensured for ${identifier}`;
         } else if (storageConfig.type === 'firestore') {
             const region = (storageConfig.metadata?.region as string) || project.region || 'us-central1';
-            const baseDbName = (storageConfig.metadata?.resourceName as string) || '(default)';
+            // SECURITY: '(default)' is Deployify's own control-plane Firestore. A connector with
+            // no server-written resourceName must not resolve to it.
+            const baseDbName = requireManagedResourceName(storageConfig);
             const template = storageConfig.branchingSettings.template || 'db-{identifier}';
 
             const branchDbName = template

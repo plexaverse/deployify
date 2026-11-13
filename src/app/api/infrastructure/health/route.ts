@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { listProjectsByUser, listProjectsByTeam } from '@/lib/db';
+import { resolveWorkspaceProjects } from '@/lib/infrastructure-scope';
 import { getEstimatedMonthlyCost, getExternalMetrics, getCostForecast } from '@/lib/gcp/monitoring';
-import type { Project } from '@/types';
 
 /**
  * GET - Aggregate infrastructure health across all projects in the workspace
@@ -17,13 +16,12 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const teamId = searchParams.get('teamId');
 
-        // 1. Fetch projects for the context
-        let projects: Project[] = [];
-        if (teamId) {
-            projects = await listProjectsByTeam(teamId);
-        } else {
-            projects = await listProjectsByUser(session.user.id);
+        // 1. Fetch projects for the context (team membership verified before any team read)
+        const scope = await resolveWorkspaceProjects(session.user.id, teamId, 'infrastructure/health');
+        if (!scope.allowed) {
+            return NextResponse.json({ success: false, error: scope.error }, { status: scope.status });
         }
+        const projects = scope.projects;
 
         // 2. Aggregate health metrics
         let totalConnectors = 0;
@@ -141,12 +139,9 @@ export async function GET(request: NextRequest) {
                     connectorsWithEfficiency++;
                 }
 
-                // Aggregate Cost Intelligence
-                const tier = (result.metadata?.tier as string) || (result.type.includes('cloud-sql') ? 'db-f1-micro' : (result.type === 'memorystore-redis' ? '1GB' : ''));
-                const diskSizeGb = (result.metadata?.diskSizeGb as number) || (result.metadata?.memorySizeGb as number);
-                const isHA = !!result.metadata?.highAvailability;
-
-                // Aggregate Cost Intelligence
+                // Aggregate Cost Intelligence. The per-resource estimate is computed upstream
+                // and carried on `result.estimatedCost`; the tier/disk/HA locals that used to be
+                // derived here became dead when that moved.
                 totalEstimatedMonthlyCost += result.estimatedCost;
                 projectCost += result.estimatedCost;
                 costBreakdown[result.type] = (costBreakdown[result.type] || 0) + result.estimatedCost;

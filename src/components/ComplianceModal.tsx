@@ -70,12 +70,12 @@ export function ComplianceModal({ isOpen, onClose, storage }: ComplianceModalPro
                             </div>
                             <div className="flex items-center gap-1.5 text-[var(--muted-foreground)]">
                                 <Calendar className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-mono font-bold uppercase">
+                                <span className="text-[12px] font-mono font-bold uppercase">
                                     Last Scan: {report?.lastScannedAt ? new Date(report.lastScannedAt).toLocaleDateString() : 'NEVER'}
                                 </span>
                             </div>
                         </div>
-                        <p className="text-[10px] font-bold text-[var(--foreground)] leading-relaxed">
+                        <p className="text-[13px] font-bold text-[var(--foreground)] leading-relaxed">
                             {report?.hasRisk
                                 ? `Deployify identified ${report.risks.length} potentially sensitive fields during the last autonomous compliance scan. Unmasked PII (Personally Identifiable Information) can increase security and compliance overhead.`
                                 : 'The last autonomous scan did not identify any unmasked PII (Personally Identifiable Information) in the sampled records. Your data governance posture is currently optimal.'
@@ -118,7 +118,7 @@ export function ComplianceModal({ isOpen, onClose, storage }: ComplianceModalPro
                                         <div className="p-2.5 rounded-lg bg-[var(--muted)]/5 border border-[var(--border)] flex items-center justify-between gap-4">
                                             <div className="space-y-0.5">
                                                 <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] block">Sample Value</span>
-                                                <span className="text-[10px] font-mono font-bold text-[var(--foreground)] opacity-80">{risk.sampleValue}</span>
+                                                <span className="text-[12px] font-mono font-bold text-[var(--foreground)] opacity-80">{risk.sampleValue}</span>
                                             </div>
                                             <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)]/30" />
                                             <div className="text-right space-y-0.5">
@@ -135,8 +135,8 @@ export function ComplianceModal({ isOpen, onClose, storage }: ComplianceModalPro
                     <div className="p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl flex items-start gap-3">
                         <Lock className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
                         <div className="space-y-1">
-                            <p className="text-[10px] font-bold uppercase text-[var(--info)]">Privacy Governance Tip</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                            <p className="text-[13px] font-bold uppercase text-[var(--info)]">Privacy Governance Tip</p>
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                                 Use the <strong className="text-[var(--foreground)]">Dynamic Data Masking</strong> utility in the Data Lab to automatically obfuscate these fields during result set rendering. This ensures developers see masked values while preserving original data in the database.
                             </p>
                         </div>

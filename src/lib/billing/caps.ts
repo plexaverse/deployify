@@ -1,5 +1,6 @@
 import { getUsage, Usage } from './tracker';
 import { getTier, Tier, DEFAULT_TIER } from './tiers';
+import { resolveEffectiveTierId } from './entitlement';
 import { getUserById } from '@/lib/db';
 
 export interface CheckLimitResult {
@@ -33,11 +34,16 @@ export function calculateLimitStatus(usage: Usage, tier: Tier): CheckLimitResult
 
 /**
  * Retrieves the subscription tier for a given user.
+ *
+ * This is the choke point every usage gate goes through (checkUsageLimits, and
+ * resolveOwnerTier() in provision-gate.ts, which compute-gate.ts also uses), so the
+ * entitlement check lives here. Under BILLING_ENTITLEMENT_MODE=off|audit (the default)
+ * this returns exactly what it returned before: the stored tier.
  */
 export async function getUserTier(userId: string): Promise<Tier> {
     const user = await getUserById(userId);
     if (!user) return DEFAULT_TIER;
-    return getTier(user.subscription?.tier);
+    return getTier(resolveEffectiveTierId(user.subscription, userId));
 }
 
 export async function checkUsageLimits(userId: string): Promise<CheckLimitResult> {

@@ -92,7 +92,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     Managed Portability
                                 </span>
-                                <h3 className="text-[10px] font-bold tracking-tight text-[var(--foreground)] uppercase">
+                                <h3 className="text-[14px] font-bold tracking-tight text-[var(--foreground)] uppercase">
                                     {mode === 'export' ? 'Export Database' : 'Import Data'}
                                 </h3>
                             </div>
@@ -145,9 +145,9 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                     value={storageUri}
                                     onChange={(e) => setStorageUri(e.target.value)}
                                     placeholder={storage.type === 'firestore' ? "GS://BUCKET-NAME/PREFIX" : storage.type === 'memorystore-redis' ? "GS://BUCKET-NAME/PATH/TO/DUMP.RDB" : "GS://BUCKET-NAME/PATH/TO/DUMP.SQL"}
-                                    className="font-mono text-[10px] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase"
+                                    className="font-mono text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase"
                                 />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
+                                <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] flex items-center gap-1.5">
                                     <AlertCircle className="w-3.5 h-3.5" />
                                     Must be a Cloud Storage URI starting with <code className="text-[var(--primary)]">gs://</code>
                                 </p>
@@ -160,9 +160,9 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                         value={collections}
                                         onChange={(e) => setCollections(e.target.value)}
                                         placeholder="USERS, POSTS"
-                                        className="font-mono text-[10px] font-bold uppercase"
+                                        className="font-mono text-[12px] font-bold uppercase"
                                     />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                    <p className="text-[13px] font-medium text-[var(--muted-foreground)]/60">
                                         LEAVE BLANK TO {mode === 'import' ? 'IMPORT' : 'EXPORT'} ALL COLLECTIONS.
                                     </p>
                                 </div>
@@ -175,7 +175,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                                 value={database}
                                                 onChange={(e) => setDatabase(e.target.value)}
                                                 placeholder="POSTGRES"
-                                                className="font-mono text-[10px] font-bold uppercase"
+                                                className="font-mono text-[12px] font-bold uppercase"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -184,7 +184,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                                 value={importUser}
                                                 onChange={(e) => setImportUser(e.target.value)}
                                                 placeholder={storage.type.includes('postgres') ? 'POSTGRES' : 'ROOT'}
-                                                className="font-mono text-[10px] font-bold uppercase"
+                                                className="font-mono text-[12px] font-bold uppercase"
                                             />
                                         </div>
                                     </div>
@@ -195,9 +195,9 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                                             value={exportDatabases}
                                             onChange={(e) => setExportDatabases(e.target.value)}
                                             placeholder="DB1, DB2"
-                                            className="font-mono text-[10px] font-bold uppercase"
+                                            className="font-mono text-[12px] font-bold uppercase"
                                         />
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/60">
+                                        <p className="text-[13px] font-medium text-[var(--muted-foreground)]/60">
                                             LEAVE BLANK TO EXPORT ALL DATABASES.
                                         </p>
                                     </div>
@@ -207,7 +207,7 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                             {storage.type === 'memorystore-redis' && (
                                 <div className="p-3 bg-[var(--warning)]/10 border border-[var(--warning)]/20 rounded-xl flex items-start gap-3">
                                     <AlertCircle className="w-4 h-4 text-[var(--warning)] shrink-0 mt-0.5" />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--warning)] leading-relaxed">
+                                    <p className="text-[13px] font-medium text-[var(--warning)] leading-relaxed">
                                         REDIS {mode === 'import' ? 'IMPORT' : 'EXPORT'} WILL MOMENTARILY DISABLE THE INSTANCE WHILE PROCESSING THE RDB FILE.
                                     </p>
                                 </div>
@@ -216,8 +216,8 @@ export function DataPortabilityModal({ isOpen, onClose, storage, projectId }: Da
                             <div className="p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl flex items-start gap-3">
                                 <Database className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--info)]">Permissions Required</p>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--info)]">Permissions Required</p>
+                                    <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                                         THE {storage.type === 'firestore' ? 'SERVICE ACCOUNT' : storage.type === 'memorystore-redis' ? 'REDIS SERVICE AGENT' : 'CLOUD SQL SERVICE ACCOUNT'} MUST HAVE <code className="text-[var(--primary)]">ROLES/STORAGEMANAGER.OBJECTADMIN</code> PERMISSION ON THE TARGET BUCKET.
                                     </p>
                                 </div>

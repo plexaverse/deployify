@@ -5,8 +5,11 @@
  * In Next.js 16, `proxy.ts` replaces `middleware.ts`.
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { cspHeader } from '@/lib/security/csp';
 import { config as appConfig } from '@/lib/config';
 import { trackError } from '@/lib/logging/tracker';
+import { checkRequestProvenance, getCsrfMode } from '@/lib/security/csrf';
+import { evaluateApiRateLimit } from '@/lib/security/rate-limit';
 
 // Security headers to apply
 const securityHeaders = {
@@ -17,36 +20,10 @@ const securityHeaders = {
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
 };
 
-// In-memory rate limit store (Edge-compatible)
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(
-    identifier: string,
-    limit: number = 100,
-    windowMs: number = 60000
-): { allowed: boolean; remaining: number; resetAt: number } {
-    const now = Date.now();
-    const record = rateLimitStore.get(identifier);
-
-    if (!record || now > record.resetAt) {
-        const resetAt = now + windowMs;
-        rateLimitStore.set(identifier, { count: 1, resetAt });
-        return { allowed: true, remaining: limit - 1, resetAt };
-    }
-
-    if (record.count >= limit) {
-        return { allowed: false, remaining: 0, resetAt: record.resetAt };
-    }
-
-    record.count++;
-    return { allowed: true, remaining: limit - record.count, resetAt: record.resetAt };
-}
-
-// Routes that should be rate limited more strictly
-const strictRateLimitRoutes = [
-    '/api/auth/',
-    '/api/webhooks/',
-];
+// Rate limiting lives in `@/lib/security/rate-limit` (edge-safe, no node
+// builtins) so that the copy which actually runs here and the copy exported
+// from `@/lib/security` cannot diverge again. Default mode is `legacy`:
+// identical request outcomes to before, with the store now bounded.
 
 export async function proxy(request: NextRequest) {
     try {
@@ -57,6 +34,12 @@ export async function proxy(request: NextRequest) {
         const responseHeaders = new Headers();
         for (const [key, value] of Object.entries(securityHeaders)) {
             responseHeaders.set(key, value);
+        }
+        // CSP ships Report-Only by default: the app has never run one, so a wrong directive
+        // would blank panels with no actionable error. CSP_MODE=enforce to block.
+        const csp = cspHeader();
+        if (csp) {
+            responseHeaders.set(csp.name, csp.value);
         }
 
         // 1. Detect Subdomain (Project Routing)
@@ -104,6 +87,29 @@ export async function proxy(request: NextRequest) {
                 });
             }
 
+            // Rate limit BEFORE the rewrite: this path returns early, so it never reached
+            // the /api/ limiter below. Each request here logs an analytics event
+            // (Firestore write + BigQuery insert), so unmetered it is both a DoS and a
+            // direct bill. Limited per-IP with its own generous ceiling, because this is
+            // page traffic (HTML + assets), not API calls.
+            const proxyLimit = Number(process.env.PROXY_RATE_LIMIT_REQUESTS || 600);
+            const proxyVerdict = evaluateApiRateLimit({
+                pathname: '/api/v1/proxy',
+                xForwardedFor: request.headers.get('x-forwarded-for'),
+                xRealIp: request.headers.get('x-real-ip'),
+            });
+
+            if (!proxyVerdict.allowed && process.env.PROXY_RATE_LIMIT_MODE !== 'off') {
+                return new NextResponse('Too Many Requests', {
+                    status: 429,
+                    headers: {
+                        ...Object.fromEntries(responseHeaders),
+                        'Retry-After': String(Math.max(1, Math.ceil((proxyVerdict.resetAt - Date.now()) / 1000))),
+                        'X-RateLimit-Limit': String(proxyLimit),
+                    },
+                });
+            }
+
             const url = request.nextUrl.clone();
             url.pathname = `/api/v1/proxy/${subdomain}${pathname}`;
             return NextResponse.rewrite(url, {
@@ -113,15 +119,16 @@ export async function proxy(request: NextRequest) {
 
         // Rate limiting for API routes
         if (pathname.startsWith('/api/')) {
-            const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ||
-                request.headers.get('x-real-ip') ||
-                'unknown';
+            const rateLimitResult = evaluateApiRateLimit({
+                pathname,
+                xForwardedFor: request.headers.get('x-forwarded-for'),
+                xRealIp: request.headers.get('x-real-ip'),
+            });
+            const limit = rateLimitResult.limit;
 
-            // Determine rate limit based on route
-            const isStrictRoute = strictRateLimitRoutes.some(route => pathname.startsWith(route));
-            const limit = isStrictRoute ? 30 : 100;
-
-            const rateLimitResult = checkRateLimit(`${ip}:${pathname}`, limit);
+            if (rateLimitResult.warning) {
+                console.warn(`[RateLimit] ${rateLimitResult.warning}`);
+            }
 
             if (!rateLimitResult.allowed) {
                 return NextResponse.json(
@@ -137,6 +144,38 @@ export async function proxy(request: NextRequest) {
                         }
                     }
                 );
+            }
+
+            // Request-provenance (CSRF) guard.
+            //
+            // Every API handler authenticates purely on the ambient
+            // `deployify_session` cookie. SameSite=Lax does not help us because
+            // tenant apps are served from `<slug>.<app-domain>`, which is
+            // same-site with the dashboard. Reject requests the browser itself
+            // reports as coming from another origin.
+            const csrfMode = getCsrfMode();
+            if (csrfMode !== 'off') {
+                const verdict = checkRequestProvenance({
+                    method: request.method,
+                    pathname,
+                    origin: request.headers.get('origin'),
+                    secFetchSite: request.headers.get('sec-fetch-site'),
+                    secFetchMode: request.headers.get('sec-fetch-mode'),
+                });
+
+                if (!verdict.allowed) {
+                    console.warn(
+                        `[CSRF] ${csrfMode === 'enforce' ? 'blocked' : 'would block'} ` +
+                        `${request.method} ${pathname} (${verdict.reason})`
+                    );
+
+                    if (csrfMode === 'enforce') {
+                        return NextResponse.json(
+                            { error: 'Forbidden' },
+                            { status: 403, headers: securityHeaders }
+                        );
+                    }
+                }
             }
         }
 
@@ -161,8 +200,14 @@ export async function proxy(request: NextRequest) {
                 return NextResponse.redirect(new URL('/login', request.url));
             }
 
-            // Bypass for local development
-            if (process.env.NODE_ENV === 'development' || process.env.MOCK_DB === 'true') {
+            // Bypass for local development.
+            //
+            // SECURITY: this is the dashboard's edge auth gate. It used to open on
+            // MOCK_DB=true in ANY NODE_ENV, so a stray env var on a production revision
+            // disabled authentication for every dashboard route. MOCK_DB is now only
+            // honoured outside production.
+            if (process.env.NODE_ENV !== 'production' &&
+                (process.env.NODE_ENV === 'development' || process.env.MOCK_DB === 'true')) {
                 return response;
             }
 

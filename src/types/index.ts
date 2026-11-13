@@ -2,6 +2,13 @@
 
 // User type from GitHub OAuth
 export interface AnalyticsStats {
+    /**
+     * Present and true only when the figures are synthetic placeholders (no events yet, or
+     * the query failed). The UI must label these; they are not measurements.
+     */
+    isPlaceholder?: boolean;
+    /** Why the data is synthetic: 'no-data' or 'error'. */
+    placeholderReason?: 'no-data' | 'error';
     aggregate: {
         visitors: { value: number };
         pageviews: { value: number };
@@ -121,6 +128,14 @@ export interface Project {
     slug: string;
     repoFullName: string; // owner/repo
     repoUrl: string;
+    /** Stable GitHub repository id. Survives renames; absent on projects created before repo-binding. */
+    repoId?: number;
+    /** Evidence gathered at bind time that the creator actually controls the repo. See src/lib/repo-binding.ts. */
+    repoVerification?: {
+        level: 'admin' | 'unverified';
+        webhookId: number | null;
+        verifiedAt: Date;
+    };
     defaultBranch: string;
     framework: 'nextjs' | 'vite' | 'remix' | 'astro' | 'docker';
     buildCommand: string;
@@ -227,6 +242,8 @@ export interface Deployment {
     url?: string;
     aliases?: string[];
     errorMessage?: string;
+    /** Set only on records created because a usage cap refused the deployment. */
+    usageBlocked?: boolean;
     buildLogs?: string[];
     buildDurationMs?: number;
     performanceMetrics?: LighthouseMetrics;
@@ -262,6 +279,8 @@ export interface DataLabAuditLog {
     metadata?: {
         widgetId?: string;
         storageType: string;
+        /** Set only when a public widget was requested against a storageId it is not bound to. */
+        requestedStorageId?: string;
     };
 }
 
@@ -277,6 +296,14 @@ export interface GitHubRepo {
     language: string | null;
     updated_at: string;
     pushed_at: string;
+    /** Authenticated user's rights on the repo. Optional: GitHub omits it for unauthenticated reads. */
+    permissions?: {
+        admin?: boolean;
+        maintain?: boolean;
+        push?: boolean;
+        triage?: boolean;
+        pull?: boolean;
+    };
 }
 
 // GitHub webhook events
@@ -370,6 +397,8 @@ export interface Session {
     user: User;
     accessToken: string;
     expiresAt: number;
+    /** JWT `iat`, in seconds. Compared against the user's sessionsRevokedAt marker. */
+    issuedAt?: number;
 }
 
 // Build configuration

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { restoreBackup } from '@/lib/gcp/cloudsql';
@@ -47,7 +48,7 @@ export async function POST(
         const body = await request.json().catch(() => ({}));
         const { pointInTime } = body;
 
-        const instanceName = (storageConfig.metadata?.resourceName as string) || storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+        const instanceName = requireManagedResourceName(storageConfig);
 
         // Handle PITR if backupId is 'pitr' and pointInTime is provided
         const operationName = backupId === 'pitr'

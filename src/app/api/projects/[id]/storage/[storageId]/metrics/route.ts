@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getDb, Collections } from '@/lib/firebase';
@@ -123,7 +124,7 @@ export async function GET(
             const storageConfigs = (access.project.storageConfigs as StorageConfig[]) || [];
             const storage = storageConfigs.find(s => s.id === storageId);
             if (storage && storage.type.includes('cloud-sql')) {
-                const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+                const resourceName = requireManagedResourceName(storage);
                 const dbType = storage.type === 'cloud-sql-mysql' ? 'mysql' : 'postgresql';
                 queryInsights = await getQueryInsights(resourceName, dbType);
             }

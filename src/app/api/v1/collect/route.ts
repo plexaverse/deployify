@@ -9,6 +9,26 @@ let isBigQueryInitialized = false;
 
 // Simple in-memory rate limiting for development
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
+// This endpoint is PUBLIC and unauthenticated, and nothing ever removed entries, so the Map
+// grew without bound - one entry per distinct (spoofable) IP until the instance OOMs.
+const MAX_RATE_LIMIT_ENTRIES = 20_000;
+
+function pruneRateLimitMap(now: number): void {
+    for (const [key, info] of rateLimitMap) {
+        if (now - info.lastReset > WINDOW_MS) {
+            rateLimitMap.delete(key);
+        }
+    }
+    // Hard ceiling in case traffic outpaces expiry: drop oldest-first.
+    if (rateLimitMap.size > MAX_RATE_LIMIT_ENTRIES) {
+        const excess = rateLimitMap.size - MAX_RATE_LIMIT_ENTRIES;
+        let dropped = 0;
+        for (const key of rateLimitMap.keys()) {
+            rateLimitMap.delete(key);
+            if (++dropped >= excess) break;
+        }
+    }
+}
 const RATE_LIMIT = 20; // 20 requests
 const WINDOW_MS = 60 * 1000; // per minute
 
@@ -43,6 +63,7 @@ export async function POST(req: NextRequest) {
 
         // Basic Rate Limiting
         const now = Date.now();
+        pruneRateLimitMap(now);
         const rateInfo = rateLimitMap.get(ip) || { count: 0, lastReset: now };
 
         if (now - rateInfo.lastReset > WINDOW_MS) {

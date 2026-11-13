@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { exportInstance as exportCloudSql } from '@/lib/gcp/cloudsql';
@@ -50,7 +51,7 @@ export async function POST(
             return NextResponse.json({ error: 'Valid GCS URI (gs://bucket/path) is required' }, { status: 400 });
         }
 
-        const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+        const resourceName = requireManagedResourceName(storage);
         const region = (storage.region || storage.metadata?.region as string) || 'us-central1';
 
         // Trigger export based on type

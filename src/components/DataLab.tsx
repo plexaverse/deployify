@@ -1193,7 +1193,7 @@ runQuery();`;
                                     const fkInfo = schema?.columns ? Object.values(schema.columns).flat().find(c => c.name === col && c.isForeign && c.referencesTable) : null;
 
                                     return (
-                                        <td key={col} className="p-3 text-[10px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
+                                        <td key={col} className="p-3 text-[13px] font-mono whitespace-nowrap max-w-[200px] truncate group/cell relative">
                                             <div className="flex items-center gap-1.5">
                                                 {isExplainResults && col === 'QUERY PLAN' ? (
                                                     <div className="flex flex-col gap-1">
@@ -1269,15 +1269,15 @@ runQuery();`;
                                             <div className="space-y-1">
                                                 <div className="flex items-center justify-between gap-4">
                                                     <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">SUM</span>
-                                                    <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{aggregations[col].sum.toLocaleString()}</span>
+                                                    <span className="text-[12px] font-mono font-bold text-[var(--primary)]">{aggregations[col].sum.toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-4">
                                                     <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">AVG</span>
-                                                    <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{aggregations[col].avg.toFixed(2)}</span>
+                                                    <span className="text-[12px] font-mono font-bold text-[var(--primary)]">{aggregations[col].avg.toFixed(2)}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-4">
                                                     <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase">MIN/MAX</span>
-                                                    <span className="text-[10px] font-mono font-bold text-[var(--primary)]">{aggregations[col].min} / {aggregations[col].max}</span>
+                                                    <span className="text-[12px] font-mono font-bold text-[var(--primary)]">{aggregations[col].min} / {aggregations[col].max}</span>
                                                 </div>
                                             </div>
                                         ) : (
@@ -1351,8 +1351,8 @@ runQuery();`;
                     <div className="flex flex-col items-center justify-center py-8 space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                         <PieChartIcon className="w-8 h-8 text-[var(--muted-foreground)]/30" />
                         <div className="text-center space-y-1">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configure axes to visualize data</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Select X and Y axes from the results</p>
+                            <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Configure axes to visualize data</p>
+                            <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Select X and Y axes from the results</p>
                         </div>
                     </div>
                 ) : (
@@ -1442,7 +1442,7 @@ runQuery();`;
                     </div>
                     <div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Data Lab</span>
-                        <h3 className="text-[10px] font-bold">Managed Query Browser</h3>
+                        <h3 className="text-[14px] font-bold">Managed Query Browser</h3>
                     </div>
                 </div>
                 <div className="flex items-center gap-6">
@@ -1532,7 +1532,7 @@ runQuery();`;
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Compliance Monitoring</span>
-                                    <h3 className="text-[10px] font-bold">Query Audit Logs</h3>
+                                    <h3 className="text-[14px] font-bold">Query Audit Logs</h3>
                                 </div>
                             </div>
                             <Button
@@ -1550,11 +1550,11 @@ runQuery();`;
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
-                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Timestamp</th>
-                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">User</th>
-                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query</th>
-                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
-                                        <th className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
+                                        <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Timestamp</th>
+                                        <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">User</th>
+                                        <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query</th>
+                                        <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Status</th>
+                                        <th className="p-3 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1567,13 +1567,13 @@ runQuery();`;
                                     ) : (
                                         auditLogs.map((log) => (
                                             <tr key={log.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--muted)]/5 transition-colors">
-                                                <td className="p-3 text-[10px] font-mono whitespace-nowrap">
+                                                <td className="p-3 text-[13px] font-mono whitespace-nowrap">
                                                     {new Date(log.timestamp).toLocaleString()}
                                                 </td>
-                                                <td className="p-3 text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">
+                                                <td className="p-3 text-[13px] font-bold uppercase tracking-wider text-[var(--primary)]">
                                                     {log.userEmail}
                                                 </td>
-                                                <td className="p-3 text-[10px] font-mono max-w-[300px] truncate">
+                                                <td className="p-3 text-[13px] font-mono max-w-[300px] truncate">
                                                     {log.query}
                                                 </td>
                                                 <td className="p-3">
@@ -1711,7 +1711,7 @@ runQuery();`;
                                                         className="w-full text-left p-2 hover:bg-[var(--primary)]/10 rounded-xl transition-colors group"
                                                     >
                                                         <span className="block text-[10px] font-bold uppercase tracking-wider group-hover:text-[var(--primary)]">{t.name}</span>
-                                                        <code className="block text-[10px] font-mono text-[var(--muted-foreground)] truncate">{t.query}</code>
+                                                        <code className="block text-[12px] font-mono text-[var(--muted-foreground)] truncate">{t.query}</code>
                                                     </button>
                                                 ))}
                                                 {templates.length === 0 && (
@@ -1782,7 +1782,7 @@ runQuery();`;
                                                         value={queryVariables[v] || ''}
                                                         onChange={(e) => setQueryVariables(prev => ({ ...prev, [v]: e.target.value }))}
                                                         placeholder={`VALUE FOR :${v.toUpperCase()}`}
-                                                        className="h-8 text-[10px] font-mono placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                                        className="h-8 text-[12px] font-mono placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                                                     />
                                                 </div>
                                             ))}
@@ -1798,8 +1798,8 @@ runQuery();`;
                             <div className="col-span-full py-8 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <Save className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No saved queries yet</p>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Save frequently used queries for quick access</p>
+                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No saved queries yet</p>
+                                    <p className="text-[13px] font-medium text-[var(--muted-foreground)]/50">Save frequently used queries for quick access</p>
                                 </div>
                             </div>
                         ) : (
@@ -1842,7 +1842,7 @@ runQuery();`;
                                             )}
                                         </div>
                                     </div>
-                                    <pre className="text-[10px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
+                                    <pre className="text-[12px] font-mono bg-[var(--muted)]/20 p-2 rounded mb-3 max-h-20 overflow-hidden line-clamp-3 text-[var(--muted-foreground)]">
                                         {q.query}
                                     </pre>
                                     <div className="flex gap-2">
@@ -1879,7 +1879,7 @@ runQuery();`;
                                                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">{c.userName}</span>
                                                             <span className="text-[10px] font-bold text-[var(--muted-foreground)]/60">{new Date(c.createdAt).toLocaleDateString()}</span>
                                                         </div>
-                                                        <p className="text-[10px] font-bold text-[var(--foreground)]">{c.text}</p>
+                                                        <p className="text-[13px] font-bold text-[var(--foreground)]">{c.text}</p>
                                                     </div>
                                                 ))}
                                                 {(!comments[q.id] || comments[q.id].length === 0) && (
@@ -1893,7 +1893,7 @@ runQuery();`;
                                                     value={newComment}
                                                     onChange={(e) => setNewComment(e.target.value)}
                                                     placeholder="ADD COMMENT..."
-                                                    className="h-8 text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] font-bold"
+                                                    className="h-8 text-[10px] font-bold uppercase tracking-wider placeholder:text-[12px] font-bold"
                                                     onKeyDown={(e) => e.key === 'Enter' && postComment(q.id)}
                                                 />
                                                 <Button
@@ -1917,8 +1917,8 @@ runQuery();`;
                             <div className="col-span-full py-12 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <BarChart2 className="w-10 h-10 text-[var(--muted-foreground)]/30 mx-auto" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No dashboard widgets yet</p>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Add query results or charts to your dashboard for quick visualization</p>
+                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No dashboard widgets yet</p>
+                                    <p className="text-[13px] font-medium text-[var(--muted-foreground)]/50">Add query results or charts to your dashboard for quick visualization</p>
                                 </div>
                             </div>
                         ) : (
@@ -2022,8 +2022,8 @@ runQuery();`;
                             <div className="py-8 text-center space-y-4 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <History className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query history is empty</p>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]/50">Your recently executed queries will appear here</p>
+                                    <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Query history is empty</p>
+                                    <p className="text-[13px] font-medium text-[var(--muted-foreground)]/50">Your recently executed queries will appear here</p>
                                 </div>
                             </div>
                         ) : (
@@ -2040,7 +2040,7 @@ runQuery();`;
                                             </div>
                                             <div className="space-y-1 flex-1">
                                                 <div className="flex items-center gap-3">
-                                                    <code className="text-[10px] font-mono text-[var(--foreground)] line-clamp-1">{h.query}</code>
+                                                    <code className="text-[12px] font-mono text-[var(--foreground)] line-clamp-1">{h.query}</code>
                                                     {h.error && <span className="text-[10px] font-bold uppercase bg-[var(--error)]/10 text-[var(--error)] px-1 rounded">Error</span>}
                                                 </div>
                                                 <div className="flex items-center gap-3">
@@ -2147,7 +2147,7 @@ runQuery();`;
                                       <div key={i} className="p-2 rounded bg-[var(--background)] border border-[var(--border)] flex items-center justify-between group">
                                           <div className="flex items-center gap-3 overflow-hidden">
                                               <span className="text-[10px] font-bold text-[var(--muted-foreground)] bg-[var(--muted)]/20 px-1.5 py-0.5 rounded shrink-0">{h.count}X</span>
-                                              <code className="text-[10px] font-mono truncate text-[var(--foreground)]">{h.query}</code>
+                                              <code className="text-[12px] font-mono truncate text-[var(--foreground)]">{h.query}</code>
                                           </div>
                                           <div className="flex items-center gap-3 shrink-0">
                                               <span className="text-[10px] font-bold text-[var(--error)]">{h.avgLatency}ms</span>
@@ -2332,7 +2332,7 @@ runQuery();`;
                                                             setQuery(`{ "collection": "${item}", "limit": 10 }`);
                                                         }
                                                     }}
-                                                    className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[10px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
+                                                    className="px-2 py-1 rounded bg-[var(--background)] border border-[var(--border)] text-[12px] font-mono hover:border-[var(--primary)] transition-colors flex items-center gap-2 group"
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <span className={cn(
@@ -2370,7 +2370,7 @@ runQuery();`;
                                                     {entity.fields.map(field => (
                                                         <div key={field.name} className="flex flex-col gap-1 p-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] group/col-item relative">
                                                             <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-mono font-bold">{field.name}</span>
+                                                                <span className="text-[12px] font-mono font-bold">{field.name}</span>
                                                                 <span className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] opacity-60 px-1 rounded bg-[var(--background)]">{field.type}</span>
                                                                 {field.frequency < 1 && (
                                                                     <span className="text-[10px] font-bold text-[var(--warning)] opacity-80" title="Optional field">
@@ -2404,14 +2404,14 @@ runQuery();`;
                                                         }
                                                     }}
                                                     placeholder="ADD TABLE DESCRIPTION..."
-                                                    className="w-full bg-transparent border-none text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4 pl-5"
+                                                    className="w-full bg-transparent border-none text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4 pl-5"
                                                 />
                                                 <div className="flex flex-wrap gap-1.5 pl-5">
                                                     {cols.map(c => (
                                                         <div key={c.name} className="flex flex-col gap-1 p-2 rounded bg-[var(--muted)]/20 border border-[var(--border)] group/col-item relative">
                                                             <div className="flex items-center justify-between gap-4">
                                                                 <div className="flex items-center gap-1">
-                                                                    <span className="text-[10px] font-mono font-bold">{c.name}</span>
+                                                                    <span className="text-[12px] font-mono font-bold">{c.name}</span>
                                                                     {c.isPrimary && <span className="text-[10px] font-bold text-[var(--primary)] mr-0.5">PK</span>}
                                                                     {c.isForeign && <span className="text-[10px] font-bold text-[var(--success)] mr-0.5">FK</span>}
                                                                     {c.indices && c.indices.map(idx => (
@@ -2449,7 +2449,7 @@ runQuery();`;
                                                                         }
                                                                     }}
                                                                     placeholder="ADD COLUMN DESCRIPTION..."
-                                                                    className="w-full bg-transparent border-none text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4"
+                                                                    className="w-full bg-transparent border-none text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider placeholder:text-[var(--muted-foreground)]/30 focus:outline-none focus:ring-0 p-0 h-4"
                                                                 />
                                                                 {isSavingDoc === `column_${table}.${c.name}` && (
                                                                     <Loader2 className="absolute right-0 top-0 w-2.5 h-2.5 animate-spin text-[var(--primary)]" />
@@ -2496,7 +2496,7 @@ runQuery();`;
                                     setCurrentPage(1);
                                 }}
                                 placeholder="FILTER RESULTS LOCALLY..."
-                                className="h-8 border-none bg-transparent focus-visible:ring-0 text-[10px] font-bold uppercase tracking-wider placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                className="h-8 border-none bg-transparent focus-visible:ring-0 text-[10px] font-bold uppercase tracking-wider placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
                             {filterQuery && (
                                 <Button
@@ -2681,7 +2681,7 @@ runQuery();`;
                                         "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase",
                                         planDrift.impact === 'high' ? "bg-[var(--error)] text-[var(--error-foreground)]" : "bg-[var(--warning)] text-[var(--warning-foreground)]"
                                     )}>{planDrift.impact} IMPACT</span>
-                                    <p className="text-[10px] font-bold uppercase text-[var(--foreground)]">{planDrift.reason}</p>
+                                    <p className="text-[13px] font-bold uppercase text-[var(--foreground)]">{planDrift.reason}</p>
                                 </div>
                             </div>
                         )}
@@ -2796,7 +2796,7 @@ runQuery();`;
                                 </>
                             ) : (
                                 <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/10 p-4">
-                                    <pre className="text-[10px] font-mono text-[var(--foreground)]">
+                                    <pre className="text-[12px] font-mono text-[var(--foreground)]">
                                         {JSON.stringify(results, null, 2)}
                                     </pre>
                                 </div>
@@ -2807,7 +2807,7 @@ runQuery();`;
 
                 <div className="p-4 bg-[var(--info-bg)] border border-[var(--info)]/20 rounded-xl flex items-start gap-3">
                     <Database className="w-4 h-4 text-[var(--info)] shrink-0 mt-0.5" />
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] leading-relaxed">
+                    <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                         Data Lab uses a secure proxy to execute read-only commands against your connected infrastructure. Your credentials never leave our VPC.
                     </p>
                 </div>
@@ -2822,14 +2822,14 @@ runQuery();`;
                                 <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                                     <Terminal className="w-4 h-4 text-[var(--primary)]" />
                                 </div>
-                                <h3 className="text-[10px] font-bold">Audit Query Source</h3>
+                                <h3 className="text-[14px] font-bold">Audit Query Source</h3>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => setViewingAuditQuery(null)} className="h-8 w-8">
                                 <X className="w-4 h-4" />
                             </Button>
                         </div>
                         <div className="p-6">
-                            <div className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl font-mono text-[10px] font-bold max-h-96 overflow-y-auto custom-scrollbar">
+                            <div className="p-4 bg-[var(--card)] border border-[var(--border)] rounded-xl font-mono text-[12px] font-bold max-h-96 overflow-y-auto custom-scrollbar">
                                 <pre className="whitespace-pre-wrap break-all text-[var(--foreground)]/80 leading-relaxed">
                                     {viewingAuditQuery}
                                 </pre>
@@ -2874,7 +2874,7 @@ runQuery();`;
                                 <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                                     {isCloning ? <Copy className="w-4 h-4 text-[var(--primary)]" /> : <Save className="w-4 h-4 text-[var(--primary)]" />}
                                 </div>
-                                <h3 className="text-[10px] font-bold">{isCloning ? 'Clone Query' : 'Save Query'}</h3>
+                                <h3 className="text-[14px] font-bold">{isCloning ? 'Clone Query' : 'Save Query'}</h3>
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => {
                                 setShowSaveModal(false);
@@ -2891,14 +2891,14 @@ runQuery();`;
                                     value={newQueryName}
                                     onChange={(e) => setNewQueryName(e.target.value)}
                                     placeholder="E.G. ACTIVE USERS"
-                                    className="placeholder:text-[10px] font-bold"
+                                    className="placeholder:text-[12px] font-bold"
                                     autoFocus
                                 />
                             </div>
                             <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                                 <div className="space-y-0.5">
                                     <Label className="text-[10px] font-bold uppercase tracking-wider">Share with Team</Label>
-                                    <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)]/60">Allow other team members to use this query</p>
+                                    <p className="text-[13px] font-medium text-[var(--muted-foreground)]/60">Allow other team members to use this query</p>
                                 </div>
                                 <input
                                     type="checkbox"
@@ -2909,7 +2909,7 @@ runQuery();`;
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">SQL/JSON Code</Label>
-                                <pre className="p-3 bg-[var(--muted)]/20 rounded-xl text-[10px] font-mono line-clamp-4 text-[var(--muted-foreground)]">
+                                <pre className="p-3 bg-[var(--muted)]/20 rounded-xl text-[12px] font-mono line-clamp-4 text-[var(--muted-foreground)]">
                                     {query}
                                 </pre>
                             </div>
@@ -3084,7 +3084,7 @@ function DashboardWidget({ widget, projectId }: { widget: { id: string, name: st
                 <thead>
                     <tr className="bg-[var(--muted)]/20 border-b border-[var(--border)]">
                         {columns.map(col => (
-                            <th key={col} className="p-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                            <th key={col} className="p-2 text-[11px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                 {col}
                             </th>
                         ))}
@@ -3094,7 +3094,7 @@ function DashboardWidget({ widget, projectId }: { widget: { id: string, name: st
                     {results.slice(0, 5).map((row, i) => (
                         <tr key={i} className="border-b border-[var(--border)] last:border-0">
                             {columns.map(col => (
-                                <td key={col} className="p-2 text-[10px] font-mono truncate max-w-[120px]">
+                                <td key={col} className="p-2 text-[13px] font-mono truncate max-w-[120px]">
                                     {typeof row[col] === 'object' ? '{...}' : String(row[col])}
                                 </td>
                             ))}

@@ -144,7 +144,7 @@ export default function CompareDeploymentsPage() {
                     </div>
                     <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Analysis</span>
-                        <h1 className="text-[10px] font-bold tracking-tight">Compare Deployments</h1>
+                        <h1 className="text-[22px] font-bold tracking-tight">Compare Deployments</h1>
                     </div>
                 </div>
             </div>
@@ -158,7 +158,7 @@ export default function CompareDeploymentsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Base Deployment</span>
-                            <h3 className="text-[10px] font-bold">Previous Version</h3>
+                            <h3 className="text-[14px] font-bold">Previous Version</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -196,7 +196,7 @@ export default function CompareDeploymentsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Target Deployment</span>
-                            <h3 className="text-[10px] font-bold">New Version</h3>
+                            <h3 className="text-[14px] font-bold">New Version</h3>
                         </div>
                     </div>
                     <Separator className="bg-[var(--border)]" />
@@ -236,7 +236,7 @@ export default function CompareDeploymentsPage() {
                         </div>
                         <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Performance Metrics</span>
-                            <h3 className="text-[10px] font-bold">Comparison Results</h3>
+                            <h3 className="text-[14px] font-bold">Comparison Results</h3>
                         </div>
                     </div>
                     <div className="divide-y divide-[var(--border)]">
@@ -325,7 +325,7 @@ function DeploymentSummary({ deployment }: { deployment: Deployment }) {
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                    <h3 className="text-[10px] font-bold text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
+                    <h3 className="text-[14px] font-bold text-[var(--foreground)] truncate">{deployment.gitCommitMessage}</h3>
                     <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mt-1">
                         <GitBranch className="w-3.5 h-3.5" />
                         <span className="font-mono text-[var(--foreground)]">{deployment.gitBranch}</span>
@@ -356,8 +356,8 @@ function ComparisonRow({ label, baseValue, targetValue }: { label: string, baseV
     return (
         <div className="grid grid-cols-3 px-6 py-4 items-center hover:bg-[var(--card-hover)] transition-colors group">
             <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{label}</div>
-            <div className="text-[10px] font-mono font-bold">{baseValue}</div>
-            <div className="text-[10px] font-mono font-bold flex items-center gap-2">
+            <div className="text-[12px] font-mono font-bold">{baseValue}</div>
+            <div className="text-[12px] font-mono font-bold flex items-center gap-2">
                 {targetValue}
                 <ArrowRight className="w-3.5 h-3.5 text-[var(--muted-foreground)] opacity-0 group-hover:opacity-20 transition-opacity ml-auto" />
             </div>

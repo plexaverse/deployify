@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { checkProjectAccess } from '@/middleware/rbac';
 import { getDatabaseLogs } from '@/lib/gcp/monitoring';
@@ -51,7 +52,7 @@ export async function GET(
             return NextResponse.json({ success: false, error: 'Log streaming only supported for Cloud SQL' }, { status: 400 });
         }
 
-        const instanceId = (storageConfig.metadata?.resourceName as string) || storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+        const instanceId = requireManagedResourceName(storageConfig);
         const gcpProjectId = (storageConfig.metadata?.projectId as string) || (storageConfig.providerProjectId as string);
 
         const logs = await getDatabaseLogs(instanceId, {

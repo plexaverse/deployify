@@ -37,7 +37,7 @@ export function UsageGauge({
                     <div className="p-2 bg-[var(--card-hover)] rounded-md">
                         {icon}
                     </div>
-                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{title}</h3>
+                    <h3 className="text-[14px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">{title}</h3>
                 </div>
 
                 <div className="mt-8 relative flex items-center justify-center">

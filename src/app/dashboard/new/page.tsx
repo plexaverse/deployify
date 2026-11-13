@@ -103,7 +103,7 @@ export default function NewProjectPage() {
                         </div>
                         <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Git Connectivity</span>
-                            <h1 className="text-[10px] font-bold tracking-tight">Import Repository</h1>
+                            <h1 className="text-[22px] font-bold tracking-tight">Import Repository</h1>
                         </div>
                     </div>
                 </div>
@@ -202,7 +202,7 @@ export default function NewProjectPage() {
                                         {/* Repo info */}
                                         <div className="relative z-10 flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <h3 className="text-[10px] font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
+                                                <h3 className="text-[14px] font-bold text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors truncate">
                                                     {repo.full_name.toUpperCase()}
                                                 </h3>
                                                 {repo.private && (
@@ -211,7 +211,7 @@ export default function NewProjectPage() {
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate mt-0.5">
+                                            <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] truncate mt-0.5">
                                                 {repo.description || 'No description'}
                                             </p>
                                             <div className="flex items-center gap-4 mt-2 text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
@@ -257,7 +257,7 @@ export default function NewProjectPage() {
                     {filteredRepos.length === 0 && !loading && (
                         <Card className="overflow-hidden p-0">
                             <div className="text-center py-12">
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                <p className="text-[13px] font-medium text-[var(--muted-foreground)]">
                                     {search ? 'No repositories match your search' : 'No repositories found'}
                                 </p>
                             </div>

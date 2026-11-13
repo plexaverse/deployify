@@ -131,7 +131,7 @@ export function RbacModal({ isOpen, onClose, storage, projectId }: RbacModalProp
                     <div className="flex items-center justify-between p-4 border border-[var(--border)] rounded-xl bg-[var(--muted)]/5">
                         <div className="space-y-0.5">
                             <Label htmlFor="rbac-toggle" className="text-[10px] font-bold cursor-pointer">Enable RBAC Enforcement</Label>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Apply masking and filtering rules to Data Lab queries</p>
+                            <p className="text-[13px] font-medium text-[var(--muted-foreground)]">Apply masking and filtering rules to Data Lab queries</p>
                         </div>
                         <input
                             id="rbac-toggle"
@@ -164,7 +164,7 @@ export function RbacModal({ isOpen, onClose, storage, projectId }: RbacModalProp
                         ) : settings.rules.length === 0 ? (
                             <div className="py-12 text-center border border-dashed border-[var(--border)] rounded-2xl bg-[var(--muted)]/5">
                                 <ShieldCheck className="w-8 h-8 text-[var(--muted-foreground)]/30 mx-auto mb-3" />
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No RBAC rules defined</p>
+                                <p className="text-[13px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">No RBAC rules defined</p>
                             </div>
                         ) : (
                             <div className="max-h-96 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
@@ -260,7 +260,7 @@ export function RbacModal({ isOpen, onClose, storage, projectId }: RbacModalProp
 
                     <div className="p-3 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl flex items-start gap-2">
                         <AlertCircle className="w-3.5 h-3.5 text-[var(--primary)] shrink-0 mt-0.5" />
-                        <p className="text-[10px] font-bold uppercase text-[var(--muted-foreground)] leading-relaxed">
+                        <p className="text-[13px] font-medium text-[var(--muted-foreground)] leading-relaxed">
                             RBAC policies are applied server-side by the Data Lab proxy. Full masking replaces data with asterisks, while hashing provides a stable unique representation.
                         </p>
                     </div>

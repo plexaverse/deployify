@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitizeClientMetadata } from '@/lib/storage-metadata';
+import { resolveManagedResourceName, UNBOUND_RESOURCE_ERROR, requireManagedResourceName } from '@/lib/gcp/resource-ownership';
 import { getSession } from '@/lib/auth';
 import { updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
@@ -12,12 +14,15 @@ import { createSpannerInstance, deleteInstance as deleteSpannerInstance } from '
 import { createDataset as createBigQueryDataset, deleteDataset as deleteBigQueryDataset } from '@/lib/gcp/bigquery-admin';
 import { deriveTopology } from '@/lib/gcp/topology';
 import { config } from '@/lib/config';
+import { checkStorageProvisionGate } from '@/lib/billing/provision-gate';
 import type { StorageConfig } from '@/types';
 
 // Generate unique ID for storage configs
 function generateStorageId(): string {
     return `storage_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 8)}`;
 }
+
+
 
 // GET - List all storage configurations for a project
 export async function GET(
@@ -83,7 +88,7 @@ export async function POST(
         const { project } = access;
         const body = await request.json();
         const { type, name, environment = 'both', connectionString, envKey, branchingSettings, autoMigration, migrationCommand, provision = false, region, providerApiKey, dbPassword, providerProjectId, autoMaintenanceWindow } = body;
-        let metadata = body.metadata;
+        let metadata = sanitizeClientMetadata(body.metadata, `POST project ${id}`);
 
         // autoSync and secretOnly can be passed at top level or inside metadata
         const autoSync = body.autoSync || metadata?.autoSync || false;
@@ -105,6 +110,19 @@ export async function POST(
          * Standard Provisioning Flow
          */
         if (provision) {
+            // Plan gate: machine tier allowlist + per-account instance quota. No-op unless
+            // STORAGE_PROVISION_GATE_MODE=enforce; see src/lib/billing/provision-gate.ts.
+            const gate = await checkStorageProvisionGate({
+                ownerUserId: project.userId,
+                storageType: type,
+                requestedTier: metadata?.tier,
+                requestedHighAvailability: metadata?.highAvailability,
+                createsNewInstance: true,
+            });
+            if (gate.blocked) {
+                return NextResponse.json({ error: gate.message }, { status: gate.status || 400 });
+            }
+
             const targetRegion = region || project.region || 'us-central1';
 
             // Backend Regional Alignment Enforcement
@@ -113,7 +131,13 @@ export async function POST(
             }
 
             status = 'provisioning';
-            resourceName = name.toLowerCase().replace(/\s+/g, '-');
+            // Candidate name for the GCP create call. It is NOT ownership: it is derived from
+            // the free-text display name, so it is only promoted to metadata.resourceName below
+            // once a resource was actually provisioned. Persisting it unconditionally let a
+            // tenant launder a victim's instance name through the server into a key that
+            // resolveOwnedResourceNames() trusts.
+            const candidateResourceName = name.toLowerCase().replace(/\s+/g, '-');
+            resourceName = candidateResourceName;
 
             try {
                 let provisionResult;
@@ -172,6 +196,14 @@ export async function POST(
                     }
                 }
                 operationName = provisionResult?.operationName;
+
+                // Only a real provision earns a server-owned resourceName. Types that fall
+                // through the dispatch above (mongodb-atlas, planetscale, generic, ...) make no
+                // GCP call, so they must not claim a GCP resource name.
+                if (!provisionResult) {
+                    console.warn(`[Storage] No provisioner for type "${type}"; not recording a GCP resourceName for connector "${name}".`);
+                    resourceName = undefined;
+                }
             } catch (error) {
                 console.error('Provisioning failed:', error);
                 return NextResponse.json({ error: `Provisioning failed: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
@@ -319,7 +351,12 @@ export async function DELETE(
         // 1. Delete actual GCP Resource if requested and provisioned
         if (deleteResource && storageConfig.metadata?.provisioned) {
             try {
-                const resourceName = (storageConfig.metadata?.resourceName as string) || storageConfig.name.toLowerCase().replace(/\s+/g, '-');
+                // SECURITY: display-name fallback removed - a PATCH could otherwise point this
+                // delete at another tenant's instance.
+                const resourceName = resolveManagedResourceName(storageConfig);
+                if (!resourceName) {
+                    throw new Error(UNBOUND_RESOURCE_ERROR);
+                }
                 const region = (storageConfig.metadata?.region as string) || project.region || 'us-central1';
 
                 if (storageConfig.type.includes('cloud-sql')) {
@@ -337,16 +374,45 @@ export async function DELETE(
                     await deleteBigQueryDataset(resourceName);
                 }
             } catch (error) {
+                const msg = error instanceof Error ? error.message : String(error);
+
+                // An UNBOUND connector means we do not know WHICH GCP resource this is.
+                // Proceeding would delete the Firestore doc, the secret and the UI row while
+                // leaving a live, still-billing instance with nothing left to manage it.
+                // Refuse instead, and tell the user how to proceed.
+                if (msg === UNBOUND_RESOURCE_ERROR) {
+                    console.error(`[Storage] Refusing to delete connector ${storageId}: not bound to a known GCP resource.`);
+                    return NextResponse.json({
+                        error: 'This connector is not bound to a Deployify-provisioned resource, so the cloud resource cannot be identified. Run Sync to adopt it, or delete the connector without "also destroy the resource" and remove the resource manually.',
+                        code: 'UNBOUND_RESOURCE'
+                    }, { status: 409 });
+                }
+
+                // A genuine GCP failure (already deleted, transient API error) still falls
+                // through to local cleanup, as before.
                 console.error('Failed to delete GCP resource:', error);
-                // We continue with local deletion even if resource deletion fails,
-                // but we could also return an error if strictness is required.
             }
         }
 
-        // 2. Delete from Secret Manager if applicable
+        // 2. Delete from Secret Manager if applicable.
+        // Both secrets, not just the connection string: the provider API key
+        // (`-apikey`, written at creation for neon/supabase/planetscale) was never cleaned
+        // up, leaving a live third-party credential in Secret Manager with no connector
+        // referencing it. Failures are logged, not fatal — the connector must still be
+        // removable if Secret Manager is unavailable.
         if (storageConfig.connectionStringSecretId) {
-            const secretId = `deployify-${id}-${storageId}-conn`;
-            await deleteSecret(secretId);
+            try {
+                await deleteSecret(`deployify-${id}-${storageId}-conn`);
+            } catch (e) {
+                console.error(`[Storage] Failed to delete connection secret for ${storageId}:`, e);
+            }
+        }
+        if (storageConfig.providerApiKeySecretId) {
+            try {
+                await deleteSecret(`deployify-${id}-${storageId}-apikey`);
+            } catch (e) {
+                console.error(`[Storage] Failed to delete provider API key secret for ${storageId}:`, e);
+            }
         }
 
         // 3. Remove from Project in Firestore
@@ -395,7 +461,8 @@ export async function PATCH(
 
         const { project } = access;
         const body = await request.json();
-        const { storageId, type, name, environment, connectionString, envKey, metadata, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled, providerProjectId, autoMaintenanceWindow } = body;
+        const { storageId, type, name, environment, connectionString, envKey, branchingSettings, autoMigration, migrationCommand, providerApiKey, connectionPoolerEnabled, providerProjectId, autoMaintenanceWindow } = body;
+        const metadata = sanitizeClientMetadata(body.metadata, `PATCH project ${id} storage ${body.storageId}`);
         const secretOnly = body.secretOnly !== undefined ? body.secretOnly : metadata?.secretOnly;
 
         if (!storageId) {
@@ -435,8 +502,23 @@ export async function PATCH(
 
         // Handle Scaling (GCP Resource Update)
         if (storage.metadata?.provisioned && metadata) {
-            const resourceName = (storage.metadata?.resourceName as string) || storage.name.toLowerCase().replace(/\s+/g, '-');
+            const resourceName = requireManagedResourceName(storage);
             const region = (storage.metadata?.region as string) || project.region || 'us-central1';
+
+            // Same gate as POST, minus the quota: scaling never adds an instance. Resubmitting
+            // the tier already stored on this config is always allowed, so adopted instances
+            // whose real tier is off-allowlist keep working.
+            const gate = await checkStorageProvisionGate({
+                ownerUserId: project.userId,
+                storageType: storage.type,
+                requestedTier: metadata.tier,
+                currentTier: storage.metadata?.tier,
+                requestedHighAvailability: metadata.highAvailability,
+                createsNewInstance: false,
+            });
+            if (gate.blocked) {
+                return NextResponse.json({ error: gate.message }, { status: gate.status || 400 });
+            }
 
             try {
                 if (storage.type.includes('cloud-sql')) {

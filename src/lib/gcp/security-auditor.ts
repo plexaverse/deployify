@@ -6,6 +6,11 @@ export interface SecurityRisk {
     title: string;
     description: string;
     remediation: string;
+    /**
+     * False when the platform cannot fix this automatically and an operator must act.
+     * The UI should render it as informational rather than offering a FIX button.
+     */
+    actionable?: boolean;
 }
 
 export interface SecurityPosture {
@@ -175,26 +180,47 @@ export function checkSecurityPosture(
     // 9. Zero-Trust: Over-privileged Service Account (Phase 123)
     if (iamPosture?.overprivileged || metadata?.iamOverprivileged) {
         const roles = iamPosture?.excessiveRoles || (metadata?.excessiveRoles as string[]) || [];
+        // Project-level roles on the SHARED platform service account cannot be revoked
+        // automatically (see SELF_LOCKOUT_ROLES in iam.ts — stripping them breaks every
+        // tenant). Once remediation has run and deferred the revoke, keep reporting the
+        // posture but stop presenting it as a one-click fix, otherwise the button is a dead
+        // loop: click, success toast, badge unchanged on the next sync.
+        const deferred = !!metadata?.iamHardeningDeferred;
         risks.push({
             id: 'overprivileged_service_account',
-            level: 'critical',
-            title: 'Over-privileged Service Account',
-            description: `The service account has excessive project-level roles: ${roles.join(', ')}. This violates Zero-Trust principles.`,
-            remediation: 'Run "IAM Hardening" to revoke excessive roles and grant minimum required permissions.'
+            level: deferred ? 'medium' : 'critical',
+            title: deferred
+                ? 'Over-privileged Service Account (operator action required)'
+                : 'Over-privileged Service Account',
+            description: deferred
+                ? `The shared platform service account holds project-level roles: ${roles.join(', ')}. Granular, resource-level access has been granted for this connector; removing the project-level roles is an operator action because the account is shared by every tenant.`
+                : `The service account has excessive project-level roles: ${roles.join(', ')}. This violates Zero-Trust principles.`,
+            remediation: deferred
+                ? 'An operator must remove these roles from the shared platform service account, or opt specific roles into automated revocation via IAM_REMEDIATION_EXTRA_REVOCABLE_ROLES.'
+                : 'Run "IAM Hardening" to revoke excessive roles and grant minimum required permissions.',
+            ...(deferred ? { actionable: false } : {})
         });
-        score -= 30;
+        score -= deferred ? 10 : 30;
     }
 
     // 10. Zero-Trust: Broad Secret Access (Phase 124)
     if (metadata?.broadSecretAccess) {
+        const deferred = !!metadata?.iamHardeningDeferred;
         risks.push({
             id: 'broad_secret_access',
-            level: 'high',
-            title: 'Broad Secret Manager Access',
-            description: 'The service account has broad access to all secrets in the project.',
-            remediation: 'Restrict IAM permissions to only the specific secrets required by this connector.'
+            level: deferred ? 'medium' : 'high',
+            title: deferred
+                ? 'Broad Secret Manager Access (operator action required)'
+                : 'Broad Secret Manager Access',
+            description: deferred
+                ? 'Granular, resource-level access has been granted for this connector\'s secrets. The shared platform service account still holds project-level Secret Manager roles; removing them is an operator action because every tenant depends on that account.'
+                : 'The service account has broad access to all secrets in the project.',
+            remediation: deferred
+                ? 'An operator must remove the project-level Secret Manager roles from the shared platform service account.'
+                : 'Restrict IAM permissions to only the specific secrets required by this connector.',
+            ...(deferred ? { actionable: false } : {})
         });
-        score -= 20;
+        score -= deferred ? 5 : 20;
     }
 
     // 11. Public Access Risk (Simplified)

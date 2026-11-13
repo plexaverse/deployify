@@ -306,6 +306,15 @@ export async function DELETE(
             );
         }
 
+        // Viewers have read-only access. Every other handler in this route already
+        // enforces this; DELETE was the one that did not.
+        if (access.role === 'viewer') {
+            return NextResponse.json(
+                { error: 'Forbidden: Viewers cannot delete environment variables' },
+                { status: 403 }
+            );
+        }
+
         const { project } = access;
 
         const { searchParams } = new URL(request.url);
