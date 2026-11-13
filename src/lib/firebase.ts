@@ -59,6 +59,23 @@ export function getDb(): Firestore {
             app = initializeFirebase();
         }
         db = getFirestore(app);
+
+        // firebase-admin rejects any payload containing an `undefined` field value,
+        // at any depth -- including nested inside maps and array elements. Several
+        // write sites use `field: undefined` to mean "omit this field", and
+        // cleanFirestoreData() only strips top-level keys, so nested undefined would
+        // otherwise throw and get swallowed by the surrounding try/catch.
+        //
+        // getFirestore() caches one instance per app, and settings() throws if called
+        // twice or after the instance has been used. That happens when this module is
+        // re-evaluated (dev-server HMR) while the underlying app persists, so failing
+        // to apply the setting must never break getDb() itself.
+        try {
+            db.settings({ ignoreUndefinedProperties: true });
+        } catch {
+            // Already initialized by an earlier module instance -- the setting is
+            // carried by that same cached instance, so there is nothing to do.
+        }
     }
     return db;
 }

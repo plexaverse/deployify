@@ -56,7 +56,7 @@ interface BuildSubmissionConfig {
     gitToken?: string; // GitHub OAuth token for private repo cloning
     projectRegion?: string | null; // Per-project region, falls back to config.gcp.region if not set
     framework?: string;
-    buildTimeout?: number;
+    buildTimeout?: number | null;
     healthCheckPath?: string;
     resources?: {
         cpu?: number;

@@ -16,6 +16,7 @@ import { getProjectSlugForDeployment, validateRootDirectory, isValidGcpRegion } 
 import { checkComputeResourceGate } from '@/lib/billing/compute-gate';
 import { CronJobConfig, Project } from '@/types';
 
+
 interface RouteParams {
     params: Promise<{ id: string }>;
 }
@@ -175,19 +176,24 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         // Validate buildTimeout
         if (updates.buildTimeout !== undefined) {
-            const timeout = Number(updates.buildTimeout);
-            // Upper bound matters as much as the lower one: builds are billed per minute
-            // against the platform's own Cloud Build quota, and the usage caps count builds,
-            // not build minutes. Without a ceiling a tenant sets 86400 and runs 24-hour
-            // builds for free. MAX_BUILD_TIMEOUT_SECONDS raises it for a specific deployment.
-            const maxTimeout = Number(process.env.MAX_BUILD_TIMEOUT_SECONDS || 3600);
-            if (isNaN(timeout) || timeout <= 0 || timeout > maxTimeout) {
-                return NextResponse.json(
-                    { error: `Build timeout must be a positive number of seconds, at most ${maxTimeout}` },
-                    { status: 400, headers: securityHeaders }
-                );
+            // An empty value clears the override so builds fall back to the platform default.
+            if (updates.buildTimeout === null || updates.buildTimeout === '') {
+                updates.buildTimeout = null;
+            } else {
+                const timeout = Number(updates.buildTimeout);
+                // Upper bound matters as much as the lower one: builds are billed per minute
+                // against the platform's own Cloud Build quota, and the usage caps count builds,
+                // not build minutes. Without a ceiling a tenant sets 86400 and runs 24-hour
+                // builds for free. MAX_BUILD_TIMEOUT_SECONDS raises it for a specific deployment.
+                const maxTimeout = Number(process.env.MAX_BUILD_TIMEOUT_SECONDS || 3600);
+                if (isNaN(timeout) || timeout <= 0 || timeout > maxTimeout) {
+                    return NextResponse.json(
+                        { error: `Build timeout must be a positive number of seconds, at most ${maxTimeout}` },
+                        { status: 400, headers: securityHeaders }
+                    );
+                }
+                updates.buildTimeout = timeout;
             }
-            updates.buildTimeout = timeout;
         }
 
         // Validate autodeployBranches
