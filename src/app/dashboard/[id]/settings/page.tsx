@@ -33,6 +33,7 @@ export default function ProjectSettingsPage() {
         rootDirectory,
         outputDirectory,
         framework,
+        buildTimeout,
         webhookUrl,
         emailNotifications,
         autoDeployPrs,
@@ -271,6 +272,22 @@ export default function ProjectSettingsPage() {
                                 />
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
                                     The command used to install dependencies.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="build-timeout" className="text-[10px] font-bold">Build Timeout (Seconds)</Label>
+                                <Input
+                                    id="build-timeout"
+                                    type="number"
+                                    min={1}
+                                    max={86400}
+                                    value={buildTimeout}
+                                    onChange={(e) => setProjectSettingsField('buildTimeout', e.target.value)}
+                                    placeholder="1800"
+                                    className="placeholder:text-[10px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                />
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">
+                                    How long a build may run before it is aborted. Leave empty for the default of 1800s (30 minutes).
                                 </p>
                             </div>
                         </div>

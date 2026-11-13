@@ -21,6 +21,7 @@ export interface ProjectSlice {
     rootDirectory: string;
     outputDirectory: string;
     framework: string;
+    buildTimeout: string;
     webhookUrl: string;
     emailNotifications: boolean;
     autoDeployPrs: boolean;
@@ -127,6 +128,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     rootDirectory: '',
     outputDirectory: '',
     framework: '',
+    buildTimeout: '',
     webhookUrl: '',
     emailNotifications: false,
     autoDeployPrs: true,
@@ -185,6 +187,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                     rootDirectory: project.rootDirectory || '',
                     outputDirectory: project.outputDirectory || '',
                     framework: project.framework || 'nextjs',
+                    buildTimeout: project.buildTimeout != null ? String(project.buildTimeout) : '',
                     webhookUrl: project.webhookUrl || '',
                     emailNotifications: project.emailNotifications || false,
                     autoDeployPrs: project.autoDeployPrs !== undefined ? project.autoDeployPrs : true,
@@ -257,7 +260,7 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
     },
 
     saveProjectSettings: async (projectId) => {
-        const { buildCommand, installCommand, rootDirectory, outputDirectory, framework, autoDeployPrs } = get();
+        const { buildCommand, installCommand, rootDirectory, outputDirectory, framework, autoDeployPrs, buildTimeout } = get();
         set({ isSavingProjectSettings: true });
         const toastId = toast.loading('Saving settings...');
         try {
@@ -271,6 +274,8 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
                     outputDirectory,
                     framework,
                     autoDeployPrs,
+                    // Empty clears the override so builds fall back to the platform default.
+                    buildTimeout: buildTimeout.trim() === '' ? null : Number(buildTimeout),
                 }),
             });
 

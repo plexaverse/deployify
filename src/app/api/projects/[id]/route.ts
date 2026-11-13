@@ -13,6 +13,9 @@ import { syncDeploymentStatus } from '@/lib/deployment';
 import { getProjectSlugForDeployment } from '@/lib/utils';
 import { CronJobConfig, Project } from '@/types';
 
+// Cloud Build's own ceiling for a single build.
+const MAX_BUILD_TIMEOUT_SECONDS = 86400;
+
 interface RouteParams {
     params: Promise<{ id: string }>;
 }
@@ -152,14 +155,25 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
         // Validate buildTimeout
         if (updates.buildTimeout !== undefined) {
-            const timeout = Number(updates.buildTimeout);
-            if (isNaN(timeout) || timeout <= 0) {
-                return NextResponse.json(
-                    { error: 'Build timeout must be a positive number' },
-                    { status: 400, headers: securityHeaders }
-                );
+            // An empty value clears the override so builds fall back to the platform default.
+            if (updates.buildTimeout === null || updates.buildTimeout === '') {
+                updates.buildTimeout = null;
+            } else {
+                const timeout = Number(updates.buildTimeout);
+                if (isNaN(timeout) || timeout <= 0) {
+                    return NextResponse.json(
+                        { error: 'Build timeout must be a positive number' },
+                        { status: 400, headers: securityHeaders }
+                    );
+                }
+                if (timeout > MAX_BUILD_TIMEOUT_SECONDS) {
+                    return NextResponse.json(
+                        { error: `Build timeout cannot exceed ${MAX_BUILD_TIMEOUT_SECONDS} seconds (24 hours)` },
+                        { status: 400, headers: securityHeaders }
+                    );
+                }
+                updates.buildTimeout = timeout;
             }
-            updates.buildTimeout = timeout;
         }
 
         // Validate autodeployBranches

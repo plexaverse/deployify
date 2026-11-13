@@ -131,7 +131,7 @@ export interface Project {
     productionUrl: string | null;
     region: string | null; // GCP region for Cloud Run deployment (e.g., 'us-central1', 'asia-south1')
     customDomain: string | null;
-    buildTimeout?: number; // Custom build timeout in seconds
+    buildTimeout?: number | null; // Custom build timeout in seconds; null/undefined uses the platform default
     webhookUrl?: string | null; // Webhook URL for build notifications
     emailNotifications?: boolean; // Send email notifications on deployment
     cloudArmorEnabled?: boolean; // Enable Cloud Armor WAF
