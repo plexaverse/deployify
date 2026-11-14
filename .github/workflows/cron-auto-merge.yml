@@ -1,3 +1,6 @@
+# Deployify Automated PR Merging Workflow
+# Periodically scans for approved pull requests with passing CI checks and automatically merges them.
+
 name: Cron Auto-merge PRs
 
 on:
