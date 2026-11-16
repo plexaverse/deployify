@@ -1,4 +1,5 @@
 import { config } from '@/lib/config';
+import { ensureImageRepositoryExists } from '@/lib/gcp/artifacts';
 import { getGcpAccessToken } from '@/lib/gcp/auth';
 import { getDockerfile } from '@/lib/dockerfiles';
 import { generateServiceName, sanitizeLabel } from '@/lib/utils';
@@ -631,6 +632,11 @@ export async function submitCloudBuild(
     // Use project-specific region or fall back to global config
     const region = projectRegion || config.gcp.region || process.env.GCP_REGION || 'asia-south1';
     const gcpProjectId = config.gcp.projectId || process.env.GCP_PROJECT_ID;
+
+    // The build pushes to {region}-docker.pkg.dev, and Artifact Registry repositories are
+    // regional. Without this, deploying to a region that was never bootstrapped builds the
+    // image and then fails at the push, long after the user sees the build start.
+    await ensureImageRepositoryExists(region);
 
     // Use regional endpoint for connected repositories
     // Format: /projects/{project}/locations/{location}/builds
