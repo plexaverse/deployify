@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal, Shield, Database, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Trash2, Settings, Terminal, Shield, Database, AlertCircle, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MAX_ENV_DESCRIPTION_LENGTH } from '@/lib/env-variables';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Switch } from '@/components/ui/switch';
 import { SegmentedControl } from '@/components/ui/segmented-control';
@@ -50,6 +51,7 @@ export default function ImportProjectPage() {
         newEnvValue, setNewEnvValue,
         newEnvTarget, setNewEnvTarget,
         newEnvIsSecret, setNewEnvIsSecret,
+        newEnvDescription, setNewEnvDescription,
         isDeploying, setDeploying,
         resetImportState
     } = useStore();
@@ -111,11 +113,12 @@ export default function ImportProjectPage() {
             return;
         }
 
-        setEnvVars([...envVars, { key, value: newEnvValue, target: newEnvTarget, isSecret: newEnvIsSecret }]);
+        setEnvVars([...envVars, { key, value: newEnvValue, target: newEnvTarget, isSecret: newEnvIsSecret, description: newEnvDescription.trim() }]);
         setNewEnvKey('');
         setNewEnvValue('');
         setNewEnvTarget('both');
         setNewEnvIsSecret(false);
+        setNewEnvDescription('');
     };
 
     const handleRemoveEnv = (key: string) => {
@@ -145,7 +148,8 @@ export default function ImportProjectPage() {
                         key: e.key,
                         value: e.value,
                         target: e.target,
-                        isSecret: e.isSecret
+                        isSecret: e.isSecret,
+                        description: e.description
                     })),
                     storageConfigs: storageConfigs.map(s => ({
                         name: s.name,
@@ -486,7 +490,7 @@ export default function ImportProjectPage() {
                         <div className="space-y-3">
                         {envVars.map((env) => (
                             <div key={env.key} className="flex items-center gap-2 p-3 rounded-lg bg-[var(--muted)]/10 border border-[var(--border)]">
-                                <div className="flex-1 grid grid-cols-3 gap-4 items-center">
+                                <div className="flex-1 grid grid-cols-4 gap-4 items-center">
                                     <div className="flex items-center gap-2">
                                         <span className="font-mono text-[12px] font-bold uppercase tracking-wider text-[var(--primary)]">{env.key}</span>
                                         {env.isSecret && <Shield className="w-3 h-3 text-[var(--info)]" />}
@@ -496,6 +500,12 @@ export default function ImportProjectPage() {
                                     </span>
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
                                         {(env.target === 'both' ? 'Build & Runtime' : env.target).toUpperCase()}
+                                    </span>
+                                    <span
+                                        className="text-[11px] font-medium text-[var(--muted-foreground)] truncate"
+                                        title={env.description || undefined}
+                                    >
+                                        {env.description || <span className="opacity-40">No description</span>}
                                     </span>
                                 </div>
                                 <Button
@@ -535,6 +545,26 @@ export default function ImportProjectPage() {
                             >
                                 <Plus className="w-5 h-5 mr-2" /> Add
                             </Button>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-[10px] font-bold">Description (Optional)</Label>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] tabular-nums">
+                                    {newEnvDescription.length}/{MAX_ENV_DESCRIPTION_LENGTH}
+                                </span>
+                            </div>
+                            <div className="relative">
+                                <Input
+                                    type="text"
+                                    value={newEnvDescription}
+                                    maxLength={MAX_ENV_DESCRIPTION_LENGTH}
+                                    onChange={(e) => setNewEnvDescription(e.target.value)}
+                                    placeholder="WHAT IS THIS VARIABLE FOR?"
+                                    className="pr-10 text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                />
+                                <MessageSquare className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
+                            </div>
                         </div>
 
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

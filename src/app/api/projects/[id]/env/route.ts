@@ -3,8 +3,14 @@ import { getSession } from '@/lib/auth';
 import { updateProject } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 import { checkProjectAccess } from '@/middleware/rbac';
-import { encrypt } from '@/lib/crypto';
+import { encrypt, decrypt } from '@/lib/crypto';
 import { validateConnectionString } from '@/lib/utils';
+import {
+    isDuplicateEnvKey,
+    normalizeEnvDescription,
+    resolveEnvValueUpdate,
+    validateEnvKey,
+} from '@/lib/env-variables';
 import type { EnvVariable, EnvVariableTarget } from '@/types';
 
 // Generate unique ID for env variables
@@ -82,7 +88,7 @@ export async function POST(
         const { project } = access;
 
         const body = await request.json();
-        const { key, value, isSecret = false, target = 'both', environment = 'both', group } = body;
+        const { key, value, isSecret = false, target = 'both', environment = 'both', group, description } = body;
 
         if (!key || typeof key !== 'string') {
             return NextResponse.json({ error: 'Key is required' }, { status: 400 });
@@ -93,11 +99,14 @@ export async function POST(
         }
 
         // Validate key format (uppercase letters, numbers, underscores)
-        if (!/^[A-Z][A-Z0-9_]*$/.test(key)) {
-            return NextResponse.json(
-                { error: 'Key must be uppercase and start with a letter (e.g., DATABASE_URL)' },
-                { status: 400 }
-            );
+        const keyCheck = validateEnvKey(key);
+        if (!keyCheck.valid) {
+            return NextResponse.json({ error: keyCheck.error }, { status: 400 });
+        }
+
+        const descriptionCheck = normalizeEnvDescription(description);
+        if (!descriptionCheck.valid) {
+            return NextResponse.json({ error: descriptionCheck.error }, { status: 400 });
         }
 
         // Connection string validation for common keys
@@ -112,7 +121,7 @@ export async function POST(
         const envVariables = project.envVariables || [];
 
         // Check for duplicate key
-        if (envVariables.some((env: EnvVariable) => env.key === key)) {
+        if (isDuplicateEnvKey(envVariables, key)) {
             return NextResponse.json(
                 { error: `Environment variable ${key} already exists` },
                 { status: 400 }
@@ -131,6 +140,8 @@ export async function POST(
             target: target as EnvVariableTarget,
             environment: environment as 'production' | 'preview' | 'both',
             group: group || 'General',
+            // Omitted entirely when blank, so variables without a note stay clean.
+            ...(descriptionCheck.value ? { description: descriptionCheck.value } : {}),
         };
 
         envVariables.push(newEnvVar);
@@ -197,7 +208,7 @@ export async function PUT(
         const { project } = access;
 
         const body = await request.json();
-        const { envId, key, value, isSecret, target, environment, group } = body;
+        const { envId, key, value, isSecret, target, environment, group, description } = body;
 
         if (!envId) {
             return NextResponse.json({ error: 'Environment variable ID is required' }, { status: 400 });
@@ -210,11 +221,45 @@ export async function PUT(
             return NextResponse.json({ error: 'Environment variable not found' }, { status: 404 });
         }
 
+        // Absent means "keep the stored value"; present means it must be a string,
+        // the same contract POST enforces.
+        if (value !== undefined && typeof value !== 'string') {
+            return NextResponse.json({ error: 'Value must be a string' }, { status: 400 });
+        }
+
         // Update the env variable
         const updatedEnv = { ...envVariables[envIndex] };
-        const wasEncrypted = updatedEnv.isEncrypted;
+        const wasEncrypted = Boolean(updatedEnv.isEncrypted);
 
-        if (key !== undefined) updatedEnv.key = key;
+        if (key !== undefined) {
+            // A rename goes through the same gate as a create. Without this, an
+            // update could introduce a key the deployment pipeline cannot export,
+            // or a second variable shadowing an existing name.
+            const keyCheck = validateEnvKey(key);
+            if (!keyCheck.valid) {
+                return NextResponse.json({ error: keyCheck.error }, { status: 400 });
+            }
+            if (isDuplicateEnvKey(envVariables, key, envId)) {
+                return NextResponse.json(
+                    { error: `Environment variable ${key} already exists` },
+                    { status: 400 }
+                );
+            }
+            updatedEnv.key = key;
+        }
+
+        if (description !== undefined) {
+            const descriptionCheck = normalizeEnvDescription(description);
+            if (!descriptionCheck.valid) {
+                return NextResponse.json({ error: descriptionCheck.error }, { status: 400 });
+            }
+            if (descriptionCheck.value) {
+                updatedEnv.description = descriptionCheck.value;
+            } else {
+                // An empty description clears the note rather than storing ''.
+                delete updatedEnv.description;
+            }
+        }
 
         if (isSecret !== undefined) {
             updatedEnv.isSecret = Boolean(isSecret);
@@ -231,22 +276,17 @@ export async function PUT(
                     warning = validation.error;
                 }
             }
-            updatedEnv.value = updatedEnv.isEncrypted ? encrypt(value) : value;
-        } else {
-            // If no new value is provided, but encryption state changed
-            if (!wasEncrypted && updatedEnv.isEncrypted) {
-                // Enabled encryption: encrypt current value if not already
-                if (!updatedEnv.value.startsWith('enc:')) {
-                    updatedEnv.value = encrypt(updatedEnv.value);
-                }
-            } else if (wasEncrypted && !updatedEnv.isEncrypted) {
-                // Disabled encryption: decrypt current value if encrypted
-                if (updatedEnv.value.startsWith('enc:')) {
-                    const { decrypt } = await import('@/lib/crypto');
-                    updatedEnv.value = decrypt(updatedEnv.value);
-                }
-            }
         }
+
+        updatedEnv.value = resolveEnvValueUpdate(
+            {
+                currentValue: updatedEnv.value,
+                wasEncrypted,
+                willEncrypt: Boolean(updatedEnv.isEncrypted),
+                newValue: value,
+            },
+            { encrypt, decrypt }
+        );
 
         if (target !== undefined) updatedEnv.target = target as EnvVariableTarget;
         if (environment !== undefined) updatedEnv.environment = environment as 'production' | 'preview' | 'both';

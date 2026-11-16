@@ -9,6 +9,7 @@ import { logAuditEvent } from '@/lib/audit';
 import { encrypt } from '@/lib/crypto';
 import { upsertSecret } from '@/lib/gcp/secrets';
 import { claimProjectSlug, releaseProjectSlug } from '@/lib/slug-registry';
+import { normalizeEnvDescription } from '@/lib/env-variables';
 import {
     assessRepoBinding,
     buildRepoVerification,
@@ -253,6 +254,13 @@ export async function POST(request: NextRequest) {
                 }
             }
 
+            // A description is an optional human note; an over-long or non-string one
+            // is dropped rather than failing project creation over a cosmetic field.
+            const descriptionCheck = normalizeEnvDescription(env.description);
+            if (!descriptionCheck.valid) {
+                warnings.push(`${env.key}: ${descriptionCheck.error}`);
+            }
+
             return {
                 id: generateId('env'),
                 key: env.key || '',
@@ -262,6 +270,9 @@ export async function POST(request: NextRequest) {
                 target: env.target || 'both',
                 environment: env.environment || 'both',
                 group: env.group || 'General',
+                ...(descriptionCheck.valid && descriptionCheck.value
+                    ? { description: descriptionCheck.value }
+                    : {}),
             } as EnvVariable;
         });
 

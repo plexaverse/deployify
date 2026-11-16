@@ -72,6 +72,7 @@ export interface ProjectSlice {
     // Env Var Actions
     fetchProjectEnvVariables: (projectId: string) => Promise<void>;
     addEnvVariable: (projectId: string, variable: Partial<EnvVariable>) => Promise<boolean>;
+    updateEnvVariable: (projectId: string, envId: string, updates: Partial<EnvVariable>) => Promise<boolean>;
     deleteEnvVariable: (projectId: string, envId: string) => Promise<boolean>;
     revealEnvVariable: (projectId: string, envId: string) => Promise<string | null>;
 
@@ -700,6 +701,39 @@ export const createProjectSlice: StateCreator<ProjectSlice> = (set, get) => ({
             return true;
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to add environment variable');
+            return false;
+        }
+    },
+
+    updateEnvVariable: async (projectId, envId, updates) => {
+        try {
+            const response = await fetch(`/api/projects/${projectId}/env`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ envId, ...updates }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to update environment variable');
+            }
+
+            const { projectEnvVariables } = get();
+            set({
+                projectEnvVariables: projectEnvVariables.map((env) =>
+                    env.id === envId ? data.envVariable : env
+                ),
+            });
+
+            if (data.warning) {
+                toast.error(data.warning);
+            } else {
+                toast.success('Environment variable updated');
+            }
+            return true;
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to update environment variable');
             return false;
         }
     },

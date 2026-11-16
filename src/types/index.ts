@@ -193,6 +193,7 @@ export interface EnvVariable {
     target: EnvVariableTarget; // Where the variable is used
     environment?: 'production' | 'preview' | 'both'; // Scope of the variable
     group?: string; // Optional group name (e.g., "Database", "Auth")
+    description?: string; // Optional note on what the variable is for. Never exported to the build or runtime environment.
 }
 
 // Custom domain for a project
