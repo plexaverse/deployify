@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     ArrowLeft, Search, Lock, Globe, Loader2, GitBranch, X,
     Settings, Terminal, Plus, Trash2, CheckCircle2, AlertCircle, ChevronRight,
-    Shield, ChevronDown, ChevronUp, Rocket
+    Shield, ChevronDown, ChevronUp, Rocket, MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +15,7 @@ import { BackgroundBeams } from '@/components/ui/background-beams';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MAX_ENV_DESCRIPTION_LENGTH } from '@/lib/env-variables';
 import { Button } from '@/components/ui/button';
 import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -390,12 +391,14 @@ function Step2Configure({ repo, onBack, onDeploy }: {
         target: 'both' | 'build' | 'runtime';
         isSecret: boolean;
         environment: 'both' | 'production' | 'preview';
+        description: string;
     }[]>([]);
     const [newEnvKey, setNewEnvKey] = useState('');
     const [newEnvValue, setNewEnvValue] = useState('');
     const [newEnvTarget, setNewEnvTarget] = useState<'both' | 'build' | 'runtime'>('both');
     const [newEnvIsSecret, setNewEnvIsSecret] = useState(false);
     const [newEnvEnvironment, setNewEnvEnvironment] = useState<'both' | 'production' | 'preview'>('both');
+    const [newEnvDescription, setNewEnvDescription] = useState('');
 
     const handleAddEnv = () => {
         if (!newEnvKey.trim() || !newEnvValue.trim()) return;
@@ -409,13 +412,15 @@ function Step2Configure({ repo, onBack, onDeploy }: {
             value: newEnvValue,
             target: newEnvTarget,
             isSecret: newEnvIsSecret,
-            environment: newEnvEnvironment
+            environment: newEnvEnvironment,
+            description: newEnvDescription.trim()
         }]);
         setNewEnvKey('');
         setNewEnvValue('');
         setNewEnvIsSecret(false);
         setNewEnvTarget('both');
         setNewEnvEnvironment('both');
+        setNewEnvDescription('');
     };
 
     const handleDeploy = async () => {
@@ -442,7 +447,8 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                         value: e.value,
                         target: e.target,
                         isSecret: e.isSecret,
-                        environment: e.environment
+                        environment: e.environment,
+                        description: e.description
                     }))
                 }),
             });
@@ -639,6 +645,12 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                     <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] px-2 py-0.5 rounded bg-[var(--muted)]/20 w-fit">
                                         {(env.environment === 'both' ? 'All Envs' : env.environment).toUpperCase()}
                                     </span>
+                                    <span
+                                        className="text-[11px] font-medium text-[var(--muted-foreground)] truncate"
+                                        title={env.description || undefined}
+                                    >
+                                        {env.description || <span className="opacity-40">No description</span>}
+                                    </span>
                                 </div>
                                 <Button
                                     variant="ghost"
@@ -678,6 +690,26 @@ function Step2Configure({ repo, onBack, onDeploy }: {
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add
                             </Button>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-[10px] font-bold">Description (Optional)</Label>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] tabular-nums">
+                                    {newEnvDescription.length}/{MAX_ENV_DESCRIPTION_LENGTH}
+                                </span>
+                            </div>
+                            <div className="relative">
+                                <Input
+                                    type="text"
+                                    placeholder="WHAT IS THIS VARIABLE FOR?"
+                                    value={newEnvDescription}
+                                    maxLength={MAX_ENV_DESCRIPTION_LENGTH}
+                                    onChange={(e) => setNewEnvDescription(e.target.value)}
+                                    className="pr-10 text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                />
+                                <MessageSquare className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
+                            </div>
                         </div>
 
                         <div className="flex flex-col md:flex-row md:items-start gap-8 pt-4">

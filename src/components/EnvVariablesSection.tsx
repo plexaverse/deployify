@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import {
     Plus,
+    Pencil,
     Trash2,
     Eye,
     EyeOff,
@@ -13,9 +14,11 @@ import {
     Shield,
     Folder,
     Database,
-    ArrowRight
+    ArrowRight,
+    MessageSquare
 } from 'lucide-react';
-import type { EnvVariableTarget, StorageType } from '@/types';
+import type { EnvVariable, EnvVariableTarget, StorageType } from '@/types';
+import { MAX_ENV_DESCRIPTION_LENGTH } from '@/lib/env-variables';
 import { useStore } from '@/store';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/EmptyState';
@@ -41,17 +44,24 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         isLoadingEnv: isLoading,
         fetchProjectEnvVariables,
         addEnvVariable,
+        updateEnvVariable,
         deleteEnvVariable,
         revealEnvVariable
     } = useStore();
 
     const [isAdding, setIsAdding] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [newKey, setNewKey] = useState('');
     const [newValue, setNewValue] = useState('');
     const [newIsSecret, setNewIsSecret] = useState(false);
     const [newTarget, setNewTarget] = useState<EnvVariableTarget>('both');
     const [newEnvironment, setNewEnvironment] = useState<'production' | 'preview' | 'both'>('both');
     const [newGroup, setNewGroup] = useState('General');
+    const [newDescription, setNewDescription] = useState('');
+    // An edit of a secret starts with the value field blank, because the client only
+    // ever holds a mask. Tracking whether the field was touched lets us omit `value`
+    // from the payload entirely, which tells the API to keep the stored ciphertext.
+    const [valueTouched, setValueTouched] = useState(false);
 
     const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
     const [revealedValues, setRevealedValues] = useState<Record<string, string>>({});
@@ -96,6 +106,110 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
         }
     };
 
+    const isFormOpen = isAdding || editingId !== null;
+
+    const resetForm = () => {
+        setNewKey('');
+        setNewValue('');
+        setNewIsSecret(false);
+        setNewTarget('both');
+        setNewEnvironment('both');
+        setNewDescription('');
+        setValueTouched(false);
+        setSuggestion(null);
+        setError(null);
+    };
+
+    const openAddForm = () => {
+        resetForm();
+        setEditingId(null);
+        setIsAdding(true);
+    };
+
+    const openEditForm = (env: EnvVariable) => {
+        setIsAdding(false);
+        setEditingId(env.id);
+        setNewKey(env.key);
+        // A secret's plaintext is only in hand if it was revealed; otherwise the field
+        // starts empty and a blank save keeps the stored value untouched.
+        setNewValue(env.isSecret ? (revealedValues[env.id] || '') : env.value);
+        setNewIsSecret(env.isSecret);
+        setNewTarget(env.target);
+        setNewEnvironment(env.environment || 'both');
+        setNewGroup(env.group || 'General');
+        setNewDescription(env.description || '');
+        setValueTouched(false);
+        setSuggestion(null);
+        setError(null);
+    };
+
+    const closeForm = () => {
+        resetForm();
+        setIsAdding(false);
+        setEditingId(null);
+    };
+
+    const handleUpdate = async () => {
+        if (!editingId) return;
+
+        const key = newKey.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+        if (!key) {
+            setError('Key is required');
+            return;
+        }
+
+        // Clearing the field is rejected rather than ignored. An empty value would
+        // otherwise look like "keep the current one", which is a silent no-op the
+        // user has no way to tell apart from a successful change.
+        if (valueTouched && newValue === '') {
+            setError('Value cannot be empty. Leave the field untouched to keep the current value.');
+            return;
+        }
+
+        setError(null);
+        setIsSubmitting(true);
+
+        try {
+            const updates: Partial<EnvVariable> = {
+                key,
+                isSecret: newIsSecret,
+                target: newTarget,
+                environment: newEnvironment,
+                group: newGroup || 'General',
+                // Always sent: '' is how the API is told to clear an existing note.
+                description: newDescription.trim(),
+            };
+
+            // Omitted unless the user actually typed a value, so an untouched secret
+            // keeps its stored ciphertext instead of being overwritten with a blank.
+            if (valueTouched) {
+                updates.value = newValue;
+            }
+
+            const success = await updateEnvVariable(projectId, editingId, updates);
+
+            if (success) {
+                // The stored value may have changed, so the cached plaintext is stale.
+                setRevealedValues(prev => {
+                    const next = { ...prev };
+                    delete next[editingId];
+                    return next;
+                });
+                setRevealedIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(editingId);
+                    return next;
+                });
+                closeForm();
+                if (onUpdate) onUpdate();
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const handleAdd = async () => {
         if (!newKey.trim()) {
             setError('Key is required');
@@ -127,6 +241,7 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 target: newTarget,
                 environment: newEnvironment,
                 group: newGroup || 'General',
+                description: newDescription.trim(),
             });
 
             if (success) {
@@ -134,6 +249,9 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                 setNewKey('');
                 setNewValue('');
                 setNewIsSecret(false);
+                setNewDescription('');
+                setValueTouched(false);
+                setSuggestion(null);
                 setIsAdding(false);
                 // Keep the group selection for convenience
                 if (onUpdate) onUpdate();
@@ -144,6 +262,8 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
             setIsSubmitting(false);
         }
     };
+
+    const handleSubmit = () => (editingId ? handleUpdate() : handleAdd());
 
     const handleDelete = async () => {
         if (!envToDelete) return;
@@ -220,9 +340,9 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                         <h3 className="text-[14px] font-bold">Environment Variables</h3>
                     </div>
                 </div>
-                {!isAdding && (
+                {!isFormOpen && (
                     <MovingBorderButton
-                        onClick={() => setIsAdding(true)}
+                        onClick={openAddForm}
                         containerClassName="h-10 w-36"
                         className="text-[10px] font-bold uppercase tracking-wider"
                     >
@@ -278,8 +398,14 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     </div>
                 )}
 
-                {isAdding && (
+                {isFormOpen && (
                 <div className="mb-8 p-4 border border-[var(--border)] rounded-md bg-[var(--background)] animate-fade-in">
+                    {editingId && (
+                        <div className="mb-4 pb-3 border-b border-[var(--border)]">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Editing</span>
+                            <h4 className="text-[12px] font-bold font-mono text-[var(--primary)]">{envVariables.find(e => e.id === editingId)?.key}</h4>
+                        </div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div className="space-y-2">
                             <Label className="text-[10px] font-bold">Key</Label>
@@ -296,10 +422,32 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                             <Input
                                 type={newIsSecret ? 'password' : 'text'}
                                 value={newValue}
-                                onChange={(e) => setNewValue(e.target.value)}
-                                placeholder="SECRET-VALUE"
+                                onChange={(e) => {
+                                    setValueTouched(true);
+                                    setNewValue(e.target.value);
+                                }}
+                                placeholder={editingId ? 'LEAVE BLANK TO KEEP CURRENT VALUE' : 'SECRET-VALUE'}
                                 className="font-mono text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
                             />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-[10px] font-bold">Description (Optional)</Label>
+                                <span className="text-[10px] font-bold text-[var(--muted-foreground)] tabular-nums">
+                                    {newDescription.length}/{MAX_ENV_DESCRIPTION_LENGTH}
+                                </span>
+                            </div>
+                            <div className="relative">
+                                <Input
+                                    type="text"
+                                    value={newDescription}
+                                    maxLength={MAX_ENV_DESCRIPTION_LENGTH}
+                                    onChange={(e) => setNewDescription(e.target.value)}
+                                    placeholder="WHAT IS THIS VARIABLE FOR?"
+                                    className="pr-10 text-[12px] placeholder:text-[12px] placeholder:font-bold placeholder:uppercase placeholder:tracking-wider"
+                                />
+                                <MessageSquare className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted-foreground)] pointer-events-none" />
+                            </div>
                         </div>
                         <div className="space-y-2 md:col-span-2">
                             <Label className="text-[10px] font-bold">Group (Optional)</Label>
@@ -371,19 +519,19 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                     <div className="flex justify-end gap-3">
                         <Button
                             variant="ghost"
-                            onClick={() => setIsAdding(false)}
+                            onClick={closeForm}
                             disabled={isSubmitting}
                         >
                             Cancel
                         </Button>
                         <MovingBorderButton
-                            onClick={handleAdd}
+                            onClick={handleSubmit}
                             disabled={isSubmitting}
                             loading={isSubmitting}
                             containerClassName="h-10 w-36"
                             className="text-[10px] font-bold uppercase tracking-wider"
                         >
-                            Add Variable
+                            {editingId ? 'Save Changes' : 'Add Variable'}
                         </MovingBorderButton>
                     </div>
                 </div>
@@ -433,6 +581,16 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                             </span>
                                                         )}
                                                     </div>
+                                                    {env.description && (
+                                                        <p
+                                                            // Clamped so a long note cannot stretch the row; the row's own
+                                                            // hover state (and the title) reveals the rest.
+                                                            className="mt-1 font-sans text-[11px] font-medium text-[var(--muted-foreground)] leading-snug max-w-[32ch] line-clamp-2 group-hover:line-clamp-none"
+                                                            title={env.description}
+                                                        >
+                                                            {env.description}
+                                                        </p>
+                                                    )}
                                                 </td>
                                                 <td className="py-4 px-4 text-[13px] font-mono">
                                                     <div className="flex items-center gap-2 bg-[var(--background)] border border-[var(--border)] px-2.5 py-1.5 rounded-md w-fit max-w-full overflow-hidden shadow-sm">
@@ -477,15 +635,26 @@ export function EnvVariablesSection({ projectId, onUpdate }: EnvVariablesSection
                                                     </span>
                                                 </td>
                                                 <td className="py-4 px-4 text-right">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => setEnvToDelete({ id: env.id, key: env.key })}
-                                                        className="text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] h-8 w-8 p-0"
-                                                        title="Delete environment variable"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => openEditForm(env)}
+                                                            className="text-[var(--muted-foreground)] hover:text-[var(--primary)] h-8 w-8 p-0"
+                                                            title="Edit environment variable"
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => setEnvToDelete({ id: env.id, key: env.key })}
+                                                            className="text-[var(--muted-foreground)] hover:text-[var(--error)] hover:bg-[var(--error-bg)] h-8 w-8 p-0"
+                                                            title="Delete environment variable"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

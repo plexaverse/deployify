@@ -5,6 +5,7 @@ export interface EnvVar {
     value: string;
     target: 'both' | 'build' | 'runtime';
     isSecret?: boolean;
+    description?: string;
 }
 
 export interface ImportSlice {
@@ -27,6 +28,7 @@ export interface ImportSlice {
     newEnvValue: string;
     newEnvTarget: 'both' | 'build' | 'runtime';
     newEnvIsSecret: boolean;
+    newEnvDescription: string;
     isDeploying: boolean;
 
     setProjectName: (name: string) => void;
@@ -42,6 +44,7 @@ export interface ImportSlice {
     setNewEnvValue: (value: string) => void;
     setNewEnvTarget: (target: 'both' | 'build' | 'runtime') => void;
     setNewEnvIsSecret: (isSecret: boolean) => void;
+    setNewEnvDescription: (description: string) => void;
     setDeploying: (deploying: boolean) => void;
     resetImportState: () => void;
 }
@@ -60,6 +63,7 @@ export const createImportSlice: StateCreator<ImportSlice> = (set) => ({
     newEnvValue: '',
     newEnvTarget: 'both',
     newEnvIsSecret: false,
+    newEnvDescription: '',
     isDeploying: false,
 
     setProjectName: (name) => set({ projectName: name }),
@@ -75,6 +79,7 @@ export const createImportSlice: StateCreator<ImportSlice> = (set) => ({
     setNewEnvValue: (value) => set({ newEnvValue: value }),
     setNewEnvTarget: (target) => set({ newEnvTarget: target }),
     setNewEnvIsSecret: (isSecret) => set({ newEnvIsSecret: isSecret }),
+    setNewEnvDescription: (description) => set({ newEnvDescription: description }),
     setDeploying: (deploying) => set({ isDeploying: deploying }),
     resetImportState: () => set({
         projectName: '',
@@ -90,6 +95,7 @@ export const createImportSlice: StateCreator<ImportSlice> = (set) => ({
         newEnvValue: '',
         newEnvTarget: 'both',
         newEnvIsSecret: false,
+        newEnvDescription: '',
         isDeploying: false,
     }),
 });
